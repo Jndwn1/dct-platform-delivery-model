@@ -255,7 +255,7 @@ function ArchitectureRules() {
 
 // ─── VISIO DIAGRAM TAB ────────────────────────────────────────────────────────
 
-const VISIO_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/6z8sjWGC7ihkVcDSZGqeBn/DCT_Roger_End_to_End_Data_Flow_e3cf5e6d.png";
+const VISIO_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/6z8sjWGC7ihkVcDSZGqeBn/DCT_Platform_Architecture_v2.1_35152ddd.png";
 
 // ─── ZOOM PAN VIEWER ─────────────────────────────────────────────────────────
 
