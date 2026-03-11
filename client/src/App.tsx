@@ -14,7 +14,10 @@ import AgentHub from "./pages/AgentHub";
 import ArchitectureView from "./pages/ArchitectureView";
 import DemoRunner from "./pages/DemoRunner";
 import LineageExplorer from "./pages/LineageExplorer";
-import PlaceholderPage from "./pages/PlaceholderPage";
+import BatchRoadmap from "./pages/BatchRoadmap";
+import GateStatus from "./pages/GateStatus";
+import TouchpointsPage from "./pages/TouchpointsPage";
+import ArtifactsPage from "./pages/ArtifactsPage";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -55,10 +58,10 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/batch-roadmap" component={() => <PlaceholderPage title="Batch Roadmap" description="Architectural Batch AB-01 through AB-06 roadmap and delivery timeline." />} />
-        <Route path="/gate-status" component={() => <PlaceholderPage title="Gate Status" description="Detailed gate verification status for all active batches." />} />
-        <Route path="/touchpoints" component={() => <PlaceholderPage title="Touchpoints" description="T1–T11 touchpoint state and system ownership detail." />} />
-        <Route path="/artifacts" component={() => <PlaceholderPage title="Artifacts" description="Full artifact registry across all gates and batches." />} />
+        <Route path="/batch-roadmap" component={BatchRoadmap} />
+        <Route path="/gate-status" component={GateStatus} />
+        <Route path="/touchpoints" component={TouchpointsPage} />
+        <Route path="/artifacts" component={ArtifactsPage} />
         <Route path="/agent-hub" component={AgentHub} />
         <Route path="/architecture" component={ArchitectureView} />
         <Route path="/demo" component={DemoRunner} />
