@@ -260,100 +260,48 @@ const VISIO_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/
 // ─── ZOOM PAN VIEWER ─────────────────────────────────────────────────────────
 
 function ZoomPanViewer({ src, alt }: { src: string; alt: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  // Start at 1.8x so text is immediately legible
-  const [scale, setScale] = useState(1.8);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
+  // Native-scroll approach: image renders at a fixed pixel width inside an overflow-scroll container.
+  // This guarantees every label and annotation is legible — no CSS transform scaling.
+  const BASE_WIDTH = 2600; // px — matches natural diagram resolution
+  const STEP = 400;
+  const MIN_W = 1200;
+  const MAX_W = 6000;
+  const [imageWidth, setImageWidth] = useState(BASE_WIDTH);
   const [fullscreen, setFullscreen] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0, px: 0, py: 0 });
-  const MIN_SCALE = 0.3;
-  const MAX_SCALE = 8;
-  const STEP = 0.2;
-  const clamp = (s: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, s));
-  const zoomIn   = () => setScale(s => clamp(+(s + STEP).toFixed(1)));
-  const zoomOut  = () => setScale(s => clamp(+(s - STEP).toFixed(1)));
-  const reset    = () => { setScale(1.8); setPos({ x: 0, y: 0 }); };
-  const fitFull  = () => { setScale(0.5); setPos({ x: 0, y: 0 }); };
-  const onWheel  = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? STEP : -STEP;
-    setScale(s => clamp(+(s + delta).toFixed(1)));
-  }, []);
-  const onMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setDragging(true);
-    dragStart.current = { x: e.clientX, y: e.clientY, px: pos.x, py: pos.y };
-  };
-  const onMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!dragging) return;
-    setPos({ x: dragStart.current.px + (e.clientX - dragStart.current.x), y: dragStart.current.py + (e.clientY - dragStart.current.y) });
-  }, [dragging]);
-  const onMouseUp = () => setDragging(false);
-  const lastDist = useRef<number | null>(null);
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      if (lastDist.current !== null) setScale(s => clamp(+(s + (d - lastDist.current!) * 0.008).toFixed(2)));
-      lastDist.current = d;
-    }
-  };
-  const onTouchEnd = () => { lastDist.current = null; };
-  const pct = Math.round(scale * 100);
+  const clampW = (w: number) => Math.min(MAX_W, Math.max(MIN_W, w));
+  const zoomIn  = () => setImageWidth(w => clampW(w + STEP));
+  const zoomOut = () => setImageWidth(w => clampW(w - STEP));
+  const reset   = () => setImageWidth(BASE_WIDTH);
+  const pct = Math.round((imageWidth / BASE_WIDTH) * 100);
 
-  const ViewerContent = ({ height }: { height: string }) => (
+  const ScrollViewer = ({ height }: { height: string }) => (
     <div
-      ref={containerRef}
-      className="overflow-hidden bg-[#f0f2f5] relative select-none"
-      style={{ height, cursor: dragging ? "grabbing" : "grab" }}
-      onWheel={onWheel}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      className="overflow-auto bg-[#f0f2f5]"
+      style={{ height }}
     >
-      <div
-        style={{
-          transform: `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px)) scale(${scale})`,
-          transformOrigin: "center center",
-          transition: dragging ? "none" : "transform 0.1s ease",
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          width: "100%",
-        }}
-      >
-        <img
-          src={src}
-          alt={alt}
-          draggable={false}
-          className="w-full h-auto block"
-          style={{ userSelect: "none", pointerEvents: "none", imageRendering: "auto" }}
-        />
-      </div>
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        style={{ width: imageWidth, height: "auto", display: "block", userSelect: "none" }}
+      />
     </div>
   );
 
   const Toolbar = ({ onClose }: { onClose?: () => void }) => (
-    <div className="bg-[#003A8F] px-4 py-2 flex items-center justify-between gap-2">
+    <div className="bg-[#003A8F] px-4 py-2.5 flex items-center justify-between gap-2">
       <span className="text-xs font-semibold text-white truncate">DCT Roger End-to-End Data Flow — Full Swimlane Architecture</span>
-      <div className="flex items-center gap-1 shrink-0">
-        <span className="text-xs text-blue-200 mr-2 font-mono tabular-nums">{pct}%</span>
-        <button onClick={fitFull} title="Fit overview" className="p-1.5 rounded hover:bg-white/20 text-white transition-colors"><Maximize2 className="w-3.5 h-3.5" /></button>
-        <button onClick={zoomOut} title="Zoom out (-)" className="p-1.5 rounded hover:bg-white/20 text-white transition-colors text-lg leading-none font-bold">&#8722;</button>
-        <button onClick={reset} title="Reset to readable zoom" className="px-2.5 py-1 rounded text-xs font-bold hover:bg-white/20 text-white border border-white/40 transition-colors">Reset</button>
-        <button onClick={zoomIn} title="Zoom in (+)" className="p-1.5 rounded hover:bg-white/20 text-white transition-colors text-lg leading-none font-bold">+</button>
-        {!onClose && (
-          <button onClick={() => setFullscreen(true)} title="Full screen" className="p-1.5 rounded hover:bg-white/20 text-white transition-colors ml-1">
-            <Maximize2 className="w-3.5 h-3.5" />
-          </button>
-        )}
-        <a href={src} download="DCT_Roger_End_to_End_Data_Flow.png" target="_blank" rel="noopener noreferrer" title="Download PNG" className="p-1.5 rounded hover:bg-white/20 text-white transition-colors ml-1"><Download className="w-3.5 h-3.5" /></a>
-        {onClose && (
-          <button onClick={onClose} title="Close" className="p-1.5 rounded hover:bg-white/20 text-white transition-colors ml-1"><X className="w-3.5 h-3.5" /></button>
-        )}
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-xs text-blue-200 font-mono tabular-nums w-12 text-right">{pct}%</span>
+        <button onClick={zoomOut} title="Zoom out" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors text-base font-bold">−</button>
+        <button onClick={reset} title="Reset" className="px-2.5 py-1 rounded text-xs font-bold hover:bg-white/20 text-white border border-white/40 transition-colors">Reset</button>
+        <button onClick={zoomIn} title="Zoom in" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors text-base font-bold">+</button>
+        <div className="w-px h-4 bg-white/30 mx-1" />
+        {!onClose
+          ? <button onClick={() => setFullscreen(true)} title="Full screen" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><Maximize2 className="w-3.5 h-3.5" /></button>
+          : <button onClick={onClose} title="Close" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><X className="w-3.5 h-3.5" /></button>
+        }
+        <a href={src} download="DCT_Roger_End_to_End_Data_Flow.png" target="_blank" rel="noopener noreferrer" title="Download PNG" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><Download className="w-3.5 h-3.5" /></a>
       </div>
     </div>
   );
@@ -362,26 +310,19 @@ function ZoomPanViewer({ src, alt }: { src: string; alt: string }) {
     <>
       <div className="bg-white border border-border rounded-xl overflow-hidden shadow-sm">
         <Toolbar />
-        {/* Hint bar */}
         <div className="bg-slate-50 border-b border-border px-4 py-1.5 flex items-center gap-2">
           <Move className="w-3 h-3 text-muted-foreground shrink-0" />
-          <span className="text-xs text-muted-foreground">Drag to pan · Scroll to zoom · Use + / − buttons · Reset returns to readable zoom · Pinch on touch</span>
+          <span className="text-xs text-muted-foreground">Scroll to navigate · Use + / − to resize · Reset returns to default width · Full screen for presentations</span>
         </div>
-        {/* Main viewport — tall enough to show swimlanes */}
-        <ViewerContent height="700px" />
-        {/* Footer */}
+        <ScrollViewer height="700px" />
         <div className="bg-slate-50 border-t border-border px-4 py-2 flex items-center justify-between">
           <span className="text-xs text-muted-foreground">Source: {ARCH_METADATA.sourceOfTruth} · {ARCH_METADATA.layerCount} swimlanes · {ARCH_METADATA.touchpointCount} touchpoints</span>
-          <button
-            onClick={() => setFullscreen(true)}
-            className="text-xs text-[#003A8F] font-semibold hover:underline flex items-center gap-1"
-          >
+          <button onClick={() => setFullscreen(true)} className="text-xs text-[#003A8F] font-semibold hover:underline flex items-center gap-1">
             <Maximize2 className="w-3 h-3" /> Open full screen
           </button>
         </div>
       </div>
 
-      {/* Full-screen overlay */}
       <AnimatePresence>
         {fullscreen && (
           <motion.div
@@ -392,10 +333,10 @@ function ZoomPanViewer({ src, alt }: { src: string; alt: string }) {
           >
             <Toolbar onClose={() => setFullscreen(false)} />
             <div className="flex-1 overflow-hidden">
-              <ViewerContent height="100%" />
+              <ScrollViewer height="100%" />
             </div>
             <div className="bg-[#0F2A5C] px-4 py-2 text-xs text-blue-300 text-center">
-              RSM | CATT · DCT Roger End-to-End Data Flow · Visio is the Single Source of Truth · Press Esc or click × to close
+              RSM | CATT · DCT Roger End-to-End Data Flow · Visio is the Single Source of Truth · Click × to close
             </div>
           </motion.div>
         )}
