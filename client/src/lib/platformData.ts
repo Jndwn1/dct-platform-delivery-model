@@ -555,6 +555,185 @@ export const STORY_GUARANTEES: StoryGuarantee[] = [
   },
 ];
 
+// ─── ARCHITECTURE GUARDRAILS ─────────────────────────────────────────────────
+
+export interface ArchitectureGuardrail {
+  id: string;
+  rule: string;
+  detail: string;
+}
+
+export const ARCHITECTURE_GUARDRAILS: ArchitectureGuardrail[] = [
+  { id: "G-01", rule: "Tax Portal is the single ingestion gate",
+    detail: "All ingestion paths (Direct Upload, Roger Web App, Phoenix, Duo/DSDMS) converge through Tax Portal. No file enters the platform without Tax Portal enforcement." },
+  { id: "G-02", rule: "AI Orchestrator runs once per file",
+    detail: "Stateless compute — invoked exactly once by PDC. Does not own data and does not persist records." },
+  { id: "G-03", rule: "PDC owns cross-LOB truth",
+    detail: "PDC is the first system of record for canonical financial data across all lines of business." },
+  { id: "G-04", rule: "TDC owns tax truth",
+    detail: "All tax mapping proposals, decisions, and TAX_READY transitions are persisted in TDC." },
+  { id: "G-05", rule: "Roger only reads and surfaces user decisions",
+    detail: "Roger Web App is a read-only consumer. It does not write to PDC or TDC directly." },
+];
+
+// ─── SYSTEM OWNERSHIP ────────────────────────────────────────────────────────
+
+export interface SystemOwnership {
+  system: string;
+  owner: string;
+  role: string;
+  sor: boolean;
+  layer: string;
+  colorHex: string;
+}
+
+export const SYSTEM_OWNERSHIP: SystemOwnership[] = [
+  { system: "Tax Portal",      owner: "Ingestion / Platform", role: "Ingestion gate and document identifier authority",       sor: false, layer: "ingestion",     colorHex: "#7C3AED" },
+  { system: "Service Bus",     owner: "Platform",             role: "Event backbone between publishers and consumers",        sor: false, layer: "ingestion",     colorHex: "#6366F1" },
+  { system: "PDC",             owner: "DCT",                  role: "Cross-LOB data authority and first system of record",    sor: true,  layer: "pdc",           colorHex: "#059669" },
+  { system: "TDC",             owner: "DCT",                  role: "Tax domain authority and tax system of record",          sor: true,  layer: "tdc",           colorHex: "#DC2626" },
+  { system: "AI Orchestrator", owner: "Roger team",           role: "Stateless compute performing recognition and mapping",   sor: false, layer: "orchestration", colorHex: "#2563EB" },
+  { system: "Roger Web App",   owner: "Roger team",           role: "User interface for practitioner review",                 sor: false, layer: "experience",    colorHex: "#DB2777" },
+];
+
+// ─── ENTRY POINTS ─────────────────────────────────────────────────────────────
+
+export interface EntryPoint {
+  name: string;
+  description: string;
+}
+
+export const ENTRY_POINTS: EntryPoint[] = [
+  { name: "Direct Upload",  description: "User uploads file directly via web interface" },
+  { name: "Roger Web App",  description: "File submitted through Roger practitioner interface" },
+  { name: "Phoenix",        description: "File sourced from Phoenix ERP system" },
+  { name: "Duo / DSDMS",    description: "File sourced from Duo or Document Storage DMS" },
+];
+
+export const INGESTION_CONTRACT = {
+  enforcer: "Tax Portal",
+  requiredFields: ["entity_id", "tax_year"],
+  rejectionRule: "Files missing required fields are rejected before reaching the Service Bus",
+};
+
+// ─── ADR REGISTRY ─────────────────────────────────────────────────────────────
+
+export type ADRStatus = "ACCEPTED" | "PROPOSED" | "SUPERSEDED";
+
+export interface ADR {
+  id: string;
+  title: string;
+  decision: string;
+  status: ADRStatus;
+  date: string;
+  impact: "High" | "Medium" | "Low";
+}
+
+export const ADR_REGISTRY: ADR[] = [
+  {
+    id: "ADR-01", title: "Tax Portal is the single ingestion gate",
+    decision: "All file ingestion paths must converge through Tax Portal. No file may enter the platform without Tax Portal enforcement of the ingestion contract (entity_id, tax_year).",
+    status: "ACCEPTED", date: "2026-03-01", impact: "High",
+  },
+  {
+    id: "ADR-02", title: "PDC is the cross-LOB system of record",
+    decision: "PDC is the authoritative source for canonical financial data across all lines of business. No other system may claim canonical financial authority.",
+    status: "ACCEPTED", date: "2026-03-01", impact: "High",
+  },
+  {
+    id: "ADR-03", title: "AI Orchestrator runs once per file",
+    decision: "The AI Orchestrator is invoked exactly once per file by PDC. Re-invocation requires explicit governance approval and a new doc_id lineage chain.",
+    status: "ACCEPTED", date: "2026-03-01", impact: "High",
+  },
+  {
+    id: "ADR-04", title: "TDC is the tax system of record",
+    decision: "All tax mapping proposals, practitioner decisions, and TAX_READY transitions are persisted exclusively in TDC. Roger Web App is read-only.",
+    status: "ACCEPTED", date: "2026-03-01", impact: "High",
+  },
+  {
+    id: "ADR-05", title: "Roger Web App is a read-only consumer",
+    decision: "Roger Web App surfaces data from PDC and TDC for practitioner review. It does not write to either system. Practitioner decisions are submitted through a governed API.",
+    status: "ACCEPTED", date: "2026-03-01", impact: "Medium",
+  },
+];
+
+// ─── OPEN ITEMS ───────────────────────────────────────────────────────────────
+
+export type OpenItemPriority = "High" | "Medium" | "Low";
+
+export interface OpenItem {
+  id: string;
+  title: string;
+  description: string;
+  priority: OpenItemPriority;
+  owner: string;
+  status: "OPEN" | "IN_REVIEW" | "RESOLVED";
+}
+
+export const OPEN_ITEMS: OpenItem[] = [
+  {
+    id: "OI-01", title: "Entity identification at ingestion",
+    description: "The mechanism for resolving entity_id at Tax Portal ingestion is not yet defined. Requires alignment between Tax Portal, PDC, and client ERP systems.",
+    priority: "High", owner: "Platform Architecture", status: "OPEN",
+  },
+  {
+    id: "OI-02", title: "Future DMS strategy",
+    description: "The long-term Document Management System strategy (Duo vs. DSDMS vs. consolidated) has not been decided. Impacts ingestion path design.",
+    priority: "Medium", owner: "Platform Architecture", status: "OPEN",
+  },
+  {
+    id: "OI-03", title: "Client adjustment tables",
+    description: "The design for client-specific adjustment tables that modify canonical financial data in PDC is not yet specified.",
+    priority: "Medium", owner: "DCT Architecture", status: "OPEN",
+  },
+];
+
+// ─── DEPENDENCIES ─────────────────────────────────────────────────────────────
+
+export type DependencyStatus = "IN_PROGRESS" | "PLANNED" | "COMPLETE" | "BLOCKED";
+
+export interface Dependency {
+  id: string;
+  name: string;
+  description: string;
+  owner: string;
+  status: DependencyStatus;
+  blocking: boolean;
+}
+
+export const DEPENDENCIES: Dependency[] = [
+  {
+    id: "DEP-01", name: "Tax Portal integration",
+    description: "Tax Portal must expose an ingestion API that accepts file uploads, validates entity_id and tax_year, assigns doc_id, and publishes to Service Bus.",
+    owner: "Ingestion / Platform team", status: "IN_PROGRESS", blocking: true,
+  },
+  {
+    id: "DEP-02", name: "DSDMS abstraction layer",
+    description: "A DSDMS abstraction layer is required to normalize file retrieval across Duo and DSDMS source systems before Tax Portal ingestion.",
+    owner: "Platform Architecture", status: "PLANNED", blocking: false,
+  },
+  {
+    id: "DEP-03", name: "Service Bus configuration",
+    description: "Service Bus topics and subscriptions must be configured for: New File event (Tax Portal → PDC), READY event (PDC → TDC), and Adjustment event (Roger → PDC/TDC).",
+    owner: "Platform team", status: "IN_PROGRESS", blocking: true,
+  },
+];
+
+export const ARCH_METADATA = {
+  title: "DCT Roger End-to-End Data Flow",
+  version: "2.0.0",
+  sourceOfTruth: "arch_model.py (Architecture Sync Agent)",
+  lastUpdated: "2026-03-11",
+  authority: "DCT Platform Architecture Team | RSM | CATT",
+  visioUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/6z8sjWGC7ihkVcDSZGqeBn/DCT_Platform_Architecture_v2_c18d128a.png",
+  layerCount: 6,
+  touchpointCount: 11,
+  agentCount: 5,
+  adrCount: 5,
+  openItemCount: 3,
+  dependencyCount: 3,
+};
+
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 export const getAgent = (id: string) => AGENTS.find(a => a.id === id);
