@@ -61,7 +61,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
   return (
     <aside className="w-52 flex-shrink-0 flex flex-col h-full" style={{ background: "oklch(0.22 0.10 264)" }}>
       {/* Logo */}
-      <div className="px-4 py-4 border-b" style={{ borderColor: "oklch(0.32 0.08 264)" }}>
+      <div className="px-4 py-4 border-b" style={{ borderBottomColor: "oklch(0.32 0.08 264)" }}>
         <div className="flex items-center gap-2 mb-1">
           <div className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold"
             style={{ background: "oklch(0.52 0.18 264)" }}>
@@ -100,7 +100,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
       </nav>
 
       {/* Active batch footer */}
-      <div className="px-3 py-3 border-t" style={{ borderColor: "oklch(0.32 0.08 264)" }}>
+      <div className="px-3 py-3 border-t" style={{ borderTopColor: "oklch(0.32 0.08 264)" }}>
         <div className="text-xs px-2 mb-2" style={{ color: "oklch(0.55 0.06 264)" }}>
           <div className="font-semibold uppercase tracking-widest mb-0.5">Active Batch</div>
           <div className="text-white font-medium text-xs">AB-01</div>

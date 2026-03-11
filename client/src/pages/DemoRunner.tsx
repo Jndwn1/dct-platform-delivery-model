@@ -25,7 +25,12 @@ function StepRow({ step, state, isActive }: { step: DemoStep; state: StepState; 
     }`}
       style={{
         background: isActive ? sc.bg : "white",
-        borderColor: isActive ? sc.border : "#E5E7EB",
+        borderTopWidth: 1,
+        borderTopColor: isActive ? sc.border : "#E5E7EB",
+        borderRightWidth: 1,
+        borderRightColor: isActive ? sc.border : "#E5E7EB",
+        borderBottomWidth: 1,
+        borderBottomColor: isActive ? sc.border : "#E5E7EB",
         borderLeftWidth: 4,
         borderLeftColor: sc.border,
       }}>
