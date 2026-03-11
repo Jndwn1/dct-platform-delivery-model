@@ -260,9 +260,7 @@ const VISIO_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/
 // ─── ZOOM PAN VIEWER ─────────────────────────────────────────────────────────
 
 function ZoomPanViewer({ src, alt }: { src: string; alt: string }) {
-  // Native-scroll approach: image renders at a fixed pixel width inside an overflow-scroll container.
-  // This guarantees every label and annotation is legible — no CSS transform scaling.
-  const BASE_WIDTH = 2600; // px — matches natural diagram resolution
+  const BASE_WIDTH = 2600;
   const STEP = 400;
   const MIN_W = 1200;
   const MAX_W = 6000;
@@ -274,47 +272,37 @@ function ZoomPanViewer({ src, alt }: { src: string; alt: string }) {
   const reset   = () => setImageWidth(BASE_WIDTH);
   const pct = Math.round((imageWidth / BASE_WIDTH) * 100);
 
-  const ScrollViewer = ({ height }: { height: string }) => (
-    <div
-      className="overflow-auto bg-[#f0f2f5]"
-      style={{ height }}
-    >
-      <img
-        src={src}
-        alt={alt}
-        draggable={false}
-        style={{ width: imageWidth, height: "auto", display: "block", userSelect: "none" }}
-      />
-    </div>
-  );
-
-  const Toolbar = ({ onClose }: { onClose?: () => void }) => (
-    <div className="bg-[#003A8F] px-4 py-2.5 flex items-center justify-between gap-2">
-      <span className="text-xs font-semibold text-white truncate">DCT Roger End-to-End Data Flow — Full Swimlane Architecture</span>
-      <div className="flex items-center gap-2 shrink-0">
-        <span className="text-xs text-blue-200 font-mono tabular-nums w-12 text-right">{pct}%</span>
-        <button onClick={zoomOut} title="Zoom out" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors text-base font-bold">−</button>
-        <button onClick={reset} title="Reset" className="px-2.5 py-1 rounded text-xs font-bold hover:bg-white/20 text-white border border-white/40 transition-colors">Reset</button>
-        <button onClick={zoomIn} title="Zoom in" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors text-base font-bold">+</button>
-        <div className="w-px h-4 bg-white/30 mx-1" />
-        {!onClose
-          ? <button onClick={() => setFullscreen(true)} title="Full screen" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><Maximize2 className="w-3.5 h-3.5" /></button>
-          : <button onClick={onClose} title="Close" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><X className="w-3.5 h-3.5" /></button>
-        }
-        <a href={src} download="DCT_Roger_End_to_End_Data_Flow.png" target="_blank" rel="noopener noreferrer" title="Download PNG" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><Download className="w-3.5 h-3.5" /></a>
-      </div>
-    </div>
-  );
-
   return (
     <>
       <div className="bg-white border border-border rounded-xl overflow-hidden shadow-sm">
-        <Toolbar />
+        {/* Toolbar */}
+        <div className="bg-[#003A8F] px-4 py-2.5 flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-white truncate">DCT Roger End-to-End Data Flow — Full Swimlane Architecture</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs text-blue-200 font-mono tabular-nums w-12 text-right">{pct}%</span>
+            <button onClick={zoomOut} title="Zoom out" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors text-base font-bold">−</button>
+            <button onClick={reset} title="Reset" className="px-2.5 py-1 rounded text-xs font-bold hover:bg-white/20 text-white border border-white/40 transition-colors">Reset</button>
+            <button onClick={zoomIn} title="Zoom in" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors text-base font-bold">+</button>
+            <div className="w-px h-4 bg-white/30 mx-1" />
+            <button onClick={() => setFullscreen(true)} title="Full screen" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><Maximize2 className="w-3.5 h-3.5" /></button>
+            <a href={src} download="DCT_Roger_End_to_End_Data_Flow.png" target="_blank" rel="noopener noreferrer" title="Download PNG" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><Download className="w-3.5 h-3.5" /></a>
+          </div>
+        </div>
+        {/* Hint bar */}
         <div className="bg-slate-50 border-b border-border px-4 py-1.5 flex items-center gap-2">
           <Move className="w-3 h-3 text-muted-foreground shrink-0" />
           <span className="text-xs text-muted-foreground">Scroll to navigate · Use + / − to resize · Reset returns to default width · Full screen for presentations</span>
         </div>
-        <ScrollViewer height="700px" />
+        {/* Scroll area */}
+        <div className="overflow-auto bg-[#f0f2f5]" style={{ height: "700px" }}>
+          <img
+            src={src}
+            alt={alt}
+            draggable={false}
+            style={{ width: imageWidth, height: "auto", display: "block", userSelect: "none" }}
+          />
+        </div>
+        {/* Footer */}
         <div className="bg-slate-50 border-t border-border px-4 py-2 flex items-center justify-between">
           <span className="text-xs text-muted-foreground">Source: {ARCH_METADATA.sourceOfTruth} · {ARCH_METADATA.layerCount} swimlanes · {ARCH_METADATA.touchpointCount} touchpoints</span>
           <button onClick={() => setFullscreen(true)} className="text-xs text-[#003A8F] font-semibold hover:underline flex items-center gap-1">
@@ -322,7 +310,6 @@ function ZoomPanViewer({ src, alt }: { src: string; alt: string }) {
           </button>
         </div>
       </div>
-
       <AnimatePresence>
         {fullscreen && (
           <motion.div
@@ -331,9 +318,27 @@ function ZoomPanViewer({ src, alt }: { src: string; alt: string }) {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-[#0a1628] flex flex-col"
           >
-            <Toolbar onClose={() => setFullscreen(false)} />
-            <div className="flex-1 overflow-hidden">
-              <ScrollViewer height="100%" />
+            {/* Fullscreen toolbar */}
+            <div className="bg-[#003A8F] px-4 py-2.5 flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-white truncate">DCT Roger End-to-End Data Flow — Full Swimlane Architecture</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs text-blue-200 font-mono tabular-nums w-12 text-right">{pct}%</span>
+                <button onClick={zoomOut} title="Zoom out" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors text-base font-bold">−</button>
+                <button onClick={reset} title="Reset" className="px-2.5 py-1 rounded text-xs font-bold hover:bg-white/20 text-white border border-white/40 transition-colors">Reset</button>
+                <button onClick={zoomIn} title="Zoom in" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors text-base font-bold">+</button>
+                <div className="w-px h-4 bg-white/30 mx-1" />
+                <button onClick={() => setFullscreen(false)} title="Close" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><X className="w-3.5 h-3.5" /></button>
+                <a href={src} download="DCT_Roger_End_to_End_Data_Flow.png" target="_blank" rel="noopener noreferrer" title="Download PNG" className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors"><Download className="w-3.5 h-3.5" /></a>
+              </div>
+            </div>
+            {/* Fullscreen scroll area */}
+            <div className="flex-1 overflow-auto bg-[#f0f2f5]">
+              <img
+                src={src}
+                alt={alt}
+                draggable={false}
+                style={{ width: imageWidth, height: "auto", display: "block", userSelect: "none" }}
+              />
             </div>
             <div className="bg-[#0F2A5C] px-4 py-2 text-xs text-blue-300 text-center">
               RSM | CATT · DCT Roger End-to-End Data Flow · Visio is the Single Source of Truth · Click × to close
