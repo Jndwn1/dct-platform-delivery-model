@@ -255,7 +255,7 @@ function ArchitectureRules() {
 
 // ─── VISIO DIAGRAM TAB ────────────────────────────────────────────────────────
 
-const VISIO_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/6z8sjWGC7ihkVcDSZGqeBn/DCT_Roger_Original_Visio_83eacf1f.png";
+const VISIO_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/6z8sjWGC7ihkVcDSZGqeBn/DCT_Roger_Domain_Split_v3_c465ad84.png"; // v3 — Domain Output Split (PDC + TDC)
 const PLATFORM_ARCH_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/6z8sjWGC7ihkVcDSZGqeBn/DCT_Platform_Architecture_v1_3176731c.png";
 
 // ─── ZOOM PAN VIEWER ─────────────────────────────────────────────────────────
