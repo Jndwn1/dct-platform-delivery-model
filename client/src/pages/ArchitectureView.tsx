@@ -256,6 +256,7 @@ function ArchitectureRules() {
 // ─── VISIO DIAGRAM TAB ────────────────────────────────────────────────────────
 
 const VISIO_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/6z8sjWGC7ihkVcDSZGqeBn/DCT_Roger_Original_Visio_83eacf1f.png";
+const PLATFORM_ARCH_CDN_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663402976610/6z8sjWGC7ihkVcDSZGqeBn/DCT_Platform_Architecture_v1_3176731c.png";
 
 // ─── ZOOM PAN VIEWER ─────────────────────────────────────────────────────────
 
@@ -433,7 +434,7 @@ function VisioDiagramTab() {
 
 export default function ArchitectureView() {
   const [selectedTp, setSelectedTp] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"visio" | "interactive" | "adrs" | "openitems" | "dependencies">("visio");
+  const [activeTab, setActiveTab] = useState<"visio" | "platform" | "interactive" | "adrs" | "openitems" | "dependencies">("visio");
 
   const tpsByLayer = (layerId: string) =>
     TOUCHPOINTS.filter(tp => tp.layerId === layerId);
@@ -505,6 +506,18 @@ export default function ArchitectureView() {
           <span className="text-xs bg-[#003A8F]/10 text-[#003A8F] px-1.5 py-0.5 rounded font-medium">Sync Agent</span>
         </button>
         <button
+          onClick={() => setActiveTab("platform")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === "platform"
+              ? "bg-white text-[#065F46] shadow-sm border border-border"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          Full Platform Architecture
+          <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded font-medium">B0–B10</span>
+        </button>
+        <button
           onClick={() => { setActiveTab("interactive"); setSelectedTp(null); }}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
             activeTab === "interactive"
@@ -537,6 +550,48 @@ export default function ArchitectureView() {
         {activeTab === "visio" && (
           <motion.div key="visio" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             <VisioDiagramTab />
+          </motion.div>
+        )}
+        {activeTab === "platform" && (
+          <motion.div key="platform" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "PDC", sub: "Financial System of Record", color: "bg-emerald-50 border-emerald-300 text-emerald-800" },
+                  { label: "TDC", sub: "Tax System of Record", color: "bg-orange-50 border-orange-300 text-orange-800" },
+                  { label: "Roger", sub: "Read-Only Consumer · All via API Gateway", color: "bg-purple-50 border-purple-300 text-purple-800" },
+                ].map(r => (
+                  <div key={r.label} className={`border rounded-lg px-3 py-2 ${r.color}`}>
+                    <div className="text-xs font-bold">{r.label}</div>
+                    <div className="text-xs opacity-80">{r.sub}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-2xl overflow-hidden border border-border bg-card">
+                <div className="flex items-center justify-between px-4 py-3 bg-[#065F46] text-white">
+                  <div>
+                    <div className="font-semibold text-sm">DCT Platform — Full Stack Architecture · Batches 0–10</div>
+                    <div className="text-xs text-green-200 mt-0.5">Roger · TDC · PDC · Service Bus · AI Orchestrator · API Gateway · Lineage</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs bg-green-800/60 text-green-200 px-2 py-0.5 rounded">v1.0 · 2026-03-12</span>
+                    <a href={PLATFORM_ARCH_CDN_URL} download="DCT_Platform_Architecture_v1.png" target="_blank" rel="noopener noreferrer"
+                      className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/20 text-white transition-colors" title="Download PNG">
+                      <Download className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+                <ZoomPanViewer src={PLATFORM_ARCH_CDN_URL} alt="DCT Platform Full Stack Architecture Batches 0-10" />
+                <div className="px-4 py-2 bg-muted/30 border-t border-border flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">DCT_Platform_Architecture_v1.png · Batch Roadmap B0–B10 · RSM | CATT · 2026-03-12</div>
+                  <div className="flex gap-3 text-xs">
+                    <span className="text-green-700 font-medium">PDC — Financial System of Record</span>
+                    <span className="text-orange-700 font-medium">TDC — Tax System of Record</span>
+                    <span className="text-purple-700 font-medium">Roger — Read-Only Consumer</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
         {activeTab === "interactive" && (
