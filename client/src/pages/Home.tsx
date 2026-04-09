@@ -1,508 +1,464 @@
-// Home — Governance Dashboard (Enhanced)
-// RSM Command Center | DCT Platform Executive Demo Environment v3.0
-// Design: RSM Blue authority palette, consulting-grade, executive-ready
+// DCT Delivery Model — Main Page
+// Matches reference: rsm-ai-team-niua6bzx.manus.space
+// 4 layers: Active Batch, Batch Gates, AI Agent Execution, Runtime Data Journey
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  CheckCircle2, Clock, AlertTriangle, FileText, TrendingUp,
-  ChevronDown, ChevronRight, Shield, GitBranch, Brain,
-  Play, ShieldCheck, Layers, ArrowRight, Lock, Link2
-} from "lucide-react";
-import {
-  GATES, TOUCHPOINTS, DEMO_SCENARIO, STORY_GUARANTEES,
-  AGENTS, PLATFORM_LAYERS, STATUS_COLORS, GUARANTEE_COLORS,
-  type Gate, type GuaranteeType, getAgent, getLayer
-} from "@/lib/platformData";
+import { useLocation } from "wouter";
 
-// ─── KPI STRIP ───────────────────────────────────────────────────────────────
+const BATCHES = [
+  { id: "foundation-core", label: "Foundation Core", status: "Active" },
+  { id: "1", label: "Batch 1 — File Ingestion & Initial Storage", status: "Active" },
+  { id: "2", label: "Batch 2 — Normalization & Cross-LOB Taxonomy", status: "Planned" },
+  { id: "3", label: "Batch 3 — Tax Domain Authority & Tax Taxonomy", status: "Planned" },
+  { id: "4", label: "Batch 4 — AI Tax Mapping & Explainability", status: "Planned" },
+  { id: "5", label: "Batch 5 — Mapping Decisions & Governance", status: "Planned" },
+  { id: "6", label: "Batch 6 — Practitioner Review & Adjustment Workflow", status: "Planned" },
+  { id: "7", label: "Batch 7 — Rollforward & Prior Year Intelligence", status: "Planned" },
+  { id: "8", label: "Batch 8 — Return Assembly, Filing & Lineage Closure", status: "Planned" },
+  { id: "9", label: "Batch 9 — Learning Governance & Model Evolution", status: "Planned" },
+];
 
-function KPIStrip() {
-  const kpis = [
-    { label: "Active Batches", value: "1", sub: "5 planned", icon: Layers, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Gates Pending", value: "1", sub: "0 passed · 0 blocked", icon: Shield, color: "text-amber-600", bg: "bg-amber-50" },
-    { label: "Artifacts Issued", value: "3", sub: "2 pending · 15 missing", icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Open Issues", value: "2", sub: "AB-01 · G1 scope", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50" },
-    { label: "Platform Progress", value: "18%", sub: "T1–T3 active", icon: TrendingUp, color: "text-purple-600", bg: "bg-purple-50" },
-  ];
+const GATES = [
+  {
+    num: 1, label: "Schema Lock", status: "Locked", statusColor: "#475569",
+    owner: "Enterprise Architect",
+    desc: "Confirm that all entity schemas are complete, reviewed, and frozen before implementation begins.",
+  },
+  {
+    num: 2, label: "Invariant Lock", status: "In Progress", statusColor: "#d97706",
+    owner: "QA Lead / Tax Technology",
+    desc: "Confirm that all system invariants (immutability, hash integrity, client isolation, atomic writes) have been tested adversarially and no violations exist.",
+  },
+  {
+    num: 3, label: "Contract Publication", status: "Pending", statusColor: "#64748b",
+    owner: "API Product Owner",
+    desc: "Confirm that all API contracts (OpenAPI/Swagger) are published, versioned, and accepted by downstream consumers.",
+  },
+  {
+    num: 4, label: "Lineage Closure", status: "Pending", statusColor: "#64748b",
+    owner: "DCT Delivery Lead",
+    desc: "Confirm that the full lineage chain is captured, queryable, and verified end-to-end before the Batch is marked complete.",
+  },
+];
 
-  return (
-    <div className="grid grid-cols-5 gap-4">
-      {kpis.map((k) => (
-        <div key={k.label} className="bg-white border border-border rounded-lg p-4 flex items-start gap-3 shadow-sm">
-          <div className={`${k.bg} p-2 rounded-md`}>
-            <k.icon className={`w-4 h-4 ${k.color}`} />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-foreground leading-none">{k.value}</div>
-            <div className="text-xs font-medium text-foreground mt-0.5">{k.label}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">{k.sub}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+const AGENTS = [
+  {
+    id: "A", label: "Architect Agent", role: "Enterprise Solution Architect", status: "Complete", statusColor: "#059669",
+    tasks: [
+      "Schema design for PDC identity model, TDC reference tables, lineage backbone",
+      "Platform architecture validation (Azure SQL, Service Bus, AI Orchestrator)",
+      "Architecture Decision Records (ADRs)",
+    ],
+    gates: { g1: "★", g2: "—", g3: "—", g4: "—" },
+  },
+  {
+    id: "B", label: "Analyst Agent", role: "Senior Business Analyst", status: "Complete", statusColor: "#059669",
+    tasks: [
+      "Touchpoint requirements across all batches",
+      "Batch scope definition and Epic/Feature breakdown",
+      "User stories with Given/When/Then acceptance criteria",
+    ],
+    gates: { g1: "—", g2: "—", g3: "—", g4: "★" },
+  },
+  {
+    id: "D", label: "Developer Agent", role: "Blitzy Code Generation", status: "In Progress", statusColor: "#d97706",
+    tasks: [
+      "Blitzy-generated .NET 8 implementation per batch",
+      "API endpoint implementation and Swagger/OpenAPI contracts",
+      "EF Core migration scripts and data models",
+    ],
+    gates: { g1: "—", g2: "—", g3: "★", g4: "—" },
+  },
+  {
+    id: "Q", label: "QA Agent", role: "Adversarial Invariant Testing", status: "In Progress", statusColor: "#d97706",
+    tasks: [
+      "Adversarial invariant testing for all batch business rules",
+      "Gate 2 — Invariant Lock verification",
+      "Lineage chain end-to-end validation",
+    ],
+    gates: { g1: "—", g2: "★", g3: "—", g4: "✓" },
+  },
+];
 
-// ─── ENHANCED GATE VERIFICATION ──────────────────────────────────────────────
+const TOUCHPOINTS = [
+  { id: "T1", label: "File Ingestion via Tax Portal", system: "Tax Portal", batch: "Batch 1",
+    desc: "Client financial file enters via any entry point (Direct Upload, Roger Web App, Phoenix, or Duo/DSDMS). Tax Portal is the single ingestion gate. It generates an immutable DocumentId (GUID) and JobId (GUID), validates EntityId (GUID) + PeriodStart + PeriodEnd, and publishes a NEW_FILE_EVENT to the Service Bus topic: file_ingestion_events." },
+  { id: "T2", label: "PDC Record Creation", system: "PDC", batch: "Batch 1",
+    desc: "PDC Ingestion Listener consumes NEW_FILE_EVENT from topic file_ingestion_events (at-least-once delivery, replay supported). PDC persists IngestionJob and SourceFile. Status state machine: INGESTED → PROCESSING → READY | FAILED (enum-driven)." },
+  { id: "T3", label: "AI Processing Trigger", system: "PDC → AI Orchestrator", batch: "Batch 2",
+    desc: "PDC advances the IngestionJob status (enum) to PROCESSING and invokes the AI Orchestrator once per file with DocumentId, EntityId, PeriodStart, PeriodEnd, and metadata. The orchestrator sequences all AI stages and coordinates PDC and TDC via APIs." },
+  { id: "T4", label: "AI Agent Pipeline Execution", system: "AI Orchestrator", batch: "Batch 2",
+    desc: "The orchestrator runs a staged agent chain: File Recognizer → File Normalizer → Cross-LOB Mapper → Tax Mapper. Agents are stateless and do not persist data directly. All persistence occurs through PDC and TDC APIs." },
+  { id: "T5", label: "Canonical Dataset Persistence", system: "PDC", batch: "Batch 2",
+    desc: "Orchestrator writes normalized FinancialFact records and Cross-LOB taxonomy mappings to PDC. PDC assigns RunId (GUID) and SourceRecordId (GUID), confirms READY state (enum), and becomes the authoritative cross-LOB data system of record." },
+  { id: "T6", label: "Tax Record Creation in TDC", system: "TDC", batch: "Batch 3",
+    desc: "Orchestrator writes tax mapping proposals to TDC, including confidence scores (GREEN/YELLOW/RED enum band) and structured evidence. TDC assigns TdcRecordId (GUID) and preserves lineage (DocumentId → SourceRecordId → TdcRecordId)." },
+  { id: "T7", label: "Practitioner View in Roger", system: "Roger Web App", batch: "Batch 5",
+    desc: "Roger retrieves tax-ready records from TDC using the read-only API. The UI displays cross-LOB classifications, tax proposals, confidence bands (GREEN/YELLOW/RED enum), and lineage for practitioner review. Roger is a read-only consumer — no writes to TDC or PDC." },
+  { id: "T8", label: "Practitioner Decision", system: "Roger Web App", batch: "Batch 6",
+    desc: "Practitioner reviews AI proposals and takes action: accept, override, or reject. Decisions are captured against TdcRecordId (GUID) as append-only MappingDecision records (never overwritten). Decision state enum: ACCEPTED | OVERRIDDEN | REJECTED." },
+  { id: "T9", label: "Adjustment Propagation", system: "DCT (PDC + TDC APIs)", batch: "Batch 6",
+    desc: "Corrections propagate back to the appropriate system of record. Cross-LOB changes update PDC, tax classification changes update TDC, and combined changes update PDC first then TDC." },
+  { id: "T10", label: "TDC Finalization — TAX_READY", system: "TDC", batch: "Batch 6",
+    desc: "TDC assigns final record state (enum: REVIEW_REQUIRED | TAX_READY) and versions all tax decisions. Locked records are immutable — no updates or deletes ever. Final tax records become the authoritative system output for downstream consumption." },
+];
 
-const GATE_ICONS: Record<string, React.ElementType> = {
-  G1: Lock, G2: Shield, G3: Link2, G4: FileText,
+const AGENT_COLORS: Record<string, string> = {
+  A: "#6366f1", B: "#0ea5e9", D: "#f97316", Q: "#a855f7"
 };
-
-const GATE_STATUS_STYLES: Record<string, { badge: string; ring: string; dot: string }> = {
-  PASSED: { badge: "bg-emerald-100 text-emerald-800 border-emerald-200", ring: "ring-emerald-200", dot: "bg-emerald-500" },
-  PENDING_REVIEW: { badge: "bg-amber-100 text-amber-800 border-amber-200", ring: "ring-amber-200", dot: "bg-amber-500" },
-  PLANNED: { badge: "bg-slate-100 text-slate-600 border-slate-200", ring: "ring-slate-200", dot: "bg-slate-400" },
-  BLOCKED: { badge: "bg-red-100 text-red-800 border-red-200", ring: "ring-red-200", dot: "bg-red-500" },
-};
-
-function GateVerificationSection() {
-  const [expanded, setExpanded] = useState<string | null>("G1");
-
-  return (
-    <section>
-      <SectionHeader title="Gate Verification Model — G1 through G4" sub="AB-01 Active Batch" />
-      <div className="grid grid-cols-4 gap-3 mb-4">
-        {GATES.map((gate) => {
-          const styles = GATE_STATUS_STYLES[gate.status];
-          const Icon = GATE_ICONS[gate.id];
-          const issued = gate.artifacts.filter(a => a.status === "ISSUED").length;
-          const total = gate.artifacts.length;
-          const pct = Math.round((issued / total) * 100);
-          const isOpen = expanded === gate.id;
-
-          return (
-            <button
-              key={gate.id}
-              onClick={() => setExpanded(isOpen ? null : gate.id)}
-              className={`text-left bg-white border rounded-lg p-4 shadow-sm transition-all ring-1 ${styles.ring} hover:shadow-md`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${styles.dot}`} />
-                  <span className="text-xs font-bold text-muted-foreground">{gate.id}</span>
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${styles.badge}`}>
-                  {gate.status.replace("_", " ")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mb-2">
-                <Icon className="w-4 h-4 text-[#003A8F]" />
-                <span className="text-sm font-bold text-foreground">{gate.name}</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-1.5 mb-1">
-                <div
-                  className="bg-[#003A8F] h-1.5 rounded-full transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <div className="text-xs text-muted-foreground">{issued}/{total} artifacts</div>
-            </button>
-          );
-        })}
-      </div>
-
-      <AnimatePresence>
-        {expanded && (() => {
-          const gate = GATES.find(g => g.id === expanded)!;
-          return (
-            <motion.div
-              key={expanded}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="bg-white border border-border rounded-lg p-5 shadow-sm overflow-hidden"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">{gate.id} — {gate.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 max-w-2xl">{gate.description}</p>
-                </div>
-                <div className="text-xs text-muted-foreground text-right">
-                  <div className="font-medium">Owner</div>
-                  <div>{gate.owner}</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Required Artifacts</div>
-                  <div className="space-y-1.5">
-                    {gate.artifacts.map((art, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs">
-                        {art.status === "ISSUED" ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        ) : art.status === "PENDING" ? (
-                          <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                        ) : (
-                          <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300 shrink-0" />
-                        )}
-                        <span className={art.status === "MISSING" ? "text-muted-foreground" : "text-foreground"}>
-                          {art.name}
-                        </span>
-                        <span className="text-muted-foreground ml-auto">— {art.owner}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Touchpoints</div>
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {gate.touchpointIds.map(tid => {
-                      const tp = TOUCHPOINTS.find(t => t.id === tid);
-                      return tp ? (
-                        <div key={tid} className="bg-[#003A8F]/10 text-[#003A8F] text-xs px-2 py-1 rounded font-medium">
-                          {tid} — {tp.name}
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Exit Condition</div>
-                  <p className="text-xs text-muted-foreground bg-slate-50 p-2 rounded border border-border">
-                    {gate.exitCondition}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })()}
-      </AnimatePresence>
-    </section>
-  );
-}
-
-// ─── ENRICHED TOUCHPOINT JOURNEY ─────────────────────────────────────────────
-
-const TP_LAYER_COLORS: Record<string, string> = {
-  ingestion: "bg-violet-500",
-  orchestration: "bg-blue-500",
-  pdc: "bg-emerald-500",
-  tdc: "bg-red-500",
-  experience: "bg-pink-500",
-};
-
-const TP_STATUS_RING: Record<string, string> = {
-  COMPLETE: "ring-emerald-400",
-  IN_PROGRESS: "ring-blue-400",
-  PENDING: "ring-amber-400",
-  PLANNED: "ring-slate-300",
-  BLOCKED: "ring-red-400",
-};
-
-function EnrichedTouchpointJourney() {
-  const [selected, setSelected] = useState<string | null>(null);
-
-  return (
-    <section>
-      <SectionHeader title="Touchpoint Runtime Journey — T1 through T11" sub="System · Agent · Layer mapping" />
-      <div className="bg-white border border-border rounded-lg p-5 shadow-sm">
-        {/* Layer legend */}
-        <div className="flex items-center gap-4 mb-4 flex-wrap">
-          {[
-            { id: "ingestion", label: "DMS/Phoenix", color: "bg-violet-500" },
-            { id: "orchestration", label: "AI Orchestrator", color: "bg-blue-500" },
-            { id: "pdc", label: "PDC", color: "bg-emerald-500" },
-            { id: "tdc", label: "TDC", color: "bg-red-500" },
-            { id: "experience", label: "Roger UI", color: "bg-pink-500" },
-          ].map(l => (
-            <div key={l.id} className="flex items-center gap-1.5">
-              <div className={`w-2.5 h-2.5 rounded-full ${l.color}`} />
-              <span className="text-xs text-muted-foreground">{l.label}</span>
-            </div>
-          ))}
-          <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />Complete</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />In Progress</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />Pending</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300 inline-block" />Planned</span>
-          </div>
-        </div>
-
-        {/* Journey strip */}
-        <div className="flex items-start gap-1 overflow-x-auto pb-2">
-          {TOUCHPOINTS.map((tp, i) => {
-            const dotColor = TP_LAYER_COLORS[tp.layerId] || "bg-slate-400";
-            const ring = TP_STATUS_RING[tp.status];
-            const agent = tp.agentId ? getAgent(tp.agentId) : null;
-            const isSelected = selected === tp.id;
-
-            return (
-              <div key={tp.id} className="flex items-start gap-1 shrink-0">
-                <button
-                  onClick={() => setSelected(isSelected ? null : tp.id)}
-                  className="flex flex-col items-center gap-1 group"
-                >
-                  <div className={`w-9 h-9 rounded-full ${dotColor} ring-2 ${ring} flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:scale-110 transition-transform ${isSelected ? "scale-110 shadow-md" : ""}`}>
-                    {tp.id}
-                  </div>
-                  <div className="text-center w-20">
-                    <div className="text-xs font-medium text-foreground leading-tight truncate">{tp.name.split(" ").slice(0, 2).join(" ")}</div>
-                    <div className="text-xs text-muted-foreground truncate">{tp.system}</div>
-                    {agent && (
-                      <div className="text-xs text-[#003A8F]/70 truncate">{agent.name.split(" ")[0]}</div>
-                    )}
-                  </div>
-                </button>
-                {i < TOUCHPOINTS.length - 1 && (
-                  <div className="mt-4 text-slate-300">
-                    <ArrowRight className="w-3 h-3" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Touchpoint detail */}
-        <AnimatePresence>
-          {selected && (() => {
-            const tp = TOUCHPOINTS.find(t => t.id === selected)!;
-            const agent = tp.agentId ? getAgent(tp.agentId) : null;
-            const layer = getLayer(tp.layerId);
-            return (
-              <motion.div
-                key={selected}
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="mt-4 pt-4 border-t border-border grid grid-cols-4 gap-4"
-              >
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">System</div>
-                  <div className="text-sm font-medium text-foreground">{tp.system}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{tp.responsibility}</div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Platform Layer</div>
-                  <div className="text-sm font-medium text-foreground">{layer?.label}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{layer?.authority}</div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Executing Agent</div>
-                  {agent ? (
-                    <>
-                      <div className="text-sm font-medium text-foreground">{agent.name}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{agent.role}</div>
-                    </>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">Practitioner / Manual</div>
-                  )}
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Outputs</div>
-                  <div className="space-y-0.5">
-                    {tp.outputs.slice(0, 3).map((o, i) => (
-                      <div key={i} className="text-xs text-muted-foreground flex items-center gap-1">
-                        <div className="w-1 h-1 rounded-full bg-[#003A8F]/40 shrink-0" />
-                        {o}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })()}
-        </AnimatePresence>
-      </div>
-    </section>
-  );
-}
-
-// ─── DEMO SCENARIO PANEL ─────────────────────────────────────────────────────
-
-function DemoScenarioPanel() {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <section>
-      <SectionHeader title="Demo Runtime Scenario" sub="End-to-End Platform Workflow" />
-      <div className="bg-white border border-border rounded-lg shadow-sm overflow-hidden">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#003A8F] flex items-center justify-center">
-              <Play className="w-4 h-4 text-white" />
-            </div>
-            <div className="text-left">
-              <div className="text-sm font-bold text-foreground">PI-1 Executive Demo — Trial Balance Processing</div>
-              <div className="text-xs text-muted-foreground">10 steps · T1–T11 · Client upload → Roger UI display</div>
-            </div>
-          </div>
-          {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-        </button>
-
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="px-4 pb-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {DEMO_SCENARIO.map((step) => {
-                    const tp = TOUCHPOINTS.find(t => t.id === step.touchpointId);
-                    const dotColor = TP_LAYER_COLORS[step.layerId] || "bg-slate-400";
-                    const agent = step.agentId ? getAgent(step.agentId) : null;
-                    return (
-                      <div key={step.step} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-border">
-                        <div className={`w-7 h-7 rounded-full ${dotColor} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-                          {step.step}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold text-foreground">{step.label}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">{step.description}</div>
-                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                            <span className="text-xs bg-white border border-border px-1.5 py-0.5 rounded text-muted-foreground">{step.touchpointId}</span>
-                            <span className="text-xs text-muted-foreground">{step.system}</span>
-                            {agent && <span className="text-xs text-[#003A8F]/80">{agent.name}</span>}
-                          </div>
-                          <div className="text-xs text-emerald-700 mt-1 font-medium">→ {step.output}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </section>
-  );
-}
-
-// ─── BLITZY DELIVERY ALIGNMENT ────────────────────────────────────────────────
-
-const GUARANTEE_ICONS: Record<GuaranteeType, React.ElementType> = {
-  SCHEMA: Lock, LINEAGE: Link2, CONTRACT: FileText, RUNTIME: Play,
-};
-
-const GUARANTEE_LABELS: Record<GuaranteeType, string> = {
-  SCHEMA: "Schema Guarantee", LINEAGE: "Lineage Guarantee",
-  CONTRACT: "Contract Guarantee", RUNTIME: "Runtime Guarantee",
-};
-
-function BlitzyAlignmentSection() {
-  return (
-    <section>
-      <SectionHeader title="Blitzy Delivery Model Alignment" sub="Backlog Stories → Platform Guarantees" />
-      <div className="grid grid-cols-1 gap-3">
-        {STORY_GUARANTEES.map((sg) => {
-          const Icon = GUARANTEE_ICONS[sg.guaranteeType];
-          const colorClass = GUARANTEE_COLORS[sg.guaranteeType];
-          const statusStyle = STATUS_COLORS[sg.status] || "bg-slate-100 text-slate-600";
-          return (
-            <div key={sg.storyId} className="bg-white border border-border rounded-lg p-4 shadow-sm flex items-start gap-4">
-              <div className={`p-2 rounded-lg border ${colorClass} shrink-0`}>
-                <Icon className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-xs font-bold text-foreground">{sg.storyId}</span>
-                  <span className="text-xs font-medium text-foreground">{sg.title}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ml-auto ${statusStyle}`}>{sg.status.replace("_", " ")}</span>
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`text-xs px-2 py-0.5 rounded border font-medium ${colorClass}`}>{GUARANTEE_LABELS[sg.guaranteeType]}</span>
-                  <span className="text-xs text-muted-foreground">Gate: {sg.gate}</span>
-                  <span className="text-xs text-muted-foreground">Batch: {sg.batchId}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">{sg.platformGuarantee}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-// ─── AGENT EXECUTION SUMMARY ─────────────────────────────────────────────────
-
-const AGENT_ICONS: Record<string, React.ElementType> = {
-  analyst: FileText, architecture: GitBranch, qa: ShieldCheck,
-  demo_runner: Play, roger_ai: Brain,
-};
-
-const AGENT_STATUS_COLORS: Record<string, string> = {
-  ACTIVE: "bg-emerald-100 text-emerald-800",
-  RUNNING: "bg-blue-100 text-blue-800",
-  IDLE: "bg-slate-100 text-slate-600",
-  STANDBY: "bg-purple-100 text-purple-800",
-};
-
-function AgentExecutionSummary() {
-  return (
-    <section>
-      <SectionHeader title="Agent Execution Layer" sub="AI agents operating across platform stages" />
-      <div className="grid grid-cols-5 gap-3">
-        {AGENTS.map((agent) => {
-          const Icon = AGENT_ICONS[agent.id] || Brain;
-          const statusStyle = AGENT_STATUS_COLORS[agent.status];
-          const layer = getLayer(agent.layerId);
-          return (
-            <div key={agent.id} className="bg-white border border-border rounded-lg p-4 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <div className={`w-8 h-8 rounded-lg ${agent.color} flex items-center justify-center`}>
-                  <Icon className="w-4 h-4 text-white" />
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusStyle}`}>{agent.status}</span>
-              </div>
-              <div className="text-sm font-bold text-foreground leading-tight mb-0.5">{agent.name}</div>
-              <div className="text-xs text-muted-foreground mb-2">{agent.role}</div>
-              <div className="text-xs bg-slate-50 border border-border rounded px-2 py-1 text-muted-foreground truncate">
-                {layer?.label}
-              </div>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {agent.touchpointIds.slice(0, 4).map(tid => (
-                  <span key={tid} className="text-xs bg-[#003A8F]/10 text-[#003A8F] px-1.5 py-0.5 rounded font-medium">{tid}</span>
-                ))}
-                {agent.touchpointIds.length > 4 && (
-                  <span className="text-xs text-muted-foreground">+{agent.touchpointIds.length - 4}</span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-// ─── SECTION HEADER ──────────────────────────────────────────────────────────
-
-function SectionHeader({ title, sub }: { title: string; sub?: string }) {
-  return (
-    <div className="flex items-center gap-3 mb-3">
-      <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">{title}</h2>
-      {sub && <span className="text-xs text-muted-foreground/60">— {sub}</span>}
-      <div className="flex-1 h-px bg-border" />
-    </div>
-  );
-}
-
-// ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const [, navigate] = useLocation();
+  const [expandedGate, setExpandedGate] = useState<number | null>(null);
+
   return (
-    <div className="p-6 space-y-7">
-      <KPIStrip />
-      <AgentExecutionSummary />
-      <GateVerificationSection />
-      <EnrichedTouchpointJourney />
-      <DemoScenarioPanel />
-      <BlitzyAlignmentSection />
-      <footer className="pt-4 pb-2 border-t border-border">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>DCT Platform Executive Demo Environment · RSM | CATT · v3.0</span>
-          <span>Governed by the DCT Delivery Model · March 11, 2026</span>
+    <div style={{ backgroundColor: "#f8fafc", minHeight: "100%", padding: "0" }}>
+
+      {/* LAYER 1 — ACTIVE BATCH */}
+      <section style={{ padding: "24px 28px 0" }}>
+        <div style={{ marginBottom: "12px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", marginBottom: "2px" }}>
+            Layer 1 — Active Batch
+          </div>
+          <div style={{ fontSize: "12px", color: "#64748b" }}>Batches control platform delivery scope and gate sequencing</div>
         </div>
-      </footer>
+
+        {/* Hero batch card */}
+        <div style={{
+          background: "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%)",
+          borderRadius: "12px", padding: "28px 32px", color: "white", marginBottom: "0"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+            <span style={{ fontSize: "11px", fontWeight: 700, backgroundColor: "#10b981", padding: "2px 10px", borderRadius: "12px" }}>ACTIVE</span>
+            <span style={{ fontSize: "12px", color: "#93c5fd" }}>DCT Data Consolidation Team</span>
+          </div>
+          <h1 style={{ fontSize: "36px", fontWeight: 800, marginBottom: "6px", letterSpacing: "-0.02em" }}>Foundation Core</h1>
+          <p style={{ fontSize: "13px", color: "#93c5fd", marginBottom: "20px" }}>
+            Full Roadmap: Foundation Core + Batch 1–10 · 11 Delivery Units
+          </p>
+          <p style={{ fontSize: "14px", color: "#bfdbfe", marginBottom: "24px" }}>
+            Infrastructure setup: code repo, templates, Copilot Agent and Blitzy configuration, development environment.
+          </p>
+
+          {/* Batch list */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {BATCHES.map((b) => (
+              <div key={b.id} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 0" }}>
+                <div style={{
+                  width: "8px", height: "8px", borderRadius: "50%", flexShrink: 0,
+                  backgroundColor: b.status === "Active" ? "#10b981" : "rgba(255,255,255,0.3)"
+                }} />
+                <span style={{ fontSize: "13px", color: b.status === "Active" ? "white" : "#93c5fd", flex: 1 }}>{b.label}</span>
+                {b.status === "Planned" && (
+                  <span style={{ fontSize: "10px", color: "#60a5fa" }}>Planned</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginTop: "24px" }}>
+            {[
+              { label: "Foundation", sub: "Touchpoints", sub2: "Foundation Core scope" },
+              { label: "4", sub: "Gates", sub2: "1 locked · 1 in progress" },
+              { label: "2", sub: "Agents", sub2: "Architect · Analyst · Developer · QA" },
+              { label: "Active", sub: "Batch Status", sub2: "Batch 1–2 · 11-Batch Roadmap" },
+            ].map((s, i) => (
+              <div key={i} style={{ backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "8px", padding: "14px 16px" }}>
+                <div style={{ fontSize: "20px", fontWeight: 700, marginBottom: "2px" }}>{s.label}</div>
+                <div style={{ fontSize: "11px", fontWeight: 600, color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.05em" }}>{s.sub}</div>
+                <div style={{ fontSize: "11px", color: "#bfdbfe", marginTop: "2px" }}>{s.sub2}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div style={{ display: "flex", gap: "20px", padding: "12px 0", flexWrap: "wrap" }}>
+          {[
+            { color: "#2563eb", label: "Batches control delivery" },
+            { color: "#10b981", label: "Humans close Gates" },
+            { color: "#a855f7", label: "Agents execute implementation" },
+            { color: "#f97316", label: "Touchpoints describe runtime behavior" },
+          ].map((l) => (
+            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: l.color, flexShrink: 0 }} />
+              <span style={{ fontSize: "11px", color: "#64748b" }}>{l.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* LAYER 2 — BATCH GATES */}
+      <section style={{ padding: "24px 28px 0" }}>
+        <div style={{ marginBottom: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", marginBottom: "2px" }}>
+            Layer 2 — Batch Gates
+          </div>
+          <div style={{ fontSize: "12px", color: "#64748b" }}>Sequential quality gates — humans verify and close each gate before the next opens</div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "16px" }}>
+          {GATES.map((gate) => (
+            <button
+              key={gate.num}
+              onClick={() => setExpandedGate(expandedGate === gate.num ? null : gate.num)}
+              style={{
+                textAlign: "left", padding: "16px", borderRadius: "10px", cursor: "pointer",
+                backgroundColor: "white", borderWidth: "1px",
+                borderColor: expandedGate === gate.num ? "#2563eb" : "#e2e8f0",
+                boxShadow: expandedGate === gate.num ? "0 0 0 2px #bfdbfe" : "0 1px 3px rgba(0,0,0,0.06)",
+                transition: "all 0.15s"
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                <div style={{
+                  width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#1e40af",
+                  color: "white", fontSize: "12px", fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                }}>
+                  {gate.num}
+                </div>
+                <span style={{
+                  fontSize: "10px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px",
+                  backgroundColor: gate.statusColor, color: "white"
+                }}>
+                  {gate.status}
+                </span>
+              </div>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>{gate.label}</div>
+              <div style={{ fontSize: "11px", color: "#64748b", lineHeight: "1.4" }}>{gate.desc}</div>
+              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "8px" }}>Owner: {gate.owner}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Gate sequence */}
+        <div style={{
+          backgroundColor: "white", borderRadius: "8px", padding: "12px 16px",
+          borderWidth: "1px", borderColor: "#e2e8f0",
+          display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap"
+        }}>
+          <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b" }}>Gate Sequence</span>
+          {GATES.map((g, i) => (
+            <span key={g.num} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "11px", color: "#1e293b", fontWeight: 500 }}>
+                {g.num} {g.label}
+                <span style={{ marginLeft: "4px", fontSize: "10px", color: g.statusColor, fontWeight: 600 }}>{g.status}</span>
+              </span>
+              {i < GATES.length - 1 && <span style={{ color: "#94a3b8" }}>→</span>}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* LAYER 3 — AI AGENT EXECUTION */}
+      <section style={{ padding: "24px 28px 0" }}>
+        <div style={{ marginBottom: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", marginBottom: "2px" }}>
+            Layer 3 — AI Agent Execution
+          </div>
+          <div style={{ fontSize: "12px", color: "#64748b" }}>Agents execute implementation — they support gates but do not close them</div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "16px" }}>
+          {AGENTS.map((agent) => (
+            <div key={agent.id} style={{
+              backgroundColor: "white", borderRadius: "10px", padding: "16px",
+              borderWidth: "1px", borderColor: "#e2e8f0",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                <div style={{
+                  width: "32px", height: "32px", borderRadius: "50%",
+                  backgroundColor: AGENT_COLORS[agent.id], color: "white",
+                  fontSize: "14px", fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                }}>
+                  {agent.id}
+                </div>
+                <span style={{
+                  fontSize: "10px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px",
+                  backgroundColor: agent.statusColor, color: "white"
+                }}>
+                  {agent.status}
+                </span>
+              </div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginBottom: "2px" }}>{agent.label}</div>
+              <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "10px" }}>{agent.role}</div>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                {agent.tasks.map((t, i) => (
+                  <li key={i} style={{ fontSize: "11px", color: "#475569", marginBottom: "4px", paddingLeft: "12px", position: "relative" }}>
+                    <span style={{ position: "absolute", left: 0, color: "#94a3b8" }}>·</span>
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Agent → Gate Support Matrix */}
+        <div style={{ backgroundColor: "white", borderRadius: "10px", padding: "16px", borderWidth: "1px", borderColor: "#e2e8f0" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Agent → Gate Support Matrix
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left", padding: "6px 12px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0" }}>Agent</th>
+                {GATES.map(g => (
+                  <th key={g.num} style={{ textAlign: "center", padding: "6px 12px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0" }}>
+                    Gate {g.num}<br /><span style={{ fontWeight: 400, fontSize: "10px" }}>{g.label}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {AGENTS.map((agent) => (
+                <tr key={agent.id} style={{ borderBottomWidth: "1px", borderBottomColor: "#f1f5f9" }}>
+                  <td style={{ padding: "8px 12px", fontWeight: 600, color: "#1e293b" }}>{agent.label}</td>
+                  <td style={{ textAlign: "center", padding: "8px 12px", color: agent.gates.g1 === "★" ? "#2563eb" : "#94a3b8" }}>{agent.gates.g1}</td>
+                  <td style={{ textAlign: "center", padding: "8px 12px", color: agent.gates.g2 === "★" ? "#2563eb" : "#94a3b8" }}>{agent.gates.g2}</td>
+                  <td style={{ textAlign: "center", padding: "8px 12px", color: agent.gates.g3 === "★" ? "#2563eb" : "#94a3b8" }}>{agent.gates.g3}</td>
+                  <td style={{ textAlign: "center", padding: "8px 12px", color: agent.gates.g4 === "★" ? "#2563eb" : agent.gates.g4 === "✓" ? "#10b981" : "#94a3b8" }}>{agent.gates.g4}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
+            <span style={{ fontSize: "10px", color: "#64748b" }}>★ Gate owner (primary)</span>
+            <span style={{ fontSize: "10px", color: "#64748b" }}>✓ Gate supporter</span>
+          </div>
+        </div>
+      </section>
+
+      {/* LAYER 4 — RUNTIME DATA JOURNEY */}
+      <section style={{ padding: "24px 28px 0" }}>
+        <div style={{ marginBottom: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", marginBottom: "2px" }}>
+            Layer 4 — Runtime Data Journey
+          </div>
+          <div style={{ fontSize: "12px", color: "#64748b" }}>T1–T10 describe runtime system behavior — touchpoints are not delivery tasks</div>
+        </div>
+
+        {/* Active batch notice */}
+        <div style={{
+          backgroundColor: "#fef3c7", borderRadius: "8px", padding: "10px 14px",
+          borderWidth: "1px", borderColor: "#fde68a", marginBottom: "16px",
+          fontSize: "12px", color: "#92400e"
+        }}>
+          <strong>Batch -1 — Foundation Core</strong> covers touchpoints. Gold highlights indicate active batch scope.
+        </div>
+
+        {/* Touchpoint chips */}
+        <div style={{ display: "flex", gap: "8px", flexWrap: "nowrap", overflowX: "auto", marginBottom: "16px", paddingBottom: "4px" }}>
+          {TOUCHPOINTS.map((tp) => (
+            <div key={tp.id} style={{
+              flexShrink: 0, backgroundColor: "white", borderRadius: "8px",
+              padding: "10px 14px", borderWidth: "1px", borderColor: "#e2e8f0",
+              minWidth: "120px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+            }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb", marginBottom: "2px" }}>{tp.id}</div>
+              <div style={{ fontSize: "11px", color: "#1e293b", fontWeight: 500, lineHeight: "1.3" }}>{tp.label}</div>
+              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>{tp.system}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Touchpoint table */}
+        <div style={{ backgroundColor: "white", borderRadius: "10px", borderWidth: "1px", borderColor: "#e2e8f0", overflow: "hidden", marginBottom: "24px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#f8fafc" }}>
+                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0", width: "50px" }}>ID</th>
+                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0", width: "200px" }}>Touchpoint</th>
+                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0", width: "150px" }}>System</th>
+                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0" }}>Description</th>
+                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0", width: "80px" }}>Batch</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TOUCHPOINTS.map((tp, i) => (
+                <tr key={tp.id} style={{ borderBottomWidth: i < TOUCHPOINTS.length - 1 ? "1px" : "0", borderBottomColor: "#f1f5f9" }}>
+                  <td style={{ padding: "10px 16px", fontWeight: 700, color: "#2563eb" }}>{tp.id}</td>
+                  <td style={{ padding: "10px 16px", fontWeight: 600, color: "#1e293b" }}>{tp.label}</td>
+                  <td style={{ padding: "10px 16px", color: "#475569" }}>{tp.system}</td>
+                  <td style={{ padding: "10px 16px", color: "#475569", lineHeight: "1.5" }}>{tp.desc}</td>
+                  <td style={{ padding: "10px 16px" }}>
+                    <span style={{
+                      fontSize: "10px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px",
+                      backgroundColor: "#eff6ff", color: "#1d4ed8"
+                    }}>
+                      {tp.batch}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* DCT BatchFlow section */}
+      <section style={{ padding: "0 28px 24px" }}>
+        <div style={{
+          backgroundColor: "white", borderRadius: "10px", padding: "20px 24px",
+          borderWidth: "1px", borderColor: "#e2e8f0",
+          display: "flex", alignItems: "center", justifyContent: "space-between"
+        }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+              <span style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>DCT BatchFlow</span>
+              <span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", backgroundColor: "#eff6ff", color: "#1d4ed8" }}>
+                Interactive Delivery Platform
+              </span>
+            </div>
+            <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "8px" }}>
+              Convert delivery batches into executable backlog artifacts. Generate Epics, Features, and Stories with Azure DevOps-ready acceptance criteria.
+            </p>
+            <div style={{ display: "flex", gap: "8px" }}>
+              {["Backlog Generation", "Roadmap", "Dependencies", "ADO Export"].map(tab => (
+                <span key={tab} style={{ fontSize: "11px", color: "#64748b", padding: "3px 10px", borderRadius: "6px", backgroundColor: "#f1f5f9" }}>{tab}</span>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+            <button
+              onClick={() => navigate("/batchflow")}
+              style={{
+                padding: "8px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+                backgroundColor: "#2563eb", color: "white", border: "none", cursor: "pointer"
+              }}
+            >
+              Open BatchFlow →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Key Principles */}
+      <section style={{ padding: "0 28px 32px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#64748b", marginBottom: "12px" }}>
+          DCT Delivery Model — Key Principles
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+          {[
+            { title: "Batches control delivery", desc: "Each batch defines a bounded delivery scope with its own gates, agents, and touchpoints. Batches are sequential and non-overlapping." },
+            { title: "Humans close Gates", desc: "Gates are verification checkpoints closed by human owners (Architect, QA Lead, API PO, DCT Lead). Agents support but do not close gates." },
+            { title: "Agents execute implementation", desc: "AI agents produce artifacts (schemas, requirements, code, tests) that feed gate verification. They are the execution layer, not the governance layer." },
+            { title: "Touchpoints describe runtime", desc: "Touchpoints (T1–T10) describe how data moves through the platform at runtime. They are not delivery tasks — they are the observable behavior the batch enables." },
+          ].map((p) => (
+            <div key={p.title} style={{
+              backgroundColor: "white", borderRadius: "10px", padding: "16px",
+              borderWidth: "1px", borderColor: "#e2e8f0"
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginBottom: "6px" }}>{p.title}</div>
+              <div style={{ fontSize: "12px", color: "#64748b", lineHeight: "1.5" }}>{p.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,122 +1,223 @@
-// Sidebar — RSM Command Center design
-// Router-based navigation, 9 modules across two groups
+// Sidebar — DCT Platform RSM Design
+// Matches reference: rsm-ai-team-niua6bzx.manus.space
+// Dark navy (#0f1623), RSM green accent, grouped nav with badges
 
+import { useState } from "react";
 import { useLocation } from "wouter";
-import {
-  LayoutDashboard, GitBranch, CheckSquare, Activity, FileText,
-  Zap, Map, Play, Search
-} from "lucide-react";
 
 interface NavItem {
-  id: string;
   label: string;
   path: string;
-  icon: React.ReactNode;
-  group: "governance" | "platform";
+  icon?: string;
+  badge?: string;
+  badgeColor?: string;
+  indent?: boolean;
+  status?: string;
+  statusColor?: string;
 }
 
-const navItems: NavItem[] = [
-  // Governance group
-  { id: "dashboard",   label: "Dashboard",     path: "/",              icon: <LayoutDashboard size={14} />, group: "governance" },
-  { id: "batches",     label: "Batch Roadmap", path: "/batch-roadmap", icon: <GitBranch size={14} />,       group: "governance" },
-  { id: "gates",       label: "Gate Status",   path: "/gate-status",   icon: <CheckSquare size={14} />,     group: "governance" },
-  { id: "touchpoints", label: "Touchpoints",   path: "/touchpoints",   icon: <Activity size={14} />,        group: "governance" },
-  { id: "artifacts",   label: "Artifacts",     path: "/artifacts",     icon: <FileText size={14} />,        group: "governance" },
-  // Platform group
-  { id: "agent-hub",   label: "Agent Hub",     path: "/agent-hub",     icon: <Zap size={14} />,             group: "platform" },
-  { id: "architecture",label: "Architecture",  path: "/architecture",  icon: <Map size={14} />,             group: "platform" },
-  { id: "demo",        label: "Demo Runner",   path: "/demo",          icon: <Play size={14} />,            group: "platform" },
-  { id: "lineage",     label: "Lineage",       path: "/lineage",       icon: <Search size={14} />,          group: "platform" },
+const PLATFORM_ITEMS: NavItem[] = [
+  { label: "DCT Delivery Model", path: "/", icon: "⬡" },
+  { label: "Batch Roadmap (FC + 1–10)", path: "/batch-roadmap", icon: "⬢", badge: "New", badgeColor: "#059669" },
 ];
 
+const BATCH_ITEMS: NavItem[] = [
+  { label: "Foundation Core", path: "/batch/foundation-core", indent: true, status: "Active", statusColor: "#059669" },
+  { label: "Batch 1 — File Ingestion & Initial Storage", path: "/batch/1", indent: true, status: "Active", statusColor: "#059669" },
+  { label: "Batch 2 — Normalization & Cross-LOB Taxonomy", path: "/batch/2", indent: true },
+  { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy", path: "/batch/3", indent: true },
+  { label: "Batch 4 — AI Tax Mapping & Explainability", path: "/batch/4", indent: true },
+  { label: "Batch 5 — Mapping Decisions & Governance", path: "/batch/5", indent: true },
+  { label: "Batch 6 — Practitioner Review & Adjustment Workflow", path: "/batch/6", indent: true },
+  { label: "Batch 7 — Rollforward & Prior Year Intelligence", path: "/batch/7", indent: true },
+  { label: "Batch 8 — Return Assembly, Filing & Lineage Closure", path: "/batch/8", indent: true },
+  { label: "Batch 9 — Learning Governance & Model Evolution", path: "/batch/9", indent: true },
+];
+
+const GATE_ITEMS: NavItem[] = [
+  { label: "Gate 1 — Schema Lock", path: "/gate/1", status: "Locked", statusColor: "#475569" },
+  { label: "Gate 2 — Invariant Lock", path: "/gate/2", status: "In Progress", statusColor: "#d97706" },
+  { label: "Gate 3 — Contract Publication", path: "/gate/3", status: "Pending", statusColor: "#334155" },
+  { label: "Gate 4 — Lineage Closure", path: "/gate/4", status: "Pending", statusColor: "#334155" },
+];
+
+const AGENT_ITEMS: NavItem[] = [
+  { label: "Architect Agent", path: "/agent/architect", icon: "A", status: "Complete", statusColor: "#059669" },
+  { label: "Analyst Agent", path: "/agent/analyst", icon: "B", status: "Complete", statusColor: "#059669" },
+  { label: "Developer Agent", path: "/agent/developer", icon: "D", status: "In Progress", statusColor: "#d97706" },
+  { label: "QA Agent", path: "/agent/qa", icon: "Q", status: "In Progress", statusColor: "#d97706" },
+  { label: "Runtime Data Journey T1–T10", path: "/runtime-journey", icon: "↝" },
+];
+
+const TOOL_ITEMS: NavItem[] = [
+  { label: "DCT BatchFlow", path: "/batchflow", icon: "⚡", badge: "New", badgeColor: "#059669" },
+  { label: "Taxonomy Explorer", path: "/taxonomy", icon: "🧬", badge: "New", badgeColor: "#059669" },
+  { label: "Data Model & Gaps", path: "/data-model", icon: "🗂️", badge: "Exec", badgeColor: "#7c3aed" },
+  { label: "Roger UI Data Mapping", path: "/roger-mapping", icon: "📊", badge: "New", badgeColor: "#059669" },
+  { label: "Run Agent Simulation", path: "/demo", icon: "▶", badge: "Live", badgeColor: "#dc2626" },
+];
+
+const PI_ITEMS: NavItem[] = [
+  { label: "PI2 — Build & Enablement", path: "/pi2", icon: "🏭", badge: "PI2", badgeColor: "#2563eb" },
+  { label: "PI3 — Roadmap (Visual Placeholder)", path: "/pi3", icon: "📍", badge: "PI3", badgeColor: "#475569" },
+];
+
+const GOVERNANCE_ITEMS: NavItem[] = [
+  { label: "AAP Review Model (Blitzy)", path: "/aap-review", icon: "🤖", badge: "New", badgeColor: "#059669" },
+  { label: "Tax Mapping Confidence", path: "/tax-mapping", icon: "🗺" },
+  { label: "Governance Timeline", path: "/governance-timeline", icon: "📋" },
+  { label: "Data Lineage", path: "/lineage", icon: "🔗" },
+  { label: "Roger API Evolution", path: "/roger-api", icon: "⚡", badge: "New", badgeColor: "#059669" },
+];
+
+const DIAGRAM_ITEMS: NavItem[] = [
+  { label: "Enterprise Architecture", path: "/architecture/enterprise", icon: "⬛", badge: "New", badgeColor: "#059669" },
+  { label: "Developer Architecture", path: "/architecture/developer", icon: "⟦⟧", badge: "New", badgeColor: "#059669" },
+  { label: "Architecture Diagram", path: "/architecture", icon: "⬡" },
+  { label: "Architecture Sync", path: "/architecture/sync", icon: "⟳", badge: "Live", badgeColor: "#dc2626" },
+  { label: "Visio Architecture", path: "/architecture/visio", icon: "⬗" },
+  { label: "Agent Hub", path: "/agent-hub", icon: "◈" },
+  { label: "Runtime Journey (T1–T10)", path: "/runtime-journey", icon: "↝" },
+];
+
+function NavItem({ item }: { item: NavItem }) {
+  const [location, navigate] = useLocation();
+  const isActive = location === item.path || (item.path !== "/" && location.startsWith(item.path));
+
+  return (
+    <button
+      onClick={() => navigate(item.path)}
+      className="w-full text-left flex items-center gap-1.5 rounded-sm transition-colors"
+      style={{
+        padding: item.indent ? "5px 12px 5px 20px" : "5px 12px",
+        backgroundColor: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+        color: isActive ? "#ffffff" : "#94a3b8",
+      }}
+      onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "#e2e8f0"; }}
+      onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#94a3b8"; }}
+    >
+      {item.icon && (
+        <span style={{ fontSize: "11px", width: "14px", textAlign: "center", flexShrink: 0, color: "#64748b" }}>
+          {item.icon}
+        </span>
+      )}
+      <span style={{ fontSize: "11px", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: "1.3" }}>
+        {item.label}
+      </span>
+      {item.status && (
+        <span style={{
+          fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
+          flexShrink: 0, color: "white", backgroundColor: item.statusColor
+        }}>
+          {item.status}
+        </span>
+      )}
+      {item.badge && !item.status && (
+        <span style={{
+          fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
+          flexShrink: 0, color: "white", backgroundColor: item.badgeColor
+        }}>
+          {item.badge}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function NavSection({ title, items }: { title: string; items: NavItem[] }) {
+  return (
+    <div style={{ marginBottom: "4px" }}>
+      <div style={{
+        padding: "10px 12px 3px",
+        fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em",
+        textTransform: "uppercase", color: "#475569"
+      }}>
+        {title}
+      </div>
+      {items.map((item) => <NavItem key={item.path + item.label} item={item} />)}
+    </div>
+  );
+}
+
 interface SidebarProps {
-  activeSection: string;
+  activeSection?: string;
 }
 
 export default function Sidebar({ activeSection }: SidebarProps) {
-  const [, navigate] = useLocation();
-
-  const govItems = navItems.filter(n => n.group === "governance");
-  const platItems = navItems.filter(n => n.group === "platform");
-
-  const renderItem = (item: NavItem) => {
-    const isActive = activeSection === item.id;
-    return (
-      <button
-        key={item.id}
-        onClick={() => navigate(item.path)}
-        className="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-all text-left"
-        style={{
-          color: isActive ? "white" : "oklch(0.72 0.04 264)",
-          background: isActive ? "oklch(0.30 0.10 264)" : "transparent",
-          borderLeft: isActive ? "3px solid oklch(0.52 0.18 264)" : "3px solid transparent",
-        }}
-      >
-        <span className="flex-shrink-0">{item.icon}</span>
-        <span className="text-xs">{item.label}</span>
-      </button>
-    );
-  };
+  const [batchesOpen, setBatchesOpen] = useState(true);
 
   return (
-    <aside className="w-52 flex-shrink-0 flex flex-col h-full" style={{ background: "oklch(0.22 0.10 264)" }}>
+    <aside
+      className="flex flex-col h-full flex-shrink-0"
+      style={{
+        width: "208px",
+        backgroundColor: "#0f1623",
+        borderRightWidth: "1px",
+        borderRightColor: "#1e2a3a",
+      }}
+    >
       {/* Logo */}
-      <div className="px-4 py-4 border-b" style={{ borderBottomColor: "oklch(0.32 0.08 264)" }}>
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold"
-            style={{ background: "oklch(0.52 0.18 264)" }}>
-            R
+      <div style={{ padding: "14px 12px", borderBottomWidth: "1px", borderBottomColor: "#1e2a3a" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{
+            width: "28px", height: "28px", borderRadius: "6px", backgroundColor: "#059669",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "white", fontWeight: 700, fontSize: "13px", flexShrink: 0
+          }}>
+            D
           </div>
-          <span className="text-white font-bold text-sm tracking-wide">RSM</span>
-        </div>
-        <div className="text-xs leading-tight" style={{ color: "oklch(0.65 0.04 264)" }}>
-          DCT Platform<br />Executive Demo
+          <div>
+            <div style={{ color: "white", fontWeight: 600, fontSize: "13px", lineHeight: "1.2" }}>DCT Platform</div>
+            <div style={{ color: "#64748b", fontSize: "10px" }}>Delivery Model</div>
+          </div>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-3">
-        {/* Governance group */}
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-widest px-3 mb-1"
-            style={{ color: "oklch(0.50 0.06 264)" }}>
-            Governance
+      {/* Scrollable nav */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "4px 0" }}>
+        <NavSection title="Platform" items={PLATFORM_ITEMS} />
+
+        {/* Batches section with collapse toggle */}
+        <div style={{ marginBottom: "4px" }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 12px 3px"
+          }}>
+            <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#475569" }}>
+              Batches (FC + 1–10)
+            </span>
+            <button
+              onClick={() => setBatchesOpen(!batchesOpen)}
+              style={{ color: "#475569", fontSize: "10px", background: "none", border: "none", cursor: "pointer" }}
+            >
+              {batchesOpen ? "▲" : "▼"}
+            </button>
           </div>
-          <div className="space-y-0.5">
-            {govItems.map(renderItem)}
-          </div>
+          {batchesOpen && BATCH_ITEMS.map((item) => <NavItem key={item.path} item={item} />)}
         </div>
 
-        {/* Platform group */}
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-widest px-3 mb-1"
-            style={{ color: "oklch(0.50 0.06 264)" }}>
-            Platform
-          </div>
-          <div className="space-y-0.5">
-            {platItems.map(renderItem)}
-          </div>
-        </div>
-      </nav>
+        <NavSection title="Gates" items={GATE_ITEMS} />
+        <NavSection title="Agents" items={AGENT_ITEMS} />
+        <NavSection title="Tools" items={TOOL_ITEMS} />
+        <NavSection title="PI Planning" items={PI_ITEMS} />
+        <NavSection title="Governance" items={GOVERNANCE_ITEMS} />
+        <NavSection title="Diagrams" items={DIAGRAM_ITEMS} />
+      </div>
 
-      {/* Active batch footer */}
-      <div className="px-3 py-3 border-t" style={{ borderTopColor: "oklch(0.32 0.08 264)" }}>
-        <div className="text-xs px-2 mb-2" style={{ color: "oklch(0.55 0.06 264)" }}>
-          <div className="font-semibold uppercase tracking-widest mb-0.5">Active Batch</div>
-          <div className="text-white font-medium text-xs">AB-01</div>
-          <div className="text-xs leading-tight" style={{ color: "oklch(0.65 0.04 264)" }}>
-            Foundation & Source Onboarding
-          </div>
+      {/* Footer */}
+      <div style={{ borderTopWidth: "1px", borderTopColor: "#1e2a3a", padding: "10px 12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
+          <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#10b981", flexShrink: 0 }} />
+          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Platform Active · Batch 1–2</span>
         </div>
-        <div className="px-2">
-          <div className="flex justify-between text-xs mb-1" style={{ color: "oklch(0.65 0.04 264)" }}>
-            <span>Progress</span>
-            <span className="text-white font-semibold">78%</span>
-          </div>
-          <div className="h-1.5 rounded-full" style={{ background: "oklch(0.32 0.08 264)" }}>
-            <div className="h-1.5 rounded-full" style={{ width: "78%", background: "oklch(0.52 0.18 264)" }} />
-          </div>
-        </div>
+        <div style={{ fontSize: "10px", color: "#475569", marginBottom: "6px" }}>DCT — Data Consolidation Team</div>
+        <button
+          style={{ fontSize: "10px", color: "#475569", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#94a3b8"}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#475569"}
+        >
+          Clear All Progress
+        </button>
       </div>
     </aside>
   );

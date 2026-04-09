@@ -1,5 +1,5 @@
-// Batch Roadmap — AB-01 through AB-06 Delivery Timeline
-// RSM | CATT | DCT Platform Executive Demo Environment v3.0
+// Batch Roadmap — Foundation Core + Batch 1–9
+// Matches reference: rsm-ai-team-niua6bzx.manus.space
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";

@@ -1,5 +1,6 @@
-// DCT Platform Executive Demo Environment — App Router
+// DCT Platform — App Router
 // RSM | CATT | DCT + Roger | Prototype Sandbox
+// Matches reference: rsm-ai-team-niua6bzx.manus.space
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,41 +9,30 @@ import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
-// Pages
+// Core pages
 import Home from "./pages/Home";
-import AgentHub from "./pages/AgentHub";
-import ArchitectureView from "./pages/ArchitectureView";
-import DemoRunner from "./pages/DemoRunner";
-import LineageExplorer from "./pages/LineageExplorer";
 import BatchRoadmap from "./pages/BatchRoadmap";
 import GateStatus from "./pages/GateStatus";
 import TouchpointsPage from "./pages/TouchpointsPage";
 import ArtifactsPage from "./pages/ArtifactsPage";
+import AgentHub from "./pages/AgentHub";
+import ArchitectureView from "./pages/ArchitectureView";
+import DemoRunner from "./pages/DemoRunner";
+import LineageExplorer from "./pages/LineageExplorer";
+
+// New reference-matching pages
+import RogerApiEvolution from "./pages/RogerApiEvolution";
+import RuntimeJourney from "./pages/RuntimeJourney";
+import BatchFlow from "./pages/BatchFlow";
 
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 
 function Layout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
-
-  // Derive active section from path
-  const sectionMap: Record<string, string> = {
-    "/": "dashboard",
-    "/batch-roadmap": "batches",
-    "/gate-status": "gates",
-    "/touchpoints": "touchpoints",
-    "/artifacts": "artifacts",
-    "/agent-hub": "agent-hub",
-    "/architecture": "architecture",
-    "/demo": "demo",
-    "/lineage": "lineage",
-  };
-  const activeSection = sectionMap[location] || "dashboard";
-
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar activeSection={activeSection} />
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#f8fafc" }}>
+      <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto">
@@ -57,6 +47,7 @@ function Router() {
   return (
     <Layout>
       <Switch>
+        {/* Core platform */}
         <Route path="/" component={Home} />
         <Route path="/batch-roadmap" component={BatchRoadmap} />
         <Route path="/gate-status" component={GateStatus} />
@@ -64,8 +55,37 @@ function Router() {
         <Route path="/artifacts" component={ArtifactsPage} />
         <Route path="/agent-hub" component={AgentHub} />
         <Route path="/architecture" component={ArchitectureView} />
+        <Route path="/architecture/enterprise" component={ArchitectureView} />
+        <Route path="/architecture/developer" component={ArchitectureView} />
+        <Route path="/architecture/sync" component={ArchitectureView} />
+        <Route path="/architecture/visio" component={ArchitectureView} />
         <Route path="/demo" component={DemoRunner} />
         <Route path="/lineage" component={LineageExplorer} />
+
+        {/* Reference-matching new pages */}
+        <Route path="/roger-api" component={RogerApiEvolution} />
+        <Route path="/runtime-journey" component={RuntimeJourney} />
+        <Route path="/batchflow" component={BatchFlow} />
+
+        {/* Batch detail routes — redirect to batch roadmap */}
+        <Route path="/batch/:id" component={BatchRoadmap} />
+
+        {/* Gate detail routes — redirect to gate status */}
+        <Route path="/gate/:id" component={GateStatus} />
+
+        {/* Agent detail routes — redirect to agent hub */}
+        <Route path="/agent/:id" component={AgentHub} />
+
+        {/* Placeholder routes for sidebar items not yet built */}
+        <Route path="/taxonomy" component={BatchFlow} />
+        <Route path="/data-model" component={BatchFlow} />
+        <Route path="/roger-mapping" component={BatchFlow} />
+        <Route path="/aap-review" component={BatchFlow} />
+        <Route path="/tax-mapping" component={BatchFlow} />
+        <Route path="/governance-timeline" component={BatchFlow} />
+        <Route path="/pi2" component={BatchRoadmap} />
+        <Route path="/pi3" component={BatchRoadmap} />
+
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

@@ -1,44 +1,76 @@
-// Header — RSM Command Center design
-// RSM dark blue header bar with white text, batch selector, and status indicator
+// Header — DCT Platform RSM Design
+// Matches reference: rsm-ai-team-niua6bzx.manus.space
+// White header, RSM logo, status pills, hamburger menu, user avatar
 
-import { Bell, RefreshCw } from "lucide-react";
+interface HeaderProps {
+  onMenuToggle?: () => void;
+}
 
-export default function Header() {
+export default function Header({ onMenuToggle }: HeaderProps) {
   return (
-    <header className="rsm-header flex items-center justify-between px-6 py-3 flex-shrink-0">
-      <div className="flex items-center gap-4">
-        <div>
-          <h1 className="text-white font-semibold text-base tracking-tight">
-            DCT Platform Gate Verification Dashboard
-          </h1>
-          <p className="text-xs" style={{ color: "oklch(0.70 0.04 264)" }}>
-            RSM | CATT · Center for Advanced Tax Technology · Delivery Model v1.0
-          </p>
+    <header
+      className="flex items-center justify-between flex-shrink-0"
+      style={{
+        backgroundColor: "#ffffff",
+        borderBottomWidth: "1px",
+        borderBottomColor: "#e2e8f0",
+        padding: "10px 20px",
+        height: "52px",
+      }}
+    >
+      {/* Left: hamburger + RSM logo */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <button
+          onClick={onMenuToggle}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: "#64748b", fontSize: "18px", lineHeight: 1, padding: "4px"
+          }}
+        >
+          ☰
+        </button>
+        {/* RSM Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ display: "flex", gap: "2px" }}>
+            <div style={{ width: "8px", height: "20px", backgroundColor: "#10b981", borderRadius: "1px" }} />
+            <div style={{ width: "8px", height: "20px", backgroundColor: "#059669", borderRadius: "1px" }} />
+            <div style={{ width: "8px", height: "20px", backgroundColor: "#047857", borderRadius: "1px" }} />
+          </div>
+          <span style={{ fontWeight: 700, fontSize: "16px", color: "#1e293b", letterSpacing: "0.05em" }}>RSM</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Active batch indicator */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
-          style={{ background: "oklch(0.30 0.10 264)", border: "1px solid oklch(0.40 0.10 264)" }}>
-          <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          <span className="text-white font-medium">AB-01 Active</span>
-          <span style={{ color: "oklch(0.70 0.04 264)" }}>· G1 Pending</span>
+      {/* Right: status pills + avatar */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{
+          padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 500,
+          backgroundColor: "#f0fdf4", color: "#166534",
+          borderWidth: "1px", borderColor: "#bbf7d0"
+        }}>
+          Governance &amp; Platform Structures Active
         </div>
-
-        {/* Last updated */}
-        <div className="flex items-center gap-1.5 text-xs" style={{ color: "oklch(0.70 0.04 264)" }}>
-          <RefreshCw size={12} />
-          <span>Mar 11, 2026</span>
+        <div style={{
+          padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 500,
+          backgroundColor: "#eff6ff", color: "#1e40af",
+          borderWidth: "1px", borderColor: "#bfdbfe"
+        }}>
+          Agentic Execution
         </div>
-
-        {/* Notification badge */}
-        <div className="relative">
-          <Bell size={16} className="text-white opacity-70" />
-          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 flex items-center justify-center text-xs font-bold text-gray-900"
-            style={{ fontSize: "9px" }}>
-            2
-          </div>
+        <div style={{
+          padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 600,
+          backgroundColor: "#ecfdf5", color: "#065f46",
+          borderWidth: "1px", borderColor: "#6ee7b7"
+        }}>
+          Batch 1–2
+        </div>
+        {/* User avatar */}
+        <div style={{
+          width: "32px", height: "32px", borderRadius: "50%",
+          backgroundColor: "#2563eb", color: "white",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: "12px", fontWeight: 700, flexShrink: 0
+        }}>
+          JL
         </div>
       </div>
     </header>
