@@ -5,7 +5,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
-import { useBatchStatus, deriveDemoReadiness, deriveGateStatus, type BatchKey } from "@/contexts/BatchStatusContext";
 
 // ─── BATCH DATA ───────────────────────────────────────────────────────────────
 
@@ -275,29 +274,8 @@ export default function WeeklyDemo() {
   const [simStep, setSimStep] = useState(0);
   const simRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Global batch status — source of truth ──────────────────────────────────
-  const { statuses } = useBatchStatus();
-  const batchKey = selectedBatch as BatchKey;
-  const globalStatus = statuses[batchKey] ?? "Planned";
-  const gates = deriveGateStatus(statuses);
-
-  // Override readiness and gate status from global context
-  const batchDataRaw = BATCH_DATA[selectedBatch];
-  const batch = {
-    ...batchDataRaw,
-    readiness: deriveDemoReadiness(globalStatus),
-    gateStatus: (globalStatus === "Complete" ? "In Progress"
-      : globalStatus === "Dev" ? "In Progress"
-      : "Locked") as "Locked" | "In Progress" | "Pending",
-    // Show features based on global status
-    features: batchDataRaw?.features?.map(f => ({
-      ...f,
-      status: globalStatus === "Complete" ? "Complete" as const
-        : globalStatus === "Dev" ? f.status
-        : "Blocked" as const,
-    })) ?? [],
-  };
-  const currentBatchNum = parseInt(selectedBatch);;
+  const batch = BATCH_DATA[selectedBatch];
+  const currentBatchNum = parseInt(selectedBatch);
 
   // Determine step status based on selected batch
   const stepStatus = (step: typeof FLOW_STEPS[0]): "Active" | "Complete" | "Blocked" => {
