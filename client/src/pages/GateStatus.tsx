@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { activeBatch } from "@/lib/dctData";
 import type { Gate, GateArtifact } from "@/lib/dctData";
+import { useBatchStatus, deriveGateStatus } from "@/contexts/BatchStatusContext";
 
 // ─── GATE CONFIG ──────────────────────────────────────────────────────────────
 
@@ -221,7 +222,20 @@ function GateCard({ gate, isExpanded, onToggle }: {
 
 export default function GateStatus() {
   const [expanded, setExpanded] = useState<string>("G1");
-  const gates = activeBatch.gates;
+  const { statuses } = useBatchStatus();
+  const derivedGates = deriveGateStatus(statuses);
+
+  // Map derived gate statuses to the PASSED/PENDING/PLANNED vocabulary
+  const GATE_STATUS_MAP: Record<string, Gate["status"]> = {
+    G1: derivedGates.g1 === "Complete" ? "PASSED" : derivedGates.g1 === "In Progress" ? "PENDING" : "PLANNED",
+    G2: derivedGates.g2 === "Complete" ? "PASSED" : derivedGates.g2 === "In Progress" ? "PENDING" : "PLANNED",
+    G3: derivedGates.g3 === "Complete" ? "PASSED" : derivedGates.g3 === "In Progress" ? "PENDING" : "PLANNED",
+    G4: derivedGates.g4 === "Complete" ? "PASSED" : derivedGates.g4 === "In Progress" ? "PENDING" : "PLANNED",
+  };
+  const gates = activeBatch.gates.map(g => ({
+    ...g,
+    status: GATE_STATUS_MAP[g.id] ?? g.status,
+  }));
 
   const passed = gates.filter(g => g.status === "PASSED").length;
   const pending = gates.filter(g => g.status === "PENDING").length;

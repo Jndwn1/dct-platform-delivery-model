@@ -53,6 +53,7 @@ const AGENT_ITEMS: NavItem[] = [
 
 const TOOL_ITEMS: NavItem[] = [
   { label: "Weekly Demo", path: "/weekly-demo", icon: "▶", badge: "Live", badgeColor: "#dc2626" },
+  { label: "Control Panel", path: "/control-panel", icon: "⚙", badge: "Admin", badgeColor: "#6366f1" },
   { label: "DCT BatchFlow", path: "/batchflow", icon: "⚡", badge: "New", badgeColor: "#059669" },
   { label: "Taxonomy Explorer", path: "/taxonomy", icon: "◎", badge: "New", badgeColor: "#059669" },
   { label: "Data Model & Gaps", path: "/data-model", icon: "▦", badge: "Exec", badgeColor: "#7c3aed" },

@@ -25,10 +25,12 @@ import RogerApiEvolution from "./pages/RogerApiEvolution";
 import RuntimeJourney from "./pages/RuntimeJourney";
 import BatchFlow from "./pages/BatchFlow";
 import WeeklyDemo from "./pages/WeeklyDemo";
+import BatchControlPanel from "./pages/BatchControlPanel";
 
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
+import { BatchStatusProvider } from "./contexts/BatchStatusContext";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -69,6 +71,8 @@ function Router() {
         <Route path="/batchflow" component={BatchFlow} />
         {/* Weekly Demo — PROTECTED: do not remove */}
         <Route path="/weekly-demo" component={WeeklyDemo} />
+        {/* Global Control Panel — batch status management */}
+        <Route path="/control-panel" component={BatchControlPanel} />
 
         {/* Batch detail routes — redirect to batch roadmap */}
         <Route path="/batch/:id" component={BatchRoadmap} />
@@ -100,10 +104,12 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <BatchStatusProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </BatchStatusProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

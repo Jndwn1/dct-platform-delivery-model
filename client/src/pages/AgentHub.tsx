@@ -17,6 +17,7 @@ import {
   ANALYST_STORIES, PLATFORM_GUARANTEES, GUARANTEE_TYPE_COLORS,
   type AnalystStory
 } from "@/lib/analystStories";
+import { useBatchStatus } from "@/contexts/BatchStatusContext";
 
 // ─── AGENT ICONS ─────────────────────────────────────────────────────────────
 
@@ -447,7 +448,28 @@ function PlatformLayerConnector() {
 
 export default function AgentHub() {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
-  const activeCount = AGENTS.filter(a => a.status === "ACTIVE" || a.status === "RUNNING").length;
+  const { statuses } = useBatchStatus();
+
+  // Derive agent statuses from global batch progress
+  const anyDev = Object.values(statuses).some(s => s === "Dev");
+  const anyComplete = Object.values(statuses).some(s => s === "Complete");
+  const b5Plus = (["5","6","7","8","9"] as const).some(
+    k => statuses[k] === "Dev" || statuses[k] === "Complete"
+  );
+
+  const derivedAgents = AGENTS.map(a => ({
+    ...a,
+    status: (
+      a.id === "analyst"      ? (anyDev || anyComplete ? "ACTIVE"  : "IDLE") :
+      a.id === "architecture" ? (anyDev || anyComplete ? "ACTIVE"  : "IDLE") :
+      a.id === "qa"           ? (anyComplete ? "RUNNING" : anyDev ? "STANDBY" : "IDLE") :
+      a.id === "demo_runner"  ? (anyDev || anyComplete ? "STANDBY" : "IDLE") :
+      a.id === "roger_ai"     ? (b5Plus ? "ACTIVE" : "IDLE") :
+      a.status
+    ) as AgentDefinition["status"],
+  }));
+
+  const activeCount = derivedAgents.filter(a => a.status === "ACTIVE" || a.status === "RUNNING").length;
 
   return (
     <div className="p-6 space-y-6">
@@ -465,7 +487,7 @@ export default function AgentHub() {
       </div>
 
       <div className="grid grid-cols-1 gap-3">
-        {AGENTS.map((agent) => (
+        {derivedAgents.map((agent) => (
           <div key={agent.id}>
             <AgentCard
               agent={agent}
