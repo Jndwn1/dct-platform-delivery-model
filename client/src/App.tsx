@@ -26,6 +26,12 @@ import RuntimeJourney from "./pages/RuntimeJourney";
 import BatchFlow from "./pages/BatchFlow";
 import WeeklyDemo from "./pages/WeeklyDemo";
 import BatchControlPanel from "./pages/BatchControlPanel";
+import TaxonomyPage from "./pages/TaxonomyPage";
+import DataModelPage from "./pages/DataModelPage";
+import GovernanceTimelinePage from "./pages/GovernanceTimelinePage";
+import TaxMappingPage from "./pages/TaxMappingPage";
+import AAPReviewPage from "./pages/AAPReviewPage";
+import RogerMappingPage from "./pages/RogerMappingPage";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -83,13 +89,13 @@ function Router() {
         {/* Agent detail routes — redirect to agent hub */}
         <Route path="/agent/:id" component={AgentHub} />
 
-        {/* Placeholder routes for sidebar items not yet built */}
-        <Route path="/taxonomy" component={BatchFlow} />
-        <Route path="/data-model" component={BatchFlow} />
-        <Route path="/roger-mapping" component={BatchFlow} />
-        <Route path="/aap-review" component={BatchFlow} />
-        <Route path="/tax-mapping" component={BatchFlow} />
-        <Route path="/governance-timeline" component={BatchFlow} />
+        {/* Dedicated tool pages */}
+        <Route path="/taxonomy" component={TaxonomyPage} />
+        <Route path="/data-model" component={DataModelPage} />
+        <Route path="/roger-mapping" component={RogerMappingPage} />
+        <Route path="/aap-review" component={AAPReviewPage} />
+        <Route path="/tax-mapping" component={TaxMappingPage} />
+        <Route path="/governance-timeline" component={GovernanceTimelinePage} />
         <Route path="/pi2" component={BatchRoadmap} />
         <Route path="/pi3" component={BatchRoadmap} />
 
