@@ -1,8 +1,9 @@
 // Sidebar — DCT Platform RSM Design
 // Matches reference: rsm-ai-team-niua6bzx.manus.space
 // Dark navy (#0f1623), RSM green accent, grouped nav with badges
+// Architecture Sync — Live: links to /architecture?tab=visio with pulsing indicator + timestamp
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 
 interface NavItem {
@@ -14,6 +15,7 @@ interface NavItem {
   indent?: boolean;
   status?: string;
   statusColor?: string;
+  isArchSync?: boolean;
 }
 
 const PLATFORM_ITEMS: NavItem[] = [
@@ -51,38 +53,107 @@ const AGENT_ITEMS: NavItem[] = [
 
 const TOOL_ITEMS: NavItem[] = [
   { label: "DCT BatchFlow", path: "/batchflow", icon: "⚡", badge: "New", badgeColor: "#059669" },
-  { label: "Taxonomy Explorer", path: "/taxonomy", icon: "🧬", badge: "New", badgeColor: "#059669" },
-  { label: "Data Model & Gaps", path: "/data-model", icon: "🗂️", badge: "Exec", badgeColor: "#7c3aed" },
-  { label: "Roger UI Data Mapping", path: "/roger-mapping", icon: "📊", badge: "New", badgeColor: "#059669" },
+  { label: "Taxonomy Explorer", path: "/taxonomy", icon: "◎", badge: "New", badgeColor: "#059669" },
+  { label: "Data Model & Gaps", path: "/data-model", icon: "▦", badge: "Exec", badgeColor: "#7c3aed" },
+  { label: "Roger UI Data Mapping", path: "/roger-mapping", icon: "≡", badge: "New", badgeColor: "#059669" },
   { label: "Run Agent Simulation", path: "/demo", icon: "▶", badge: "Live", badgeColor: "#dc2626" },
 ];
 
 const PI_ITEMS: NavItem[] = [
-  { label: "PI2 — Build & Enablement", path: "/pi2", icon: "🏭", badge: "PI2", badgeColor: "#2563eb" },
-  { label: "PI3 — Roadmap (Visual Placeholder)", path: "/pi3", icon: "📍", badge: "PI3", badgeColor: "#475569" },
+  { label: "PI2 — Build & Enablement", path: "/pi2", icon: "◉", badge: "PI2", badgeColor: "#2563eb" },
+  { label: "PI3 — Roadmap (Visual Placeholder)", path: "/pi3", icon: "◎", badge: "PI3", badgeColor: "#475569" },
 ];
 
 const GOVERNANCE_ITEMS: NavItem[] = [
-  { label: "AAP Review Model (Blitzy)", path: "/aap-review", icon: "🤖", badge: "New", badgeColor: "#059669" },
-  { label: "Tax Mapping Confidence", path: "/tax-mapping", icon: "🗺" },
-  { label: "Governance Timeline", path: "/governance-timeline", icon: "📋" },
-  { label: "Data Lineage", path: "/lineage", icon: "🔗" },
+  { label: "AAP Review Model (Blitzy)", path: "/aap-review", icon: "◈", badge: "New", badgeColor: "#059669" },
+  { label: "Tax Mapping Confidence", path: "/tax-mapping", icon: "◇" },
+  { label: "Governance Timeline", path: "/governance-timeline", icon: "▤" },
+  { label: "Data Lineage", path: "/lineage", icon: "⌥" },
   { label: "Roger API Evolution", path: "/roger-api", icon: "⚡", badge: "New", badgeColor: "#059669" },
 ];
 
 const DIAGRAM_ITEMS: NavItem[] = [
-  { label: "Enterprise Architecture", path: "/architecture/enterprise", icon: "⬛", badge: "New", badgeColor: "#059669" },
-  { label: "Developer Architecture", path: "/architecture/developer", icon: "⟦⟧", badge: "New", badgeColor: "#059669" },
+  { label: "Enterprise Architecture", path: "/architecture/enterprise", icon: "▣", badge: "New", badgeColor: "#059669" },
+  { label: "Developer Architecture", path: "/architecture/developer", icon: "▤", badge: "New", badgeColor: "#059669" },
   { label: "Architecture Diagram", path: "/architecture", icon: "⬡" },
-  { label: "Architecture Sync", path: "/architecture/sync", icon: "⟳", badge: "Live", badgeColor: "#dc2626" },
-  { label: "Visio Architecture", path: "/architecture/visio", icon: "⬗" },
+  { label: "Architecture Sync", path: "/architecture?tab=visio", icon: "⟳", isArchSync: true },
+  { label: "Visio Architecture", path: "/architecture?tab=visio", icon: "◧" },
   { label: "Agent Hub", path: "/agent-hub", icon: "◈" },
   { label: "Runtime Journey (T1–T10)", path: "/runtime-journey", icon: "↝" },
 ];
 
+// Format a Date as "Apr 9, 2026 · 10:41 AM"
+function formatSyncTime(d: Date) {
+  return d.toLocaleString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit", hour12: true,
+  }).replace(",", " ·");
+}
+
+function ArchSyncItem({ item }: { item: NavItem }) {
+  const [location, navigate] = useLocation();
+  const isActive = location.startsWith("/architecture");
+  const [syncTime] = useState(() => formatSyncTime(new Date()));
+  const [pulse, setPulse] = useState(true);
+
+  // Pulse every 3s to simulate live sync
+  useEffect(() => {
+    const id = setInterval(() => setPulse(p => !p), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <button
+      onClick={() => navigate(item.path)}
+      className="w-full text-left rounded-sm transition-colors"
+      style={{
+        padding: "5px 12px",
+        backgroundColor: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+        color: isActive ? "#ffffff" : "#94a3b8",
+        display: "block",
+      }}
+      onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "#e2e8f0"; }}
+      onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#94a3b8"; }}
+    >
+      {/* Top row: icon + label + Live badge */}
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <span style={{ fontSize: "11px", width: "14px", textAlign: "center", flexShrink: 0, color: "#64748b" }}>
+          {item.icon}
+        </span>
+        <span style={{ fontSize: "11px", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: "1.3" }}>
+          {item.label}
+        </span>
+        {/* Pulsing Live badge */}
+        <span style={{
+          display: "flex", alignItems: "center", gap: "3px",
+          fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
+          flexShrink: 0, color: "white", backgroundColor: "#059669"
+        }}>
+          <span style={{
+            width: "5px", height: "5px", borderRadius: "50%",
+            backgroundColor: pulse ? "#86efac" : "#ffffff",
+            transition: "background-color 0.4s ease",
+            display: "inline-block", flexShrink: 0
+          }} />
+          Live
+        </span>
+      </div>
+      {/* Sub-row: last synced timestamp */}
+      <div style={{ paddingLeft: "20px", marginTop: "2px" }}>
+        <span style={{ fontSize: "9px", color: "#475569" }}>
+          Synced {syncTime}
+        </span>
+      </div>
+    </button>
+  );
+}
+
 function NavItem({ item }: { item: NavItem }) {
   const [location, navigate] = useLocation();
-  const isActive = location === item.path || (item.path !== "/" && location.startsWith(item.path));
+
+  if (item.isArchSync) return <ArchSyncItem item={item} />;
+
+  const isActive = location === item.path || (item.path !== "/" && location.startsWith(item.path.split("?")[0]));
 
   return (
     <button

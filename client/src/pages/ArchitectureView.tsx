@@ -434,7 +434,15 @@ function VisioDiagramTab() {
 
 export default function ArchitectureView() {
   const [selectedTp, setSelectedTp] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"visio" | "platform" | "interactive" | "adrs" | "openitems" | "dependencies">("visio");
+
+  // Auto-activate tab from ?tab= query param (e.g. from Architecture Sync sidebar link)
+  const getInitialTab = (): "visio" | "platform" | "interactive" | "adrs" | "openitems" | "dependencies" => {
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("tab");
+    if (t === "platform" || t === "interactive" || t === "adrs" || t === "openitems" || t === "dependencies") return t;
+    return "visio";
+  };
+  const [activeTab, setActiveTab] = useState<"visio" | "platform" | "interactive" | "adrs" | "openitems" | "dependencies">(getInitialTab);
 
   const tpsByLayer = (layerId: string) =>
     TOUCHPOINTS.filter(tp => tp.layerId === layerId);
