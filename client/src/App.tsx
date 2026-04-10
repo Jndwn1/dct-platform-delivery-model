@@ -24,6 +24,7 @@ import LineageExplorer from "./pages/LineageExplorer";
 import RogerApiEvolution from "./pages/RogerApiEvolution";
 import RuntimeJourney from "./pages/RuntimeJourney";
 import BatchFlow from "./pages/BatchFlow";
+import WeeklyDemo from "./pages/WeeklyDemo";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -66,6 +67,8 @@ function Router() {
         <Route path="/roger-api" component={RogerApiEvolution} />
         <Route path="/runtime-journey" component={RuntimeJourney} />
         <Route path="/batchflow" component={BatchFlow} />
+        {/* Weekly Demo — PROTECTED: do not remove */}
+        <Route path="/weekly-demo" component={WeeklyDemo} />
 
         {/* Batch detail routes — redirect to batch roadmap */}
         <Route path="/batch/:id" component={BatchRoadmap} />
