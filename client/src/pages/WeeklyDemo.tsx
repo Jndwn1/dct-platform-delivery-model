@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  ChevronRight, BarChart2, Mic, GitCompare,
+  ChevronRight, ChevronLeft, BarChart2, Mic, GitCompare,
   CheckCircle2, Clock, AlertCircle, Zap,
   Database, Network, FileText, ArrowRight,
   Play, RotateCcw, Shield
@@ -389,10 +389,10 @@ const READINESS_STYLE: Record<Readiness, { bg: string; text: string; dot: string
 
 export default function WeeklyDemo() {
   const [selectedBatch, setSelectedBatch] = useState("3");
-  const [currentStep, setCurrentStep] = useState(3);
+  const [currentStep, setCurrentStep] = useState(1);
   const [speakerMode, setSpeakerMode] = useState(true);
   const [running, setRunning] = useState(false);
-  const [visibleEvents, setVisibleEvents] = useState<number>(0);
+  const [visibleEvents, setVisibleEvents] = useState<number>(-1);
   const eventsRef = useRef<HTMLDivElement>(null);
 
   const batch = BATCH_DATA[selectedBatch] ?? BATCH_DATA["3"];
@@ -402,8 +402,8 @@ export default function WeeklyDemo() {
 
   // Reset on batch change
   useEffect(() => {
-    setVisibleEvents(0);
-    setCurrentStep(3);
+    setVisibleEvents(-1);
+    setCurrentStep(1);
     setRunning(false);
   }, [selectedBatch]);
 
@@ -419,8 +419,9 @@ export default function WeeklyDemo() {
   }, [running, visibleEvents, batch.events.length]);
 
   const handleRun = () => { setVisibleEvents(0); setRunning(true); };
-  const handleReset = () => { setVisibleEvents(0); setRunning(false); };
+  const handleReset = () => { setVisibleEvents(-1); setRunning(false); };
   const handleNextStep = () => { if (currentStep < totalSteps) setCurrentStep(s => s + 1); };
+  const handlePrevStep = () => { if (currentStep > 1) setCurrentStep(s => s - 1); };
 
   return (
     <div style={{
@@ -513,21 +514,38 @@ export default function WeeklyDemo() {
           </div>
         </div>
 
-        {/* Next Step */}
-        <button
-          onClick={handleNextStep}
-          disabled={currentStep >= totalSteps}
-          style={{
-            display: "flex", alignItems: "center", gap: "5px",
-            backgroundColor: currentStep >= totalSteps ? "#1e293b" : "#2563eb",
-            color: currentStep >= totalSteps ? "#475569" : "white",
-            border: "none", borderRadius: "7px",
-            padding: "6px 14px", fontSize: "12px", fontWeight: 700,
-            cursor: currentStep >= totalSteps ? "not-allowed" : "pointer"
-          }}
-        >
-          Next Step <ChevronRight size={13} />
-        </button>
+        {/* Step Navigation */}
+        <div style={{ display: "flex", gap: "5px" }}>
+          <button
+            onClick={handlePrevStep}
+            disabled={currentStep <= 1}
+            style={{
+              display: "flex", alignItems: "center", gap: "5px",
+              backgroundColor: currentStep <= 1 ? "#1e293b" : "#1e3a5f",
+              color: currentStep <= 1 ? "#475569" : "#93c5fd",
+              border: `1px solid ${currentStep <= 1 ? "#334155" : "#3b82f6"}`,
+              borderRadius: "7px",
+              padding: "6px 12px", fontSize: "12px", fontWeight: 700,
+              cursor: currentStep <= 1 ? "not-allowed" : "pointer"
+            }}
+          >
+            <ChevronLeft size={13} /> Prev
+          </button>
+          <button
+            onClick={handleNextStep}
+            disabled={currentStep >= totalSteps}
+            style={{
+              display: "flex", alignItems: "center", gap: "5px",
+              backgroundColor: currentStep >= totalSteps ? "#1e293b" : "#2563eb",
+              color: currentStep >= totalSteps ? "#475569" : "white",
+              border: "none", borderRadius: "7px",
+              padding: "6px 14px", fontSize: "12px", fontWeight: 700,
+              cursor: currentStep >= totalSteps ? "not-allowed" : "pointer"
+            }}
+          >
+            Next Step <ChevronRight size={13} />
+          </button>
+        </div>
       </div>
 
       {/* ── SYSTEM FLOW ───────────────────────────────────────────────────── */}
@@ -607,7 +625,7 @@ export default function WeeklyDemo() {
           </div>
 
           <div ref={eventsRef} style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
-            {(visibleEvents > 0 ? batch.events.slice(0, visibleEvents) : batch.events).map((ev, i) => (
+            {visibleEvents >= 0 && batch.events.slice(0, visibleEvents).map((ev, i) => (
               <div key={i} style={{
                 display: "flex", alignItems: "flex-start", gap: "7px",
                 padding: "4px 14px"
@@ -617,7 +635,7 @@ export default function WeeklyDemo() {
                 <span style={{ fontSize: "10px", color: "#475569", flexShrink: 0 }}>{ev.time}</span>
               </div>
             ))}
-            {visibleEvents === 0 && !running && (
+            {visibleEvents < 0 && !running && (
               <div style={{ padding: "14px", textAlign: "center", color: "#475569", fontSize: "12px" }}>
                 Click Run to simulate system events
               </div>
