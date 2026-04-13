@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
+import { useBatchStatus, deriveGateStatus } from "@/contexts/BatchStatusContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lock, Shield, Link2, FileText, CheckCircle2, Clock, Circle,
@@ -239,7 +240,21 @@ export default function GateStatus() {
       if (mapped) setExpanded(mapped);
     }
   }, [params?.id]);
-  const gates = activeBatch.gates;
+  const { statuses } = useBatchStatus();
+  const liveGates = deriveGateStatus(statuses);
+
+  // Map derived context gate status to dctData GateStatus strings
+  const ctxToGateStatus = (s: "Complete" | "In Progress" | "Locked"): "PASSED" | "PENDING" | "PLANNED" => {
+    if (s === "Complete") return "PASSED";
+    if (s === "In Progress") return "PENDING";
+    return "PLANNED";
+  };
+
+  // Override gate statuses from context while keeping all other gate data (artifacts, etc.)
+  const gates = activeBatch.gates.map(g => ({
+    ...g,
+    status: ctxToGateStatus(liveGates[g.id.toLowerCase() as "g1" | "g2" | "g3" | "g4"]) as "PASSED" | "PENDING" | "BLOCKED" | "PLANNED",
+  }));
 
   const passed = gates.filter(g => g.status === "PASSED").length;
   const pending = gates.filter(g => g.status === "PENDING").length;

@@ -162,6 +162,29 @@ export function useBatchStatus() {
   return ctx;
 }
 
+// ── Status conversion helpers ───────────────────────────────────────────────
+
+/** Map context BatchStatus → dctData BatchStatus (for BatchRoadmap) */
+export function contextToDctStatus(s: BatchStatus): "ACTIVE" | "GATE_PENDING" | "PLANNED" | "CLOSED" {
+  if (s === "Complete") return "CLOSED";
+  if (s === "Dev") return "ACTIVE";
+  return "PLANNED";
+}
+
+/** Map context BatchStatus → completion percentage */
+export function contextToCompletionPct(s: BatchStatus): number {
+  if (s === "Complete") return 100;
+  if (s === "Dev") return 50;
+  return 0;
+}
+
+/** Map context BatchStatus → sidebar badge label and color */
+export function contextToSidebarBadge(s: BatchStatus): { label: string; color: string } | null {
+  if (s === "Complete") return { label: "Done", color: "#059669" };
+  if (s === "Dev") return { label: "Active", color: "#2563eb" };
+  return null; // Planned = no badge
+}
+
 // ── Status style helpers ─────────────────────────────────────────────────────
 
 export const STATUS_STYLES: Record<BatchStatus, {

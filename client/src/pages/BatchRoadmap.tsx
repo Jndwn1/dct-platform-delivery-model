@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRoute } from "wouter";
+import { useBatchStatus, contextToDctStatus, contextToCompletionPct, type BatchKey } from "@/contexts/BatchStatusContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown, ChevronRight, CheckCircle2, Clock, Circle,
@@ -184,16 +185,15 @@ function BatchCard({ batch, index, isExpanded, onToggle }: {
 
 // ─── TIMELINE STRIP ───────────────────────────────────────────────────────────
 
-function TimelineStrip() {
+function TimelineStrip({ batches }: { batches: typeof allBatches }) {
   return (
     <div className="bg-white border border-border rounded-xl p-5 shadow-sm">
       <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
         Delivery Timeline — AB-01 through AB-06
       </div>
       <div className="flex items-center gap-0 overflow-x-auto pb-2">
-        {allBatches.map((batch, i) => {
+        {batches.map((batch, i) => {
           const statusCfg = BATCH_STATUS[batch.status] || BATCH_STATUS.PLANNED;
-          const StatusIcon = statusCfg.icon;
           const colors = BATCH_COLORS[i % BATCH_COLORS.length];
           return (
             <div key={batch.id} className="flex items-center shrink-0">
@@ -207,7 +207,7 @@ function TimelineStrip() {
                   <div className="text-xs text-muted-foreground">{batch.targetDate?.split("-").slice(0, 2).join("-") || "TBD"}</div>
                 </div>
               </div>
-              {i < allBatches.length - 1 && (
+              {i < batches.length - 1 && (
                 <div className="w-8 h-0.5 bg-slate-200 shrink-0 mx-1" />
               )}
             </div>
@@ -232,10 +232,33 @@ const BATCH_PARAM_MAP: Record<string, string> = {
   "6": "AB-06",
 };
 
+// Map AB-01..AB-06 to context BatchKey so live status can be read
+const AB_TO_CONTEXT_KEY: Record<string, BatchKey> = {
+  "AB-01": "1",
+  "AB-02": "2",
+  "AB-03": "3",
+  "AB-04": "4",
+  "AB-05": "5",
+  "AB-06": "6",
+};
+
 export default function BatchRoadmap() {
   const [, params] = useRoute("/batch/:id");
+  const { statuses } = useBatchStatus();
   const initialId = params?.id ? (BATCH_PARAM_MAP[params.id] ?? "AB-01") : "AB-01";
   const [expanded, setExpanded] = useState<string>(initialId);
+
+  // Derive live batch list with status and completionPct overridden from context
+  const liveBatches = allBatches.map(batch => {
+    const ctxKey = AB_TO_CONTEXT_KEY[batch.id];
+    if (!ctxKey) return batch;
+    const ctxStatus = statuses[ctxKey];
+    return {
+      ...batch,
+      status: contextToDctStatus(ctxStatus),
+      completionPct: contextToCompletionPct(ctxStatus),
+    };
+  });
 
   // Sync when URL param changes (e.g. sidebar link clicked while already on page)
   useEffect(() => {
@@ -249,7 +272,7 @@ export default function BatchRoadmap() {
 
   // Keyboard arrow-key navigation for the batch list
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    const ids = allBatches.map(b => b.id);
+    const ids = liveBatches.map(b => b.id);
     const currentIdx = ids.indexOf(expanded);
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -262,8 +285,8 @@ export default function BatchRoadmap() {
     }
   }, [expanded]);
 
-  const inProgress = allBatches.filter(b => b.status === "ACTIVE" || b.status === "GATE_PENDING").length;
-  const planned = allBatches.filter(b => b.status === "PLANNED").length;
+  const inProgress = liveBatches.filter(b => b.status === "ACTIVE" || b.status === "GATE_PENDING").length;
+  const planned = liveBatches.filter(b => b.status === "PLANNED").length;
 
   return (
     <div className="p-6 space-y-5">
@@ -272,7 +295,7 @@ export default function BatchRoadmap() {
         <div>
           <h1 className="text-lg font-bold text-foreground">Architectural Batch Roadmap</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {allBatches.length} batches · {inProgress} in progress · {planned} planned · DCT Delivery Model
+            {liveBatches.length} batches · {inProgress} in progress · {planned} planned · DCT Delivery Model
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs">
@@ -286,7 +309,7 @@ export default function BatchRoadmap() {
       </div>
 
       {/* Timeline strip */}
-      <TimelineStrip />
+      <TimelineStrip batches={liveBatches} />
 
       {/* Batch cards — keyboard navigable: ↑/↓ to move selection */}
       <div
@@ -296,7 +319,7 @@ export default function BatchRoadmap() {
         style={{ outline: "none" }}
         aria-label="Batch list — use arrow keys to navigate"
       >
-        {allBatches.map((batch, i) => (
+        {liveBatches.map((batch, i) => (
           <BatchCard
             key={batch.id}
             batch={batch}

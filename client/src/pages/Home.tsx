@@ -4,18 +4,19 @@
 
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useBatchStatus, deriveGateStatus, type BatchKey } from "@/contexts/BatchStatusContext";
 
-const BATCHES = [
-  { id: "foundation-core", label: "Foundation Core", status: "Active" },
-  { id: "1", label: "Batch 1 — File Ingestion & Initial Storage", status: "Active" },
-  { id: "2", label: "Batch 2 — Normalization & Cross-LOB Taxonomy", status: "Planned" },
-  { id: "3", label: "Batch 3 — Tax Domain Authority & Tax Taxonomy", status: "Planned" },
-  { id: "4", label: "Batch 4 — AI Tax Mapping & Explainability", status: "Planned" },
-  { id: "5", label: "Batch 5 — Mapping Decisions & Governance", status: "Planned" },
-  { id: "6", label: "Batch 6 — Practitioner Review & Adjustment Workflow", status: "Planned" },
-  { id: "7", label: "Batch 7 — Rollforward & Prior Year Intelligence", status: "Planned" },
-  { id: "8", label: "Batch 8 — Return Assembly, Filing & Lineage Closure", status: "Planned" },
-  { id: "9", label: "Batch 9 — Learning Governance & Model Evolution", status: "Planned" },
+const STATIC_BATCHES: { id: BatchKey; label: string }[] = [
+  { id: "foundation-core", label: "Foundation Core" },
+  { id: "1", label: "Batch 1 — File Ingestion & Initial Storage" },
+  { id: "2", label: "Batch 2 — Normalization & Cross-LOB Taxonomy" },
+  { id: "3", label: "Batch 3 — Tax Domain Authority & Tax Taxonomy" },
+  { id: "4", label: "Batch 4 — AI Tax Mapping & Explainability" },
+  { id: "5", label: "Batch 5 — Mapping Decisions & Governance" },
+  { id: "6", label: "Batch 6 — Practitioner Review & Adjustment Workflow" },
+  { id: "7", label: "Batch 7 — Rollforward & Prior Year Intelligence" },
+  { id: "8", label: "Batch 8 — Return Assembly, Filing & Lineage Closure" },
+  { id: "9", label: "Batch 9 — Learning Governance & Model Evolution" },
 ];
 
 const GATES = [
@@ -110,6 +111,47 @@ const AGENT_COLORS: Record<string, string> = {
 export default function Home() {
   const [, navigate] = useLocation();
   const [expandedGate, setExpandedGate] = useState<number | null>(null);
+  const { statuses } = useBatchStatus();
+  const liveGates = deriveGateStatus(statuses);
+
+  // Build live BATCHES with status derived from context
+  const BATCHES = STATIC_BATCHES.map(b => {
+    const s = statuses[b.id];
+    return { ...b, status: s === "Complete" ? "Active" : s === "Dev" ? "Active" : "Planned" };
+  });
+
+  // Build live GATES with status derived from context
+  const gateStatusLabel = (s: "Complete" | "In Progress" | "Locked") =>
+    s === "Complete" ? "Passed" : s === "In Progress" ? "In Progress" : "Locked";
+  const gateStatusColor = (s: "Complete" | "In Progress" | "Locked") =>
+    s === "Complete" ? "#059669" : s === "In Progress" ? "#d97706" : "#475569";
+
+  const GATES = [
+    {
+      num: 1, label: "Schema Lock",
+      status: gateStatusLabel(liveGates.g1), statusColor: gateStatusColor(liveGates.g1),
+      owner: "Enterprise Architect",
+      desc: "Confirm that all entity schemas are complete, reviewed, and frozen before implementation begins.",
+    },
+    {
+      num: 2, label: "Invariant Lock",
+      status: gateStatusLabel(liveGates.g2), statusColor: gateStatusColor(liveGates.g2),
+      owner: "QA Lead / Tax Technology",
+      desc: "Confirm that all system invariants (immutability, hash integrity, client isolation, atomic writes) have been tested adversarially and no violations exist.",
+    },
+    {
+      num: 3, label: "Contract Publication",
+      status: gateStatusLabel(liveGates.g3), statusColor: gateStatusColor(liveGates.g3),
+      owner: "API Product Owner",
+      desc: "Confirm that all API contracts (OpenAPI/Swagger) are published, versioned, and accepted by downstream consumers.",
+    },
+    {
+      num: 4, label: "Lineage Closure",
+      status: gateStatusLabel(liveGates.g4), statusColor: gateStatusColor(liveGates.g4),
+      owner: "DCT Delivery Lead",
+      desc: "Confirm that the full lineage chain is captured, queryable, and verified end-to-end before the Batch is marked complete.",
+    },
+  ];
 
   return (
     <div style={{ backgroundColor: "#f8fafc", minHeight: "100%", padding: "0" }}>
