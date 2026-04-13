@@ -15,6 +15,154 @@
 
 import { allBatches, touchpoints, activeBatch, type ArchitecturalBatch, type BatchStatus } from "./dctData";
 
+// ─── SWAGGER CONTRACT VALIDATION ─────────────────────────────────────────────
+// GOVERNANCE RULE: Batch Model is the source of truth for stage, system
+// ownership, and Roger usability. Swagger is used ONLY as a validation layer.
+//
+// Validation applies when:
+//   • Row indicates Roger consumption (rogerCanUse === true), OR
+//   • Row represents an API/event surface (READY event, mapping, decisions, filing)
+//
+// Status semantics:
+//   ALIGNED          → Swagger contract exists and matches Batch Model
+//   MISSING_CONTRACT → Batch Model says data is available; no Swagger contract yet
+//   OUT_OF_SYNC      → Swagger exposes something not aligned with Batch Model
+//   NOT_APPLICABLE   → Row is infrastructure/internal; no API contract expected
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type SwaggerContractStatus =
+  | "ALIGNED"
+  | "MISSING_CONTRACT"
+  | "OUT_OF_SYNC"
+  | "NOT_APPLICABLE";
+
+export interface SwaggerContractRef {
+  status: SwaggerContractStatus;
+  /** Swagger endpoint path, if contract exists */
+  endpoint?: string;
+  /** Short note explaining the validation result */
+  detail: string;
+}
+
+/**
+ * Static Swagger contract registry.
+ * Keyed by stage name (matches DATA_AVAILABILITY_STATIC[].stage).
+ *
+ * This is a STATIC reference — no API calls are made.
+ * Update this registry when Swagger contracts are published or changed.
+ * Source systems: PDC Swagger (GET /api/pdc/*) and TDC Swagger (GET /api/tdc/*).
+ */
+const SWAGGER_CONTRACT_REGISTRY: Record<string, SwaggerContractRef> = {
+  // ── FC-00: Infrastructure — no API contract expected ──────────────────────
+  "Infrastructure Setup": {
+    status: "NOT_APPLICABLE",
+    detail: "Infrastructure batch — no API contract",
+  },
+
+  // ── AB-01: Ingestion — PDC internal; no Roger-facing contract ─────────────
+  "Ingestion": {
+    status: "MISSING_CONTRACT",
+    detail: "PDC ingestion records are internal; no published Swagger endpoint for Roger",
+  },
+  "Ready Event": {
+    status: "ALIGNED",
+    endpoint: "Service Bus: PDC_READY_EVENT",
+    detail: "Event schema documented in PDC Swagger; payload fields match Batch Model",
+  },
+
+  // ── AB-02: Normalized / Mapped ────────────────────────────────────────────
+  "Normalized": {
+    status: "ALIGNED",
+    endpoint: "GET /api/pdc/normalized",
+    detail: "vNormalizedTb view exposed via PDC Swagger; EntityId + PeriodStart/PeriodEnd filter supported",
+  },
+  "Mapped": {
+    status: "OUT_OF_SYNC",
+    endpoint: "GET /api/tdc/records",
+    detail: "TDC Swagger exposes MappingDecision but uses 'tax_year' field — Batch Model requires PeriodStart/PeriodEnd; field alignment gap",
+  },
+
+  // ── AB-03: Adjusted ───────────────────────────────────────────────────────
+  "Adjusted": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "AdjustmentRecord not yet published in TDC Swagger; contract pending Gate 2 (Invariant Lock)",
+  },
+
+  // ── AB-04: Tax-Ready ──────────────────────────────────────────────────────
+  "Tax-Ready": {
+    status: "ALIGNED",
+    endpoint: "GET /api/tdc/tax-ready",
+    detail: "TaxReadyRecord in TDC Swagger; TaxYear derived correctly from PeriodStart/PeriodEnd",
+  },
+
+  // ── AB-05: Filed ──────────────────────────────────────────────────────────
+  "Filed": {
+    status: "ALIGNED",
+    endpoint: "GET /api/tdc/filing-records",
+    detail: "FilingRecord in TDC Swagger; append-only constraint documented; IMS outbound boundary respected",
+  },
+
+  // ── AB-06: Orchestration Manifest — internal governance artifact ──────────
+  "Orchestration Manifest": {
+    status: "NOT_APPLICABLE",
+    detail: "Internal governance artifact — no Roger-facing API contract",
+  },
+
+  // ── AB-07: Tax Taxonomy ───────────────────────────────────────────────────
+  "Tax Taxonomy": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "TaxTaxonomyRecord not yet published in TDC Swagger; contract expected in AB-07 delivery",
+  },
+
+  // ── AB-08: AI Mapping Proposals ───────────────────────────────────────────
+  "AI Mapping Proposals": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "MappingProposal with ExplainabilityTrace not yet in TDC Swagger; pending AB-08 delivery",
+  },
+
+  // ── AB-09: Tax Decision ───────────────────────────────────────────────────
+  "Tax Decision": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "TaxDecisionRecord not yet in TDC Swagger; immutable audit trail contract pending AB-09",
+  },
+
+  // ── AB-10: Practitioner Review ────────────────────────────────────────────
+  "Practitioner Review": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "ReviewWorkflowRecord and AdjustmentRequest not yet in TDC Swagger; pending AB-10 delivery",
+  },
+
+  // ── AB-11: Prior Year Rollforward ─────────────────────────────────────────
+  "Prior Year Rollforward": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "RollforwardRecord not yet in PDC Swagger; pending AB-11 delivery",
+  },
+
+  // ── AB-12: Return Assembly & Filing ───────────────────────────────────────
+  "Return Assembly & Filing": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "ReturnAssembly and lineage closure cert not yet in TDC Swagger; pending AB-12 delivery",
+  },
+};
+
+/**
+ * Resolves the Swagger contract validation status for a given stage.
+ * Falls back to NOT_APPLICABLE if no registry entry exists.
+ */
+export function resolveSwaggerContract(stage: string): SwaggerContractRef {
+  return SWAGGER_CONTRACT_REGISTRY[stage] ?? {
+    status: "NOT_APPLICABLE",
+    detail: "No contract registry entry for this stage",
+  };
+}
+
 // ─── CANONICAL BATCH REGISTRY ────────────────────────────────────────────────
 
 /** Lookup map: batchId → ArchitecturalBatch. Use for O(1) reference validation. */
@@ -109,12 +257,16 @@ export interface DataAvailabilityRow {
   usageType: string;
   notes: string;
   isOrphaned: boolean;       // true if batchId no longer exists in Batch Model
+  // ── Swagger contract validation (read-only — does not affect Batch Model) ──
+  swaggerStatus: SwaggerContractStatus;
+  swaggerEndpoint?: string;
+  swaggerDetail: string;
 }
 
 // Static schema descriptions — these describe the data shape, not the batch.
 // Batch metadata (name, status, system) is derived from the Batch Model above.
 // Coverage: Foundation Core (FC-00) through Return Assembly (AB-12).
-const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "batchStatus" | "system" | "isOrphaned">> = [
+const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "batchStatus" | "system" | "isOrphaned" | "swaggerStatus" | "swaggerEndpoint" | "swaggerDetail">> = [
   // ── Foundation Core (FC-00) ──────────────────────────────────────────────
   {
     stage: "Infrastructure Setup",
@@ -258,12 +410,16 @@ const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "b
 export function getDataAvailabilityRows(): DataAvailabilityRow[] {
   return DATA_AVAILABILITY_STATIC.map((row) => {
     const batch = batchById[row.batchId];
+    const contract = resolveSwaggerContract(row.stage);
     return {
       ...row,
       batchName: batch?.name ?? `[ORPHANED — ${row.batchId}]`,
       batchStatus: batch?.status ?? "PLANNED",
       system: batch?.primarySystem ?? "Unknown",
       isOrphaned: !batch,
+      swaggerStatus: contract.status,
+      swaggerEndpoint: contract.endpoint,
+      swaggerDetail: contract.detail,
     };
   });
 }

@@ -5,7 +5,17 @@
 // (which reads from dctData.ts). DO NOT hardcode batch names, statuses, or
 // systems here. Update dctData.ts to change batch metadata.
 import { useState, useMemo } from "react";
-import { getDataAvailabilityRows, batchStatusBadge, validateBatchRefs } from "../lib/batchModelSource";
+import { getDataAvailabilityRows, batchStatusBadge, validateBatchRefs, type SwaggerContractStatus } from "../lib/batchModelSource";
+
+// ─── SWAGGER CONTRACT BADGE HELPER ───────────────────────────────────────────────────────────
+function swaggerBadge(status: SwaggerContractStatus): { bg: string; text: string; label: string; icon: string } {
+  switch (status) {
+    case "ALIGNED":          return { bg: "#d1fae5", text: "#065f46", label: "Aligned",          icon: "✓" };
+    case "MISSING_CONTRACT": return { bg: "#fef3c7", text: "#92400e", label: "Missing Contract",  icon: "○" };
+    case "OUT_OF_SYNC":      return { bg: "#fee2e2", text: "#991b1b", label: "Out of Sync",       icon: "⚠" };
+    case "NOT_APPLICABLE":   return { bg: "#f3f4f6", text: "#9ca3af", label: "N/A",               icon: "—" };
+  }
+}
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -184,13 +194,14 @@ export default function DataModelPage() {
                 <th style={s.th}>Roger Can Use</th>
                 <th style={s.th}>Usage Type</th>
                 <th style={s.th}>Notes</th>
+                <th style={{ ...s.th, whiteSpace: "nowrap" as const }}>Contract</th>
               </tr>
             </thead>
             <tbody>
               {/* Orphaned batch reference warning — only shown if Batch Model has changed */}
               {hasOrphanedRefs && (
                 <tr>
-                  <td colSpan={6} style={{ padding: "8px 12px", backgroundColor: "#fef3c7", color: "#92400e", fontSize: "11px", fontWeight: 600 }}>
+                  <td colSpan={7} style={{ padding: "8px 12px", backgroundColor: "#fef3c7", color: "#92400e", fontSize: "11px", fontWeight: 600 }}>
                     ⚠ Governance Warning: {batchRefValidation.orphaned.join(", ")} referenced here but not found in Batch Model (dctData.ts). Update batchModelSource.ts to resolve.
                   </td>
                 </tr>
@@ -214,10 +225,44 @@ export default function DataModelPage() {
                   </td>
                   <td style={{ ...s.td, fontSize: "12px", color: "#6b7280" }}>{row.usageType}</td>
                   <td style={{ ...s.td, fontSize: "11px", color: "#9ca3af", maxWidth: "200px" }}>{row.notes}</td>
+                  <td style={{ ...s.td, verticalAlign: "top" as const }}>
+                    {(() => {
+                      const b = swaggerBadge(row.swaggerStatus);
+                      return (
+                        <div style={{ display: "flex", flexDirection: "column" as const, gap: "3px" }}>
+                          <span
+                            title={row.swaggerDetail}
+                            style={{ fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "3px", backgroundColor: b.bg, color: b.text, whiteSpace: "nowrap" as const, cursor: "default" }}
+                          >
+                            {b.icon} {b.label}
+                          </span>
+                          {row.swaggerEndpoint && (
+                            <span style={{ fontSize: "9px", fontFamily: "monospace", color: "#6b7280", whiteSpace: "nowrap" as const }}>{row.swaggerEndpoint}</span>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+        {/* Swagger Contract Validation Legend */}
+        <div style={{ padding: "10px 20px 14px", borderTop: "1px solid #f3f4f6", display: "flex", flexWrap: "wrap" as const, gap: "16px", alignItems: "center" }}>
+          <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: "#9ca3af", marginRight: "4px" }}>Contract Validation:</span>
+          {([
+            { status: "ALIGNED",          icon: "✓", label: "Aligned — contract exists and matches Batch Model",         bg: "#d1fae5", text: "#065f46" },
+            { status: "MISSING_CONTRACT", icon: "○", label: "Missing Contract — not yet published in Swagger",           bg: "#fef3c7", text: "#92400e" },
+            { status: "OUT_OF_SYNC",      icon: "⚠", label: "Out of Sync — Swagger field mismatch with Batch Model",    bg: "#fee2e2", text: "#991b1b" },
+            { status: "NOT_APPLICABLE",   icon: "—", label: "N/A — internal/infrastructure; no API contract expected",  bg: "#f3f4f6", text: "#9ca3af" },
+          ] as const).map(item => (
+            <span key={item.status} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: "#6b7280" }}>
+              <span style={{ fontSize: "10px", fontWeight: 700, padding: "1px 6px", borderRadius: "3px", backgroundColor: item.bg, color: item.text }}>{item.icon} {item.status === "ALIGNED" ? "Aligned" : item.status === "MISSING_CONTRACT" ? "Missing Contract" : item.status === "OUT_OF_SYNC" ? "Out of Sync" : "N/A"}</span>
+              <span style={{ fontSize: "10px", color: "#9ca3af" }}>{item.label.split("—")[1]?.trim()}</span>
+            </span>
+          ))}
+          <span style={{ fontSize: "10px", color: "#d1d5db", marginLeft: "auto" }}>Swagger validation is read-only — Batch Model remains source of truth</span>
         </div>
       </div>
 
