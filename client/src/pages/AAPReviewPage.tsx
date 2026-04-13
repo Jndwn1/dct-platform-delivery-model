@@ -1,148 +1,455 @@
-// DCT Platform — AAP Review Model (Blitzy)
-// Shows the Agentic Architecture Pattern review model and backlog artifact alignment
+// AAPReviewPage.tsx
+// Agent Action Plan Review Model (Blitzy) — 15-stage governed delivery swimlane
+// Layout: horizontal stages 1–15 × vertical swim lanes (PO, Sr BA, Jr BA, BA+Lead Dev, BA, Lead Dev, Lead Dev/Dev, Developer, QA Agent)
+// Color coding: orange = Blitzy/AI Generation, blue = Review/Governance, green = Approved/Complete
+// Gates: Req Gate (stage 4), Plan Validation (stage 9)
 import { useState } from "react";
 
-const AAP_PATTERNS = [
+// ─── TYPE DEFINITIONS ────────────────────────────────────────────────────────
+
+type CardType = "blitzy" | "governance" | "approved" | "gate";
+
+interface StageCard {
+  stage: number;         // 1–15
+  lane: string;          // swim lane key
+  type: CardType;
+  label: string;
+  sublabel: string;
+  badge?: string;        // small badge text (e.g. "PLAN", "SCOPE", "ADO")
+  badgeColor?: string;
+}
+
+// ─── SWIM LANES ──────────────────────────────────────────────────────────────
+
+const LANES = [
+  { key: "po",           label: "PRODUCT\nOWNER" },
+  { key: "sr-ba",        label: "SENIOR BA" },
+  { key: "jr-ba",        label: "JUNIOR BA" },
+  { key: "ba-lead-dev",  label: "BA + LEAD\nDEV" },
+  { key: "ba",           label: "BA" },
+  { key: "lead-dev",     label: "LEAD DEV" },
+  { key: "lead-dev-dev", label: "LEAD DEV /\nDEV" },
+  { key: "developer",    label: "DEVELOPER" },
+  { key: "qa",           label: "QA AGENT" },
+];
+
+// ─── STAGE CARDS (15 stages) ─────────────────────────────────────────────────
+// Positions derived from reference screenshot
+
+const STAGE_CARDS: StageCard[] = [
+  // Stage 1 — Batch Planning (PO)
   {
-    id: "AAP-01",
-    name: "File Ingestion Pattern",
-    batch: "Batch 1",
-    status: "Approved",
-    agents: ["Ingest Agent", "Validation Agent"],
-    invariants: ["DocumentId immutable after creation", "JobId unique per file per period", "Status transitions: INGESTED → PROCESSING → READY | FAILED"],
-    contracts: ["NEW_FILE_EVENT schema v1.0", "IngestionJob state machine contract"],
-    adoFeatures: ["DCT-101: Tax Portal Upload", "DCT-102: Service Bus Publication", "DCT-103: PDC Ingestion Record"],
+    stage: 1, lane: "po", type: "governance",
+    label: "Batch Planning",
+    sublabel: "Batch scope, goals, and delivery intent defined",
+    badge: "PLAN", badgeColor: "#3b82f6",
   },
+  // Stage 2 — Feature Definition (Sr BA)
   {
-    id: "AAP-02",
-    name: "Normalization Pattern",
-    batch: "Batch 2",
-    status: "In Review",
-    agents: ["Normalization Agent", "Schema Validator"],
-    invariants: ["NormalizedRecord.RecordId immutable", "CanonicalDataset locked after READY signal", "Cross-LOB taxonomy version pinned at lock time"],
-    contracts: ["NORMALIZATION_COMPLETE event schema", "CanonicalDataset lock contract", "READY signal specification"],
-    adoFeatures: ["DCT-201: Normalization Pipeline", "DCT-202: Canonical Dataset Creation", "DCT-203: Cross-LOB Taxonomy"],
+    stage: 2, lane: "sr-ba", type: "governance",
+    label: "Feature Definition",
+    sublabel: "Feature creation, scope, and acceptance boundaries",
+    badge: "SCOPE", badgeColor: "#3b82f6",
   },
+  // Stage 3 — AC: What Done Looks Like (Jr BA)
   {
-    id: "AAP-03",
-    name: "AI Tax Mapping Pattern",
-    batch: "Batch 4",
-    status: "Draft",
-    agents: ["AI Orchestrator", "Mapping Agent", "Evidence Agent"],
-    invariants: ["Confidence score range: 0.0–1.0", "Evidence required for all proposals", "Proposals immutable after TDC acceptance"],
-    contracts: ["TaxMappingProposal schema v1.0", "Confidence band thresholds", "Evidence payload specification"],
-    adoFeatures: ["DCT-401: AI Mapping Engine", "DCT-402: Confidence Scoring", "DCT-403: Evidence Generation"],
+    stage: 3, lane: "jr-ba", type: "governance",
+    label: "AC – What Done Looks Like",
+    sublabel: "Stories + Acceptance Criteria authored",
+    badge: "AC = WHAT DONE LOOKS LIKE", badgeColor: "#2563eb",
   },
+  // Stage 4 — Req Gate: Review & Lock (BA + Lead Dev)
   {
-    id: "AAP-04",
-    name: "Practitioner Review Pattern",
-    batch: "Batch 6",
-    status: "Draft",
-    agents: ["Review Agent", "Audit Agent"],
-    invariants: ["Adjustment requires practitioner ID", "Original value preserved in audit trail", "Approval required before TaxDecision persisted"],
-    contracts: ["AdjustmentRecord schema", "Approval workflow contract", "Audit trail specification"],
-    adoFeatures: ["DCT-601: Practitioner Adjustment UI", "DCT-602: Approval Workflow", "DCT-603: Audit Trail"],
+    stage: 4, lane: "ba-lead-dev", type: "gate",
+    label: "Review & Lock",
+    sublabel: "Locked stories + ACs reviewed and signed off",
+    badge: "REQ. GATE", badgeColor: "#dc2626",
+  },
+  // Stage 5 — DevOps Entry (BA)
+  {
+    stage: 5, lane: "ba", type: "governance",
+    label: "DevOps Entry",
+    sublabel: "ADO stories and features entered",
+    badge: "ADO", badgeColor: "#7c3aed",
+  },
+  // Stage 6 — Build Prompt (Jr BA)
+  {
+    stage: 6, lane: "jr-ba", type: "blitzy",
+    label: "Build Prompt",
+    sublabel: "MD file assembled for Blitzy AAP generation",
+  },
+  // Stage 7 — AAP Generation (Lead Dev)
+  {
+    stage: 7, lane: "lead-dev", type: "blitzy",
+    label: "AAP Generation",
+    sublabel: "AAP artifact generated by Blitzy",
+    badge: "AAP = HOW WE BUILD IT", badgeColor: "#ea580c",
+  },
+  // Stage 8 — Second Opinion (Lead Dev / Dev)
+  {
+    stage: 8, lane: "lead-dev-dev", type: "governance",
+    label: "Second Opinion",
+    sublabel: "Reviewed by lead dev for architecture alignment",
+    badge: "ADVISORY", badgeColor: "#0891b2",
+  },
+  // Stage 9 — Plan Validation Gate (Developer)
+  {
+    stage: 9, lane: "developer", type: "gate",
+    label: "Plan Validation",
+    sublabel: "Validated plan against ACs and batch architecture",
+    badge: "GOV GATE", badgeColor: "#dc2626",
+  },
+  // Stage 10 — Code Generation (Lead Dev)
+  {
+    stage: 10, lane: "lead-dev", type: "blitzy",
+    label: "Code Generation",
+    sublabel: "Generated code from AAP via Blitzy",
+    badge: "BLITZY", badgeColor: "#ea580c",
+  },
+  // Stage 11 — Unit Test Generation (Developer)
+  {
+    stage: 11, lane: "developer", type: "blitzy",
+    label: "Unit Test Gen.",
+    sublabel: "Test suite generated against AC scenarios",
+  },
+  // Stage 12 — Runtime Verify (Developer)
+  {
+    stage: 12, lane: "developer", type: "governance",
+    label: "Runtime Verify",
+    sublabel: "Working code verified in runtime environment",
+  },
+  // Stage 13 — QA Validation (QA Agent)
+  {
+    stage: 13, lane: "qa", type: "blitzy",
+    label: "QA Validation",
+    sublabel: "Triaged code validated against ACs + Invariants",
+    badge: "QA = VALIDATES AC + INVARIANTS", badgeColor: "#059669",
+  },
+  // Stage 14 — Approval & Refine (Lead Dev)
+  {
+    stage: 14, lane: "lead-dev", type: "approved",
+    label: "Approval & Refine",
+    sublabel: "Approved and refined for merge readiness",
+    badge: "APPROVE", badgeColor: "#059669",
+  },
+  // Stage 15 — Final Review / Merge (Lead Dev)
+  {
+    stage: 15, lane: "lead-dev", type: "approved",
+    label: "Final Review",
+    sublabel: "Merged code — delivery complete",
+    badge: "MERGE", badgeColor: "#059669",
   },
 ];
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; border: string }> = {
-  "Approved":  { bg: "#dcfce7", text: "#166534", border: "#16a34a" },
-  "In Review": { bg: "#fef9c3", text: "#854d0e", border: "#ca8a04" },
-  "Draft":     { bg: "#f3f4f6", text: "#374151", border: "#9ca3af" },
+// ─── STYLE HELPERS ───────────────────────────────────────────────────────────
+
+const CARD_STYLES: Record<CardType, { bg: string; border: string; titleColor: string }> = {
+  blitzy:     { bg: "#fff7ed", border: "#fb923c", titleColor: "#9a3412" },
+  governance: { bg: "#eff6ff", border: "#60a5fa", titleColor: "#1e40af" },
+  approved:   { bg: "#f0fdf4", border: "#4ade80", titleColor: "#166534" },
+  gate:       { bg: "#fef2f2", border: "#f87171", titleColor: "#991b1b" },
 };
 
+const STAGE_COUNT = 15;
+const STAGE_W = 110;   // px per stage column
+const LANE_H = 90;     // px per swim lane row
+const LANE_LABEL_W = 100; // px for lane label column
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
+
 export default function AAPReviewPage() {
-  const [expanded, setExpanded] = useState<string | null>("AAP-01");
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [presentationMode, setPresentationMode] = useState(false);
+
+  // Build a lookup: lane → stage → card
+  const cardMap: Record<string, Record<number, StageCard>> = {};
+  for (const card of STAGE_CARDS) {
+    if (!cardMap[card.lane]) cardMap[card.lane] = {};
+    cardMap[card.lane][card.stage] = card;
+  }
+
+  const totalW = LANE_LABEL_W + STAGE_COUNT * STAGE_W;
 
   return (
-    <div style={{ padding: "24px", maxWidth: "1000px", margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-          <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#059669", backgroundColor: "#dcfce7", padding: "2px 8px", borderRadius: "4px" }}>
-            Blitzy
-          </span>
-          <span style={{ fontSize: "11px", color: "#6b7280", backgroundColor: "#f3f4f6", padding: "2px 8px", borderRadius: "4px" }}>
-            Agentic Architecture Pattern Review
-          </span>
+    <div style={{
+      padding: presentationMode ? "0" : "20px 24px",
+      backgroundColor: presentationMode ? "#0f172a" : "#f8fafc",
+      minHeight: "100vh",
+      fontFamily: "'Inter', 'Segoe UI', sans-serif",
+    }}>
+
+      {/* ── Header ── */}
+      <div style={{
+        display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+        marginBottom: "18px", flexWrap: "wrap", gap: "12px",
+      }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+            <h1 style={{
+              fontSize: presentationMode ? "20px" : "18px",
+              fontWeight: 800, color: presentationMode ? "#f1f5f9" : "#0f172a",
+              margin: 0, letterSpacing: "-0.01em",
+            }}>
+              Agent Action Plan Review Model
+            </h1>
+            <span style={{
+              fontSize: "10px", fontWeight: 800, padding: "2px 8px", borderRadius: "4px",
+              backgroundColor: "#fff7ed", color: "#9a3412", border: "1px solid #fb923c",
+              letterSpacing: "0.06em",
+            }}>BLITZY</span>
+            <span style={{
+              fontSize: "11px", color: "#64748b",
+              backgroundColor: presentationMode ? "#1e293b" : "#f1f5f9",
+              padding: "2px 8px", borderRadius: "4px",
+            }}>15 stages · Governed delivery flow</span>
+          </div>
+          <p style={{
+            fontSize: "12px", color: presentationMode ? "#94a3b8" : "#64748b",
+            margin: 0, maxWidth: "780px", lineHeight: "1.6",
+          }}>
+            This flow ensures we define what "done" looks like before development (Acceptance Criteria), validate design intent through the AAP, and verify final implementation against both Acceptance Criteria and invariants.
+            {" "}<strong style={{ color: presentationMode ? "#cbd5e1" : "#374151" }}>ACs define what done looks like</strong> — required before AAP generation.
+            {" "}<strong style={{ color: presentationMode ? "#cbd5e1" : "#374151" }}>AAP defines how the system will be built</strong> — it interprets ACs, not defines them.
+            {" "}<strong style={{ color: presentationMode ? "#cbd5e1" : "#374151" }}>QA validates the final implementation</strong> against both Acceptance Criteria (behavior) and Invariants (rules that must always hold).
+            {" "}The key governance points are <strong style={{ color: presentationMode ? "#cbd5e1" : "#374151" }}>Review &amp; Lock</strong> (Stage 4 — ACs must be complete),
+            {" "}<strong style={{ color: presentationMode ? "#cbd5e1" : "#374151" }}>Plan Validation</strong> (Stage 9 — validates AAP against ACs + batch architecture),
+            {" "}and the loop-back to <strong style={{ color: presentationMode ? "#cbd5e1" : "#374151" }}>Build Prompt</strong> (Stage 6) when gaps are found.
+          </p>
         </div>
-        <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>
-          AAP Review Model
-        </h1>
-        <p style={{ fontSize: "13px", color: "#6b7280", margin: 0 }}>
-          Agentic Architecture Patterns reviewed and approved by Blitzy. Each pattern defines agents, invariants, contracts, and ADO feature alignment.
-        </p>
+
+        {/* Controls */}
+        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
+          <button
+            onClick={() => setPresentationMode(p => !p)}
+            style={{
+              fontSize: "12px", fontWeight: 600, padding: "7px 14px", borderRadius: "6px",
+              border: "1px solid #cbd5e1", cursor: "pointer",
+              backgroundColor: presentationMode ? "#1e293b" : "white",
+              color: presentationMode ? "#f1f5f9" : "#374151",
+              display: "flex", alignItems: "center", gap: "6px",
+            }}
+          >
+            ⊞ {presentationMode ? "Exit Presentation" : "Presentation Mode"}
+          </button>
+          <button
+            style={{
+              fontSize: "12px", fontWeight: 700, padding: "7px 16px", borderRadius: "6px",
+              border: "none", cursor: "pointer",
+              backgroundColor: "#f97316", color: "white",
+              display: "flex", alignItems: "center", gap: "6px",
+            }}
+            onClick={() => {}}
+          >
+            ▶ Run Review Simulation
+          </button>
+        </div>
       </div>
 
-      {/* Pattern cards */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {AAP_PATTERNS.map(pattern => {
-          const ss = STATUS_STYLE[pattern.status];
-          const isOpen = expanded === pattern.id;
-          return (
-            <div key={pattern.id} style={{ border: `1px solid ${isOpen ? ss.border : "#e5e7eb"}`, borderRadius: "10px", overflow: "hidden" }}>
-              {/* Header row */}
-              <button
-                onClick={() => setExpanded(isOpen ? null : pattern.id)}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "14px 16px", background: "none", border: "none", cursor: "pointer",
-                  backgroundColor: isOpen ? "#fafafa" : "white"
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 800, color: "#9ca3af" }}>{pattern.id}</span>
-                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>{pattern.name}</span>
-                  <span style={{ fontSize: "11px", color: "#6b7280", backgroundColor: "#f3f4f6", padding: "2px 8px", borderRadius: "4px" }}>{pattern.batch}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "4px", backgroundColor: ss.bg, color: ss.text }}>
-                    {pattern.status}
-                  </span>
-                  <span style={{ color: "#9ca3af" }}>{isOpen ? "▲" : "▼"}</span>
-                </div>
-              </button>
+      {/* ── Legend ── */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: "20px", marginBottom: "16px",
+        flexWrap: "wrap", fontSize: "11px", fontWeight: 600,
+      }}>
+        {[
+          { color: "#fb923c", label: "Blitzy / AI Generation" },
+          { color: "#60a5fa", label: "Review / Governance" },
+          { color: "#4ade80", label: "Approved / Complete" },
+        ].map(item => (
+          <span key={item.label} style={{ display: "flex", alignItems: "center", gap: "5px", color: presentationMode ? "#cbd5e1" : "#374151" }}>
+            <span style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: item.color, display: "inline-block" }} />
+            {item.label}
+          </span>
+        ))}
+        <span style={{ marginLeft: "auto", fontSize: "10px", color: presentationMode ? "#64748b" : "#94a3b8", fontStyle: "italic", fontWeight: 400 }}>
+          AC = What done looks like &nbsp;·&nbsp; AAP = How we build it &nbsp;·&nbsp; QA = Validates AC + Invariants &nbsp;·&nbsp; All changes via Build Prompt — no manual edits
+        </span>
+      </div>
 
-              {/* Expanded content */}
-              {isOpen && (
-                <div style={{ padding: "0 16px 16px", borderTop: "1px solid #e5e7eb" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginTop: "16px" }}>
-                    {/* Agents */}
-                    <div>
-                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Agents</div>
-                      {pattern.agents.map(a => (
-                        <div key={a} style={{ fontSize: "12px", color: "#374151", padding: "4px 8px", backgroundColor: "#f5f3ff", borderRadius: "4px", marginBottom: "4px" }}>{a}</div>
-                      ))}
-                    </div>
-                    {/* Invariants */}
-                    <div>
-                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#059669", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Invariants</div>
-                      {pattern.invariants.map(inv => (
-                        <div key={inv} style={{ fontSize: "11px", color: "#374151", padding: "4px 8px", backgroundColor: "#f0fdf4", borderRadius: "4px", marginBottom: "4px", borderLeft: "2px solid #059669" }}>{inv}</div>
-                      ))}
-                    </div>
-                    {/* ADO Features */}
-                    <div>
-                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#2563eb", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>ADO Features</div>
-                      {pattern.adoFeatures.map(f => (
-                        <div key={f} style={{ fontSize: "11px", color: "#374151", padding: "4px 8px", backgroundColor: "#eff6ff", borderRadius: "4px", marginBottom: "4px" }}>{f}</div>
-                      ))}
-                    </div>
+      {/* ── Swimlane Grid ── */}
+      <div style={{ overflowX: "auto", overflowY: "visible" }}>
+        <div style={{ minWidth: `${totalW}px`, position: "relative" }}>
+
+          {/* Stage header row */}
+          <div style={{
+            display: "flex", borderBottom: `2px solid ${presentationMode ? "#334155" : "#e2e8f0"}`,
+            backgroundColor: presentationMode ? "#1e293b" : "#f1f5f9",
+            borderRadius: "8px 8px 0 0",
+          }}>
+            {/* Lane label header cell */}
+            <div style={{ width: `${LANE_LABEL_W}px`, flexShrink: 0, padding: "8px 10px",
+              fontSize: "10px", fontWeight: 700, color: presentationMode ? "#64748b" : "#94a3b8",
+              textTransform: "uppercase", letterSpacing: "0.07em",
+            }}>LANE</div>
+            {/* Stage number cells */}
+            {Array.from({ length: STAGE_COUNT }, (_, i) => i + 1).map(s => (
+              <div key={s} style={{
+                width: `${STAGE_W}px`, flexShrink: 0, textAlign: "center",
+                padding: "8px 4px", fontSize: "11px", fontWeight: 700,
+                color: presentationMode ? "#94a3b8" : "#64748b",
+                borderLeft: `1px solid ${presentationMode ? "#334155" : "#e2e8f0"}`,
+              }}>{s}</div>
+            ))}
+          </div>
+
+          {/* Lane rows */}
+          {LANES.map((lane, laneIdx) => (
+            <div
+              key={lane.key}
+              style={{
+                display: "flex",
+                borderBottom: `1px solid ${presentationMode ? "#1e293b" : "#f1f5f9"}`,
+                backgroundColor: laneIdx % 2 === 0
+                  ? (presentationMode ? "#0f172a" : "white")
+                  : (presentationMode ? "#0c1420" : "#fafafa"),
+                minHeight: `${LANE_H}px`,
+              }}
+            >
+              {/* Lane label */}
+              <div style={{
+                width: `${LANE_LABEL_W}px`, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "flex-end",
+                padding: "8px 12px 8px 8px",
+                borderRight: `2px solid ${presentationMode ? "#334155" : "#e2e8f0"}`,
+              }}>
+                <span style={{
+                  fontSize: "10px", fontWeight: 800, color: presentationMode ? "#64748b" : "#64748b",
+                  textTransform: "uppercase", letterSpacing: "0.06em", textAlign: "right",
+                  lineHeight: "1.3", whiteSpace: "pre-line",
+                }}>{lane.label}</span>
+              </div>
+
+              {/* Stage cells */}
+              {Array.from({ length: STAGE_COUNT }, (_, i) => i + 1).map(s => {
+                const card = cardMap[lane.key]?.[s];
+                const cardKey = card ? `${lane.key}-${s}` : null;
+                const isSelected = cardKey === selectedCard;
+
+                return (
+                  <div
+                    key={s}
+                    style={{
+                      width: `${STAGE_W}px`, flexShrink: 0,
+                      padding: "6px 5px",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      borderLeft: `1px solid ${presentationMode ? "#1e293b" : "#f1f5f9"}`,
+                    }}
+                  >
+                    {card && (
+                      <button
+                        onClick={() => setSelectedCard(isSelected ? null : cardKey)}
+                        title={card.sublabel}
+                        style={{
+                          width: "100%", padding: "7px 7px 6px",
+                          borderRadius: "7px", cursor: "pointer",
+                          border: `1.5px solid ${isSelected ? CARD_STYLES[card.type].border : CARD_STYLES[card.type].border}`,
+                          backgroundColor: isSelected
+                            ? CARD_STYLES[card.type].border
+                            : CARD_STYLES[card.type].bg,
+                          boxShadow: isSelected
+                            ? `0 2px 8px ${CARD_STYLES[card.type].border}55`
+                            : "0 1px 3px rgba(0,0,0,0.07)",
+                          textAlign: "left",
+                          transition: "all 0.15s ease",
+                          position: "relative",
+                        }}
+                      >
+                        {/* Badge */}
+                        {card.badge && (
+                          <div style={{
+                            fontSize: "8px", fontWeight: 800,
+                            color: isSelected ? "white" : (card.badgeColor ?? "#374151"),
+                            letterSpacing: "0.04em", marginBottom: "3px",
+                            textTransform: "uppercase",
+                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                          }}>{card.badge}</div>
+                        )}
+                        {/* Card title */}
+                        <div style={{
+                          fontSize: "11px", fontWeight: 700, lineHeight: "1.25",
+                          color: isSelected ? "white" : CARD_STYLES[card.type].titleColor,
+                          marginBottom: "3px",
+                        }}>{card.label}</div>
+                        {/* Card sublabel */}
+                        <div style={{
+                          fontSize: "9px", lineHeight: "1.3",
+                          color: isSelected ? "rgba(255,255,255,0.85)" : "#6b7280",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical" as const,
+                          overflow: "hidden",
+                        }}>{card.sublabel}</div>
+                      </button>
+                    )}
                   </div>
-                  {/* Contracts */}
-                  <div style={{ marginTop: "12px" }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#d97706", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Published Contracts</div>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      {pattern.contracts.map(c => (
-                        <span key={c} style={{ fontSize: "11px", color: "#92400e", padding: "3px 10px", backgroundColor: "#fef3c7", borderRadius: "4px", border: "1px solid #fcd34d" }}>{c}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+                );
+              })}
             </div>
-          );
-        })}
+          ))}
+        </div>
+      </div>
+
+      {/* ── Selected card detail panel ── */}
+      {selectedCard && (() => {
+        const [laneKey, stageStr] = selectedCard.split("-").reduce<[string, string]>((acc, part, idx, arr) => {
+          // lane key may contain hyphens; stage is always the last segment
+          if (idx === arr.length - 1) return [acc[0], part];
+          return [acc[0] ? `${acc[0]}-${part}` : part, acc[1]];
+        }, ["", ""]);
+        const card = cardMap[laneKey]?.[parseInt(stageStr)];
+        if (!card) return null;
+        const cs = CARD_STYLES[card.type];
+        const laneMeta = LANES.find(l => l.key === laneKey);
+        return (
+          <div style={{
+            marginTop: "16px", padding: "14px 18px", borderRadius: "10px",
+            border: `1.5px solid ${cs.border}`,
+            backgroundColor: presentationMode ? "#1e293b" : cs.bg,
+            display: "flex", alignItems: "flex-start", gap: "16px",
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 800, color: cs.titleColor, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                  Stage {card.stage}
+                </span>
+                {card.badge && (
+                  <span style={{ fontSize: "9px", fontWeight: 800, padding: "1px 6px", borderRadius: "3px",
+                    backgroundColor: card.badgeColor ?? cs.border, color: "white", letterSpacing: "0.05em" }}>
+                    {card.badge}
+                  </span>
+                )}
+                <span style={{ fontSize: "10px", color: "#94a3b8" }}>
+                  {laneMeta?.label.replace("\n", " ")}
+                </span>
+              </div>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: presentationMode ? "#f1f5f9" : cs.titleColor, marginBottom: "4px" }}>
+                {card.label}
+              </div>
+              <div style={{ fontSize: "12px", color: presentationMode ? "#94a3b8" : "#4b5563", lineHeight: "1.5" }}>
+                {card.sublabel}
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedCard(null)}
+              style={{ fontSize: "16px", color: "#94a3b8", background: "none", border: "none", cursor: "pointer", padding: "0 4px", lineHeight: 1 }}
+            >×</button>
+          </div>
+        );
+      })()}
+
+      {/* ── Gate flow note ── */}
+      <div style={{
+        marginTop: "14px", padding: "10px 16px", borderRadius: "8px",
+        backgroundColor: presentationMode ? "#1e293b" : "#fef2f2",
+        border: `1px solid ${presentationMode ? "#334155" : "#fca5a5"}`,
+        fontSize: "11px", color: presentationMode ? "#fca5a5" : "#991b1b",
+        display: "flex", gap: "20px", flexWrap: "wrap",
+      }}>
+        <span style={{ fontWeight: 700 }}>Gate checkpoints:</span>
+        <span>🔒 <strong>Stage 4 — Req Gate:</strong> ACs must be complete and locked before DevOps Entry</span>
+        <span>🔒 <strong>Stage 9 — Plan Validation:</strong> AAP must be validated against ACs + batch architecture before Code Generation</span>
+        <span style={{ marginLeft: "auto", fontStyle: "italic", color: presentationMode ? "#64748b" : "#b91c1c", fontWeight: 400 }}>
+          Loop-back to Stage 6 (Build Prompt) if gaps found at Stage 9
+        </span>
       </div>
     </div>
   );
