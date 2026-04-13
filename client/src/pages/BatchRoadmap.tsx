@@ -1,7 +1,7 @@
 // Batch Roadmap — Foundation Core + Batch 1–9
 // Matches reference: rsm-ai-team-niua6bzx.manus.space
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -247,6 +247,21 @@ export default function BatchRoadmap() {
 
   const toggle = (id: string) => setExpanded(prev => prev === id ? "" : id);
 
+  // Keyboard arrow-key navigation for the batch list
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const ids = allBatches.map(b => b.id);
+    const currentIdx = ids.indexOf(expanded);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = ids[Math.min(currentIdx + 1, ids.length - 1)];
+      if (next) setExpanded(next);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = ids[Math.max(currentIdx - 1, 0)];
+      if (prev) setExpanded(prev);
+    }
+  }, [expanded]);
+
   const inProgress = allBatches.filter(b => b.status === "ACTIVE" || b.status === "GATE_PENDING").length;
   const planned = allBatches.filter(b => b.status === "PLANNED").length;
 
@@ -273,8 +288,14 @@ export default function BatchRoadmap() {
       {/* Timeline strip */}
       <TimelineStrip />
 
-      {/* Batch cards */}
-      <div className="space-y-3">
+      {/* Batch cards — keyboard navigable: ↑/↓ to move selection */}
+      <div
+        className="space-y-3"
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        style={{ outline: "none" }}
+        aria-label="Batch list — use arrow keys to navigate"
+      >
         {allBatches.map((batch, i) => (
           <BatchCard
             key={batch.id}

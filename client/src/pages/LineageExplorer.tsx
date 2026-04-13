@@ -1,7 +1,7 @@
 // Lineage Explorer — RSM Command Center design
 // doc_id → run_id → source_record_id → normalized_record → tax_mapping → tax_decision
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ArrowRight, ArrowDown, Search, FileText, Database, Cpu, CheckCircle, GitBranch, BarChart2 } from "lucide-react";
 
 interface LineageRecord {
@@ -213,6 +213,21 @@ export default function LineageExplorer() {
     r.clientName.toLowerCase().includes(searchVal.toLowerCase())
   );
 
+  // Keyboard arrow-key navigation for the document list
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const ids = filtered.map(r => r.docId);
+    const currentIdx = ids.indexOf(selectedDocId);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = ids[Math.min(currentIdx + 1, ids.length - 1)];
+      if (next) { setSelectedDocId(next); setSelectedNode(null); }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = ids[Math.max(currentIdx - 1, 0)];
+      if (prev) { setSelectedDocId(prev); setSelectedNode(null); }
+    }
+  }, [selectedDocId, filtered]);
+
   return (
     <div className="p-6 space-y-6">
       {/* Page header */}
@@ -240,8 +255,14 @@ export default function LineageExplorer() {
             />
           </div>
 
-          {/* Document list */}
-          <div className="space-y-2">
+          {/* Document list — keyboard navigable: ↑/↓ to move selection */}
+          <div
+            className="space-y-2"
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+            style={{ outline: "none" }}
+            aria-label="Document list — use arrow keys to navigate"
+          >
             {filtered.map(rec => (
               <button
                 key={rec.docId}

@@ -1,7 +1,7 @@
 // Runtime Journey — T1–T10 System Interaction Map
 // Matches reference: rsm-ai-team-niua6bzx.manus.space
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 const TOUCHPOINTS = [
   {
@@ -99,6 +99,21 @@ export default function RuntimeJourney() {
 
   const selectedTp = TOUCHPOINTS.find(tp => tp.id === selected);
 
+  // Keyboard arrow-key navigation for the touchpoint list
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const ids = TOUCHPOINTS.map(tp => tp.id);
+    const currentIdx = ids.indexOf(selected ?? "");
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = ids[Math.min(currentIdx + 1, ids.length - 1)];
+      if (next) setSelected(next);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = ids[Math.max(currentIdx - 1, 0)];
+      if (prev) setSelected(prev);
+    }
+  }, [selected]);
+
   return (
     <div style={{ backgroundColor: "#f8fafc", minHeight: "100%", padding: "24px 28px" }}>
       {/* Header */}
@@ -123,8 +138,13 @@ export default function RuntimeJourney() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "16px" }}>
-        {/* Left: touchpoint list */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        {/* Left: touchpoint list — keyboard navigable: ↑/↓ to move selection */}
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "4px", outline: "none" }}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+          aria-label="Touchpoint list — use arrow keys to navigate"
+        >
           {TOUCHPOINTS.map((tp) => (
             <button
               key={tp.id}

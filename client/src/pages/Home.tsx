@@ -200,18 +200,21 @@ export default function Home() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "16px" }}>
           {GATES.map((gate) => (
-            <button
+            <div
               key={gate.num}
-              onClick={() => setExpandedGate(expandedGate === gate.num ? null : gate.num)}
               style={{
-                textAlign: "left", padding: "16px", borderRadius: "10px", cursor: "pointer",
+                textAlign: "left", padding: "16px", borderRadius: "10px",
                 backgroundColor: "white", borderWidth: "1px",
                 borderColor: expandedGate === gate.num ? "#2563eb" : "#e2e8f0",
                 boxShadow: expandedGate === gate.num ? "0 0 0 2px #bfdbfe" : "0 1px 3px rgba(0,0,0,0.06)",
-                transition: "all 0.15s"
+                transition: "all 0.15s", cursor: "default"
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+              {/* Clickable header row */}
+              <button
+                onClick={() => setExpandedGate(expandedGate === gate.num ? null : gate.num)}
+                style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", background: "none", border: "none", cursor: "pointer", padding: 0, width: "100%", textAlign: "left" }}
+              >
                 <div style={{
                   width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#1e40af",
                   color: "white", fontSize: "12px", fontWeight: 700,
@@ -225,11 +228,24 @@ export default function Home() {
                 }}>
                   {gate.status}
                 </span>
-              </div>
+              </button>
               <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>{gate.label}</div>
               <div style={{ fontSize: "11px", color: "#64748b", lineHeight: "1.4" }}>{gate.desc}</div>
-              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "8px" }}>Owner: {gate.owner}</div>
-            </button>
+              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "6px", marginBottom: "10px" }}>Owner: {gate.owner}</div>
+              {/* View Gate Details button */}
+              <button
+                onClick={() => navigate(`/gate/${gate.num}`)}
+                style={{
+                  width: "100%", padding: "5px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
+                  backgroundColor: "#eff6ff", color: "#1d4ed8",
+                  border: "1px solid #bfdbfe", cursor: "pointer", transition: "background 0.15s"
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#dbeafe"}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#eff6ff"}
+              >
+                View Gate Details →
+              </button>
+            </div>
           ))}
         </div>
 

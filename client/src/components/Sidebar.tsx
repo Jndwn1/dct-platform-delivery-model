@@ -17,6 +17,7 @@ interface NavItem {
   status?: string;
   statusColor?: string;
   isArchSync?: boolean;
+  demoLink?: string; // Optional deep-link to Weekly Demo with batch pre-selected
 }
 
 const PLATFORM_ITEMS: NavItem[] = [
@@ -26,15 +27,15 @@ const PLATFORM_ITEMS: NavItem[] = [
 
 const BATCH_ITEMS: NavItem[] = [
   { label: "Foundation Core", path: "/batch/foundation-core", indent: true, status: "Active", statusColor: "#059669" },
-  { label: "Batch 1 — File Ingestion & Initial Storage", path: "/batch/1", indent: true, status: "Active", statusColor: "#059669" },
-  { label: "Batch 2 — Normalization & Cross-LOB Taxonomy", path: "/batch/2", indent: true },
-  { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy", path: "/batch/3", indent: true },
-  { label: "Batch 4 — AI Tax Mapping & Explainability", path: "/batch/4", indent: true },
-  { label: "Batch 5 — Mapping Decisions & Governance", path: "/batch/5", indent: true },
-  { label: "Batch 6 — Practitioner Review & Adjustment Workflow", path: "/batch/6", indent: true },
-  { label: "Batch 7 — Rollforward & Prior Year Intelligence", path: "/batch/7", indent: true },
-  { label: "Batch 8 — Return Assembly, Filing & Lineage Closure", path: "/batch/8", indent: true },
-  { label: "Batch 9 — Learning Governance & Model Evolution", path: "/batch/9", indent: true },
+  { label: "Batch 1 — File Ingestion & Initial Storage", path: "/batch/1", indent: true, status: "Active", statusColor: "#059669", demoLink: "/weekly-demo?batch=1" },
+  { label: "Batch 2 — Normalization & Cross-LOB Taxonomy", path: "/batch/2", indent: true, demoLink: "/weekly-demo?batch=2" },
+  { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy", path: "/batch/3", indent: true, demoLink: "/weekly-demo?batch=3" },
+  { label: "Batch 4 — AI Tax Mapping & Explainability", path: "/batch/4", indent: true, demoLink: "/weekly-demo?batch=4" },
+  { label: "Batch 5 — Mapping Decisions & Governance", path: "/batch/5", indent: true, demoLink: "/weekly-demo?batch=5" },
+  { label: "Batch 6 — Practitioner Review & Adjustment Workflow", path: "/batch/6", indent: true, demoLink: "/weekly-demo?batch=6" },
+  { label: "Batch 7 — Rollforward & Prior Year Intelligence", path: "/batch/7", indent: true, demoLink: "/weekly-demo?batch=7" },
+  { label: "Batch 8 — Return Assembly, Filing & Lineage Closure", path: "/batch/8", indent: true, demoLink: "/weekly-demo?batch=8" },
+  { label: "Batch 9 — Learning Governance & Model Evolution", path: "/batch/9", indent: true, demoLink: "/weekly-demo?batch=9" },
 ];
 
 const GATE_ITEMS: NavItem[] = [
@@ -162,42 +163,70 @@ function NavItem({ item }: { item: NavItem }) {
   const isActive = locationBase === itemBase || (itemBase !== "/" && locationBase.startsWith(itemBase));
 
   return (
-    <button
-      onClick={() => navigate(item.path)}
-      className="w-full text-left flex items-center gap-1.5 rounded-sm transition-colors"
+    <div
+      className="flex items-center rounded-sm transition-colors group"
       style={{
-        padding: item.indent ? "5px 12px 5px 20px" : "5px 12px",
+        padding: item.indent ? "2px 12px 2px 20px" : "2px 12px",
         backgroundColor: isActive ? "rgba(255,255,255,0.08)" : "transparent",
-        color: isActive ? "#ffffff" : "#94a3b8",
       }}
-      onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "#e2e8f0"; }}
-      onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; (e.currentTarget as HTMLElement).style.color = "#94a3b8"; }}
+      onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+      onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
     >
-      {item.icon && (
-        <span style={{ fontSize: "11px", width: "14px", textAlign: "center", flexShrink: 0, color: "#64748b" }}>
-          {item.icon}
+      {/* Main nav button */}
+      <button
+        onClick={() => navigate(item.path)}
+        className="flex items-center gap-1.5 flex-1 text-left"
+        style={{
+          padding: "3px 0",
+          background: "none", border: "none", cursor: "pointer",
+          color: isActive ? "#ffffff" : "#94a3b8",
+          minWidth: 0,
+        }}
+        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "#e2e8f0"; }}
+        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "#94a3b8"; }}
+      >
+        {item.icon && (
+          <span style={{ fontSize: "11px", width: "14px", textAlign: "center", flexShrink: 0, color: "#64748b" }}>
+            {item.icon}
+          </span>
+        )}
+        <span style={{ fontSize: "11px", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: "1.3" }}>
+          {item.label}
         </span>
+        {item.status && (
+          <span style={{
+            fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
+            flexShrink: 0, color: "white", backgroundColor: item.statusColor
+          }}>
+            {item.status}
+          </span>
+        )}
+        {item.badge && !item.status && (
+          <span style={{
+            fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
+            flexShrink: 0, color: "white", backgroundColor: item.badgeColor
+          }}>
+            {item.badge}
+          </span>
+        )}
+      </button>
+
+      {/* Demo deep-link button — only shown on hover when demoLink is set */}
+      {item.demoLink && (
+        <button
+          onClick={e => { e.stopPropagation(); navigate(item.demoLink!); }}
+          title="Open in Weekly Demo Simulator"
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: "#dc2626", fontSize: "9px", padding: "2px 3px",
+            flexShrink: 0, lineHeight: 1,
+          }}
+        >
+          ▶
+        </button>
       )}
-      <span style={{ fontSize: "11px", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: "1.3" }}>
-        {item.label}
-      </span>
-      {item.status && (
-        <span style={{
-          fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
-          flexShrink: 0, color: "white", backgroundColor: item.statusColor
-        }}>
-          {item.status}
-        </span>
-      )}
-      {item.badge && !item.status && (
-        <span style={{
-          fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
-          flexShrink: 0, color: "white", backgroundColor: item.badgeColor
-        }}>
-          {item.badge}
-        </span>
-      )}
-    </button>
+    </div>
   );
 }
 

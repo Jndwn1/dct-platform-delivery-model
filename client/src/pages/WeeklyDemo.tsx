@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
 import {
   ChevronRight, ChevronLeft, BarChart2, Mic, GitCompare,
   CheckCircle2, Clock, AlertCircle, Zap,
@@ -389,7 +390,17 @@ const READINESS_STYLE: Record<Readiness, { bg: string; text: string; dot: string
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function WeeklyDemo() {
-  const [selectedBatch, setSelectedBatch] = useState("3");
+  const [location] = useLocation();
+
+  // Read ?batch= query param for deep-link support (e.g. /weekly-demo?batch=1)
+  const getInitialBatch = (): string => {
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    const params = new URLSearchParams(search);
+    const b = params.get("batch");
+    return b && BATCH_DATA[b] ? b : "3";
+  };
+
+  const [selectedBatch, setSelectedBatch] = useState(getInitialBatch);
   const [currentStep, setCurrentStep] = useState(1);
   const [speakerMode, setSpeakerMode] = useState(true);
   const [running, setRunning] = useState(false);
@@ -400,6 +411,14 @@ export default function WeeklyDemo() {
   const totalSteps = batch.totalSteps;
   const readinessCfg = READINESS_STYLE[batch.readiness];
   const ReadinessIcon = readinessCfg.icon;
+
+  // Sync batch selection when URL changes (deep-link from sidebar)
+  useEffect(() => {
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    const params = new URLSearchParams(search);
+    const b = params.get("batch");
+    if (b && BATCH_DATA[b]) setSelectedBatch(b);
+  }, [location]);
 
   // Reset on batch change
   useEffect(() => {
