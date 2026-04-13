@@ -3,8 +3,12 @@
 // 3 tabs: Screen 1 — My Clients | Screen 2 — Filing Structure | Ownership Summary
 // Each tab: RULE banner, Legend, then data sections with 3-column PDC/Firm/TDC tables
 // Colors: PDC = blue, Firm = gray, TDC = orange
+//
+// GOVERNANCE RULE: Batch delivery tags are derived from batchModelSource.ts
+// (which reads from dctData.ts). DO NOT hardcode batch names or statuses here.
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { getRogerScreenBatchRefs, batchStatusBadge } from "../lib/batchModelSource";
 
 type TabId = "screen1" | "screen2" | "ownership";
 
@@ -315,6 +319,14 @@ function OwnershipContent() {
 export default function RogerMappingPage() {
   const [activeTab, setActiveTab] = useState<TabId>("screen1");
 
+  // GOVERNANCE: Batch delivery tags resolved live from Batch Model (dctData.ts)
+  const batchRefs = useMemo(() => getRogerScreenBatchRefs(), []);
+  const activeBatchRef = batchRefs.find((r) => r.screenId === (
+    activeTab === "screen1" ? "screen-1-my-clients" :
+    activeTab === "screen2" ? "screen-2-filing-structure" :
+    "screen-ownership-summary"
+  ));
+
   const tabs: { id: TabId; label: string }[] = [
     { id: "screen1", label: "Screen 1 — My Clients" },
     { id: "screen2", label: "Screen 2 — Filing Structure (Client Drill-Down)" },
@@ -341,6 +353,17 @@ export default function RogerMappingPage() {
           <span style={{ backgroundColor: "#f3f4f6", color: "#374151", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "4px" }}>DCT Platform</span>
         </div>
       </div>
+
+      {/* Governance: Batch Delivery Tag — resolved from Batch Model */}
+      {activeBatchRef && (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", padding: "8px 12px", backgroundColor: activeBatchRef.isOrphaned ? "#fef3c7" : "#f0f9ff", borderRadius: "6px", border: `1px solid ${activeBatchRef.isOrphaned ? "#fcd34d" : "#bae6fd"}` }}>
+          <span style={{ fontSize: "11px", fontWeight: 700, color: "#0369a1" }}>BATCH DELIVERY</span>
+          <span style={{ fontSize: "11px", color: "#374151" }}>{activeBatchRef.batchId} — {activeBatchRef.batchName}</span>
+          {(() => { const b = batchStatusBadge(activeBatchRef.batchStatus); return <span style={{ fontSize: "10px", fontWeight: 700, padding: "1px 6px", borderRadius: "3px", backgroundColor: b.bg, color: b.text }}>{b.label}</span>; })()}
+          {activeBatchRef.isOrphaned && <span style={{ fontSize: "10px", fontWeight: 700, color: "#dc2626" }}>⚠ ORPHANED — batch not in Batch Model</span>}
+          <span style={{ marginLeft: "auto", fontSize: "10px", color: "#9ca3af" }}>Source: dctData.ts · batchModelSource.ts</span>
+        </div>
+      )}
 
       {/* Tab navigation */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "24px", borderBottom: "1px solid #e5e7eb", paddingBottom: "0" }}>

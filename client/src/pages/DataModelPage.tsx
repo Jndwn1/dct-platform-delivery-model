@@ -1,6 +1,11 @@
 // DCT Platform — Data Model & Gaps — Executive Reference
 // 5 sections: Data Model Relationships, Data Availability, UI to Data Mapping, Gaps, Architecture Violations
-import { useState } from "react";
+//
+// GOVERNANCE RULE: Data Availability rows are derived from batchModelSource.ts
+// (which reads from dctData.ts). DO NOT hardcode batch names, statuses, or
+// systems here. Update dctData.ts to change batch metadata.
+import { useState, useMemo } from "react";
+import { getDataAvailabilityRows, batchStatusBadge, validateBatchRefs } from "../lib/batchModelSource";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -27,50 +32,8 @@ const KEY_IDENTIFIERS = [
   { id: "TaxYear (derived)", assignedBy: "TDC only", travelsTo: "Roger (display only) — never stored in PDC" },
 ];
 
-const DATA_AVAILABILITY = [
-  {
-    stage: "Ingestion", batch: "Batch 1", system: "PDC",
-    dataAvailable: "IngestionJob (JobId GUID — PRIMARY KEY, ClientId GUID, EntityId GUID, PeriodStart, PeriodEnd, Status enum), SourceFile (SourceFileId GUID — record key, DocumentId GUID — immutable lineage anchor, JobId FK)",
-    rogerCanUse: false, usageType: "None",
-    notes: "TaxYear NOT stored — PeriodStart/PeriodEnd are the temporal model"
-  },
-  {
-    stage: "Ready", batch: "Batch 1 + 2", system: "PDC (event) → TDC",
-    dataAvailable: "PDC_READY_EVENT payload: DocumentId, RunId, EntityId, PeriodStart, PeriodEnd, TaxonomyVersion, SourceFileId, RecordCount",
-    rogerCanUse: false, usageType: "None",
-    notes: "Event triggers AI Orchestrator; not a Roger-facing endpoint"
-  },
-  {
-    stage: "Normalized", batch: "Batch 2", system: "PDC",
-    dataAvailable: "vNormalizedTb view: RunId, EntityId, AccountCode, Amount, CurrencyCode, LOBCode, PeriodStart, PeriodEnd",
-    rogerCanUse: true, usageType: "Read via API",
-    notes: "Roger reads normalized financial facts for display only"
-  },
-  {
-    stage: "Mapped", batch: "Batch 4", system: "TDC",
-    dataAvailable: "MappingDecision: MappingId, RunId, TaxCode, Confidence, Evidence, Status, CreatedAt (append-only)",
-    rogerCanUse: true, usageType: "Read via API",
-    notes: "Append-only — no updates or deletes permitted"
-  },
-  {
-    stage: "Adjusted", batch: "Batch 6", system: "TDC",
-    dataAvailable: "AdjustmentRecord: AdjustmentId, MappingId, OriginalAmount, AdjustedAmount, Reason, ApprovedBy, Timestamp (append-only)",
-    rogerCanUse: true, usageType: "Read via API",
-    notes: "Practitioner adjustments persisted in TDC; Roger reads result"
-  },
-  {
-    stage: "Tax-Ready", batch: "Batch 7", system: "TDC",
-    dataAvailable: "TaxReadyRecord: TaxReadyId, RunId, EntityId, TaxYear (derived), LockStatus, SignedBy, SignedAt",
-    rogerCanUse: true, usageType: "Read via API",
-    notes: "TaxYear derived from PeriodStart/PeriodEnd — never stored in PDC"
-  },
-  {
-    stage: "Filed", batch: "Batch 8", system: "TDC → IMS",
-    dataAvailable: "FilingRecord: FilingId, TaxReadyId, ReturnType, FiledAt, ConfirmationNumber (append-only)",
-    rogerCanUse: true, usageType: "Read via API",
-    notes: "IMS receives outbound outputs from TDC only — no write access to platform"
-  },
-];
+// DATA_AVAILABILITY is now derived from batchModelSource.ts (see import above)
+// DO NOT define a static DATA_AVAILABILITY array here.
 
 const UI_MAPPING = [
   { field: "Process Step", source: "Batch status in batchFlowStore", type: "Stored", owner: "DCT / BA" },
@@ -133,6 +96,14 @@ const s = {
 export default function DataModelPage() {
   const [expandedGap, setExpandedGap] = useState<number | null>(null);
   const [expandedViolation, setExpandedViolation] = useState<string | null>("V1");
+
+  // GOVERNANCE: Data Availability rows derived from Batch Model (dctData.ts via batchModelSource.ts)
+  // Updating allBatches in dctData.ts automatically updates this table.
+  const dataAvailabilityRows = useMemo(() => getDataAvailabilityRows(), []);
+
+  // Validate all batch refs used on this page against the Batch Model
+  const batchRefValidation = useMemo(() => validateBatchRefs(["AB-01", "AB-02", "AB-03", "AB-04", "AB-05"]), []);
+  const hasOrphanedRefs = batchRefValidation.orphaned.length > 0;
 
   return (
     <div style={s.page}>
@@ -216,11 +187,23 @@ export default function DataModelPage() {
               </tr>
             </thead>
             <tbody>
-              {DATA_AVAILABILITY.map((row, i) => (
-                <tr key={row.stage} style={{ backgroundColor: i % 2 === 0 ? "white" : "#fafafa" }}>
+              {/* Orphaned batch reference warning — only shown if Batch Model has changed */}
+              {hasOrphanedRefs && (
+                <tr>
+                  <td colSpan={6} style={{ padding: "8px 12px", backgroundColor: "#fef3c7", color: "#92400e", fontSize: "11px", fontWeight: 600 }}>
+                    ⚠ Governance Warning: {batchRefValidation.orphaned.join(", ")} referenced here but not found in Batch Model (dctData.ts). Update batchModelSource.ts to resolve.
+                  </td>
+                </tr>
+              )}
+              {dataAvailabilityRows.map((row, i) => (
+                <tr key={row.stage} style={{ backgroundColor: i % 2 === 0 ? "white" : "#fafafa", opacity: row.isOrphaned ? 0.5 : 1 }}>
                   <td style={s.td}>
                     <div style={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}>{row.stage}</div>
-                    <div style={{ fontSize: "10px", color: "#9ca3af", marginTop: "2px" }}>{row.batch}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "2px" }}>
+                      <span style={{ fontSize: "10px", color: "#9ca3af" }}>{row.batchId}</span>
+                      {(() => { const b = batchStatusBadge(row.batchStatus); return <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 5px", borderRadius: "3px", backgroundColor: b.bg, color: b.text }}>{b.label}</span>; })()}
+                      {row.isOrphaned && <span style={{ fontSize: "9px", fontWeight: 700, color: "#dc2626" }}>ORPHANED</span>}
+                    </div>
                   </td>
                   <td style={{ ...s.td, fontFamily: "monospace", fontSize: "11px", color: "#374151", whiteSpace: "nowrap" as const }}>{row.system}</td>
                   <td style={{ ...s.td, fontSize: "12px", color: "#374151", maxWidth: "280px" }}>{row.dataAvailable}</td>
