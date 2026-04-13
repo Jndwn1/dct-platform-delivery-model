@@ -113,7 +113,18 @@ export interface DataAvailabilityRow {
 
 // Static schema descriptions — these describe the data shape, not the batch.
 // Batch metadata (name, status, system) is derived from the Batch Model above.
+// Coverage: Foundation Core (FC-00) through Return Assembly (AB-12).
 const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "batchStatus" | "system" | "isOrphaned">> = [
+  // ── Foundation Core (FC-00) ──────────────────────────────────────────────
+  {
+    stage: "Infrastructure Setup",
+    batchId: "FC-00",
+    dataAvailable: "Dev environment, code repositories, Copilot Agent configuration, Blitzy templates, CI/CD pipelines",
+    rogerCanUse: false,
+    usageType: "None",
+    notes: "Infrastructure only — no platform data produced",
+  },
+  // ── AB-01: Foundation & Source Onboarding ────────────────────────────────
   {
     stage: "Ingestion",
     batchId: "AB-01",
@@ -130,6 +141,7 @@ const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "b
     usageType: "None",
     notes: "Event triggers AI Orchestrator; not a Roger-facing endpoint",
   },
+  // ── AB-02: Invariant Framework Establishment ─────────────────────────────
   {
     stage: "Normalized",
     batchId: "AB-02",
@@ -146,6 +158,7 @@ const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "b
     usageType: "Read via API",
     notes: "Append-only — no updates or deletes permitted",
   },
+  // ── AB-03: Lineage Graph Construction ────────────────────────────────────
   {
     stage: "Adjusted",
     batchId: "AB-03",
@@ -154,6 +167,7 @@ const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "b
     usageType: "Read via API",
     notes: "Practitioner adjustments persisted in TDC; Roger reads result",
   },
+  // ── AB-04: Initial Contract Publication ──────────────────────────────────
   {
     stage: "Tax-Ready",
     batchId: "AB-04",
@@ -162,6 +176,7 @@ const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "b
     usageType: "Read via API",
     notes: "TaxYear derived from PeriodStart/PeriodEnd — never stored in PDC",
   },
+  // ── AB-05: Expanded Entity Coverage ──────────────────────────────────────
   {
     stage: "Filed",
     batchId: "AB-05",
@@ -169,6 +184,69 @@ const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "b
     rogerCanUse: true,
     usageType: "Read via API",
     notes: "IMS receives outbound outputs from TDC only — no write access to platform",
+  },
+  // ── AB-06: AI Orchestrator Layer Integration ──────────────────────────────
+  {
+    stage: "Orchestration Manifest",
+    batchId: "AB-06",
+    dataAvailable: "OrchestrationManifest: ManifestId, Version, AgentRegistry, InvariantBindings, GovernanceCharterRef, ApprovedAt",
+    rogerCanUse: false,
+    usageType: "None",
+    notes: "Internal governance artifact — not a Roger-facing data object",
+  },
+  // ── AB-07: Tax Domain Authority & Tax Taxonomy ────────────────────────────
+  {
+    stage: "Tax Taxonomy",
+    batchId: "AB-07",
+    dataAvailable: "TaxTaxonomyRecord: TaxonomyId, TaxCode, JurisdictionCode, Description, Version, EffectiveDate; TDC established as system of record",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "Roger reads taxonomy codes for display; TDC owns all tax taxonomy definitions",
+  },
+  // ── AB-08: AI Tax Mapping & Explainability ────────────────────────────────
+  {
+    stage: "AI Mapping Proposals",
+    batchId: "AB-08",
+    dataAvailable: "MappingProposal: ProposalId, RunId, TaxCode, Confidence (0–1), Evidence (JSON array), ExplainabilityTrace, CreatedAt (append-only)",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "AI proposals are append-only; confidence scores and evidence surfaced in Roger UI",
+  },
+  // ── AB-09: Mapping Decisions & Governance ────────────────────────────────
+  {
+    stage: "Tax Decision",
+    batchId: "AB-09",
+    dataAvailable: "TaxDecisionRecord: DecisionId, ProposalId, ReviewedBy, Decision (APPROVED/OVERRIDDEN/REJECTED), AuditTrailRef, DecidedAt (append-only, immutable)",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "Immutable audit trail — no updates or deletes; practitioner decisions persisted in TDC",
+  },
+  // ── AB-10: Practitioner Review & Adjustment Workflow ─────────────────────
+  {
+    stage: "Practitioner Review",
+    batchId: "AB-10",
+    dataAvailable: "ReviewWorkflowRecord: WorkflowId, EntityId, AssignedTo, Status (PENDING/IN_REVIEW/APPROVED/OVERRIDE), CompletedAt; AdjustmentRequest: RequestId, WorkflowId, FieldRef, ProposedValue, Justification",
+    rogerCanUse: true,
+    usageType: "Read + Submit via API",
+    notes: "Roger UI surfaces review queue; practitioner submits adjustments via API; TDC persists all decisions",
+  },
+  // ── AB-11: Rollforward & Prior Year Intelligence ──────────────────────────
+  {
+    stage: "Prior Year Rollforward",
+    batchId: "AB-11",
+    dataAvailable: "RollforwardRecord: RollforwardId, EntityId, SourcePeriod, TargetPeriod, FieldMappings (JSON), AIComparisonRef, Status; PriorYearDelta: DeltaId, RollforwardId, FieldRef, PriorValue, CurrentValue, VarianceFlag",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "AI-assisted prior year comparison surfaced in Roger UI; PDC owns rollforward records",
+  },
+  // ── AB-12: Return Assembly, Filing & Lineage Closure ─────────────────────
+  {
+    stage: "Return Assembly & Filing",
+    batchId: "AB-12",
+    dataAvailable: "ReturnAssembly: AssemblyId, EntityId, TaxYear (derived), ReturnType, Sections (JSON), AssembledAt; FilingRecord: FilingId, AssemblyId, FiledAt, ConfirmationNumber, LineageClosureCertRef (append-only)",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "Full lineage closure certified at this stage; IMS receives outbound from TDC only",
   },
 ];
 

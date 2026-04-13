@@ -102,7 +102,7 @@ export default function DataModelPage() {
   const dataAvailabilityRows = useMemo(() => getDataAvailabilityRows(), []);
 
   // Validate all batch refs used on this page against the Batch Model
-  const batchRefValidation = useMemo(() => validateBatchRefs(["AB-01", "AB-02", "AB-03", "AB-04", "AB-05"]), []);
+  const batchRefValidation = useMemo(() => validateBatchRefs(["FC-00", "AB-01", "AB-02", "AB-03", "AB-04", "AB-05", "AB-06", "AB-07", "AB-08", "AB-09", "AB-10", "AB-11", "AB-12"]), []);
   const hasOrphanedRefs = batchRefValidation.orphaned.length > 0;
 
   return (

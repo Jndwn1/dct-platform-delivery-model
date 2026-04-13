@@ -196,9 +196,29 @@ export const activeBatch: ArchitecturalBatch = {
   ]
 };
 
+// ─── FOUNDATION CORE BATCH ─────────────────────────────────────────────────
+
+export const foundationCoreBatch: ArchitecturalBatch = {
+  id: "FC-00",
+  name: "Foundation Core",
+  status: "CLOSED",
+  touchpoints: [],
+  primarySystem: "All Systems",
+  keyGate: "None — Infrastructure",
+  entryCondition: "None — program start",
+  exitCondition: "Infrastructure ready: code repo, templates, Copilot Agent and Blitzy configuration, development environment",
+  batchLead: "Program Delivery Lead",
+  openIssues: 0,
+  completionPct: 100,
+  startDate: "2024-10-01",
+  targetDate: "2024-12-31",
+  gates: []
+};
+
 // ─── ALL BATCHES ─────────────────────────────────────────────────────────────
 
 export const allBatches: ArchitecturalBatch[] = [
+  foundationCoreBatch,
   activeBatch,
   {
     id: "AB-02",
@@ -278,6 +298,105 @@ export const allBatches: ArchitecturalBatch[] = [
     completionPct: 0,
     startDate: undefined,
     targetDate: "2027-02-12",
+    gates: []
+  },
+  // ─── EXTENDED ROADMAP BATCHES (Batch 3–8) ─────────────────────────────────
+  // These correspond to the GovernanceTimeline Batch 3–8 delivery stages.
+  // Named to match the GovernanceTimelinePage labels for cross-page consistency.
+  {
+    id: "AB-07",
+    name: "Tax Domain Authority & Tax Taxonomy",
+    status: "PLANNED",
+    touchpoints: ["T6", "T7"],
+    primarySystem: "TDC",
+    keyGate: "G2 — Invariant Lock",
+    entryCondition: "AB-06 Orchestration Manifest approved",
+    exitCondition: "TDC established as tax system of record; Tax taxonomy and jurisdiction codes defined",
+    batchLead: "TDC Workstream Lead",
+    openIssues: 0,
+    completionPct: 0,
+    startDate: undefined,
+    targetDate: "2025-09-30",
+    gates: []
+  },
+  {
+    id: "AB-08",
+    name: "AI Tax Mapping & Explainability",
+    status: "PLANNED",
+    touchpoints: ["T8"],
+    primarySystem: "AI Orchestrator",
+    keyGate: "G3 — Lineage Closure",
+    entryCondition: "AB-07 Tax taxonomy and jurisdiction codes defined",
+    exitCondition: "AI Orchestrator produces tax mapping proposals with confidence scores and evidence",
+    batchLead: "AI Workstream Lead",
+    openIssues: 0,
+    completionPct: 0,
+    startDate: undefined,
+    targetDate: "2025-09-30",
+    gates: []
+  },
+  {
+    id: "AB-09",
+    name: "Mapping Decisions & Governance",
+    status: "PLANNED",
+    touchpoints: ["T9", "T10"],
+    primarySystem: "TDC",
+    keyGate: "G4 — Contract Publication",
+    entryCondition: "AB-08 AI mapping proposals available",
+    exitCondition: "Practitioner review workflow complete; Tax decision persistence; Immutable audit trail",
+    batchLead: "TDC Workstream Lead",
+    openIssues: 0,
+    completionPct: 0,
+    startDate: undefined,
+    targetDate: "2025-12-31",
+    gates: []
+  },
+  {
+    id: "AB-10",
+    name: "Practitioner Review & Adjustment Workflow",
+    status: "PLANNED",
+    touchpoints: ["T9", "T10", "T11"],
+    primarySystem: "TDC + Roger UI",
+    keyGate: "G4 — Contract Publication",
+    entryCondition: "AB-09 Tax decision persistence confirmed",
+    exitCondition: "Roger UI adjustment workflow live; Practitioner approval and override capabilities delivered",
+    batchLead: "Roger UI Workstream Lead",
+    openIssues: 0,
+    completionPct: 0,
+    startDate: undefined,
+    targetDate: "2025-12-31",
+    gates: []
+  },
+  {
+    id: "AB-11",
+    name: "Rollforward & Prior Year Intelligence",
+    status: "PLANNED",
+    touchpoints: ["T1", "T2", "T3", "T4", "T5"],
+    primarySystem: "PDC + AI Orchestrator",
+    keyGate: "All Gates",
+    entryCondition: "AB-10 Practitioner workflow delivered",
+    exitCondition: "Prior year data rollforward complete; AI-assisted prior year comparison available",
+    batchLead: "Program Delivery Lead",
+    openIssues: 0,
+    completionPct: 0,
+    startDate: undefined,
+    targetDate: "2026-06-30",
+    gates: []
+  },
+  {
+    id: "AB-12",
+    name: "Return Assembly, Filing & Lineage Closure",
+    status: "PLANNED",
+    touchpoints: ["T10", "T11"],
+    primarySystem: "TDC + Roger UI",
+    keyGate: "G3 — Lineage Closure",
+    entryCondition: "AB-11 Prior year rollforward complete",
+    exitCondition: "Tax return assembly complete; Filing integration live; Full lineage closure certified",
+    batchLead: "TDC Workstream Lead",
+    openIssues: 0,
+    completionPct: 0,
+    startDate: undefined,
+    targetDate: "2026-06-30",
     gates: []
   }
 ];
