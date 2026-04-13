@@ -59,15 +59,17 @@ const SWAGGER_CONTRACT_REGISTRY: Record<string, SwaggerContractRef> = {
     detail: "Infrastructure batch — no API contract",
   },
 
-  // ── AB-01: Ingestion — PDC internal; no Roger-facing contract ─────────────
+  // ── AB-01: Ingestion — rogerCanUse=No; internal PDC record, not API-exposed ──
+  // Rule: Roger Can Use = No → NOT_APPLICABLE (no contract expected or needed)
   "Ingestion": {
-    status: "MISSING_CONTRACT",
-    detail: "PDC ingestion records are internal; no published Swagger endpoint for Roger",
+    status: "NOT_APPLICABLE",
+    detail: "Roger Can Use = No — PDC ingestion records are internal; no Roger-facing API contract expected",
   },
+  // ── AB-01: Ready Event — rogerCanUse=No; internal Service Bus event ──────────
+  // Rule: Roger Can Use = No; event triggers AI Orchestrator only, not Roger
   "Ready Event": {
-    status: "ALIGNED",
-    endpoint: "Service Bus: PDC_READY_EVENT",
-    detail: "Event schema documented in PDC Swagger; payload fields match Batch Model",
+    status: "NOT_APPLICABLE",
+    detail: "Roger Can Use = No — PDC_READY_EVENT is an internal Service Bus event; Roger is not a consumer",
   },
 
   // ── AB-02: Normalized / Mapped ────────────────────────────────────────────
