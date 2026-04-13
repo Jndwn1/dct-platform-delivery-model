@@ -1,144 +1,349 @@
-// DCT Platform — UI/Data Point Mapping
-// Shows how Roger UI data points map to PDC and TDC API endpoints
+// DCT Platform — Data Model & Gaps — Executive Reference
+// 5 sections: Data Model Relationships, Data Availability, UI to Data Mapping, Gaps, Architecture Violations
 import { useState } from "react";
 
-const UI_SCREENS = [
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const LINEAGE_NODES = [
+  { label: "Client Group", system: "EODS / CEM", color: "#6366f1", fields: [] },
+  { label: "Entity", system: "EODS / CEM", color: "#6366f1", fields: ["EntityId (GUID)"] },
+  { label: "Engagement", system: "EODS / CEM", color: "#6366f1", fields: ["PeriodStart", "PeriodEnd"] },
+  { label: "Source File", system: "Tax Portal → PDC", color: "#059669", fields: ["DocumentId (GUID)", "JobId (GUID)"] },
+  { label: "PDC Record", system: "PDC", color: "#059669", fields: ["SourceRecordId (GUID)", "RunId (GUID)"] },
+  { label: "TDC Record", system: "TDC", color: "#2563eb", fields: ["TdcRecordId (GUID)"] },
+  { label: "Tax-Ready Record", system: "TDC", color: "#2563eb", fields: ["TaxReadyId (GUID)", "TaxYear (derived)"] },
+  { label: "Filed Return", system: "Roger", color: "#7c3aed", fields: ["FilingId (GUID)"] },
+];
+
+const KEY_IDENTIFIERS = [
+  { id: "DocumentId (GUID)", assignedBy: "Tax Portal", travelsTo: "PDC, TDC, Roger" },
+  { id: "JobId (GUID)", assignedBy: "Tax Portal", travelsTo: "PDC, TDC" },
+  { id: "EntityId (GUID)", assignedBy: "EODS / CEM", travelsTo: "All systems" },
+  { id: "PeriodStart (DateOnly)", assignedBy: "EODS / CEM", travelsTo: "All systems — replaces tax_year in PDC" },
+  { id: "PeriodEnd (DateOnly)", assignedBy: "EODS / CEM", travelsTo: "All systems — PeriodEnd >= PeriodStart enforced" },
+  { id: "SourceRecordId (GUID)", assignedBy: "PDC", travelsTo: "TDC" },
+  { id: "RunId (GUID)", assignedBy: "PDC", travelsTo: "TDC" },
+  { id: "TdcRecordId (GUID)", assignedBy: "TDC", travelsTo: "Roger" },
+  { id: "TaxYear (derived)", assignedBy: "TDC only", travelsTo: "Roger (display only) — never stored in PDC" },
+];
+
+const DATA_AVAILABILITY = [
   {
-    screen: "Trial Balance Upload",
-    batch: "Batch 1",
-    batchColor: "#059669",
-    fields: [
-      { uiLabel: "Client Name", apiField: "EntityId", source: "PDC", endpoint: "POST /ingestion/jobs", type: "string" },
-      { uiLabel: "Tax Year", apiField: "TaxYear", source: "PDC", endpoint: "POST /ingestion/jobs", type: "integer" },
-      { uiLabel: "Period Start", apiField: "PeriodStart", source: "PDC", endpoint: "POST /ingestion/jobs", type: "date" },
-      { uiLabel: "Period End", apiField: "PeriodEnd", source: "PDC", endpoint: "POST /ingestion/jobs", type: "date" },
-      { uiLabel: "File Upload", apiField: "SourceFile.FileHash", source: "PDC", endpoint: "POST /ingestion/files", type: "blob" },
-      { uiLabel: "Job Status", apiField: "IngestionJob.Status", source: "PDC", endpoint: "GET /ingestion/jobs/{jobId}", type: "enum" },
-    ],
+    stage: "Ingestion", batch: "Batch 1", system: "PDC",
+    dataAvailable: "IngestionJob (JobId GUID — PRIMARY KEY, ClientId GUID, EntityId GUID, PeriodStart, PeriodEnd, Status enum), SourceFile (SourceFileId GUID — record key, DocumentId GUID — immutable lineage anchor, JobId FK)",
+    rogerCanUse: false, usageType: "None",
+    notes: "TaxYear NOT stored — PeriodStart/PeriodEnd are the temporal model"
   },
   {
-    screen: "Normalized Records View",
-    batch: "Batch 2",
-    batchColor: "#2563eb",
-    fields: [
-      { uiLabel: "Account Code", apiField: "NormalizedRecord.AccountCode", source: "PDC", endpoint: "GET /normalized/{runId}/facts", type: "string" },
-      { uiLabel: "Amount", apiField: "NormalizedRecord.Amount", source: "PDC", endpoint: "GET /normalized/{runId}/facts", type: "decimal" },
-      { uiLabel: "Currency", apiField: "NormalizedRecord.CurrencyCode", source: "PDC", endpoint: "GET /normalized/{runId}/facts", type: "string" },
-      { uiLabel: "LOB", apiField: "NormalizedRecord.LOBCode", source: "PDC", endpoint: "GET /normalized/{runId}/facts", type: "string" },
-      { uiLabel: "Record Count", apiField: "CanonicalDataset.RecordCount", source: "PDC", endpoint: "GET /datasets/{datasetId}", type: "integer" },
-    ],
+    stage: "Ready", batch: "Batch 1 + 2", system: "PDC (event) → TDC",
+    dataAvailable: "PDC_READY_EVENT payload: DocumentId, RunId, EntityId, PeriodStart, PeriodEnd, TaxonomyVersion, SourceFileId, RecordCount",
+    rogerCanUse: false, usageType: "None",
+    notes: "Event triggers AI Orchestrator; not a Roger-facing endpoint"
   },
   {
-    screen: "Tax Mapping Review",
-    batch: "Batch 4",
-    batchColor: "#7c3aed",
-    fields: [
-      { uiLabel: "Tax Code", apiField: "TaxMapping.TaxCode", source: "TDC", endpoint: "GET /mappings/{runId}", type: "string" },
-      { uiLabel: "Confidence Score", apiField: "TaxMapping.Confidence", source: "TDC", endpoint: "GET /mappings/{runId}", type: "decimal" },
-      { uiLabel: "Evidence", apiField: "TaxMapping.Evidence", source: "TDC", endpoint: "GET /mappings/{runId}/evidence", type: "json" },
-      { uiLabel: "AI Reasoning", apiField: "TaxMapping.Reasoning", source: "TDC", endpoint: "GET /mappings/{runId}/reasoning", type: "text" },
-      { uiLabel: "Proposal Status", apiField: "TaxMapping.Status", source: "TDC", endpoint: "PATCH /mappings/{mappingId}", type: "enum" },
-    ],
+    stage: "Normalized", batch: "Batch 2", system: "PDC",
+    dataAvailable: "vNormalizedTb view: RunId, EntityId, AccountCode, Amount, CurrencyCode, LOBCode, PeriodStart, PeriodEnd",
+    rogerCanUse: true, usageType: "Read via API",
+    notes: "Roger reads normalized financial facts for display only"
   },
   {
-    screen: "Practitioner Adjustment",
-    batch: "Batch 6",
-    batchColor: "#d97706",
-    fields: [
-      { uiLabel: "Original Amount", apiField: "TaxDecision.OriginalAmount", source: "TDC", endpoint: "GET /decisions/{decisionId}", type: "decimal" },
-      { uiLabel: "Adjusted Amount", apiField: "TaxDecision.AdjustedAmount", source: "TDC", endpoint: "PATCH /decisions/{decisionId}", type: "decimal" },
-      { uiLabel: "Adjustment Reason", apiField: "TaxDecision.AdjustmentReason", source: "TDC", endpoint: "PATCH /decisions/{decisionId}", type: "text" },
-      { uiLabel: "Approved By", apiField: "TaxDecision.ApprovedBy", source: "TDC", endpoint: "POST /decisions/{decisionId}/approve", type: "string" },
-      { uiLabel: "Audit Trail", apiField: "TaxDecision.AuditTrail", source: "TDC", endpoint: "GET /decisions/{decisionId}/audit", type: "json" },
-    ],
+    stage: "Mapped", batch: "Batch 4", system: "TDC",
+    dataAvailable: "MappingDecision: MappingId, RunId, TaxCode, Confidence, Evidence, Status, CreatedAt (append-only)",
+    rogerCanUse: true, usageType: "Read via API",
+    notes: "Append-only — no updates or deletes permitted"
+  },
+  {
+    stage: "Adjusted", batch: "Batch 6", system: "TDC",
+    dataAvailable: "AdjustmentRecord: AdjustmentId, MappingId, OriginalAmount, AdjustedAmount, Reason, ApprovedBy, Timestamp (append-only)",
+    rogerCanUse: true, usageType: "Read via API",
+    notes: "Practitioner adjustments persisted in TDC; Roger reads result"
+  },
+  {
+    stage: "Tax-Ready", batch: "Batch 7", system: "TDC",
+    dataAvailable: "TaxReadyRecord: TaxReadyId, RunId, EntityId, TaxYear (derived), LockStatus, SignedBy, SignedAt",
+    rogerCanUse: true, usageType: "Read via API",
+    notes: "TaxYear derived from PeriodStart/PeriodEnd — never stored in PDC"
+  },
+  {
+    stage: "Filed", batch: "Batch 8", system: "TDC → IMS",
+    dataAvailable: "FilingRecord: FilingId, TaxReadyId, ReturnType, FiledAt, ConfirmationNumber (append-only)",
+    rogerCanUse: true, usageType: "Read via API",
+    notes: "IMS receives outbound outputs from TDC only — no write access to platform"
   },
 ];
 
-const SOURCE_COLOR: Record<string, string> = { PDC: "#059669", TDC: "#2563eb" };
-const TYPE_COLOR: Record<string, string> = {
-  string: "#6366f1", integer: "#0891b2", decimal: "#059669",
-  date: "#d97706", enum: "#7c3aed", blob: "#dc2626", json: "#374151", text: "#6b7280"
+const UI_MAPPING = [
+  { field: "Process Step", source: "Batch status in batchFlowStore", type: "Stored", owner: "DCT / BA" },
+  { field: "Completion %", source: "Component + story counts (runtime)", type: "Derived", owner: "DCT / BA" },
+  { field: "On Track / At Risk / Overdue", source: "Readiness score + due date delta", type: "Derived", owner: "Undefined" },
+  { field: "Issue Count", source: "Next Actions panel (runtime filter)", type: "Derived", owner: "DCT / BA" },
+  { field: "Entity Count", source: "EODS / CEM via EntityId (GUID)", type: "Stored", owner: "EODS / CEM" },
+  { field: "Due Date", source: "Engagement record in EODS / CEM", type: "Stored", owner: "EODS / CEM" },
+];
+
+const GAPS = [
+  { num: 1, title: "Process state ownership", desc: "No single system owns the authoritative delivery status (Active / Complete / Blocked) across batch lifecycle; currently managed in prototype only." },
+  { num: 2, title: "Derived metric definitions", desc: "Completion % and On Track / At Risk / Overdue have no agreed formula or system of record; definitions must be formalized before Roger or reporting can consume them." },
+  { num: 3, title: "Role ownership", desc: "No defined owner for readiness gate sign-off (Architecture Ready, Schema Defined, Stories Generated); approval authority is unassigned." },
+  { num: 4, title: "Client approval ownership", desc: "Client Group and Engagement approval steps are not mapped to a system; EODS / CEM holds the data but the approval workflow owner is undefined." },
+  { num: 5, title: "System of record conflicts", desc: "EntityId (GUID) originates in EODS / CEM but is passed through Tax Portal, PDC, and TDC without a formal master data contract; risk of divergence across systems." },
+  { num: 6, title: "PeriodStart / PeriodEnd adoption", desc: "All transactional records must carry PeriodStart (DateOnly) and PeriodEnd (DateOnly) instead of tax_year. TaxYear is derived in TDC only. Any screen or API still using tax_year as a stored field must be updated." },
+  { num: 7, title: "Append-only enforcement", desc: "MappingDecision, LineageEvent, FilingRecord, and AdjustmentRecord are append-only. No update or delete operations are permitted. Enforcement must be validated at the database and API layer before Gate 2 (Invariant Lock) can close." },
+  { num: 8, title: "IMS integration boundary", desc: "IMS receives outbound outputs from TDC only (vFinalTaxReady, vReturnSummary). IMS does not read from the platform and has no write access. The integration contract must be formally defined before Batch 8 delivery." },
+  { num: 9, title: "AI Orchestrator statelessness", desc: "The AI Orchestrator is stateless and does not persist data. All persistence flows through PDC or TDC APIs. TDC does not invoke the Orchestrator. A second AI execution is not permitted for the same file." },
+];
+
+const VIOLATIONS = [
+  {
+    id: "V1", title: "No Direct PDC ↔ TDC Communication", type: "BOUNDARY RULE",
+    desc: "PDC and TDC must never communicate directly. All interactions between PDC and TDC occur exclusively via the AI Orchestrator (for proposals) or via Service Bus events (PDC_READY_EVENT). Any design that routes data directly from PDC to TDC — or vice versa — is an architecture violation.",
+    permitted: "PDC → Service Bus → AI Orchestrator → TDC",
+    prohibited: "PDC → TDC (direct)",
+    color: "#dc2626"
+  },
+  {
+    id: "V2", title: "No Tax Logic in PDC", type: "SEPARATION OF CONCERNS",
+    desc: "PDC is the system of record for firm-level financial facts, ingestion, normalization, and XLOB taxonomy only. Tax taxonomy, tax mapping decisions, tax-ready records, and TaxYear derivation belong exclusively to TDC. Any tax logic, tax field, or tax-derived value stored or computed in PDC is an architecture violation.",
+    permitted: "PDC owns: FinancialFact, IngestionJob, SourceFile, vNormalizedTb",
+    prohibited: "TDC owns: TaxYear, MappingDecision, TaxReadyRecord, FilingRecord",
+    color: "#d97706"
+  },
+  {
+    id: "V3", title: "No Write Access from Roger", type: "READ-ONLY CONSUMER",
+    desc: "Roger UI is a read-only consumer of PDC and TDC. Roger displays data from PDC (via vNormalizedTb) and TDC (via TDC Records API, vFinalTaxReady, vReturnSummary) but has zero write access to either system. Any feature that allows Roger to create, update, or delete records in PDC or TDC is an architecture violation.",
+    permitted: "Roger → GET /api/tdc/records",
+    prohibited: "Roger → POST / PUT / DELETE to PDC or TDC",
+    color: "#7c3aed"
+  },
+];
+
+// ─── STYLES ──────────────────────────────────────────────────────────────────
+const s = {
+  page: { padding: "28px 32px", maxWidth: "1200px", margin: "0 auto", fontFamily: "system-ui, sans-serif" } as React.CSSProperties,
+  sectionCard: { border: "1px solid #e5e7eb", borderRadius: "12px", overflow: "hidden", marginBottom: "24px" } as React.CSSProperties,
+  sectionHeader: { padding: "14px 20px", backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: "10px" } as React.CSSProperties,
+  sectionTitle: { fontSize: "13px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#374151" },
+  sectionBody: { padding: "20px" } as React.CSSProperties,
+  table: { width: "100%", borderCollapse: "collapse" as const, fontSize: "13px" },
+  th: { padding: "8px 12px", textAlign: "left" as const, fontSize: "11px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb", backgroundColor: "#f9fafb" },
+  td: { padding: "10px 12px", borderBottom: "1px solid #f3f4f6", verticalAlign: "top" as const },
 };
 
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
 export default function DataModelPage() {
-  const [activeScreen, setActiveScreen] = useState(0);
-  const screen = UI_SCREENS[activeScreen];
+  const [expandedGap, setExpandedGap] = useState<number | null>(null);
+  const [expandedViolation, setExpandedViolation] = useState<string | null>("V1");
 
   return (
-    <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto" }}>
+    <div style={s.page}>
       {/* Header */}
-      <div style={{ marginBottom: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-          <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#d97706", backgroundColor: "#fef3c7", padding: "2px 8px", borderRadius: "4px" }}>
-            Data Mapping
-          </span>
+      <div style={{ marginBottom: "28px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+          <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2563eb", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px" }}>Executive Reference</span>
+          <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#374151", backgroundColor: "#f3f4f6", padding: "2px 8px", borderRadius: "4px" }}>DCT Platform</span>
         </div>
-        <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>
-          Roger UI — Data Point Mapping
-        </h1>
-        <p style={{ fontSize: "13px", color: "#6b7280", margin: 0 }}>
-          Maps every Roger UI field to its backing API endpoint across PDC and TDC.
-        </p>
+        <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>Data Model &amp; Gaps</h1>
+        <p style={{ fontSize: "13px", color: "#6b7280", margin: 0 }}>Executive reference · Platform data relationships, availability, UI mapping, and open gaps</p>
       </div>
 
-      {/* Screen selector */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
-        {UI_SCREENS.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => setActiveScreen(i)}
-            style={{
-              padding: "6px 14px", fontSize: "12px", fontWeight: 600, borderRadius: "6px",
-              border: `1px solid ${activeScreen === i ? s.batchColor : "#e5e7eb"}`,
-              backgroundColor: activeScreen === i ? s.batchColor + "18" : "white",
-              color: activeScreen === i ? s.batchColor : "#374151",
-              cursor: "pointer"
-            }}
-          >
-            {s.screen}
-            <span style={{ marginLeft: "6px", fontSize: "10px", opacity: 0.7 }}>{s.batch}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Mapping table */}
-      <div style={{ border: "1px solid #e5e7eb", borderRadius: "10px", overflow: "hidden" }}>
-        <div style={{ padding: "12px 16px", backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>{screen.screen}</span>
-          <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: screen.batchColor + "20", color: screen.batchColor }}>
-            {screen.batch}
-          </span>
+      {/* Section 1 — Data Model Relationships */}
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={{ fontSize: "16px" }}>🔗</span>
+          <span style={s.sectionTitle}>1 · Data Model Relationships</span>
         </div>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ backgroundColor: "#f9fafb" }}>
-              {["UI Label", "API Field", "Source", "Endpoint", "Type"].map(h => (
-                <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>
-                  {h}
-                </th>
+        <div style={s.sectionBody}>
+          {/* Lineage Chain */}
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9ca3af", marginBottom: "12px" }}>Lineage Chain</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0", alignItems: "flex-start" }}>
+              {LINEAGE_NODES.map((node, i) => (
+                <div key={node.label} style={{ display: "flex", alignItems: "flex-start" }}>
+                  <div style={{ border: `1.5px solid ${node.color}`, borderRadius: "8px", padding: "8px 12px", minWidth: "110px", backgroundColor: node.color + "0d" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: node.color, marginBottom: "2px" }}>{node.label}</div>
+                    <div style={{ fontSize: "10px", color: "#6b7280", marginBottom: node.fields.length ? "4px" : 0 }}>{node.system}</div>
+                    {node.fields.map(f => (
+                      <div key={f} style={{ fontSize: "10px", fontFamily: "monospace", color: "#374151", backgroundColor: "#f3f4f6", padding: "1px 4px", borderRadius: "3px", marginTop: "2px", display: "inline-block", marginRight: "2px" }}>{f}</div>
+                    ))}
+                  </div>
+                  {i < LINEAGE_NODES.length - 1 && (
+                    <div style={{ padding: "16px 4px", color: "#9ca3af", fontSize: "14px" }}>→</div>
+                  )}
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {screen.fields.map((f, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid #f3f4f6", backgroundColor: i % 2 === 0 ? "white" : "#fafafa" }}>
-                <td style={{ padding: "10px 16px", fontSize: "13px", fontWeight: 600, color: "#111827" }}>{f.uiLabel}</td>
-                <td style={{ padding: "10px 16px", fontSize: "12px", fontFamily: "monospace", color: "#374151" }}>{f.apiField}</td>
-                <td style={{ padding: "10px 16px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: SOURCE_COLOR[f.source] + "20", color: SOURCE_COLOR[f.source] }}>
-                    {f.source}
-                  </span>
-                </td>
-                <td style={{ padding: "10px 16px", fontSize: "11px", fontFamily: "monospace", color: "#6b7280" }}>{f.endpoint}</td>
-                <td style={{ padding: "10px 16px" }}>
-                  <span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 6px", borderRadius: "3px", backgroundColor: TYPE_COLOR[f.type] + "20", color: TYPE_COLOR[f.type] }}>
-                    {f.type}
-                  </span>
-                </td>
+            </div>
+          </div>
+
+          {/* Key Identifiers */}
+          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9ca3af", marginBottom: "10px" }}>Key Identifiers by System</div>
+          <table style={s.table}>
+            <thead>
+              <tr>
+                <th style={s.th}>Identifier</th>
+                <th style={s.th}>Assigned By</th>
+                <th style={s.th}>Travels To</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {KEY_IDENTIFIERS.map((row, i) => (
+                <tr key={row.id} style={{ backgroundColor: i % 2 === 0 ? "white" : "#fafafa" }}>
+                  <td style={{ ...s.td, fontFamily: "monospace", fontSize: "12px", color: "#2563eb", fontWeight: 600 }}>{row.id}</td>
+                  <td style={{ ...s.td, color: "#374151" }}>{row.assignedBy}</td>
+                  <td style={{ ...s.td, color: "#6b7280" }}>{row.travelsTo}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Section 2 — Data Availability */}
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={{ fontSize: "16px" }}>🗂️</span>
+          <span style={s.sectionTitle}>2 · Data Availability</span>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ ...s.table, minWidth: "900px" }}>
+            <thead>
+              <tr>
+                <th style={s.th}>Stage</th>
+                <th style={s.th}>System</th>
+                <th style={s.th}>Data Available</th>
+                <th style={s.th}>Roger Can Use</th>
+                <th style={s.th}>Usage Type</th>
+                <th style={s.th}>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {DATA_AVAILABILITY.map((row, i) => (
+                <tr key={row.stage} style={{ backgroundColor: i % 2 === 0 ? "white" : "#fafafa" }}>
+                  <td style={s.td}>
+                    <div style={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}>{row.stage}</div>
+                    <div style={{ fontSize: "10px", color: "#9ca3af", marginTop: "2px" }}>{row.batch}</div>
+                  </td>
+                  <td style={{ ...s.td, fontFamily: "monospace", fontSize: "11px", color: "#374151", whiteSpace: "nowrap" as const }}>{row.system}</td>
+                  <td style={{ ...s.td, fontSize: "12px", color: "#374151", maxWidth: "280px" }}>{row.dataAvailable}</td>
+                  <td style={s.td}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: row.rogerCanUse ? "#d1fae5" : "#fee2e2", color: row.rogerCanUse ? "#059669" : "#dc2626" }}>
+                      {row.rogerCanUse ? "Yes" : "No"}
+                    </span>
+                  </td>
+                  <td style={{ ...s.td, fontSize: "12px", color: "#6b7280" }}>{row.usageType}</td>
+                  <td style={{ ...s.td, fontSize: "11px", color: "#9ca3af", maxWidth: "200px" }}>{row.notes}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Section 3 — UI to Data Mapping */}
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={{ fontSize: "16px" }}>📊</span>
+          <span style={s.sectionTitle}>3 · UI to Data Mapping</span>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={s.table}>
+            <thead>
+              <tr>
+                <th style={s.th}>UI Field</th>
+                <th style={s.th}>Source</th>
+                <th style={s.th}>Type</th>
+                <th style={s.th}>Owner</th>
+              </tr>
+            </thead>
+            <tbody>
+              {UI_MAPPING.map((row, i) => (
+                <tr key={row.field} style={{ backgroundColor: i % 2 === 0 ? "white" : "#fafafa" }}>
+                  <td style={{ ...s.td, fontWeight: 600, color: "#111827" }}>{row.field}</td>
+                  <td style={{ ...s.td, color: "#374151" }}>{row.source}</td>
+                  <td style={s.td}>
+                    <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 7px", borderRadius: "4px", backgroundColor: row.type === "Stored" ? "#dbeafe" : "#fef3c7", color: row.type === "Stored" ? "#2563eb" : "#d97706" }}>
+                      {row.type}
+                    </span>
+                  </td>
+                  <td style={{ ...s.td, fontSize: "12px", color: row.owner === "Undefined" ? "#dc2626" : "#374151", fontStyle: row.owner === "Undefined" ? "italic" : "normal" }}>{row.owner}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Section 4 — Gaps */}
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={{ fontSize: "16px" }}>⚠️</span>
+          <span style={s.sectionTitle}>4 · Gaps</span>
+          <span style={{ marginLeft: "auto", fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: "#fee2e2", color: "#dc2626" }}>{GAPS.length} open</span>
+        </div>
+        <div style={{ padding: "12px 20px" }}>
+          {GAPS.map((gap) => (
+            <div
+              key={gap.num}
+              style={{ borderBottom: "1px solid #f3f4f6", cursor: "pointer" }}
+              onClick={() => setExpandedGap(expandedGap === gap.num ? null : gap.num)}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0" }}>
+                <span style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#fee2e2", color: "#dc2626", fontSize: "11px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {gap.num}
+                </span>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: "#111827", flex: 1 }}>{gap.title}</span>
+                <span style={{ color: "#9ca3af", fontSize: "12px" }}>{expandedGap === gap.num ? "▲" : "▼"}</span>
+              </div>
+              {expandedGap === gap.num && (
+                <div style={{ padding: "0 0 14px 36px", fontSize: "13px", color: "#374151", lineHeight: "1.6" }}>
+                  {gap.desc}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Section 5 — Architecture Violations */}
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={{ fontSize: "16px" }}>🚫</span>
+          <span style={s.sectionTitle}>5 · Architecture Violations</span>
+        </div>
+        <div style={{ padding: "12px 20px 4px" }}>
+          <div style={{ fontSize: "12px", color: "#6b7280", marginBottom: "16px", padding: "10px 14px", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px" }}>
+            Critical no-go rules — any design or implementation that violates these boundaries must be rejected
+          </div>
+          {VIOLATIONS.map((v) => (
+            <div
+              key={v.id}
+              style={{ border: `1px solid ${v.color}30`, borderRadius: "10px", marginBottom: "12px", overflow: "hidden", cursor: "pointer" }}
+              onClick={() => setExpandedViolation(expandedViolation === v.id ? null : v.id)}
+            >
+              <div style={{ padding: "12px 16px", backgroundColor: v.color + "08", display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: v.color, color: "white", flexShrink: 0 }}>INVARIANT</span>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: v.color, flexShrink: 0 }}>{v.id}</span>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "#111827", flex: 1 }}>{v.title}</span>
+                <span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 6px", borderRadius: "3px", backgroundColor: "#f3f4f6", color: "#6b7280" }}>{v.type}</span>
+                <span style={{ color: "#9ca3af", fontSize: "12px" }}>{expandedViolation === v.id ? "▲" : "▼"}</span>
+              </div>
+              {expandedViolation === v.id && (
+                <div style={{ padding: "14px 16px", borderTop: `1px solid ${v.color}20` }}>
+                  <p style={{ fontSize: "13px", color: "#374151", lineHeight: "1.6", margin: "0 0 12px" }}>{v.desc}</p>
+                  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                    <div style={{ flex: 1, minWidth: "200px" }}>
+                      <div style={{ fontSize: "10px", fontWeight: 700, color: "#059669", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>✓ Permitted</div>
+                      <code style={{ fontSize: "11px", color: "#059669", backgroundColor: "#d1fae5", padding: "4px 8px", borderRadius: "4px", display: "block" }}>{v.permitted}</code>
+                    </div>
+                    <div style={{ flex: 1, minWidth: "200px" }}>
+                      <div style={{ fontSize: "10px", fontWeight: 700, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>✗ Prohibited</div>
+                      <code style={{ fontSize: "11px", color: "#dc2626", backgroundColor: "#fee2e2", padding: "4px 8px", borderRadius: "4px", display: "block" }}>{v.prohibited}</code>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
