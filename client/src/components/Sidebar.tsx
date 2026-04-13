@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useBatchStatus } from "@/contexts/BatchStatusContext";
 
 interface NavItem {
   label: string;
@@ -155,7 +156,10 @@ function NavItem({ item }: { item: NavItem }) {
 
   if (item.isArchSync) return <ArchSyncItem item={item} />;
 
-  const isActive = location === item.path || (item.path !== "/" && location.startsWith(item.path.split("?")[0]));
+  // Strip query strings from both sides for comparison
+  const itemBase = item.path.split("?")[0];
+  const locationBase = location.split("?")[0];
+  const isActive = locationBase === itemBase || (itemBase !== "/" && locationBase.startsWith(itemBase));
 
   return (
     <button
@@ -218,6 +222,7 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSection }: SidebarProps) {
   const [batchesOpen, setBatchesOpen] = useState(true);
+  const { resetAll } = useBatchStatus();
 
   return (
     <aside
@@ -285,12 +290,15 @@ export default function Sidebar({ activeSection }: SidebarProps) {
         </div>
         <div style={{ fontSize: "10px", color: "#475569", marginBottom: "6px" }}>DCT — Data Consolidation Team</div>
         <button
+          onClick={resetAll}
           style={{ fontSize: "10px", color: "#475569", background: "none", border: "none", cursor: "pointer", padding: 0 }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#94a3b8"}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#475569"}
+          title="Reset all batch and gate statuses to default"
         >
           Clear All Progress
         </button>
+        {/* Reset confirmation note */}
       </div>
     </aside>
   );

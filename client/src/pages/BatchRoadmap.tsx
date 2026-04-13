@@ -1,7 +1,8 @@
 // Batch Roadmap — Foundation Core + Batch 1–9
 // Matches reference: rsm-ai-team-niua6bzx.manus.space
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown, ChevronRight, CheckCircle2, Clock, Circle,
@@ -219,8 +220,30 @@ function TimelineStrip() {
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
+// Map URL param ("1", "2", "foundation-core", etc.) to batch accordion ID
+const BATCH_PARAM_MAP: Record<string, string> = {
+  "foundation-core": "AB-01",
+  "fc": "AB-01",
+  "1": "AB-01",
+  "2": "AB-02",
+  "3": "AB-03",
+  "4": "AB-04",
+  "5": "AB-05",
+  "6": "AB-06",
+};
+
 export default function BatchRoadmap() {
-  const [expanded, setExpanded] = useState<string>("AB-01");
+  const [, params] = useRoute("/batch/:id");
+  const initialId = params?.id ? (BATCH_PARAM_MAP[params.id] ?? "AB-01") : "AB-01";
+  const [expanded, setExpanded] = useState<string>(initialId);
+
+  // Sync when URL param changes (e.g. sidebar link clicked while already on page)
+  useEffect(() => {
+    if (params?.id) {
+      const mapped = BATCH_PARAM_MAP[params.id];
+      if (mapped) setExpanded(mapped);
+    }
+  }, [params?.id]);
 
   const toggle = (id: string) => setExpanded(prev => prev === id ? "" : id);
 

@@ -2,7 +2,8 @@
 // RSM | CATT | DCT Platform Executive Demo Environment
 // Analyst Agent: full story library, Blitzy instructions, platform guarantees, T1–T11 mapping
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, GitBranch, ShieldCheck, Play, Brain,
@@ -445,8 +446,29 @@ function PlatformLayerConnector() {
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
+// Map URL param to agent ID
+const AGENT_PARAM_MAP: Record<string, string> = {
+  "architect": "architecture",
+  "architecture": "architecture",
+  "analyst": "analyst",
+  "developer": "demo_runner",
+  "demo_runner": "demo_runner",
+  "qa": "qa",
+  "roger": "roger_ai",
+  "roger_ai": "roger_ai",
+};
+
 export default function AgentHub() {
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [, params] = useRoute("/agent/:id");
+  const initialAgent = params?.id ? (AGENT_PARAM_MAP[params.id] ?? null) : null;
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(initialAgent);
+
+  useEffect(() => {
+    if (params?.id) {
+      const mapped = AGENT_PARAM_MAP[params.id];
+      if (mapped) setSelectedAgent(mapped);
+    }
+  }, [params?.id]);
   const activeCount = AGENTS.filter(a => a.status === "ACTIVE" || a.status === "RUNNING").length;
 
   return (

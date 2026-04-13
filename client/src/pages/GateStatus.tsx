@@ -1,7 +1,8 @@
 // Gate Status — G1–G4 Full Artifact Checklist and Verification Status
 // RSM | CATT | DCT Platform Executive Demo Environment v3.1
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRoute } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lock, Shield, Link2, FileText, CheckCircle2, Clock, Circle,
@@ -219,8 +220,25 @@ function GateCard({ gate, isExpanded, onToggle }: {
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
+// Map URL param to gate ID
+const GATE_PARAM_MAP: Record<string, string> = {
+  "1": "G1", "2": "G2", "3": "G3", "4": "G4",
+  "g1": "G1", "g2": "G2", "g3": "G3", "g4": "G4",
+  "schema-lock": "G1", "invariant-lock": "G2",
+  "contract-publication": "G3", "lineage-closure": "G4",
+};
+
 export default function GateStatus() {
-  const [expanded, setExpanded] = useState<string>("G1");
+  const [, params] = useRoute("/gate/:id");
+  const initialGate = params?.id ? (GATE_PARAM_MAP[params.id] ?? "G1") : "G1";
+  const [expanded, setExpanded] = useState<string>(initialGate);
+
+  useEffect(() => {
+    if (params?.id) {
+      const mapped = GATE_PARAM_MAP[params.id];
+      if (mapped) setExpanded(mapped);
+    }
+  }, [params?.id]);
   const gates = activeBatch.gates;
 
   const passed = gates.filter(g => g.status === "PASSED").length;

@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import {
   ChevronRight, ChevronLeft, BarChart2, Mic, GitCompare,
   CheckCircle2, Clock, AlertCircle, Zap,
@@ -478,12 +479,15 @@ export default function WeeklyDemo() {
         </div>
 
         {/* Compare */}
-        <button style={{
-          display: "flex", alignItems: "center", gap: "4px",
-          backgroundColor: "#1e293b", color: "#94a3b8",
-          border: "1px solid #334155", borderRadius: "6px",
-          padding: "4px 10px", fontSize: "11px", cursor: "pointer"
-        }}>
+        <button
+          onClick={() => toast.info("Batch comparison — feature coming soon")}
+          style={{
+            display: "flex", alignItems: "center", gap: "4px",
+            backgroundColor: "#1e293b", color: "#94a3b8",
+            border: "1px solid #334155", borderRadius: "6px",
+            padding: "4px 10px", fontSize: "11px", cursor: "pointer"
+          }}
+        >
           <GitCompare size={12} /> Compare
         </button>
 
