@@ -34,7 +34,7 @@ const KEY_IDENTIFIERS = [
   { id: "DocumentId (GUID)", assignedBy: "Tax Portal", travelsTo: "PDC, TDC, Roger" },
   { id: "JobId (GUID)", assignedBy: "Tax Portal", travelsTo: "PDC, TDC" },
   { id: "EntityId (GUID)", assignedBy: "EODS / CEM", travelsTo: "All systems" },
-  { id: "PeriodStart (DateOnly)", assignedBy: "EODS / CEM", travelsTo: "All systems — replaces tax_year in PDC" },
+  { id: "PeriodStart (DateOnly)", assignedBy: "EODS / CEM", travelsTo: "All systems — governing temporal field; TaxYear is derived from this in TDC only" },
   { id: "PeriodEnd (DateOnly)", assignedBy: "EODS / CEM", travelsTo: "All systems — PeriodEnd >= PeriodStart enforced" },
   { id: "SourceRecordId (GUID)", assignedBy: "PDC", travelsTo: "TDC" },
   { id: "RunId (GUID)", assignedBy: "PDC", travelsTo: "TDC" },

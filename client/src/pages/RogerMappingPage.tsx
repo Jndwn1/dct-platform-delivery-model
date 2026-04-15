@@ -45,11 +45,11 @@ const SCREEN1_TABLE: DataRow[] = [
   { dataPoint: "Process Step — Completed", pdc: "—", firm: "Orchestrator closes workflow chain", tdc: "Return filed with confirmation" },
   { dataPoint: "Entities Count per Row", pdc: "Count of entities within client group (EODS / CEM + PDC)", firm: "PDC normalizes entity-to-group mapping", tdc: "—" },
   { dataPoint: "Complete %", pdc: "—", firm: "Orchestrator aggregates PDC + TDC workflow signals", tdc: "Rollup of process step progression — derived and persisted in TDC" },
-  { dataPoint: "Due Date", pdc: "PeriodStartDate stored in PDC — base for TaxYear derivation", firm: "Orchestrator passes period context to TDC", tdc: "Derived from return type + jurisdiction using TaxYear — TIM future dependency TBD" },
+  { dataPoint: "Due Date", pdc: "PeriodStart / PeriodEnd stored in PDC — governing temporal fields", firm: "Orchestrator passes period context to TDC", tdc: "Derived from return type + jurisdiction; TaxYear is derived from PeriodStart/PeriodEnd in TDC — TIM future dependency TBD" },
   { dataPoint: "Days Left", pdc: "—", firm: "Orchestrator surfaces computed value to Roger", tdc: "Computed and persisted in TDC for traceability (based on DueDate)" },
   { dataPoint: "Status (On Track / At Risk / Overdue)", pdc: "—", firm: "Orchestrator reads TDC status signals", tdc: "Business logic comparing due date to progress — derived and persisted in TDC" },
   { dataPoint: "Industry", pdc: "Reference data in PDC; assignment in EODS / CEM", firm: "PDC surfaces for Roger display", tdc: "—" },
-  { dataPoint: "Period Filter", isNew: true, pdc: "PeriodStartDate + PeriodEndDate stored in PDC", firm: "Orchestrator passes period context to TDC", tdc: "TaxYear derived from period dates" },
+  { dataPoint: "Period Filter", isNew: true, pdc: "PeriodStart + PeriodEnd stored in PDC — governing query fields", firm: "Orchestrator passes period context to TDC", tdc: "TaxYear derived from PeriodStart / PeriodEnd — display-only in Roger; not a stored or query field" },
 ];
 
 // ─── Screen 2 — Filing Structure ─────────────────────────────────────────────
@@ -68,7 +68,7 @@ const SCREEN2_TABLE: DataRow[] = [
   { dataPoint: "AI Process %", pdc: "—", firm: "Orchestrator aggregates workflow signals from PDC + TDC", tdc: "Overall workflow completion % — derived and persisted in TDC" },
   { dataPoint: "Issue Count", pdc: "—", firm: "Orchestrator surfaces unresolved item counts", tdc: "Count of unresolved items — derived and persisted in TDC" },
   { dataPoint: "Document Status", isNew: true, pdc: "Portal / DUO — source TBD", firm: "Orchestrator reads document status from portal layer", tdc: "TDC owns business logic — source TBD (Portal / DUO)" },
-  { dataPoint: "Due Date", pdc: "PeriodStartDate stored in PDC — base for TaxYear derivation", firm: "Orchestrator passes period context to TDC", tdc: "Derived from return type + jurisdiction — TIM dependency pending" },
+  { dataPoint: "Due Date", pdc: "PeriodStart / PeriodEnd stored in PDC — governing temporal fields", firm: "Orchestrator passes period context to TDC", tdc: "Derived from return type + jurisdiction; TaxYear is derived from PeriodStart/PeriodEnd in TDC — TIM dependency pending" },
   { dataPoint: "Days Left", pdc: "—", firm: "Orchestrator surfaces computed value to Roger", tdc: "Computed and persisted in TDC for traceability" },
   { dataPoint: "Status", pdc: "—", firm: "Orchestrator reads TDC status signals", tdc: "Business logic comparing due date to progress — derived and persisted in TDC" },
 ];
