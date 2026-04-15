@@ -35,16 +35,18 @@ export default function BatchControlPanel() {
   const { statuses, setStatus, resetAll } = useBatchStatus();
   const gates = deriveGateStatus(statuses);
 
-  const complete = BATCH_KEYS.filter(k => statuses[k] === "Complete").length;
-  const dev = BATCH_KEYS.filter(k => statuses[k] === "Dev").length;
-  const planned = BATCH_KEYS.filter(k => statuses[k] === "Planned").length;
+  const complete  = BATCH_KEYS.filter(k => statuses[k] === "Complete").length;
+  const dev       = BATCH_KEYS.filter(k => statuses[k] === "Dev").length;
+  const inReview  = BATCH_KEYS.filter(k => statuses[k] === "In Review").length;
+  const planned   = BATCH_KEYS.filter(k => statuses[k] === "Planned").length;
 
   // Quick-set helpers
   const advanceAll = () => {
     BATCH_KEYS.forEach(k => {
       const current = statuses[k];
       if (current === "Planned") setStatus(k, "Dev");
-      else if (current === "Dev") setStatus(k, "Complete");
+      else if (current === "Dev") setStatus(k, "In Review");
+      else if (current === "In Review") setStatus(k, "Complete");
     });
   };
 
@@ -77,7 +79,7 @@ export default function BatchControlPanel() {
       </div>
 
       {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
           <div className="text-3xl font-bold text-emerald-700">{complete}</div>
           <div className="text-xs text-emerald-600 font-semibold mt-0.5">Complete</div>
@@ -85,6 +87,10 @@ export default function BatchControlPanel() {
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
           <div className="text-3xl font-bold text-blue-700">{dev}</div>
           <div className="text-xs text-blue-600 font-semibold mt-0.5">In Dev</div>
+        </div>
+        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 text-center">
+          <div className="text-3xl font-bold text-violet-700">{inReview}</div>
+          <div className="text-xs text-violet-600 font-semibold mt-0.5">In Review</div>
         </div>
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
           <div className="text-3xl font-bold text-slate-600">{planned}</div>
@@ -127,6 +133,7 @@ export default function BatchControlPanel() {
                 >
                   <option value="Planned">Planned</option>
                   <option value="Dev">Dev</option>
+                  <option value="In Review">In Review</option>
                   <option value="Complete">Complete</option>
                 </select>
               </div>

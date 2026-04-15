@@ -7,7 +7,7 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
-export type BatchStatus = "Planned" | "Dev" | "Complete";
+export type BatchStatus = "Planned" | "Dev" | "In Review" | "Complete";
 
 export interface BatchStatusMap {
   "foundation-core": BatchStatus;
@@ -95,15 +95,15 @@ export function deriveGateStatus(statuses: BatchStatusMap): {
   const b6 = statuses["6"];
   const b8 = statuses["8"];
 
-  const g1 = b1 === "Complete" ? "Complete" : b1 === "Dev" ? "In Progress" : "Locked";
+  const g1 = b1 === "Complete" ? "Complete" : (b1 === "Dev" || b1 === "In Review") ? "In Progress" : "Locked";
   const g2 = (b2 === "Complete" && b3 === "Complete") ? "Complete"
-    : (b2 === "Dev" || b3 === "Dev" || b2 === "Complete") ? "In Progress"
+    : (b2 === "Dev" || b2 === "In Review" || b3 === "Dev" || b3 === "In Review" || b2 === "Complete") ? "In Progress"
     : "Locked";
   const g3 = (b4 === "Complete" && b5 === "Complete") ? "Complete"
-    : (b4 === "Dev" || b5 === "Dev" || b4 === "Complete") ? "In Progress"
+    : (b4 === "Dev" || b4 === "In Review" || b5 === "Dev" || b5 === "In Review" || b4 === "Complete") ? "In Progress"
     : "Locked";
   const g4 = (b6 === "Complete" && b8 === "Complete") ? "Complete"
-    : (b6 === "Dev" || b8 === "Dev" || b6 === "Complete") ? "In Progress"
+    : (b6 === "Dev" || b6 === "In Review" || b8 === "Dev" || b8 === "In Review" || b6 === "Complete") ? "In Progress"
     : "Locked";
 
   return { g1, g2, g3, g4 };
@@ -112,14 +112,14 @@ export function deriveGateStatus(statuses: BatchStatusMap): {
 /** Agent status derived from batch status */
 export function deriveAgentStatus(batchStatus: BatchStatus): "Not Started" | "In Progress" | "Complete" {
   if (batchStatus === "Complete") return "Complete";
-  if (batchStatus === "Dev") return "In Progress";
+  if (batchStatus === "Dev" || batchStatus === "In Review") return "In Progress";
   return "Not Started";
 }
 
 /** Demo readiness derived from batch status */
 export function deriveDemoReadiness(batchStatus: BatchStatus): "ready" | "partial" | "blocked" {
   if (batchStatus === "Complete") return "ready";
-  if (batchStatus === "Dev") return "partial";
+  if (batchStatus === "Dev" || batchStatus === "In Review") return "partial";
   return "blocked";
 }
 
@@ -168,12 +168,14 @@ export function useBatchStatus() {
 export function contextToDctStatus(s: BatchStatus): "ACTIVE" | "GATE_PENDING" | "PLANNED" | "CLOSED" {
   if (s === "Complete") return "CLOSED";
   if (s === "Dev") return "ACTIVE";
+  if (s === "In Review") return "GATE_PENDING";
   return "PLANNED";
 }
 
 /** Map context BatchStatus → completion percentage */
 export function contextToCompletionPct(s: BatchStatus): number {
   if (s === "Complete") return 100;
+  if (s === "In Review") return 75;
   if (s === "Dev") return 50;
   return 0;
 }
@@ -181,6 +183,7 @@ export function contextToCompletionPct(s: BatchStatus): number {
 /** Map context BatchStatus → sidebar badge label and color */
 export function contextToSidebarBadge(s: BatchStatus): { label: string; color: string } | null {
   if (s === "Complete") return { label: "Done", color: "#059669" };
+  if (s === "In Review") return { label: "Review", color: "#7c3aed" };
   if (s === "Dev") return { label: "Active", color: "#2563eb" };
   return null; // Planned = no badge
 }
@@ -190,7 +193,8 @@ export function contextToSidebarBadge(s: BatchStatus): { label: string; color: s
 export const STATUS_STYLES: Record<BatchStatus, {
   bg: string; text: string; border: string; dot: string; label: string;
 }> = {
-  Planned: { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0", dot: "#94a3b8", label: "Planned" },
-  Dev:     { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe", dot: "#3b82f6", label: "Dev" },
-  Complete:{ bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", dot: "#22c55e", label: "Complete" },
+  Planned:    { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0", dot: "#94a3b8",  label: "Planned" },
+  Dev:        { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe", dot: "#3b82f6",  label: "Dev" },
+  "In Review":{ bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe", dot: "#7c3aed",  label: "In Review" },
+  Complete:   { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", dot: "#22c55e",  label: "Complete" },
 };
