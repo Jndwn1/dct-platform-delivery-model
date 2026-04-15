@@ -20,7 +20,7 @@ function StepRow({ step, state, isActive }: { step: DemoStep; state: StepState; 
   const sc = systemColors[step.system] || { bg: "#F9FAFB", text: "#374151", border: "#9CA3AF" };
 
   return (
-    <div className={`flex items-start gap-4 p-4 rounded-lg border transition-all duration-300 ${
+    <div className={`flex items-start gap-4 p-4 rounded-lg transition-all duration-300 ${
       isActive ? "shadow-md" : "opacity-70"
     }`}
       style={{
