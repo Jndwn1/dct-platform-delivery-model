@@ -174,40 +174,43 @@ const BATCH_DATA: Record<string, BatchDemoData> = {
     ],
   },
   "4": {
-    name: "Batch 4 — AI Tax Mapping & Explainability",
+    name: "Batch 4 — AI Mapping Proposals, Decisions & Governance",
     shortName: "Batch 4 — AI Tax Mapping",
     readiness: "Ready",
-    readinessDetail: "TDC, AI Mapping Layer, APIs available",
+    readinessDetail: "TDC, AI Mapping Layer, Governed Contract, APIs available",
     runId: "RUN-20240315-0043",
-    agentChain: "Ingest → Normalize → Map → Classify → Validate",
-    status: "MAPPING",
-    target: "TDC — Tax Mappings",
+    agentChain: "Normalize → Propose → Govern → Decide → Publish",
+    status: "PROPOSALS GENERATED",
+    target: "TDC — Mapping Proposals & Decisions",
     totalSteps: 5,
     events: [
-      { time: "12:10:38 PM", msg: "NormalizedRecord received from PDC" },
-      { time: "12:10:38 PM", msg: "AI mapping pipeline triggered" },
-      { time: "12:10:50 PM", msg: "1,842 mapping proposals generated" },
-      { time: "12:10:50 PM", msg: "Avg confidence: 94.7%" },
-      { time: "12:10:50 PM", msg: "MappingProposalSet-001 created" },
-      { time: "12:10:50 PM", msg: "Explainability evidence attached" },
+      { time: "12:10:38 PM", msg: "NormalizedRecord set received from PDC (DocumentId: DOC-0041, RunId: RUN-0043)" },
+      { time: "12:10:39 PM", msg: "Orchestrator: AI mapping pipeline triggered against TDC tax taxonomy" },
+      { time: "12:10:42 PM", msg: "1,842 mapping proposals generated — Avg confidence: 94.7%" },
+      { time: "12:10:42 PM", msg: "Proposals sent to TDC via governed contract (POST /api/tdc/mapping-proposals)" },
+      { time: "12:10:43 PM", msg: "TDC: Proposals persisted as IMMUTABLE records — no edits permitted" },
+      { time: "12:10:43 PM", msg: "TDC: Each proposal carries ProposalId, CanonicalAccountId, SuggestedTaxLine, ConfidenceScore" },
+      { time: "12:10:43 PM", msg: "TDC: Source lineage attached — DocumentId → RunId → SourceRecordId" },
+      { time: "12:10:44 PM", msg: "TDC: Decision state machine initialized — Status: Proposed" },
+      { time: "12:10:50 PM", msg: "Roger read contract published — GET /api/tdc/mapping-proposals available (read-only)" },
     ],
     apis: [
-      { method: "POST", path: "/mapping/generate",           desc: "Generate AI tax mapping proposals",          system: "Orchestrator" },
-      { method: "GET",  path: "/mapping/{runId}/proposals",  desc: "Retrieve mapping proposals with confidence", system: "TDC" },
-      { method: "GET",  path: "/mapping/{runId}/evidence",   desc: "Retrieve explainability evidence",           system: "TDC" },
+      { method: "POST", path: "/api/tdc/mapping-proposals",        desc: "Orchestrator delivers immutable proposals to TDC via governed contract", system: "TDC" },
+      { method: "GET",  path: "/api/tdc/mapping-proposals",        desc: "Retrieve proposals by entityId & period — read-only Roger surface",     system: "TDC" },
+      { method: "PUT",  path: "/api/tdc/mapping-decisions/{id}",   desc: "Record practitioner decision: Proposed → Accepted / Rejected",          system: "TDC" },
     ],
     features: [
-      { id: "DCT-401", label: "AI tax mapping proposals", status: "Complete" },
-      { id: "DCT-402", label: "Confidence scores per mapping", status: "Complete" },
-      { id: "DCT-403", label: "Explainability evidence chain", status: "Dev" },
-      { id: "DCT-404", label: "MappingProposalSet persistence", status: "Dev" },
+      { id: "DCT-401", label: "AI Mapping Proposals Generated",          status: "Complete" },
+      { id: "DCT-402", label: "TDC Decision Workflow Active",             status: "Complete" },
+      { id: "DCT-403", label: "Lineage Preserved Across Mapping Layer",   status: "Complete" },
+      { id: "DCT-404", label: "Immutable Proposal Persistence in TDC",    status: "Dev" },
     ],
     flowNodes: [
-      { id: "portal", label: "Tax Portal", sub: "File Intake",    system: "Portal",       status: "Complete" },
-      { id: "pdc",    label: "PDC",        sub: "Financial Truth", system: "PDC",          status: "Complete" },
-      { id: "orch",   label: "Orchestrator", sub: "Agent Routing", system: "Orchestrator", status: "Complete" },
-      { id: "tdc",    label: "TDC",        sub: "Tax Judgment",   system: "TDC",          status: "Processing" },
-      { id: "out",    label: "Output",     sub: "Roger (Read-Only)", system: "Output",     status: "Pending" },
+      { id: "portal", label: "Tax Portal",   sub: "File Intake",                          system: "Portal",       status: "Complete" },
+      { id: "pdc",    label: "PDC",          sub: "Financial Truth — No Tax Logic",        system: "PDC",          status: "Complete" },
+      { id: "orch",   label: "Orchestrator", sub: "AI Mapping Proposals Generated",        system: "Orchestrator", status: "Complete" },
+      { id: "tdc",    label: "TDC",          sub: "Mapping Decisions + Governance Applied", system: "TDC",          status: "Processing" },
+      { id: "out",    label: "Output",       sub: "Roger — Read-Only View",                system: "Output",       status: "Pending" },
     ],
   },
   "5": {
@@ -599,6 +602,20 @@ export default function WeeklyDemo() {
                   }}>
                     {node.status}
                   </div>
+                  {/* Batch 4: immutability indicator on TDC node */}
+                  {selectedBatch === "4" && node.system === "TDC" && (
+                    <div style={{
+                      marginTop: "5px",
+                      display: "inline-flex", alignItems: "center", gap: "3px",
+                      backgroundColor: "#1c1a0e", color: "#fbbf24",
+                      border: "1px solid #92400e",
+                      fontSize: "8px", fontWeight: 700,
+                      padding: "2px 6px", borderRadius: "4px",
+                      letterSpacing: "0.04em"
+                    }}>
+                      🔒 IMMUTABLE
+                    </div>
+                  )}
                 </div>
                 {i < batch.flowNodes.length - 1 && (
                   <ArrowRight size={14} style={{ color: "#334155", flexShrink: 0, margin: "0 3px" }} />
@@ -725,6 +742,67 @@ export default function WeeklyDemo() {
               ))}
             </div>
           </div>
+
+          {/* Batch 4 — Governance Rules */}
+          {selectedBatch === "4" && (
+            <div style={{ borderBottom: "1px solid #1e2a3a" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "8px 14px 4px" }}>
+                <Shield size={11} style={{ color: "#fbbf24" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}>
+                  Governance Rules
+                </span>
+              </div>
+              <div style={{ padding: "2px 14px 10px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                {[
+                  "Proposals are IMMUTABLE once created",
+                  "Only TDC stores tax mapping decisions",
+                  "PDC cannot store or modify tax logic",
+                  "All mappings trace: DocumentId → RunId → SourceRecordId",
+                ].map((rule, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "5px" }}>
+                    <span style={{ color: "#fbbf24", fontSize: "9px", flexShrink: 0, marginTop: "2px" }}>●</span>
+                    <span style={{ fontSize: "10px", color: "#94a3b8" }}>{rule}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Batch 4 — Roger Output (Read-Only) */}
+          {selectedBatch === "4" && (
+            <div style={{ borderBottom: "1px solid #1e2a3a" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "8px 14px 4px" }}>
+                <BarChart2 size={11} style={{ color: "#94a3b8" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}>
+                  Roger Output — Read-Only
+                </span>
+                <span style={{ marginLeft: "auto", fontSize: "8px", fontWeight: 700, backgroundColor: "#1e293b", color: "#475569", padding: "1px 5px", borderRadius: "3px" }}>NO EDIT</span>
+              </div>
+              <div style={{ padding: "2px 14px 10px", display: "flex", flexDirection: "column", gap: "5px" }}>
+                {[
+                  { proposalId: "PROP-0001", account: "Acct-4421", taxLine: "Sch M-1 Line 2a", confidence: "97%", status: "Proposed" },
+                  { proposalId: "PROP-0002", account: "Acct-1183", taxLine: "Form 1120 Line 28", confidence: "91%", status: "Accepted" },
+                  { proposalId: "PROP-0003", account: "Acct-7702", taxLine: "Sch M-1 Line 4", confidence: "78%", status: "Rejected" },
+                ].map((row) => (
+                  <div key={row.proposalId} style={{
+                    backgroundColor: "#0d1420", border: "1px solid #1e293b",
+                    borderRadius: "5px", padding: "6px 8px"
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
+                      <code style={{ fontSize: "9px", color: "#60a5fa" }}>{row.proposalId}</code>
+                      <span style={{
+                        fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "3px",
+                        backgroundColor: row.status === "Accepted" ? "#166534" : row.status === "Rejected" ? "#7f1d1d" : "#1e3a5f",
+                        color: row.status === "Accepted" ? "#86efac" : row.status === "Rejected" ? "#fca5a5" : "#93c5fd",
+                      }}>{row.status}</span>
+                    </div>
+                    <div style={{ fontSize: "10px", color: "#cbd5e1" }}>{row.account} → {row.taxLine}</div>
+                    <div style={{ fontSize: "9px", color: "#64748b", marginTop: "1px" }}>Confidence: {row.confidence}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Demo Readiness */}
           <div>
