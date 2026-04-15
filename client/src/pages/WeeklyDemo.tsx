@@ -18,7 +18,7 @@ import {
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
-type NodeStatus = "Complete" | "Processing" | "Pending";
+type NodeStatus = "Complete" | "Processing" | "Pending" | "Decision Workflow Active";
 type Readiness  = "Ready" | "Partial" | "Blocked";
 type FeatureStatus = "Complete" | "Dev" | "Blocked";
 type ApiMethod = "GET" | "POST" | "PUT";
@@ -185,14 +185,14 @@ const BATCH_DATA: Record<string, BatchDemoData> = {
     totalSteps: 5,
     events: [
       { time: "12:10:38 PM", msg: "NormalizedRecord set received from PDC (DocumentId: DOC-0041, RunId: RUN-0043)" },
-      { time: "12:10:39 PM", msg: "Orchestrator: AI mapping pipeline triggered against TDC tax taxonomy" },
-      { time: "12:10:42 PM", msg: "1,842 mapping proposals generated — Avg confidence: 94.7%" },
-      { time: "12:10:42 PM", msg: "Proposals sent to TDC via governed contract (POST /api/tdc/mapping-proposals)" },
-      { time: "12:10:43 PM", msg: "TDC: Proposals persisted as IMMUTABLE records — no edits permitted" },
-      { time: "12:10:43 PM", msg: "TDC: Each proposal carries ProposalId, CanonicalAccountId, SuggestedTaxLine, ConfidenceScore" },
+      { time: "12:10:39 PM", msg: "Orchestrator: Stateless AI execution — generating mapping proposals from normalized facts" },
+      { time: "12:10:42 PM", msg: "1,842 mapping proposals generated — Avg confidence: 94.7% — Orchestrator has no persistence" },
+      { time: "12:10:42 PM", msg: "Proposals delivered to TDC via governed contract (POST /api/tdc/mapping-proposals)" },
+      { time: "12:10:43 PM", msg: "TDC: Proposals received and persisted as IMMUTABLE records — TDC governs decisions, not AI execution" },
+      { time: "12:10:43 PM", msg: "TDC: Each record carries ProposalId, CanonicalAccountId, SuggestedTaxLine, ConfidenceScore" },
       { time: "12:10:43 PM", msg: "TDC: Source lineage attached — DocumentId → RunId → SourceRecordId" },
-      { time: "12:10:44 PM", msg: "TDC: Decision state machine initialized — Status: Proposed" },
-      { time: "12:10:50 PM", msg: "Roger read contract published — GET /api/tdc/mapping-proposals available (read-only)" },
+      { time: "12:10:44 PM", msg: "TDC: Decision workflow initialized — State: Proposed → awaiting practitioner review" },
+      { time: "12:10:50 PM", msg: "TDC: Roger read contract published — GET /api/tdc/mapping-proposals available (read-only, no edit)" },
     ],
     apis: [
       { method: "POST", path: "/api/tdc/mapping-proposals",        desc: "Orchestrator delivers immutable proposals to TDC via governed contract", system: "TDC" },
@@ -208,8 +208,8 @@ const BATCH_DATA: Record<string, BatchDemoData> = {
     flowNodes: [
       { id: "portal", label: "Tax Portal",   sub: "File Intake",                          system: "Portal",       status: "Complete" },
       { id: "pdc",    label: "PDC",          sub: "Financial Truth — No Tax Logic",        system: "PDC",          status: "Complete" },
-      { id: "orch",   label: "Orchestrator", sub: "AI Mapping Proposals Generated",        system: "Orchestrator", status: "Complete" },
-      { id: "tdc",    label: "TDC",          sub: "Mapping Decisions + Governance Applied", system: "TDC",          status: "Processing" },
+      { id: "orch",   label: "Orchestrator", sub: "Stateless AI Execution — No Persistence",  system: "Orchestrator", status: "Complete" },
+      { id: "tdc",    label: "TDC",          sub: "Proposed → Reviewed → Accepted / Rejected", system: "TDC",          status: "Decision Workflow Active" },
       { id: "out",    label: "Output",       sub: "Roger — Read-Only View",                system: "Output",       status: "Pending" },
     ],
   },
@@ -369,9 +369,10 @@ const NODE_STYLE: Record<string, { bg: string; border: string; color: string; ic
 };
 
 const NODE_STATUS_STYLE: Record<NodeStatus, { bg: string; text: string }> = {
-  Complete:   { bg: "#166534", text: "#86efac" },
-  Processing: { bg: "#3b0764", text: "#d8b4fe" },
-  Pending:    { bg: "#1e293b", text: "#475569" },
+  Complete:                  { bg: "#166534", text: "#86efac" },
+  Processing:                { bg: "#1e3a5f", text: "#93c5fd" },
+  Pending:                   { bg: "#1e293b", text: "#475569" },
+  "Decision Workflow Active": { bg: "#3b1f6e", text: "#c4b5fd" },
 };
 
 const METHOD_COLOR: Record<ApiMethod, string> = {
