@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useBatchStatus } from "@/contexts/BatchStatusContext";
+import { useBatchStatus, contextToSidebarBadge, type BatchKey } from "@/contexts/BatchStatusContext";
 
 interface NavItem {
   label: string;
@@ -25,17 +25,18 @@ const PLATFORM_ITEMS: NavItem[] = [
   { label: "Batch Roadmap (FC + 1–10)", path: "/batch-roadmap", icon: "⬢", badge: "New", badgeColor: "#059669" },
 ];
 
-const BATCH_ITEMS: NavItem[] = [
-  { label: "Foundation Core", path: "/batch/foundation-core", indent: true, status: "Active", statusColor: "#059669" },
-  { label: "Batch 1 — File Ingestion & Initial Storage", path: "/batch/1", indent: true, status: "Active", statusColor: "#059669", demoLink: "/weekly-demo?batch=1" },
-  { label: "Batch 2 — Normalization & Cross-LOB Taxonomy", path: "/batch/2", indent: true, demoLink: "/weekly-demo?batch=2" },
-  { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy", path: "/batch/3", indent: true, demoLink: "/weekly-demo?batch=3" },
-  { label: "Batch 4 — AI Tax Mapping & Explainability", path: "/batch/4", indent: true, demoLink: "/weekly-demo?batch=4" },
-  { label: "Batch 5 — Mapping Decisions & Governance", path: "/batch/5", indent: true, demoLink: "/weekly-demo?batch=5" },
-  { label: "Batch 6 — Practitioner Review & Adjustment Workflow", path: "/batch/6", indent: true, demoLink: "/weekly-demo?batch=6" },
-  { label: "Batch 7 — Rollforward & Prior Year Intelligence", path: "/batch/7", indent: true, demoLink: "/weekly-demo?batch=7" },
-  { label: "Batch 8 — Return Assembly, Filing & Lineage Closure", path: "/batch/8", indent: true, demoLink: "/weekly-demo?batch=8" },
-  { label: "Batch 9 — Learning Governance & Model Evolution", path: "/batch/9", indent: true, demoLink: "/weekly-demo?batch=9" },
+// Batch items are rendered dynamically — statuses come from BatchStatusContext
+const BATCH_ITEM_DEFS: { label: string; path: string; batchKey: BatchKey; demoLink?: string }[] = [
+  { label: "Foundation Core",                              path: "/batch/foundation-core", batchKey: "foundation-core" },
+  { label: "Batch 1 — File Ingestion & Initial Storage",   path: "/batch/1",              batchKey: "1",  demoLink: "/weekly-demo?batch=1" },
+  { label: "Batch 2 — Normalization & Cross-LOB Taxonomy", path: "/batch/2",              batchKey: "2",  demoLink: "/weekly-demo?batch=2" },
+  { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy",path: "/batch/3",              batchKey: "3",  demoLink: "/weekly-demo?batch=3" },
+  { label: "Batch 4 — AI Tax Mapping & Explainability",    path: "/batch/4",              batchKey: "4",  demoLink: "/weekly-demo?batch=4" },
+  { label: "Batch 5 — Mapping Decisions & Governance",     path: "/batch/5",              batchKey: "5",  demoLink: "/weekly-demo?batch=5" },
+  { label: "Batch 6 — Practitioner Review & Adjustment Workflow", path: "/batch/6",       batchKey: "6",  demoLink: "/weekly-demo?batch=6" },
+  { label: "Batch 7 — Rollforward & Prior Year Intelligence", path: "/batch/7",           batchKey: "7",  demoLink: "/weekly-demo?batch=7" },
+  { label: "Batch 8 — Return Assembly, Filing & Lineage Closure", path: "/batch/8",       batchKey: "8",  demoLink: "/weekly-demo?batch=8" },
+  { label: "Batch 9 — Learning Governance & Model Evolution", path: "/batch/9",           batchKey: "9",  demoLink: "/weekly-demo?batch=9" },
 ];
 
 const GATE_ITEMS: NavItem[] = [
@@ -251,7 +252,7 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSection }: SidebarProps) {
   const [batchesOpen, setBatchesOpen] = useState(true);
-  const { resetAll } = useBatchStatus();
+  const { statuses, resetAll } = useBatchStatus();
 
   return (
     <aside
@@ -300,7 +301,18 @@ export default function Sidebar({ activeSection }: SidebarProps) {
               {batchesOpen ? "▲" : "▼"}
             </button>
           </div>
-          {batchesOpen && BATCH_ITEMS.map((item) => <NavItem key={item.path} item={item} />)}
+          {batchesOpen && BATCH_ITEM_DEFS.map((def) => {
+            const badge = contextToSidebarBadge(statuses[def.batchKey]);
+            const navItem: NavItem = {
+              label: def.label,
+              path: def.path,
+              indent: true,
+              demoLink: def.demoLink,
+              status: badge?.label,
+              statusColor: badge?.color,
+            };
+            return <NavItem key={def.path} item={navItem} />;
+          })}
         </div>
 
         <NavSection title="Gates" items={GATE_ITEMS} />
