@@ -576,7 +576,7 @@ export default function WeeklyDemo() {
 
       {/* ── SYSTEM FLOW ───────────────────────────────────────────────────── */}
       <div style={{ padding: "12px 16px 10px", borderBottom: "1px solid #1e2a3a" }}>
-        <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#475569", marginBottom: "10px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#94a3b8", marginBottom: "10px" }}>
           System Flow
         </div>
         <div style={{ display: "flex", alignItems: "center", overflowX: "auto", gap: "0" }}>
@@ -593,12 +593,12 @@ export default function WeeklyDemo() {
                 }}>
                   <Icon size={18} style={{ color: ns.color, margin: "0 auto 5px" }} />
                   <div style={{ fontSize: "12px", fontWeight: 700, color: ns.color }}>{node.label}</div>
-                  <div style={{ fontSize: "10px", color: "#64748b", marginBottom: "6px" }}>{node.sub}</div>
+                  <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "6px" }}>{node.sub}</div>
                   <div style={{
                     display: "inline-block",
                     backgroundColor: ss.bg, color: ss.text,
-                    fontSize: "9px", fontWeight: 700,
-                    padding: "2px 7px", borderRadius: "4px"
+                    fontSize: "10px", fontWeight: 700,
+                    padding: "2px 8px", borderRadius: "4px"
                   }}>
                     {node.status}
                   </div>
@@ -609,8 +609,8 @@ export default function WeeklyDemo() {
                       display: "inline-flex", alignItems: "center", gap: "3px",
                       backgroundColor: "#1c1a0e", color: "#fbbf24",
                       border: "1px solid #92400e",
-                      fontSize: "8px", fontWeight: 700,
-                      padding: "2px 6px", borderRadius: "4px",
+                      fontSize: "10px", fontWeight: 700,
+                      padding: "3px 7px", borderRadius: "4px",
                       letterSpacing: "0.04em"
                     }}>
                       🔒 IMMUTABLE
@@ -639,8 +639,8 @@ export default function WeeklyDemo() {
             padding: "8px 14px", borderBottom: "1px solid #1e2a3a"
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-              <Zap size={12} style={{ color: "#60a5fa" }} />
-              <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}>
+              <Zap size={13} style={{ color: "#60a5fa" }} />
+              <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#cbd5e1" }}>
                 System Events
               </span>
             </div>
@@ -649,17 +649,17 @@ export default function WeeklyDemo() {
                 display: "flex", alignItems: "center", gap: "3px",
                 backgroundColor: "#166534", color: "#86efac",
                 border: "none", borderRadius: "5px",
-                padding: "3px 9px", fontSize: "10px", fontWeight: 700, cursor: "pointer"
+                padding: "4px 11px", fontSize: "11px", fontWeight: 700, cursor: "pointer"
               }}>
-                <Play size={9} /> Run
+                <Play size={11} /> Run
               </button>
               <button onClick={handleReset} style={{
                 display: "flex", alignItems: "center", gap: "3px",
-                backgroundColor: "#1e293b", color: "#64748b",
+                backgroundColor: "#1e293b", color: "#94a3b8",
                 border: "1px solid #334155", borderRadius: "5px",
-                padding: "3px 9px", fontSize: "10px", fontWeight: 700, cursor: "pointer"
+                padding: "4px 11px", fontSize: "11px", fontWeight: 700, cursor: "pointer"
               }}>
-                <RotateCcw size={9} /> Reset
+                <RotateCcw size={11} /> Reset
               </button>
             </div>
           </div>
@@ -672,7 +672,7 @@ export default function WeeklyDemo() {
               }}>
                 <ChevronRight size={10} style={{ color: "#3b82f6", flexShrink: 0, marginTop: "2px" }} />
                 <span style={{ fontSize: "12px", color: "#cbd5e1", flex: 1 }}>{ev.msg}</span>
-                <span style={{ fontSize: "10px", color: "#475569", flexShrink: 0 }}>{ev.time}</span>
+                <span style={{ fontSize: "11px", color: "#64748b", flexShrink: 0 }}>{ev.time}</span>
               </div>
             ))}
             {visibleEvents < 0 && !running && (
@@ -689,8 +689,8 @@ export default function WeeklyDemo() {
           {/* Data State */}
           <div style={{ borderBottom: "1px solid #1e2a3a" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "8px 14px 4px" }}>
-              <Database size={11} style={{ color: "#60a5fa" }} />
-              <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}>
+              <Database size={13} style={{ color: "#60a5fa" }} />
+              <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#cbd5e1" }}>
                 Data State
               </span>
             </div>
@@ -705,8 +705,8 @@ export default function WeeklyDemo() {
                   display: "flex", justifyContent: "space-between",
                   padding: "4px 0", borderBottom: "1px solid #1e293b"
                 }}>
-                  <span style={{ fontSize: "11px", color: "#64748b" }}>{row.label}</span>
-                  <span style={{ fontSize: "11px", color: "#e2e8f0", fontWeight: 600, textAlign: "right", maxWidth: "155px", wordBreak: "break-all" }}>
+                  <span style={{ fontSize: "12px", color: "#94a3b8" }}>{row.label}</span>
+                  <span style={{ fontSize: "12px", color: "#e2e8f0", fontWeight: 600, textAlign: "right", maxWidth: "155px", wordBreak: "break-word" }}>
                     {row.value}
                   </span>
                 </div>
@@ -717,15 +717,15 @@ export default function WeeklyDemo() {
           {/* API Proof */}
           <div style={{ borderBottom: "1px solid #1e2a3a" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "8px 14px 4px" }}>
-              <Network size={11} style={{ color: "#a78bfa" }} />
-              <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}>
+              <Network size={13} style={{ color: "#a78bfa" }} />
+              <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#cbd5e1" }}>
                 API Proof
               </span>
             </div>
             <div style={{ padding: "2px 14px 10px", display: "flex", flexDirection: "column", gap: "7px" }}>
               {batch.apis.map((api, i) => (
                 <div key={i}>
-                  <div style={{ fontSize: "9px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>
                     ● {api.system} API
                   </div>
                   <div style={{
@@ -733,10 +733,10 @@ export default function WeeklyDemo() {
                     borderRadius: "5px", padding: "5px 8px"
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "2px" }}>
-                      <span style={{ fontSize: "9px", fontWeight: 700, color: METHOD_COLOR[api.method] }}>{api.method}</span>
-                      <code style={{ fontSize: "10px", color: "#93c5fd" }}>{api.path}</code>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: METHOD_COLOR[api.method] }}>{api.method}</span>
+                      <code style={{ fontSize: "11px", color: "#93c5fd" }}>{api.path}</code>
                     </div>
-                    <div style={{ fontSize: "10px", color: "#64748b" }}>{api.desc}</div>
+                    <div style={{ fontSize: "11px", color: "#94a3b8" }}>{api.desc}</div>
                   </div>
                 </div>
               ))}
@@ -747,8 +747,8 @@ export default function WeeklyDemo() {
           {selectedBatch === "4" && (
             <div style={{ borderBottom: "1px solid #1e2a3a" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "8px 14px 4px" }}>
-                <Shield size={11} style={{ color: "#fbbf24" }} />
-                <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}>
+                <Shield size={13} style={{ color: "#fbbf24" }} />
+                <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#cbd5e1" }}>
                   Governance Rules
                 </span>
               </div>
@@ -760,8 +760,8 @@ export default function WeeklyDemo() {
                   "All mappings trace: DocumentId → RunId → SourceRecordId",
                 ].map((rule, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "5px" }}>
-                    <span style={{ color: "#fbbf24", fontSize: "9px", flexShrink: 0, marginTop: "2px" }}>●</span>
-                    <span style={{ fontSize: "10px", color: "#94a3b8" }}>{rule}</span>
+                    <span style={{ color: "#fbbf24", fontSize: "11px", flexShrink: 0, marginTop: "1px" }}>●</span>
+                    <span style={{ fontSize: "12px", color: "#cbd5e1" }}>{rule}</span>
                   </div>
                 ))}
               </div>
@@ -772,11 +772,11 @@ export default function WeeklyDemo() {
           {selectedBatch === "4" && (
             <div style={{ borderBottom: "1px solid #1e2a3a" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "8px 14px 4px" }}>
-                <BarChart2 size={11} style={{ color: "#94a3b8" }} />
-                <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}>
+                <BarChart2 size={13} style={{ color: "#94a3b8" }} />
+                <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#cbd5e1" }}>
                   Roger Output — Read-Only
                 </span>
-                <span style={{ marginLeft: "auto", fontSize: "8px", fontWeight: 700, backgroundColor: "#1e293b", color: "#475569", padding: "1px 5px", borderRadius: "3px" }}>NO EDIT</span>
+                <span style={{ marginLeft: "auto", fontSize: "10px", fontWeight: 700, backgroundColor: "#1e293b", color: "#94a3b8", padding: "2px 6px", borderRadius: "3px" }}>NO EDIT</span>
               </div>
               <div style={{ padding: "2px 14px 10px", display: "flex", flexDirection: "column", gap: "5px" }}>
                 {[
@@ -789,15 +789,15 @@ export default function WeeklyDemo() {
                     borderRadius: "5px", padding: "6px 8px"
                   }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
-                      <code style={{ fontSize: "9px", color: "#60a5fa" }}>{row.proposalId}</code>
+                      <code style={{ fontSize: "11px", color: "#60a5fa" }}>{row.proposalId}</code>
                       <span style={{
-                        fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "3px",
+                        fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "3px",
                         backgroundColor: row.status === "Accepted" ? "#166534" : row.status === "Rejected" ? "#7f1d1d" : "#1e3a5f",
                         color: row.status === "Accepted" ? "#86efac" : row.status === "Rejected" ? "#fca5a5" : "#93c5fd",
                       }}>{row.status}</span>
                     </div>
-                    <div style={{ fontSize: "10px", color: "#cbd5e1" }}>{row.account} → {row.taxLine}</div>
-                    <div style={{ fontSize: "9px", color: "#64748b", marginTop: "1px" }}>Confidence: {row.confidence}</div>
+                    <div style={{ fontSize: "12px", color: "#cbd5e1" }}>{row.account} → {row.taxLine}</div>
+                    <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>Confidence: {row.confidence}</div>
                   </div>
                 ))}
               </div>
@@ -807,8 +807,8 @@ export default function WeeklyDemo() {
           {/* Demo Readiness */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "8px 14px 4px" }}>
-              <Shield size={11} style={{ color: "#34d399" }} />
-              <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}>
+              <Shield size={13} style={{ color: "#34d399" }} />
+              <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#cbd5e1" }}>
                 Demo Readiness
               </span>
             </div>
@@ -821,21 +821,21 @@ export default function WeeklyDemo() {
                 <ReadinessIcon size={12} />
                 <span style={{ fontSize: "12px", fontWeight: 700 }}>{batch.readiness} to Demo</span>
               </div>
-              <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "8px" }}>{batch.readinessDetail}</div>
-              <div style={{ fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "5px" }}>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "8px" }}>{batch.readinessDetail}</div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>
                 Delivered in This Demo
               </div>
               {batch.features.map(f => (
                 <div key={f.id} style={{ display: "flex", alignItems: "center", gap: "5px", padding: "3px 0" }}>
                   <span style={{
-                    fontSize: "9px", fontWeight: 700,
+                    fontSize: "10px", fontWeight: 700,
                     backgroundColor: FEATURE_STYLE[f.status].bg,
                     color: FEATURE_STYLE[f.status].text,
-                    padding: "1px 5px", borderRadius: "3px", flexShrink: 0
+                    padding: "2px 7px", borderRadius: "3px", flexShrink: 0
                   }}>
                     {f.status}
                   </span>
-                  <span style={{ fontSize: "10px", color: "#94a3b8" }}>{f.id} — {f.label}</span>
+                  <span style={{ fontSize: "11px", color: "#cbd5e1" }}>{f.id} — {f.label}</span>
                 </div>
               ))}
             </div>
