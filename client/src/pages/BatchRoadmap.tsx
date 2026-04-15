@@ -222,24 +222,38 @@ function TimelineStrip({ batches }: { batches: typeof allBatches }) {
 
 // Map URL param ("1", "2", "foundation-core", etc.) to batch accordion ID
 const BATCH_PARAM_MAP: Record<string, string> = {
-  "foundation-core": "AB-01",
-  "fc": "AB-01",
+  "foundation-core": "FC-00",
+  "fc": "FC-00",
+  "0": "FC-00",
   "1": "AB-01",
   "2": "AB-02",
   "3": "AB-03",
   "4": "AB-04",
   "5": "AB-05",
   "6": "AB-06",
+  "7": "AB-07",
+  "8": "AB-08",
+  "9": "AB-09",
+  "10": "AB-10",
+  "11": "AB-11",
+  "12": "AB-12",
 };
 
-// Map AB-01..AB-06 to context BatchKey so live status can be read
+// Map all batch IDs to context BatchKey so live status can be read
 const AB_TO_CONTEXT_KEY: Record<string, BatchKey> = {
+  "FC-00": "foundation-core",
   "AB-01": "1",
   "AB-02": "2",
   "AB-03": "3",
   "AB-04": "4",
   "AB-05": "5",
   "AB-06": "6",
+  "AB-07": "7",
+  "AB-08": "8",
+  "AB-09": "9",
+  "AB-10": "10",
+  "AB-11": "11",
+  "AB-12": "12",
 };
 
 export default function BatchRoadmap() {

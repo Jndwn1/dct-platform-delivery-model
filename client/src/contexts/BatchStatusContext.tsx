@@ -20,6 +20,9 @@ export interface BatchStatusMap {
   "7": BatchStatus;
   "8": BatchStatus;
   "9": BatchStatus;
+  "10": BatchStatus;
+  "11": BatchStatus;
+  "12": BatchStatus;
 }
 
 export type BatchKey = keyof BatchStatusMap;
@@ -35,6 +38,9 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "7": "Batch 7 — Rollforward & Prior Year Intelligence",
   "8": "Batch 8 — Return Assembly, Filing & Lineage Closure",
   "9": "Batch 9 — Learning Governance & Model Evolution",
+  "10": "Batch 10 — Mapping Decisions & Governance",
+  "11": "Batch 11 — Practitioner Review & Adjustment Workflow",
+  "12": "Batch 12 — Return Assembly, Filing & Lineage Closure",
 };
 
 // ── Default initial state ────────────────────────────────────────────────────
@@ -49,6 +55,9 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "7": "Planned",
   "8": "Planned",
   "9": "Planned",
+  "10": "Planned",
+  "11": "Planned",
+  "12": "Planned",
 };
 
 const STORAGE_KEY = "dct_batch_status_v1";
