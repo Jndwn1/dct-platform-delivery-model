@@ -157,7 +157,10 @@ export default function AAPReviewPage() {
   const [simRunning, setSimRunning] = useState(false);
   const [simStage, setSimStage] = useState<number | null>(null);
   const [simDone, setSimDone] = useState(false);
+  const [simPaused, setSimPaused] = useState(false);
   const simRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const simStageRef = useRef<number>(1);
+  const simPausedRef = useRef<boolean>(false);
 
   // Build a lookup: lane → stage → card
   const cardMap: Record<string, Record<number, StageCard>> = {};
@@ -177,39 +180,89 @@ export default function AAPReviewPage() {
   const totalW = LANE_LABEL_W + STAGE_COUNT * STAGE_W;
 
   // ── Simulation logic ──────────────────────────────────────────────────────
-  const startSimulation = () => {
-    if (simRunning) {
-      // Stop
-      if (simRef.current) clearInterval(simRef.current);
-      setSimRunning(false);
-      setSimStage(null);
-      setSimDone(false);
-      setSelectedCard(null);
-      return;
-    }
-    setSimDone(false);
-    setSimRunning(true);
-    let current = 1;
-    setSimStage(current);
-    setSelectedCard(stageFirstCard[current] ?? null);
+  const goToStage = (stage: number) => {
+    const clamped = Math.max(1, Math.min(STAGE_COUNT, stage));
+    simStageRef.current = clamped;
+    setSimStage(clamped);
+    setSelectedCard(stageFirstCard[clamped] ?? null);
+  };
 
+  const stopSimulation = () => {
+    if (simRef.current) clearInterval(simRef.current);
+    setSimRunning(false);
+    setSimPaused(false);
+    simPausedRef.current = false;
+    setSimStage(null);
+    setSimDone(false);
+    setSelectedCard(null);
+  };
+
+  const runInterval = () => {
     simRef.current = setInterval(() => {
-      current += 1;
-      if (current > STAGE_COUNT) {
+      if (simPausedRef.current) return;
+      simStageRef.current += 1;
+      if (simStageRef.current > STAGE_COUNT) {
         if (simRef.current) clearInterval(simRef.current);
         setSimRunning(false);
+        setSimPaused(false);
+        simPausedRef.current = false;
         setSimStage(null);
         setSimDone(true);
-        setTimeout(() => {
-          setSimDone(false);
-          setSelectedCard(null);
-        }, 2500);
+        setTimeout(() => { setSimDone(false); setSelectedCard(null); }, 2500);
         return;
       }
-      setSimStage(current);
-      setSelectedCard(stageFirstCard[current] ?? null);
+      setSimStage(simStageRef.current);
+      setSelectedCard(stageFirstCard[simStageRef.current] ?? null);
     }, 950);
   };
+
+  const pauseResumeSimulation = () => {
+    if (!simRunning) return;
+    if (simPausedRef.current) {
+      simPausedRef.current = false;
+      setSimPaused(false);
+      runInterval();
+    } else {
+      if (simRef.current) clearInterval(simRef.current);
+      simPausedRef.current = true;
+      setSimPaused(true);
+    }
+  };
+
+  const startSimulation = () => {
+    if (simRunning) { stopSimulation(); return; }
+    setSimDone(false);
+    setSimPaused(false);
+    simPausedRef.current = false;
+    setSimRunning(true);
+    simStageRef.current = 1;
+    setSimStage(1);
+    setSelectedCard(stageFirstCard[1] ?? null);
+    runInterval();
+  };
+
+  // ── Keyboard navigation ───────────────────────────────────────────────────
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (!simRunning) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        pauseResumeSimulation();
+      } else if (e.code === "ArrowRight") {
+        e.preventDefault();
+        if (simPausedRef.current) goToStage(simStageRef.current + 1);
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault();
+        if (simPausedRef.current) goToStage(simStageRef.current - 1);
+      } else if (e.code === "Escape") {
+        e.preventDefault();
+        stopSimulation();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [simRunning]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -287,32 +340,66 @@ export default function AAPReviewPage() {
             }}
             onClick={startSimulation}
           >
-            {simDone ? "✓ Complete" : simRunning ? "⏹ Stop Simulation" : "▶ Run Review Simulation"}
+            {simDone ? "✓ Complete" : simRunning ? "⏹ Stop" : "▶ Run Review Simulation"}
           </button>
         </div>
       </div>
 
-      {/* ── Simulation progress bar ── */}
+      {/* ── Simulation progress bar + controls ── */}
       {simRunning && simStage !== null && (
         <div style={{
           marginBottom: "12px", padding: "8px 14px", borderRadius: "8px",
           backgroundColor: presentationMode ? "#1e293b" : "#fff7ed",
           border: "1px solid #fb923c",
-          display: "flex", alignItems: "center", gap: "12px",
+          display: "flex", alignItems: "center", gap: "10px",
+          flexWrap: "wrap",
         }}>
-          <span style={{ fontSize: "11px", fontWeight: 700, color: "#9a3412", flexShrink: 0 }}>
-            ▶ Stage {simStage} of {STAGE_COUNT}
+          <span style={{ fontSize: "11px", fontWeight: 700, color: "#9a3412", flexShrink: 0, minWidth: "110px" }}>
+            {simPaused ? "⏸ Paused —" : "▶"} Stage {simStage} / {STAGE_COUNT}
           </span>
-          <div style={{ flex: 1, height: "6px", backgroundColor: "#fed7aa", borderRadius: "3px", overflow: "hidden" }}>
+          <div style={{ flex: 1, minWidth: "80px", height: "6px", backgroundColor: "#fed7aa", borderRadius: "3px", overflow: "hidden" }}>
             <div style={{
               height: "100%", borderRadius: "3px",
-              backgroundColor: "#f97316",
+              backgroundColor: simPaused ? "#94a3b8" : "#f97316",
               width: `${(simStage / STAGE_COUNT) * 100}%`,
               transition: "width 0.4s ease",
             }} />
           </div>
-          <span style={{ fontSize: "11px", color: "#ea580c", flexShrink: 0, fontWeight: 600 }}>
+          <span style={{ fontSize: "11px", color: "#ea580c", flexShrink: 0, fontWeight: 600, minWidth: "90px" }}>
             {STAGE_PHASE[simStage]?.label ?? ""}
+          </span>
+          {/* Manual controls */}
+          <div style={{ display: "flex", gap: "5px", flexShrink: 0 }}>
+            <button
+              onClick={() => { if (!simPaused) pauseResumeSimulation(); else goToStage(simStageRef.current - 1); }}
+              title="Previous stage (← when paused)"
+              style={{
+                fontSize: "11px", fontWeight: 700, padding: "3px 9px", borderRadius: "5px",
+                border: "1px solid #fb923c", backgroundColor: "white", color: "#9a3412", cursor: "pointer",
+              }}
+            >← Prev</button>
+            <button
+              onClick={pauseResumeSimulation}
+              title="Pause / Resume (Space)"
+              style={{
+                fontSize: "11px", fontWeight: 700, padding: "3px 9px", borderRadius: "5px",
+                border: "1px solid #fb923c",
+                backgroundColor: simPaused ? "#f97316" : "white",
+                color: simPaused ? "white" : "#9a3412",
+                cursor: "pointer",
+              }}
+            >{simPaused ? "▶ Resume" : "⏸ Pause"}</button>
+            <button
+              onClick={() => { if (!simPaused) pauseResumeSimulation(); else goToStage(simStageRef.current + 1); }}
+              title="Next stage (→ when paused)"
+              style={{
+                fontSize: "11px", fontWeight: 700, padding: "3px 9px", borderRadius: "5px",
+                border: "1px solid #fb923c", backgroundColor: "white", color: "#9a3412", cursor: "pointer",
+              }}
+            >Next →</button>
+          </div>
+          <span style={{ fontSize: "10px", color: "#94a3b8", flexShrink: 0, fontStyle: "italic" }}>
+            Space = pause · ←→ = step (paused) · Esc = stop
           </span>
         </div>
       )}
@@ -406,37 +493,6 @@ export default function AAPReviewPage() {
                   position: "relative",
                 }}>
                   {s}
-                  {/* Loop-back indicator between stages 5–7 */}
-                  {s === 5 && (
-                    <div style={{
-                      position: "absolute", bottom: "-2px", left: "0",
-                      width: `${STAGE_W * 3}px`, // spans stages 5, 6, 7
-                      height: "0",
-                      pointerEvents: "none",
-                      zIndex: 10,
-                    }}>
-                      <svg width={STAGE_W * 3} height="18" style={{ overflow: "visible", display: "block" }}>
-                        {/* Dashed arc from stage 7 back to stage 5 */}
-                        <path
-                          d={`M ${STAGE_W * 3 - 10} 4 Q ${STAGE_W * 1.5} 18 10 4`}
-                          fill="none"
-                          stroke="#dc2626"
-                          strokeWidth="1.5"
-                          strokeDasharray="4 3"
-                          markerEnd="url(#arrowRed)"
-                        />
-                        <defs>
-                          <marker id="arrowRed" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                            <path d="M0,0 L0,6 L6,3 z" fill="#dc2626" />
-                          </marker>
-                        </defs>
-                        <text x={STAGE_W * 1.5} y="16" textAnchor="middle"
-                          style={{ fontSize: "8px", fill: "#dc2626", fontWeight: 700, fontFamily: "Inter, sans-serif" }}>
-                          ↩ loop-back if Gate 2 fails
-                        </text>
-                      </svg>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -650,6 +706,38 @@ export default function AAPReviewPage() {
           </div>
         );
       })()}
+
+      {/* ── Loop-back annotation row ── */}
+      <div style={{ overflowX: "auto", marginTop: "6px", marginBottom: "2px" }}>
+        <div style={{ width: `${totalW}px`, position: "relative", height: "44px" }}>
+          <div style={{
+            position: "absolute",
+            left: `${LANE_LABEL_W + STAGE_W * 4}px`,
+            width: `${STAGE_W * 3}px`,
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderLeft: "2px dashed #dc2626",
+            borderRight: "2px dashed #dc2626",
+            borderBottom: "2px dashed #dc2626",
+            borderRadius: "0 0 8px 8px",
+            backgroundColor: "#fff1f2",
+          }}>
+            <span style={{
+              fontSize: "12px",
+              fontWeight: 700,
+              color: "#dc2626",
+              textAlign: "center",
+              width: "100%",
+              padding: "0 8px",
+              letterSpacing: "0.01em",
+            }}>
+              ↩ Loop-back if Gate 2 fails → return to Stage 5 (AAP Generation)
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* ── Gate flow note ── */}
       <div style={{
