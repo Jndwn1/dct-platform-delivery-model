@@ -59,98 +59,82 @@ const SWAGGER_CONTRACT_REGISTRY: Record<string, SwaggerContractRef> = {
     detail: "Infrastructure batch — no API contract",
   },
 
-  // ── AB-01: Ingestion — rogerCanUse=No; internal PDC record, not API-exposed ──
-  // Rule: Roger Can Use = No → NOT_APPLICABLE (no contract expected or needed)
+  // ── AB-01: Ingestion ─────────────────────────────────────────────────────
+  // Roger Can Use = No → NOT_APPLICABLE (internal PDC records, not Roger-facing)
   "Ingestion": {
     status: "NOT_APPLICABLE",
     detail: "Roger Can Use = No — PDC ingestion records are internal; no Roger-facing API contract expected",
   },
-  // ── AB-01: Ready Event — rogerCanUse=No; internal Service Bus event ──────────
-  // Rule: Roger Can Use = No; event triggers AI Orchestrator only, not Roger
+  "Ingestion Status API": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "IngestionStatus endpoint (GET /api/pdc/ingestion/status) not yet published in PDC Swagger; pending AB-01 Gate 1",
+  },
   "Ready Event": {
     status: "NOT_APPLICABLE",
     detail: "Roger Can Use = No — PDC_READY_EVENT is an internal Service Bus event; Roger is not a consumer",
   },
 
-  // ── AB-02: Normalized / Mapped ────────────────────────────────────────────
-  "Normalized": {
+  // ── AB-02: Normalization & Cross-LOB Taxonomy ─────────────────────────────
+  "Normalized Trial Balance": {
     status: "ALIGNED",
     endpoint: "GET /api/pdc/normalized",
-    detail: "vNormalizedTb view exposed via PDC Swagger; EntityId + PeriodStart/PeriodEnd filter supported",
+    detail: "vNormalizedTb view exposed via PDC Swagger; EntityId + PeriodStart/PeriodEnd filter supported; TaxYear not stored",
   },
-  "Mapped": {
+
+  // ── AB-03: Tax Domain Authority & Tax Taxonomy ────────────────────────────
+  "Tax Taxonomy Reference": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "TaxFormTemplates and TaxTaxonomyAccounts not yet published in TDC Swagger; contract expected at AB-03 delivery",
+  },
+
+  // ── AB-04: AI Tax Mapping & Explainability ────────────────────────────────
+  "AI Mapping Proposals": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "MappingProposal with confidence score and ExplainabilityTrace not yet in TDC Swagger; pending AB-04 delivery",
+  },
+  "Mapping Decisions": {
     status: "OUT_OF_SYNC",
     endpoint: "GET /api/tdc/records",
     detail: "TDC Swagger exposes MappingDecision but uses 'tax_year' field — Batch Model requires PeriodStart/PeriodEnd; field alignment gap",
   },
-
-  // ── AB-03: Adjusted ───────────────────────────────────────────────────────
-  "Adjusted": {
+  "TDC Records API": {
     status: "MISSING_CONTRACT",
     endpoint: undefined,
-    detail: "AdjustmentRecord not yet published in TDC Swagger; contract pending Gate 2 (Invariant Lock)",
+    detail: "Roger primary read contract (GET /api/tdc/records) not yet published; pending AB-04 Gate 4 (Contract Publication)",
   },
 
-  // ── AB-04: Tax-Ready ──────────────────────────────────────────────────────
-  "Tax-Ready": {
+  // ── AB-05: Entity Identity & Structure ───────────────────────────────────
+  "Entity Identity Read Contract": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "Entity registry read contract (GET /api/pdc/entities) not yet published in PDC Swagger; pending AB-05 delivery",
+  },
+
+  // ── AB-06: Practitioner Review, Adjustments & Lock ────────────────────────
+  "Adjustment Record": {
+    status: "MISSING_CONTRACT",
+    endpoint: undefined,
+    detail: "AdjustmentRecord not yet published in TDC Swagger; contract pending AB-06 delivery",
+  },
+  "Tax-Ready Record": {
     status: "ALIGNED",
     endpoint: "GET /api/tdc/tax-ready",
-    detail: "TaxReadyRecord in TDC Swagger; TaxYear derived correctly from PeriodStart/PeriodEnd",
+    detail: "TaxReadyRecord in TDC Swagger; TaxYear derived from PeriodStart/PeriodEnd — not stored; lock state included",
   },
-
-  // ── AB-05: Filed ──────────────────────────────────────────────────────────
-  "Filed": {
-    status: "ALIGNED",
-    endpoint: "GET /api/tdc/filing-records",
-    detail: "FilingRecord in TDC Swagger; append-only constraint documented; IMS outbound boundary respected",
-  },
-
-  // ── AB-06: Orchestration Manifest — internal governance artifact ──────────
-  "Orchestration Manifest": {
-    status: "NOT_APPLICABLE",
-    detail: "Internal governance artifact — no Roger-facing API contract",
-  },
-
-  // ── AB-07: Tax Taxonomy ───────────────────────────────────────────────────
-  "Tax Taxonomy": {
+  "Practitioner Review Workflow": {
     status: "MISSING_CONTRACT",
     endpoint: undefined,
-    detail: "TaxTaxonomyRecord not yet published in TDC Swagger; contract expected in AB-07 delivery",
+    detail: "ReviewWorkflowRecord and sign-off endpoint not yet in TDC Swagger; pending AB-06 delivery",
   },
 
-  // ── AB-08: AI Mapping Proposals ───────────────────────────────────────────
-  "AI Mapping Proposals": {
+  // ── AB-07: Client Tax Profile & Eligibility ───────────────────────────────
+  "Tax Profile": {
     status: "MISSING_CONTRACT",
     endpoint: undefined,
-    detail: "MappingProposal with ExplainabilityTrace not yet in TDC Swagger; pending AB-08 delivery",
-  },
-
-  // ── AB-09: Tax Decision ───────────────────────────────────────────────────
-  "Tax Decision": {
-    status: "MISSING_CONTRACT",
-    endpoint: undefined,
-    detail: "TaxDecisionRecord not yet in TDC Swagger; immutable audit trail contract pending AB-09",
-  },
-
-  // ── AB-10: Practitioner Review ────────────────────────────────────────────
-  "Practitioner Review": {
-    status: "MISSING_CONTRACT",
-    endpoint: undefined,
-    detail: "ReviewWorkflowRecord and AdjustmentRequest not yet in TDC Swagger; pending AB-10 delivery",
-  },
-
-  // ── AB-11: Prior Year Rollforward ─────────────────────────────────────────
-  "Prior Year Rollforward": {
-    status: "MISSING_CONTRACT",
-    endpoint: undefined,
-    detail: "RollforwardRecord not yet in PDC Swagger; pending AB-11 delivery",
-  },
-
-  // ── AB-12: Return Assembly & Filing ───────────────────────────────────────
-  "Return Assembly & Filing": {
-    status: "MISSING_CONTRACT",
-    endpoint: undefined,
-    detail: "ReturnAssembly and lineage closure cert not yet in TDC Swagger; pending AB-12 delivery",
+    detail: "TaxProfile and EligibilityDetermination not yet published in TDC Swagger; pending AB-07 delivery",
   },
 };
 
@@ -267,7 +251,7 @@ export interface DataAvailabilityRow {
 
 // Static schema descriptions — these describe the data shape, not the batch.
 // Batch metadata (name, status, system) is derived from the Batch Model above.
-// Coverage: Foundation Core (FC-00) through Return Assembly (AB-12).
+// Coverage: Foundation Core (FC-00) through Client Tax Profile (AB-07) — v1.8 aligned.
 const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "batchStatus" | "system" | "isOrphaned" | "swaggerStatus" | "swaggerEndpoint" | "swaggerDetail">> = [
   // ── Foundation Core (FC-00) ──────────────────────────────────────────────
   {
@@ -278,14 +262,24 @@ const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "b
     usageType: "None",
     notes: "Infrastructure only — no platform data produced",
   },
-  // ── AB-01: Foundation & Source Onboarding ────────────────────────────────
+
+  // ── AB-01: File Ingestion & Initial Storage ───────────────────────────────
+  // Owner: PDC. TaxYear NOT stored. PeriodStart/PeriodEnd are the temporal model.
   {
     stage: "Ingestion",
     batchId: "AB-01",
-    dataAvailable: "IngestionJob (JobId GUID — PRIMARY KEY, ClientId GUID, EntityId GUID, PeriodStart, PeriodEnd, Status enum), SourceFile (SourceFileId GUID — record key, DocumentId GUID — immutable lineage anchor, JobId FK)",
+    dataAvailable: "IngestionJob (JobId GUID, ClientId GUID, EntityId GUID, PeriodStart DateOnly, PeriodEnd DateOnly, Status enum), SourceFile (SourceFileId GUID, DocumentId GUID — immutable lineage anchor, JobId FK), audit_log",
     rogerCanUse: false,
     usageType: "None",
-    notes: "TaxYear NOT stored — PeriodStart/PeriodEnd are the temporal model",
+    notes: "PDC-owned; append-only; TaxYear NOT stored — PeriodStart/PeriodEnd are the temporal model",
+  },
+  {
+    stage: "Ingestion Status API",
+    batchId: "AB-01",
+    dataAvailable: "GET /api/pdc/ingestion/status: JobId, EntityId, DocumentId, PeriodStart, PeriodEnd, State (INGESTED/PROCESSING/READY/FAILED), Timestamps",
+    rogerCanUse: false,
+    usageType: "None",
+    notes: "Internal PDC status surface; Roger does not consume ingestion status directly",
   },
   {
     stage: "Ready Event",
@@ -293,114 +287,105 @@ const DATA_AVAILABILITY_STATIC: Array<Omit<DataAvailabilityRow, "batchName" | "b
     dataAvailable: "PDC_READY_EVENT payload: DocumentId, RunId, EntityId, PeriodStart, PeriodEnd, TaxonomyVersion, SourceFileId, RecordCount",
     rogerCanUse: false,
     usageType: "None",
-    notes: "Event triggers AI Orchestrator; not a Roger-facing endpoint",
+    notes: "AI Orchestrator = stateless consumer only; event triggers Orchestrator, not Roger",
   },
-  // ── AB-02: Invariant Framework Establishment ─────────────────────────────
+
+  // ── AB-02: Normalization & Cross-LOB Taxonomy ─────────────────────────────
+  // Owner: PDC + AI Orchestrator. Orchestrator = stateless; PDC persists results.
   {
-    stage: "Normalized",
+    stage: "Normalized Trial Balance",
     batchId: "AB-02",
-    dataAvailable: "vNormalizedTb view: RunId, EntityId, AccountCode, Amount, CurrencyCode, LOBCode, PeriodStart, PeriodEnd",
+    dataAvailable: "vNormalizedTb view: RunId, EntityId, AccountCode, Amount, CurrencyCode, LOBCode, PeriodStart DateOnly, PeriodEnd DateOnly",
     rogerCanUse: true,
     usageType: "Read via API",
-    notes: "Roger reads normalized financial facts for display only",
+    notes: "PDC-owned; TaxYear NOT stored — derived in TDC only; read-only for Roger",
   },
+
+  // ── AB-03: Tax Domain Authority & Tax Taxonomy ────────────────────────────
+  // Owner: TDC. TDC is system of record for all tax taxonomy and form definitions.
   {
-    stage: "Mapped",
-    batchId: "AB-02",
-    dataAvailable: "MappingDecision: MappingId, RunId, TaxCode, Confidence, Evidence, Status, CreatedAt (append-only)",
-    rogerCanUse: true,
-    usageType: "Read via API",
-    notes: "Append-only — no updates or deletes permitted",
-  },
-  // ── AB-03: Lineage Graph Construction ────────────────────────────────────
-  {
-    stage: "Adjusted",
+    stage: "Tax Taxonomy Reference",
     batchId: "AB-03",
-    dataAvailable: "AdjustmentRecord: AdjustmentId, MappingId, OriginalAmount, AdjustedAmount, Reason, ApprovedBy, Timestamp (append-only)",
-    rogerCanUse: true,
-    usageType: "Read via API",
-    notes: "Practitioner adjustments persisted in TDC; Roger reads result",
-  },
-  // ── AB-04: Initial Contract Publication ──────────────────────────────────
-  {
-    stage: "Tax-Ready",
-    batchId: "AB-04",
-    dataAvailable: "TaxReadyRecord: TaxReadyId, RunId, EntityId, TaxYear (derived), LockStatus, SignedBy, SignedAt",
-    rogerCanUse: true,
-    usageType: "Read via API",
-    notes: "TaxYear derived from PeriodStart/PeriodEnd — never stored in PDC",
-  },
-  // ── AB-05: Expanded Entity Coverage ──────────────────────────────────────
-  {
-    stage: "Filed",
-    batchId: "AB-05",
-    dataAvailable: "FilingRecord: FilingId, TaxReadyId, ReturnType, FiledAt, ConfirmationNumber (append-only)",
-    rogerCanUse: true,
-    usageType: "Read via API",
-    notes: "IMS receives outbound outputs from TDC only — no write access to platform",
-  },
-  // ── AB-06: AI Orchestrator Layer Integration ──────────────────────────────
-  {
-    stage: "Orchestration Manifest",
-    batchId: "AB-06",
-    dataAvailable: "OrchestrationManifest: ManifestId, Version, AgentRegistry, InvariantBindings, GovernanceCharterRef, ApprovedAt",
+    dataAvailable: "TaxFormTemplates (FormId, Jurisdiction, ReturnType, TaxYear derived from PeriodStart), FormLines, TaxTaxonomyAccounts, MappingRules (versioned), ConfidenceBandThresholds (GREEN/YELLOW/RED)",
     rogerCanUse: false,
     usageType: "None",
-    notes: "Internal governance artifact — not a Roger-facing data object",
+    notes: "TDC-owned; Orchestrator-facing read contract; Roger does not consume raw taxonomy reference data",
   },
-  // ── AB-07: Tax Domain Authority & Tax Taxonomy ────────────────────────────
-  {
-    stage: "Tax Taxonomy",
-    batchId: "AB-07",
-    dataAvailable: "TaxTaxonomyRecord: TaxonomyId, TaxCode, JurisdictionCode, Description, Version, EffectiveDate; TDC established as system of record",
-    rogerCanUse: true,
-    usageType: "Read via API",
-    notes: "Roger reads taxonomy codes for display; TDC owns all tax taxonomy definitions",
-  },
-  // ── AB-08: AI Tax Mapping & Explainability ────────────────────────────────
+
+  // ── AB-04: AI Tax Mapping & Explainability ────────────────────────────────
+  // Owner: TDC + AI Orchestrator. Orchestrator = stateless; TDC persists all decisions.
   {
     stage: "AI Mapping Proposals",
-    batchId: "AB-08",
-    dataAvailable: "MappingProposal: ProposalId, RunId, TaxCode, Confidence (0–1), Evidence (JSON array), ExplainabilityTrace, CreatedAt (append-only)",
+    batchId: "AB-04",
+    dataAvailable: "MappingProposal: ProposalId, RunId, TaxCode, Confidence (0–1), ConfidenceBand (GREEN/YELLOW/RED), Evidence (JSON array), ExplainabilityTrace, CreatedAt (append-only)",
     rogerCanUse: true,
     usageType: "Read via API",
-    notes: "AI proposals are append-only; confidence scores and evidence surfaced in Roger UI",
+    notes: "TDC-owned; append-only; AI proposals are NOT final decisions — practitioner action required; read-only for Roger",
   },
-  // ── AB-09: Mapping Decisions & Governance ────────────────────────────────
   {
-    stage: "Tax Decision",
-    batchId: "AB-09",
-    dataAvailable: "TaxDecisionRecord: DecisionId, ProposalId, ReviewedBy, Decision (APPROVED/OVERRIDDEN/REJECTED), AuditTrailRef, DecidedAt (append-only, immutable)",
+    stage: "Mapping Decisions",
+    batchId: "AB-04",
+    dataAvailable: "MappingDecision: DecisionId, ProposalId, ReviewedBy, Decision (ACCEPTED/OVERRIDDEN/REJECTED), AuditTrailRef, DecidedAt (append-only, immutable)",
     rogerCanUse: true,
     usageType: "Read via API",
-    notes: "Immutable audit trail — no updates or deletes; practitioner decisions persisted in TDC",
+    notes: "TDC-owned; immutable audit trail; append-only — no updates or deletes; read-only for Roger",
   },
-  // ── AB-10: Practitioner Review & Adjustment Workflow ─────────────────────
   {
-    stage: "Practitioner Review",
-    batchId: "AB-10",
-    dataAvailable: "ReviewWorkflowRecord: WorkflowId, EntityId, AssignedTo, Status (PENDING/IN_REVIEW/APPROVED/OVERRIDE), CompletedAt; AdjustmentRequest: RequestId, WorkflowId, FieldRef, ProposedValue, Justification",
-    rogerCanUse: true,
-    usageType: "Read + Submit via API",
-    notes: "Roger UI surfaces review queue; practitioner submits adjustments via API; TDC persists all decisions",
-  },
-  // ── AB-11: Rollforward & Prior Year Intelligence ──────────────────────────
-  {
-    stage: "Prior Year Rollforward",
-    batchId: "AB-11",
-    dataAvailable: "RollforwardRecord: RollforwardId, EntityId, SourcePeriod, TargetPeriod, FieldMappings (JSON), AIComparisonRef, Status; PriorYearDelta: DeltaId, RollforwardId, FieldRef, PriorValue, CurrentValue, VarianceFlag",
+    stage: "TDC Records API",
+    batchId: "AB-04",
+    dataAvailable: "GET /api/tdc/records: Roger primary read contract — proposals, decisions, confidence bands, evidence, traceability from source",
     rogerCanUse: true,
     usageType: "Read via API",
-    notes: "AI-assisted prior year comparison surfaced in Roger UI; PDC owns rollforward records",
+    notes: "Roger primary read contract; TDC-owned; read-only for Roger",
   },
-  // ── AB-12: Return Assembly, Filing & Lineage Closure ─────────────────────
+
+  // ── AB-05: Entity Identity & Structure ───────────────────────────────────
+  // Owner: PDC. EntityId is a PDC-assigned GUID; RBAC context and hierarchy stored here.
   {
-    stage: "Return Assembly & Filing",
-    batchId: "AB-12",
-    dataAvailable: "ReturnAssembly: AssemblyId, EntityId, TaxYear (derived), ReturnType, Sections (JSON), AssembledAt; FilingRecord: FilingId, AssemblyId, FiledAt, ConfirmationNumber, LineageClosureCertRef (append-only)",
+    stage: "Entity Identity Read Contract",
+    batchId: "AB-05",
+    dataAvailable: "ClientGroupId (GUID), EntityId (GUID, immutable), ClientId, hierarchy (parent/sub ownership chains), jurisdiction, entity characteristics, DataSourceType (ADMIN_API_MANUAL / CEM_SYNC / MDM_SYNC / EODS_SYNC), RBAC entitlement mappings",
     rogerCanUse: true,
     usageType: "Read via API",
-    notes: "Full lineage closure certified at this stage; IMS receives outbound from TDC only",
+    notes: "PDC-owned; read-only for Roger; RBAC context scopes Roger views; CEM sync is idempotent",
+  },
+
+  // ── AB-06: Practitioner Review, Adjustments & Lock ───────────────────────
+  // Owner: TDC + Roger UI. TaxReadyRecord is derived, not stored from PDC.
+  {
+    stage: "Adjustment Record",
+    batchId: "AB-06",
+    dataAvailable: "AdjustmentRecord: AdjustmentId, MappingId, AdjustmentType (BOOK_TO_TAX), OriginalAmount, AdjustedAmount, Reason, ApprovalStatus, ApprovedBy, Timestamp (append-only)",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "TDC-owned; append-only; book-to-tax adjustments only; read-only for Roger",
+  },
+  {
+    stage: "Tax-Ready Record",
+    batchId: "AB-06",
+    dataAvailable: "TaxReadyRecord: TaxReadyId, RunId, EntityId, TaxYear (derived from PeriodStart/PeriodEnd — in TDC only), LockStatus (OPEN/FINALIZED/AMENDED), SignedBy, SignedAt, LineageRef",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "TDC-owned; derived, not stored from PDC; TaxYear derived in TDC only; lock is terminal; read-only for Roger",
+  },
+  {
+    stage: "Practitioner Review Workflow",
+    batchId: "AB-06",
+    dataAvailable: "ReviewTask (auto-generated from data state), EntityStatus (OPEN/IN_REVIEW/FINALIZED/AMENDED), SignOff (non-repudiable), LockEvent (immutable, logged on mutation attempt)",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "TDC-owned; Roger surfaces review queue and finalization state; read-only for Roger",
+  },
+
+  // ── AB-07: Client Tax Profile & Eligibility ───────────────────────────────
+  // Owner: TDC. Eligibility is a downstream processing gate — INELIGIBLE blocks AI mapping.
+  {
+    stage: "Tax Profile",
+    batchId: "AB-07",
+    dataAvailable: "TaxProfile (EntityId, ReturnType, Jurisdiction, FilingMethod, TaxYear derived), EligibilityDetermination (ELIGIBLE/INELIGIBLE/FLAG_AND_REVIEW), EligibilityRules (Must Have / Must Not Have / Flag & Review — versioned), EligibilityAuditLog (append-only)",
+    rogerCanUse: true,
+    usageType: "Read via API",
+    notes: "TDC-owned; eligibility is a downstream gate — INELIGIBLE blocks AI mapping; TaxYear derived in TDC only; read-only for Roger",
   },
 ];
 
