@@ -97,14 +97,14 @@ const TOUCHPOINTS = [
     desc: "Orchestrator writes normalized FinancialFact records and Cross-LOB taxonomy mappings to PDC. PDC assigns RunId (GUID) and SourceRecordId (GUID), confirms READY state (enum), and becomes the authoritative cross-LOB data system of record." },
   { id: "T6", label: "Tax Record Creation in TDC", system: "TDC", batch: "Batch 3",
     desc: "Orchestrator writes tax mapping proposals to TDC, including confidence scores (GREEN/YELLOW/RED enum band) and structured evidence. TDC assigns TdcRecordId (GUID) and preserves lineage (DocumentId → SourceRecordId → TdcRecordId)." },
-  { id: "T7", label: "Practitioner View in Roger", system: "Roger Web App", batch: "Batch 5",
-    desc: "Roger retrieves tax-ready records from TDC using the read-only API. The UI displays cross-LOB classifications, tax proposals, confidence bands (GREEN/YELLOW/RED enum), and lineage for practitioner review. Roger is a read-only consumer — no writes to TDC or PDC." },
-  { id: "T8", label: "Practitioner Decision", system: "Roger Web App", batch: "Batch 6",
-    desc: "Practitioner reviews AI proposals and takes action: accept, override, or reject. Decisions are captured against TdcRecordId (GUID) as append-only MappingDecision records (never overwritten). Decision state enum: ACCEPTED | OVERRIDDEN | REJECTED." },
-  { id: "T9", label: "Adjustment Propagation", system: "DCT (PDC + TDC APIs)", batch: "Batch 6",
-    desc: "Corrections propagate back to the appropriate system of record. Cross-LOB changes update PDC, tax classification changes update TDC, and combined changes update PDC first then TDC." },
-  { id: "T10", label: "TDC Finalization — TAX_READY", system: "TDC", batch: "Batch 6",
-    desc: "TDC assigns final record state (enum: REVIEW_REQUIRED | TAX_READY) and versions all tax decisions. Locked records are immutable — no updates or deletes ever. Final tax records become the authoritative system output for downstream consumption." },
+  { id: "T7", label: "Roger Primary Read Contract", system: "Roger Web App", batch: "Batch 4",
+    desc: "Roger retrieves tax mapping proposals and decisions via TDC primary read contract. Displays confidence bands (GREEN/YELLOW/RED), pending vs decided, and full traceability to source. Roger is a read-only consumer — this is the moment the platform comes to life for a practitioner." },
+  { id: "T8", label: "Practitioner Review & Adjustment", system: "Roger Web App", batch: "Batch 6",
+    desc: "Review tasks generated automatically from data state. Practitioner creates, submits, approves, and locks book-to-tax adjustments. Sign-off is non-repudiable. Lock is terminal. Roger surfaces the full practitioner workflow end to end for the first time." },
+  { id: "T9", label: "Tax-Ready Record Derivation", system: "TDC", batch: "Batch 6",
+    desc: "Tax-ready records derived deterministically from accepted mapping decisions and approved book-to-tax adjustments only. UNRESOLVED records persisted as first-class outputs where practitioner decision is still missing." },
+  { id: "T10", label: "TDC Finalization — TAX_READY / Lock", system: "TDC", batch: "Batch 6",
+    desc: "Finalization requires non-repudiable sign-off. Lock is terminal — mutation attempts rejected and logged. Unlock transitions entity to AMENDED through a governed operation with recorded actor, reason, and timestamp." },
 ];
 
 const AGENT_COLORS: Record<string, string> = {

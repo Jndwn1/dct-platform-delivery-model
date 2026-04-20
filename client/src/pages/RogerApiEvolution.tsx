@@ -33,17 +33,17 @@ const API_BATCHES = [
     note: "Explainability layer. Enables practitioners to understand AI reasoning before accepting proposals.",
   },
   {
-    batch: "Batch 5", label: "Practitioner View in Roger",
+    batch: "Batch 5", label: "Entity Identity & Structure",
     endpoints: [
-      { method: "GET", path: "/api/v1/roger/workitems/{entityId}/{periodStart}/{periodEnd}", desc: "Roger work item list for a client/period — tax records requiring review" },
-      { method: "GET", path: "/api/v1/roger/workitems/{tdcRecordId}/detail", desc: "Full detail view: cross-LOB data, tax proposal, confidence, evidence, lineage" },
-      { method: "GET", path: "/api/v1/lineage/{documentId}", desc: "Full lineage chain: DocumentId → SourceRecordId → TdcRecordId" },
+      { method: "GET", path: "/api/v1/entities/{entityId}", desc: "Retrieve entity identity record with ownership, jurisdiction, and characteristics" },
+      { method: "GET", path: "/api/v1/entities/{clientId}/hierarchy", desc: "Client group hierarchy with parent-child ownership relationships" },
+      { method: "GET", path: "/api/v1/entities/{entityId}/entitlements", desc: "User-to-entity entitlement mappings for access scoping" },
     ],
-    models: ["RogerWorkItem", "WorkItemDetail", "LineageChain", "LineageNode"],
-    note: "Roger read-only consumer API. Aggregates PDC + TDC data into practitioner-ready work items.",
+    models: ["EntityRecord", "ClientGroup", "OwnershipRelationship", "EntitlementMapping", "DataSourceType (enum)"],
+    note: "PDC entity read contract. Roger uses EntityId to scope views, navigate multi-entity engagements, and display client hierarchy.",
   },
   {
-    batch: "Batch 6", label: "Practitioner Review & Adjustment Workflow",
+    batch: "Batch 6", label: "Practitioner Review, Adjustments & Lock",
     endpoints: [
       { method: "POST", path: "/api/v1/roger/decisions", desc: "Submit practitioner decision: ACCEPTED | OVERRIDDEN | REJECTED" },
       { method: "GET", path: "/api/v1/roger/decisions/{tdcRecordId}", desc: "Decision history for a TDC record (append-only audit trail)" },

@@ -415,10 +415,10 @@ const TP_LEGEND_DATA = [
   { id: "T4", name: "AI Agent Pipeline Execution", step: "Step 4", batch: "Batch 2", system: "AI Orchestrator", desc: "Agent chain: File Recognizer → File Normalizer → Cross-LOB Mapper → Tax Mapper. Stateless agents persist via APIs." },
   { id: "T5", name: "Canonical Dataset Persistence", step: "Step 4", batch: "Batch 2", system: "PDC", desc: "PDC persists normalized FinancialFact records + Cross-LOB mappings. Assigns RunId (GUID) + SourceRecordId (GUID). Status enum = READY." },
   { id: "T6", name: "Tax Record Creation in TDC", step: "Step 4", batch: "Batch 3", system: "TDC", desc: "Tax mapping proposals stored in TDC. TDC assigns tdc_record_id and preserves full lineage." },
-  { id: "T7", name: "Practitioner View in Roger", step: "Step 5", batch: "Batch 4", system: "Roger Web App", desc: "Roger retrieves tax records via GET /api/tdc/records. Read-only consumer of TDC." },
-  { id: "T8", name: "Practitioner Decision", step: "Step 6", batch: "Batch 5", system: "Roger Web App", desc: "Practitioner approves, corrects, overrides, or reclassifies mappings. Decision captured against tdc_record_id." },
-  { id: "T9", name: "Adjustment Propagation", step: "Step 7", batch: "Batch 5", system: "DCT (PDC + TDC APIs)", desc: "Corrections routed via API: Cross-LOB → PDC, Tax classification → TDC, Both → PDC then TDC." },
-  { id: "T10", name: "TDC Finalization — TAX_READY", step: "Step 8", batch: "Batch 5", system: "TDC", desc: "TDC assigns final state: REVIEW_REQUIRED or TAX_READY. All tax decisions versioned as authoritative output." },
+  { id: "T7", name: "Roger Primary Read Contract", step: "Step 5", batch: "Batch 4", system: "Roger Web App", desc: "Roger retrieves tax mapping proposals and decisions via TDC read contract. Read-only consumer of TDC. This is the moment the platform comes to life for a practitioner." },
+  { id: "T8", name: "Practitioner Review & Adjustment", step: "Step 6", batch: "Batch 6", system: "Roger Web App", desc: "Review tasks generated automatically from data state. Practitioner creates, submits, approves, and locks book-to-tax adjustments. Sign-off is non-repudiable. Lock is terminal." },
+  { id: "T9", name: "Tax-Ready Record Derivation", step: "Step 7", batch: "Batch 6", system: "TDC", desc: "Tax-ready records derived deterministically from accepted mapping decisions and approved book-to-tax adjustments only. UNRESOLVED records persisted where practitioner decision is missing." },
+  { id: "T10", name: "TDC Finalization — TAX_READY / Lock", step: "Step 8", batch: "Batch 6", system: "TDC", desc: "Finalization requires non-repudiable sign-off. Lock is terminal — mutation attempts rejected and logged. Unlock transitions entity to AMENDED through a governed operation." },
 ];
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
