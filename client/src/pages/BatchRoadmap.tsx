@@ -129,37 +129,97 @@ function BatchCard({ batch, index, isExpanded, onToggle }: {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-5 pt-0 border-t border-border">
-              <div className="grid grid-cols-2 gap-6 mt-4">
-                {/* Left: conditions */}
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Entry Condition</div>
-                    <div className="bg-slate-50 border border-border rounded-lg p-3 text-xs text-foreground leading-relaxed">
-                      {batch.entryCondition}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Exit Condition</div>
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs text-foreground leading-relaxed">
-                      {batch.exitCondition}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Batch Lead</div>
-                    <div className="text-xs text-foreground font-medium">{batch.batchLead}</div>
+            <div className="px-5 pb-5 pt-0 border-t border-border space-y-4 mt-4">
+
+              {/* PI label + overview */}
+              {batch.overview && (
+                <div>
+                  {batch.piLabel && (
+                    <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 mb-2">
+                      {batch.piLabel}
+                    </span>
+                  )}
+                  <div className="text-xs text-foreground leading-relaxed bg-slate-50 border border-border rounded-lg p-3">
+                    {batch.overview}
                   </div>
                 </div>
+              )}
 
-                {/* Right: touchpoints */}
+              {/* Entry / Exit / Lead */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Entry Condition</div>
+                  <div className="bg-slate-50 border border-border rounded-lg p-3 text-xs text-foreground leading-relaxed">
+                    {batch.entryCondition}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Exit Condition</div>
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs text-foreground leading-relaxed">
+                    {batch.exitCondition}
+                  </div>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Batch Lead:</span> {batch.batchLead}
+              </div>
+
+              {/* What Must Be True */}
+              {batch.whatMustBeTrue && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">What Must Be True</div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-foreground leading-relaxed">
+                    {batch.whatMustBeTrue}
+                  </div>
+                </div>
+              )}
+
+              {/* Stories + Outcomes side by side */}
+              {((batch.stories && batch.stories.length > 0) || (batch.outcomes && batch.outcomes.length > 0)) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {batch.stories && batch.stories.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        Stories ({batch.stories.length})
+                      </div>
+                      <ul className="space-y-1">
+                        {batch.stories.map((s, i) => (
+                          <li key={i} className="flex items-start gap-2 text-xs text-foreground">
+                            <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">{i + 1}</span>
+                            <span className="leading-relaxed">{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {batch.outcomes && batch.outcomes.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        Outcomes — What We Can Demo
+                      </div>
+                      <ul className="space-y-1">
+                        {batch.outcomes.map((o, i) => (
+                          <li key={i} className="flex items-start gap-2 text-xs text-foreground">
+                            <span className="text-emerald-600 shrink-0 mt-0.5">✓</span>
+                            <span className="leading-relaxed">{o}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Touchpoints */}
+              {touchpointDetails.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                     Touchpoints ({batch.touchpoints.length})
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {touchpointDetails.map(tp => (
-                      <div key={tp.id} className="flex items-center gap-2 text-xs">
-                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 ${
+                      <div key={tp.id} className="flex items-center gap-1.5 text-xs bg-slate-50 border border-border rounded-full px-2 py-1">
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 ${
                           tp.layerId === "ingestion" ? "bg-violet-600" :
                           tp.layerId === "orchestration" ? "bg-blue-600" :
                           tp.layerId === "pdc" ? "bg-emerald-600" :
@@ -169,12 +229,12 @@ function BatchCard({ batch, index, isExpanded, onToggle }: {
                           {tp.id.replace("T", "")}
                         </span>
                         <span className="font-medium text-foreground">{tp.name}</span>
-                        <span className="text-muted-foreground ml-auto">{tp.system}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
+              )}
+
             </div>
           </motion.div>
         )}
