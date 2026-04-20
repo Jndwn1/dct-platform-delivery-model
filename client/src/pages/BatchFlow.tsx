@@ -16,8 +16,8 @@ const BATCH_OPTIONS = [
   { id: "9", label: "Batch 9 — PDC IMS Integration / TDC Rollforward & Prior Year Intelligence", status: "Planned" },
   { id: "10", label: "Batch 10 — Return Assembly, Filing & Lineage Closure", status: "Planned" },
   { id: "11", label: "Batch 11 — Learning Governance & Model Evolution", status: "Planned" },
-  { id: "12", label: "Batch 12 — Migration Track (Parallel)", status: "Planned" },
 ];
+
 
 const BATCH_ARTIFACTS: Record<string, { epic: string; features: { label: string; stories: string[] }[] }> = {
   "1": {

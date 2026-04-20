@@ -19,8 +19,8 @@ const STATIC_BATCHES: { id: BatchKey; label: string }[] = [
   { id: "9", label: "Batch 9 — PDC IMS Integration / TDC Rollforward & Prior Year Intelligence" },
   { id: "10", label: "Batch 10 — Return Assembly, Filing & Lineage Closure" },
   { id: "11", label: "Batch 11 — Learning Governance & Model Evolution" },
-  { id: "12", label: "Batch 12 — Migration Track (Parallel)" },
 ];
+
 
 const GATES = [
   {

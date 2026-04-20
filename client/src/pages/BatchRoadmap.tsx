@@ -296,7 +296,6 @@ const BATCH_PARAM_MAP: Record<string, string> = {
   "9": "AB-09",
   "10": "AB-10",
   "11": "AB-11",
-  "12": "AB-12",
 };
 
 // Map all batch IDs to context BatchKey so live status can be read
@@ -313,7 +312,6 @@ const AB_TO_CONTEXT_KEY: Record<string, BatchKey> = {
   "AB-09": "9",
   "AB-10": "10",
   "AB-11": "11",
-  "AB-12": "12",
 };
 
 export default function BatchRoadmap() {

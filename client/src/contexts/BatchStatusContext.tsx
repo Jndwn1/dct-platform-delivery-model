@@ -22,7 +22,6 @@ export interface BatchStatusMap {
   "9": BatchStatus;
   "10": BatchStatus;
   "11": BatchStatus;
-  "12": BatchStatus;
 }
 
 export type BatchKey = keyof BatchStatusMap;
@@ -40,7 +39,6 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "9": "Batch 9 — PDC IMS Integration & Prior Year Retrieval / TDC Rollforward & Prior Year Intelligence",
   "10": "Batch 10 — Return Assembly, Filing & Lineage Closure",
   "11": "Batch 11 — Learning Governance & Model Evolution",
-  "12": "Batch 12 — Migration Track (Parallel)",
 };
 
 // ── Default initial state ────────────────────────────────────────────────────
@@ -57,7 +55,6 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "9": "Planned",
   "10": "Planned",
   "11": "Planned",
-  "12": "Planned",
 };
 
 const STORAGE_KEY = "dct_batch_status_v1";

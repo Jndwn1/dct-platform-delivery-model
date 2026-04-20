@@ -19,8 +19,8 @@ const TIMELINE_EVENTS = [
   { date: "2026-Q3", label: "Batch 9 — PDC IMS Integration & Prior Year Retrieval / TDC Rollforward", type: "batch", status: "planned", description: "PDC governed IMS integration (pull model). TDC rollforward proposals from prior year decisions. Flow: IMS → PDC → Orchestrator → TDC. PI 2 — Stretch.", gate: null },
   { date: "2026-Q3", label: "Batch 10 — Return Assembly, Filing & Lineage Closure", type: "batch", status: "planned", description: "TDC assembles returns from locked tax-ready records. Immutable filing record. IMS outbound contract. End-to-end lineage queryable. PI 2 — Stretch.", gate: null },
   { date: "2026-Q4", label: "Batch 11 — Learning Governance & Model Evolution", type: "batch", status: "planned", description: "AI feedback loop closed. Learning signals captured. Model registry with versioned approval workflow. Confidence trend analytics. PI 2 — Stretch.", gate: null },
-  { date: "Parallel", label: "Batch 12 — Migration Track (Parallel)", type: "batch", status: "planned", description: "Legacy system migration (TWB, Partnersight). All inbound data through PDC JobId-based ingestion. Transitional — closes when legacy systems are retired.", gate: null },
 ];
+
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string }> = {
   complete:    { bg: "#dcfce7", text: "#166534", dot: "#16a34a", label: "Complete" },

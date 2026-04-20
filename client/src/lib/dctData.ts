@@ -602,38 +602,8 @@ export const allBatches: ArchitecturalBatch[] = [
     ],
     gates: []
   },
-  {
-    id: "AB-12",
-    name: "Migration Track (Parallel)",
-    status: "PLANNED",
-    touchpoints: ["T10", "T11"],
-    primarySystem: "PDC + TDC",
-    keyGate: "G3 — Lineage Closure",
-    entryCondition: "AB-01 Gate 3 (ingestion contract published) · AB-02 Gate 3 (normalized TB contract published)",
-    exitCondition: "Legacy system data migrated; TWB and Partnersight retirement targets met",
-    batchLead: "Program Delivery Lead",
-    openIssues: 0,
-    completionPct: 0,
-    startDate: undefined,
-    targetDate: "2027-05-01",
-    piLabel: "Parallel — Transitional",
-    overview: "Legacy system data migration enables retirement of TWB, Partnersight, and other workpaper platforms. This track runs parallel to core batches and is explicitly transitional — it closes when legacy systems are fully retired. All inbound migration data flows through PDC ingestion via the JobId-based ingestion model.",
-    whatMustBeTrue: "All inbound migration data flows through PDC ingestion via the JobId-based ingestion model, consistent with the platform pattern. PDC normalizes where appropriate, persists as reference where data is already tax-decided, and signals READY for TDC consumption. Migration is transitional — not a permanent platform capability. PDC is the single front door for all inbound data, including migration.",
-    stories: [
-      "TWB Historical TB Extraction",
-      "TWB Prior Year Mapping Decisions",
-      "Migration Validation & Reconciliation",
-      "Partnersight Data Extraction",
-    ],
-    outcomes: [
-      "For a migrated 1120 entity, prior year TB data is extracted from TWB and loaded to PDC with lineage to TWB source",
-      "For a migrated 1120 entity, prior year mapping decisions are available in TDC for rollforward",
-      "A migration audit report confirms record counts, field mappings, and data integrity between source and target",
-      "For a migrated 1065 entity, partnership workpaper data and K-1 history are available in PDC with lineage",
-    ],
-    gates: []
-  }
 ];
+
 
 // ─── PLATFORM KPIs ───────────────────────────────────────────────────────────
 

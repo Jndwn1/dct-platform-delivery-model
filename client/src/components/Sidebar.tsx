@@ -39,8 +39,8 @@ const BATCH_ITEM_DEFS: { label: string; path: string; batchKey: BatchKey; demoLi
   { label: "Batch 9 — PDC IMS Integration / TDC Rollforward",  path: "/batch/9",           batchKey: "9",  demoLink: "/weekly-demo?batch=9" },
   { label: "Batch 10 — Return Assembly, Filing & Lineage Closure", path: "/batch/10",    batchKey: "10", demoLink: "/weekly-demo?batch=10" },
   { label: "Batch 11 — Learning Governance & Model Evolution",  path: "/batch/11",          batchKey: "11", demoLink: "/weekly-demo?batch=11" },
-  { label: "Batch 12 — Migration Track (Parallel)",            path: "/batch/12",          batchKey: "12" },
 ];
+
 
 const GATE_ITEMS: NavItem[] = [
   { label: "Gate 1 — Schema Lock", path: "/gate/1", status: "Locked", statusColor: "#475569" },
