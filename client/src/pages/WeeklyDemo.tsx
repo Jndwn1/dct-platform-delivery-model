@@ -214,8 +214,8 @@ const BATCH_DATA: Record<string, BatchDemoData> = {
     ],
   },
   "5": {
-    name: "Batch 5 — Mapping Decisions & Governance",
-    shortName: "Batch 5 — Mapping Decisions",
+    name: "Batch 5 — Entity Identity & Structure",
+    shortName: "Batch 5 — Entity Identity",
     readiness: "Partial",
     readinessDetail: "TDC available; Roger UI in dev",
     runId: "RUN-20240315-0044",
@@ -251,8 +251,8 @@ const BATCH_DATA: Record<string, BatchDemoData> = {
     ],
   },
   "6": {
-    name: "Batch 6 — Practitioner Review & Adjustment Workflow",
-    shortName: "Batch 6 — Practitioner Review",
+    name: "Batch 6 — Practitioner Review, Adjustments & Lock",
+    shortName: "Batch 6 — Review & Lock",
     readiness: "Partial",
     readinessDetail: "TDC available; Roger UI partial",
     runId: "RUN-20240315-0045",
@@ -287,8 +287,8 @@ const BATCH_DATA: Record<string, BatchDemoData> = {
     ],
   },
   "7": {
-    name: "Batch 7 — Rollforward & Prior Year Intelligence",
-    shortName: "Batch 7 — Rollforward",
+    name: "Batch 7 — Client Tax Profile & Eligibility",
+    shortName: "Batch 7 — Tax Profile",
     readiness: "Partial",
     readinessDetail: "PDC available; Prior year data in dev",
     runId: "RUN-20240315-0046",
@@ -322,8 +322,8 @@ const BATCH_DATA: Record<string, BatchDemoData> = {
     ],
   },
   "8": {
-    name: "Batch 8 — Return Assembly, Filing & Lineage Closure",
-    shortName: "Batch 8 — Return Assembly",
+    name: "Batch 8 — Exceptions & Remediation",
+    shortName: "Batch 8 — Exceptions",
     readiness: "Partial",
     readinessDetail: "TDC available; Filing pipeline in dev",
     runId: "RUN-20240315-0047",

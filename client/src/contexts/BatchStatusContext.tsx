@@ -33,14 +33,14 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "2": "Batch 2 — Normalization & Cross-LOB Taxonomy",
   "3": "Batch 3 — Tax Domain Authority & Tax Taxonomy",
   "4": "Batch 4 — AI Tax Mapping & Explainability",
-  "5": "Batch 5 — Practitioner View in Roger",
-  "6": "Batch 6 — Practitioner Review & Adjustment Workflow",
-  "7": "Batch 7 — Rollforward & Prior Year Intelligence",
-  "8": "Batch 8 — Return Assembly, Filing & Lineage Closure",
-  "9": "Batch 9 — Learning Governance & Model Evolution",
-  "10": "Batch 10 — Mapping Decisions & Governance",
-  "11": "Batch 11 — Practitioner Review & Adjustment Workflow",
-  "12": "Batch 12 — Return Assembly, Filing & Lineage Closure",
+  "5": "Batch 5 — Entity Identity & Structure",
+  "6": "Batch 6 — Practitioner Review, Adjustments & Lock",
+  "7": "Batch 7 — Client Tax Profile & Eligibility",
+  "8": "Batch 8 — Exceptions & Remediation",
+  "9": "Batch 9 — PDC IMS Integration & Prior Year Retrieval / TDC Rollforward & Prior Year Intelligence",
+  "10": "Batch 10 — Return Assembly, Filing & Lineage Closure",
+  "11": "Batch 11 — Learning Governance & Model Evolution",
+  "12": "Batch 12 — Migration Track (Parallel)",
 };
 
 // ── Default initial state ────────────────────────────────────────────────────

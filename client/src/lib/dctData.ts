@@ -396,11 +396,11 @@ export const allBatches: ArchitecturalBatch[] = [
     overview: "Practitioners can now do real work. Review tasks are generated automatically from data state. Adjustments move through a governed lifecycle. Tax-ready records are derived deterministically from mapping decisions and approved book-to-tax adjustments only. Sign-off is non-repudiable, and lock is terminal. Roger surfaces the full practitioner workflow — proposals, decisions, adjustments, derivation results, and finalization state — for the first time end to end.",
     whatMustBeTrue: "Batch 6 establishes a governed practitioner workflow where review tasks are generated automatically from data state and entity status is derived from task and adjustment activity. Adjustments move through a controlled, versioned lifecycle with rule-based approval, and all records are immutable once finalized. Tax-ready records are system-derived from accepted decisions and approved adjustments only. Finalization requires non-repudiable sign-off. Lock is terminal — mutation attempts are rejected and logged. Unlock transitions entity to AMENDED through a governed operation with recorded actor, reason, and timestamp.",
     stories: [
-      "Review Task Generation & Entity Status Derivation",
-      "Book-to-Tax Adjustment Lifecycle",
+      "Sign-Off, Lock & Entity Finalization",
       "Tax-Ready Record Derivation",
-      "Practitioner Sign-Off & Lock",
-      "Batch 6 Read Contract (Roger Read Surface)",
+      "Book-to-Tax Adjustments & Approval Routing",
+      "Batch 6 Read Contract Update (Roger Read Surface)",
+      "Review Task Management & Entity Status",
     ],
     outcomes: [
       "Review tasks generated automatically from data state — trackable by entity and reporting period",
@@ -491,7 +491,7 @@ export const allBatches: ArchitecturalBatch[] = [
   },
   {
     id: "AB-09",
-    name: "IMS Integration & Prior Year Retrieval / Rollforward & Prior Year Intelligence",
+    name: "PDC IMS Integration & Prior Year Retrieval / TDC Rollforward & Prior Year Intelligence",
     status: "PLANNED",
     touchpoints: ["T1", "T2", "T3", "T4", "T5"],
     primarySystem: "PDC + TDC + AI Orchestrator",
@@ -507,8 +507,10 @@ export const allBatches: ArchitecturalBatch[] = [
     overview: "PDC establishes a governed, contract-first integration with IMS to retrieve prior year tax decision data. TDC consumes normalized prior year decision data and generates rollforward proposals for the current tax year, enabling practitioners to review and validate carryforward mappings instead of starting from scratch.",
     whatMustBeTrue: "PDC (IMS Integration): PDC is the single inbound integration point — initiates all IMS retrievals (pull model). IMS returns prior year mapping decision data only (no TB, no return amounts). PDC enforces a strict inbound contract (OpenAPI, versioned). Invalid payloads are rejected with structured errors — never passed downstream. Valid payloads are routed to the Orchestrator for normalization. Only normalized, governed output is delivered to TDC — raw IMS payload is transient (never stored). Flow: IMS → PDC → Orchestrator → TDC. TDC (Rollforward): Prior year data is immutable, versioned, scoped by Entity + TaxYear + ReturnType. Rollforward proposals are new records (not copies), reference prior year decision (lineage required). SourceType = ROLLFORWARD vs ORCHESTRATOR. No prior year data = UNRESOLVED state (not error). Proposal generation is explicit (API triggered) and append-only (no overwrite).",
     stories: [
+      // PDC stories (2)
       "IMS Sync Mechanism & Schema Registry",
       "IMS Inbound Retrieval Contract",
+      // TDC stories (3)
       "Prior Year Reference Data",
       "Rollforward Proposals",
       "v_rollforward Read Contract",

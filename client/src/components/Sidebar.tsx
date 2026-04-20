@@ -32,11 +32,14 @@ const BATCH_ITEM_DEFS: { label: string; path: string; batchKey: BatchKey; demoLi
   { label: "Batch 2 — Normalization & Cross-LOB Taxonomy", path: "/batch/2",              batchKey: "2",  demoLink: "/weekly-demo?batch=2" },
   { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy",path: "/batch/3",              batchKey: "3",  demoLink: "/weekly-demo?batch=3" },
   { label: "Batch 4 — AI Tax Mapping & Explainability",    path: "/batch/4",              batchKey: "4",  demoLink: "/weekly-demo?batch=4" },
-  { label: "Batch 5 — Mapping Decisions & Governance",     path: "/batch/5",              batchKey: "5",  demoLink: "/weekly-demo?batch=5" },
-  { label: "Batch 6 — Practitioner Review & Adjustment Workflow", path: "/batch/6",       batchKey: "6",  demoLink: "/weekly-demo?batch=6" },
-  { label: "Batch 7 — Rollforward & Prior Year Intelligence", path: "/batch/7",           batchKey: "7",  demoLink: "/weekly-demo?batch=7" },
-  { label: "Batch 8 — Return Assembly, Filing & Lineage Closure", path: "/batch/8",       batchKey: "8",  demoLink: "/weekly-demo?batch=8" },
-  { label: "Batch 9 — Learning Governance & Model Evolution", path: "/batch/9",           batchKey: "9",  demoLink: "/weekly-demo?batch=9" },
+  { label: "Batch 5 — Entity Identity & Structure",          path: "/batch/5",              batchKey: "5",  demoLink: "/weekly-demo?batch=5" },
+  { label: "Batch 6 — Practitioner Review, Adjustments & Lock", path: "/batch/6",       batchKey: "6",  demoLink: "/weekly-demo?batch=6" },
+  { label: "Batch 7 — Client Tax Profile & Eligibility",       path: "/batch/7",           batchKey: "7",  demoLink: "/weekly-demo?batch=7" },
+  { label: "Batch 8 — Exceptions & Remediation",               path: "/batch/8",       batchKey: "8",  demoLink: "/weekly-demo?batch=8" },
+  { label: "Batch 9 — PDC IMS Integration / TDC Rollforward",  path: "/batch/9",           batchKey: "9",  demoLink: "/weekly-demo?batch=9" },
+  { label: "Batch 10 — Return Assembly, Filing & Lineage Closure", path: "/batch/10",    batchKey: "10", demoLink: "/weekly-demo?batch=10" },
+  { label: "Batch 11 — Learning Governance & Model Evolution",  path: "/batch/11",          batchKey: "11", demoLink: "/weekly-demo?batch=11" },
+  { label: "Batch 12 — Migration Track (Parallel)",            path: "/batch/12",          batchKey: "12" },
 ];
 
 const GATE_ITEMS: NavItem[] = [

@@ -12,11 +12,14 @@ const STATIC_BATCHES: { id: BatchKey; label: string }[] = [
   { id: "2", label: "Batch 2 — Normalization & Cross-LOB Taxonomy" },
   { id: "3", label: "Batch 3 — Tax Domain Authority & Tax Taxonomy" },
   { id: "4", label: "Batch 4 — AI Tax Mapping & Explainability" },
-  { id: "5", label: "Batch 5 — Mapping Decisions & Governance" },
-  { id: "6", label: "Batch 6 — Practitioner Review & Adjustment Workflow" },
-  { id: "7", label: "Batch 7 — Rollforward & Prior Year Intelligence" },
-  { id: "8", label: "Batch 8 — Return Assembly, Filing & Lineage Closure" },
-  { id: "9", label: "Batch 9 — Learning Governance & Model Evolution" },
+  { id: "5", label: "Batch 5 — Entity Identity & Structure" },
+  { id: "6", label: "Batch 6 — Practitioner Review, Adjustments & Lock" },
+  { id: "7", label: "Batch 7 — Client Tax Profile & Eligibility" },
+  { id: "8", label: "Batch 8 — Exceptions & Remediation" },
+  { id: "9", label: "Batch 9 — PDC IMS Integration / TDC Rollforward & Prior Year Intelligence" },
+  { id: "10", label: "Batch 10 — Return Assembly, Filing & Lineage Closure" },
+  { id: "11", label: "Batch 11 — Learning Governance & Model Evolution" },
+  { id: "12", label: "Batch 12 — Migration Track (Parallel)" },
 ];
 
 const GATES = [
