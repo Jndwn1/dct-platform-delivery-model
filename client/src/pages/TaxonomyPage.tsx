@@ -4,8 +4,110 @@
 // Adds: TaxonomyFamily grouping, MetadataAttributes, enhanced TaxRule engine,
 //       AdjustmentLink, MetadataRuleMapping, full lineage trace with metadata
 
-import { useState, useMemo } from "react";
-import { Search, Info, ChevronRight, ChevronDown, ChevronUp, GitBranch, Layers, AlertCircle } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, Info, ChevronRight, ChevronDown, ChevronUp, GitBranch, Layers, AlertCircle, Play, Square, RotateCcw, ArrowLeft, ArrowRight, Sparkles, BookOpen, Zap } from "lucide-react";
+
+// ─── DEMO SIMULATION TYPES & STEPS ──────────────────────────────────────────
+
+type DemoFocus = "lineage" | "firm" | "pdc" | "family" | "metadata" | "adjustment" | "rules" | "trace" | "roger" | "summary";
+
+interface DemoStep {
+  id: number;
+  title: string;
+  focus: DemoFocus;
+  callout: string;
+  detail: string;
+  takeaway: string;
+  autoSelect?: string;   // canonical account ID to auto-select
+  autoFamily?: string;   // family filter to apply
+  autoForm?: string;     // form filter to apply
+  autoTrace?: boolean;   // whether to force trace ON
+  autoMeta?: boolean;    // whether to open meta panel
+}
+
+const DEMO_STEPS: DemoStep[] = [
+  {
+    id: 1, title: "End-to-End Lineage Overview", focus: "lineage",
+    callout: "The full journey: from raw client data to governed tax output.",
+    detail: "PDC anchors canonical financial truth. The Metadata Layer adds contextual meaning — jurisdiction, basis type, adjustment type. TDC evaluates metadata-driven rules to determine the correct tax outcome. Roger reads the result only and never writes back to PDC or TDC.",
+    takeaway: "Every tax output is traceable back to a governed canonical account with full metadata context.",
+  },
+  {
+    id: 2, title: "Client Account & Firm Taxonomy", focus: "firm",
+    callout: "Raw client accounts are bridged into the governed structure through firm taxonomy.",
+    detail: "Client accounts vary by source system, naming convention, and chart of accounts. The Firm Taxonomy Bridge normalizes these raw account names to canonical IDs in PDC. This preserves full traceability while standardizing inputs for downstream tax logic. Metadata attributes are inherited from the canonical account's Family.",
+    takeaway: "Firm taxonomy is the entry point — it normalizes diversity without losing source traceability.",
+    autoSelect: "CA-5001",
+  },
+  {
+    id: 3, title: "Canonical Account in PDC", focus: "pdc",
+    callout: "Fixed Assets — Property & Equipment is the anchored financial meaning in PDC.",
+    detail: "The canonical account (CA-5001) is the stable, governed representation of financial meaning. It does not change when firm account names change. It belongs to the Fixed Assets Family, which groups related accounts and supports shared metadata inheritance. This is the base that all downstream tax logic depends on.",
+    takeaway: "PDC canonical accounts are the immutable financial truth — stable across all firm variations.",
+    autoSelect: "CA-5001",
+  },
+  {
+    id: 4, title: "Family Structure", focus: "family",
+    callout: "Families group related canonical accounts into reusable patterns.",
+    detail: "The Fixed Assets Family contains Fixed Assets (CA-5001), Accumulated Depreciation (CA-5002), and Depreciation Expense (CA-4002). Families support shared metadata inheritance — all members share Activity Type = Investment and Basis Type = Tax. This reduces duplication and enables rule logic to be applied at the family level, not just the individual account level.",
+    takeaway: "Families make the model scalable — shared behavior is defined once and inherited by all members.",
+    autoSelect: "CA-5001",
+    autoFamily: "FAM-FA",
+  },
+  {
+    id: 5, title: "Metadata Layer", focus: "metadata",
+    callout: "Metadata adds tax context to the canonical account without changing its financial meaning.",
+    detail: "CA-5001 carries: Jurisdiction = Federal, Entity Type = Partnership, Basis Type = Tax, Activity Type = Investment, Timing Classification = Current, Adjustment Type = Temporary. These attributes are not part of the account definition — they are contextual signals that the Tax Rule Engine uses to determine which rules apply and how to evaluate them.",
+    takeaway: "Metadata is the bridge between financial meaning and tax logic — it makes rules conditional, not static.",
+    autoSelect: "CA-5001",
+    autoFamily: "FAM-FA",
+    autoMeta: true,
+  },
+  {
+    id: 6, title: "Adjustment Linkage", focus: "adjustment",
+    callout: "Section 179 Immediate Expensing is linked directly to the taxonomy model.",
+    detail: "Adjustments are not standalone entries. ADJ-002 (Section 179, $125,000 deduction) references CA-5001 and is linked to tax rule TR-FA-001. It carries its own metadata context: Basis Type = Tax, Adjustment Type = Temporary, Activity Type = Investment. This means the adjustment flows through the same governed metadata-driven framework as the account itself — fully traceable and explainable.",
+    takeaway: "Adjustments are governed artifacts — they carry metadata, reference canonical accounts, and link to specific rules.",
+    autoSelect: "CA-5001",
+    autoFamily: "FAM-FA",
+    autoMeta: true,
+  },
+  {
+    id: 7, title: "Tax Rule Engine", focus: "rules",
+    callout: "TDC evaluates metadata conditions — this is a decision model, not a mapping table.",
+    detail: "Rule TR-FA-001 applies to CA-5001 when: Jurisdiction = Federal AND Basis Type = Tax AND Activity Type = Investment AND Adjustment Type = Temporary. Rule TR-FA-004 is a Derived rule that activates Form 4562 (MACRS depreciation schedule) when the same conditions are met. Multiple rules can exist per canonical account, governed by priority and weight.",
+    takeaway: "Rules are conditional — the same canonical account can produce different tax outcomes depending on metadata context.",
+    autoSelect: "CA-5001",
+    autoFamily: "FAM-FA",
+    autoForm: "Form 1065",
+    autoTrace: false,
+  },
+  {
+    id: 8, title: "Rule Evaluation & Explainability", focus: "trace",
+    callout: "The evaluation trace shows exactly which metadata conditions triggered each rule.",
+    detail: "For CA-4002 (Depreciation Expense), rule TR-FA-003 is triggered by: basisType = Tax, adjustmentType = Temporary, activityType = Operating. The outcome: rule type escalated from Direct → Adjustment-Based. Adjustment ADJ-001 (Book-to-Tax Depreciation, $42,500 deduction) is linked. Practitioner review is required before tax-ready derivation. Every decision is explainable and audit-friendly.",
+    takeaway: "Explainability is built in — every rule application can be traced back to the metadata conditions that triggered it.",
+    autoSelect: "CA-4002",
+    autoFamily: "FAM-FA",
+    autoForm: "Form 1065",
+    autoTrace: true,
+    autoMeta: true,
+  },
+  {
+    id: 9, title: "Tax Form Line & Roger Read Surface", focus: "roger",
+    callout: "The final tax output is derived from governed logic and surfaced read-only to Roger.",
+    detail: "CA-5001 maps to Form 1065 Line L20 (Depreciable Assets Gross). CA-4002 maps to Form 1065 Line L14a (Depreciation, Book vs Tax Adjustment) and Form 4562 Line L17 (MACRS Depreciation Deduction). Roger receives these outputs as read-only values. Practitioners can see the result and understand how it was produced — the full lineage from client account to tax line is preserved.",
+    takeaway: "Roger is the governed read surface — practitioners see explainable, traceable tax outputs, not black-box results.",
+    autoSelect: "CA-5001",
+    autoFamily: "FAM-FA",
+    autoForm: "Form 1065",
+    autoTrace: true,
+  },
+];
+
+// Demo scenario constants
+const DEMO_ACCOUNT_ID = "CA-5001";
+const DEMO_FAMILY_ID  = "FAM-FA";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -611,6 +713,176 @@ function RuleEvalTrace({ rule }: { rule: TaxRule }) {
   );
 }
 
+// ─── DEMO OVERLAY COMPONENTS ─────────────────────────────────────────────────
+
+function DemoCallout({ step, onNext, onBack, onRestart, isLast }: {
+  step: DemoStep;
+  onNext: () => void;
+  onBack: () => void;
+  onRestart: () => void;
+  isLast: boolean;
+}) {
+  return (
+    <div style={{
+      position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
+      width: "min(760px, calc(100vw - 48px))",
+      background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+      border: "1px solid #334155", borderRadius: "14px",
+      boxShadow: "0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
+      zIndex: 1000, overflow: "hidden",
+    }}>
+      {/* Progress bar */}
+      <div style={{ height: "3px", background: "#1e293b" }}>
+        <div style={{ height: "100%", width: `${(step.id / DEMO_STEPS.length) * 100}%`, background: "linear-gradient(90deg, #0ea5e9, #10b981)", transition: "width 0.4s ease" }} />
+      </div>
+      <div style={{ padding: "18px 22px" }}>
+        {/* Header row */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.1em", color: "#64748b", textTransform: "uppercase" }}>Step {step.id} of {DEMO_STEPS.length}</span>
+            <span style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>{step.title}</span>
+          </div>
+          <button onClick={onRestart} style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "10px", fontWeight: 600, color: "#64748b", background: "transparent", border: "1px solid #334155", borderRadius: "6px", padding: "3px 8px", cursor: "pointer" }}>
+            <RotateCcw style={{ width: "10px", height: "10px" }} /> Restart
+          </button>
+        </div>
+        {/* Callout */}
+        <div style={{ fontSize: "13px", fontWeight: 600, color: "#0ea5e9", marginBottom: "6px", display: "flex", alignItems: "flex-start", gap: "6px" }}>
+          <Sparkles style={{ width: "14px", height: "14px", flexShrink: 0, marginTop: "1px" }} />
+          {step.callout}
+        </div>
+        {/* Detail */}
+        <div style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.6, marginBottom: "10px" }}>{step.detail}</div>
+        {/* Takeaway */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "6px", padding: "8px 12px", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "8px", marginBottom: "12px" }}>
+          <Zap style={{ width: "12px", height: "12px", color: "#10b981", flexShrink: 0, marginTop: "1px" }} />
+          <span style={{ fontSize: "11px", fontWeight: 600, color: "#10b981" }}>{step.takeaway}</span>
+        </div>
+        {/* Navigation */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button
+            onClick={onBack}
+            disabled={step.id === 1}
+            style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600, color: step.id === 1 ? "#334155" : "#94a3b8", background: "transparent", border: "1px solid #334155", borderRadius: "8px", padding: "6px 14px", cursor: step.id === 1 ? "not-allowed" : "pointer" }}
+          >
+            <ArrowLeft style={{ width: "13px", height: "13px" }} /> Back
+          </button>
+          <div style={{ display: "flex", gap: "5px" }}>
+            {DEMO_STEPS.map(s => (
+              <div key={s.id} style={{ width: s.id === step.id ? "18px" : "6px", height: "6px", borderRadius: "3px", background: s.id < step.id ? "#10b981" : s.id === step.id ? "#0ea5e9" : "#334155", transition: "all 0.3s" }} />
+            ))}
+          </div>
+          {isLast ? (
+            <button onClick={onRestart} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #0ea5e9, #10b981)", border: "none", borderRadius: "8px", padding: "6px 16px", cursor: "pointer" }}>
+              <RotateCcw style={{ width: "13px", height: "13px" }} /> Restart Demo
+            </button>
+          ) : (
+            <button onClick={onNext} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #0ea5e9, #10b981)", border: "none", borderRadius: "8px", padding: "6px 16px", cursor: "pointer" }}>
+              Next — {DEMO_STEPS[step.id]?.title ?? "Finish"} <ArrowRight style={{ width: "13px", height: "13px" }} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DemoSummarySlide({ onRestart }: { onRestart: () => void }) {
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(15,23,42,0.92)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 1100, backdropFilter: "blur(4px)",
+    }}>
+      <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", border: "1px solid #334155", borderRadius: "20px", padding: "48px 56px", maxWidth: "640px", width: "90%", textAlign: "center", boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
+        <div style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "0.12em", color: "#0ea5e9", textTransform: "uppercase", marginBottom: "16px" }}>Demo Complete</div>
+        <h2 style={{ fontSize: "22px", fontWeight: 800, color: "white", margin: "0 0 20px", lineHeight: 1.3 }}>Metadata-Driven Taxonomy: From Financial Meaning to Tax Outcome</h2>
+        <div style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.8, marginBottom: "28px", padding: "16px 20px", background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "10px" }}>
+          The model now <strong style={{ color: "#0ea5e9" }}>preserves financial meaning in PDC</strong>, adds context through <strong style={{ color: "#f59e0b" }}>metadata</strong>, evaluates tax logic in <strong style={{ color: "#10b981" }}>TDC</strong>, and provides an <strong style={{ color: "#ef4444" }}>explainable read surface to Roger</strong>.
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "28px", textAlign: "left" }}>
+          {[
+            { label: "Canonical Accounts", value: "9 accounts across 6 families", color: "#0ea5e9" },
+            { label: "Metadata Attributes", value: "7 per account (jurisdiction, basis, type…)", color: "#f59e0b" },
+            { label: "Tax Rules", value: "13 rules — Direct, Derived, Adjustment-Based", color: "#10b981" },
+            { label: "Adjustments Linked", value: "3 adjustments with full metadata context", color: "#ef4444" },
+          ].map(item => (
+            <div key={item.label} style={{ padding: "10px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid #334155", borderRadius: "8px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: item.color, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>{item.label}</div>
+              <div style={{ fontSize: "12px", color: "#cbd5e1" }}>{item.value}</div>
+            </div>
+          ))}
+        </div>
+        <button onClick={onRestart} style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #0ea5e9, #10b981)", border: "none", borderRadius: "10px", padding: "10px 24px", cursor: "pointer" }}>
+          <RotateCcw style={{ width: "14px", height: "14px" }} /> Restart Demo
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ExplainResultPanel({ canonicalId }: { canonicalId: string }) {
+  const account = PDC_ACCOUNTS.find(a => a.id === canonicalId);
+  const family  = TAXONOMY_FAMILIES.find(f => f.id === account?.familyId);
+  const adjs    = ADJUSTMENT_LINKS.filter(a => a.canonicalId === canonicalId);
+  const rules   = TDC_RULES.filter(r => r.canonicalId === canonicalId);
+  if (!account) return null;
+  return (
+    <div style={{ background: "white", border: "2px solid #0ea5e9", borderRadius: "10px", padding: "16px 18px", marginBottom: "16px" }}>
+      <div style={{ fontSize: "11px", fontWeight: 800, color: "#0ea5e9", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+        <BookOpen style={{ width: "13px", height: "13px" }} /> Explain This Result — {canonicalId}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", fontSize: "12px" }}>
+        <div>
+          <div style={{ fontWeight: 700, color: "#64748b", fontSize: "10px", textTransform: "uppercase", marginBottom: "4px" }}>Canonical Account</div>
+          <div style={{ color: "#0f172a", fontWeight: 600 }}>{account.name}</div>
+          <div style={{ color: "#64748b", fontSize: "11px" }}>{account.id} · {account.cls}</div>
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, color: "#64748b", fontSize: "10px", textTransform: "uppercase", marginBottom: "4px" }}>Family</div>
+          {family && <FamilyBadge family={family} />}
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, color: "#64748b", fontSize: "10px", textTransform: "uppercase", marginBottom: "4px" }}>Metadata Used</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "3px" }}>
+            {(Object.entries(account.metadata) as [string, string][]).filter(([, v]) => v).map(([k, v]) => <MetaBadge key={k} field={k} value={v} />)}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, color: "#64748b", fontSize: "10px", textTransform: "uppercase", marginBottom: "4px" }}>Adjustments</div>
+          {adjs.length === 0 ? <span style={{ color: "#94a3b8", fontSize: "11px" }}>None</span> : adjs.map(a => <div key={a.id} style={{ color: "#dc2626", fontWeight: 600, fontSize: "11px" }}>{a.label}</div>)}
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, color: "#64748b", fontSize: "10px", textTransform: "uppercase", marginBottom: "4px" }}>Rules Applied</div>
+          {rules.map(r => <div key={r.id} style={{ fontSize: "11px", color: "#166534", fontWeight: 600 }}>{r.id} → {r.lineLabel} ({r.taxForm})</div>)}
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, color: "#64748b", fontSize: "10px", textTransform: "uppercase", marginBottom: "4px" }}>Tax Lines Produced</div>
+          {rules.map(r => <div key={r.id} style={{ fontSize: "11px", color: "#6366f1", fontWeight: 600 }}>{r.taxForm} {r.lineNum} — {r.lineLabel}</div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WhatChangedPanel() {
+  return (
+    <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "16px 18px", marginBottom: "16px" }}>
+      <div style={{ fontSize: "11px", fontWeight: 800, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>What Changed? Direct Mapping → Metadata-Driven Decision Model</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div style={{ padding: "12px 14px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#dc2626", marginBottom: "8px" }}>Before — Direct Mapping Model</div>
+          {["Canonical Account → Tax Line (1:1)","No metadata context","Static, hardcoded mappings","No adjustment linkage","No rule explainability","Cannot support multiple entity types"].map(t => <div key={t} style={{ fontSize: "11px", color: "#64748b", marginBottom: "3px", display: "flex", alignItems: "flex-start", gap: "5px" }}><span style={{ color: "#dc2626", fontWeight: 700 }}>✕</span>{t}</div>)}
+        </div>
+        <div style={{ padding: "12px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#166534", marginBottom: "8px" }}>After — Metadata-Driven Decision Model</div>
+          {["Account + Metadata → Conditional Rule Evaluation","7 metadata attributes per account","Rules evaluate conditions dynamically","Adjustments linked to taxonomy","Full evaluation trace per rule","Supports Federal/State, multiple entity types"].map(t => <div key={t} style={{ fontSize: "11px", color: "#166534", marginBottom: "3px", display: "flex", alignItems: "flex-start", gap: "5px" }}><span style={{ fontWeight: 700 }}>✓</span>{t}</div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 export default function TaxonomyPage() {
@@ -620,6 +892,85 @@ export default function TaxonomyPage() {
   const [familyFilter, setFamilyFilter]     = useState<string>("All");
   const [showMetaPanel, setShowMetaPanel]   = useState(true);
   const [showRuleTrace, setShowRuleTrace]   = useState(true);
+
+  // Demo simulation state
+  const [demoMode, setDemoMode]             = useState(false);
+  const [demoStep, setDemoStep]             = useState(0);   // 0-indexed
+  const [showSummary, setShowSummary]       = useState(false);
+  const [showExplain, setShowExplain]       = useState(false);
+  const [showWhatChanged, setShowWhatChanged] = useState(false);
+
+  const currentStep = DEMO_STEPS[demoStep];
+
+  // Apply demo step side-effects
+  useEffect(() => {
+    if (!demoMode || !currentStep) return;
+    if (currentStep.autoSelect !== undefined) setSelectedId(currentStep.autoSelect);
+    if (currentStep.autoFamily !== undefined) setFamilyFilter(currentStep.autoFamily);
+    else if (demoStep === 0) setFamilyFilter("All");
+    if (currentStep.autoForm !== undefined) setFormFilter(currentStep.autoForm as any);
+    else if (demoStep <= 1) setFormFilter("All");
+    if (currentStep.autoTrace !== undefined) setShowRuleTrace(currentStep.autoTrace);
+    if (currentStep.autoMeta !== undefined) setShowMetaPanel(currentStep.autoMeta);
+  }, [demoMode, demoStep]);
+
+  function startDemo() {
+    setDemoMode(true);
+    setDemoStep(0);
+    setShowSummary(false);
+    setShowExplain(false);
+    setShowWhatChanged(false);
+    setSelectedId(null);
+    setFamilyFilter("All");
+    setFormFilter("All");
+    setShowRuleTrace(false);
+    setShowMetaPanel(false);
+  }
+
+  function stopDemo() {
+    setDemoMode(false);
+    setShowSummary(false);
+  }
+
+  function nextStep() {
+    if (demoStep < DEMO_STEPS.length - 1) {
+      setDemoStep(s => s + 1);
+    } else {
+      setShowSummary(true);
+    }
+  }
+
+  function prevStep() {
+    if (demoStep > 0) setDemoStep(s => s - 1);
+  }
+
+  function restartDemo() {
+    setShowSummary(false);
+    startDemo();
+  }
+
+  // Dim non-focused sections in demo mode
+  const dimStyle = (focus: DemoFocus): React.CSSProperties => {
+    if (!demoMode) return {};
+    const active = currentStep?.focus;
+    const alwaysVisible: DemoFocus[] = ["summary"];
+    if (alwaysVisible.includes(active)) return {};
+    const focusMap: Record<DemoFocus, DemoFocus[]> = {
+      lineage:    ["lineage"],
+      firm:       ["firm"],
+      pdc:        ["pdc"],
+      family:     ["pdc", "family"],
+      metadata:   ["pdc", "metadata"],
+      adjustment: ["pdc", "metadata", "adjustment"],
+      rules:      ["rules"],
+      trace:      ["pdc", "metadata", "rules", "trace"],
+      roger:      ["rules", "roger"],
+      summary:    ["lineage", "firm", "pdc", "family", "metadata", "adjustment", "rules", "trace", "roger"],
+    };
+    const visibleFocuses = focusMap[active] ?? [];
+    const isDimmed = !visibleFocuses.includes(focus);
+    return isDimmed ? { opacity: 0.25, pointerEvents: "none", transition: "opacity 0.4s" } : { transition: "opacity 0.4s", outline: "2px solid #0ea5e9", outlineOffset: "2px", borderRadius: "10px" };
+  };
 
   const selectedAccount = PDC_ACCOUNTS.find(a => a.id === selectedId);
 
@@ -658,7 +1009,21 @@ export default function TaxonomyPage() {
   const TD: React.CSSProperties = { padding: "8px 10px" };
 
   return (
-    <div style={{ padding: "24px 28px", backgroundColor: "#f8fafc", minHeight: "100%" }}>
+    <div style={{ padding: "24px 28px", backgroundColor: "#f8fafc", minHeight: "100%", paddingBottom: demoMode ? "200px" : "24px" }}>
+
+      {/* Demo Summary Slide */}
+      {showSummary && <DemoSummarySlide onRestart={restartDemo} />}
+
+      {/* Demo Callout */}
+      {demoMode && !showSummary && (
+        <DemoCallout
+          step={currentStep}
+          onNext={nextStep}
+          onBack={prevStep}
+          onRestart={restartDemo}
+          isLast={demoStep === DEMO_STEPS.length - 1}
+        />
+      )}
 
       {/* Page header */}
       <div style={{ marginBottom: "6px" }}>
@@ -674,22 +1039,73 @@ export default function TaxonomyPage() {
         </p>
       </div>
 
-      <LineageChain />
+      {/* Demo mode toggle + supporting panels */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
+        <button
+          onClick={demoMode ? stopDemo : startDemo}
+          style={{
+            display: "flex", alignItems: "center", gap: "7px",
+            fontSize: "12px", fontWeight: 700,
+            padding: "7px 16px", borderRadius: "10px", border: "none", cursor: "pointer",
+            background: demoMode ? "#ef4444" : "linear-gradient(135deg, #0ea5e9, #10b981)",
+            color: "white", boxShadow: demoMode ? "none" : "0 2px 12px rgba(14,165,233,0.35)",
+            transition: "all 0.2s",
+          }}
+        >
+          {demoMode ? <Square style={{ width: "13px", height: "13px" }} /> : <Play style={{ width: "13px", height: "13px" }} />}
+          {demoMode ? "Stop Demo" : "▶ Demo Simulation"}
+        </button>
+        {!demoMode && (
+          <>
+            <button
+              onClick={() => setShowExplain(p => !p)}
+              style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 600, padding: "6px 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: showExplain ? "#eff6ff" : "white", color: showExplain ? "#1d4ed8" : "#475569", cursor: "pointer" }}
+            >
+              <BookOpen style={{ width: "12px", height: "12px" }} />
+              Explain This Result
+            </button>
+            <button
+              onClick={() => setShowWhatChanged(p => !p)}
+              style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 600, padding: "6px 12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: showWhatChanged ? "#f0fdf4" : "white", color: showWhatChanged ? "#166534" : "#475569", cursor: "pointer" }}
+            >
+              <Zap style={{ width: "12px", height: "12px" }} />
+              What Changed?
+            </button>
+          </>
+        )}
+        {demoMode && (
+          <span style={{ fontSize: "11px", color: "#64748b" }}>
+            Step {currentStep.id} of {DEMO_STEPS.length} — <strong style={{ color: "#0f172a" }}>{currentStep.title}</strong>
+          </span>
+        )}
+      </div>
+
+      {/* Explain This Result panel */}
+      {showExplain && !demoMode && (
+        <ExplainResultPanel canonicalId={selectedId ?? DEMO_ACCOUNT_ID} />
+      )}
+
+      {/* What Changed panel */}
+      {showWhatChanged && !demoMode && <WhatChangedPanel />}
+
+      <div style={dimStyle("lineage")}>
+        <LineageChain />
+      </div>
 
       {/* Instruction hint */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#0ea5e9", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "8px 14px", marginBottom: "16px" }}>
+      {!demoMode && <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#0ea5e9", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "8px 14px", marginBottom: "16px" }}>
         <Info style={{ width: "14px", height: "14px", flexShrink: 0 }} />
         <span>
           <strong>Click any row</strong> in the PDC Canonical Accounts table to highlight linked firm accounts, metadata layer, and tax rules across all panels.
           The <strong>Fixed Assets Family</strong> demonstrates the full metadata-driven model with adjustment linkage.
         </span>
-      </div>
+      </div>}
 
       {/* 3-panel grid */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", alignItems: "start" }}>
 
         {/* ── PANEL 1: PDC Canonical Accounts ── */}
-        <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden" }}>
+        <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", ...dimStyle("pdc") }}>
           <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #f1f5f9" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
               <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a" }}>PDC — Canonical Accounts</span>
@@ -795,7 +1211,7 @@ export default function TaxonomyPage() {
         </div>
 
         {/* ── PANEL 2: Firm Taxonomy Bridge ── */}
-        <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden" }}>
+        <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", ...dimStyle("firm") }}>
           <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #f1f5f9" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
               <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a" }}>Firm Taxonomy Bridge</span>
@@ -849,7 +1265,7 @@ export default function TaxonomyPage() {
         </div>
 
         {/* ── PANEL 3: TDC Tax Taxonomy ── */}
-        <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden" }}>
+        <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", ...dimStyle("rules") }}>
           <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #f1f5f9" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
               <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a" }}>TDC — Tax Rule Engine</span>
