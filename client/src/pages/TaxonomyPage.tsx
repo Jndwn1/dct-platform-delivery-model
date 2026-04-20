@@ -4,7 +4,7 @@
 // Adds: TaxonomyFamily grouping, MetadataAttributes, enhanced TaxRule engine,
 //       AdjustmentLink, MetadataRuleMapping, full lineage trace with metadata
 
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Search, Info, ChevronRight, ChevronDown, ChevronUp, GitBranch, Layers, AlertCircle, Play, Square, RotateCcw, ArrowLeft, ArrowRight, Sparkles, BookOpen, Zap } from "lucide-react";
 
 // ─── DEMO SIMULATION TYPES & STEPS ──────────────────────────────────────────
@@ -1314,8 +1314,8 @@ export default function TaxonomyPage() {
                   const isHighlighted = highlightedTdc ? highlightedTdc.has(r.id) : false;
                   const ruleStyle = RULE_TYPE_COLORS[r.ruleType] ?? RULE_TYPE_COLORS["Direct"];
                   return (
-                    <>
-                      <tr key={r.id} style={{ backgroundColor: rowBg(isHighlighted, isHighlighted), transition: "background-color 0.15s" }}>
+                    <React.Fragment key={r.id}>
+                      <tr style={{ backgroundColor: rowBg(isHighlighted, isHighlighted), transition: "background-color 0.15s" }}>
                         <td style={{ ...TD, fontWeight: 700, color: "#64748b", fontSize: "10px", whiteSpace: "nowrap" }}>{r.id}</td>
                         <td style={{ ...TD, fontWeight: 600, color: "#166534", whiteSpace: "nowrap" }}>{r.taxForm}</td>
                         <td style={{ ...TD, fontWeight: 700, color: "#0f172a" }}>{r.lineNum}</td>
@@ -1336,13 +1336,13 @@ export default function TaxonomyPage() {
                         <td style={{ ...TD, color: "#94a3b8", fontSize: "10px" }}>{r.version}</td>
                       </tr>
                       {isHighlighted && showRuleTrace && (
-                        <tr key={`${r.id}-trace`}>
+                        <tr>
                           <td colSpan={10} style={{ padding: "0 12px 8px" }}>
                             <RuleEvalTrace rule={r} />
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
