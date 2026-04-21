@@ -331,6 +331,116 @@ function Step3Content() {
 function Step4Content() {
   return (
     <div className="space-y-5">
+
+      {/* ── Box 1: What is Classification? ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-blue-950/70 border-2 border-blue-500/40 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">📘</span>
+            <div className="text-blue-200 font-black text-sm uppercase tracking-wide">What is Classification?</div>
+          </div>
+          <p className="text-slate-200 text-sm leading-relaxed mb-4">
+            Classification is the process of assigning a financial record to a standardized category in the firm taxonomy.
+          </p>
+          <div className="grid grid-cols-1 gap-3">
+            {/* Input */}
+            <div className="bg-slate-900/70 border border-slate-600/40 rounded-lg p-3">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Input Record</div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500 text-xs w-28 shrink-0">Account Name</span>
+                  <span className="text-slate-200 text-xs font-semibold">Operating Bank Account</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500 text-xs w-28 shrink-0">Amount</span>
+                  <span className="text-slate-200 text-xs font-semibold">$500,000</span>
+                </div>
+              </div>
+            </div>
+            {/* Arrow */}
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-0.5 flex-1 bg-blue-500/30" />
+              <span className="text-blue-400 text-xs font-bold">▼ Classification Applied</span>
+              <div className="h-0.5 flex-1 bg-blue-500/30" />
+            </div>
+            {/* Output */}
+            <div className="bg-emerald-900/40 border border-emerald-500/30 rounded-lg p-3">
+              <div className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-2">Classification Output</div>
+              <div className="space-y-1.5">
+                {[
+                  { label: "FirmTaxonomyId",    value: "CASH_001",                              color: "text-emerald-300" },
+                  { label: "Canonical Account", value: "Cash",                                  color: "text-emerald-200" },
+                  { label: "Hierarchy",         value: "Assets → Current Assets → Cash",        color: "text-emerald-200" },
+                  { label: "Status",            value: "CLASSIFIED",                            color: "text-emerald-400" },
+                ].map((r) => (
+                  <div key={r.label} className="flex items-start gap-2">
+                    <span className="text-slate-500 text-xs w-32 shrink-0">{r.label}</span>
+                    <span className={`text-xs font-semibold ${r.color}`}>{r.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <p className="text-slate-400 text-xs mt-3 italic">
+            This is what gives the data consistent meaning before it is used downstream.
+          </p>
+        </div>
+
+        {/* ── Box 2: Override Decision with Example ── */}
+        <div className="bg-amber-950/70 border-2 border-amber-500/40 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">⚠</span>
+            <div className="text-amber-200 font-black text-sm uppercase tracking-wide">Override Decision — When Would This Be Needed?</div>
+          </div>
+          <p className="text-slate-200 text-sm leading-relaxed mb-4">
+            Overrides allow controlled exceptions when taxonomy rules do not fully resolve a valid classification.
+          </p>
+          {/* Scenario */}
+          <div className="bg-slate-900/70 border border-slate-600/40 rounded-lg p-3 mb-3">
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Example Scenario</div>
+            <div className="space-y-1.5 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500 text-xs w-36 shrink-0">Source Account</span>
+                <span className="text-slate-200 text-xs font-semibold">"Owner Distribution"</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500 text-xs w-36 shrink-0">System Classification</span>
+                <span className="text-red-300 text-xs font-semibold">Expense (EXPENSE_XXX)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500 text-xs w-36 shrink-0">Expected Classification</span>
+                <span className="text-emerald-300 text-xs font-semibold">Equity Distribution (EQUITY_DIST_XXX)</span>
+              </div>
+            </div>
+            <div className="bg-amber-900/30 border border-amber-500/30 rounded px-3 py-2">
+              <div className="text-xs font-bold text-amber-400 mb-1">Override Action</div>
+              <div className="text-xs text-amber-100/80">Override FirmTaxonomyId from <span className="font-mono text-red-300">EXPENSE_XXX</span> → <span className="font-mono text-emerald-300">EQUITY_DIST_XXX</span></div>
+            </div>
+          </div>
+          {/* Governance requirements */}
+          <div className="bg-slate-900/60 border border-slate-600/30 rounded-lg p-3">
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">If Overrides Are Allowed, They Must:</div>
+            <div className="space-y-1.5">
+              {[
+                "Preserve original classification",
+                "Capture updated classification",
+                "Record reason for change",
+                "Capture approver and timestamp",
+              ].map((req, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-amber-400 text-xs shrink-0">›</span>
+                  <span className="text-slate-300 text-xs">{req}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <p className="text-amber-300/80 text-xs mt-3 font-semibold italic">
+            Overrides are not the default — they are a governed exception path.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Existing taxonomy content below ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Canonical Accounts + Firm Taxonomy Bridge */}
         <div className="bg-slate-800/80 border border-slate-600/40 rounded-xl p-4">
@@ -399,6 +509,7 @@ function Step4Content() {
         "This is the source of classification — a metadata-driven taxonomy model.",
         "Classification maps raw financial data to canonical accounts using FirmTaxonomyId.",
         "All classification logic is defined here — not in PDC.",
+        "Classification is applied by the Orchestrator using taxonomy rules, and then stored in PDC as FirmTaxonomyId.",
       ]} />
     </div>
   );
