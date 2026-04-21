@@ -28,7 +28,8 @@ import WeeklyDemo from "./pages/WeeklyDemo";
 import BatchControlPanel from "./pages/BatchControlPanel";
 import TaxonomyPage from "./pages/TaxonomyPage";
 import DataModelPage from "./pages/DataModelPage";
-import GovernanceTimelinePage from "./pages/GovernanceTimelinePage";
+import GovernanceTimelinePage from "@/pages/GovernanceTimelinePage";
+import ClassificationWalkthroughPage from "@/pages/ClassificationWalkthroughPage";
 import TaxMappingPage from "./pages/TaxMappingPage";
 import AAPReviewPage from "./pages/AAPReviewPage";
 import RogerMappingPage from "./pages/RogerMappingPage";
@@ -96,6 +97,7 @@ function Router() {
         <Route path="/aap-review" component={AAPReviewPage} />
         <Route path="/tax-mapping" component={TaxMappingPage} />
         <Route path="/governance-timeline" component={GovernanceTimelinePage} />
+        <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
         <Route path="/pi2" component={BatchRoadmap} />
         <Route path="/pi3" component={BatchRoadmap} />
 

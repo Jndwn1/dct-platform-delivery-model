@@ -62,6 +62,7 @@ const TOOL_ITEMS: NavItem[] = [
   { label: "Control Panel", path: "/control-panel", icon: "⚙", badge: "Admin", badgeColor: "#6366f1" },
   { label: "DCT BatchFlow", path: "/batchflow", icon: "⚡", badge: "New", badgeColor: "#059669" },
   { label: "Taxonomy Explorer", path: "/taxonomy", icon: "◎", badge: "New", badgeColor: "#059669" },
+  { label: "Classification Walkthrough", path: "/classification-walkthrough", icon: "⚑", badge: "Decision", badgeColor: "#dc2626" },
   { label: "Data Model & Gaps", path: "/data-model", icon: "▦", badge: "Exec", badgeColor: "#7c3aed" },
   { label: "Roger UI Data Mapping", path: "/roger-mapping", icon: "≡", badge: "New", badgeColor: "#059669" },
   { label: "Run Agent Simulation", path: "/demo", icon: "▶", badge: "Live", badgeColor: "#dc2626" },
