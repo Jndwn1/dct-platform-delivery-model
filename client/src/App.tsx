@@ -25,6 +25,7 @@ import RuntimeJourney from "./pages/RuntimeJourney";
 import BatchControlPanel from "./pages/BatchControlPanel";
 import TaxonomyPage from "./pages/TaxonomyPage";
 import DataModelPage from "./pages/DataModelPage";
+import DataGovernancePage from "./pages/DataGovernancePage";
 import GovernanceTimelinePage from "@/pages/GovernanceTimelinePage";
 import ClassificationWalkthroughPage from "@/pages/ClassificationWalkthroughPage";
 import TaxMappingPage from "./pages/TaxMappingPage";
@@ -86,6 +87,7 @@ function Router() {
         {/* Tool pages */}
         <Route path="/taxonomy" component={TaxonomyPage} />
         <Route path="/data-model" component={DataModelPage} />
+        <Route path="/data-governance" component={DataGovernancePage} />
         <Route path="/roger-mapping" component={RogerMappingPage} />
         <Route path="/aap-review" component={AAPReviewPage} />
         <Route path="/tax-mapping" component={TaxMappingPage} />

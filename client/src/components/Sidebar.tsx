@@ -71,6 +71,7 @@ const TOOL_ITEMS: NavItem[] = [
 // Governance — alphabetical
 const GOVERNANCE_ITEMS: NavItem[] = [
   { label: "AAP Review Model",       path: "/aap-review",          icon: "◈" },
+  { label: "Data Governance & SoT",  path: "/data-governance",     icon: "⚖", badge: "New", badgeColor: "#059669" },
   { label: "Data Lineage",           path: "/lineage",             icon: "⌥" },
   { label: "Governance Timeline",    path: "/governance-timeline", icon: "▤" },
   { label: "Roger API Evolution",    path: "/roger-api",           icon: "⚡" },
