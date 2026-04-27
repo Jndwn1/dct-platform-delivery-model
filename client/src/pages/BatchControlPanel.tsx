@@ -102,12 +102,12 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
     key: "3",
     label: "Batch 3 — Tax Domain Authority & Tax Taxonomy",
     owner: "TDC",
-    status: "Delivered",
+    status: "In Progress",
     delivered: ["TaxFormTemplates and FormLines", "TaxTaxonomyAccounts and MappingRules", "ConfidenceBandThresholds (GREEN/YELLOW/RED)", "TDC Reference Data Read Contract (Orchestrator-facing)"],
     validated: ["TaxFormTemplates queryable by Jurisdiction", "MappingRules versioned and available", "ConfidenceBandThresholds configured"],
     open: ["Domain Governance Note 3b: Tax calculation reference data must be governed tables, not hard-coded"],
     readiness: "API-ready · Demo-ready",
-    poNote: "Batch 3 delivered. TDC is established as the tax domain authority. Tax forms, return templates, taxonomy, and mapping rules are loaded, versioned, and governed. Orchestrator has everything needed to generate proposals.",
+    poNote: "Batch 3 is in progress. TDC is established as the tax domain authority. Tax forms, return templates, taxonomy, and mapping rules are loaded, versioned, and governed. Domain Governance Note 3b (tax calculation reference data must be governed tables, not hard-coded) remains an open item. Orchestrator has everything needed to generate proposals.",
   },
   {
     key: "4",
@@ -298,7 +298,7 @@ export default function BatchControlPanel() {
 
   // Build PO Status Summary
   const deliveredBatches = DELIVERED_BATCHES.filter(b => b.status === "Delivered").map(b => b.label);
-  const inProgressBatches = DELIVERED_BATCHES.filter(b => b.status === "In Progress").map(b => b.label);
+  const inProgressBatches = DELIVERED_BATCHES.filter(b => b.status === "In Progress" || b.status === "Carried Forward" || b.status === "Backlogged").map(b => b.label);
   const apisDelivered = SWAGGER_ENTRIES.filter(e => e.status === "Delivered").length;
   const apisMissing = SWAGGER_ENTRIES.filter(e => e.status === "Missing" || e.missingFromSwagger).length;
   const rogerAvailable = ROGER_DATA_POINTS.filter(d => d.availability === "Available").length;
@@ -557,7 +557,7 @@ RECOMMENDED NEXT ACTION:
                     <td className="px-4 py-2.5 text-center">
                       {e.missingFromSwagger ? <span className="text-red-600 font-bold">Yes</span> : <span className="text-emerald-600">No</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-slate-600 max-w-xs">{e.notes}</td>
+                    <td className="px-4 py-2.5 text-slate-600" style={{minWidth: '220px', maxWidth: '320px', whiteSpace: 'normal', wordBreak: 'break-word'}}>{e.notes}</td>
                   </tr>
                 );
               })}
@@ -594,7 +594,7 @@ RECOMMENDED NEXT ACTION:
                       <Badge label={d.availability} bg={rStyle.bg} text={rStyle.text} />
                     </td>
                     <td className="px-4 py-2.5 font-mono text-slate-500 whitespace-nowrap">{d.apiEndpoint}</td>
-                    <td className="px-4 py-2.5 text-slate-600 max-w-xs">{d.notes}</td>
+                    <td className="px-4 py-2.5 text-slate-600" style={{minWidth: '240px', maxWidth: '360px', whiteSpace: 'normal', wordBreak: 'break-word'}}>{d.notes}</td>
                     <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">{d.owner}</td>
                   </tr>
                 );
