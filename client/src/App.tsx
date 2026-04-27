@@ -16,6 +16,8 @@ import TouchpointsPage from "./pages/TouchpointsPage";
 import ArtifactsPage from "./pages/ArtifactsPage";
 import AgentHub from "./pages/AgentHub";
 import ArchitectureView from "./pages/ArchitectureView";
+import DeveloperArchitecturePage from "./pages/DeveloperArchitecturePage";
+import EnterpriseArchitecturePage from "./pages/EnterpriseArchitecturePage";
 import DemoRunner from "./pages/DemoRunner";
 import LineageExplorer from "./pages/LineageExplorer";
 
@@ -63,8 +65,8 @@ function Router() {
         <Route path="/artifacts" component={ArtifactsPage} />
         <Route path="/agent-hub" component={AgentHub} />
         <Route path="/architecture" component={ArchitectureView} />
-        <Route path="/architecture/enterprise" component={ArchitectureView} />
-        <Route path="/architecture/developer" component={ArchitectureView} />
+        <Route path="/architecture/developer" component={DeveloperArchitecturePage} />
+        <Route path="/architecture/enterprise" component={EnterpriseArchitecturePage} />
         <Route path="/architecture/sync" component={ArchitectureView} />
         <Route path="/architecture/visio" component={ArchitectureView} />
         <Route path="/demo" component={DemoRunner} />

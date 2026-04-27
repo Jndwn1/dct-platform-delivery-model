@@ -29,20 +29,49 @@ const TOUCHPOINTS = [
     invariants: ["Orchestrator is invoked exactly once per file", "Status PROCESSING is irreversible", "Orchestrator is stateless — no direct DB access"],
   },
   {
-    id: "T4", label: "AI Agent Pipeline Execution", system: "AI Orchestrator", batch: "Batch 2",
+    id: "T4", label: "AI Agent Pipeline Execution", system: "AI Orchestrator", batch: "Batch 2 / 2A",
     layer: "Orchestration", layerColor: "#2563eb",
-    desc: "The orchestrator runs a staged agent chain: File Recognizer → File Normalizer → Cross-LOB Mapper → Tax Mapper. Agents are stateless and do not persist data directly. All persistence occurs through PDC and TDC APIs.",
-    inputs: ["DocumentId + file metadata", "Raw financial file content"],
-    outputs: ["Normalized FinancialFact records (via PDC API)", "Cross-LOB taxonomy mappings (via PDC API)", "Tax mapping proposals (via TDC API)"],
-    invariants: ["Agents are stateless — no direct DB writes", "All persistence via PDC/TDC APIs only", "Agent chain is sequential and deterministic"],
+    desc: "The orchestrator runs a staged agent chain: File Recognizer → File Normalizer → Cross-LOB Mapper (Agent 3) → Tax Mapper. Agent 3 calls the Taxonomy Service to resolve FirmTaxonomyId for each normalized record before persisting to PDC. FirmTaxonomyId is REQUIRED on every FinancialFact record per Batch 2A. Agents are stateless and do not persist data directly.",
+    inputs: ["DocumentId + file metadata", "Raw financial file content", "Taxonomy Service API (Agent 3 — Batch 2A)"],
+    outputs: [
+      "Normalized FinancialFact records (via PDC API)",
+      "FirmTaxonomyId (GUID) per record — from Taxonomy Service · REQUIRED per Batch 2A",
+      "ClassificationStatus per record (CLASSIFIED | UNCLASSIFIED | OVERRIDE) — Batch 2A",
+      "Cross-LOB taxonomy mappings (via PDC API)",
+      "Tax mapping proposals (via TDC API)",
+    ],
+    invariants: [
+      "Agents are stateless — no direct DB writes",
+      "All persistence via PDC/TDC APIs only",
+      "Agent chain is sequential and deterministic",
+      "⚠ Batch 2A Gap: Agent 3 not yet returning FirmTaxonomyId — blocking READY signal",
+      "PDC rejects records with ClassificationStatus = UNCLASSIFIED after Batch 2A",
+    ],
   },
   {
-    id: "T5", label: "Canonical Dataset Persistence", system: "PDC", batch: "Batch 2",
+    id: "T5", label: "Canonical Dataset Persistence", system: "PDC", batch: "Batch 2 / 2A",
     layer: "PDC", layerColor: "#059669",
-    desc: "Orchestrator writes normalized FinancialFact records and Cross-LOB taxonomy mappings to PDC. PDC assigns RunId (GUID) and SourceRecordId (GUID), confirms READY state (enum), and becomes the authoritative cross-LOB data system of record.",
-    inputs: ["Normalized FinancialFact records from AI Orchestrator", "Cross-LOB taxonomy mappings"],
-    outputs: ["RunId (GUID)", "SourceRecordId (GUID) per record", "IngestionJob status → READY", "PDC becomes system of record"],
-    invariants: ["FinancialFact records are immutable once persisted", "SourceRecordId is globally unique", "READY status is terminal — no further updates to source records"],
+    desc: "Orchestrator writes normalized FinancialFact records to PDC via POST /api/pdc/records/canonical. Each record MUST include FirmTaxonomyId (GUID) and ClassificationStatus per Batch 2A. PDC validates these fields, assigns RunId (GUID) and SourceRecordId (GUID), and confirms READY state only when all records are CLASSIFIED. PDC becomes the authoritative cross-LOB financial system of record.",
+    inputs: [
+      "Normalized FinancialFact records from AI Orchestrator",
+      "FirmTaxonomyId (GUID) per record — REQUIRED per Batch 2A",
+      "ClassificationStatus per record — REQUIRED per Batch 2A",
+      "Cross-LOB taxonomy mappings",
+    ],
+    outputs: [
+      "RunId (GUID) — batch traceability key",
+      "SourceRecordId (GUID) per record — globally unique",
+      "IngestionJob status → READY (only if all records CLASSIFIED)",
+      "FirmTaxonomyId stored on every FinancialFact record",
+      "PDC becomes authoritative cross-LOB system of record",
+    ],
+    invariants: [
+      "FinancialFact records are immutable once persisted",
+      "SourceRecordId is globally unique",
+      "READY status is terminal — no further updates to source records",
+      "READY signal BLOCKED if any record has ClassificationStatus = UNCLASSIFIED (Batch 2A)",
+      "FirmTaxonomyId must reference a valid Taxonomy Service entry (Batch 2A)",
+    ],
   },
   {
     id: "T6", label: "Tax Record Creation in TDC", system: "TDC", batch: "Batch 3",
@@ -221,23 +250,52 @@ export default function RuntimeJourney() {
               <div>
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>Outputs</div>
                 <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                  {selectedTp.outputs.map((out, i) => (
-                    <li key={i} style={{ fontSize: "12px", color: "#475569", marginBottom: "6px", paddingLeft: "14px", position: "relative", lineHeight: "1.4" }}>
-                      <span style={{ position: "absolute", left: 0, color: "#059669" }}>←</span>
-                      {out}
-                    </li>
-                  ))}
+                  {selectedTp.outputs.map((out, i) => {
+                    const isBatch2A = out.includes("FirmTaxonomyId") || out.includes("ClassificationStatus");
+                    return (
+                      <li key={i} style={{
+                        fontSize: "12px",
+                        color: isBatch2A ? "#6d28d9" : "#475569",
+                        fontWeight: isBatch2A ? 600 : 400,
+                        marginBottom: "6px",
+                        paddingLeft: "14px",
+                        position: "relative",
+                        lineHeight: "1.4",
+                        backgroundColor: isBatch2A ? "#f5f3ff" : "transparent",
+                        borderRadius: isBatch2A ? "4px" : "0",
+                        padding: isBatch2A ? "3px 8px 3px 18px" : undefined,
+                      }}>
+                        <span style={{ position: "absolute", left: isBatch2A ? 4 : 0, color: isBatch2A ? "#7c3aed" : "#059669" }}>←</span>
+                        {out}
+                        {isBatch2A && <span style={{ fontSize: "10px", marginLeft: "6px", backgroundColor: "#ede9fe", color: "#5b21b6", border: "1px solid #c4b5fd", borderRadius: "4px", padding: "1px 5px", fontWeight: 700 }}>Batch 2A</span>}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
               <div>
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>Invariants</div>
                 <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                  {selectedTp.invariants.map((inv, i) => (
-                    <li key={i} style={{ fontSize: "12px", color: "#475569", marginBottom: "6px", paddingLeft: "14px", position: "relative", lineHeight: "1.4" }}>
-                      <span style={{ position: "absolute", left: 0, color: "#dc2626" }}>✕</span>
-                      {inv}
-                    </li>
-                  ))}
+                  {selectedTp.invariants.map((inv, i) => {
+                    const isGap = inv.startsWith("⚠");
+                    return (
+                      <li key={i} style={{
+                        fontSize: "12px",
+                        color: isGap ? "#92400e" : "#475569",
+                        fontWeight: isGap ? 600 : 400,
+                        marginBottom: "6px",
+                        paddingLeft: "14px",
+                        position: "relative",
+                        lineHeight: "1.4",
+                        backgroundColor: isGap ? "#fffbeb" : "transparent",
+                        borderRadius: isGap ? "4px" : "0",
+                        padding: isGap ? "3px 8px 3px 18px" : undefined,
+                      }}>
+                        <span style={{ position: "absolute", left: isGap ? 4 : 0, color: isGap ? "#d97706" : "#dc2626" }}>{isGap ? "!" : "✕"}</span>
+                        {inv}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             </div>
