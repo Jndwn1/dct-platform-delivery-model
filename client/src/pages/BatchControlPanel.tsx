@@ -8,9 +8,29 @@
 //   5. PO Status Summary (copy-ready)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useBatchStatus, deriveGateStatus, STATUS_STYLES, BATCH_LABELS, type BatchKey, type BatchStatus } from "@/contexts/BatchStatusContext";
-import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy } from "lucide-react";
+
+// ── CopyNoteButton ────────────────────────────────────────────────────────────
+function CopyNoteButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  }, [text]);
+  return (
+    <button
+      onClick={handleCopy}
+      title="Copy note"
+      className="ml-1.5 shrink-0 inline-flex items-center justify-center w-5 h-5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors"
+    >
+      {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <ClipboardCopy className="w-3 h-3" />}
+    </button>
+  );
+}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -520,17 +540,27 @@ RECOMMENDED NEXT ACTION:
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <SectionHeader title="Swagger / API Coverage" subtitle="All API endpoints mapped to batch — flag missing Consumer Guide or Swagger entries" />
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full" style={{fontSize: '11px', tableLayout: 'fixed'}}>
+            <colgroup>
+              <col style={{width: '72px'}} />
+              <col style={{width: '130px'}} />
+              <col style={{width: '200px'}} />
+              <col style={{width: '110px'}} />
+              <col style={{width: '90px'}} />
+              <col style={{width: '72px'}} />
+              <col style={{width: '72px'}} />
+              <col style={{width: 'auto'}} />
+            </colgroup>
             <thead>
               <tr className="bg-[#003865] text-white">
-                <th className="text-left px-4 py-2.5 font-semibold">Batch</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Endpoint</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Path</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Status</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Consumer Guide</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Missing Guide?</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Missing Swagger?</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Notes</th>
+                <th className="text-left px-2 py-2 font-semibold">Batch</th>
+                <th className="text-left px-2 py-2 font-semibold">Endpoint</th>
+                <th className="text-left px-2 py-2 font-semibold">Path</th>
+                <th className="text-left px-2 py-2 font-semibold">Status</th>
+                <th className="text-left px-2 py-2 font-semibold">Consumer Guide</th>
+                <th className="text-left px-2 py-2 font-semibold text-center">Missing Guide?</th>
+                <th className="text-left px-2 py-2 font-semibold text-center">Missing Swagger?</th>
+                <th className="text-left px-2 py-2 font-semibold">Notes</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -538,26 +568,31 @@ RECOMMENDED NEXT ACTION:
                 const apiStyle = API_STYLE[e.status];
                 return (
                   <tr key={i} className="hover:bg-slate-50">
-                    <td className="px-4 py-2.5 font-semibold text-[#003865] whitespace-nowrap">{e.batch}</td>
-                    <td className="px-4 py-2.5 text-slate-800 font-medium">{e.endpoint}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-600 whitespace-nowrap">{e.path}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-2 py-1.5 font-semibold text-[#003865] whitespace-nowrap">{e.batch}</td>
+                    <td className="px-2 py-1.5 text-slate-800 font-medium" style={{wordBreak:'break-word'}}>{e.endpoint}</td>
+                    <td className="px-2 py-1.5 font-mono text-slate-600" style={{wordBreak:'break-all', fontSize:'10px'}}>{e.path}</td>
+                    <td className="px-2 py-1.5">
                       <Badge label={e.status} bg={apiStyle.bg} text={apiStyle.text} />
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-2 py-1.5">
                       <Badge
                         label={e.consumerGuide}
                         bg={e.consumerGuide === "Aligned" ? "bg-emerald-100" : e.consumerGuide === "Partial" ? "bg-amber-100" : "bg-red-100"}
                         text={e.consumerGuide === "Aligned" ? "text-emerald-800" : e.consumerGuide === "Partial" ? "text-amber-800" : "text-red-700"}
                       />
                     </td>
-                    <td className="px-4 py-2.5 text-center">
+                    <td className="px-2 py-1.5 text-center">
                       {e.missingFromGuide ? <span className="text-red-600 font-bold">Yes</span> : <span className="text-emerald-600">No</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-center">
+                    <td className="px-2 py-1.5 text-center">
                       {e.missingFromSwagger ? <span className="text-red-600 font-bold">Yes</span> : <span className="text-emerald-600">No</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-slate-600" style={{minWidth: '220px', maxWidth: '320px', whiteSpace: 'normal', wordBreak: 'break-word'}}>{e.notes}</td>
+                    <td className="px-2 py-1.5 text-slate-600" style={{whiteSpace: 'normal', wordBreak: 'break-word'}}>
+                      <div className="flex items-start gap-1">
+                        <span className="flex-1">{e.notes}</span>
+                        <CopyNoteButton text={e.notes} />
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
@@ -570,16 +605,25 @@ RECOMMENDED NEXT ACTION:
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <SectionHeader title="Roger UI Data Availability" subtitle="Which data points are ready for Roger to consume now vs carried forward to PI 2" />
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full" style={{fontSize: '11px', tableLayout: 'fixed'}}>
+            <colgroup>
+              <col style={{width: '160px'}} />
+              <col style={{width: '90px'}} />
+              <col style={{width: '72px'}} />
+              <col style={{width: '110px'}} />
+              <col style={{width: '180px'}} />
+              <col style={{width: 'auto'}} />
+              <col style={{width: '90px'}} />
+            </colgroup>
             <thead>
               <tr className="bg-[#003865] text-white">
-                <th className="text-left px-4 py-2.5 font-semibold">Data Point</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Source</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Batch</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Availability</th>
-                <th className="text-left px-4 py-2.5 font-semibold">API Endpoint</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Notes / Gap</th>
-                <th className="text-left px-4 py-2.5 font-semibold">Owner</th>
+                <th className="text-left px-2 py-2 font-semibold">Data Point</th>
+                <th className="text-left px-2 py-2 font-semibold">Source</th>
+                <th className="text-left px-2 py-2 font-semibold">Batch</th>
+                <th className="text-left px-2 py-2 font-semibold">Availability</th>
+                <th className="text-left px-2 py-2 font-semibold">API Endpoint</th>
+                <th className="text-left px-2 py-2 font-semibold">Notes / Gap</th>
+                <th className="text-left px-2 py-2 font-semibold">Owner</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -587,15 +631,20 @@ RECOMMENDED NEXT ACTION:
                 const rStyle = ROGER_STYLE[d.availability];
                 return (
                   <tr key={i} className="hover:bg-slate-50">
-                    <td className="px-4 py-2.5 font-medium text-slate-800">{d.dataPoint}</td>
-                    <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">{d.source}</td>
-                    <td className="px-4 py-2.5 font-semibold text-[#003865] whitespace-nowrap">{d.batch}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-2 py-1.5 font-medium text-slate-800" style={{wordBreak:'break-word'}}>{d.dataPoint}</td>
+                    <td className="px-2 py-1.5 text-slate-600" style={{wordBreak:'break-word'}}>{d.source}</td>
+                    <td className="px-2 py-1.5 font-semibold text-[#003865] whitespace-nowrap">{d.batch}</td>
+                    <td className="px-2 py-1.5">
                       <Badge label={d.availability} bg={rStyle.bg} text={rStyle.text} />
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-slate-500 whitespace-nowrap">{d.apiEndpoint}</td>
-                    <td className="px-4 py-2.5 text-slate-600" style={{minWidth: '240px', maxWidth: '360px', whiteSpace: 'normal', wordBreak: 'break-word'}}>{d.notes}</td>
-                    <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">{d.owner}</td>
+                    <td className="px-2 py-1.5 font-mono text-slate-500" style={{wordBreak:'break-all', fontSize:'10px'}}>{d.apiEndpoint}</td>
+                    <td className="px-2 py-1.5 text-slate-600" style={{whiteSpace: 'normal', wordBreak: 'break-word'}}>
+                      <div className="flex items-start gap-1">
+                        <span className="flex-1">{d.notes}</span>
+                        <CopyNoteButton text={d.notes} />
+                      </div>
+                    </td>
+                    <td className="px-2 py-1.5 text-slate-600" style={{wordBreak:'break-word'}}>{d.owner}</td>
                   </tr>
                 );
               })}
