@@ -1,525 +1,476 @@
-// DCT Delivery Model — Main Page
-// Matches reference: rsm-ai-team-niua6bzx.manus.space
-// 4 layers: Active Batch, Batch Gates, AI Agent Execution, Runtime Data Journey
+// DCT Delivery Model — Authoritative Platform Anchor Page
+// RSM | CATT | DCT + Roger
+// Design: RSM Deep Navy headers, RSM Green for success/insight, slate for neutral
+// 9-section structure: Purpose → Flow → Ownership → Batches → Invariants → Enables → NOT → Roger → Failure Modes
 
-import { useState } from "react";
-import { useLocation } from "wouter";
-import { useBatchStatus, deriveGateStatus, type BatchKey } from "@/contexts/BatchStatusContext";
+import { Link } from "wouter";
 
-const STATIC_BATCHES: { id: BatchKey; label: string }[] = [
-  { id: "foundation-core", label: "Foundation Core" },
-  { id: "1", label: "Batch 1 — File Ingestion & Initial Storage" },
-  { id: "2", label: "Batch 2 — Normalization & Cross-LOB Taxonomy" },
-  { id: "3", label: "Batch 3 — Tax Domain Authority & Tax Taxonomy" },
-  { id: "4", label: "Batch 4 — AI Tax Mapping & Explainability" },
-  { id: "5", label: "Batch 5 — Entity Identity & Structure" },
-  { id: "6", label: "Batch 6 — Practitioner Review, Adjustments & Lock" },
-  { id: "7", label: "Batch 7 — Client Tax Profile & Eligibility" },
-  { id: "8", label: "Batch 8 — Exceptions & Remediation" },
-  { id: "9", label: "Batch 9 — PDC IMS Integration / TDC Rollforward & Prior Year Intelligence" },
-  { id: "10", label: "Batch 10 — Return Assembly, Filing & Lineage Closure" },
-  { id: "11", label: "Batch 11 — Learning Governance & Model Evolution" },
-];
-
-
-const GATES = [
-  {
-    num: 1, label: "Schema Lock", status: "Locked", statusColor: "#475569",
-    owner: "Enterprise Architect",
-    desc: "Confirm that all entity schemas are complete, reviewed, and frozen before implementation begins.",
-  },
-  {
-    num: 2, label: "Invariant Lock", status: "In Progress", statusColor: "#d97706",
-    owner: "QA Lead / Tax Technology",
-    desc: "Confirm that all system invariants (immutability, hash integrity, client isolation, atomic writes) have been tested adversarially and no violations exist.",
-  },
-  {
-    num: 3, label: "Contract Publication", status: "Pending", statusColor: "#64748b",
-    owner: "API Product Owner",
-    desc: "Confirm that all API contracts (OpenAPI/Swagger) are published, versioned, and accepted by downstream consumers.",
-  },
-  {
-    num: 4, label: "Lineage Closure", status: "Pending", statusColor: "#64748b",
-    owner: "DCT Delivery Lead",
-    desc: "Confirm that the full lineage chain is captured, queryable, and verified end-to-end before the Batch is marked complete.",
-  },
-];
-
-const AGENTS = [
-  {
-    id: "A", label: "Architect Agent", role: "Enterprise Solution Architect", status: "Complete", statusColor: "#059669",
-    tasks: [
-      "Schema design for PDC identity model, TDC reference tables, lineage backbone",
-      "Platform architecture validation (Azure SQL, Service Bus, AI Orchestrator)",
-      "Architecture Decision Records (ADRs)",
-    ],
-    gates: { g1: "★", g2: "—", g3: "—", g4: "—" },
-  },
-  {
-    id: "B", label: "Analyst Agent", role: "Senior Business Analyst", status: "Complete", statusColor: "#059669",
-    tasks: [
-      "Touchpoint requirements across all batches",
-      "Batch scope definition and Epic/Feature breakdown",
-      "User stories with Given/When/Then acceptance criteria",
-    ],
-    gates: { g1: "—", g2: "—", g3: "—", g4: "★" },
-  },
-  {
-    id: "D", label: "Developer Agent", role: "Blitzy Code Generation", status: "In Progress", statusColor: "#d97706",
-    tasks: [
-      "Blitzy-generated .NET 8 implementation per batch",
-      "API endpoint implementation and Swagger/OpenAPI contracts",
-      "EF Core migration scripts and data models",
-    ],
-    gates: { g1: "—", g2: "—", g3: "★", g4: "—" },
-  },
-  {
-    id: "Q", label: "QA Agent", role: "Adversarial Invariant Testing", status: "In Progress", statusColor: "#d97706",
-    tasks: [
-      "Adversarial invariant testing for all batch business rules",
-      "Gate 2 — Invariant Lock verification",
-      "Lineage chain end-to-end validation",
-    ],
-    gates: { g1: "—", g2: "★", g3: "—", g4: "✓" },
-  },
-];
-
-const TOUCHPOINTS = [
-  { id: "T1", label: "File Ingestion via Tax Portal", system: "Tax Portal", batch: "Batch 1",
-    desc: "Client financial file enters via any entry point (Direct Upload, Roger Web App, Phoenix, or Duo/DSDMS). Tax Portal is the single ingestion gate. It generates an immutable DocumentId (GUID) and JobId (GUID), validates EntityId (GUID) + PeriodStart + PeriodEnd, and publishes a NEW_FILE_EVENT to the Service Bus topic: file_ingestion_events." },
-  { id: "T2", label: "PDC Record Creation", system: "PDC", batch: "Batch 1",
-    desc: "PDC Ingestion Listener consumes NEW_FILE_EVENT from topic file_ingestion_events (at-least-once delivery, replay supported). PDC persists IngestionJob and SourceFile. Status state machine: INGESTED → PROCESSING → READY | FAILED (enum-driven)." },
-  { id: "T3", label: "AI Processing Trigger", system: "PDC → AI Orchestrator", batch: "Batch 2",
-    desc: "PDC advances the IngestionJob status (enum) to PROCESSING and invokes the AI Orchestrator once per file with DocumentId, EntityId, PeriodStart, PeriodEnd, and metadata. The orchestrator sequences all AI stages and coordinates PDC and TDC via APIs." },
-  { id: "T4", label: "AI Agent Pipeline Execution", system: "AI Orchestrator", batch: "Batch 2",
-    desc: "The orchestrator runs a staged agent chain: File Recognizer → File Normalizer → Cross-LOB Mapper → Tax Mapper. Agents are stateless and do not persist data directly. All persistence occurs through PDC and TDC APIs." },
-  { id: "T5", label: "Canonical Dataset Persistence", system: "PDC", batch: "Batch 2",
-    desc: "Orchestrator writes normalized FinancialFact records and Cross-LOB taxonomy mappings to PDC. PDC assigns RunId (GUID) and SourceRecordId (GUID), confirms READY state (enum), and becomes the authoritative cross-LOB data system of record." },
-  { id: "T6", label: "Tax Record Creation in TDC", system: "TDC", batch: "Batch 3",
-    desc: "Orchestrator writes tax mapping proposals to TDC, including confidence scores (GREEN/YELLOW/RED enum band) and structured evidence. TDC assigns TdcRecordId (GUID) and preserves lineage (DocumentId → SourceRecordId → TdcRecordId)." },
-  { id: "T7", label: "Roger Primary Read Contract", system: "Roger Web App", batch: "Batch 4",
-    desc: "Roger retrieves tax mapping proposals and decisions via TDC primary read contract. Displays confidence bands (GREEN/YELLOW/RED), pending vs decided, and full traceability to source. Roger is a read-only consumer — this is the moment the platform comes to life for a practitioner." },
-  { id: "T8", label: "Practitioner Review & Adjustment", system: "Roger Web App", batch: "Batch 6",
-    desc: "Review tasks generated automatically from data state. Practitioner creates, submits, approves, and locks book-to-tax adjustments. Sign-off is non-repudiable. Lock is terminal. Roger surfaces the full practitioner workflow end to end for the first time." },
-  { id: "T9", label: "Tax-Ready Record Derivation", system: "TDC", batch: "Batch 6",
-    desc: "Tax-ready records derived deterministically from accepted mapping decisions and approved book-to-tax adjustments only. UNRESOLVED records persisted as first-class outputs where practitioner decision is still missing." },
-  { id: "T10", label: "TDC Finalization — TAX_READY / Lock", system: "TDC", batch: "Batch 6",
-    desc: "Finalization requires non-repudiable sign-off. Lock is terminal — mutation attempts rejected and logged. Unlock transitions entity to AMENDED through a governed operation with recorded actor, reason, and timestamp." },
-];
-
-const AGENT_COLORS: Record<string, string> = {
-  A: "#6366f1", B: "#0ea5e9", D: "#f97316", Q: "#a855f7"
-};
-
-export default function Home() {
-  const [, navigate] = useLocation();
-  const [expandedGate, setExpandedGate] = useState<number | null>(null);
-  const { statuses } = useBatchStatus();
-  const liveGates = deriveGateStatus(statuses);
-
-  // Build live BATCHES with status derived from context
-  const BATCHES = STATIC_BATCHES.map(b => {
-    const s = statuses[b.id];
-    return { ...b, status: s === "Complete" ? "Active" : s === "Dev" ? "Active" : "Planned" };
-  });
-
-  // Build live GATES with status derived from context
-  const gateStatusLabel = (s: "Complete" | "In Progress" | "Locked") =>
-    s === "Complete" ? "Passed" : s === "In Progress" ? "In Progress" : "Locked";
-  const gateStatusColor = (s: "Complete" | "In Progress" | "Locked") =>
-    s === "Complete" ? "#059669" : s === "In Progress" ? "#d97706" : "#475569";
-
-  const GATES = [
-    {
-      num: 1, label: "Schema Lock",
-      status: gateStatusLabel(liveGates.g1), statusColor: gateStatusColor(liveGates.g1),
-      owner: "Enterprise Architect",
-      desc: "Confirm that all entity schemas are complete, reviewed, and frozen before implementation begins.",
-    },
-    {
-      num: 2, label: "Invariant Lock",
-      status: gateStatusLabel(liveGates.g2), statusColor: gateStatusColor(liveGates.g2),
-      owner: "QA Lead / Tax Technology",
-      desc: "Confirm that all system invariants (immutability, hash integrity, client isolation, atomic writes) have been tested adversarially and no violations exist.",
-    },
-    {
-      num: 3, label: "Contract Publication",
-      status: gateStatusLabel(liveGates.g3), statusColor: gateStatusColor(liveGates.g3),
-      owner: "API Product Owner",
-      desc: "Confirm that all API contracts (OpenAPI/Swagger) are published, versioned, and accepted by downstream consumers.",
-    },
-    {
-      num: 4, label: "Lineage Closure",
-      status: gateStatusLabel(liveGates.g4), statusColor: gateStatusColor(liveGates.g4),
-      owner: "DCT Delivery Lead",
-      desc: "Confirm that the full lineage chain is captured, queryable, and verified end-to-end before the Batch is marked complete.",
-    },
-  ];
-
+// ─── Section wrapper ──────────────────────────────────────────────────────────
+function Section({ title, subtitle, children, accent }: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  accent?: "blue" | "green" | "red" | "amber" | "slate";
+}) {
+  const accentMap: Record<string, string> = {
+    blue:  "#1e3a5f",
+    green: "#065f46",
+    red:   "#7f1d1d",
+    amber: "#78350f",
+    slate: "#1e293b",
+  };
+  const borderColor = accentMap[accent ?? "slate"];
   return (
-    <div style={{ backgroundColor: "#f8fafc", minHeight: "100%", padding: "0" }}>
-
-      {/* LAYER 1 — ACTIVE BATCH */}
-      <section style={{ padding: "24px 28px 0" }}>
-        <div style={{ marginBottom: "12px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", marginBottom: "2px" }}>
-            Layer 1 — Active Batch
-          </div>
-          <div style={{ fontSize: "12px", color: "#64748b" }}>Batches control platform delivery scope and gate sequencing</div>
+    <div style={{ marginBottom: "32px" }}>
+      <div style={{
+        borderLeft: `4px solid ${borderColor}`,
+        paddingLeft: "14px",
+        marginBottom: "16px",
+      }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "2px" }}>
+          {subtitle}
         </div>
+        <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#0f1623", margin: 0 }}>{title}</h2>
+      </div>
+      {children}
+    </div>
+  );
+}
 
-        {/* Hero batch card */}
-        <div style={{
-          background: "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%)",
-          borderRadius: "12px", padding: "28px 32px", color: "white", marginBottom: "0"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <span style={{ fontSize: "11px", fontWeight: 700, backgroundColor: "#10b981", padding: "2px 10px", borderRadius: "12px" }}>ACTIVE</span>
-            <span style={{ fontSize: "12px", color: "#93c5fd" }}>DCT Data Consolidation Team</span>
-          </div>
-          <h1 style={{ fontSize: "36px", fontWeight: 800, marginBottom: "6px", letterSpacing: "-0.02em" }}>Foundation Core</h1>
-          <p style={{ fontSize: "13px", color: "#93c5fd", marginBottom: "20px" }}>
-            Full Roadmap: Foundation Core + Batch 1–10 · 11 Delivery Units
-          </p>
-          <p style={{ fontSize: "14px", color: "#bfdbfe", marginBottom: "24px" }}>
-            Infrastructure setup: code repo, templates, Copilot Agent and Blitzy configuration, development environment.
-          </p>
+// ─── Flow node ────────────────────────────────────────────────────────────────
+function FlowNode({ label, owner, color, isGap }: { label: string; owner: string; color: string; isGap?: boolean }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", minWidth: "110px" }}>
+      <div style={{
+        backgroundColor: isGap ? "#fef2f2" : color,
+        border: `2px solid ${isGap ? "#ef4444" : color}`,
+        borderRadius: "8px",
+        padding: "10px 14px",
+        textAlign: "center",
+        width: "100%",
+      }}>
+        <div style={{ fontSize: "12px", fontWeight: 700, color: isGap ? "#dc2626" : "white", lineHeight: "1.3" }}>{label}</div>
+      </div>
+      <div style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, letterSpacing: "0.05em" }}>{owner}</div>
+    </div>
+  );
+}
 
-          {/* Batch list */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            {BATCHES.map((b) => (
-              <div key={b.id} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 0" }}>
-                <div style={{
-                  width: "8px", height: "8px", borderRadius: "50%", flexShrink: 0,
-                  backgroundColor: b.status === "Active" ? "#10b981" : "rgba(255,255,255,0.3)"
-                }} />
-                <span style={{ fontSize: "13px", color: b.status === "Active" ? "white" : "#93c5fd", flex: 1 }}>{b.label}</span>
-                {b.status === "Planned" && (
-                  <span style={{ fontSize: "10px", color: "#60a5fa" }}>Planned</span>
-                )}
-              </div>
-            ))}
-          </div>
+function FlowArrow({ broken }: { broken?: boolean }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "2px" }}>
+      <div style={{ fontSize: "18px", color: broken ? "#ef4444" : "#94a3b8", lineHeight: 1 }}>
+        {broken ? "✕" : "→"}
+      </div>
+    </div>
+  );
+}
 
-          {/* Stats row */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginTop: "24px" }}>
-            {[
-              { label: "Foundation", sub: "Touchpoints", sub2: "Foundation Core scope" },
-              { label: "4", sub: "Gates", sub2: "1 locked · 1 in progress" },
-              { label: "2", sub: "Agents", sub2: "Architect · Analyst · Developer · QA" },
-              { label: "Active", sub: "Batch Status", sub2: "Batch 1–2 · 11-Batch Roadmap" },
-            ].map((s, i) => (
-              <div key={i} style={{ backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "8px", padding: "14px 16px" }}>
-                <div style={{ fontSize: "20px", fontWeight: 700, marginBottom: "2px" }}>{s.label}</div>
-                <div style={{ fontSize: "11px", fontWeight: 600, color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.05em" }}>{s.sub}</div>
-                <div style={{ fontSize: "11px", color: "#bfdbfe", marginTop: "2px" }}>{s.sub2}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+// ─── Invariant card ───────────────────────────────────────────────────────────
+function InvariantCard({ index, text }: { index: number; text: string }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "flex-start", gap: "12px",
+      backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+      borderRadius: "8px", padding: "12px 14px",
+    }}>
+      <div style={{
+        width: "24px", height: "24px", borderRadius: "50%",
+        backgroundColor: "#059669", color: "white",
+        fontSize: "11px", fontWeight: 700,
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+      }}>
+        {index}
+      </div>
+      <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.5" }}>{text}</div>
+    </div>
+  );
+}
 
-        {/* Legend */}
-        <div style={{ display: "flex", gap: "20px", padding: "12px 0", flexWrap: "wrap" }}>
-          {[
-            { color: "#2563eb", label: "Batches control delivery" },
-            { color: "#10b981", label: "Humans close Gates" },
-            { color: "#a855f7", label: "Agents execute implementation" },
-            { color: "#f97316", label: "Touchpoints describe runtime behavior" },
-          ].map((l) => (
-            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: l.color, flexShrink: 0 }} />
-              <span style={{ fontSize: "11px", color: "#64748b" }}>{l.label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+// ─── Failure mode card ────────────────────────────────────────────────────────
+function FailureCard({ text }: { text: string }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "flex-start", gap: "10px",
+      backgroundColor: "#fef2f2", border: "1px solid #fecaca",
+      borderRadius: "8px", padding: "10px 14px",
+    }}>
+      <div style={{ color: "#dc2626", fontSize: "14px", flexShrink: 0, marginTop: "1px" }}>⚠</div>
+      <div style={{ fontSize: "13px", color: "#7f1d1d", lineHeight: "1.5" }}>{text}</div>
+    </div>
+  );
+}
 
-      {/* LAYER 2 — BATCH GATES */}
-      <section style={{ padding: "24px 28px 0" }}>
-        <div style={{ marginBottom: "16px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", marginBottom: "2px" }}>
-            Layer 2 — Batch Gates
-          </div>
-          <div style={{ fontSize: "12px", color: "#64748b" }}>Sequential quality gates — humans verify and close each gate before the next opens</div>
-        </div>
+// ─── Batch row ────────────────────────────────────────────────────────────────
+function BatchRow({ id, name, scope, note }: { id: string; name: string; scope: string; note?: string }) {
+  const isActive = ["FC", "1", "2", "2A"].includes(id);
+  const isCommitted = ["3", "4", "5", "6", "7", "8"].includes(id);
+  const badgeColor = isActive ? "#059669" : isCommitted ? "#2563eb" : "#64748b";
+  const badgeLabel = isActive ? "Active" : isCommitted ? "PI 2" : "Stretch";
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "60px 1fr 1fr auto",
+      gap: "12px", alignItems: "start",
+      padding: "10px 14px",
+      borderBottom: "1px solid #f1f5f9",
+      fontSize: "13px",
+    }}>
+      <div style={{
+        fontWeight: 700, color: "#0f1623",
+        backgroundColor: "#e2e8f0", borderRadius: "4px",
+        padding: "2px 6px", textAlign: "center", fontSize: "11px",
+      }}>{id}</div>
+      <div style={{ color: "#1e293b", fontWeight: 600 }}>{name}</div>
+      <div style={{ color: "#475569" }}>{scope}</div>
+      <div style={{
+        fontSize: "10px", fontWeight: 700, letterSpacing: "0.05em",
+        color: badgeColor, whiteSpace: "nowrap",
+      }}>{badgeLabel}</div>
+    </div>
+  );
+}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "16px" }}>
-          {GATES.map((gate) => (
-            <div
-              key={gate.num}
-              style={{
-                textAlign: "left", padding: "16px", borderRadius: "10px",
-                backgroundColor: "white", borderWidth: "1px",
-                borderColor: expandedGate === gate.num ? "#2563eb" : "#e2e8f0",
-                boxShadow: expandedGate === gate.num ? "0 0 0 2px #bfdbfe" : "0 1px 3px rgba(0,0,0,0.06)",
-                transition: "all 0.15s", cursor: "default"
-              }}
-            >
-              {/* Clickable header row */}
-              <button
-                onClick={() => setExpandedGate(expandedGate === gate.num ? null : gate.num)}
-                style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", background: "none", border: "none", cursor: "pointer", padding: 0, width: "100%", textAlign: "left" }}
-              >
-                <div style={{
-                  width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#1e40af",
-                  color: "white", fontSize: "12px", fontWeight: 700,
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-                }}>
-                  {gate.num}
-                </div>
-                <span style={{
-                  fontSize: "10px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px",
-                  backgroundColor: gate.statusColor, color: "white"
-                }}>
-                  {gate.status}
-                </span>
-              </button>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>{gate.label}</div>
-              <div style={{ fontSize: "11px", color: "#64748b", lineHeight: "1.4" }}>{gate.desc}</div>
-              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "6px", marginBottom: "10px" }}>Owner: {gate.owner}</div>
-              {/* View Gate Details button */}
-              <button
-                onClick={() => navigate(`/gate/${gate.num}`)}
-                style={{
-                  width: "100%", padding: "5px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
-                  backgroundColor: "#eff6ff", color: "#1d4ed8",
-                  border: "1px solid #bfdbfe", cursor: "pointer", transition: "background 0.15s"
-                }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#dbeafe"}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#eff6ff"}
-              >
-                View Gate Details →
-              </button>
-            </div>
-          ))}
-        </div>
+// ─── Main page ────────────────────────────────────────────────────────────────
+export default function Home() {
+  return (
+    <div style={{ padding: "28px 32px", maxWidth: "1100px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
 
-        {/* Gate sequence */}
-        <div style={{
-          backgroundColor: "white", borderRadius: "8px", padding: "12px 16px",
-          borderWidth: "1px", borderColor: "#e2e8f0",
-          display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap"
-        }}>
-          <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b" }}>Gate Sequence</span>
-          {GATES.map((g, i) => (
-            <span key={g.num} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "11px", color: "#1e293b", fontWeight: 500 }}>
-                {g.num} {g.label}
-                <span style={{ marginLeft: "4px", fontSize: "10px", color: g.statusColor, fontWeight: 600 }}>{g.status}</span>
-              </span>
-              {i < GATES.length - 1 && <span style={{ color: "#94a3b8" }}>→</span>}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* LAYER 3 — AI AGENT EXECUTION */}
-      <section style={{ padding: "24px 28px 0" }}>
-        <div style={{ marginBottom: "16px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", marginBottom: "2px" }}>
-            Layer 3 — AI Agent Execution
-          </div>
-          <div style={{ fontSize: "12px", color: "#64748b" }}>Agents execute implementation — they support gates but do not close them</div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "16px" }}>
-          {AGENTS.map((agent) => (
-            <div key={agent.id} style={{
-              backgroundColor: "white", borderRadius: "10px", padding: "16px",
-              borderWidth: "1px", borderColor: "#e2e8f0",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                <div style={{
-                  width: "32px", height: "32px", borderRadius: "50%",
-                  backgroundColor: AGENT_COLORS[agent.id], color: "white",
-                  fontSize: "14px", fontWeight: 700,
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-                }}>
-                  {agent.id}
-                </div>
-                <span style={{
-                  fontSize: "10px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px",
-                  backgroundColor: agent.statusColor, color: "white"
-                }}>
-                  {agent.status}
-                </span>
-              </div>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginBottom: "2px" }}>{agent.label}</div>
-              <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "10px" }}>{agent.role}</div>
-              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                {agent.tasks.map((t, i) => (
-                  <li key={i} style={{ fontSize: "11px", color: "#475569", marginBottom: "4px", paddingLeft: "12px", position: "relative" }}>
-                    <span style={{ position: "absolute", left: 0, color: "#94a3b8" }}>·</span>
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        {/* Agent → Gate Support Matrix */}
-        <div style={{ backgroundColor: "white", borderRadius: "10px", padding: "16px", borderWidth: "1px", borderColor: "#e2e8f0" }}>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Agent → Gate Support Matrix
-          </div>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left", padding: "6px 12px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0" }}>Agent</th>
-                {GATES.map(g => (
-                  <th key={g.num} style={{ textAlign: "center", padding: "6px 12px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0" }}>
-                    Gate {g.num}<br /><span style={{ fontWeight: 400, fontSize: "10px" }}>{g.label}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {AGENTS.map((agent) => (
-                <tr key={agent.id} style={{ borderBottomWidth: "1px", borderBottomColor: "#f1f5f9" }}>
-                  <td style={{ padding: "8px 12px", fontWeight: 600, color: "#1e293b" }}>{agent.label}</td>
-                  <td style={{ textAlign: "center", padding: "8px 12px", color: agent.gates.g1 === "★" ? "#2563eb" : "#94a3b8" }}>{agent.gates.g1}</td>
-                  <td style={{ textAlign: "center", padding: "8px 12px", color: agent.gates.g2 === "★" ? "#2563eb" : "#94a3b8" }}>{agent.gates.g2}</td>
-                  <td style={{ textAlign: "center", padding: "8px 12px", color: agent.gates.g3 === "★" ? "#2563eb" : "#94a3b8" }}>{agent.gates.g3}</td>
-                  <td style={{ textAlign: "center", padding: "8px 12px", color: agent.gates.g4 === "★" ? "#2563eb" : agent.gates.g4 === "✓" ? "#10b981" : "#94a3b8" }}>{agent.gates.g4}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
-            <span style={{ fontSize: "10px", color: "#64748b" }}>★ Gate owner (primary)</span>
-            <span style={{ fontSize: "10px", color: "#64748b" }}>✓ Gate supporter</span>
-          </div>
-        </div>
-      </section>
-
-      {/* LAYER 4 — RUNTIME DATA JOURNEY */}
-      <section style={{ padding: "24px 28px 0" }}>
-        <div style={{ marginBottom: "16px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563eb", marginBottom: "2px" }}>
-            Layer 4 — Runtime Data Journey
-          </div>
-          <div style={{ fontSize: "12px", color: "#64748b" }}>T1–T10 describe runtime system behavior — touchpoints are not delivery tasks</div>
-        </div>
-
-        {/* Active batch notice */}
-        <div style={{
-          backgroundColor: "#fef3c7", borderRadius: "8px", padding: "10px 14px",
-          borderWidth: "1px", borderColor: "#fde68a", marginBottom: "16px",
-          fontSize: "12px", color: "#92400e"
-        }}>
-          <strong>Batch -1 — Foundation Core</strong> covers touchpoints. Gold highlights indicate active batch scope.
-        </div>
-
-        {/* Touchpoint chips */}
-        <div style={{ display: "flex", gap: "8px", flexWrap: "nowrap", overflowX: "auto", marginBottom: "16px", paddingBottom: "4px" }}>
-          {TOUCHPOINTS.map((tp) => (
-            <div key={tp.id} style={{
-              flexShrink: 0, backgroundColor: "white", borderRadius: "8px",
-              padding: "10px 14px", borderWidth: "1px", borderColor: "#e2e8f0",
-              minWidth: "120px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
-            }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb", marginBottom: "2px" }}>{tp.id}</div>
-              <div style={{ fontSize: "11px", color: "#1e293b", fontWeight: 500, lineHeight: "1.3" }}>{tp.label}</div>
-              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>{tp.system}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Touchpoint table */}
-        <div style={{ backgroundColor: "white", borderRadius: "10px", borderWidth: "1px", borderColor: "#e2e8f0", overflow: "hidden", marginBottom: "24px" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#f8fafc" }}>
-                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0", width: "50px" }}>ID</th>
-                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0", width: "200px" }}>Touchpoint</th>
-                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0", width: "150px" }}>System</th>
-                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0" }}>Description</th>
-                <th style={{ textAlign: "left", padding: "10px 16px", color: "#64748b", fontWeight: 600, borderBottomWidth: "1px", borderBottomColor: "#e2e8f0", width: "80px" }}>Batch</th>
-              </tr>
-            </thead>
-            <tbody>
-              {TOUCHPOINTS.map((tp, i) => (
-                <tr key={tp.id} style={{ borderBottomWidth: i < TOUCHPOINTS.length - 1 ? "1px" : "0", borderBottomColor: "#f1f5f9" }}>
-                  <td style={{ padding: "10px 16px", fontWeight: 700, color: "#2563eb" }}>{tp.id}</td>
-                  <td style={{ padding: "10px 16px", fontWeight: 600, color: "#1e293b" }}>{tp.label}</td>
-                  <td style={{ padding: "10px 16px", color: "#475569" }}>{tp.system}</td>
-                  <td style={{ padding: "10px 16px", color: "#475569", lineHeight: "1.5" }}>{tp.desc}</td>
-                  <td style={{ padding: "10px 16px" }}>
-                    <span style={{
-                      fontSize: "10px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px",
-                      backgroundColor: "#eff6ff", color: "#1d4ed8"
-                    }}>
-                      {tp.batch}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* DCT BatchFlow section */}
-      <section style={{ padding: "0 28px 24px" }}>
-        <div style={{
-          backgroundColor: "white", borderRadius: "10px", padding: "20px 24px",
-          borderWidth: "1px", borderColor: "#e2e8f0",
-          display: "flex", alignItems: "center", justifyContent: "space-between"
-        }}>
+      {/* ── Page header ── */}
+      <div style={{ marginBottom: "32px", borderBottom: "2px solid #e2e8f0", paddingBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+          <div style={{
+            width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "#0f1623",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#059669", fontWeight: 900, fontSize: "16px",
+          }}>D</div>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-              <span style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>DCT BatchFlow</span>
-              <span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", backgroundColor: "#eff6ff", color: "#1d4ed8" }}>
-                Interactive Delivery Platform
-              </span>
-            </div>
-            <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "8px" }}>
-              Convert delivery batches into executable backlog artifacts. Generate Epics, Features, and Stories with Azure DevOps-ready acceptance criteria.
-            </p>
-            <div style={{ display: "flex", gap: "8px" }}>
-              {["Backlog Generation", "Roadmap", "Dependencies", "ADO Export"].map(tab => (
-                <span key={tab} style={{ fontSize: "11px", color: "#64748b", padding: "3px 10px", borderRadius: "6px", backgroundColor: "#f1f5f9" }}>{tab}</span>
-              ))}
+            <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: 0, lineHeight: 1 }}>
+              DCT Delivery Model
+            </h1>
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
+              RSM · CATT · Data Consolidation Team · Platform Source of Truth
             </div>
           </div>
-          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-            <button
-              onClick={() => navigate("/batchflow")}
-              style={{
-                padding: "8px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-                backgroundColor: "#2563eb", color: "white", border: "none", cursor: "pointer"
-              }}
-            >
-              Open BatchFlow →
-            </button>
-          </div>
         </div>
-      </section>
-
-      {/* Key Principles */}
-      <section style={{ padding: "0 28px 32px" }}>
-        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#64748b", marginBottom: "12px" }}>
-          DCT Delivery Model — Key Principles
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+        <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
           {[
-            { title: "Batches control delivery", desc: "Each batch defines a bounded delivery scope with its own gates, agents, and touchpoints. Batches are sequential and non-overlapping." },
-            { title: "Humans close Gates", desc: "Gates are verification checkpoints closed by human owners (Architect, QA Lead, API PO, DCT Lead). Agents support but do not close gates." },
-            { title: "Agents execute implementation", desc: "AI agents produce artifacts (schemas, requirements, code, tests) that feed gate verification. They are the execution layer, not the governance layer." },
-            { title: "Touchpoints describe runtime", desc: "Touchpoints (T1–T10) describe how data moves through the platform at runtime. They are not delivery tasks — they are the observable behavior the batch enables." },
-          ].map((p) => (
-            <div key={p.title} style={{
-              backgroundColor: "white", borderRadius: "10px", padding: "16px",
-              borderWidth: "1px", borderColor: "#e2e8f0"
+            { label: "Batches 1–8 Active", color: "#059669" },
+            { label: "API-First Architecture", color: "#2563eb" },
+            { label: "Governed AI Integration", color: "#7c3aed" },
+            { label: "Roger Read-Only", color: "#0f1623" },
+          ].map(b => (
+            <span key={b.label} style={{
+              fontSize: "11px", fontWeight: 600, color: "white",
+              backgroundColor: b.color, borderRadius: "4px", padding: "3px 8px",
+            }}>{b.label}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── 1. Purpose ── */}
+      <Section title="Purpose" subtitle="Section 1" accent="blue">
+        <div style={{
+          backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
+          borderRadius: "8px", padding: "16px 20px",
+        }}>
+          <p style={{ margin: "0 0 10px", fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
+            DCT is a <strong>governed, batch-driven delivery model</strong> that structures how financial data is ingested,
+            normalized, classified, and made available for tax decision-making across RSM's enterprise platform.
+          </p>
+          <p style={{ margin: "0 0 10px", fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
+            It enforces a <strong>strict separation of concerns</strong> between financial data (PDC), tax decisions (TDC),
+            AI orchestration (Orchestrator), and practitioner consumption (Roger) — ensuring no system owns
+            responsibilities outside its defined boundary.
+          </p>
+          <p style={{ margin: 0, fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
+            The result is <strong>deterministic, traceable, API-driven outcomes</strong> that can be audited, replayed,
+            and trusted at every layer of the platform.
+          </p>
+        </div>
+      </Section>
+
+      {/* ── 2. End-to-End Flow ── */}
+      <Section title="End-to-End Delivery Model" subtitle="Section 2 — Critical Visual" accent="blue">
+        <div style={{
+          backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
+          borderRadius: "10px", padding: "20px 24px",
+          overflowX: "auto",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: "700px" }}>
+            <FlowNode label="Tax Portal" owner="Ingestion" color="#334155" />
+            <FlowArrow />
+            <FlowNode label="Service Bus" owner="Event Trigger" color="#475569" />
+            <FlowArrow />
+            <FlowNode label="PDC" owner="Financial Data" color="#1e3a5f" />
+            <FlowArrow />
+            <FlowNode label="Orchestrator" owner="Stateless AI" color="#7c3aed" />
+            <FlowArrow />
+            <FlowNode label="PDC (Classified)" owner="Normalized + FirmTaxonomyId" color="#1e3a5f" />
+            <FlowArrow />
+            <FlowNode label="TDC" owner="Tax Decisions" color="#065f46" />
+            <FlowArrow />
+            <FlowNode label="Roger" owner="Read-Only UI" color="#0f1623" />
+          </div>
+          <div style={{ marginTop: "14px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
+            {[
+              { color: "#1e3a5f", label: "PDC — Financial truth, lineage anchor" },
+              { color: "#7c3aed", label: "Orchestrator — Stateless, no persistence" },
+              { color: "#065f46", label: "TDC — Tax decisions, immutable" },
+              { color: "#0f1623", label: "Roger — Read-only, no writes" },
+            ].map(l => (
+              <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: l.color, flexShrink: 0 }} />
+                <span style={{ fontSize: "11px", color: "#475569" }}>{l.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* ── 3. System Ownership ── */}
+      <Section title="System Ownership Model" subtitle="Section 3 — No Overlapping Ownership" accent="blue">
+        <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+          <div style={{
+            display: "grid", gridTemplateColumns: "1fr 1fr 2fr",
+            backgroundColor: "#0f1623", padding: "10px 16px", gap: "12px",
+          }}>
+            {["Layer", "System", "Responsibility"].map(h => (
+              <div key={h} style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase" }}>{h}</div>
+            ))}
+          </div>
+          {[
+            { layer: "Ingestion",      system: "Tax Portal",      resp: "File intake, event trigger via Service Bus. Assigns DocumentId at boundary." },
+            { layer: "Data Foundation",system: "PDC",             resp: "Financial data storage, lineage anchor (DocumentId), normalization, classification storage. System of record for financial truth." },
+            { layer: "Orchestration",  system: "AI Orchestrator", resp: "Stateless processing only. Applies taxonomy rules and returns FirmTaxonomyId. No persistence, no ownership of data." },
+            { layer: "Tax Decision",   system: "TDC",             resp: "Tax mapping, adjustments, tax-ready record derivation, eligibility. System of record for all tax decisions. Immutable audit trail." },
+            { layer: "Consumption",    system: "Roger",           resp: "Read-only practitioner UI. Reads from TDC primary contract only. No writes, no transformations." },
+          ].map((row, i) => (
+            <div key={row.layer} style={{
+              display: "grid", gridTemplateColumns: "1fr 1fr 2fr",
+              gap: "12px", padding: "12px 16px",
+              backgroundColor: i % 2 === 0 ? "#ffffff" : "#f8fafc",
+              borderTop: "1px solid #f1f5f9",
+              fontSize: "13px",
             }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginBottom: "6px" }}>{p.title}</div>
-              <div style={{ fontSize: "12px", color: "#64748b", lineHeight: "1.5" }}>{p.desc}</div>
+              <div style={{ fontWeight: 700, color: "#0f1623" }}>{row.layer}</div>
+              <div style={{ fontWeight: 600, color: "#2563eb" }}>{row.system}</div>
+              <div style={{ color: "#475569", lineHeight: "1.5" }}>{row.resp}</div>
             </div>
           ))}
         </div>
-      </section>
+      </Section>
+
+      {/* ── 4. Batch Model Overview ── */}
+      <Section title="Batch Model Overview" subtitle="Section 4 — Delivery Units" accent="blue">
+        <div style={{ marginBottom: "12px", fontSize: "13px", color: "#475569", lineHeight: "1.6" }}>
+          The platform is delivered through <strong>architectural batches</strong> — each batch is both a delivery unit
+          and a demo unit. Batches may run in parallel within a PI but must satisfy gate conditions before the next
+          dependent batch begins. Sequential batches enforce lineage and contract integrity.
+        </div>
+        <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+          <div style={{
+            display: "grid", gridTemplateColumns: "60px 1fr 1fr auto",
+            gap: "12px", backgroundColor: "#0f1623", padding: "10px 14px",
+          }}>
+            {["ID", "Batch Name", "Scope", "Status"].map(h => (
+              <div key={h} style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase" }}>{h}</div>
+            ))}
+          </div>
+          <BatchRow id="FC"  name="Foundation Core"                                  scope="Infrastructure, repo, templates, agent config" />
+          <BatchRow id="1"   name="File Ingestion & Initial Storage"                 scope="IngestionJob, DocumentId, lineage anchor, audit_log" />
+          <BatchRow id="2"   name="Normalization & Cross-LOB Taxonomy"               scope="vNormalizedTb, EntityId, PeriodStart/PeriodEnd, XLOB taxonomy" />
+          <BatchRow id="2A"  name="Orchestrator Contract Enforcement & Classification" scope="FirmTaxonomyId required, ClassificationStatus, rejection on missing classification" />
+          <BatchRow id="3"   name="Tax Domain Authority & Tax Taxonomy"              scope="TDC reference data, tax form templates, mapping rules" />
+          <BatchRow id="4"   name="AI Tax Mapping & Explainability"                  scope="MappingProposal, ConfidenceBand, MappingDecision (immutable)" />
+          <BatchRow id="5"   name="Entity Identity & Structure"                      scope="ClientGroupId, EntityId hierarchy, RBAC context, DataSourceType" />
+          <BatchRow id="6"   name="Practitioner Review, Adjustments & Lock"          scope="AdjustmentRecord, TaxReadyRecord (locked), ReviewTask, SignOff" />
+          <BatchRow id="7"   name="Client Tax Profile & Eligibility"                 scope="TaxProfile, EligibilityDetermination, three-tier eligibility model" />
+          <BatchRow id="8"   name="Exceptions & Remediation"                         scope="ExceptionRecord, RemedyAction, re-ingestion triggers, audit trail" />
+        </div>
+        <div style={{ marginTop: "10px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
+          {[
+            { color: "#059669", label: "Active (PI 1 Complete)" },
+            { color: "#2563eb", label: "PI 2 Committed" },
+          ].map(l => (
+            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: l.color }} />
+              <span style={{ fontSize: "11px", color: "#475569" }}>{l.label}</span>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 5. Foundation Invariants ── */}
+      <Section title="What Must Be True — Foundation Invariants" subtitle="Section 5 — Non-Negotiable Rules" accent="green">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          {[
+            "All data must enter through a governed ingestion boundary — no direct system writes.",
+            "Every file must be assigned a DocumentId at ingestion. DocumentId is immutable.",
+            "DocumentId is the lineage anchor across all systems — PDC, TDC, and Roger.",
+            "Data is scoped using EntityId + PeriodStart + PeriodEnd. TaxYear is derived in TDC only — not stored in PDC.",
+            "PDC is the system of record for financial data and lineage. No other system may own financial truth.",
+            "TDC is the system of record for all tax decisions. Decisions are immutable once locked.",
+            "The Orchestrator is stateless. It must not persist data, own records, or hold state between calls.",
+            "All system interactions must occur via APIs only. No direct system coupling is permitted.",
+          ].map((text, i) => (
+            <InvariantCard key={i} index={i + 1} text={text} />
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 6. What This Enables ── */}
+      <Section title="What This Enables" subtitle="Section 6 — Platform Capabilities" accent="green">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+          {[
+            { icon: "⟳", title: "Deterministic Processing", desc: "Same input always produces the same output. Results are reproducible and auditable." },
+            { icon: "⌥", title: "Full Lineage & Traceability", desc: "Every record traces back to its DocumentId origin through all system layers." },
+            { icon: "⟷", title: "Cross-System Interoperability", desc: "PDC ↔ TDC ↔ Roger communicate exclusively through governed API contracts." },
+            { icon: "◈", title: "Governed AI Integration", desc: "Orchestrator operates within strict stateless boundaries — AI cannot own or persist data." },
+            { icon: "⬡", title: "API-First Architecture", desc: "All data access is contract-driven. No system bypasses the API layer." },
+            { icon: "▦", title: "Safe Parallel Development", desc: "Batches can run in parallel within a PI because ownership boundaries prevent conflicts." },
+          ].map(c => (
+            <div key={c.title} style={{
+              backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+              borderRadius: "8px", padding: "14px 16px",
+            }}>
+              <div style={{ fontSize: "18px", marginBottom: "6px" }}>{c.icon}</div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#065f46", marginBottom: "4px" }}>{c.title}</div>
+              <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.5" }}>{c.desc}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 7. What This Is NOT ── */}
+      <Section title="What This Is NOT" subtitle="Section 7 — Guardrails" accent="amber">
+        <div style={{
+          backgroundColor: "#fffbeb", border: "1px solid #fde68a",
+          borderRadius: "8px", padding: "16px 20px",
+        }}>
+          <div style={{ marginBottom: "10px", fontSize: "13px", color: "#78350f", fontWeight: 600 }}>
+            The following responsibilities are explicitly outside the scope of the DCT Delivery Model:
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+            {[
+              "Not a UI layer — Roger is the UI layer, not DCT.",
+              "Not a transformation engine — PDC normalizes; it does not transform for tax purposes.",
+              "Not a taxonomy definition system — TDC owns taxonomy; PDC stores the result.",
+              "Not a workflow engine — Review and approval workflows are Batch 6 scope, not platform scope.",
+              "Not responsible for tax calculations — TDC derives tax-ready records; it does not calculate tax liability.",
+              "Not a reporting layer — Roger reads and presents; it does not aggregate or compute.",
+            ].map((text, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "flex-start", gap: "8px",
+                fontSize: "13px", color: "#92400e", lineHeight: "1.5",
+              }}>
+                <span style={{ color: "#d97706", flexShrink: 0, marginTop: "1px" }}>✕</span>
+                {text}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* ── 8. Roger Connection ── */}
+      <Section title="How This Connects to Roger" subtitle="Section 8 — Consumption Layer" accent="slate">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div style={{
+            backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
+            borderRadius: "8px", padding: "16px 18px",
+          }}>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "10px" }}>Roger's Contract Rules</div>
+            {[
+              "Roger reads exclusively from TDC — the primary contract. No direct PDC reads.",
+              "Roger does not write, transform, or persist data. It is read-only at all times.",
+              "Without TDC APIs, Roger cannot function. TDC is a hard dependency.",
+              "Roger reflects mapping status in real time: GREEN (accepted), YELLOW (pending), RED (override or exception).",
+            ].map((text, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "flex-start", gap: "8px",
+                fontSize: "13px", color: "#334155", lineHeight: "1.5",
+                marginBottom: "8px",
+              }}>
+                <span style={{ color: "#059669", flexShrink: 0, marginTop: "1px" }}>✓</span>
+                {text}
+              </div>
+            ))}
+          </div>
+          <div style={{
+            backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
+            borderRadius: "8px", padding: "16px 18px",
+          }}>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "10px" }}>What Roger Reflects</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[
+                { label: "Mapping Status",  value: "GREEN / YELLOW / RED per canonical account",   color: "#059669" },
+                { label: "Decisions",       value: "Accepted / Overridden / Pending per TDC record", color: "#2563eb" },
+                { label: "Entity Context",  value: "ClientGroupId + EntityId + PeriodStart/End",     color: "#7c3aed" },
+                { label: "Tax-Ready State", value: "Locked TaxReadyRecord from Batch 6 TDC",         color: "#065f46" },
+              ].map(row => (
+                <div key={row.label} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                  gap: "8px", fontSize: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "6px",
+                }}>
+                  <span style={{ fontWeight: 700, color: row.color, flexShrink: 0 }}>{row.label}</span>
+                  <span style={{ color: "#475569", textAlign: "right" }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: "12px", padding: "8px 10px", backgroundColor: "#fef2f2", borderRadius: "6px", fontSize: "12px", color: "#7f1d1d", fontWeight: 600 }}>
+              ⚠ If TDC APIs are not published, Roger has no data to display.
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── 9. Failure Modes ── */}
+      <Section title="Failure Modes" subtitle="Section 9 — If This Model Is Not Enforced" accent="red">
+        <div style={{ marginBottom: "10px", fontSize: "13px", color: "#7f1d1d", fontWeight: 600 }}>
+          The following failures occur when DCT governance rules are bypassed or not enforced:
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+          {[
+            "Data loses lineage and traceability — DocumentId is no longer a reliable anchor.",
+            "Classification becomes inconsistent — FirmTaxonomyId is missing or unreliable across records.",
+            "Systems duplicate logic — PDC and TDC both attempt tax derivation, creating conflicts.",
+            "APIs become unreliable — contracts diverge from actual data, breaking Roger and downstream consumers.",
+            "Roger cannot present trusted outputs — mapping status and decisions are stale or incorrect.",
+            "AI becomes non-governed — Orchestrator persists state or owns decisions, violating stateless contract.",
+          ].map((text, i) => (
+            <FailureCard key={i} text={text} />
+          ))}
+        </div>
+      </Section>
+
+      {/* ── Footer navigation ── */}
+      <div style={{
+        borderTop: "2px solid #e2e8f0", paddingTop: "20px", marginTop: "8px",
+        display: "flex", gap: "10px", flexWrap: "wrap",
+      }}>
+        <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 600, marginRight: "4px", alignSelf: "center" }}>
+          Continue to:
+        </div>
+        {[
+          { label: "Batch Roadmap", path: "/batch-roadmap" },
+          { label: "Gate Status", path: "/gate-status" },
+          { label: "Control Panel", path: "/control-panel" },
+          { label: "Data Model & Gaps", path: "/data-model" },
+          { label: "Classification Walkthrough", path: "/classification-walkthrough" },
+          { label: "Taxonomy Explorer", path: "/taxonomy" },
+        ].map(l => (
+          <Link key={l.path} href={l.path}>
+            <span style={{
+              fontSize: "12px", fontWeight: 600, color: "#2563eb",
+              border: "1px solid #bfdbfe", borderRadius: "6px",
+              padding: "4px 10px", cursor: "pointer",
+              backgroundColor: "#eff6ff",
+              display: "inline-block",
+            }}>
+              {l.label} →
+            </span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
