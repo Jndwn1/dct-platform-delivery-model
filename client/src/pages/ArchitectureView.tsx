@@ -423,11 +423,243 @@ const TP_LEGEND_DATA = [
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 
+// ─── EXECUTIVE DEMO STEPS ────────────────────────────────────────────────────
+
+const EXEC_DEMO_STEPS = [
+  {
+    step: 1, title: "Client File Arrives at Tax Portal",
+    system: "Tax Portal · Platform",
+    color: "bg-blue-700",
+    highlight: "section-1",
+    narrative: "A client uploads their Trial Balance from SAP. Tax Portal is the single ingestion gate — it validates EntityId, PeriodStart, PeriodEnd, assigns an immutable DocumentId (GUID) and JobId (GUID), and publishes a NEW_FILE_EVENT to the Service Bus. TaxYear is NOT in the payload.",
+    keyFact: "DocumentId is the immutable lineage anchor for every downstream record.",
+    fields: ["ClientId (GUID)", "EntityId (GUID)", "DocumentId (GUID) — immutable", "PeriodStart / PeriodEnd", "NEW_FILE_EVENT → Service Bus"],
+  },
+  {
+    step: 2, title: "PDC Receives Event & Creates Initial Record",
+    system: "PDC · DCT",
+    color: "bg-emerald-700",
+    highlight: "section-2",
+    narrative: "PDC listens on the Service Bus and immediately persists an IngestionJob record before AI is ever invoked. Status is set to INGESTED. TaxYear is NOT stored in PDC — it is derived later in TDC from PeriodStart.",
+    keyFact: "An audit record exists in PDC before any AI processing begins.",
+    fields: ["IngestionJob persisted", "Status = INGESTED", "TaxYear NOT stored (derived in TDC)", "Retry-safe: PDC holds backlog"],
+  },
+  {
+    step: 3, title: "PDC Triggers AI Orchestrator — Single Invocation",
+    system: "PDC → AI Orchestrator",
+    color: "bg-green-700",
+    highlight: "section-3",
+    narrative: "PDC advances the record to PROCESSING and invokes the AI Orchestrator exactly once per file. This is the only AI invocation for this file. The Orchestrator is stateless — it does not own data.",
+    keyFact: "PDC has one integration point: the Orchestrator. TDC never invokes the Orchestrator.",
+    fields: ["JobId (GUID)", "PeriodStart / PeriodEnd", "file metadata", "TaxYear NOT passed"],
+  },
+  {
+    step: 4, title: "AI Orchestrator — Stage 1: File Recognition & Normalization",
+    system: "AI Orchestrator · Roger Team",
+    color: "bg-purple-700",
+    highlight: "section-4",
+    narrative: "Agent 1 (File Recognizer) pattern-matches the file against canonical schemas. Agent 2 (File Normalizer) extracts raw data and transforms it into the standard canonical format. Output: normalized canonical records ready for cross-LOB mapping.",
+    keyFact: "Agents are stateless — all persistence flows through PDC or TDC APIs.",
+    fields: ["Agent 1 — File Recognizer", "Agent 2 — File Normalizer", "Output: Normalized canonical records"],
+  },
+  {
+    step: 5, title: "AI Orchestrator — Stage 2: Cross-LOB Taxonomy & FirmTaxonomyId",
+    system: "AI Orchestrator → PDC · Batch 2A",
+    color: "bg-amber-600",
+    highlight: "section-4-batch2a",
+    narrative: "Agent 3 (Cross-LOB / Firm Taxonomy Mapper) maps each normalized record to the firm's financial taxonomy using the Taxonomy Service. Each record receives a FirmTaxonomyId (GUID) and ClassificationStatus. The Orchestrator calls the PDC API to persist these records. ⚠ Batch 2A Gap: Orchestrator is NOT currently returning FirmTaxonomyId — this is the blocking gap Batch 2A resolves.",
+    keyFact: "FirmTaxonomyId is REQUIRED on every PDC FinancialFact record. READY signal is blocked if any record is UNCLASSIFIED.",
+    fields: ["FirmTaxonomyId (GUID) — from Taxonomy Service", "ClassificationStatus (CLASSIFIED | UNCLASSIFIED | OVERRIDE)", "RunId (GUID)", "SourceRecordId (GUID) per record", "⚠ Batch 2A: Orchestrator gap — not yet returning FirmTaxonomyId"],
+  },
+  {
+    step: 6, title: "AI Orchestrator — Stage 3: Tax Taxonomy (TDC)",
+    system: "AI Orchestrator → TDC",
+    color: "bg-purple-700",
+    highlight: "section-4",
+    narrative: "Agent 4 (Tax Taxonomy Mapper) maps each cross-LOB mapped record to the tax taxonomy. It pulls tax taxonomy tables from TDC API (read-only) and produces proposed tax line, confidence band (GREEN / YELLOW / RED), and evidence. Results are written to TDC via API.",
+    keyFact: "TdcRecordId (GUID) is assigned. Confidence band drives practitioner review priority.",
+    fields: ["TdcRecordId (GUID)", "ConfidenceBand (GREEN | YELLOW | RED)", "Tax mapping proposals", "Evidence / reasoning"],
+  },
+  {
+    step: 7, title: "Roger Web App — Practitioner Review",
+    system: "Roger Web App · Roger Team",
+    color: "bg-slate-600",
+    highlight: "section-5",
+    narrative: "Roger retrieves tax mapping proposals from TDC via the primary read contract. This is the moment the platform comes to life for a practitioner. Roger is read-only — it never runs AI, mutates PDC, or mutates TDC directly.",
+    keyFact: "All API calls are scoped by ClientId + EntityId + PeriodStart + PeriodEnd. No TaxYear parameter.",
+    fields: ["GET /api/tdc/records?entityId=...&periodStart=...&periodEnd=...", "GET /api/tdc/records/{id}/lineage", "Read-only consumer"],
+  },
+  {
+    step: 8, title: "Practitioner Approves, Corrects, or Overrides",
+    system: "Practitioner via Roger UI",
+    color: "bg-slate-500",
+    highlight: "section-6",
+    narrative: "The practitioner reviews AI proposals and takes action: approve, correct, or override. Cross-LOB meaning changes route to PDC (new FinancialFact version). Tax classification changes route to TDC (new MappingDecision appended). All operations are append-only.",
+    keyFact: "Locked records are immutable. Sign-off is non-repudiable.",
+    fields: ["Approve / Correct / Override", "Cross-LOB change → PDC (new GUID version)", "Tax change → TDC (appended)", "Lifecycle: Draft → Submitted → Approved → Locked"],
+  },
+  {
+    step: 9, title: "TDC Finalization — TAX_READY",
+    system: "TDC · DCT",
+    color: "bg-yellow-600",
+    highlight: "section-8",
+    narrative: "After practitioner sign-off, TDC finalizes the record as TAX_READY. The lock is terminal — mutation attempts are rejected and logged. Tax truth is finalized here. TDC versions all decisions.",
+    keyFact: "TAX_READY is the authoritative signal that a record is ready for filing and downstream consumption.",
+    fields: ["Status: TAX_READY", "Lock is terminal", "TDC versions all decisions", "Audit trail complete"],
+  },
+  {
+    step: 10, title: "Downstream Consumption — PDC READY & TDC TAX_READY",
+    system: "Any Domain Subscriber",
+    color: "bg-cyan-700",
+    highlight: "section-downstream",
+    narrative: "Any domain can subscribe to PDC READY and TDC TAX_READY signals without requiring changes to PDC or TDC. Roger reads from TDC only. IMS receives outbound outputs only. The full lineage chain — DocumentId → FirmTaxonomyId → SourceRecordId → TdcRecordId — is traceable end-to-end.",
+    keyFact: "Platform extensibility: new domains subscribe to existing signals. No PDC/TDC changes required.",
+    fields: ["PDC READY → Tax · Audit · Consulting · any LOB", "TDC TAX_READY → Filing · Reporting", "Lineage: DocumentId → FirmTaxonomyId → SourceRecordId → TdcRecordId"],
+  },
+];
+
 function VisioDiagramTab() {
   const [selectedTp, setSelectedTp] = useState<string | null>(null);
+  const [demoOpen, setDemoOpen] = useState(false);
+  const [demoStep, setDemoStep] = useState(0);
+
+  const currentStep = EXEC_DEMO_STEPS[demoStep];
+  const isFirst = demoStep === 0;
+  const isLast = demoStep === EXEC_DEMO_STEPS.length - 1;
+
+  // Keyboard navigation for demo
+  useEffect(() => {
+    if (!demoOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); if (!isLast) setDemoStep(s => s + 1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); if (!isFirst) setDemoStep(s => s - 1); }
+      if (e.key === "Escape") setDemoOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [demoOpen, isFirst, isLast]);
 
   return (
     <div className="space-y-0">
+
+      {/* ── EXECUTIVE DEMO MODAL ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {demoOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setDemoOpen(false); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
+            >
+              {/* Header */}
+              <div className={`${currentStep.color} px-6 py-4 flex items-center justify-between`}>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-white/70 mb-0.5">
+                    RSM DCT · Executive Demo · Step {currentStep.step} of {EXEC_DEMO_STEPS.length}
+                  </div>
+                  <div className="text-lg font-bold text-white">{currentStep.title}</div>
+                  <div className="text-xs text-white/80 mt-0.5">{currentStep.system}</div>
+                </div>
+                <button onClick={() => setDemoOpen(false)} className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-1.5 bg-slate-200">
+                <div
+                  className={`h-full ${currentStep.color} transition-all duration-500`}
+                  style={{ width: `${((demoStep + 1) / EXEC_DEMO_STEPS.length) * 100}%` }}
+                />
+              </div>
+
+              {/* Step dots */}
+              <div className="flex items-center justify-center gap-1.5 pt-3 px-6">
+                {EXEC_DEMO_STEPS.map((s, i) => (
+                  <button
+                    key={s.step}
+                    onClick={() => setDemoStep(i)}
+                    className={`rounded-full transition-all ${
+                      i === demoStep ? "w-4 h-4 bg-[#003A8F]" :
+                      i < demoStep ? "w-2.5 h-2.5 bg-slate-400" :
+                      "w-2.5 h-2.5 bg-slate-200"
+                    }`}
+                    title={`Step ${s.step}: ${s.title}`}
+                  />
+                ))}
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-4 space-y-4">
+                {/* Narrative */}
+                <p className="text-sm text-slate-700 leading-relaxed">{currentStep.narrative}</p>
+
+                {/* Key Fact */}
+                <div className="bg-[#003A8F]/8 border border-[#003A8F]/20 rounded-lg px-4 py-3">
+                  <div className="text-xs font-bold uppercase tracking-wider text-[#003A8F] mb-1">Key Governance Fact</div>
+                  <div className="text-sm font-semibold text-[#003A8F]">{currentStep.keyFact}</div>
+                </div>
+
+                {/* Fields */}
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Data Fields / Outputs</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {currentStep.fields.map((f, i) => (
+                      <span
+                        key={i}
+                        className={`text-xs px-2.5 py-1 rounded-full font-mono border ${
+                          f.startsWith("⚠")
+                            ? "bg-amber-50 text-amber-800 border-amber-300 font-semibold"
+                            : f.includes("FirmTaxonomyId")
+                            ? "bg-violet-50 text-violet-800 border-violet-300 font-semibold"
+                            : f.includes("ClassificationStatus")
+                            ? "bg-violet-50 text-violet-700 border-violet-200"
+                            : "bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer nav */}
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <button
+                  onClick={() => isFirst ? setDemoOpen(false) : setDemoStep(s => s - 1)}
+                  className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 transition-colors"
+                >
+                  {isFirst ? "Close" : "← Back"}
+                </button>
+                <div className="text-xs text-slate-400">← → Arrow keys · Space to advance · Esc to close</div>
+                {isLast ? (
+                  <button
+                    onClick={() => setDemoOpen(false)}
+                    className="text-xs font-semibold bg-emerald-700 text-white px-4 py-2 rounded-lg hover:bg-emerald-800 transition-colors flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Demo Complete
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setDemoStep(s => s + 1)}
+                    className="text-xs font-semibold bg-[#003A8F] text-white px-4 py-2 rounded-lg hover:bg-[#002a6e] transition-colors flex items-center gap-1.5"
+                  >
+                    Next — {EXEC_DEMO_STEPS[demoStep + 1].title.split(" ").slice(0, 4).join(" ")}… <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <div className="bg-white border border-border rounded-xl px-5 py-4 mb-4">
@@ -441,7 +673,10 @@ function VisioDiagramTab() {
           Baseline v1.0 &nbsp;|&nbsp; Owner: DCT &nbsp;|&nbsp; Agentic Execution Model
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button className="inline-flex items-center gap-1.5 text-xs bg-slate-900 text-white px-3 py-1.5 rounded font-semibold">
+          <button
+            onClick={() => { setDemoStep(0); setDemoOpen(true); }}
+            className="inline-flex items-center gap-1.5 text-xs bg-[#003A8F] text-white px-3 py-1.5 rounded font-semibold hover:bg-[#002a6e] transition-colors"
+          >
             <Play className="w-3 h-3" /> Executive Demo
           </button>
           <button className="inline-flex items-center gap-1.5 text-xs bg-white border border-slate-300 text-slate-600 px-3 py-1.5 rounded font-medium">
@@ -604,20 +839,23 @@ function VisioDiagramTab() {
               PDC — Phoenix Data Consolidation · Cross-LOB System of Record · Ingestion Persistence
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <ContentBox
-                title="IngestionJob"
-                owner="Owner: DCT"
-                items={[
-                  "JobId (GUID) — PRIMARY tracking key",
-                  "ClientId (GUID) — REQUIRED",
-                  "EntityId (GUID) — REQUIRED",
-                  "PeriodStart (DateOnly) — REQUIRED",
-                  "PeriodEnd (DateOnly) — REQUIRED",
-                  "Status enum = INGESTED",
-                  "CreatedTimestamp · RequestedBy · SourceSystem",
-                  "Rule: TaxYear NOT stored — derived in TDC only",
-                ]}
-              />
+              <div className="bg-white border border-slate-200 rounded p-3">
+                <div className="text-xs font-bold text-slate-800 mb-1">IngestionJob</div>
+                <div className="text-xs text-blue-700 font-semibold mb-1">Owner: DCT</div>
+                <ul className="space-y-0.5">
+                  {["JobId (GUID) — PRIMARY tracking key","ClientId (GUID) — REQUIRED","EntityId (GUID) — REQUIRED","PeriodStart (DateOnly) — REQUIRED","PeriodEnd (DateOnly) — REQUIRED","Status enum = INGESTED","CreatedTimestamp · RequestedBy · SourceSystem","Rule: TaxYear NOT stored — derived in TDC only"].map((item,i) => (
+                    <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5"><span className="text-slate-400 shrink-0 mt-0.5">•</span>{item}</li>
+                  ))}
+                </ul>
+                <div className="mt-2 pt-2 border-t border-violet-200">
+                  <div className="text-xs font-bold text-violet-800 mb-1">Batch 2A Fields (FinancialFact)</div>
+                  <div className="flex flex-wrap gap-1">
+                    <span className="text-xs bg-violet-100 text-violet-800 border border-violet-300 px-1.5 py-0.5 rounded font-bold">FirmTaxonomyId (GUID)</span>
+                    <span className="text-xs bg-violet-50 text-violet-700 border border-violet-200 px-1.5 py-0.5 rounded">ClassificationStatus</span>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">REQUIRED on every FinancialFact record after Batch 2A</div>
+                </div>
+              </div>
               <ContentBox
                 title="SourceFile"
                 items={[
@@ -646,6 +884,11 @@ function VisioDiagramTab() {
                   {["JobId (GUID) — primary key","DocumentId (GUID) — immutable","SourceFileId (GUID)","ClientId (GUID)","EntityId (GUID)","PeriodStart (DateOnly)","PeriodEnd (DateOnly)","State (INGESTED | PROCESSING | READY)"].map((item,i) => (
                     <li key={i} className="text-xs text-slate-500 flex items-start gap-1"><span className="shrink-0">•</span>{item}</li>
                   ))}
+                  <li className="flex items-start gap-1 mt-1">
+                    <span className="shrink-0">•</span>
+                    <span className="text-xs font-bold text-violet-800 bg-violet-100 border border-violet-300 px-1 py-0.5 rounded">FirmTaxonomyId</span>
+                    <span className="text-xs text-slate-500 ml-1">(Batch 2A)</span>
+                  </li>
                 </ul>
                 <div className="mt-2 text-xs text-blue-700 italic">Annotation: Audit record exists before AI is invoked.</div>
               </div>
@@ -731,9 +974,19 @@ function VisioDiagramTab() {
                 <div className="bg-green-100 border border-green-300 rounded p-2 mb-2">
                 <div className="text-xs font-bold text-green-800 mb-1">ORCHESTRATOR CALLS PDC API TO PERSIST:</div>
                 <ul className="space-y-0.5">
-                  {["Normalized canonical records","Cross-LOB taxonomy mappings at the record level","Records keyed by DocumentId (GUID), EntityId (GUID), PeriodStart, PeriodEnd","FirmTaxonomyId (GUID) — from Taxonomy Service · REQUIRED per Batch 2A","ClassificationStatus (CLASSIFIED | UNCLASSIFIED | OVERRIDE)"].map((item,i) => (
+                  {["Normalized canonical records","Cross-LOB taxonomy mappings at the record level","Records keyed by DocumentId (GUID), EntityId (GUID), PeriodStart, PeriodEnd"].map((item,i) => (
                     <li key={i} className="text-xs text-green-700 flex items-start gap-1.5"><span className="shrink-0">•</span>{item}</li>
                   ))}
+                  <li className="flex items-start gap-1.5">
+                    <span className="shrink-0">•</span>
+                    <span className="text-xs font-bold text-violet-800 bg-violet-100 border border-violet-300 px-1.5 py-0.5 rounded">FirmTaxonomyId (GUID)</span>
+                    <span className="text-xs text-green-700">— from Taxonomy Service · REQUIRED per Batch 2A</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="shrink-0">•</span>
+                    <span className="text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded">ClassificationStatus</span>
+                    <span className="text-xs text-green-700">(CLASSIFIED | UNCLASSIFIED | OVERRIDE)</span>
+                  </li>
                 </ul>
               </div>
               <div className="bg-green-100 border border-green-300 rounded p-2 mb-2">
