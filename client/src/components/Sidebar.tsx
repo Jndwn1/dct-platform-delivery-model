@@ -30,6 +30,7 @@ const BATCH_ITEM_DEFS: { label: string; path: string; batchKey: BatchKey; demoLi
   { label: "Foundation Core",                              path: "/batch/foundation-core", batchKey: "foundation-core" },
   { label: "Batch 1 — File Ingestion & Initial Storage",   path: "/batch/1",              batchKey: "1",  demoLink: "/weekly-demo?batch=1" },
   { label: "Batch 2 — Normalization & Cross-LOB Taxonomy", path: "/batch/2",              batchKey: "2",  demoLink: "/weekly-demo?batch=2" },
+  { label: "Batch 2A — Contract Enforcement & Classification", path: "/batch/2a",           batchKey: "2a", demoLink: "/weekly-demo?batch=2a" },
   { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy",path: "/batch/3",              batchKey: "3",  demoLink: "/weekly-demo?batch=3" },
   { label: "Batch 4 — AI Tax Mapping & Explainability",    path: "/batch/4",              batchKey: "4",  demoLink: "/weekly-demo?batch=4" },
   { label: "Batch 5 — Entity Identity & Structure",          path: "/batch/5",              batchKey: "5",  demoLink: "/weekly-demo?batch=5" },

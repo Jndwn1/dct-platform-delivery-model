@@ -283,6 +283,37 @@ export const allBatches: ArchitecturalBatch[] = [
     gates: []
   },
   {
+    id: "AB-02A",
+    name: "Orchestrator Contract Enforcement & Classification",
+    status: "PLANNED",
+    touchpoints: ["T4", "T5"],
+    primarySystem: "PDC + AI Orchestrator",
+    keyGate: "G2 — Invariant Lock",
+    entryCondition: "AB-02 in progress — runs sequentially with Batch 2; must complete before Batch 2 outputs are valid",
+    exitCondition: "All Orchestrator responses validated; FirmTaxonomyId enforced on every record; classification rejection and audit log operational",
+    batchLead: "PDC Workstream Lead",
+    openIssues: 1,
+    completionPct: 0,
+    startDate: undefined,
+    targetDate: "2026-05-16",
+    piLabel: "PI 1 → PI 2",
+    overview: "Batch 2A establishes a strict contract enforcement layer between the Orchestrator and PDC, ensuring that all incoming data is fully classified, validated, and compliant before it is accepted. It requires every record to include a valid FirmTaxonomyId and enforces deterministic validation rules that reject any incomplete or malformed datasets in full, with no partial acceptance. By preventing PDC from inferring or compensating for missing classification, it creates a clear system boundary where only governed, high-quality data is allowed into normalization. This feature acts as a critical quality gate for Batch 2, eliminating ambiguity, strengthening data integrity, and enabling full auditability and lineage through consistent validation outcomes and RunId tracking.",
+    whatMustBeTrue: "Classification Requirement: FirmTaxonomyId is required on every record. Classification must be present before normalization is considered complete. Records without classification are invalid and must not proceed downstream. Contract Enforcement: All Orchestrator responses must be validated before ingestion. Contract violations must result in rejection. No downstream system may compensate for missing classification. No Inferred Classification: Classification is owned by the Orchestrator. PDC may not generate or guess classification values. Deterministic Validation: The same input must always produce the same validation outcome. Partial acceptance is not permitted. Lineage & Traceability: Each FirmTaxonomyId must be linked to its source record. RunId must be maintained for lineage tracking. Validation results must be auditable.",
+    stories: [
+      "Enforce Classification Presence (FirmTaxonomyId)",
+      "Bulk Insert vs Upsert Strategy (Future Scope)",
+    ],
+    outcomes: [
+      "Submit a dataset with FirmTaxonomyId present — system accepts and ingests into PDC",
+      "Submit a dataset missing FirmTaxonomyId — system rejects the dataset, logs the failure, and halts processing",
+      "Submit a malformed contract response — system validates required fields, rejects on violation, logs structured error details",
+      "Accepted records store FirmTaxonomyId at the record level → classification is queryable per normalized record with RunId lineage intact",
+      "Same input dataset consistently results in the same validation outcome (accept or reject)",
+      "Validation audit log is queryable — every acceptance and rejection is traceable with structured context",
+    ],
+    gates: []
+  },
+  {
     id: "AB-03",
     name: "Tax Domain Authority & Tax Taxonomy",
     status: "PLANNED",

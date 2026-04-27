@@ -18,7 +18,7 @@ import {
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
-type NodeStatus = "Complete" | "Processing" | "Pending" | "Decision Workflow Active";
+type NodeStatus = "Complete" | "Processing" | "Pending" | "Decision Workflow Active" | "Gap";
 type Readiness  = "Ready" | "Partial" | "Blocked";
 type FeatureStatus = "Complete" | "Dev" | "Blocked" | "Planned";
 type ApiMethod = "GET" | "POST" | "PUT";
@@ -132,6 +132,45 @@ const BATCH_DATA: Record<string, BatchDemoData> = {
       { id: "orch",   label: "Orchestrator", sub: "Agent Routing", system: "Orchestrator", status: "Processing" },
       { id: "tdc",    label: "TDC",        sub: "Tax Judgment",   system: "TDC",          status: "Pending" },
       { id: "out",    label: "Output",     sub: "Roger (Read-Only)", system: "Output",     status: "Pending" },
+    ],
+  },
+  "2a": {
+    name: "Batch 2A — Orchestrator Contract Enforcement & Classification",
+    shortName: "Batch 2A — Contract Enforcement",
+    readiness: "Partial",
+    readinessDetail: "Classification enforcement rule defined; audit log and rejection demo pending",
+    runId: "RUN-20240315-002A",
+    agentChain: "Ingest → Validate Classification → Reject or Accept → Persist",
+    status: "VALIDATING",
+    target: "PDC — Classification Enforcement Layer",
+    totalSteps: 4,
+    events: [
+      { time: "12:10:38 PM", msg: "Orchestrator response received by PDC" },
+      { time: "12:10:39 PM", msg: "Validation: checking FirmTaxonomyId on all records" },
+      { time: "12:10:40 PM", msg: "REJECTED: FirmTaxonomyId missing on 3 records" },
+      { time: "12:10:40 PM", msg: "Rejection logged with RunId, EntityId, PeriodStart, reason" },
+      { time: "12:10:41 PM", msg: "Audit log entry created — traceable and queryable" },
+      { time: "12:10:42 PM", msg: "Orchestrator notified: resubmission required" },
+      { time: "12:10:50 PM", msg: "Resubmission received — FirmTaxonomyId present on all records" },
+      { time: "12:10:51 PM", msg: "ACCEPTED: all records persisted with FirmTaxonomyId at record level" },
+    ],
+    apis: [
+      { method: "POST", path: "/api/pdc/orchestrator/validate",         desc: "Submit Orchestrator response for classification validation", system: "PDC" },
+      { method: "GET",  path: "/api/pdc/orchestrator/audit-log/{runId}", desc: "Retrieve classification validation audit log",              system: "PDC" },
+      { method: "GET",  path: "/api/pdc/normalized-tb",                  desc: "Confirm classified normalized records are queryable",        system: "PDC" },
+    ],
+    features: [
+      { id: "DCT-2A01", label: "FirmTaxonomyId enforcement rule",    status: "Dev" },
+      { id: "DCT-2A02", label: "Deterministic rejection logic",       status: "Dev" },
+      { id: "DCT-2A03", label: "Classification audit log",            status: "Planned" },
+      { id: "DCT-2A04", label: "Bulk insert vs upsert strategy",      status: "Planned" },
+    ],
+    flowNodes: [
+      { id: "portal",   label: "Tax Portal",    sub: "File Intake",         system: "Portal",       status: "Complete" },
+      { id: "pdc",      label: "PDC",           sub: "Financial Truth",      system: "PDC",          status: "Processing" },
+      { id: "orch",     label: "Orchestrator",  sub: "Classification Owner", system: "Orchestrator", status: "Gap" as NodeStatus },
+      { id: "validate", label: "Validation",    sub: "Enforce FirmTaxId",    system: "PDC",          status: "Processing" },
+      { id: "out",      label: "Output",        sub: "Roger (Read-Only)",    system: "Output",       status: "Pending" },
     ],
   },
   "3": {
@@ -381,6 +420,7 @@ const NODE_STATUS_STYLE: Record<NodeStatus, { bg: string; text: string }> = {
   Processing:                { bg: "#1e3a5f", text: "#93c5fd" },
   Pending:                   { bg: "#1e293b", text: "#475569" },
   "Decision Workflow Active": { bg: "#3b1f6e", text: "#c4b5fd" },
+  Gap:                         { bg: "#7f1d1d", text: "#fca5a5" },
 };
 
 const METHOD_COLOR: Record<ApiMethod, string> = {

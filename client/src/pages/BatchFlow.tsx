@@ -7,6 +7,7 @@ const BATCH_OPTIONS = [
   { id: "foundation-core", label: "Foundation Core", status: "Active" },
   { id: "1", label: "Batch 1 — File Ingestion & Initial Storage", status: "Active" },
   { id: "2", label: "Batch 2 — Normalization & Cross-LOB Taxonomy", status: "Planned" },
+  { id: "2a", label: "Batch 2A — Orchestrator Contract Enforcement & Classification", status: "Planned" },
   { id: "3", label: "Batch 3 — Tax Domain Authority & Tax Taxonomy", status: "Planned" },
   { id: "4", label: "Batch 4 — AI Tax Mapping & Explainability", status: "Planned" },
   { id: "5", label: "Batch 5 — Entity Identity & Structure", status: "Planned" },
@@ -20,6 +21,27 @@ const BATCH_OPTIONS = [
 
 
 const BATCH_ARTIFACTS: Record<string, { epic: string; features: { label: string; stories: string[] }[] }> = {
+  "2a": {
+    epic: "Orchestrator Contract Enforcement & Classification — Enforce FirmTaxonomyId on every PDC record",
+    features: [
+      {
+        label: "Classification Presence Enforcement",
+        stories: [
+          "As PDC, I validate that every Orchestrator response includes a non-null FirmTaxonomyId so that unclassified records are never persisted.",
+          "As PDC, I reject the entire dataset when FirmTaxonomyId is missing so that partial acceptance never occurs.",
+          "As PDC, I log every rejection with structured error details (RunId, EntityId, PeriodStart, PeriodEnd, reason) so that failures are auditable.",
+        ],
+      },
+      {
+        label: "Deterministic Validation",
+        stories: [
+          "As PDC, I apply deterministic validation rules so that the same input always produces the same outcome (accept or reject).",
+          "As PDC, I store FirmTaxonomyId at the record level on every accepted normalized record so that classification is queryable per record with RunId lineage intact.",
+          "As PDC, I expose a validation audit log endpoint so that every acceptance and rejection is traceable with structured context.",
+        ],
+      },
+    ],
+  },
   "1": {
     epic: "File Ingestion & Initial Storage — Establish Tax Portal as the single ingestion gate",
     features: [

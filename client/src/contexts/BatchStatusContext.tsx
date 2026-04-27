@@ -13,6 +13,7 @@ export interface BatchStatusMap {
   "foundation-core": BatchStatus;
   "1": BatchStatus;
   "2": BatchStatus;
+  "2a": BatchStatus;
   "3": BatchStatus;
   "4": BatchStatus;
   "5": BatchStatus;
@@ -30,6 +31,7 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "foundation-core": "Foundation Core",
   "1": "Batch 1 — File Ingestion & Initial Storage",
   "2": "Batch 2 — Normalization & Cross-LOB Taxonomy",
+  "2a": "Batch 2A — Orchestrator Contract Enforcement & Classification",
   "3": "Batch 3 — Tax Domain Authority & Tax Taxonomy",
   "4": "Batch 4 — AI Tax Mapping & Explainability",
   "5": "Batch 5 — Entity Identity & Structure",
@@ -46,6 +48,7 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "foundation-core": "Complete",
   "1": "Complete",
   "2": "Dev",
+  "2a": "Dev",
   "3": "Planned",
   "4": "Planned",
   "5": "Planned",
