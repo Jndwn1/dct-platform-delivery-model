@@ -1558,16 +1558,30 @@ export default function ArchitectureView() {
           <motion.div key="dependencies" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             <div className="space-y-3">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Platform Dependencies — {DEPENDENCIES.length} tracked</div>
+
+              {/* Batch 2A blocking callout */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
+                <span className="text-amber-500 text-base shrink-0 mt-0.5">⚠</span>
+                <div>
+                  <div className="text-xs font-bold text-amber-800 mb-0.5">Batch 2A — FirmTaxonomyId Enforcement Gate</div>
+                  <div className="text-xs text-amber-700">DEP-04 (Taxonomy Service API contract) is currently <strong>BLOCKED</strong> and is a hard prerequisite for Batch 2A gate closure. The AI Orchestrator (Agent 3) cannot return FirmTaxonomyId until this contract is published and versioned. PDC will not issue READY signals for unclassified records once enforcement is active.</div>
+                </div>
+              </div>
+
               {DEPENDENCIES.map(dep => (
                 <div key={dep.id} className={`bg-white border rounded-xl p-5 space-y-2 ${
+                  dep.id === "DEP-04" ? "border-amber-300 bg-amber-50/30" :
                   dep.blocking ? "border-red-200" : "border-border"
                 }`}>
                   <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">{dep.id}</span>
                       <span className="font-semibold text-foreground text-sm">{dep.name}</span>
                       {dep.blocking && (
                         <span className="text-xs bg-red-100 text-red-800 border border-red-200 px-2 py-0.5 rounded-full font-bold">BLOCKING</span>
+                      )}
+                      {dep.id === "DEP-04" && (
+                        <span className="text-xs bg-violet-100 text-violet-800 border border-violet-200 px-2 py-0.5 rounded-full font-bold">Batch 2A</span>
                       )}
                     </div>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${

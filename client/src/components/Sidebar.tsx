@@ -84,7 +84,7 @@ const DIAGRAM_ITEMS: NavItem[] = [
   { label: "Architecture Diagram",   path: "/architecture",            icon: "⬡" },
   { label: "Architecture Sync",      path: "/architecture?tab=visio",  icon: "⟳", isArchSync: true },
   { label: "Developer Architecture", path: "/architecture/developer",  icon: "▤" },
-  { label: "Enterprise Architecture",path: "/architecture/enterprise", icon: "▣" },
+  { label: "Enterprise Overview",    path: "/architecture/enterprise", icon: "▣" },
   { label: "Runtime Journey (T1–10)",path: "/runtime-journey",         icon: "↝" },
 ];
 

@@ -728,6 +728,11 @@ export const DEPENDENCIES: Dependency[] = [
     description: "Service Bus topics and subscriptions must be configured for: New File event (Tax Portal → PDC), READY event (PDC → TDC), and Adjustment event (Roger → PDC/TDC).",
     owner: "Platform team", status: "IN_PROGRESS", blocking: true,
   },
+  {
+    id: "DEP-04", name: "Taxonomy Service API contract",
+    description: "The Taxonomy Service must expose a read-only API that returns FirmTaxonomyId (GUID) and ClassificationStatus for a given taxonomy key. The AI Orchestrator (Agent 3 — Cross-LOB Mapper) must call this API before persisting FinancialFact records to PDC. PDC will reject any record missing a valid FirmTaxonomyId after Batch 2A enforcement is active. Contract must be published and versioned before Batch 2A gate closes.",
+    owner: "DCT / TDC Team", status: "BLOCKED", blocking: true,
+  },
 ];
 
 export const ARCH_METADATA = {
@@ -742,7 +747,7 @@ export const ARCH_METADATA = {
   agentCount: 5,
   adrCount: 6,
   openItemCount: 4,
-  dependencyCount: 3,
+  dependencyCount: 4,
 };
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
