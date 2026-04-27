@@ -412,8 +412,8 @@ const TP_LEGEND_DATA = [
   { id: "T1", name: "File Ingestion via Tax Portal", step: "Step 1", batch: "Batch 1", system: "Tax Portal", desc: "Tax Portal generates DocumentId (GUID) + JobId (GUID), validates EntityId + PeriodStart + PeriodEnd, publishes NEW_FILE_EVENT to file_ingestion_events." },
   { id: "T2", name: "PDC Record Creation", step: "Step 2", batch: "Batch 1", system: "PDC", desc: "PDC persists IngestionJob (GUID ids, PeriodStart/PeriodEnd) + SourceFile. Status enum = INGESTED. Service Bus is transport only — no processing or enrichment." },
   { id: "T3", name: "AI Processing Trigger", step: "Step 3", batch: "Batch 2", system: "PDC → AI Orchestrator", desc: "PDC advances record state to PROCESSING and invokes the AI Orchestrator once per file." },
-  { id: "T4", name: "AI Agent Pipeline Execution", step: "Step 4", batch: "Batch 2", system: "AI Orchestrator", desc: "Agent chain: File Recognizer → File Normalizer → Cross-LOB Mapper → Tax Mapper. Stateless agents persist via APIs." },
-  { id: "T5", name: "Canonical Dataset Persistence", step: "Step 4", batch: "Batch 2", system: "PDC", desc: "PDC persists normalized FinancialFact records + Cross-LOB mappings. Assigns RunId (GUID) + SourceRecordId (GUID). Status enum = READY." },
+  { id: "T4", name: "AI Agent Pipeline Execution", step: "Step 4", batch: "Batch 2 / 2A", system: "AI Orchestrator", desc: "Agent chain: File Recognizer → File Normalizer → Cross-LOB Mapper → Tax Mapper. Stateless agents persist via APIs. Batch 2A gap: Orchestrator must return FirmTaxonomyId (from Taxonomy Service) with every record. ClassificationStatus = CLASSIFIED | UNCLASSIFIED | OVERRIDE." },
+  { id: "T5", name: "Canonical Dataset Persistence", step: "Step 4", batch: "Batch 2 / 2A", system: "PDC", desc: "PDC persists normalized FinancialFact records + Cross-LOB mappings. Assigns RunId (GUID) + SourceRecordId (GUID). Status enum = READY. FirmTaxonomyId is a REQUIRED field on every FinancialFact record (enforcement active after Batch 2A). READY signal blocked if any record has ClassificationStatus = UNCLASSIFIED." },
   { id: "T6", name: "Tax Record Creation in TDC", step: "Step 4", batch: "Batch 3", system: "TDC", desc: "Tax mapping proposals stored in TDC. TDC assigns tdc_record_id and preserves full lineage." },
   { id: "T7", name: "Roger Primary Read Contract", step: "Step 5", batch: "Batch 4", system: "Roger Web App", desc: "Roger retrieves tax mapping proposals and decisions via TDC read contract. Read-only consumer of TDC. This is the moment the platform comes to life for a practitioner." },
   { id: "T8", name: "Practitioner Review & Adjustment", step: "Step 6", batch: "Batch 6", system: "Roger Web App", desc: "Review tasks generated automatically from data state. Practitioner creates, submits, approves, and locks book-to-tax adjustments. Sign-off is non-repudiable. Lock is terminal." },
@@ -728,10 +728,10 @@ function VisioDiagramTab() {
                   ))}
                 </ul>
               </div>
-              <div className="bg-green-100 border border-green-300 rounded p-2 mb-2">
+                <div className="bg-green-100 border border-green-300 rounded p-2 mb-2">
                 <div className="text-xs font-bold text-green-800 mb-1">ORCHESTRATOR CALLS PDC API TO PERSIST:</div>
                 <ul className="space-y-0.5">
-                  {["Normalized canonical records","Cross-LOB taxonomy mappings at the record level","Records keyed by DocumentId (GUID), EntityId (GUID), PeriodStart, PeriodEnd"].map((item,i) => (
+                  {["Normalized canonical records","Cross-LOB taxonomy mappings at the record level","Records keyed by DocumentId (GUID), EntityId (GUID), PeriodStart, PeriodEnd","FirmTaxonomyId (GUID) — from Taxonomy Service · REQUIRED per Batch 2A","ClassificationStatus (CLASSIFIED | UNCLASSIFIED | OVERRIDE)"].map((item,i) => (
                     <li key={i} className="text-xs text-green-700 flex items-start gap-1.5"><span className="shrink-0">•</span>{item}</li>
                   ))}
                 </ul>
@@ -751,6 +751,41 @@ function VisioDiagramTab() {
               <div className="text-xs text-slate-500 italic mt-1">PDC is the authoritative cross-LOB system of record. Stage 3 cannot begin until source_record_id is returned.</div>
             </div>
           </div>
+
+          {/* Batch 2A Classification Gap Callout */}
+          <div className="bg-amber-50 border-l-4 border-amber-500 rounded-r-lg px-4 py-3">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 mt-0.5">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white text-xs font-bold">!</span>
+              </div>
+              <div>
+                <div className="text-xs font-bold text-amber-900 mb-1">Batch 2A Gap — Orchestrator Contract Enforcement &amp; Classification</div>
+                <div className="text-xs text-amber-800 mb-2">
+                  The AI Orchestrator is <span className="font-bold">NOT currently returning FirmTaxonomyId</span> with normalized records.
+                  This is the blocking gap addressed by <span className="font-semibold">Batch 2A</span>.
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <div className="bg-white border border-amber-200 rounded px-3 py-1.5">
+                    <div className="text-xs font-bold text-slate-700">Current State</div>
+                    <div className="text-xs text-red-700 font-semibold">FirmTaxonomyId = null (not returned)</div>
+                    <div className="text-xs text-slate-500">ClassificationStatus = UNCLASSIFIED</div>
+                  </div>
+                  <span className="text-amber-400 text-lg self-center">→</span>
+                  <div className="bg-white border border-green-200 rounded px-3 py-1.5">
+                    <div className="text-xs font-bold text-slate-700">Expected State (post-Batch 2A)</div>
+                    <div className="text-xs text-green-700 font-semibold">FirmTaxonomyId = GUID (REQUIRED)</div>
+                    <div className="text-xs text-slate-500">ClassificationStatus = CLASSIFIED</div>
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded px-3 py-1.5">
+                    <div className="text-xs font-bold text-slate-700">Enforcement Rule</div>
+                    <div className="text-xs text-slate-600">PDC rejects records missing FirmTaxonomyId</div>
+                    <div className="text-xs text-slate-500">READY signal blocked if UNCLASSIFIED records exist</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Stage 3 */}
           <div className="bg-purple-100 border border-purple-200 rounded p-3">
             <div className="text-xs font-bold text-purple-900 mb-2">STAGE 3 — Tax Taxonomy (TDC) (Record Level)</div>
@@ -930,6 +965,7 @@ function VisioDiagramTab() {
             { id: "DocumentId (GUID)", system: "Tax Portal", note: "Immutable · Lineage anchor" },
             { id: "JobId (GUID)", system: "Tax Portal", note: "Assigned at ingestion" },
             { id: "SourceRecordId (GUID)", system: "PDC", note: "GUID · Normalization" },
+            { id: "FirmTaxonomyId (GUID)", system: "PDC / Taxonomy Svc", note: "REQUIRED · Classification" },
             { id: "RunId (GUID)", system: "PDC", note: "Batch traceability" },
             { id: "TdcRecordId (GUID)", system: "TDC", note: "GUID · Tax Record" },
             { id: "FilingId (GUID)", system: "TDC / Roger", note: "Immutable · Filed return" },
@@ -1138,10 +1174,11 @@ export default function ArchitectureView() {
         {activeTab === "platform" && (
           <motion.div key="platform" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {[
                   { label: "PDC", sub: "Financial System of Record", color: "bg-emerald-50 border-emerald-300 text-emerald-800" },
                   { label: "TDC", sub: "Tax System of Record", color: "bg-orange-50 border-orange-300 text-orange-800" },
+                  { label: "Taxonomy Service", sub: "Owned by DCT/TDC · FirmTaxonomyId authority · Hierarchy & versioning", color: "bg-violet-50 border-violet-300 text-violet-800" },
                   { label: "Roger", sub: "Read-Only Consumer · All via API Gateway", color: "bg-purple-50 border-purple-300 text-purple-800" },
                 ].map(r => (
                   <div key={r.label} className={`border rounded-lg px-3 py-2 ${r.color}`}>
@@ -1346,7 +1383,7 @@ export default function ArchitectureView() {
 
       <footer className="pt-4 pb-2 border-t border-border">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>DCT Platform Architecture View · RSM | CATT · v3.1</span>
+          <span>DCT Platform Architecture View · RSM | CATT · v3.2 · FirmTaxonomyId + Batch 2A</span>
           <span>Visio diagram: Architecture Sync Agent · Interactive: platformData.ts</span>
         </div>
       </footer>

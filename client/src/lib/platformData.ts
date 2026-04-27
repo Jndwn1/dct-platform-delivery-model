@@ -249,8 +249,8 @@ export const TOUCHPOINTS: EnrichedTouchpoint[] = [
     agentId: "roger_ai", agentName: "Roger AI Agent",
     gate: "G1", status: "COMPLETE", isAuthorityAction: false,
     inputs: ["Routed file from T1", "doc_id"],
-    outputs: ["Schema Recognition Report", "File type classification", "Validation result"],
-    responsibility: "Identify file schema, classify financial data model, validate format conformance",
+    outputs: ["Schema Recognition Report", "File type classification", "Validation result", "FirmTaxonomyId (proposed — pending Batch 2A enforcement)", "ClassificationStatus (CLASSIFIED | UNCLASSIFIED | OVERRIDE)"],
+    responsibility: "Identify file schema, classify financial data model, validate format conformance. Batch 2A: Orchestrator must return FirmTaxonomyId with every record.",
   },
   {
     id: "T3", label: "T3", name: "Financial Data Extraction",
@@ -258,8 +258,8 @@ export const TOUCHPOINTS: EnrichedTouchpoint[] = [
     agentId: "roger_ai", agentName: "Roger AI Agent",
     gate: "G1", status: "IN_PROGRESS", isAuthorityAction: false,
     inputs: ["Recognized file from T2", "Schema Recognition Report"],
-    outputs: ["Normalized financial records", "Normalization Record", "Extraction log"],
-    responsibility: "Extract financial data, apply cross-LOB normalization to canonical model",
+    outputs: ["Normalized financial records", "Normalization Record", "Extraction log", "FirmTaxonomyId per record (from Taxonomy Service via PDC API)", "ClassificationStatus per record"],
+    responsibility: "Extract financial data, apply cross-LOB normalization to canonical model. Each record must carry FirmTaxonomyId sourced from the Taxonomy Service.",
   },
   {
     id: "T4", label: "T4", name: "Canonical Normalization (PDC)",
@@ -267,8 +267,8 @@ export const TOUCHPOINTS: EnrichedTouchpoint[] = [
     agentId: "architecture", agentName: "Architecture Agent",
     gate: "G2", status: "PENDING", isAuthorityAction: true,
     inputs: ["Normalized records from T3", "Normalization Record"],
-    outputs: ["Canonical Record Set", "PDC persistence confirmation", "Version record"],
-    responsibility: "Persist normalized records as versioned canonical financial dataset",
+    outputs: ["Canonical Record Set", "PDC persistence confirmation", "Version record", "FirmTaxonomyId (REQUIRED — stored on every FinancialFact)", "ClassificationStatus (REQUIRED — CLASSIFIED | UNCLASSIFIED | OVERRIDE)"],
+    responsibility: "Persist normalized records as versioned canonical financial dataset. FirmTaxonomyId is a REQUIRED field on all PDC FinancialFact records (Batch 2A enforcement pending).",
   },
   {
     id: "T5", label: "T5", name: "Lineage Capture",
@@ -293,9 +293,9 @@ export const TOUCHPOINTS: EnrichedTouchpoint[] = [
     system: "PDC", layerId: "pdc", layerLabel: "Financial Data Authority (PDC)",
     agentId: "qa", agentName: "QA Agent",
     gate: "G3", status: "PLANNED", isAuthorityAction: false,
-    inputs: ["Dataset Authority Certificate from T6"],
+    inputs: ["Dataset Authority Certificate from T6", "FirmTaxonomyId validation check (all records must be CLASSIFIED before READY signal)"],
     outputs: ["Data Readiness Signal event", "TDC trigger", "AI Mapping Layer trigger"],
-    responsibility: "Emit Data Readiness Signal to notify TDC and AI Mapping Layer",
+    responsibility: "Emit Data Readiness Signal to notify TDC and AI Mapping Layer. READY signal must not be emitted if any record has ClassificationStatus = UNCLASSIFIED (Batch 2A enforcement).",
   },
   {
     id: "T8", label: "T8", name: "AI Tax Mapping Proposals",
@@ -594,6 +594,7 @@ export const SYSTEM_OWNERSHIP: SystemOwnership[] = [
   { system: "TDC",             owner: "DCT",                  role: "Tax domain authority and tax system of record",          sor: true,  layer: "tdc",           colorHex: "#DC2626" },
   { system: "AI Orchestrator", owner: "Roger team",           role: "Stateless compute performing recognition and mapping",   sor: false, layer: "orchestration", colorHex: "#2563EB" },
   { system: "Roger Web App",   owner: "Roger team",           role: "User interface for practitioner review",                 sor: false, layer: "experience",    colorHex: "#DB2777" },
+  { system: "Taxonomy Service", owner: "DCT / TDC",            role: "Owns firm taxonomy hierarchy, versioning, and FirmTaxonomyId assignment", sor: true,  layer: "tdc",           colorHex: "#7C3AED" },
 ];
 
 // ─── ENTRY POINTS ─────────────────────────────────────────────────────────────
@@ -655,6 +656,11 @@ export const ADR_REGISTRY: ADR[] = [
     decision: "Roger Web App surfaces data from PDC and TDC for practitioner review. It does not write to either system. Practitioner decisions are submitted through a governed API.",
     status: "ACCEPTED", date: "2026-03-01", impact: "Medium",
   },
+  {
+    id: "ADR-06", title: "FirmTaxonomyId is REQUIRED on all PDC canonical records",
+    decision: "Every FinancialFact record persisted in PDC must carry a FirmTaxonomyId sourced from the Taxonomy Service. The AI Orchestrator is responsible for resolving and returning FirmTaxonomyId with every record. PDC must reject records missing FirmTaxonomyId once Batch 2A enforcement is active. The READY signal must not be emitted if any record has ClassificationStatus = UNCLASSIFIED.",
+    status: "PROPOSED", date: "2026-04-01", impact: "High",
+  },
 ];
 
 // ─── OPEN ITEMS ───────────────────────────────────────────────────────────────
@@ -685,6 +691,11 @@ export const OPEN_ITEMS: OpenItem[] = [
     id: "OI-03", title: "Client adjustment tables",
     description: "The design for client-specific adjustment tables that modify canonical financial data in PDC is not yet specified.",
     priority: "Medium", owner: "DCT Architecture", status: "OPEN",
+  },
+  {
+    id: "OI-04", title: "FirmTaxonomyId enforcement gap — Batch 2A",
+    description: "The AI Orchestrator is NOT currently returning FirmTaxonomyId with normalized records. This is the blocking gap addressed by Batch 2A (Orchestrator Contract Enforcement & Classification). PDC cannot enforce FirmTaxonomyId as REQUIRED until the Orchestrator contract is updated. Decision pending: whether FirmTaxonomyId should be REQUIRED or nullable during the transition period.",
+    priority: "High", owner: "DCT Architecture + Roger Team", status: "OPEN",
   },
 ];
 
@@ -729,8 +740,8 @@ export const ARCH_METADATA = {
   layerCount: 6,
   touchpointCount: 11,
   agentCount: 5,
-  adrCount: 5,
-  openItemCount: 3,
+  adrCount: 6,
+  openItemCount: 4,
   dependencyCount: 3,
 };
 
