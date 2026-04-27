@@ -292,7 +292,9 @@ function SectionHeader({ num, title, subtitle }: { num: string; title: string; s
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function DataGovernancePage() {
-  const [activeTab, setActiveTab] = useState<"domains" | "sot" | "violations" | "rules" | "cleanup">("domains");
+  const [activeTab, setActiveTab] = useState<"domains" | "sot" | "violations" | "rules" | "cleanup" | "refresh">("domains");
+  const [refreshLog, setRefreshLog] = useState<{ts: string; source: string; pages: string[]; changes: string; status: "Updated" | "Needs Review" | "No Change"}[]>([]);
+  const [logExpanded, setLogExpanded] = useState<number | null>(null);
   const [expandedViolation, setExpandedViolation] = useState<string | null>(null);
 
   const tabs = [
@@ -301,6 +303,7 @@ export default function DataGovernancePage() {
     { id: "violations", label: `Violations (${VIOLATIONS.length})` },
     { id: "rules", label: "Governance Rules" },
     { id: "cleanup", label: "Cleanup Actions" },
+    { id: "refresh", label: "Source-Driven Refresh" },
   ] as const;
 
   return (
@@ -547,6 +550,181 @@ export default function DataGovernancePage() {
         )}
 
         {/* ── Tab 5: Cleanup Actions ── */}
+        {/* ── Tab 6: Source-Driven Refresh ── */}
+        {activeTab === "refresh" && (
+          <div>
+            <SectionHeader
+              num="6"
+              title="Source-Driven Refresh — Governance Rule"
+              subtitle="When a new authoritative document is uploaded, only dependent pages are refreshed. Derived pages cannot override authoritative sources."
+            />
+
+            {/* Authoritative Source Hierarchy */}
+            <div className="mb-8">
+              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide mb-4">Authoritative Source Hierarchy</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                {[
+                  { rank: "1", label: "Batch Delivery Model", scope: "Batch scope, sequencing, batch definitions", color: "border-blue-500 bg-blue-900/20", badge: "bg-blue-500" },
+                  { rank: "2", label: "Swagger / API Export", scope: "API contract authority — endpoints, methods, schemas", color: "border-indigo-500 bg-indigo-900/20", badge: "bg-indigo-500" },
+                  { rank: "3", label: "Master Data Plan", scope: "Business data domain authority — domain definitions", color: "border-violet-500 bg-violet-900/20", badge: "bg-violet-500" },
+                  { rank: "4", label: "Consumer Guide", scope: "Derived documentation only — used for gap comparison against Swagger", color: "border-slate-500 bg-slate-800/40", badge: "bg-slate-500" },
+                ].map(s => (
+                  <div key={s.rank} className={`rounded-lg border ${s.color} p-4`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`${s.badge} text-white text-[10px] font-bold px-2 py-0.5 rounded`}>#{s.rank}</span>
+                      <span className="text-sm font-bold text-white">{s.label}</span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">{s.scope}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Refresh Rules */}
+            <div className="mb-8">
+              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide mb-4">Refresh Rules</h3>
+              <div className="space-y-2">
+                {[
+                  { icon: "✓", color: "text-emerald-400", rule: "Do not blindly update all pages.", detail: "Only pages that directly depend on the uploaded source document are eligible for refresh." },
+                  { icon: "✓", color: "text-emerald-400", rule: "Update only dependent pages.", detail: "Each authoritative source has a defined set of dependent pages. Pages outside that set are not touched." },
+                  { icon: "✓", color: "text-emerald-400", rule: "Preserve source-of-truth hierarchy.", detail: "A lower-ranked source (e.g. Consumer Guide) cannot trigger updates to pages governed by a higher-ranked source (e.g. Batch Delivery Model)." },
+                  { icon: "⚠", color: "text-amber-400", rule: "Flag conflicts as \"Needs Review.\"", detail: "If the uploaded document contradicts an existing authoritative source, the conflict is flagged and no automatic update is applied." },
+                  { icon: "✗", color: "text-red-400", rule: "Do not allow derived pages to override authoritative sources.", detail: "Consumer Guide and other derived documents are used for gap comparison only. They cannot alter batch definitions, API contracts, or domain ownership." },
+                  { icon: "✓", color: "text-blue-400", rule: "Log all refresh activity.", detail: "Every refresh event logs: source document, pages updated, changes applied, and any items requiring review." },
+                ].map((r, i) => (
+                  <div key={i} className="flex gap-3 bg-slate-900/40 border border-slate-700/40 rounded-lg px-4 py-3">
+                    <span className={`${r.color} font-bold text-sm shrink-0 w-4`}>{r.icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-100">{r.rule}</p>
+                      <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{r.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Dependency Map */}
+            <div className="mb-8">
+              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide mb-4">Source → Dependent Page Map</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#0f2744] text-slate-300">
+                      <th className="text-left px-3 py-2.5 font-semibold border-b border-slate-700/50 w-40">Source Document</th>
+                      <th className="text-left px-3 py-2.5 font-semibold border-b border-slate-700/50">Dependent Pages</th>
+                      <th className="text-left px-3 py-2.5 font-semibold border-b border-slate-700/50 w-32">Scope of Update</th>
+                      <th className="text-left px-3 py-2.5 font-semibold border-b border-slate-700/50 w-32">Conflict Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      {
+                        source: "Batch Delivery Model",
+                        pages: ["Batch Roadmap", "Control Panel", "Data Model & Gaps", "Governance Timeline", "Weekly Demo Simulator", "Roger API Evolution", "Architecture View", "Runtime Journey"],
+                        scope: "Batch names, stories, outcomes, PI labels, story counts",
+                        conflict: "Flag Needs Review",
+                      },
+                      {
+                        source: "Swagger / API Export",
+                        pages: ["Control Panel (Swagger Coverage)", "Data Model & Gaps (Contract column)", "Roger API Evolution"],
+                        scope: "Endpoint paths, methods, contract status, Consumer Guide gaps",
+                        conflict: "Flag Out of Sync",
+                      },
+                      {
+                        source: "Master Data Plan",
+                        pages: ["Data Governance & SoT (Domain table)", "Taxonomy Explorer", "Data Model & Gaps"],
+                        scope: "Domain names, system ownership, batch assignment",
+                        conflict: "Block update — MDP is highest authority",
+                      },
+                      {
+                        source: "Consumer Guide",
+                        pages: ["Control Panel (Swagger Coverage — gap column only)"],
+                        scope: "Gap comparison column only — no contract or batch updates",
+                        conflict: "Never overrides Swagger or Batch Model",
+                      },
+                    ].map((row, i) => (
+                      <tr key={i} className={i % 2 === 0 ? "bg-slate-900/30" : "bg-slate-900/10"}>
+                        <td className="px-3 py-2.5 font-semibold text-slate-200 border-b border-slate-800/50">{row.source}</td>
+                        <td className="px-3 py-2.5 text-slate-400 border-b border-slate-800/50" style={{ fontSize: "10px", lineHeight: 1.6 }}>{row.pages.join(" · ")}</td>
+                        <td className="px-3 py-2.5 text-slate-400 border-b border-slate-800/50" style={{ fontSize: "10px", lineHeight: 1.5 }}>{row.scope}</td>
+                        <td className="px-3 py-2.5 border-b border-slate-800/50">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            row.conflict.startsWith("Block") ? "bg-red-900/40 text-red-300" :
+                            row.conflict.startsWith("Flag") ? "bg-amber-900/40 text-amber-300" :
+                            "bg-slate-700/40 text-slate-300"
+                          }`}>{row.conflict}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Refresh Log */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide">Refresh Activity Log</h3>
+                <button
+                  onClick={() => {
+                    const entry = {
+                      ts: new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }),
+                      source: "Batch Delivery Model v1.9",
+                      pages: ["Batch Roadmap", "Control Panel", "Governance Timeline", "Weekly Demo Simulator"],
+                      changes: "Batch 2A added; Batch 3 status corrected to In Progress; PI labels updated for Batches 4–8",
+                      status: "Updated" as const,
+                    };
+                    setRefreshLog(prev => [entry, ...prev]);
+                  }}
+                  className="text-xs px-3 py-1.5 rounded bg-blue-700 hover:bg-blue-600 text-white font-semibold transition-colors"
+                >
+                  + Log Refresh Event
+                </button>
+              </div>
+              {refreshLog.length === 0 ? (
+                <div className="bg-slate-900/40 border border-slate-700/40 rounded-lg px-6 py-8 text-center">
+                  <p className="text-slate-500 text-sm">No refresh events logged yet.</p>
+                  <p className="text-slate-600 text-xs mt-1">Click "+ Log Refresh Event" to record a source document refresh.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {refreshLog.map((entry, i) => (
+                    <div key={i} className="bg-slate-900/40 border border-slate-700/40 rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => setLogExpanded(logExpanded === i ? null : i)}
+                        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-800/30 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            entry.status === "Updated" ? "bg-emerald-900/40 text-emerald-300" :
+                            entry.status === "Needs Review" ? "bg-amber-900/40 text-amber-300" :
+                            "bg-slate-700/40 text-slate-400"
+                          }`}>{entry.status}</span>
+                          <span className="text-xs font-semibold text-slate-200">{entry.source}</span>
+                          <span className="text-xs text-slate-500">{entry.ts}</span>
+                        </div>
+                        <span className="text-slate-500 text-xs">{logExpanded === i ? "▲" : "▼"}</span>
+                      </button>
+                      {logExpanded === i && (
+                        <div className="px-4 pb-4 border-t border-slate-700/30 pt-3 space-y-2">
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Pages Updated</span>
+                            <p className="text-xs text-slate-300 mt-0.5">{entry.pages.join(" · ")}</p>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Changes Applied</span>
+                            <p className="text-xs text-slate-300 mt-0.5">{entry.changes}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {activeTab === "cleanup" && (
           <div>
             <SectionHeader
