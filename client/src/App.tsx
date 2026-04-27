@@ -1,11 +1,10 @@
 // DCT Platform — App Router
 // RSM | CATT | DCT + Roger | Prototype Sandbox
-// Matches reference: rsm-ai-team-niua6bzx.manus.space
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -20,11 +19,9 @@ import ArchitectureView from "./pages/ArchitectureView";
 import DemoRunner from "./pages/DemoRunner";
 import LineageExplorer from "./pages/LineageExplorer";
 
-// New reference-matching pages
+// Platform pages
 import RogerApiEvolution from "./pages/RogerApiEvolution";
 import RuntimeJourney from "./pages/RuntimeJourney";
-import BatchFlow from "./pages/BatchFlow";
-import WeeklyDemo from "./pages/WeeklyDemo";
 import BatchControlPanel from "./pages/BatchControlPanel";
 import TaxonomyPage from "./pages/TaxonomyPage";
 import DataModelPage from "./pages/DataModelPage";
@@ -72,25 +69,21 @@ function Router() {
         <Route path="/demo" component={DemoRunner} />
         <Route path="/lineage" component={LineageExplorer} />
 
-        {/* Reference-matching new pages */}
+        {/* Platform pages */}
         <Route path="/roger-api" component={RogerApiEvolution} />
         <Route path="/runtime-journey" component={RuntimeJourney} />
-        <Route path="/batchflow" component={BatchFlow} />
-        {/* Weekly Demo — PROTECTED: do not remove */}
-        <Route path="/weekly-demo" component={WeeklyDemo} />
-        {/* Global Control Panel — batch status management */}
         <Route path="/control-panel" component={BatchControlPanel} />
 
-        {/* Batch detail routes — redirect to batch roadmap */}
+        {/* Batch detail routes */}
         <Route path="/batch/:id" component={BatchRoadmap} />
 
-        {/* Gate detail routes — redirect to gate status */}
+        {/* Gate detail routes */}
         <Route path="/gate/:id" component={GateStatus} />
 
-        {/* Agent detail routes — redirect to agent hub */}
+        {/* Agent detail routes */}
         <Route path="/agent/:id" component={AgentHub} />
 
-        {/* Dedicated tool pages */}
+        {/* Tool pages */}
         <Route path="/taxonomy" component={TaxonomyPage} />
         <Route path="/data-model" component={DataModelPage} />
         <Route path="/roger-mapping" component={RogerMappingPage} />
@@ -98,8 +91,6 @@ function Router() {
         <Route path="/tax-mapping" component={TaxMappingPage} />
         <Route path="/governance-timeline" component={GovernanceTimelinePage} />
         <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
-        <Route path="/pi2" component={BatchRoadmap} />
-        <Route path="/pi3" component={BatchRoadmap} />
 
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

@@ -17,7 +17,7 @@ interface NavItem {
   status?: string;
   statusColor?: string;
   isArchSync?: boolean;
-  demoLink?: string; // Optional deep-link to Weekly Demo with batch pre-selected
+  demoLink?: string;
 }
 
 const PLATFORM_ITEMS: NavItem[] = [
@@ -25,21 +25,19 @@ const PLATFORM_ITEMS: NavItem[] = [
   { label: "Batch Roadmap (FC + 1–10)", path: "/batch-roadmap", icon: "⬢", badge: "New", badgeColor: "#059669" },
 ];
 
-// Batch items are rendered dynamically — statuses come from BatchStatusContext
-const BATCH_ITEM_DEFS: { label: string; path: string; batchKey: BatchKey; demoLink?: string }[] = [
-  { label: "Foundation Core",                              path: "/batch/foundation-core", batchKey: "foundation-core" },
-  { label: "Batch 1 — File Ingestion & Initial Storage",   path: "/batch/1",              batchKey: "1",  demoLink: "/weekly-demo?batch=1" },
-  { label: "Batch 2 — Normalization & Cross-LOB Taxonomy", path: "/batch/2",              batchKey: "2",  demoLink: "/weekly-demo?batch=2" },
-  { label: "Batch 2A — Contract Enforcement & Classification", path: "/batch/2a",           batchKey: "2a", demoLink: "/weekly-demo?batch=2a" },
-  { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy",path: "/batch/3",              batchKey: "3",  demoLink: "/weekly-demo?batch=3" },
-  { label: "Batch 4 — AI Tax Mapping & Explainability",    path: "/batch/4",              batchKey: "4",  demoLink: "/weekly-demo?batch=4" },
-  { label: "Batch 5 — Entity Identity & Structure",          path: "/batch/5",              batchKey: "5",  demoLink: "/weekly-demo?batch=5" },
-  { label: "Batch 6 — Practitioner Review, Adjustments & Lock", path: "/batch/6",       batchKey: "6",  demoLink: "/weekly-demo?batch=6" },
-  { label: "Batch 7 — Client Tax Profile & Eligibility",       path: "/batch/7",           batchKey: "7",  demoLink: "/weekly-demo?batch=7" },
-  { label: "Batch 8 — Exceptions & Remediation",               path: "/batch/8",       batchKey: "8",  demoLink: "/weekly-demo?batch=8" },
-  { label: "Batch 9 — PDC IMS Integration / TDC Rollforward",  path: "/batch/9",           batchKey: "9",  demoLink: "/weekly-demo?batch=9" },
-  { label: "Batch 10 — Return Assembly, Filing & Lineage Closure", path: "/batch/10",    batchKey: "10", demoLink: "/weekly-demo?batch=10" },
-  { label: "Batch 11 — Learning Governance & Model Evolution",  path: "/batch/11",          batchKey: "11", demoLink: "/weekly-demo?batch=11" },
+// Batch items — FC + Batches 1–8 visible; 9–11 hidden (Future/Stretch scope)
+const BATCH_ITEM_DEFS: { label: string; path: string; batchKey: BatchKey }[] = [
+  { label: "Foundation Core",                                   path: "/batch/foundation-core", batchKey: "foundation-core" },
+  { label: "Batch 1 — File Ingestion & Initial Storage",        path: "/batch/1",               batchKey: "1" },
+  { label: "Batch 2 — Normalization & Cross-LOB Taxonomy",      path: "/batch/2",               batchKey: "2" },
+  { label: "Batch 2A — Contract Enforcement & Classification",  path: "/batch/2a",              batchKey: "2a" },
+  { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy",     path: "/batch/3",               batchKey: "3" },
+  { label: "Batch 4 — AI Tax Mapping & Explainability",         path: "/batch/4",               batchKey: "4" },
+  { label: "Batch 5 — Entity Identity & Structure",             path: "/batch/5",               batchKey: "5" },
+  { label: "Batch 6 — Practitioner Review, Adjustments & Lock", path: "/batch/6",               batchKey: "6" },
+  { label: "Batch 7 — Client Tax Profile & Eligibility",        path: "/batch/7",               batchKey: "7" },
+  { label: "Batch 8 — Exceptions & Remediation",                path: "/batch/8",               batchKey: "8" },
+  // Batches 9–11 hidden — Future/Stretch scope, not in current delivery
 ];
 
 
@@ -50,46 +48,43 @@ const GATE_ITEMS: NavItem[] = [
   { label: "Gate 4 — Lineage Closure", path: "/gate/4", status: "Pending", statusColor: "#334155" },
 ];
 
+// Agents — alphabetical
 const AGENT_ITEMS: NavItem[] = [
-  { label: "Architect Agent", path: "/agent/architect", icon: "A", status: "Complete", statusColor: "#059669" },
-  { label: "Analyst Agent", path: "/agent/analyst", icon: "B", status: "Complete", statusColor: "#059669" },
+  { label: "Analyst Agent",   path: "/agent/analyst",   icon: "A", status: "Complete",    statusColor: "#059669" },
+  { label: "Architect Agent", path: "/agent/architect", icon: "A", status: "Complete",    statusColor: "#059669" },
   { label: "Developer Agent", path: "/agent/developer", icon: "D", status: "In Progress", statusColor: "#d97706" },
-  { label: "QA Agent", path: "/agent/qa", icon: "Q", status: "In Progress", statusColor: "#d97706" },
-  { label: "Runtime Data Journey T1–T10", path: "/runtime-journey", icon: "↝" },
+  { label: "QA Agent",        path: "/agent/qa",        icon: "Q", status: "In Progress", statusColor: "#d97706" },
 ];
 
+// Tools — alphabetical
 const TOOL_ITEMS: NavItem[] = [
-  { label: "Weekly Demo", path: "/weekly-demo", icon: "▶", badge: "Live", badgeColor: "#dc2626" },
-  { label: "Control Panel", path: "/control-panel", icon: "⚙", badge: "Admin", badgeColor: "#6366f1" },
-  { label: "DCT BatchFlow", path: "/batchflow", icon: "⚡", badge: "New", badgeColor: "#059669" },
-  { label: "Taxonomy Explorer", path: "/taxonomy", icon: "◎", badge: "New", badgeColor: "#059669" },
   { label: "Classification Walkthrough", path: "/classification-walkthrough", icon: "⚑", badge: "Decision", badgeColor: "#dc2626" },
-  { label: "Data Model & Gaps", path: "/data-model", icon: "▦", badge: "Exec", badgeColor: "#7c3aed" },
-  { label: "Roger UI Data Mapping", path: "/roger-mapping", icon: "≡", badge: "New", badgeColor: "#059669" },
-  { label: "Run Agent Simulation", path: "/demo", icon: "▶", badge: "Live", badgeColor: "#dc2626" },
+  { label: "Control Panel",              path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
+  { label: "Data Model & Gaps",          path: "/data-model",                 icon: "▦", badge: "Exec",     badgeColor: "#7c3aed" },
+  { label: "Roger UI Data Mapping",      path: "/roger-mapping",              icon: "≡" },
+  { label: "Run Agent Simulation",       path: "/demo",                       icon: "▶", badge: "Live",     badgeColor: "#dc2626" },
+  { label: "Taxonomy Explorer",          path: "/taxonomy",                   icon: "◎" },
 ];
 
-const PI_ITEMS: NavItem[] = [
-  { label: "PI2 — Build & Enablement", path: "/pi2", icon: "◉", badge: "PI2", badgeColor: "#2563eb" },
-  { label: "PI3 — Roadmap (Visual Placeholder)", path: "/pi3", icon: "◎", badge: "PI3", badgeColor: "#475569" },
-];
+// PI Planning removed — PI2/PI3 pages removed per governance cleanup
 
+// Governance — alphabetical
 const GOVERNANCE_ITEMS: NavItem[] = [
-  { label: "AAP Review Model (Blitzy)", path: "/aap-review", icon: "◈", badge: "New", badgeColor: "#059669" },
-  { label: "Tax Mapping Confidence", path: "/tax-mapping", icon: "◇" },
-  { label: "Governance Timeline", path: "/governance-timeline", icon: "▤" },
-  { label: "Data Lineage", path: "/lineage", icon: "⌥" },
-  { label: "Roger API Evolution", path: "/roger-api", icon: "⚡", badge: "New", badgeColor: "#059669" },
+  { label: "AAP Review Model",       path: "/aap-review",          icon: "◈" },
+  { label: "Data Lineage",           path: "/lineage",             icon: "⌥" },
+  { label: "Governance Timeline",    path: "/governance-timeline", icon: "▤" },
+  { label: "Roger API Evolution",    path: "/roger-api",           icon: "⚡" },
+  { label: "Tax Mapping Confidence", path: "/tax-mapping",         icon: "◇" },
 ];
 
+// Diagrams — alphabetical; Visio Architecture removed (duplicate of Architecture Sync); Agent Hub moved here
 const DIAGRAM_ITEMS: NavItem[] = [
-  { label: "Enterprise Architecture", path: "/architecture/enterprise", icon: "▣", badge: "New", badgeColor: "#059669" },
-  { label: "Developer Architecture", path: "/architecture/developer", icon: "▤", badge: "New", badgeColor: "#059669" },
-  { label: "Architecture Diagram", path: "/architecture", icon: "⬡" },
-  { label: "Architecture Sync", path: "/architecture?tab=visio", icon: "⟳", isArchSync: true },
-  { label: "Visio Architecture", path: "/architecture?tab=visio", icon: "◧" },
-  { label: "Agent Hub", path: "/agent-hub", icon: "◈" },
-  { label: "Runtime Journey (T1–T10)", path: "/runtime-journey", icon: "↝" },
+  { label: "Agent Hub",              path: "/agent-hub",               icon: "◈" },
+  { label: "Architecture Diagram",   path: "/architecture",            icon: "⬡" },
+  { label: "Architecture Sync",      path: "/architecture?tab=visio",  icon: "⟳", isArchSync: true },
+  { label: "Developer Architecture", path: "/architecture/developer",  icon: "▤" },
+  { label: "Enterprise Architecture",path: "/architecture/enterprise", icon: "▣" },
+  { label: "Runtime Journey (T1–10)",path: "/runtime-journey",         icon: "↝" },
 ];
 
 // Format a Date as "Apr 9, 2026 · 10:41 AM"
@@ -312,7 +307,6 @@ export default function Sidebar({ activeSection }: SidebarProps) {
               label: def.label,
               path: def.path,
               indent: true,
-              demoLink: def.demoLink,
               status: badge?.label,
               statusColor: badge?.color,
             };
@@ -323,7 +317,6 @@ export default function Sidebar({ activeSection }: SidebarProps) {
         <NavSection title="Gates" items={GATE_ITEMS} />
         <NavSection title="Agents" items={AGENT_ITEMS} />
         <NavSection title="Tools" items={TOOL_ITEMS} />
-        <NavSection title="PI Planning" items={PI_ITEMS} />
         <NavSection title="Governance" items={GOVERNANCE_ITEMS} />
         <NavSection title="Diagrams" items={DIAGRAM_ITEMS} />
       </div>
