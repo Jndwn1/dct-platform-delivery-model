@@ -7,8 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Database, Brain, ArrowDown, CheckCircle2,
   FileText, Link2, Play, GitBranch, ShieldCheck, ArrowRight, X,
-  Image, Layers, Download, Maximize2, Move
+  Image, Layers, Download, Maximize2, Move, Zap
 } from "lucide-react";
+import SimulationPanel from "@/components/SimulationPanel";
 import {
   PLATFORM_LAYERS, TOUCHPOINTS, AGENTS, getAgent, getLayer,
   ADR_REGISTRY, OPEN_ITEMS, DEPENDENCIES, ARCHITECTURE_GUARDRAILS,
@@ -521,6 +522,7 @@ const EXEC_DEMO_STEPS = [
 function VisioDiagramTab() {
   const [selectedTp, setSelectedTp] = useState<string | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
+  const [simOpen, setSimOpen] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
 
   const currentStep = EXEC_DEMO_STEPS[demoStep];
@@ -678,6 +680,12 @@ function VisioDiagramTab() {
             className="inline-flex items-center gap-1.5 text-xs bg-[#003A8F] text-white px-3 py-1.5 rounded font-semibold hover:bg-[#002a6e] transition-colors"
           >
             <Play className="w-3 h-3" /> Executive Demo
+          </button>
+          <button
+            onClick={() => setSimOpen(true)}
+            className="inline-flex items-center gap-1.5 text-xs bg-[#059669] text-white px-3 py-1.5 rounded font-semibold hover:bg-[#047857] transition-colors"
+          >
+            <Zap className="w-3 h-3" /> Run End-to-End Simulation
           </button>
           <button className="inline-flex items-center gap-1.5 text-xs bg-white border border-slate-300 text-slate-600 px-3 py-1.5 rounded font-medium">
             <Download className="w-3 h-3" /> Export SVG <span className="text-slate-400 ml-1">[Ctrl+Shift+E]</span>
@@ -1278,6 +1286,9 @@ function VisioDiagramTab() {
           </table>
         </div>
       </div>
+
+      {/* ── Simulation Panel Overlay ── */}
+      {simOpen && <SimulationPanel onClose={() => setSimOpen(false)} />}
 
     </div>
   );
