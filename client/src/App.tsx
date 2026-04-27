@@ -33,6 +33,7 @@ import ClassificationWalkthroughPage from "@/pages/ClassificationWalkthroughPage
 import TaxMappingPage from "./pages/TaxMappingPage";
 import AAPReviewPage from "./pages/AAPReviewPage";
 import RogerMappingPage from "./pages/RogerMappingPage";
+import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -60,6 +61,7 @@ function Router() {
         {/* Core platform */}
         <Route path="/" component={Home} />
         <Route path="/batch-roadmap" component={BatchRoadmap} />
+        <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
         <Route path="/gate-status" component={GateStatus} />
         <Route path="/touchpoints" component={TouchpointsPage} />
         <Route path="/artifacts" component={ArtifactsPage} />
