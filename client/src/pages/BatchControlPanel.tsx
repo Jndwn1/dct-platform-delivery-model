@@ -396,8 +396,42 @@ export default function BatchControlPanel() {
   const [poSummaryCopied, setPoSummaryCopied] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
   const [expandedAdoRows, setExpandedAdoRows] = useState<Set<number>>(new Set());
+  const [adoCopied, setAdoCopied] = useState(false);
   const toggleNote = (i: number) => setExpandedNotes(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
   const toggleAdo = (i: number) => setExpandedAdoRows(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
+  const copyAdoIds = () => {
+    const ids = ROGER_DATA_POINTS.flatMap(d => d.adoStories.map(s => s.id)).filter(Boolean).join(', ');
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(ids).then(() => {
+        setAdoCopied(true);
+        setTimeout(() => setAdoCopied(false), 2500);
+      }).catch(() => {
+        // fallback
+        const el = document.createElement('textarea');
+        el.value = ids;
+        el.style.position = 'fixed';
+        el.style.opacity = '0';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        setAdoCopied(true);
+        setTimeout(() => setAdoCopied(false), 2500);
+      });
+    } else {
+      // execCommand fallback for non-secure contexts
+      const el = document.createElement('textarea');
+      el.value = ids;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setAdoCopied(true);
+      setTimeout(() => setAdoCopied(false), 2500);
+    }
+  };
 
   const complete = BATCH_KEYS.filter(k => statuses[k] === "Complete").length;
   const dev      = BATCH_KEYS.filter(k => statuses[k] === "Dev").length;
@@ -739,15 +773,16 @@ RECOMMENDED NEXT ACTION:
             <div className="text-xs text-blue-200 mt-0.5">Which data points are ready for Roger to consume now vs carried forward to PI 2</div>
           </div>
           <button
-            onClick={() => {
-              const ids = ROGER_DATA_POINTS.flatMap(d => d.adoStories.map(s => s.id)).filter(Boolean).join(', ');
-              navigator.clipboard.writeText(ids);
-            }}
-            className="flex items-center gap-1.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/30 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            onClick={copyAdoIds}
+            className={`flex items-center gap-1.5 text-xs font-semibold border px-3 py-1.5 rounded-lg transition-colors shrink-0 ${
+              adoCopied
+                ? 'bg-emerald-500 border-emerald-400 text-white'
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/30'
+            }`}
             title="Copy all ADO Story IDs as comma-separated list"
           >
-            <Copy className="w-3.5 h-3.5" />
-            Copy ADO IDs
+            {adoCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            {adoCopied ? 'Copied!' : 'Copy ADO IDs'}
           </button>
         </div>
         <div className="overflow-x-auto">
