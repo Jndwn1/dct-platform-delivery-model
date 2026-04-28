@@ -311,8 +311,8 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
     mCursor.setMonth(mCursor.getMonth() + 1);
   }
 
-  const ROW_H = 52;   // taller bars for executive readability
-  const LABEL_W = 200;
+  const ROW_H = 56;   // executive-ready row height
+  const LABEL_W = 220;
   const svgH = validRows.length * ROW_H + 40;
   // Today marker
   const today = new Date();
@@ -348,13 +348,32 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
   return (
     <div style={{ overflowX: "auto", overflowY: "visible" }}>
       <div style={{ minWidth: "700px", position: "relative" }}>
-        {/* Month header */}
-        <div style={{ marginLeft: `${LABEL_W}px`, position: "relative", height: "32px", marginBottom: "4px" }}>
+        {/* Month header — executive style */}
+        <div style={{ marginLeft: `${LABEL_W}px`, position: "relative", height: "36px", marginBottom: "0", borderBottom: "2px solid #e2e8f0", backgroundColor: "#f8fafc", borderRadius: "6px 6px 0 0" }}>
+          {/* Today label in header */}
+          {showToday && (
+            <div style={{
+              position: "absolute", left: `${todayLeft}%`, top: 0,
+              transform: "translateX(-50%)",
+              display: "flex", flexDirection: "column", alignItems: "center",
+              zIndex: 10,
+            }}>
+              <div style={{
+                backgroundColor: "#ef4444", color: "white",
+                fontSize: "9px", fontWeight: 700, letterSpacing: "0.05em",
+                padding: "2px 7px", borderRadius: "0 0 4px 4px",
+                whiteSpace: "nowrap",
+              }}>
+                TODAY
+              </div>
+            </div>
+          )}
           {months.map((m, i) => (
             <div key={i} style={{
-              position: "absolute", left: `${m.left}%`, top: 0,
-              transform: "translateX(-50%)",
-              fontSize: "11px", color: "#94a3b8", fontWeight: 500, whiteSpace: "nowrap",
+              position: "absolute", left: `${m.left}%`, top: "50%",
+              transform: "translate(-50%, -50%)",
+              fontSize: "11px", color: "#64748b", fontWeight: 600, whiteSpace: "nowrap",
+              letterSpacing: "0.02em",
             }}>
               {m.label}
             </div>
@@ -538,9 +557,13 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
             { color: "#166534", label: "Completed (Dark Green)" },
             { color: "#94a3b8", label: "Platform / Infrastructure" },
             { color: "#d97706", label: "At Risk" },
+          { color: "#ef4444", label: "Today (Apr 28, 2026)", isLine: true },
           ].map(l => (
             <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: l.color, flexShrink: 0 }} />
+              {(l as any).isLine
+                ? <div style={{ width: "14px", height: "2px", backgroundColor: l.color, flexShrink: 0, opacity: 0.7 }} />
+                : <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: l.color, flexShrink: 0 }} />
+              }
               <span style={{ fontSize: "11px", color: "#64748b" }}>{l.label}</span>
             </div>
           ))}
