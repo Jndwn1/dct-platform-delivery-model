@@ -397,6 +397,60 @@ export default function BatchControlPanel() {
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
   const [expandedAdoRows, setExpandedAdoRows] = useState<Set<number>>(new Set());
   const [adoCopied, setAdoCopied] = useState(false);
+  const [panelCopied, setPanelCopied] = useState(false);
+  const copyFullPanel = () => {
+    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const divider = '─'.repeat(80);
+    const lines: string[] = [
+      '📋 ROGER UI DATA AVAILABILITY — BA WEEKLY UPDATE',
+      `Generated: ${today}`,
+      divider,
+      'Which data points are ready for Roger to consume now vs carried forward to PI 2',
+      divider,
+      '',
+    ];
+    let currentBatch = '';
+    ROGER_DATA_POINTS.forEach(d => {
+      if (d.batch !== currentBatch) {
+        currentBatch = d.batch;
+        lines.push(`▌ ${d.batch.toUpperCase()}`);
+        lines.push('');
+      }
+      const adoList = d.adoStories.filter(s => s.id).map(s => `#${s.id} – ${s.title}`).join(' | ');
+      const adoText = adoList || d.adoStories.map(s => s.title).join(' | ');
+      const statusIcon = d.availability === 'Available' ? '✅' : d.availability === 'Partially Available' ? '🟡' : '🔴';
+      lines.push(`${statusIcon} ${d.dataPoint}`);
+      lines.push(`   Source: ${d.source}  |  Owner: ${d.owner}`);
+      lines.push(`   API: ${d.apiEndpoint}`);
+      if (adoText) lines.push(`   ADO: ${adoText}`);
+      lines.push(`   Note: ${d.notes}`);
+      lines.push('');
+    });
+    lines.push(divider);
+    lines.push('Legend: ✅ Available  🟡 Partially Available  🔴 Not Available');
+    lines.push('Source: DCT Platform Gate Verification Dashboard — Control Panel');
+    const text = lines.join('\n');
+    const execFallback = () => {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setPanelCopied(true);
+      setTimeout(() => setPanelCopied(false), 3000);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        setPanelCopied(true);
+        setTimeout(() => setPanelCopied(false), 3000);
+      }).catch(execFallback);
+    } else {
+      execFallback();
+    }
+  };
   const toggleNote = (i: number) => setExpandedNotes(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
   const toggleAdo = (i: number) => setExpandedAdoRows(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
   const copyAdoIds = () => {
@@ -772,18 +826,34 @@ RECOMMENDED NEXT ACTION:
             <div className="text-sm font-bold text-white">Roger UI Data Availability</div>
             <div className="text-xs text-blue-200 mt-0.5">Which data points are ready for Roger to consume now vs carried forward to PI 2</div>
           </div>
-          <button
-            onClick={copyAdoIds}
-            className={`flex items-center gap-1.5 text-xs font-semibold border px-3 py-1.5 rounded-lg transition-colors shrink-0 ${
-              adoCopied
-                ? 'bg-emerald-500 border-emerald-400 text-white'
-                : 'bg-white/10 hover:bg-white/20 text-white border-white/30'
-            }`}
-            title="Copy all ADO Story IDs as comma-separated list"
-          >
-            {adoCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            {adoCopied ? 'Copied!' : 'Copy ADO IDs'}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Copy Full Panel — for BA weekly */}
+            <button
+              onClick={copyFullPanel}
+              className={`flex items-center gap-1.5 text-xs font-semibold border px-3 py-1.5 rounded-lg transition-colors ${
+                panelCopied
+                  ? 'bg-emerald-500 border-emerald-400 text-white'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
+              }`}
+              title="Copy full panel as formatted text for BA weekly update"
+            >
+              {panelCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {panelCopied ? 'Copied!' : 'Copy Full Panel'}
+            </button>
+            {/* Copy ADO IDs only */}
+            <button
+              onClick={copyAdoIds}
+              className={`flex items-center gap-1.5 text-xs font-semibold border px-3 py-1.5 rounded-lg transition-colors ${
+                adoCopied
+                  ? 'bg-emerald-500 border-emerald-400 text-white'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/30'
+              }`}
+              title="Copy all ADO Story IDs as comma-separated list"
+            >
+              {adoCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {adoCopied ? 'Copied!' : 'Copy ADO IDs'}
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
