@@ -34,6 +34,7 @@ import TaxMappingPage from "./pages/TaxMappingPage";
 import AAPReviewPage from "./pages/AAPReviewPage";
 import RogerMappingPage from "./pages/RogerMappingPage";
 import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
+import BatchDetailPage from "./pages/BatchDetailPage";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -80,7 +81,7 @@ function Router() {
         <Route path="/control-panel" component={BatchControlPanel} />
 
         {/* Batch detail routes */}
-        <Route path="/batch/:id" component={BatchRoadmap} />
+        <Route path="/batch/:id" component={BatchDetailPage} />
 
         {/* Gate detail routes */}
         <Route path="/gate/:id" component={GateStatus} />
