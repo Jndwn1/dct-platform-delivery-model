@@ -281,7 +281,7 @@ export const archTouchpoints: ArchTouchpoint[] = [
     description: "Tax practitioners review AI mapping proposals in TDC, apply domain expertise, validate against invariants, and approve or modify proposed mappings.",
     inputs: ["Mapping Proposal Set from T8", "Tax domain invariants (G2)"],
     outputs: ["Tax Review Record", "Practitioner validation events", "Approved/modified mappings"],
-    systemOwner: "TDC — Tax Data Core",
+    systemOwner: "TDC — Tax Data Consolidation",
     responsibility: "Practitioner review and validation of AI mapping proposals",
   },
   {
@@ -292,7 +292,7 @@ export const archTouchpoints: ArchTouchpoint[] = [
     description: "Validated tax decisions are persisted as immutable records in TDC. Each decision is linked to its source canonical record and practitioner validation event.",
     inputs: ["Validated mappings from T9", "Tax Review Record"],
     outputs: ["Tax Decision Record", "Immutable decision log", "Audit trail entry"],
-    systemOwner: "TDC — Tax Data Core",
+    systemOwner: "TDC — Tax Data Consolidation",
     responsibility: "Persist validated tax decisions as immutable, auditable records",
   },
   {

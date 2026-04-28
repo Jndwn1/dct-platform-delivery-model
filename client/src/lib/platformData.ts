@@ -82,7 +82,7 @@ export const PLATFORM_LAYERS: PlatformLayer[] = [
     borderColor: "border-red-600",
     textColor: "text-red-100",
     badgeColor: "bg-red-500",
-    systems: ["TDC", "Tax Data Core"],
+    systems: ["TDC", "Tax Data Consolidation"],
     agentIds: ["roger_ai"],
   },
   {

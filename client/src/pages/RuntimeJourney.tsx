@@ -119,7 +119,7 @@ const LAYERS = [
   { id: "Ingestion", label: "Tax Portal / Ingestion", color: "#7c3aed" },
   { id: "PDC", label: "PDC — Platform Data Core", color: "#059669" },
   { id: "Orchestration", label: "AI Orchestrator", color: "#2563eb" },
-  { id: "TDC", label: "TDC — Tax Data Core", color: "#dc2626" },
+  { id: "TDC", label: "TDC — Tax Data Consolidation", color: "#dc2626" },
   { id: "Experience", label: "Roger Web App", color: "#f97316" },
 ];
 

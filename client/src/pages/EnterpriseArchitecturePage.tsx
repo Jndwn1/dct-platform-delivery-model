@@ -63,7 +63,7 @@ const PLATFORM_SYSTEMS = [
   },
   {
     id: "TDC",
-    name: "TDC — Tax Data Core",
+    name: "TDC — Tax Data Consolidation",
     subtitle: "Tax System of Record · Immutable Decisions",
     owner: "DCT Team",
     color: "#dc2626",
