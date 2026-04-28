@@ -637,56 +637,89 @@ RECOMMENDED NEXT ACTION:
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <SectionHeader title="Swagger / API Coverage" subtitle="All API endpoints mapped to batch — flag missing Consumer Guide or Swagger entries" />
         <div className="overflow-x-auto">
-          <table className="w-full" style={{fontSize: '11px', tableLayout: 'fixed'}}>
+          <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
             <colgroup>
-              <col style={{width: '72px'}} />
-              <col style={{width: '130px'}} />
-              <col style={{width: '200px'}} />
-              <col style={{width: '110px'}} />
-              <col style={{width: '90px'}} />
-              <col style={{width: '72px'}} />
-              <col style={{width: '72px'}} />
+              <col style={{width: '8%'}} />
+              <col style={{width: '18%'}} />
+              <col style={{width: '22%'}} />
+              <col style={{width: '13%'}} />
+              <col style={{width: '11%'}} />
+              <col style={{width: '8%'}} />
+              <col style={{width: '8%'}} />
               <col style={{width: 'auto'}} />
             </colgroup>
             <thead>
-              <tr className="bg-[#003865] text-white">
-                <th className="text-left px-2 py-2 font-semibold">Batch</th>
-                <th className="text-left px-2 py-2 font-semibold">Endpoint</th>
-                <th className="text-left px-2 py-2 font-semibold">Path</th>
-                <th className="text-left px-2 py-2 font-semibold">Status</th>
-                <th className="text-left px-2 py-2 font-semibold">Consumer Guide</th>
-                <th className="text-left px-2 py-2 font-semibold text-center">Missing Guide?</th>
-                <th className="text-left px-2 py-2 font-semibold text-center">Missing Swagger?</th>
-                <th className="text-left px-2 py-2 font-semibold">Notes</th>
+              <tr style={{background: '#002a52', borderBottom: '2px solid #001d3d'}}>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Batch</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Endpoint</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Path</th>
+                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Status</th>
+                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Consumer Guide</th>
+                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Missing Guide?</th>
+                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Missing Swagger?</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Notes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {SWAGGER_ENTRIES.map((e, i) => {
                 const apiStyle = API_STYLE[e.status];
+                const prevBatch = i > 0 ? SWAGGER_ENTRIES[i - 1].batch : null;
+                const isNewBatch = e.batch !== prevBatch;
+                const swaggerBatchGroupIndex = SWAGGER_ENTRIES.filter((x, xi) => xi <= i && (xi === 0 || SWAGGER_ENTRIES[xi-1].batch !== x.batch)).length - 1;
+                const swaggerRowBg = swaggerBatchGroupIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
+                const isNoteGap = e.notes.toLowerCase().includes("block") || e.notes.toLowerCase().includes("gap") || e.notes.toLowerCase().includes("not yet") || e.notes.toLowerCase().includes("pending") || e.notes.toLowerCase().includes("missing");
                 return (
-                  <tr key={i} className="hover:bg-slate-50">
-                    <td className="px-2 py-1.5 font-semibold text-[#003865] whitespace-nowrap">{e.batch}</td>
-                    <td className="px-2 py-1.5 text-slate-800 font-medium" style={{wordBreak:'break-word'}}>{e.endpoint}</td>
-                    <td className="px-2 py-1.5 font-mono text-slate-600" style={{wordBreak:'break-all', fontSize:'10px'}}>{e.path}</td>
-                    <td className="px-2 py-1.5">
-                      <Badge label={e.status} bg={apiStyle.bg} text={apiStyle.text} />
+                  <tr
+                    key={i}
+                    style={{background: swaggerRowBg, borderTop: isNewBatch && i > 0 ? '2px solid #e2e8f0' : '1px solid #f1f5f9'}}
+                    className="transition-colors"
+                    onMouseEnter={ev => (ev.currentTarget.style.background = '#eff6ff')}
+                    onMouseLeave={ev => (ev.currentTarget.style.background = swaggerRowBg)}
+                  >
+                    <td className="font-semibold text-xs" style={{padding:'12px 12px', color:'#003865', whiteSpace:'nowrap', verticalAlign:'top'}}>{e.batch}</td>
+                    <td className="font-medium text-slate-800" style={{padding:'12px 12px', wordBreak:'break-word', verticalAlign:'top', fontSize:'11px'}}>{e.endpoint}</td>
+                    <td style={{padding:'12px 12px', verticalAlign:'top'}}>
+                      <span
+                        className="font-mono text-slate-600 rounded px-1.5 py-0.5 block"
+                        style={{fontSize:'9.5px', background:'#f1f5f9', wordBreak:'break-all', lineHeight:'1.5'}}
+                      >
+                        {e.path}
+                      </span>
                     </td>
-                    <td className="px-2 py-1.5">
-                      <Badge
-                        label={e.consumerGuide}
-                        bg={e.consumerGuide === "Aligned" ? "bg-emerald-100" : e.consumerGuide === "Partial" ? "bg-amber-100" : "bg-red-100"}
-                        text={e.consumerGuide === "Aligned" ? "text-emerald-800" : e.consumerGuide === "Partial" ? "text-amber-800" : "text-red-700"}
-                      />
+                    <td style={{padding:'12px 12px', verticalAlign:'top', textAlign:'center'}}>
+                      <span
+                        className={`inline-flex items-center justify-center font-semibold rounded-full ${apiStyle.bg} ${apiStyle.text}`}
+                        style={{fontSize:'10px', padding:'3px 10px', whiteSpace:'nowrap', minWidth:'80px'}}
+                      >
+                        {e.status}
+                      </span>
                     </td>
-                    <td className="px-2 py-1.5 text-center">
-                      {e.missingFromGuide ? <span className="text-red-600 font-bold">Yes</span> : <span className="text-emerald-600">No</span>}
+                    <td style={{padding:'12px 12px', verticalAlign:'top', textAlign:'center'}}>
+                      <span
+                        className={`inline-flex items-center justify-center font-semibold rounded-full`}
+                        style={{
+                          fontSize:'10px', padding:'3px 10px', whiteSpace:'nowrap', minWidth:'64px',
+                          background: e.consumerGuide === 'Aligned' ? '#d1fae5' : e.consumerGuide === 'Partial' ? '#fef3c7' : '#fee2e2',
+                          color: e.consumerGuide === 'Aligned' ? '#065f46' : e.consumerGuide === 'Partial' ? '#92400e' : '#991b1b',
+                        }}
+                      >
+                        {e.consumerGuide}
+                      </span>
                     </td>
-                    <td className="px-2 py-1.5 text-center">
-                      {e.missingFromSwagger ? <span className="text-red-600 font-bold">Yes</span> : <span className="text-emerald-600">No</span>}
+                    <td style={{padding:'12px 12px', verticalAlign:'top', textAlign:'center'}}>
+                      {e.missingFromGuide
+                        ? <span className="inline-flex items-center justify-center font-bold rounded-full bg-red-100 text-red-700" style={{fontSize:'10px', padding:'3px 10px'}}>Yes</span>
+                        : <span className="inline-flex items-center justify-center font-semibold rounded-full bg-emerald-100 text-emerald-700" style={{fontSize:'10px', padding:'3px 10px'}}>No</span>}
                     </td>
-                    <td className="px-2 py-1.5 text-slate-600" style={{whiteSpace: 'normal', wordBreak: 'break-word'}}>
+                    <td style={{padding:'12px 12px', verticalAlign:'top', textAlign:'center'}}>
+                      {e.missingFromSwagger
+                        ? <span className="inline-flex items-center justify-center font-bold rounded-full bg-red-100 text-red-700" style={{fontSize:'10px', padding:'3px 10px'}}>Yes</span>
+                        : <span className="inline-flex items-center justify-center font-semibold rounded-full bg-emerald-100 text-emerald-700" style={{fontSize:'10px', padding:'3px 10px'}}>No</span>}
+                    </td>
+                    <td style={{padding:'12px 12px', verticalAlign:'top'}}>
                       <div className="flex items-start gap-1">
-                        <span className="flex-1">{e.notes}</span>
+                        <span style={{fontSize:'11px', lineHeight:'1.1', flexShrink:0}}>{isNoteGap ? '⚠️' : 'ℹ️'}</span>
+                        <span className="flex-1 text-slate-600 leading-snug" style={{fontSize:'10.5px'}}>{e.notes}</span>
                         <CopyNoteButton text={e.notes} />
                       </div>
                     </td>
@@ -700,7 +733,23 @@ RECOMMENDED NEXT ACTION:
 
       {/* ── Section 4: Roger UI Data Availability ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <SectionHeader title="Roger UI Data Availability" subtitle="Which data points are ready for Roger to consume now vs carried forward to PI 2" />
+        <div className="px-5 py-3 border-b border-slate-100 bg-[#003865] flex items-center justify-between">
+          <div>
+            <div className="text-sm font-bold text-white">Roger UI Data Availability</div>
+            <div className="text-xs text-blue-200 mt-0.5">Which data points are ready for Roger to consume now vs carried forward to PI 2</div>
+          </div>
+          <button
+            onClick={() => {
+              const ids = ROGER_DATA_POINTS.flatMap(d => d.adoStories.map(s => s.id)).filter(Boolean).join(', ');
+              navigator.clipboard.writeText(ids);
+            }}
+            className="flex items-center gap-1.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/30 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            title="Copy all ADO Story IDs as comma-separated list"
+          >
+            <Copy className="w-3.5 h-3.5" />
+            Copy ADO IDs
+          </button>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
             <colgroup>
@@ -780,20 +829,23 @@ RECOMMENDED NEXT ACTION:
                         {d.apiEndpoint}
                       </span>
                     </td>
-                    {/* ADO Story — right-aligned stacked cards */}
+                    {/* ADO Story — right-aligned stacked cards with clickable links */}
                     <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top', textAlign:'right'}}>
                       {visibleStories.map((s, si) => (
                         <div key={si} style={{marginBottom: si < visibleStories.length - 1 ? '8px' : 0}}>
                           {s.id ? (
                             <div className="inline-block text-right">
                               <div className="text-slate-700 leading-snug" style={{fontSize:'10px'}}>{s.title}</div>
-                              <span
-                                className="inline-flex items-center justify-center font-bold rounded bg-blue-50 text-blue-700 border border-blue-200 mt-0.5"
-                                style={{fontSize:'9px', padding:'2px 7px'}}
-                                title={`ADO Story ID: ${s.id} — View in Azure DevOps`}
+                              <a
+                                href={`https://dev.azure.com/RSMEquiCo/DCT/_workitems/edit/${s.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center font-bold rounded bg-blue-50 text-blue-700 border border-blue-200 mt-0.5 hover:bg-blue-100 hover:border-blue-400 transition-colors"
+                                style={{fontSize:'9px', padding:'2px 7px', textDecoration:'none'}}
+                                title={`View in Azure DevOps — Story #${s.id}`}
                               >
-                                #{s.id}
-                              </span>
+                                #{s.id} ↗
+                              </a>
                             </div>
                           ) : (
                             <span className="text-slate-400 italic" style={{fontSize:'10px'}}>{s.title}</span>
