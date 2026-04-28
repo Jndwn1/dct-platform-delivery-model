@@ -68,7 +68,7 @@ export const PLATFORM_LAYERS: PlatformLayer[] = [
     borderColor: "border-emerald-600",
     textColor: "text-emerald-100",
     badgeColor: "bg-emerald-500",
-    systems: ["PDC", "Phoenix Data Cloud"],
+    systems: ["PDC", "Phoenix Data Consolidation"],
     agentIds: ["architecture", "qa"],
   },
   {

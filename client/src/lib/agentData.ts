@@ -221,7 +221,7 @@ export const archTouchpoints: ArchTouchpoint[] = [
     description: "Normalized records are persisted as canonical financial dataset in PDC. Each record is versioned and linked to its source doc_id.",
     inputs: ["Normalized records from T3", "Normalization Record"],
     outputs: ["Canonical Record Set", "PDC persistence confirmation", "Version record"],
-    systemOwner: "PDC — Phoenix Data Cloud",
+    systemOwner: "PDC — Phoenix Data Consolidation",
     responsibility: "Persist normalized records as versioned canonical dataset",
     agentId: "normalization",
   },
