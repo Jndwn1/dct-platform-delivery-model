@@ -314,6 +314,10 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
   const ROW_H = 52;   // taller bars for executive readability
   const LABEL_W = 200;
   const svgH = validRows.length * ROW_H + 40;
+  // Today marker
+  const today = new Date();
+  const todayLeft = totalDays > 0 ? (daysBetween(minDate, today) / totalDays) * 100 : -1;
+  const showToday = todayLeft >= 0 && todayLeft <= 100;
 
   // Dependency arrows
   const arrows: { x1: number; y1: number; x2: number; y2: number; conflict: boolean; critical: boolean }[] = [];
@@ -388,6 +392,20 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
               );
             })}
 
+            {/* Today marker line */}
+            {showToday && (
+              <g>
+                <line
+                  x1={todayLeft} y1={0} x2={todayLeft} y2={svgH}
+                  stroke="#ef4444" strokeWidth="0.5" strokeDasharray="3,3"
+                />
+                <rect x={todayLeft - 5} y={0} width={10} height={14} rx={2} fill="#ef4444" />
+                <text x={todayLeft} y={10} textAnchor="middle" fill="white"
+                  style={{ fontSize: "5px", fontWeight: 700, fontFamily: "system-ui" }}>
+                  TODAY
+                </text>
+              </g>
+            )}
             <defs>
               {[
                 { id: "arrow-normal",   color: "#cbd5e1" },
@@ -1087,6 +1105,7 @@ export default function BatchDeliveryCalendar() {
                   "All": "#2563eb", "PI 1": "#1e3a5f", "PI 2": "#1e40af", "PI 3": "#166534", "PI 4": "#7c2d12",
                 };
                 const c = piColors[pi] || "#2563eb";
+                const count = pi === "All" ? validatedRows.length : validatedRows.filter(r => r.pi === pi).length;
                 return (
                   <button
                     key={pi}
@@ -1100,9 +1119,19 @@ export default function BatchDeliveryCalendar() {
                       padding: "4px 12px",
                       cursor: "pointer",
                       transition: "all 0.15s",
+                      display: "flex", alignItems: "center", gap: "5px",
                     }}
                   >
                     {pi}
+                    <span style={{
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      background: active ? "rgba(255,255,255,0.25)" : (c + "22"),
+                      color: active ? "white" : c,
+                      borderRadius: "10px",
+                      padding: "1px 6px",
+                      lineHeight: 1.4,
+                    }}>{count}</span>
                   </button>
                 );
               })}
