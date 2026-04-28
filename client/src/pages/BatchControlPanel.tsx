@@ -400,55 +400,93 @@ export default function BatchControlPanel() {
   const [panelCopied, setPanelCopied] = useState(false);
   const copyFullPanel = () => {
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    const divider = '─'.repeat(80);
-    const lines: string[] = [
-      '📋 ROGER UI DATA AVAILABILITY — BA WEEKLY UPDATE',
-      `Generated: ${today}`,
-      divider,
-      'Which data points are ready for Roger to consume now vs carried forward to PI 2',
-      divider,
-      '',
-    ];
-    let currentBatch = '';
-    ROGER_DATA_POINTS.forEach(d => {
-      if (d.batch !== currentBatch) {
-        currentBatch = d.batch;
-        lines.push(`▌ ${d.batch.toUpperCase()}`);
-        lines.push('');
-      }
-      const adoList = d.adoStories.filter(s => s.id).map(s => `#${s.id} – ${s.title}`).join(' | ');
-      const adoText = adoList || d.adoStories.map(s => s.title).join(' | ');
-      const statusIcon = d.availability === 'Available' ? '✅' : d.availability === 'Partially Available' ? '🟡' : '🔴';
-      lines.push(`${statusIcon} ${d.dataPoint}`);
-      lines.push(`   Source: ${d.source}  |  Owner: ${d.owner}`);
-      lines.push(`   API: ${d.apiEndpoint}`);
-      if (adoText) lines.push(`   ADO: ${adoText}`);
-      lines.push(`   Note: ${d.notes}`);
-      lines.push('');
-    });
-    lines.push(divider);
-    lines.push('Legend: ✅ Available  🟡 Partially Available  🔴 Not Available');
-    lines.push('Source: DCT Platform Gate Verification Dashboard — Control Panel');
-    const text = lines.join('\n');
-    const execFallback = () => {
-      const el = document.createElement('textarea');
-      el.value = text;
-      el.style.position = 'fixed';
-      el.style.opacity = '0';
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
+    // Build styled HTML table rows
+    let prevBatch = '';
+    const rows = ROGER_DATA_POINTS.map((d, i) => {
+      const isNewBatch = d.batch !== prevBatch;
+      prevBatch = d.batch;
+      const batchGroupIndex = ROGER_DATA_POINTS.filter((x, xi) => xi <= i && (xi === 0 || ROGER_DATA_POINTS[xi-1].batch !== x.batch)).length - 1;
+      const rowBg = batchGroupIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
+      const borderTop = isNewBatch && i > 0 ? '2px solid #cbd5e1' : '1px solid #f1f5f9';
+      const availStyle = d.availability === 'Available'
+        ? 'background:#dcfce7;color:#166534;'
+        : d.availability === 'Partially Available'
+        ? 'background:#dbeafe;color:#1e3a8a;'
+        : 'background:#fee2e2;color:#991b1b;';
+      const noteIcon = (d.notes.toLowerCase().includes('block') || d.notes.toLowerCase().includes('gap') || d.notes.toLowerCase().includes('pending')) ? '⚠️' : 'ℹ️';
+      const adoHtml = d.adoStories.map(s => s.id
+        ? `<div style="margin-bottom:4px;text-align:right"><div style="font-size:9px;color:#374151;line-height:1.3">${s.title}</div><span style="display:inline-block;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700">#${s.id} ↗</span></div>`
+        : `<div style="font-size:9px;color:#9ca3af;font-style:italic">${s.title}</div>`
+      ).join('');
+      return `<tr style="background:${rowBg};border-top:${borderTop}">
+        <td style="padding:10px 10px;font-size:11px;font-weight:600;color:#1e293b;word-break:break-word;vertical-align:top">${d.dataPoint}</td>
+        <td style="padding:10px 10px;font-size:10px;color:#64748b;vertical-align:top;word-break:break-word">${d.source}</td>
+        <td style="padding:10px 10px;font-size:10px;font-weight:700;color:#003865;white-space:nowrap;vertical-align:top">${d.batch}</td>
+        <td style="padding:10px 10px;vertical-align:top;text-align:center">
+          <span style="display:inline-block;${availStyle}border-radius:9999px;padding:3px 10px;font-size:9px;font-weight:700;white-space:nowrap;min-width:80px;text-align:center">${d.availability}</span>
+        </td>
+        <td style="padding:10px 10px;vertical-align:top">
+          <span style="font-family:monospace;font-size:8.5px;background:#f1f5f9;color:#475569;border-radius:3px;padding:2px 5px;display:block;word-break:break-all;line-height:1.5">${d.apiEndpoint}</span>
+        </td>
+        <td style="padding:10px 10px;vertical-align:top;text-align:right">${adoHtml}</td>
+        <td style="padding:10px 10px;vertical-align:top;font-size:10px;color:#475569">${noteIcon} ${d.notes}</td>
+        <td style="padding:10px 10px;vertical-align:top;font-size:10px;color:#64748b;word-break:break-word">${d.owner}</td>
+      </tr>`;
+    }).join('');
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>Roger UI Data Availability — BA Weekly ${today}</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:24px;background:#f8fafc;}
+  .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);}
+  .header{background:#003865;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+  .header-title{color:#fff;font-size:14px;font-weight:700;margin:0;}
+  .header-sub{color:#93c5fd;font-size:11px;margin-top:2px;}
+  .header-meta{color:#bfdbfe;font-size:10px;text-align:right;}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;}
+  thead tr{background:#002a52;}
+  th{padding:10px 10px;font-weight:700;font-size:10px;letter-spacing:.04em;color:#fff;text-align:left;}
+  th:nth-child(4){text-align:center;}
+  th:nth-child(6){text-align:right;}
+  tr:hover{background:#eff6ff !important;}
+  .legend{display:flex;gap:16px;padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:10px;color:#64748b;}
+  .legend span{display:inline-flex;align-items:center;gap:4px;}
+  .footer{padding:8px 16px;font-size:9px;color:#94a3b8;border-top:1px solid #f1f5f9;text-align:right;}
+  @media print{body{padding:0;background:#fff;}.card{box-shadow:none;}}
+</style></head><body>
+<div class="card">
+  <div class="header">
+    <div><div class="header-title">Roger UI Data Availability</div><div class="header-sub">Which data points are ready for Roger to consume now vs carried forward to PI 2</div></div>
+    <div class="header-meta">BA Weekly Update<br>${today}</div>
+  </div>
+  <table>
+    <thead><tr>
+      <th style="width:20%">Data Point</th>
+      <th style="width:10%">Source</th>
+      <th style="width:7%">Batch</th>
+      <th style="width:11%;text-align:center">Availability</th>
+      <th style="width:15%">API Endpoint</th>
+      <th style="width:17%;text-align:right">ADO Story (ID)</th>
+      <th style="width:13%">Notes / Gap</th>
+      <th style="width:7%">Owner</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="legend">
+    <span><span style="display:inline-block;background:#dcfce7;color:#166534;border-radius:9999px;padding:1px 8px;font-weight:700;font-size:9px">Available</span></span>
+    <span><span style="display:inline-block;background:#dbeafe;color:#1e3a8a;border-radius:9999px;padding:1px 8px;font-weight:700;font-size:9px">Partially Available</span></span>
+    <span><span style="display:inline-block;background:#fee2e2;color:#991b1b;border-radius:9999px;padding:1px 8px;font-weight:700;font-size:9px">Not Available</span></span>
+    <span>⚠️ Gap / Blocker &nbsp; ℹ️ Informational</span>
+  </div>
+  <div class="footer">DCT Platform Gate Verification Dashboard — Control Panel — Planning View</div>
+</div>
+</body></html>`;
+    const popup = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    if (popup) {
+      popup.document.write(html);
+      popup.document.close();
       setPanelCopied(true);
       setTimeout(() => setPanelCopied(false), 3000);
-    };
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(() => {
-        setPanelCopied(true);
-        setTimeout(() => setPanelCopied(false), 3000);
-      }).catch(execFallback);
-    } else {
-      execFallback();
     }
   };
   const toggleNote = (i: number) => setExpandedNotes(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
@@ -838,7 +876,7 @@ RECOMMENDED NEXT ACTION:
               title="Copy full panel as formatted text for BA weekly update"
             >
               {panelCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              {panelCopied ? 'Copied!' : 'Copy Full Panel'}
+              {panelCopied ? 'Opened!' : 'Export Panel'}
             </button>
             {/* Copy ADO IDs only */}
             <button
