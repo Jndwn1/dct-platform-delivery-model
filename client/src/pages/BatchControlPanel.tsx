@@ -753,22 +753,22 @@ RECOMMENDED NEXT ACTION:
         <div className="overflow-x-auto">
           <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
             <colgroup>
-              {/* Data Point 23% */}
-              <col style={{width: '23%'}} />
-              {/* Source 9% */}
-              <col style={{width: '9%'}} />
-              {/* Batch 8% */}
-              <col style={{width: '8%'}} />
+              {/* Data Point 20% */}
+              <col style={{width: '20%'}} />
+              {/* Source 10% */}
+              <col style={{width: '10%'}} />
+              {/* Batch 7% */}
+              <col style={{width: '7%'}} />
               {/* Availability 11% */}
               <col style={{width: '11%'}} />
-              {/* API Endpoint 18% */}
-              <col style={{width: '18%'}} />
-              {/* ADO Story 18% */}
-              <col style={{width: '18%'}} />
-              {/* Notes 10% */}
-              <col style={{width: '10%'}} />
-              {/* Owner 3% */}
-              <col style={{width: '3%'}} />
+              {/* API Endpoint 15% */}
+              <col style={{width: '15%'}} />
+              {/* ADO Story 17% */}
+              <col style={{width: '17%'}} />
+              {/* Notes 13% */}
+              <col style={{width: '13%'}} />
+              {/* Owner 7% */}
+              <col style={{width: '7%'}} />
             </colgroup>
             <thead>
               <tr style={{background: '#002a52', borderBottom: '2px solid #001d3d'}}>
@@ -893,7 +893,7 @@ RECOMMENDED NEXT ACTION:
                       </div>
                     </td>
                     {/* Owner */}
-                    <td className="px-3 text-slate-500 text-xs" style={{padding: '12px 12px', wordBreak:'break-word', verticalAlign:'top'}}>{d.owner}</td>
+                    <td className="px-3 text-slate-500 text-xs" style={{padding: '12px 12px', wordBreak:'break-word', verticalAlign:'top', whiteSpace:'normal', overflowWrap:'break-word'}}>{d.owner}</td>
                   </tr>
                 );
               })}
