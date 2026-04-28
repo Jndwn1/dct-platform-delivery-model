@@ -55,6 +55,50 @@ const API_BATCHES = [
     models: ["MappingDecision", "DecisionState (enum: ACCEPTED | OVERRIDDEN | REJECTED)", "AdjustmentRecord", "TaxDecision"],
     note: "First write surface in Roger. Decisions are append-only and immutable. TAX_READY records are locked.",
   },
+  {
+    batch: "Batch 7", label: "Client Tax Profile & Eligibility",
+    endpoints: [
+      { method: "GET",  path: "/api/v1/clients/{clientId}/tax-profile",                   desc: "Full client tax profile including filing status, jurisdiction, and entity type" },
+      { method: "GET",  path: "/api/v1/clients/{clientId}/eligibility",                   desc: "Three-Tier Eligibility determination result (ELIGIBLE | CONDITIONAL | INELIGIBLE)" },
+      { method: "GET",  path: "/api/v1/clients/{clientId}/eligibility/history",           desc: "Append-only eligibility determination history for a client" },
+      { method: "GET",  path: "/api/v1/clients/{clientId}/tax-profile/jurisdiction-flags", desc: "Active jurisdiction-level flags affecting filing obligations" },
+    ],
+    models: ["ClientTaxProfile", "EligibilityDetermination", "EligibilityTier (enum: ELIGIBLE | CONDITIONAL | INELIGIBLE)", "JurisdictionFlag", "FilingObligation"],
+    note: "Roger reads the Three-Tier Eligibility result to gate practitioner workflows. Ineligible clients are surfaced with blocking indicators. No write access — eligibility is owned by TDC.",
+  },
+  {
+    batch: "Batch 8", label: "Exceptions & Remediation",
+    endpoints: [
+      { method: "GET",  path: "/api/v1/exceptions/{documentId}",                desc: "All active exception records for a document across PDC and TDC" },
+      { method: "GET",  path: "/api/v1/exceptions/{exceptionId}",               desc: "Single exception record with failure type, severity, and remediation state" },
+      { method: "POST", path: "/api/v1/exceptions/{exceptionId}/remediate",     desc: "Submit remediation action for an exception (OVERRIDE | ESCALATE | DISMISS)" },
+      { method: "GET",  path: "/api/v1/exceptions/{documentId}/summary",        desc: "Exception summary by severity and system (PDC vs TDC) for Roger dashboard" },
+    ],
+    models: ["ExceptionRecord", "ExceptionSeverity (enum: CRITICAL | WARNING | INFO)", "RemediationAction", "RemediationState (enum: OPEN | IN_REVIEW | RESOLVED | ESCALATED)", "ExceptionSource (enum: PDC | TDC)"],
+    note: "Roger surfaces exception counts and severity in the home page dashboard. Practitioners can submit remediation actions. Critical exceptions block TAX_READY promotion until resolved.",
+  },
+  {
+    batch: "Batch 9", label: "PDC IMS Integration & Prior Year Retrieval",
+    endpoints: [
+      { method: "GET",  path: "/api/v1/ims/prior-year/{clientId}/{taxYear}",              desc: "Prior year tax record retrieved from IMS for rollforward comparison" },
+      { method: "GET",  path: "/api/v1/ims/prior-year/{clientId}/{taxYear}/delta",        desc: "Delta analysis between prior year and current year TDC records" },
+      { method: "GET",  path: "/api/v1/ims/retrieval-status/{jobId}",                    desc: "IMS retrieval job status — PENDING | IN_PROGRESS | COMPLETE | FAILED" },
+      { method: "GET",  path: "/api/v1/tdc/records/{documentId}/rollforward-candidates", desc: "TDC records flagged as rollforward candidates based on prior year match" },
+    ],
+    models: ["ImsRecord", "PriorYearDelta", "RetrievalJob", "RetrievalStatus (enum: PENDING | IN_PROGRESS | COMPLETE | FAILED)", "RollforwardCandidate"],
+    note: "Roger displays prior year comparison panels using IMS data. Rollforward candidates are highlighted to accelerate practitioner review. IMS retrieval is asynchronous — Roger polls retrieval status before rendering.",
+  },
+  {
+    batch: "Batch 10", label: "Return Assembly, Filing & Lineage Closure",
+    endpoints: [
+      { method: "GET",  path: "/api/v1/returns/{documentId}/assembly",          desc: "Return assembly record — all TAX_READY records compiled into a filing package" },
+      { method: "GET",  path: "/api/v1/returns/{documentId}/filing-status",     desc: "Current filing status: DRAFT | ASSEMBLED | SUBMITTED | ACCEPTED | REJECTED" },
+      { method: "GET",  path: "/api/v1/returns/{documentId}/lineage",           desc: "Full lineage chain from ingestion through filing — Gate 4 closure artifact" },
+      { method: "GET",  path: "/api/v1/returns/{documentId}/lineage/summary",   desc: "Lineage closure summary for Roger home page — completeness score and open gaps" },
+    ],
+    models: ["ReturnAssembly", "FilingPackage", "FilingStatus (enum: DRAFT | ASSEMBLED | SUBMITTED | ACCEPTED | REJECTED)", "LineageRecord", "LineageClosureSummary"],
+    note: "Gate 4 — Lineage Closure. Roger displays the lineage closure summary on the home page once all TAX_READY records are assembled. Filing status is read-only in Roger; submission is owned by the filing agent. Lineage records are immutable.",
+  },
 ];
 
 const METHOD_COLORS: Record<string, { bg: string; text: string }> = {
