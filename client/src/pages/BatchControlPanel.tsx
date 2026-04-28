@@ -61,12 +61,18 @@ interface SwaggerEntry {
   notes: string;
 }
 
+interface AdoStory {
+  title: string;
+  id: string;
+}
+
 interface RogerDataPoint {
   dataPoint: string;
   source: string;
   batch: string;
   availability: RogerAvailability;
   apiEndpoint: string;
+  adoStories: AdoStory[];   // ADO Tech Story traceability
   notes: string;
   owner: string;
 }
@@ -193,19 +199,106 @@ const SWAGGER_ENTRIES: SwaggerEntry[] = [
 ];
 
 const ROGER_DATA_POINTS: RogerDataPoint[] = [
-  { dataPoint: "File ingestion status (JobId, DocumentId, State)", source: "PDC", batch: "Batch 1", availability: "Available", apiEndpoint: "GET /api/pdc/ingestion/status/{jobId}", notes: "Operational. Roger can confirm file arrival and processing state.", owner: "PDC" },
-  { dataPoint: "Lineage anchor (DocumentId → EntityId → PeriodStart/End)", source: "PDC", batch: "Batch 1", availability: "Available", apiEndpoint: "GET /api/pdc/ingestion/status/{jobId}", notes: "Lineage immediately visible at ingestion.", owner: "PDC" },
-  { dataPoint: "Normalized Trial Balance (vNormalizedTb)", source: "PDC", batch: "Batch 2", availability: "Partially Available", apiEndpoint: "GET /api/pdc/normalized-tb", notes: "Pending Batch 2A contract enforcement. Not yet Roger-consumable.", owner: "PDC" },
-  { dataPoint: "FirmTaxonomyId on normalized records", source: "PDC / Orchestrator", batch: "Batch 2A", availability: "Not Available", apiEndpoint: "—", notes: "Blocking gap. Orchestrator not returning FirmTaxonomyId. Classification Walkthrough documents this gap.", owner: "PDC + Orchestrator" },
-  { dataPoint: "Tax form templates and mapping rules", source: "TDC", batch: "Batch 3", availability: "Available", apiEndpoint: "GET /api/tdc/reference-data", notes: "Orchestrator-facing only. Not Roger-facing.", owner: "TDC" },
-  { dataPoint: "AI mapping proposals (confidence + evidence)", source: "TDC", batch: "Batch 4", availability: "Partially Available", apiEndpoint: "GET /api/tdc/mapping-proposals", notes: "Proposals available. Roger read contract (TDC Records API) not yet published.", owner: "TDC" },
-  { dataPoint: "Mapping decisions (accept / override / reject)", source: "TDC", batch: "Batch 4", availability: "Partially Available", apiEndpoint: "GET /api/tdc/mapping-decisions", notes: "Immutable decisions in place. Out of Sync — tax_year field gap in Swagger.", owner: "TDC" },
-  { dataPoint: "Roger primary TDC read contract (GREEN/YELLOW/RED, pending vs decided)", source: "TDC", batch: "Batch 4", availability: "Not Available", apiEndpoint: "GET /api/tdc/records", notes: "Not yet published. This is the moment the platform comes to life for practitioners. Blocking.", owner: "TDC" },
-  { dataPoint: "Entity identity (ClientGroupId, EntityId, hierarchy)", source: "PDC", batch: "Batch 5", availability: "Not Available", apiEndpoint: "—", notes: "Batch 5 not started. EntityId risk open since PI 1.", owner: "PDC" },
-  { dataPoint: "Review task state and adjustment lifecycle", source: "TDC", batch: "Batch 6", availability: "Not Available", apiEndpoint: "—", notes: "Batch 6 not started. Sequential after Batch 4 closes.", owner: "TDC" },
-  { dataPoint: "Tax-ready records (locked, derived)", source: "TDC", batch: "Batch 6", availability: "Not Available", apiEndpoint: "—", notes: "Batch 6 not started. Derivation from mapping decisions + approved adjustments.", owner: "TDC" },
-  { dataPoint: "Eligibility status and rule reasoning", source: "TDC", batch: "Batch 7", availability: "Not Available", apiEndpoint: "—", notes: "Batch 7 not started. Sequential after Batch 6 closes.", owner: "TDC" },
-  { dataPoint: "Exception status (ingestion, mapping, workflow)", source: "PDC + TDC", batch: "Batch 8", availability: "Not Available", apiEndpoint: "—", notes: "Batch 8 not started. Parallel to Batch 7 (PDC), sequential after Batch 7 (TDC).", owner: "PDC + TDC" },
+  {
+    dataPoint: "File ingestion status (JobId, DocumentId, State)",
+    source: "PDC", batch: "Batch 1", availability: "Available",
+    apiEndpoint: "GET /api/pdc/ingestion/status/{jobId}",
+    adoStories: [{ title: "N/A – Delivered in Batch 1 foundation", id: "" }],
+    notes: "Operational. Roger can confirm file arrival and processing state.", owner: "PDC",
+  },
+  {
+    dataPoint: "Lineage anchor (DocumentId → EntityId → PeriodStart/End)",
+    source: "PDC", batch: "Batch 1", availability: "Available",
+    apiEndpoint: "GET /api/pdc/ingestion/status/{jobId}",
+    adoStories: [{ title: "N/A – Delivered in Batch 1 foundation", id: "" }],
+    notes: "Lineage immediately visible at ingestion.", owner: "PDC",
+  },
+  {
+    dataPoint: "Normalized Trial Balance (vNormalizedTb)",
+    source: "PDC", batch: "Batch 2", availability: "Partially Available",
+    apiEndpoint: "GET /api/pdc/normalized-tb",
+    adoStories: [
+      { title: "Normalized TB Contract (Roger Read Surface)", id: "1349150" },
+      { title: "File Schemas & Firm Financial Taxonomy Reference Data", id: "1349142" },
+    ],
+    notes: "Pending Batch 2A contract enforcement. Not yet Roger-consumable.", owner: "PDC",
+  },
+  {
+    dataPoint: "FirmTaxonomyId on normalized records",
+    source: "PDC / Orchestrator", batch: "Batch 2A", availability: "Not Available",
+    apiEndpoint: "—",
+    adoStories: [{ title: "Enforce Classification Presence (FirmTaxonomyId)", id: "1370843" }],
+    notes: "Blocking gap. Orchestrator not returning FirmTaxonomyId. Classification Walkthrough documents this gap.", owner: "PDC + Orchestrator",
+  },
+  {
+    dataPoint: "Tax form templates and mapping rules",
+    source: "TDC", batch: "Batch 3", availability: "Available",
+    apiEndpoint: "GET /api/tdc/reference-data",
+    adoStories: [{ title: "TDC Reference Data Read Contract (Orchestrator Facing)", id: "1349152" }],
+    notes: "Orchestrator-facing only. Not Roger-facing.", owner: "TDC",
+  },
+  {
+    dataPoint: "AI mapping proposals (confidence + evidence)",
+    source: "TDC", batch: "Batch 4", availability: "Partially Available",
+    apiEndpoint: "GET /api/tdc/mapping-proposals",
+    adoStories: [{ title: "AI Mapping Proposals", id: "1349156" }],
+    notes: "Proposals available. Roger read contract (TDC Records API) not yet published.", owner: "TDC",
+  },
+  {
+    dataPoint: "Mapping decisions (accept / override / reject)",
+    source: "TDC", batch: "Batch 4", availability: "Partially Available",
+    apiEndpoint: "GET /api/tdc/mapping-decisions",
+    adoStories: [{ title: "Mapping Decisions", id: "1349157" }],
+    notes: "Immutable decisions in place. Out of Sync — tax_year field gap in Swagger.", owner: "TDC",
+  },
+  {
+    dataPoint: "Roger primary TDC read contract (GREEN/YELLOW/RED, pending vs decided)",
+    source: "TDC", batch: "Batch 4", availability: "Not Available",
+    apiEndpoint: "GET /api/tdc/records",
+    adoStories: [{ title: "TDC Records API Contract (Roger Read Surface)", id: "1349158" }],
+    notes: "Not yet published. This is the moment the platform comes to life for practitioners. Blocking.", owner: "TDC",
+  },
+  {
+    dataPoint: "Entity identity (ClientGroupId, EntityId, hierarchy)",
+    source: "PDC", batch: "Batch 5", availability: "Not Available",
+    apiEndpoint: "—",
+    adoStories: [{ title: "Entity Identity Read Contract (PDC-facing)", id: "1355868" }],
+    notes: "Batch 5 not started. EntityId risk open since PI 1.", owner: "PDC",
+  },
+  {
+    dataPoint: "Review task state and adjustment lifecycle",
+    source: "TDC", batch: "Batch 6", availability: "Not Available",
+    apiEndpoint: "—",
+    adoStories: [
+      { title: "Review Task Management & Entity Status", id: "1350253" },
+      { title: "Book-to-Tax Adjustments & Approval Routing", id: "1350254" },
+    ],
+    notes: "Batch 6 not started. Sequential after Batch 4 closes.", owner: "TDC",
+  },
+  {
+    dataPoint: "Tax-ready records (locked, derived)",
+    source: "TDC", batch: "Batch 6", availability: "Not Available",
+    apiEndpoint: "—",
+    adoStories: [{ title: "Tax-Ready Record Derivation", id: "1350255" }],
+    notes: "Batch 6 not started. Derivation from mapping decisions + approved adjustments.", owner: "TDC",
+  },
+  {
+    dataPoint: "Eligibility status and rule reasoning",
+    source: "TDC", batch: "Batch 7", availability: "Not Available",
+    apiEndpoint: "—",
+    adoStories: [{ title: "Client Tax Profile Lifecycle & Determination Records", id: "1355882" }],
+    notes: "Batch 7 not started. Sequential after Batch 6 closes.", owner: "TDC",
+  },
+  {
+    dataPoint: "Exception status (ingestion, mapping, workflow)",
+    source: "PDC + TDC", batch: "Batch 8", availability: "Not Available",
+    apiEndpoint: "—",
+    adoStories: [
+      { title: "PDC Exception Record Structure & Failure Tracking", id: "1355898" },
+      { title: "TDC Exception Record Structure & Failure Tracking", id: "1355902" },
+    ],
+    notes: "Batch 8 not started. Parallel to Batch 7 (PDC), sequential after Batch 7 (TDC).", owner: "PDC + TDC",
+  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -607,13 +700,14 @@ RECOMMENDED NEXT ACTION:
         <div className="overflow-x-auto">
           <table className="w-full" style={{fontSize: '11px', tableLayout: 'fixed'}}>
             <colgroup>
-              <col style={{width: '160px'}} />
-              <col style={{width: '90px'}} />
-              <col style={{width: '72px'}} />
-              <col style={{width: '110px'}} />
-              <col style={{width: '180px'}} />
+              <col style={{width: '155px'}} />
+              <col style={{width: '80px'}} />
+              <col style={{width: '68px'}} />
+              <col style={{width: '105px'}} />
+              <col style={{width: '165px'}} />
+              <col style={{width: '185px'}} />
               <col style={{width: 'auto'}} />
-              <col style={{width: '90px'}} />
+              <col style={{width: '80px'}} />
             </colgroup>
             <thead>
               <tr className="bg-[#003865] text-white">
@@ -622,6 +716,7 @@ RECOMMENDED NEXT ACTION:
                 <th className="text-left px-2 py-2 font-semibold">Batch</th>
                 <th className="text-left px-2 py-2 font-semibold">Availability</th>
                 <th className="text-left px-2 py-2 font-semibold">API Endpoint</th>
+                <th className="text-left px-2 py-2 font-semibold">ADO Story (ID)</th>
                 <th className="text-left px-2 py-2 font-semibold">Notes / Gap</th>
                 <th className="text-left px-2 py-2 font-semibold">Owner</th>
               </tr>
@@ -638,6 +733,28 @@ RECOMMENDED NEXT ACTION:
                       <Badge label={d.availability} bg={rStyle.bg} text={rStyle.text} />
                     </td>
                     <td className="px-2 py-1.5 font-mono text-slate-500" style={{wordBreak:'break-all', fontSize:'10px'}}>{d.apiEndpoint}</td>
+                    <td className="px-2 py-1.5" style={{wordBreak:'break-word'}}>
+                      {d.adoStories.map((s, si) => (
+                        <div key={si} className="mb-1 last:mb-0">
+                          {s.id ? (
+                            <span
+                              title="Click to view ADO work item"
+                              className="cursor-help inline-block"
+                            >
+                              <span className="text-slate-700" style={{fontSize:'10px'}}>{s.title}</span>
+                              <span
+                                className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-blue-50 text-blue-700 border border-blue-200"
+                                title={`ADO Story ID: ${s.id} — Click to view ADO work item`}
+                              >
+                                #{s.id}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic" style={{fontSize:'10px'}}>{s.title}</span>
+                          )}
+                        </div>
+                      ))}
+                    </td>
                     <td className="px-2 py-1.5 text-slate-600" style={{whiteSpace: 'normal', wordBreak: 'break-word'}}>
                       <div className="flex items-start gap-1">
                         <span className="flex-1">{d.notes}</span>
