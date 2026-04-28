@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Global Batch Control Panel — v1.9 Source of Truth
+// Global Batch Control Panel — v2.1 Source of Truth
 // Sections:
 //   1. Batch Status (existing — propagates to all screens)
 //   2. Delivered Work by Batch
@@ -128,12 +128,12 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
     key: "3",
     label: "Batch 3 — Tax Domain Authority & Tax Taxonomy",
     owner: "TDC",
-    status: "In Progress",
+    status: "Delivered",
     delivered: ["TaxFormTemplates and FormLines", "TaxTaxonomyAccounts and MappingRules", "ConfidenceBandThresholds (GREEN/YELLOW/RED)", "TDC Reference Data Read Contract (Orchestrator-facing)"],
     validated: ["TaxFormTemplates queryable by Jurisdiction", "MappingRules versioned and available", "ConfidenceBandThresholds configured"],
     open: ["Domain Governance Note 3b: Tax calculation reference data must be governed tables, not hard-coded"],
     readiness: "API-ready · Demo-ready",
-    poNote: "Batch 3 is in progress. TDC is established as the tax domain authority. Tax forms, return templates, taxonomy, and mapping rules are loaded, versioned, and governed. Domain Governance Note 3b (tax calculation reference data must be governed tables, not hard-coded) remains an open item. Orchestrator has everything needed to generate proposals.",
+    poNote: "Batch 3 is delivered. TDC is established as the tax domain authority. TaxFormTemplates, FormLines, TaxTaxonomyAccounts, MappingRules, and ConfidenceBandThresholds (GREEN/YELLOW/RED) are loaded, versioned, and governed. TDC Reference Data Read Contract (Orchestrator-facing) is live. Orchestrator has everything needed to generate proposals (Batch 4).",
   },
   {
     key: "4",
@@ -150,34 +150,34 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
     key: "5",
     label: "Batch 5 — Entity Identity & Structure",
     owner: "PDC",
-    status: "Not Started",
-    delivered: [],
+    status: "In Progress",
+    delivered: ["Client Groups & Legal Entity Registry (in progress)", "Ownership Chains & Jurisdictions (in progress)"],
     validated: [],
-    open: ["EntityId risk open since PI 1", "CEM Integration & Sync not started", "User Entitlement Sync — future scope", "Client Groups & Legal Entity Registration not started"],
-    readiness: "Not started — backlog only",
-    poNote: "Batch 5 has not started. This batch closes the EntityId risk open since PI 1. PDC will establish the authoritative entity registry. Planned for PI 2 Committed.",
+    open: ["EntityId risk open since PI 1 — being closed", "CEM Integration & Sync — in progress", "User Entitlement Sync — future scope"],
+    readiness: "In progress — PI 2 Committed (parallel to Batch 4)",
+    poNote: "Batch 5 is in progress (PI 2 Committed, parallel to Batch 4). PDC is establishing the authoritative entity registry. Client Groups & Legal Entity Registry, Ownership Chains, Jurisdictions, and Entity Characteristics are in development. Entity Identity Read Contract (PDC-facing, ID: 1355868) is the primary Roger-facing deliverable. Closes the EntityId open item from PI 1.",
   },
   {
     key: "6",
     label: "Batch 6 — Practitioner Review, Adjustments & Lock",
     owner: "TDC",
-    status: "Not Started",
-    delivered: [],
+    status: "In Progress",
+    delivered: ["Review task generation logic (in progress)", "Six-state adjustment lifecycle defined (DRAFT → SUBMITTED → APPROVED → APPLIED → LOCKED)"],
     validated: [],
-    open: ["Sequential — begins after Batch 4 closes", "Sign-Off, Lock & Entity Finalization not started", "Tax-Ready Record Derivation not started", "SHA-256 cryptographic hash sign-off not started"],
-    readiness: "Not started — backlog only",
-    poNote: "Batch 6 has not started. Sequential after Batch 4 closes. Practitioners will be able to do real work: review tasks, adjustments, tax-ready derivation, and non-repudiable sign-off. Planned for PI 2 Committed.",
+    open: ["Sequential — begins after Batch 4 closes", "Sign-Off, Lock & Entity Finalization — in progress", "Tax-Ready Record Derivation — in progress", "SHA-256 cryptographic hash sign-off — in progress"],
+    readiness: "In progress — PI 2 Committed (sequential after Batch 4)",
+    poNote: "Batch 6 is in progress (PI 2 Committed, sequential after Batch 4 closes). Practitioners will be able to do real work: review tasks generated automatically from data state, governed six-state adjustment lifecycle (DRAFT → SUBMITTED → APPROVED → APPLIED → LOCKED), tax-ready record derivation, and non-repudiable sign-off with SHA-256 hash. Key stories: Review Task Management (ID: 1350253), Book-to-Tax Adjustments (ID: 1350254), Tax-Ready Record Derivation (ID: 1350255).",
   },
   {
     key: "7",
     label: "Batch 7 — Client Tax Profile & Eligibility",
     owner: "TDC",
-    status: "Not Started",
-    delivered: [],
+    status: "In Progress",
+    delivered: ["Three-Tier Eligibility Model defined (Must Have / Must Not Have / Flag & Review)", "Client Tax Profile structure defined"],
     validated: [],
-    open: ["Sequential — begins after Batch 6 closes", "Three-Tier Eligibility Model not started", "Controlled Group & Affiliated Group Determination not started"],
-    readiness: "Not started — backlog only",
-    poNote: "Batch 7 has not started. Sequential after Batch 6 closes. TDC will serve as system of record for tax profile and eligibility. Eligibility acts as a downstream processing gate. Planned for PI 2 Committed.",
+    open: ["Sequential — begins after Batch 6 closes", "Controlled Group & Affiliated Group Determination — in progress", "Eligibility gate enforcement — in progress"],
+    readiness: "In progress — PI 2 Committed (sequential after Batch 6)",
+    poNote: "Batch 7 is in progress (PI 2 Committed, sequential after Batch 6 closes). TDC serves as system of record for tax profile and eligibility determinations. Three-Tier Eligibility Model (Must Have / Must Not Have / Flag & Review). Entities in INELIGIBLE or unresolved FLAG_AND_REVIEW state are blocked from downstream workflow. Key story: Client Tax Profile Lifecycle & Determination Records (ID: 1355882).",
   },
 ];
 
@@ -263,7 +263,7 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
     source: "PDC", batch: "Batch 5", availability: "Not Available",
     apiEndpoint: "—",
     adoStories: [{ title: "Entity Identity Read Contract (PDC-facing)", id: "1355868" }],
-    notes: "Batch 5 not started. EntityId risk open since PI 1.", owner: "PDC",
+    notes: "In progress (PI 2). EntityId risk from PI 1 being closed. Entity Identity Read Contract (PDC-facing) is the Roger-facing deliverable.", owner: "PDC",
   },
   {
     dataPoint: "Review task state and adjustment lifecycle",
@@ -273,21 +273,21 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
       { title: "Review Task Management & Entity Status", id: "1350253" },
       { title: "Book-to-Tax Adjustments & Approval Routing", id: "1350254" },
     ],
-    notes: "Batch 6 not started. Sequential after Batch 4 closes.", owner: "TDC",
+    notes: "In progress (PI 2, sequential after Batch 4). Review tasks auto-generated from data state. Six-state adjustment lifecycle in development.", owner: "TDC",
   },
   {
     dataPoint: "Tax-ready records (locked, derived)",
     source: "TDC", batch: "Batch 6", availability: "Not Available",
     apiEndpoint: "—",
     adoStories: [{ title: "Tax-Ready Record Derivation", id: "1350255" }],
-    notes: "Batch 6 not started. Derivation from mapping decisions + approved adjustments.", owner: "TDC",
+    notes: "In progress (PI 2). Tax-ready derivation from mapping decisions + approved adjustments. SHA-256 sign-off in development.", owner: "TDC",
   },
   {
     dataPoint: "Eligibility status and rule reasoning",
     source: "TDC", batch: "Batch 7", availability: "Not Available",
     apiEndpoint: "—",
     adoStories: [{ title: "Client Tax Profile Lifecycle & Determination Records", id: "1355882" }],
-    notes: "Batch 7 not started. Sequential after Batch 6 closes.", owner: "TDC",
+    notes: "In progress (PI 2, sequential after Batch 6). Three-Tier Eligibility Model (Must Have / Must Not Have / Flag & Review). Ineligible entities blocked from downstream workflow.", owner: "TDC",
   },
   {
     dataPoint: "Exception status (ingestion, mapping, workflow)",
@@ -297,7 +297,16 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
       { title: "PDC Exception Record Structure & Failure Tracking", id: "1355898" },
       { title: "TDC Exception Record Structure & Failure Tracking", id: "1355902" },
     ],
-    notes: "Batch 8 not started. Parallel to Batch 7 (PDC), sequential after Batch 7 (TDC).", owner: "PDC + TDC",
+    notes: "In progress (PI 2). PDC parallel to Batch 7, TDC sequential after Batch 7. Exception state machine: OPEN → IN_PROGRESS → RESOLVED / CLOSED / SUPPRESSED.", owner: "PDC + TDC",
+  },
+  {
+    dataPoint: "Rollforward proposals & prior year intelligence",
+    source: "PDC + TDC", batch: "Batch 9", availability: "Not Available",
+    apiEndpoint: "GET /api/tdc/rollforward",
+    adoStories: [
+      { title: "IMS Inbound Retrieval Contract", id: "1350260" },
+    ],
+    notes: "Batch 9 not started. PDC free after Batch 5 closes, TDC sequential after Batch 6 closes. v_rollforward contract extends TDC Records API for Roger. Prior year proposals with EXACT / APPROXIMATE / NO_MATCH confidence scoring.", owner: "PDC + TDC",
   },
 ];
 
@@ -548,46 +557,42 @@ export default function BatchControlPanel() {
   const rogerBlocked = ROGER_DATA_POINTS.filter(d => d.availability === "Not Available").length;
   const carryForward = DELIVERED_BATCHES.flatMap(b => b.open).filter(o => o.length > 0);
 
-  const poSummaryText = `DCT Platform — Delivery Status Update (v1.9)
-
+  const poSummaryText = `DCT Platform — Delivery Status Update (v2.1 — April 28, 2026)
 DELIVERED:
 ${deliveredBatches.map(b => `• ${b}`).join("\n")}
-
-IN PROGRESS:
+IN PROGRESS (PI 2 Committed):
 ${inProgressBatches.map(b => `• ${b}`).join("\n")}
-
 API COVERAGE:
 • ${apisDelivered} of ${SWAGGER_ENTRIES.length} endpoints delivered
 • ${apisMissing} endpoints missing from Swagger or Consumer Guide
 • Batch 4 TDC Records API (Roger primary contract) not yet published — blocking Roger practitioner view
 • Batch 2A Classification Enforcement contract not yet in Swagger — blocking gap
-
 ROGER UI DATA AVAILABILITY:
 • ${rogerAvailable} of ${ROGER_DATA_POINTS.length} data points available to Roger
-• ${rogerBlocked} data points not yet available (Batches 5–8 not started)
-• FirmTaxonomyId on normalized records: NOT AVAILABLE — Orchestrator not returning classification (see Classification Walkthrough)
-
+• ${rogerBlocked} data points not yet available
+• FirmTaxonomyId on normalized records: NOT AVAILABLE — Orchestrator not returning classification (Batch 2A blocking gap)
+PI 2 COMMITTED BATCHES IN PROGRESS:
+• Batch 5 (PDC): Entity Identity & Structure — parallel to Batch 4. Closing EntityId risk from PI 1.
+• Batch 6 (TDC): Practitioner Review, Adjustments & Lock — sequential after Batch 4. Six-state adjustment lifecycle in development.
+• Batch 7 (TDC): Client Tax Profile & Eligibility — sequential after Batch 6. Three-Tier Eligibility Model defined.
+• Batch 8 (PDC + TDC): Exception Handling — in progress. PDC parallel to Batch 7, TDC sequential.
 CARRY-FORWARD ITEMS:
 • Batch 2A: FirmTaxonomyId enforcement and classification rejection audit log
 • Batch 4: TDC Records API (Roger primary read contract)
-• Batch 5: EntityId risk — entity registry not yet established
 • Swagger/Consumer Guide alignment: 6 endpoints missing from Consumer Guide
-
 OPEN DECISIONS:
-• Should FirmTaxonomyId be REQUIRED on all PDC records?
-• Should PDC reject records without classification?
+• FirmTaxonomyId enforcement: REQUIRED on all PDC records (ADR-06 proposed)
 • Which system generates JobId — Tax Portal or PDC?
 • Engagement code ownership between EODS and CEM
-
 RISKS / BLOCKERS:
-• Orchestrator not returning FirmTaxonomyId — blocks Batch 2 normalization completeness
-• TDC Records API not published — blocks Roger practitioner view
-• Batch 2A contract enforcement not yet in Swagger
-
+• Orchestrator not returning FirmTaxonomyId — blocks Batch 2 normalization completeness (Batch 2A)
+• TDC Records API not published — blocks Roger practitioner view (Batch 4)
+• Batch 2A contract enforcement not yet in Swagger — DEP-04 blocking
 RECOMMENDED NEXT ACTION:
-• Confirm Batch 2A classification enforcement decision with engineering (FirmTaxonomyId required vs optional)
+• Confirm Batch 2A FirmTaxonomyId enforcement decision with engineering (ADR-06 pending approval)
 • Publish TDC Records API contract to unblock Roger Batch 4 view
-• Update Consumer Guide with missing endpoint documentation (Processing Run API, Normalized TB, Mapping Decisions)`;
+• Update Consumer Guide with missing endpoint documentation (Processing Run API, Normalized TB, Mapping Decisions)
+• Confirm Batch 5 EntityId contract scope with PDC team before PI 2 sprint planning`;
 
   const copyPoSummary = () => {
     navigator.clipboard.writeText(poSummaryText).then(() => {
@@ -604,7 +609,7 @@ RECOMMENDED NEXT ACTION:
         <div>
           <h1 className="text-2xl font-bold text-[#003865]">Global Control Panel</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            DCT Batch Roadmap v1.9 · Source of truth for all batch-related pages · RSM | CATT
+            DCT Batch Roadmap v2.1 · Source of truth for all batch-related pages · RSM | CATT
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1079,7 +1084,7 @@ RECOMMENDED NEXT ACTION:
       </div>
 
       <footer className="pt-2 pb-1 border-t border-slate-100">
-        <div className="text-xs text-slate-400">DCT Platform Global Control Panel · RSM | CATT · Batch Roadmap v1.9 · April 27, 2026</div>
+        <div className="text-xs text-slate-400">DCT Platform Global Control Panel · RSM | CATT · Batch Roadmap v2.1 · April 28, 2026</div>
       </footer>
     </div>
   );

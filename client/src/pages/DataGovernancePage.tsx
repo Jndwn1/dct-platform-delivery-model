@@ -669,7 +669,7 @@ export default function DataGovernancePage() {
                   onClick={() => {
                     const entry = {
                       ts: new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }),
-                      source: "Batch Delivery Model v1.9",
+                      source: "Batch Delivery Model v2.1",
                       pages: ["Batch Roadmap", "Control Panel", "Governance Timeline", "Weekly Demo Simulator"],
                       changes: "Batch 2A added; Batch 3 status corrected to In Progress; PI labels updated for Batches 4–8",
                       status: "Updated" as const,

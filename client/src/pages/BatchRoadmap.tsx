@@ -465,7 +465,7 @@ export default function BatchRoadmap() {
           </Link>
         ))}
         <span style={{ marginLeft: "auto", fontSize: "11px", color: "#94a3b8" }}>
-          DCT Delivery Model · Batch Roadmap v1.9 · Batches 1–8 Active Scope
+          DCT Delivery Model · Batch Roadmap v2.1 · Batches 1–10 Active Scope
         </span>
       </div>
     </div>
