@@ -8,7 +8,7 @@ import { useState, useMemo, useRef, useCallback } from "react";
 import {
   AlertTriangle, Calendar, Download, RotateCcw, Plus, Trash2,
   ChevronDown, ChevronUp, Info, CheckCircle2, Clock, AlertCircle,
-  GitBranch, Eye, EyeOff,
+  GitBranch, Eye, EyeOff, Printer, ArrowDownToLine,
 } from "lucide-react";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -504,6 +504,7 @@ export default function BatchDeliveryCalendar() {
   const [showDeps, setShowDeps] = useState(true);
   const [showCriticalPath, setShowCriticalPath] = useState(true);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [shiftOffer, setShiftOffer] = useState<{ batchLabel: string; deltaDays: number; affectedBatches: string[] } | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
 
   const scenario = SCENARIOS.find(s => s.id === scenarioId) ?? SCENARIOS[0];
@@ -563,8 +564,66 @@ export default function BatchDeliveryCalendar() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
+  // Build transitive dependents map: batchLabel → all batches that (directly or indirectly) depend on it
+  function getTransitiveDependents(sourceBatch: string, allRows: BatchRow[]): string[] {
+    const result: string[] = [];
+    const visited = new Set<string>();
+    const queue = [sourceBatch];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      for (const r of allRows) {
+        const deps = r.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
+        if (deps.includes(current) && !visited.has(r.batch)) {
+          visited.add(r.batch);
+          result.push(r.batch);
+          queue.push(r.batch);
+        }
+      }
+    }
+    return result;
+  }
+
+  function shiftDate(dateStr: string, deltaDays: number): string {
+    const d = parseDate(dateStr);
+    if (!d) return dateStr;
+    d.setDate(d.getDate() + deltaDays);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function applyShiftDownstream() {
+    if (!shiftOffer) return;
+    const { affectedBatches, deltaDays } = shiftOffer;
+    setRows(prev => prev.map(r => {
+      if (!affectedBatches.includes(r.batch)) return r;
+      return {
+        ...r,
+        startDate: r.startDate ? shiftDate(r.startDate, deltaDays) : r.startDate,
+        endDate: r.endDate ? shiftDate(r.endDate, deltaDays) : r.endDate,
+      };
+    }));
+    setShiftOffer(null);
+  }
+
   const updateRow = useCallback((id: string, field: keyof BatchRow, value: string) => {
-    setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+    setRows(prev => {
+      const oldRow = prev.find(r => r.id === id);
+      const updated = prev.map(r => r.id === id ? { ...r, [field]: value } : r);
+
+      // Detect end date moved later → offer downstream shift
+      if (field === "endDate" && oldRow && oldRow.endDate && value) {
+        const oldEnd = parseDate(oldRow.endDate);
+        const newEnd = parseDate(value);
+        if (oldEnd && newEnd && newEnd > oldEnd) {
+          const deltaDays = daysBetween(oldEnd, newEnd);
+          const affected = getTransitiveDependents(oldRow.batch, updated);
+          if (affected.length > 0) {
+            // Use setTimeout to avoid setting state during render
+            setTimeout(() => setShiftOffer({ batchLabel: oldRow.batch, deltaDays, affectedBatches: affected }), 0);
+          }
+        }
+      }
+      return updated;
+    });
   }, []);
 
   function addRow() {
@@ -586,6 +645,25 @@ export default function BatchDeliveryCalendar() {
     setScenarioId("v1");
     setShowResetConfirm(false);
   }
+
+  // ── Critical Path summary data ────────────────────────────────────────────
+  const criticalPathSummary = useMemo(() => {
+    if (criticalPath.size === 0) return null;
+    const cpRows = rows.filter(r => criticalPath.has(r.batch));
+    const dates = cpRows.flatMap(r => [parseDate(r.startDate), parseDate(r.endDate)]).filter(Boolean) as Date[];
+    if (dates.length === 0) return null;
+    const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
+    const latest = new Date(Math.max(...dates.map(d => d.getTime())));
+    const totalDays = daysBetween(earliest, latest);
+    // Order by start date
+    const ordered = [...cpRows].sort((a, b) => {
+      const aStart = parseDate(a.startDate);
+      const bStart = parseDate(b.startDate);
+      if (!aStart || !bStart) return 0;
+      return aStart.getTime() - bStart.getTime();
+    });
+    return { totalDays, earliest, latest, batches: ordered };
+  }, [criticalPath, rows]);
 
   function exportCSV() {
     const headers = ["PI", "Batch", "System", "Name", "Start Date", "End Date", "Status", "Depends On", "Notes"];
@@ -727,6 +805,12 @@ export default function BatchDeliveryCalendar() {
                 <Download className="w-3.5 h-3.5" /> Export CSV
               </button>
               <button
+                onClick={() => window.print()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors print:hidden"
+              >
+                <Printer className="w-3.5 h-3.5" /> Print / PDF
+              </button>
+              <button
                 onClick={() => setShowResetConfirm(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
               >
@@ -765,6 +849,39 @@ export default function BatchDeliveryCalendar() {
             </div>
           )}
         </div>
+
+        {/* ── Critical Path Summary Card ── */}
+        {showCriticalPath && criticalPathSummary && (
+          <div className="bg-white rounded-xl border-2 border-orange-200 px-6 py-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-orange-500 text-lg">★</span>
+              <h2 className="text-base font-bold text-slate-800">Critical Path Summary</h2>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
+                {criticalPathSummary.totalDays} calendar days
+              </span>
+              <span className="text-xs text-slate-400 italic ml-1">Minimum delivery timeline</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              {criticalPathSummary.batches.map((b, i) => (
+                <div key={b.id} className="flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg border-2 border-orange-300 bg-orange-50 text-orange-800">
+                    <span className="text-orange-400">★</span>
+                    {b.batch}
+                  </span>
+                  {i < criticalPathSummary.batches.length - 1 && (
+                    <span className="text-orange-300 font-bold text-sm">→</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+              <div><span className="font-semibold text-slate-700">Start:</span> {criticalPathSummary.earliest.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+              <div><span className="font-semibold text-slate-700">End:</span> {criticalPathSummary.latest.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+              <div><span className="font-semibold text-slate-700">Batches on path:</span> {criticalPathSummary.batches.length}</div>
+              <div className="text-orange-600 italic">Any delay on these batches directly extends the minimum delivery date.</div>
+            </div>
+          </div>
+        )}
 
         {/* ── Gantt Timeline ── */}
         {showGantt && (
@@ -1013,6 +1130,78 @@ export default function BatchDeliveryCalendar() {
           </span>
         </div>
       </div>
+
+      {/* ── Shift Downstream Modal ── */}
+      {shiftOffer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.45)" }}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                <ArrowDownToLine className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <div className="font-bold text-slate-800">Shift Downstream Batches?</div>
+                <div className="text-xs text-slate-500 mt-0.5">
+                  <strong>{shiftOffer.batchLabel}</strong> end date moved +{shiftOffer.deltaDays} day{shiftOffer.deltaDays !== 1 ? "s" : ""}
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 mb-3">
+              {shiftOffer.affectedBatches.length} dependent batch{shiftOffer.affectedBatches.length !== 1 ? "es" : ""} can be shifted forward by the same amount to preserve sequencing:
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {shiftOffer.affectedBatches.map(b => (
+                <span key={b} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">{b}</span>
+              ))}
+            </div>
+            <div className="text-xs text-slate-400 italic mb-4">
+              Planning view only — no system data is modified.
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShiftOffer(null)}
+                className="flex-1 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Skip
+              </button>
+              <button
+                onClick={applyShiftDownstream}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-bold text-white transition-colors hover:opacity-90"
+                style={{ backgroundColor: "#003A8F" }}
+              >
+                Shift {shiftOffer.deltaDays} Day{shiftOffer.deltaDays !== 1 ? "s" : ""} Downstream
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Print CSS ── */}
+      <style>{`
+        @media print {
+          /* Hide sidebar, nav, controls, modals */
+          nav, aside, [class*="Sidebar"], .print\\:hidden { display: none !important; }
+          body { background: white !important; }
+          .min-h-screen { min-height: unset !important; }
+          /* Remove shadows and borders for clean print */
+          .shadow-sm, .shadow-lg { box-shadow: none !important; }
+          /* Ensure full width */
+          .max-w-7xl { max-width: 100% !important; }
+          /* Page breaks */
+          .bg-white { break-inside: avoid; }
+          /* Print header */
+          .max-w-7xl::before {
+            content: "DCT Platform · Batch Delivery Calendar · Planning View Only";
+            display: block;
+            font-size: 10px;
+            color: #64748b;
+            text-align: right;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+          }
+        }
+      `}</style>
 
       {/* ── Reset Confirmation Modal ── */}
       {showResetConfirm && (
