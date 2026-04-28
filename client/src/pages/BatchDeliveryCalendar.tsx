@@ -1,14 +1,16 @@
-// BatchDeliveryCalendar.tsx
 // RSM | CATT · DCT Platform · Batch Delivery Calendar
 // PLANNING VIEW ONLY — NOT SOURCE OF TRUTH
 // Fully isolated — does NOT read from or write to any other page, Control Panel,
 // Batch Roadmap, API coverage, or any system data. All data is local state only.
+//
+// DESIGN PHILOSOPHY: Executive-first. Timeline is the primary visual.
+// Clean, calm, RSM-branded. Understandable in under 60 seconds.
 
 import { useState, useMemo, useRef, useCallback } from "react";
 import {
   AlertTriangle, Calendar, Download, RotateCcw, Plus, Trash2,
-  ChevronDown, ChevronUp, Info, CheckCircle2, Clock, AlertCircle,
-  GitBranch, Eye, EyeOff, Printer, ArrowDownToLine,
+  CheckCircle2, Clock, AlertCircle, Printer, ChevronDown, ChevronRight,
+  Info, Eye, EyeOff,
 } from "lucide-react";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -26,14 +28,13 @@ interface BatchRow {
   endDate: string;
   status: BatchStatus;
   notes: string;
-  dependsOn: string; // comma-separated batch labels e.g. "Batch 5, Batch 6"
-  // computed validation (not user-editable)
+  dependsOn: string;
   _dateError?: boolean;
   _overlapWarning?: boolean;
-  _depConflict?: boolean;   // starts before a dependency ends
+  _depConflict?: boolean;
 }
 
-// ─── SCENARIO DEFINITIONS ─────────────────────────────────────────────────────
+// ─── SCENARIOS ────────────────────────────────────────────────────────────────
 
 const SCENARIOS = [
   { id: "v1",     label: "PI Planning Draft v1",  description: "Initial planning estimate — unreviewed" },
@@ -45,95 +46,68 @@ const SCENARIOS = [
 // ─── BASELINE DATA ────────────────────────────────────────────────────────────
 
 const BASELINE_ROWS: BatchRow[] = [
-  {
-    id: "fc",   pi: "PI 1", batch: "Foundation Core", system: "Platform",
+  { id: "fc",  pi: "PI 1", batch: "Foundation Core", system: "Platform",
     name: "Schema Lock & Platform Scaffolding",
     startDate: "2025-01-06", endDate: "2025-02-14", status: "Completed",
-    notes: "Gate 1 (Schema Lock) achieved. Baseline locked.",
-    dependsOn: "",
-  },
-  {
-    id: "b1",   pi: "PI 1", batch: "Batch 1", system: "PDC",
+    notes: "Gate 1 (Schema Lock) achieved. Baseline locked.", dependsOn: "" },
+  { id: "b1",  pi: "PI 1", batch: "Batch 1", system: "PDC",
     name: "File Ingestion & Raw Storage",
     startDate: "2025-02-17", endDate: "2025-03-28", status: "Completed",
-    notes: "PDC ingestion pipeline complete. IngestionJob lifecycle validated.",
-    dependsOn: "Foundation Core",
-  },
-  {
-    id: "b2",   pi: "PI 2", batch: "Batch 2", system: "Orchestrator",
+    notes: "PDC ingestion pipeline complete. IngestionJob lifecycle validated.", dependsOn: "Foundation Core" },
+  { id: "b2",  pi: "PI 2", batch: "Batch 2", system: "Orchestrator",
     name: "Normalization & Agent Execution",
     startDate: "2025-03-31", endDate: "2025-05-09", status: "In Progress",
-    notes: "Agent 1 (File Recognizer) and Agent 2 (Normalizer) in validation.",
-    dependsOn: "Batch 1",
-  },
-  {
-    id: "b2a",  pi: "PI 2", batch: "Batch 2A", system: "PDC",
+    notes: "Agent 1 (File Recognizer) and Agent 2 (Normalizer) in validation.", dependsOn: "Batch 1" },
+  { id: "b2a", pi: "PI 2", batch: "Batch 2A", system: "PDC",
     name: "Contract Enforcement — FirmTaxonomyId",
-    startDate: "2025-04-14", endDate: "2025-05-23", status: "In Progress",
-    notes: "DEP-04 (Taxonomy Service API) blocking. ADR-06 enforcement pending.",
-    dependsOn: "Batch 2",
-  },
-  {
-    id: "b3",   pi: "PI 2", batch: "Batch 3", system: "TDC",
+    startDate: "2025-04-14", endDate: "2025-05-23", status: "At Risk",
+    notes: "DEP-04 (Taxonomy Service API) blocking. ADR-06 enforcement pending.", dependsOn: "Batch 2" },
+  { id: "b3",  pi: "PI 2", batch: "Batch 3", system: "TDC",
     name: "Tax Domain Authority & TdcRecordId",
     startDate: "2025-05-12", endDate: "2025-06-20", status: "Planned",
-    notes: "Depends on Batch 2A READY signal. TaxYear derivation in scope.",
-    dependsOn: "Batch 2A",
-  },
-  {
-    id: "b4",   pi: "PI 3", batch: "Batch 4", system: "TDC",
+    notes: "Depends on Batch 2A READY signal. TaxYear derivation in scope.", dependsOn: "Batch 2A" },
+  { id: "b4",  pi: "PI 3", batch: "Batch 4", system: "TDC",
     name: "AI Tax Mapping & Confidence Bands",
     startDate: "2025-06-23", endDate: "2025-08-01", status: "Planned",
-    notes: "Agent 4 (Tax Mapper) scope. GREEN/YELLOW/RED confidence bands.",
-    dependsOn: "Batch 3",
-  },
-  {
-    id: "b5",   pi: "PI 3", batch: "Batch 5", system: "Platform",
+    notes: "Agent 4 (Tax Mapper) scope. GREEN/YELLOW/RED confidence bands.", dependsOn: "Batch 3" },
+  { id: "b5",  pi: "PI 3", batch: "Batch 5", system: "Platform",
     name: "Entity Identity & Structure",
     startDate: "2025-08-04", endDate: "2025-09-12", status: "Planned",
-    notes: "EntityId resolution and firm hierarchy scope.",
-    dependsOn: "Batch 4",
-  },
-  {
-    id: "b6",   pi: "PI 3", batch: "Batch 6", system: "Roger",
+    notes: "EntityId resolution and firm hierarchy scope.", dependsOn: "Batch 4" },
+  { id: "b6",  pi: "PI 3", batch: "Batch 6", system: "Roger",
     name: "Practitioner Review & Roger UI",
     startDate: "2025-09-15", endDate: "2025-10-24", status: "Planned",
-    notes: "Roger read-only access. Practitioner approve/override flows.",
-    dependsOn: "Batch 5",
-  },
-  {
-    id: "b7",   pi: "PI 4", batch: "Batch 7", system: "TDC",
+    notes: "Roger read-only access. Practitioner approve/override flows.", dependsOn: "Batch 5" },
+  { id: "b7",  pi: "PI 4", batch: "Batch 7", system: "TDC",
     name: "Client Tax Profile & Eligibility",
     startDate: "2025-10-27", endDate: "2025-12-05", status: "Planned",
-    notes: "Client-level tax profile derivation. Eligibility rules.",
-    dependsOn: "Batch 6",
-  },
-  {
-    id: "b8",   pi: "PI 4", batch: "Batch 8", system: "Platform",
+    notes: "Client-level tax profile derivation. Eligibility rules.", dependsOn: "Batch 6" },
+  { id: "b8",  pi: "PI 4", batch: "Batch 8", system: "Platform",
     name: "Exceptions & Remediation",
     startDate: "2025-12-08", endDate: "2026-01-16", status: "Planned",
-    notes: "Exception handling, remediation workflows, and audit trail.",
-    dependsOn: "Batch 7",
-  },
+    notes: "Exception handling, remediation workflows, and audit trail.", dependsOn: "Batch 7" },
 ];
 
+// ─── COLORS ───────────────────────────────────────────────────────────────────
+// RSM palette: Blue = PDC, Green = TDC, Gray = completed/platform, Amber = risk
+
+const SYSTEM_BAR: Record<SystemType, string> = {
+  PDC:          "#2563eb",   // RSM Blue
+  TDC:          "#059669",   // RSM Green
+  Orchestrator: "#7c3aed",   // Violet
+  Roger:        "#0ea5e9",   // Sky
+  Platform:     "#94a3b8",   // Slate gray
+};
+
+const STATUS_BADGE: Record<BatchStatus, { color: string; bg: string }> = {
+  "Completed":   { color: "#166534", bg: "#dcfce7" },
+  "In Progress": { color: "#1e40af", bg: "#dbeafe" },
+  "Planned":     { color: "#475569", bg: "#f1f5f9" },
+  "At Risk":     { color: "#92400e", bg: "#fef3c7" },
+  "On Hold":     { color: "#6b7280", bg: "#f3f4f6" },
+};
+
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-
-const SYSTEM_COLORS: Record<SystemType, { bg: string; text: string; bar: string }> = {
-  PDC:          { bg: "#dbeafe", text: "#1e40af", bar: "#2563eb" },
-  TDC:          { bg: "#dcfce7", text: "#166534", bar: "#059669" },
-  Orchestrator: { bg: "#ede9fe", text: "#5b21b6", bar: "#7c3aed" },
-  Roger:        { bg: "#ffedd5", text: "#9a3412", bar: "#f97316" },
-  Platform:     { bg: "#f1f5f9", text: "#334155", bar: "#64748b" },
-};
-
-const STATUS_META: Record<BatchStatus, { color: string; bg: string; icon: React.ElementType }> = {
-  "Completed":   { color: "#166534", bg: "#dcfce7", icon: CheckCircle2 },
-  "In Progress": { color: "#1e40af", bg: "#dbeafe", icon: Clock },
-  "Planned":     { color: "#374151", bg: "#f3f4f6", icon: Calendar },
-  "At Risk":     { color: "#92400e", bg: "#fef3c7", icon: AlertTriangle },
-  "On Hold":     { color: "#6b7280", bg: "#f9fafb", icon: AlertCircle },
-};
 
 function parseDate(s: string): Date | null {
   if (!s) return null;
@@ -151,24 +125,26 @@ function formatDate(s: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function formatShort(s: string): string {
+  const d = parseDate(s);
+  if (!d) return s;
+  return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+}
+
 function generateId(): string {
   return "row-" + Math.random().toString(36).slice(2, 8);
 }
 
-// ─── CRITICAL PATH ALGORITHM ──────────────────────────────────────────────────
-// Returns a Set of batch labels that lie on the longest dependency chain.
+// ─── CRITICAL PATH ────────────────────────────────────────────────────────────
 
 function computeCriticalPath(rows: BatchRow[]): Set<string> {
-  // Build a map: batchLabel → row
   const byLabel: Record<string, BatchRow> = {};
   for (const r of rows) byLabel[r.batch] = r;
-
-  // Longest chain ending at each node (measured in calendar days)
   const memo: Record<string, number> = {};
 
   function chainLength(label: string, visited = new Set<string>()): number {
     if (memo[label] !== undefined) return memo[label];
-    if (visited.has(label)) return 0; // cycle guard
+    if (visited.has(label)) return 0;
     visited.add(label);
     const row = byLabel[label];
     if (!row) return 0;
@@ -176,44 +152,31 @@ function computeCriticalPath(rows: BatchRow[]): Set<string> {
     const end = parseDate(row.endDate);
     const ownDuration = start && end ? daysBetween(start, end) : 0;
     const deps = row.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
-    const maxPredecessor = deps.length > 0
-      ? Math.max(...deps.map(d => chainLength(d, new Set(visited))))
-      : 0;
-    memo[label] = maxPredecessor + ownDuration;
+    const maxPred = deps.length > 0 ? Math.max(...deps.map(d => chainLength(d, new Set(visited)))) : 0;
+    memo[label] = maxPred + ownDuration;
     return memo[label];
   }
 
   for (const r of rows) chainLength(r.batch);
-
-  // Find the maximum chain length
   const maxLen = Math.max(0, ...Object.values(memo));
   if (maxLen === 0) return new Set();
 
-  // Trace back: a node is on the critical path if its chain length equals maxLen
-  // OR if it is an ancestor of a node on the critical path
   const criticalLabels = new Set<string>();
-
-  // Start from nodes with maxLen
-  const queue: string[] = Object.entries(memo)
-    .filter(([, v]) => v === maxLen)
-    .map(([k]) => k);
-
+  const queue: string[] = Object.entries(memo).filter(([, v]) => v === maxLen).map(([k]) => k);
   while (queue.length > 0) {
     const label = queue.pop()!;
     if (criticalLabels.has(label)) continue;
     criticalLabels.add(label);
     const row = byLabel[label];
     if (!row) continue;
-    const deps = row.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
-    for (const dep of deps) {
+    row.dependsOn.split(",").map(s => s.trim()).filter(Boolean).forEach(dep => {
       if (!criticalLabels.has(dep)) queue.push(dep);
-    }
+    });
   }
-
   return criticalLabels;
 }
 
-// ─── GANTT CHART WITH DEPENDENCY ARROWS ───────────────────────────────────────
+// ─── GANTT CHART ──────────────────────────────────────────────────────────────
 
 interface GanttProps {
   rows: BatchRow[];
@@ -227,8 +190,8 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath }: GanttPro
 
   if (validRows.length === 0) {
     return (
-      <div className="flex items-center justify-center h-32 text-sm text-slate-400 border border-dashed border-slate-200 rounded-xl">
-        No valid date ranges to display. Add start and end dates to see the timeline.
+      <div className="flex items-center justify-center h-24 text-sm text-slate-400 border border-dashed border-slate-200 rounded-xl">
+        Add start and end dates to see the timeline.
       </div>
     );
   }
@@ -236,257 +199,233 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath }: GanttPro
   const allDates = validRows.flatMap(r => [parseDate(r.startDate)!, parseDate(r.endDate)!]);
   const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
   const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
-  minDate.setDate(minDate.getDate() - 5);
-  maxDate.setDate(maxDate.getDate() + 10);
+  minDate.setDate(minDate.getDate() - 7);
+  maxDate.setDate(maxDate.getDate() + 14);
   const totalDays = daysBetween(minDate, maxDate);
 
-  // Month markers
-  const months: { label: string; left: number; width: number }[] = [];
-  const cursor = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-  while (cursor <= maxDate) {
-    const monthStart = new Date(Math.max(cursor.getTime(), minDate.getTime()));
-    const nextMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
-    const monthEnd = new Date(Math.min(nextMonth.getTime() - 86400000, maxDate.getTime()));
-    const left = (daysBetween(minDate, monthStart) / totalDays) * 100;
-    const width = ((daysBetween(monthStart, monthEnd) + 1) / totalDays) * 100;
-    months.push({
-      label: cursor.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
-      left, width,
-    });
-    cursor.setMonth(cursor.getMonth() + 1);
-  }
-
-  // Build a flat ordered list of rows for positioning
-  // Each row gets a y-index for SVG arrow positioning
-  const ROW_H = 32;   // px per row
-  const LABEL_W = 148; // px for label column
-  const MONTH_H = 28;  // px for month header
-
-  // Map batchLabel → { leftPct, rightPct, rowIndex }
-  const barPositions: Record<string, { leftPct: number; rightPct: number; rowIndex: number }> = {};
-  let rowIndex = 0;
-  // We need to iterate in the same order as rendered (PI groups)
-  const piGroups: Record<string, BatchRow[]> = {};
-  for (const row of validRows) {
-    if (!piGroups[row.pi]) piGroups[row.pi] = [];
-    piGroups[row.pi].push(row);
-  }
-
-  // Count rows per PI for SVG height
-  let totalRenderedRows = 0;
-  const piGroupEntries = Object.entries(piGroups);
-  for (const [, piRows] of piGroupEntries) {
-    for (const row of piRows) {
-      const start = parseDate(row.startDate)!;
-      const end = parseDate(row.endDate)!;
-      const leftPct = (daysBetween(minDate, start) / totalDays) * 100;
-      const rightPct = (daysBetween(minDate, end) / totalDays) * 100;
-      barPositions[row.batch] = { leftPct, rightPct, rowIndex };
-      rowIndex++;
-      totalRenderedRows++;
+  // Quarter markers only (less clutter than monthly)
+  const quarters: { label: string; left: number }[] = [];
+  const qCursor = new Date(minDate.getFullYear(), Math.floor(minDate.getMonth() / 3) * 3, 1);
+  while (qCursor <= maxDate) {
+    const left = (daysBetween(minDate, qCursor) / totalDays) * 100;
+    if (left >= 0 && left <= 100) {
+      quarters.push({
+        label: `Q${Math.floor(qCursor.getMonth() / 3) + 1} ${qCursor.getFullYear()}`,
+        left,
+      });
     }
-    // +1 for PI separator row
-    rowIndex++;
-    totalRenderedRows++;
+    qCursor.setMonth(qCursor.getMonth() + 3);
   }
 
-  // SVG height = header + (rows * ROW_H)
-  const svgHeight = totalRenderedRows * ROW_H;
-
-  // Build dependency arrows
-  interface Arrow {
-    fromBatch: string;
-    toBatch: string;
-    isConflict: boolean;
-    isCritical: boolean;
+  // Month markers (lighter, for reference)
+  const months: { label: string; left: number }[] = [];
+  const mCursor = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+  while (mCursor <= maxDate) {
+    const left = (daysBetween(minDate, mCursor) / totalDays) * 100;
+    if (left >= 0 && left <= 100) {
+      months.push({
+        label: mCursor.toLocaleDateString("en-US", { month: "short" }),
+        left,
+      });
+    }
+    mCursor.setMonth(mCursor.getMonth() + 1);
   }
 
-  const arrows: Arrow[] = [];
+  const ROW_H = 52;   // taller bars for executive readability
+  const LABEL_W = 160;
+  const svgH = validRows.length * ROW_H + 40;
+
+  // Dependency arrows
+  const arrows: { x1: number; y1: number; x2: number; y2: number; conflict: boolean; critical: boolean }[] = [];
   if (showDeps) {
-    for (const row of validRows) {
-      const deps = row.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
-      for (const dep of deps) {
-        if (!barPositions[dep] || !barPositions[row.batch]) continue;
-        const depRow = validRows.find(r => r.batch === dep);
-        const isConflict = !!row._depConflict && !!depRow;
-        const isCritical = showCriticalPath && criticalPath.has(row.batch) && criticalPath.has(dep);
-        arrows.push({ fromBatch: dep, toBatch: row.batch, isConflict, isCritical });
-      }
-    }
+    const rowIndex: Record<string, number> = {};
+    validRows.forEach((r, i) => { rowIndex[r.batch] = i; });
+
+    validRows.forEach((r, i) => {
+      const deps = r.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
+      deps.forEach(dep => {
+        const di = rowIndex[dep];
+        if (di === undefined) return;
+        const depRow = validRows[di];
+        const depEnd = parseDate(depRow.endDate)!;
+        const rStart = parseDate(r.startDate)!;
+
+        const x1 = ((daysBetween(minDate, depEnd) / totalDays) * 100);
+        const y1 = di * ROW_H + ROW_H / 2 + 32;
+        const x2 = ((daysBetween(minDate, rStart) / totalDays) * 100);
+        const y2 = i * ROW_H + ROW_H / 2 + 32;
+        const conflict = rStart < depEnd;
+        const critical = showCriticalPath && criticalPath.has(r.batch) && criticalPath.has(dep);
+        arrows.push({ x1, y1, x2, y2, conflict, critical });
+      });
+    });
   }
 
   return (
-    <div className="overflow-x-auto">
-      <div style={{ minWidth: "700px" }}>
+    <div style={{ overflowX: "auto", overflowY: "visible" }}>
+      <div style={{ minWidth: "700px", position: "relative" }}>
         {/* Month header */}
-        <div className="relative h-7 border-b border-slate-200 mb-0" style={{ marginLeft: `${LABEL_W}px` }}>
+        <div style={{ marginLeft: `${LABEL_W}px`, position: "relative", height: "32px", marginBottom: "4px" }}>
           {months.map((m, i) => (
-            <div
-              key={i}
-              className="absolute top-0 h-full flex items-center justify-center text-xs text-slate-500 font-medium border-l border-slate-200"
-              style={{ left: `${m.left}%`, width: `${m.width}%` }}
-            >
+            <div key={i} style={{
+              position: "absolute", left: `${m.left}%`, top: 0,
+              transform: "translateX(-50%)",
+              fontSize: "11px", color: "#94a3b8", fontWeight: 500, whiteSpace: "nowrap",
+            }}>
               {m.label}
             </div>
           ))}
         </div>
 
-        {/* Gantt body: rows + SVG overlay */}
-        <div className="relative">
-          {/* Row elements */}
-          {piGroupEntries.map(([pi, piRows]) => (
-            <div key={pi} className="mb-0">
-              {/* PI separator */}
-              <div className="flex items-center gap-2" style={{ height: `${ROW_H}px` }}>
-                <div className="shrink-0 text-xs font-bold text-slate-500 uppercase tracking-wider pr-2 text-right" style={{ width: `${LABEL_W}px` }}>{pi}</div>
-                <div className="flex-1 h-px bg-slate-100" />
-              </div>
-              {piRows.map(row => {
-                const start = parseDate(row.startDate)!;
-                const end = parseDate(row.endDate)!;
-                const leftPct = (daysBetween(minDate, start) / totalDays) * 100;
-                const widthPct = Math.max((daysBetween(start, end) / totalDays) * 100, 0.5);
-                const sys = SYSTEM_COLORS[row.system];
-                const isCompleted = row.status === "Completed";
-                const isCritical = showCriticalPath && criticalPath.has(row.batch);
-                const isConflict = !!row._depConflict;
+        {/* Rows */}
+        <div style={{ position: "relative" }}>
+          {/* SVG for dependency arrows */}
+          <svg
+            style={{ position: "absolute", left: `${LABEL_W}px`, top: 0, width: `calc(100% - ${LABEL_W}px)`, height: `${svgH}px`, pointerEvents: "none", zIndex: 1 }}
+            viewBox={`0 0 100 ${svgH}`}
+            preserveAspectRatio="none"
+          >
+            {/* Vertical grid lines — minimal, only at quarters */}
+            {quarters.map((q, i) => (
+              <line key={i} x1={q.left} y1={0} x2={q.left} y2={svgH}
+                stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="3,4" />
+            ))}
 
-                return (
-                  <div key={row.id} className="flex items-center" style={{ height: `${ROW_H}px` }}>
-                    {/* Label */}
-                    <div className="shrink-0 pr-3 text-right" style={{ width: `${LABEL_W}px` }}>
-                      <div className="text-xs font-semibold text-slate-700 truncate flex items-center justify-end gap-1">
-                        {isCritical && <span className="text-orange-500 text-xs">★</span>}
-                        {row.batch}
-                      </div>
-                      <div className="text-xs text-slate-400 truncate">{row.system}</div>
-                    </div>
-                    {/* Bar track */}
-                    <div className="flex-1 relative bg-slate-50 rounded border border-slate-100" style={{ height: "28px" }}>
-                      {months.map((m, i) => (
-                        <div key={i} className="absolute top-0 h-full border-l border-slate-100" style={{ left: `${m.left}%` }} />
-                      ))}
-                      {/* Gantt bar */}
-                      <div
-                        className="absolute top-1 rounded flex items-center px-2 overflow-hidden transition-all"
-                        style={{
-                          left: `${leftPct}%`,
-                          width: `${widthPct}%`,
-                          height: "20px",
-                          backgroundColor: isCompleted ? "#e2e8f0" : sys.bar,
-                          opacity: isCompleted ? 0.7 : 1,
-                          minWidth: "4px",
-                          outline: isCritical && !isCompleted ? `2px solid #f97316` : isConflict ? "2px solid #ef4444" : "none",
-                          outlineOffset: "1px",
-                          boxShadow: isCritical && !isCompleted ? "0 0 6px rgba(249,115,22,0.4)" : "none",
-                        }}
-                        title={`${row.batch} · ${formatDate(row.startDate)} → ${formatDate(row.endDate)}${isCritical ? " · CRITICAL PATH" : ""}${isConflict ? " · ⚠ DEPENDENCY CONFLICT" : ""}`}
-                      >
-                        <span className="text-xs font-semibold truncate" style={{ color: isCompleted ? "#64748b" : "white", fontSize: "10px" }}>
-                          {row.name}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-
-          {/* SVG arrow overlay */}
-          {arrows.length > 0 && (
-            <svg
-              className="absolute top-0 pointer-events-none"
-              style={{ left: `${LABEL_W}px`, right: 0, height: `${svgHeight}px`, width: `calc(100% - ${LABEL_W}px)` }}
-              viewBox={`0 0 1000 ${svgHeight}`}
-              preserveAspectRatio="none"
-            >
-              <defs>
-                <marker id="arrow-gray" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                  <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
-                </marker>
-                <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                  <path d="M0,0 L0,6 L6,3 z" fill="#ef4444" />
-                </marker>
-                <marker id="arrow-orange" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                  <path d="M0,0 L0,6 L6,3 z" fill="#f97316" />
-                </marker>
-              </defs>
-              {arrows.map((arrow, i) => {
-                const from = barPositions[arrow.fromBatch];
-                const to = barPositions[arrow.toBatch];
-                if (!from || !to) return null;
-
-                // x: percentage of track width → scaled to 1000 viewBox units
-                const x1 = (from.rightPct / 100) * 1000;
-                const x2 = (to.leftPct / 100) * 1000;
-                // y: center of bar row
-                const y1 = from.rowIndex * ROW_H + ROW_H / 2;
-                const y2 = to.rowIndex * ROW_H + ROW_H / 2;
-
-                const color = arrow.isConflict ? "#ef4444" : arrow.isCritical ? "#f97316" : "#94a3b8";
-                const strokeW = arrow.isCritical ? 2.5 : 1.5;
-                const markerId = arrow.isConflict ? "arrow-red" : arrow.isCritical ? "arrow-orange" : "arrow-gray";
-                const dash = arrow.isConflict ? "6,3" : undefined;
-
-                // Curved path: cubic bezier
-                const midX = (x1 + x2) / 2;
-                const d = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
-
-                return (
+            {/* Dependency arrows */}
+            {arrows.map((a, i) => {
+              const color = a.conflict ? "#f59e0b" : a.critical ? "#f97316" : "#cbd5e1";
+              const strokeW = a.critical ? "0.6" : "0.4";
+              const midX = (a.x1 + a.x2) / 2;
+              return (
+                <g key={i}>
                   <path
-                    key={i}
-                    d={d}
-                    stroke={color}
-                    strokeWidth={strokeW}
-                    fill="none"
-                    strokeDasharray={dash}
-                    markerEnd={`url(#${markerId})`}
-                    opacity={arrow.isCritical ? 0.9 : 0.55}
+                    d={`M ${a.x1} ${a.y1} C ${midX} ${a.y1}, ${midX} ${a.y2}, ${a.x2} ${a.y2}`}
+                    fill="none" stroke={color} strokeWidth={strokeW}
+                    strokeDasharray={a.conflict ? "2,2" : undefined}
+                    markerEnd={`url(#arrow-${a.conflict ? "conflict" : a.critical ? "critical" : "normal"})`}
                   />
-                );
-              })}
-            </svg>
-          )}
+                </g>
+              );
+            })}
+
+            <defs>
+              {[
+                { id: "arrow-normal",   color: "#cbd5e1" },
+                { id: "arrow-conflict", color: "#f59e0b" },
+                { id: "arrow-critical", color: "#f97316" },
+              ].map(({ id, color }) => (
+                <marker key={id} id={id} markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
+                  <path d="M0,0 L0,4 L4,2 z" fill={color} />
+                </marker>
+              ))}
+            </defs>
+          </svg>
+
+          {/* Batch rows */}
+          {validRows.map((r, i) => {
+            const start = parseDate(r.startDate)!;
+            const end = parseDate(r.endDate)!;
+            const left = (daysBetween(minDate, start) / totalDays) * 100;
+            const width = Math.max((daysBetween(start, end) / totalDays) * 100, 0.8);
+            const isCP = showCriticalPath && criticalPath.has(r.batch);
+            const isCompleted = r.status === "Completed";
+            const isAtRisk = r.status === "At Risk";
+            const barColor = isCompleted ? "#94a3b8" : isAtRisk ? "#d97706" : SYSTEM_BAR[r.system];
+
+            return (
+              <div key={r.id} style={{
+                display: "flex", alignItems: "center",
+                height: `${ROW_H}px`,
+                borderBottom: i < validRows.length - 1 ? "1px solid #f1f5f9" : "none",
+              }}>
+                {/* Label */}
+                <div style={{
+                  width: `${LABEL_W}px`, flexShrink: 0,
+                  paddingRight: "12px", overflow: "hidden",
+                }}>
+                  <div style={{
+                    fontSize: "12px", fontWeight: isCP ? 700 : 500,
+                    color: isCP ? "#0f172a" : "#374151",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>
+                    {isCP && <span style={{ color: "#f97316", marginRight: "4px" }}>★</span>}
+                    {r.batch}
+                  </div>
+                  <div style={{
+                    fontSize: "10px", color: "#94a3b8",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>
+                    {r.system}
+                  </div>
+                </div>
+
+                {/* Bar area */}
+                <div style={{ flex: 1, position: "relative", height: "100%", zIndex: 2 }}>
+                  <div style={{
+                    position: "absolute",
+                    left: `${left}%`,
+                    width: `${width}%`,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    height: "28px",
+                    backgroundColor: barColor,
+                    borderRadius: "5px",
+                    display: "flex", alignItems: "center",
+                    paddingLeft: "8px", paddingRight: "8px",
+                    overflow: "hidden",
+                    boxShadow: isCP ? `0 0 0 2px #f97316, 0 2px 6px rgba(249,115,22,0.25)` : "0 1px 3px rgba(0,0,0,0.12)",
+                    opacity: isCompleted ? 0.65 : 1,
+                    transition: "box-shadow 0.2s",
+                  }}>
+                    <span style={{
+                      fontSize: "10px", fontWeight: 600, color: "#fff",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}>
+                      {r.name}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap gap-5 mt-4 pt-3 border-t border-slate-100">
-          {/* System legend */}
-          {(Object.entries(SYSTEM_COLORS) as [SystemType, typeof SYSTEM_COLORS[SystemType]][]).map(([sys, col]) => (
-            <div key={sys} className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: col.bar }} />
-              <span className="text-xs text-slate-500">{sys}</span>
+        <div style={{
+          marginTop: "16px", marginLeft: `${LABEL_W}px`,
+          display: "flex", gap: "20px", flexWrap: "wrap",
+        }}>
+          {[
+            { color: "#2563eb", label: "PDC (Phoenix Data Consolidation)" },
+            { color: "#059669", label: "TDC (Tax Data Consolidation)" },
+            { color: "#7c3aed", label: "Orchestrator" },
+            { color: "#0ea5e9", label: "Roger" },
+            { color: "#94a3b8", label: "Completed / Platform" },
+            { color: "#d97706", label: "At Risk" },
+          ].map(l => (
+            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: l.color, flexShrink: 0 }} />
+              <span style={{ fontSize: "11px", color: "#64748b" }}>{l.label}</span>
             </div>
           ))}
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-slate-300" />
-            <span className="text-xs text-slate-500">Completed</span>
-          </div>
-          {/* Dependency legend */}
-          <div className="ml-4 flex items-center gap-4 border-l border-slate-200 pl-4">
-            <div className="flex items-center gap-1.5">
-              <svg width="28" height="10" viewBox="0 0 28 10">
-                <line x1="0" y1="5" x2="22" y2="5" stroke="#94a3b8" strokeWidth="1.5" />
-                <polygon points="22,2 28,5 22,8" fill="#94a3b8" />
-              </svg>
-              <span className="text-xs text-slate-500">Dependency</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <svg width="28" height="10" viewBox="0 0 28 10">
-                <line x1="0" y1="5" x2="22" y2="5" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="4,2" />
-                <polygon points="22,2 28,5 22,8" fill="#ef4444" />
-              </svg>
-              <span className="text-xs text-slate-500">Conflict</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <svg width="28" height="10" viewBox="0 0 28 10">
-                <line x1="0" y1="5" x2="22" y2="5" stroke="#f97316" strokeWidth="2.5" />
-                <polygon points="22,2 28,5 22,8" fill="#f97316" />
-              </svg>
-              <span className="text-xs text-slate-500">Critical Path ★</span>
-            </div>
-          </div>
+          {showDeps && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "20px", height: "1px", backgroundColor: "#cbd5e1" }} />
+                <span style={{ fontSize: "11px", color: "#64748b" }}>Dependency</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "20px", height: "1px", backgroundColor: "#f59e0b", borderTop: "1px dashed #f59e0b" }} />
+                <span style={{ fontSize: "11px", color: "#64748b" }}>Conflict</span>
+              </div>
+              {showCriticalPath && (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ width: "20px", height: "2px", backgroundColor: "#f97316" }} />
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>★ Critical Path</span>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -498,736 +437,661 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath }: GanttPro
 export default function BatchDeliveryCalendar() {
   const [rows, setRows] = useState<BatchRow[]>(() => BASELINE_ROWS.map(r => ({ ...r })));
   const [scenarioId, setScenarioId] = useState("v1");
-  const [showScenarioDropdown, setShowScenarioDropdown] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [showGantt, setShowGantt] = useState(true);
+  const [editDraft, setEditDraft] = useState<BatchRow | null>(null);
   const [showDeps, setShowDeps] = useState(true);
-  const [showCriticalPath, setShowCriticalPath] = useState(true);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [shiftOffer, setShiftOffer] = useState<{ batchLabel: string; deltaDays: number; affectedBatches: string[] } | null>(null);
-  const tableRef = useRef<HTMLTableElement>(null);
+  const [showCP, setShowCP] = useState(true);
+  const [showTable, setShowTable] = useState(false);
+  const [showRiskDetail, setShowRiskDetail] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [shiftOffer, setShiftOffer] = useState<{ batchId: string; delta: number; affected: string[] } | null>(null);
+  const [resetConfirm, setResetConfirm] = useState(false);
 
   const scenario = SCENARIOS.find(s => s.id === scenarioId) ?? SCENARIOS[0];
 
-  // ── Validation + critical path ────────────────────────────────────────────
-
-  const criticalPath = useMemo(() => computeCriticalPath(rows), [rows]);
+  // ── Validation ──────────────────────────────────────────────────────────────
 
   const validatedRows = useMemo<BatchRow[]>(() => {
     const byLabel: Record<string, BatchRow> = {};
     for (const r of rows) byLabel[r.batch] = r;
 
-    return rows.map((row, i) => {
-      const start = parseDate(row.startDate);
-      const end = parseDate(row.endDate);
-      const dateError = !!(start && end && end < start);
-
-      // Overlap: same system, overlapping dates
-      let overlapWarning = false;
-      if (start && end && !dateError) {
-        for (let j = 0; j < rows.length; j++) {
-          if (j === i) continue;
-          const other = rows[j];
-          if (other.system !== row.system) continue;
-          const oStart = parseDate(other.startDate);
-          const oEnd = parseDate(other.endDate);
-          if (oStart && oEnd && start <= oEnd && end >= oStart) {
-            overlapWarning = true;
-            break;
-          }
-        }
-      }
-
-      // Dependency conflict: this batch starts before a dependency ends
-      let depConflict = false;
-      if (start && !dateError) {
-        const deps = row.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
-        for (const dep of deps) {
-          const depRow = byLabel[dep];
-          if (!depRow) continue;
-          const depEnd = parseDate(depRow.endDate);
-          if (depEnd && start < depEnd) {
-            depConflict = true;
-            break;
-          }
-        }
-      }
-
-      return { ...row, _dateError: dateError, _overlapWarning: overlapWarning, _depConflict: depConflict };
+    return rows.map(r => {
+      const s = parseDate(r.startDate);
+      const e = parseDate(r.endDate);
+      const dateError = !!(s && e && e < s);
+      const deps = r.dependsOn.split(",").map(x => x.trim()).filter(Boolean);
+      const depConflict = deps.some(dep => {
+        const dr = byLabel[dep];
+        if (!dr) return false;
+        const de = parseDate(dr.endDate);
+        return !!(s && de && s < de);
+      });
+      const overlapWarning = rows.some(other => {
+        if (other.id === r.id || other.system !== r.system) return false;
+        const os = parseDate(other.startDate);
+        const oe = parseDate(other.endDate);
+        return !!(s && e && os && oe && s < oe && e > os);
+      });
+      return { ...r, _dateError: dateError, _depConflict: depConflict, _overlapWarning: overlapWarning };
     });
   }, [rows]);
 
-  const errorCount = validatedRows.filter(r => r._dateError).length;
-  const overlapCount = validatedRows.filter(r => r._overlapWarning).length;
-  const depConflictCount = validatedRows.filter(r => r._depConflict).length;
-  const depConflicts = validatedRows.filter(r => r._depConflict);
+  const criticalPath = useMemo(() => computeCriticalPath(validatedRows), [validatedRows]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Executive summary metrics ────────────────────────────────────────────────
 
-  // Build transitive dependents map: batchLabel → all batches that (directly or indirectly) depend on it
-  function getTransitiveDependents(sourceBatch: string, allRows: BatchRow[]): string[] {
-    const result: string[] = [];
-    const visited = new Set<string>();
-    const queue = [sourceBatch];
-    while (queue.length > 0) {
-      const current = queue.shift()!;
-      for (const r of allRows) {
-        const deps = r.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
-        if (deps.includes(current) && !visited.has(r.batch)) {
-          visited.add(r.batch);
-          result.push(r.batch);
-          queue.push(r.batch);
-        }
-      }
-    }
-    return result;
-  }
+  const summary = useMemo(() => {
+    const valid = validatedRows.filter(r => parseDate(r.startDate) && parseDate(r.endDate) && !r._dateError);
+    const allDates = valid.flatMap(r => [parseDate(r.startDate)!, parseDate(r.endDate)!]);
+    const minD = allDates.length ? new Date(Math.min(...allDates.map(d => d.getTime()))) : null;
+    const maxD = allDates.length ? new Date(Math.max(...allDates.map(d => d.getTime()))) : null;
+    const totalDays = minD && maxD ? daysBetween(minD, maxD) : 0;
+    const risks = validatedRows.filter(r => r._dateError || r._depConflict || r.status === "At Risk");
+    const cpBatches = validatedRows.filter(r => criticalPath.has(r.batch));
+    const cpOrdered = cpBatches.sort((a, b) => (parseDate(a.startDate)?.getTime() ?? 0) - (parseDate(b.startDate)?.getTime() ?? 0));
+    const piGroups = new Set(validatedRows.map(r => r.pi));
+    const systemGroups = new Set(validatedRows.map(r => r.system));
+    return { totalDays, minD, maxD, risks, cpOrdered, piGroups, systemGroups };
+  }, [validatedRows, criticalPath]);
 
-  function shiftDate(dateStr: string, deltaDays: number): string {
-    const d = parseDate(dateStr);
-    if (!d) return dateStr;
-    d.setDate(d.getDate() + deltaDays);
-    return d.toISOString().slice(0, 10);
-  }
+  // ── Row editing ──────────────────────────────────────────────────────────────
 
-  function applyShiftDownstream() {
-    if (!shiftOffer) return;
-    const { affectedBatches, deltaDays } = shiftOffer;
-    setRows(prev => prev.map(r => {
-      if (!affectedBatches.includes(r.batch)) return r;
-      return {
-        ...r,
-        startDate: r.startDate ? shiftDate(r.startDate, deltaDays) : r.startDate,
-        endDate: r.endDate ? shiftDate(r.endDate, deltaDays) : r.endDate,
-      };
-    }));
-    setShiftOffer(null);
-  }
-
-  const updateRow = useCallback((id: string, field: keyof BatchRow, value: string) => {
-    setRows(prev => {
-      const oldRow = prev.find(r => r.id === id);
-      const updated = prev.map(r => r.id === id ? { ...r, [field]: value } : r);
-
-      // Detect end date moved later → offer downstream shift
-      if (field === "endDate" && oldRow && oldRow.endDate && value) {
-        const oldEnd = parseDate(oldRow.endDate);
-        const newEnd = parseDate(value);
-        if (oldEnd && newEnd && newEnd > oldEnd) {
-          const deltaDays = daysBetween(oldEnd, newEnd);
-          const affected = getTransitiveDependents(oldRow.batch, updated);
-          if (affected.length > 0) {
-            // Use setTimeout to avoid setting state during render
-            setTimeout(() => setShiftOffer({ batchLabel: oldRow.batch, deltaDays, affectedBatches: affected }), 0);
-          }
-        }
-      }
-      return updated;
-    });
+  const startEdit = useCallback((r: BatchRow) => {
+    setEditingId(r.id);
+    setEditDraft({ ...r });
   }, []);
 
-  function addRow() {
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditDraft(null);
+  }, []);
+
+  const saveEdit = useCallback(() => {
+    if (!editDraft) return;
+    const prev = rows.find(r => r.id === editDraft.id);
+    const prevEnd = prev ? parseDate(prev.endDate) : null;
+    const newEnd = parseDate(editDraft.endDate);
+    let delta = 0;
+    if (prevEnd && newEnd) delta = daysBetween(prevEnd, newEnd);
+
+    setRows(prev => prev.map(r => r.id === editDraft.id ? { ...editDraft } : r));
+    setEditingId(null);
+    setEditDraft(null);
+
+    if (delta > 0) {
+      const byLabel: Record<string, BatchRow> = {};
+      for (const r of rows) byLabel[r.batch] = r;
+      const affected: string[] = [];
+      const queue = [editDraft.batch];
+      const visited = new Set<string>();
+      while (queue.length) {
+        const cur = queue.pop()!;
+        if (visited.has(cur)) continue;
+        visited.add(cur);
+        rows.forEach(r => {
+          if (r.id !== editDraft.id && r.dependsOn.split(",").map(s => s.trim()).includes(cur)) {
+            affected.push(r.batch);
+            queue.push(r.batch);
+          }
+        });
+      }
+      if (affected.length > 0) setShiftOffer({ batchId: editDraft.id, delta, affected });
+    }
+  }, [editDraft, rows]);
+
+  const applyShift = useCallback(() => {
+    if (!shiftOffer) return;
+    const affectedSet = new Set(shiftOffer.affected);
+    setRows(prev => prev.map(r => {
+      if (!affectedSet.has(r.batch)) return r;
+      const s = parseDate(r.startDate);
+      const e = parseDate(r.endDate);
+      if (!s || !e) return r;
+      const ns = new Date(s); ns.setDate(ns.getDate() + shiftOffer.delta);
+      const ne = new Date(e); ne.setDate(ne.getDate() + shiftOffer.delta);
+      return { ...r, startDate: ns.toISOString().slice(0, 10), endDate: ne.toISOString().slice(0, 10) };
+    }));
+    setShiftOffer(null);
+  }, [shiftOffer]);
+
+  const addRow = useCallback(() => {
     const newRow: BatchRow = {
       id: generateId(), pi: "PI 1", batch: "New Batch", system: "PDC",
-      name: "New Batch Name", startDate: "", endDate: "",
-      status: "Planned", notes: "", dependsOn: "",
+      name: "New Batch", startDate: "", endDate: "", status: "Planned", notes: "", dependsOn: "",
     };
     setRows(prev => [...prev, newRow]);
     setEditingId(newRow.id);
-  }
+    setEditDraft({ ...newRow });
+  }, []);
 
-  function deleteRow(id: string) {
+  const deleteRow = useCallback((id: string) => {
     setRows(prev => prev.filter(r => r.id !== id));
-  }
+  }, []);
 
-  function resetToBaseline() {
-    setRows(BASELINE_ROWS.map(r => ({ ...r })));
-    setScenarioId("v1");
-    setShowResetConfirm(false);
-  }
+  // ── Export CSV ───────────────────────────────────────────────────────────────
 
-  // ── Critical Path summary data ────────────────────────────────────────────
-  const criticalPathSummary = useMemo(() => {
-    if (criticalPath.size === 0) return null;
-    const cpRows = rows.filter(r => criticalPath.has(r.batch));
-    const dates = cpRows.flatMap(r => [parseDate(r.startDate), parseDate(r.endDate)]).filter(Boolean) as Date[];
-    if (dates.length === 0) return null;
-    const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
-    const latest = new Date(Math.max(...dates.map(d => d.getTime())));
-    const totalDays = daysBetween(earliest, latest);
-    // Order by start date
-    const ordered = [...cpRows].sort((a, b) => {
-      const aStart = parseDate(a.startDate);
-      const bStart = parseDate(b.startDate);
-      if (!aStart || !bStart) return 0;
-      return aStart.getTime() - bStart.getTime();
-    });
-    return { totalDays, earliest, latest, batches: ordered };
-  }, [criticalPath, rows]);
+  const exportCSV = useCallback(() => {
+    const header = "Scenario,PI,Batch,System,Name,Start Date,End Date,Status,Depends On,Notes";
+    const lines = validatedRows.map(r =>
+      [scenario.label, r.pi, r.batch, r.system, `"${r.name}"`, r.startDate, r.endDate, r.status, `"${r.dependsOn}"`, `"${r.notes}"`].join(",")
+    );
+    const blob = new Blob([`PLANNING VIEW ONLY — NOT SOURCE OF TRUTH\n${header}\n${lines.join("\n")}`], { type: "text/csv" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `dct-batch-calendar-${scenarioId}.csv`; a.click();
+  }, [validatedRows, scenario, scenarioId]);
 
-  function exportCSV() {
-    const headers = ["PI", "Batch", "System", "Name", "Start Date", "End Date", "Status", "Depends On", "Notes"];
-    const csvRows = [
-      `"Scenario: ${scenario.label}"`,
-      `"Planning View Only — Not Source of Truth"`,
-      "",
-      headers.map(h => `"${h}"`).join(","),
-      ...validatedRows.map(r =>
-        [r.pi, r.batch, r.system, r.name, r.startDate, r.endDate, r.status, r.dependsOn, r.notes]
-          .map(v => `"${String(v).replace(/"/g, '""')}"`)
-          .join(",")
-      ),
-    ];
-    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `DCT-BatchCalendar-${scenario.id}-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  const piOptions = ["PI 1", "PI 2", "PI 3", "PI 4", "PI 5"];
-  const systemOptions: SystemType[] = ["PDC", "TDC", "Orchestrator", "Roger", "Platform"];
-  const statusOptions: BatchStatus[] = ["Planned", "In Progress", "Completed", "At Risk", "On Hold"];
+  const riskCount = summary.risks.length;
+  const cpStart = summary.cpOrdered[0]?.startDate;
+  const cpEnd = summary.cpOrdered[summary.cpOrdered.length - 1]?.endDate;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
+    <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc", fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* Print styles */}
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          body { background: white !important; }
+          .print-page { padding: 24px !important; }
+        }
+      `}</style>
 
-        {/* ── Governance Banner ── */}
-        <div className="flex items-start gap-3 rounded-xl px-5 py-4 border-2 border-amber-300 bg-amber-50">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+      <div className="print-page" style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px" }}>
+
+        {/* ── HEADER ──────────────────────────────────────────────────────────── */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap", gap: "16px" }}>
           <div>
-            <div className="text-sm font-bold text-amber-800">Planning View Only — Not Source of Truth</div>
-            <div className="text-sm text-amber-700 mt-0.5">
-              This calendar is used for scenario modeling. Official batch status, sequencing, and delivery tracking are maintained in the <strong>Batch Roadmap</strong> and <strong>Control Panel</strong>.
+            {/* Scenario label */}
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              fontSize: "11px", fontWeight: 600, color: "#64748b",
+              border: "1px solid #e2e8f0", borderRadius: "6px",
+              padding: "3px 10px", marginBottom: "8px", backgroundColor: "#f8fafc",
+              letterSpacing: "0.04em", textTransform: "uppercase",
+            }}>
+              <Calendar size={11} />
+              Scenario: {scenario.label}
             </div>
+            <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>
+              Batch Delivery Calendar
+            </h1>
+            <p style={{ fontSize: "13px", color: "#64748b", margin: "4px 0 0", maxWidth: "520px" }}>
+              Manual planning view for scenario modeling and scheduling discussions.
+              Data entered here does not update any other platform view.
+            </p>
+          </div>
+
+          {/* Controls — top right, minimal */}
+          <div className="no-print" style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            {/* Scenario selector */}
+            <select
+              value={scenarioId}
+              onChange={e => setScenarioId(e.target.value)}
+              style={{
+                fontSize: "12px", border: "1px solid #e2e8f0", borderRadius: "7px",
+                padding: "6px 10px", color: "#374151", backgroundColor: "white",
+                cursor: "pointer", outline: "none",
+              }}
+            >
+              {SCENARIOS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+
+            <button
+              onClick={() => setShowAdvanced(v => !v)}
+              style={{
+                fontSize: "11px", fontWeight: 500, color: "#64748b",
+                border: "1px solid #e2e8f0", borderRadius: "7px",
+                padding: "6px 10px", backgroundColor: "white", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "5px",
+              }}
+            >
+              {showAdvanced ? <EyeOff size={12} /> : <Eye size={12} />}
+              {showAdvanced ? "Hide" : "Show"} Options
+            </button>
+
+            {showAdvanced && (
+              <>
+                <button onClick={() => setShowDeps(v => !v)} style={{
+                  fontSize: "11px", fontWeight: 500, color: showDeps ? "#1e40af" : "#94a3b8",
+                  border: `1px solid ${showDeps ? "#bfdbfe" : "#e2e8f0"}`, borderRadius: "7px",
+                  padding: "6px 10px", backgroundColor: showDeps ? "#eff6ff" : "white", cursor: "pointer",
+                }}>
+                  Dependencies {showDeps ? "ON" : "OFF"}
+                </button>
+                <button onClick={() => setShowCP(v => !v)} style={{
+                  fontSize: "11px", fontWeight: 500, color: showCP ? "#c2410c" : "#94a3b8",
+                  border: `1px solid ${showCP ? "#fed7aa" : "#e2e8f0"}`, borderRadius: "7px",
+                  padding: "6px 10px", backgroundColor: showCP ? "#fff7ed" : "white", cursor: "pointer",
+                }}>
+                  Critical Path {showCP ? "ON" : "OFF"}
+                </button>
+                <button onClick={() => setShowTable(v => !v)} style={{
+                  fontSize: "11px", fontWeight: 500, color: "#64748b",
+                  border: "1px solid #e2e8f0", borderRadius: "7px",
+                  padding: "6px 10px", backgroundColor: "white", cursor: "pointer",
+                }}>
+                  {showTable ? "Hide" : "Show"} Table
+                </button>
+              </>
+            )}
+
+            <button onClick={exportCSV} style={{
+              fontSize: "11px", fontWeight: 500, color: "#374151",
+              border: "1px solid #e2e8f0", borderRadius: "7px",
+              padding: "6px 10px", backgroundColor: "white", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "5px",
+            }}>
+              <Download size={12} /> Export
+            </button>
+
+            <button onClick={() => window.print()} style={{
+              fontSize: "11px", fontWeight: 500, color: "#374151",
+              border: "1px solid #e2e8f0", borderRadius: "7px",
+              padding: "6px 10px", backgroundColor: "white", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "5px",
+            }}>
+              <Printer size={12} /> Print
+            </button>
+
+            <button onClick={() => setResetConfirm(true)} style={{
+              fontSize: "11px", fontWeight: 500, color: "#94a3b8",
+              border: "1px solid #e2e8f0", borderRadius: "7px",
+              padding: "6px 10px", backgroundColor: "white", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "5px",
+            }}>
+              <RotateCcw size={12} /> Reset
+            </button>
           </div>
         </div>
 
-        {/* ── Dependency Conflict Warnings ── */}
-        {depConflictCount > 0 && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-4">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="w-4 h-4 text-red-600" />
-              <span className="text-sm font-bold text-red-700">
-                {depConflictCount} Dependency Conflict{depConflictCount > 1 ? "s" : ""} Detected
-              </span>
-              <span className="text-xs text-red-500 italic">— Warning only. Edits are not blocked.</span>
+        {/* ── EXECUTIVE SUMMARY CARD ───────────────────────────────────────────── */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px",
+          marginBottom: "24px",
+        }}>
+          {[
+            {
+              label: "Total Timeline",
+              value: summary.totalDays > 0 ? `${summary.totalDays} days` : "—",
+              sub: summary.minD && summary.maxD
+                ? `${formatShort(summary.minD.toISOString())} → ${formatShort(summary.maxD.toISOString())}`
+                : "Set dates to calculate",
+              accent: "#2563eb",
+            },
+            {
+              label: "Critical Path",
+              value: `${summary.cpOrdered.length} batches`,
+              sub: cpStart && cpEnd ? `${formatShort(cpStart)} → ${formatShort(cpEnd)}` : "—",
+              accent: "#f97316",
+            },
+            {
+              label: "Workstreams",
+              value: `${summary.systemGroups.size} systems`,
+              sub: `${summary.piGroups.size} PIs · ${validatedRows.length} batches total`,
+              accent: "#059669",
+            },
+            {
+              label: "Risks",
+              value: riskCount > 0 ? `${riskCount} identified` : "None",
+              sub: riskCount > 0 ? "Click to view details" : "No conflicts detected",
+              accent: riskCount > 0 ? "#d97706" : "#059669",
+              onClick: riskCount > 0 ? () => setShowRiskDetail(v => !v) : undefined,
+            },
+          ].map((card, i) => (
+            <div
+              key={i}
+              onClick={card.onClick}
+              style={{
+                backgroundColor: "white",
+                border: "1px solid #e2e8f0",
+                borderTop: `3px solid ${card.accent}`,
+                borderRadius: "10px",
+                padding: "16px 18px",
+                cursor: card.onClick ? "pointer" : "default",
+                transition: "box-shadow 0.15s",
+              }}
+              onMouseEnter={e => { if (card.onClick) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+            >
+              <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>
+                {card.label}
+              </div>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: card.accent, lineHeight: 1.1, marginBottom: "4px" }}>
+                {card.value}
+              </div>
+              <div style={{ fontSize: "11px", color: "#94a3b8" }}>{card.sub}</div>
             </div>
-            <ul className="space-y-1">
-              {depConflicts.map(row => {
-                const byLabel: Record<string, BatchRow> = {};
-                for (const r of rows) byLabel[r.batch] = r;
-                const deps = row.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
-                const conflictingDeps = deps.filter(dep => {
-                  const depRow = byLabel[dep];
-                  if (!depRow) return false;
-                  const depEnd = parseDate(depRow.endDate);
-                  const rowStart = parseDate(row.startDate);
-                  return depEnd && rowStart && rowStart < depEnd;
-                });
-                return conflictingDeps.map(dep => (
-                  <li key={`${row.id}-${dep}`} className="text-xs text-red-700 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                    Dependency conflict: <strong>{row.batch}</strong> starts before <strong>{dep}</strong> completes
-                  </li>
-                ));
-              })}
-            </ul>
+          ))}
+        </div>
+
+        {/* ── RISK DETAIL (collapsible) ────────────────────────────────────────── */}
+        {showRiskDetail && summary.risks.length > 0 && (
+          <div style={{
+            backgroundColor: "#fffbeb", border: "1px solid #fde68a",
+            borderRadius: "10px", padding: "14px 18px", marginBottom: "20px",
+          }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400e", marginBottom: "8px" }}>
+              ⚠ {summary.risks.length} risk{summary.risks.length > 1 ? "s" : ""} identified
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {summary.risks.map(r => (
+                <div key={r.id} style={{ fontSize: "12px", color: "#78350f" }}>
+                  <strong>{r.batch}</strong>
+                  {r._dateError && " — End date is before start date"}
+                  {r._depConflict && !r._dateError && " — Starts before a dependency completes"}
+                  {r.status === "At Risk" && !r._dateError && !r._depConflict && " — Marked At Risk"}
+                  {r.notes && <span style={{ color: "#a16207" }}> · {r.notes}</span>}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* ── Page Header ── */}
-        <div className="bg-white rounded-xl border border-slate-200 px-6 py-5 shadow-sm">
-          {/* Scenario label */}
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <div className="relative">
-              <button
-                onClick={() => setShowScenarioDropdown(p => !p)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-sm font-semibold text-slate-600 hover:border-blue-400 hover:bg-blue-50 transition-all"
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                Scenario: {scenario.label}
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-              {showScenarioDropdown && (
-                <div className="absolute top-full left-0 mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg py-1 min-w-64">
-                  {SCENARIOS.map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => { setScenarioId(s.id); setShowScenarioDropdown(false); }}
-                      className={`w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors ${s.id === scenarioId ? "bg-blue-50" : ""}`}
-                    >
-                      <div className="text-sm font-semibold text-slate-800">{s.label}</div>
-                      <div className="text-xs text-slate-500">{s.description}</div>
-                    </button>
-                  ))}
+        {/* ── CRITICAL PATH SEQUENCE ───────────────────────────────────────────── */}
+        {showCP && summary.cpOrdered.length > 0 && (
+          <div style={{
+            backgroundColor: "white", border: "1px solid #e2e8f0",
+            borderRadius: "10px", padding: "16px 20px", marginBottom: "24px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+              <div style={{ width: "3px", height: "16px", backgroundColor: "#f97316", borderRadius: "2px" }} />
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Critical Path
+              </span>
+              <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                — longest dependency chain · {summary.totalDays} calendar days
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0" }}>
+              {summary.cpOrdered.map((r, i) => (
+                <div key={r.id} style={{ display: "flex", alignItems: "center" }}>
+                  <div style={{
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    padding: "6px 12px",
+                    backgroundColor: "#fff7ed",
+                    border: "1px solid #fed7aa",
+                    borderRadius: "7px",
+                    minWidth: "90px",
+                  }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "#c2410c" }}>{r.batch}</span>
+                    <span style={{ fontSize: "10px", color: "#94a3b8", marginTop: "2px" }}>
+                      {formatShort(r.startDate)} → {formatShort(r.endDate)}
+                    </span>
+                  </div>
+                  {i < summary.cpOrdered.length - 1 && (
+                    <div style={{ width: "20px", height: "1px", backgroundColor: "#f97316", flexShrink: 0 }} />
+                  )}
                 </div>
-              )}
-            </div>
-            <span className="text-xs text-slate-400 italic">Working draft — not final</span>
-          </div>
-
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Batch Delivery Calendar</h1>
-              <div className="text-xs font-semibold uppercase tracking-widest text-blue-600 mt-0.5">RSM · CATT · DCT Platform</div>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Dependency toggles */}
-              <button
-                onClick={() => setShowDeps(p => !p)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${showDeps ? "bg-blue-50 border-blue-200 text-blue-700" : "border-slate-200 text-slate-500"}`}
-              >
-                <GitBranch className="w-3.5 h-3.5" />
-                {showDeps ? "Hide" : "Show"} Dependencies
-              </button>
-              <button
-                onClick={() => setShowCriticalPath(p => !p)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${showCriticalPath ? "bg-orange-50 border-orange-200 text-orange-700" : "border-slate-200 text-slate-500"}`}
-              >
-                <span className="text-xs">★</span>
-                {showCriticalPath ? "Hide" : "Show"} Critical Path
-              </button>
-              <button
-                onClick={() => setShowGantt(p => !p)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                {showGantt ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                {showGantt ? "Hide" : "Show"} Timeline
-              </button>
-              <button
-                onClick={exportCSV}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                <Download className="w-3.5 h-3.5" /> Export CSV
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors print:hidden"
-              >
-                <Printer className="w-3.5 h-3.5" /> Print / PDF
-              </button>
-              <button
-                onClick={() => setShowResetConfirm(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> Reset to Baseline
-              </button>
-              <button
-                onClick={addRow}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-colors hover:opacity-90"
-                style={{ backgroundColor: "#003A8F" }}
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Batch
-              </button>
+              ))}
             </div>
           </div>
+        )}
 
-          <p className="text-sm text-slate-500 mt-3 max-w-3xl leading-relaxed">
-            This page provides a manual planning view of batch timelines across PIs. It is used for scenario modeling and scheduling discussions only.
-            Data entered here <strong>does not update or override any other platform views</strong>.
-          </p>
+        {/* ── GANTT TIMELINE ───────────────────────────────────────────────────── */}
+        <div style={{
+          backgroundColor: "white", border: "1px solid #e2e8f0",
+          borderRadius: "12px", padding: "24px", marginBottom: "24px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
+            <div style={{ width: "3px", height: "16px", backgroundColor: "#2563eb", borderRadius: "2px" }} />
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Delivery Timeline
+            </span>
+          </div>
+          <GanttChart
+            rows={validatedRows}
+            showDeps={showDeps}
+            showCriticalPath={showCP}
+            criticalPath={criticalPath}
+          />
+        </div>
 
-          {/* Validation summary */}
-          {(errorCount > 0 || overlapCount > 0) && (
-            <div className="flex flex-wrap gap-3 mt-3">
-              {errorCount > 0 && (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  {errorCount} date error{errorCount > 1 ? "s" : ""} — End Date before Start Date
-                </div>
-              )}
-              {overlapCount > 0 && (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  {overlapCount} overlap warning{overlapCount > 1 ? "s" : ""} — same system, overlapping dates
-                </div>
-              )}
+        {/* ── BATCH TABLE (collapsible) ─────────────────────────────────────────── */}
+        <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden", marginBottom: "24px" }}>
+          <button
+            onClick={() => setShowTable(v => !v)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "16px 20px", background: "none", border: "none", cursor: "pointer",
+              borderBottom: showTable ? "1px solid #f1f5f9" : "none",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ width: "3px", height: "16px", backgroundColor: "#64748b", borderRadius: "2px" }} />
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Batch Schedule
+              </span>
+              <span style={{ fontSize: "11px", color: "#94a3b8" }}>{validatedRows.length} batches</span>
+            </div>
+            {showTable ? <ChevronDown size={14} color="#94a3b8" /> : <ChevronRight size={14} color="#94a3b8" />}
+          </button>
+
+          {showTable && (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                <thead>
+                  <tr style={{ backgroundColor: "#f8fafc" }}>
+                    {["PI", "Batch", "System", "Name", "Start", "End", "Status", "Depends On", "Notes", ""].map(h => (
+                      <th key={h} style={{
+                        padding: "10px 12px", textAlign: "left",
+                        fontSize: "10px", fontWeight: 700, color: "#94a3b8",
+                        textTransform: "uppercase", letterSpacing: "0.05em",
+                        borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap",
+                      }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {validatedRows.map((r, i) => {
+                    const isEditing = editingId === r.id;
+                    const isCP = showCP && criticalPath.has(r.batch);
+                    const hasIssue = r._dateError || r._depConflict;
+                    const sb = STATUS_BADGE[r.status];
+
+                    if (isEditing && editDraft) {
+                      return (
+                        <tr key={r.id} style={{ backgroundColor: "#eff6ff" }}>
+                          {(["pi", "batch", "system", "name", "startDate", "endDate", "status", "dependsOn", "notes"] as (keyof BatchRow)[]).map(field => (
+                            <td key={field} style={{ padding: "6px 8px" }}>
+                              {field === "status" ? (
+                                <select
+                                  value={editDraft.status}
+                                  onChange={e => setEditDraft(d => d ? { ...d, status: e.target.value as BatchStatus } : d)}
+                                  style={{ fontSize: "11px", border: "1px solid #bfdbfe", borderRadius: "5px", padding: "3px 6px", width: "100%" }}
+                                >
+                                  {(["Planned", "In Progress", "Completed", "At Risk", "On Hold"] as BatchStatus[]).map(s => (
+                                    <option key={s} value={s}>{s}</option>
+                                  ))}
+                                </select>
+                              ) : field === "system" ? (
+                                <select
+                                  value={editDraft.system}
+                                  onChange={e => setEditDraft(d => d ? { ...d, system: e.target.value as SystemType } : d)}
+                                  style={{ fontSize: "11px", border: "1px solid #bfdbfe", borderRadius: "5px", padding: "3px 6px", width: "100%" }}
+                                >
+                                  {(["PDC", "TDC", "Orchestrator", "Roger", "Platform"] as SystemType[]).map(s => (
+                                    <option key={s} value={s}>{s}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  type={field === "startDate" || field === "endDate" ? "date" : "text"}
+                                  value={(editDraft[field] as string) ?? ""}
+                                  onChange={e => setEditDraft(d => d ? { ...d, [field]: e.target.value } : d)}
+                                  style={{
+                                    fontSize: "11px", border: "1px solid #bfdbfe", borderRadius: "5px",
+                                    padding: "3px 6px", width: "100%", minWidth: "60px",
+                                  }}
+                                />
+                              )}
+                            </td>
+                          ))}
+                          <td style={{ padding: "6px 8px", whiteSpace: "nowrap" }}>
+                            <button onClick={saveEdit} style={{
+                              fontSize: "11px", fontWeight: 600, color: "white",
+                              backgroundColor: "#2563eb", border: "none", borderRadius: "5px",
+                              padding: "3px 8px", cursor: "pointer", marginRight: "4px",
+                            }}>✓</button>
+                            <button onClick={cancelEdit} style={{
+                              fontSize: "11px", color: "#94a3b8",
+                              backgroundColor: "transparent", border: "1px solid #e2e8f0",
+                              borderRadius: "5px", padding: "3px 8px", cursor: "pointer",
+                            }}>✕</button>
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return (
+                      <tr
+                        key={r.id}
+                        onClick={() => startEdit(r)}
+                        style={{
+                          cursor: "pointer",
+                          backgroundColor: hasIssue ? "#fffbeb" : i % 2 === 0 ? "white" : "#fafafa",
+                          borderLeft: isCP ? "3px solid #f97316" : "3px solid transparent",
+                        }}
+                        onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.backgroundColor = "#f0f9ff"}
+                        onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.backgroundColor = hasIssue ? "#fffbeb" : i % 2 === 0 ? "white" : "#fafafa"}
+                      >
+                        <td style={{ padding: "10px 12px", color: "#64748b" }}>{r.pi}</td>
+                        <td style={{ padding: "10px 12px", fontWeight: 600, color: isCP ? "#c2410c" : "#0f172a" }}>
+                          {isCP && "★ "}{r.batch}
+                        </td>
+                        <td style={{ padding: "10px 12px" }}>
+                          <span style={{
+                            fontSize: "10px", fontWeight: 600,
+                            color: SYSTEM_BAR[r.system], backgroundColor: `${SYSTEM_BAR[r.system]}18`,
+                            padding: "2px 7px", borderRadius: "4px",
+                          }}>{r.system}</span>
+                        </td>
+                        <td style={{ padding: "10px 12px", color: "#374151", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</td>
+                        <td style={{ padding: "10px 12px", color: r._dateError ? "#d97706" : "#64748b", whiteSpace: "nowrap" }}>{formatDate(r.startDate)}</td>
+                        <td style={{ padding: "10px 12px", color: r._dateError ? "#d97706" : "#64748b", whiteSpace: "nowrap" }}>{formatDate(r.endDate)}</td>
+                        <td style={{ padding: "10px 12px" }}>
+                          <span style={{
+                            fontSize: "10px", fontWeight: 600,
+                            color: sb.color, backgroundColor: sb.bg,
+                            padding: "2px 7px", borderRadius: "4px",
+                          }}>{r.status}</span>
+                        </td>
+                        <td style={{ padding: "10px 12px", color: r._depConflict ? "#d97706" : "#64748b", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {r._depConflict && "⚠ "}{r.dependsOn || "—"}
+                        </td>
+                        <td style={{ padding: "10px 12px", color: "#94a3b8", maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.notes || "—"}</td>
+                        <td style={{ padding: "10px 12px" }}>
+                          <button
+                            onClick={e => { e.stopPropagation(); deleteRow(r.id); }}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#cbd5e1", padding: "2px" }}
+                            title="Delete row"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div style={{ padding: "12px 16px", borderTop: "1px solid #f1f5f9" }}>
+                <button onClick={addRow} style={{
+                  fontSize: "12px", fontWeight: 600, color: "#2563eb",
+                  backgroundColor: "transparent", border: "1px dashed #bfdbfe",
+                  borderRadius: "7px", padding: "6px 14px", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: "6px",
+                }}>
+                  <Plus size={13} /> Add Batch
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        {/* ── Critical Path Summary Card ── */}
-        {showCriticalPath && criticalPathSummary && (
-          <div className="bg-white rounded-xl border-2 border-orange-200 px-6 py-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-orange-500 text-lg">★</span>
-              <h2 className="text-base font-bold text-slate-800">Critical Path Summary</h2>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
-                {criticalPathSummary.totalDays} calendar days
-              </span>
-              <span className="text-xs text-slate-400 italic ml-1">Minimum delivery timeline</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              {criticalPathSummary.batches.map((b, i) => (
-                <div key={b.id} className="flex items-center gap-1">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg border-2 border-orange-300 bg-orange-50 text-orange-800">
-                    <span className="text-orange-400">★</span>
-                    {b.batch}
-                  </span>
-                  {i < criticalPathSummary.batches.length - 1 && (
-                    <span className="text-orange-300 font-bold text-sm">→</span>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-4 text-xs text-slate-500">
-              <div><span className="font-semibold text-slate-700">Start:</span> {criticalPathSummary.earliest.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
-              <div><span className="font-semibold text-slate-700">End:</span> {criticalPathSummary.latest.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
-              <div><span className="font-semibold text-slate-700">Batches on path:</span> {criticalPathSummary.batches.length}</div>
-              <div className="text-orange-600 italic">Any delay on these batches directly extends the minimum delivery date.</div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Gantt Timeline ── */}
-        {showGantt && (
-          <div className="bg-white rounded-xl border border-slate-200 px-6 py-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-              <div>
-                <h2 className="text-base font-bold text-slate-800">Timeline View</h2>
-                <div className="text-xs text-slate-400 mt-0.5">
-                  Updates immediately as you edit dates · Dependency arrows shown between batches
-                  {showCriticalPath && criticalPath.size > 0 && (
-                    <span className="ml-2 text-orange-600 font-semibold">· ★ Critical path: {criticalPath.size} batches</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {showCriticalPath && criticalPath.size > 0 && (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-200 px-2.5 py-1.5 rounded-lg">
-                    <span>★</span> Critical Path
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg">
-                  <Info className="w-3 h-3" />
-                  Visualization only
-                </div>
-              </div>
-            </div>
-            <GanttChart
-              rows={validatedRows}
-              showDeps={showDeps}
-              showCriticalPath={showCriticalPath}
-              criticalPath={criticalPath}
-            />
-          </div>
-        )}
-
-        {/* ── Editable Table ── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h2 className="text-base font-bold text-slate-800">Batch Schedule</h2>
-              <div className="text-xs text-slate-400 mt-0.5">{rows.length} batches · Click any row to edit · Dependency column accepts comma-separated batch names</div>
-            </div>
-            <div className="text-xs text-slate-400 italic">All edits are local only — no system data is modified</div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table ref={tableRef} className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100" style={{ backgroundColor: "#003A8F" }}>
-                  {["PI", "Batch", "System", "Name", "Start Date", "End Date", "Status", "Depends On", "Notes", ""].map((h, i) => (
-                    <th key={i} className="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {validatedRows.map((row, idx) => {
-                  const isEditing = editingId === row.id;
-                  const sys = SYSTEM_COLORS[row.system];
-                  const statusMeta = STATUS_META[row.status];
-                  const StatusIcon = statusMeta.icon;
-                  const isCritical = showCriticalPath && criticalPath.has(row.batch);
-                  const rowBg = row._dateError ? "#fff1f2" : row._depConflict ? "#fff7ed" : idx % 2 === 0 ? "white" : "#f8fafc";
-
-                  return (
-                    <tr
-                      key={row.id}
-                      className={`border-b border-slate-100 transition-colors ${isEditing ? "ring-2 ring-inset ring-blue-400" : "hover:bg-blue-50/30"}`}
-                      style={{
-                        backgroundColor: isEditing ? "#eff6ff" : rowBg,
-                        borderLeft: isCritical ? "3px solid #f97316" : row._depConflict ? "3px solid #ef4444" : "3px solid transparent",
-                      }}
-                      onClick={() => setEditingId(row.id)}
-                    >
-                      {/* PI */}
-                      <td className="px-3 py-2">
-                        {isEditing ? (
-                          <select value={row.pi} onChange={e => updateRow(row.id, "pi", e.target.value)} onClick={e => e.stopPropagation()}
-                            className="w-20 text-xs border border-blue-300 rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
-                            {piOptions.map(p => <option key={p}>{p}</option>)}
-                          </select>
-                        ) : <span className="text-xs font-semibold text-slate-600">{row.pi}</span>}
-                      </td>
-
-                      {/* Batch */}
-                      <td className="px-3 py-2">
-                        {isEditing ? (
-                          <input value={row.batch} onChange={e => updateRow(row.id, "batch", e.target.value)} onClick={e => e.stopPropagation()}
-                            className="w-28 text-xs border border-blue-300 rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400" />
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            {isCritical && <span className="text-orange-500 text-xs shrink-0" title="Critical Path">★</span>}
-                            <span className="text-xs font-bold text-slate-800">{row.batch}</span>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* System */}
-                      <td className="px-3 py-2">
-                        {isEditing ? (
-                          <select value={row.system} onChange={e => updateRow(row.id, "system", e.target.value as SystemType)} onClick={e => e.stopPropagation()}
-                            className="w-28 text-xs border border-blue-300 rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
-                            {systemOptions.map(s => <option key={s}>{s}</option>)}
-                          </select>
-                        ) : (
-                          <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: sys.bg, color: sys.text }}>{row.system}</span>
-                        )}
-                      </td>
-
-                      {/* Name */}
-                      <td className="px-3 py-2 max-w-[180px]">
-                        {isEditing ? (
-                          <input value={row.name} onChange={e => updateRow(row.id, "name", e.target.value)} onClick={e => e.stopPropagation()}
-                            className="w-full text-xs border border-blue-300 rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400" />
-                        ) : <span className="text-xs text-slate-700 line-clamp-2">{row.name}</span>}
-                      </td>
-
-                      {/* Start Date */}
-                      <td className="px-3 py-2">
-                        {isEditing ? (
-                          <input type="date" value={row.startDate} onChange={e => updateRow(row.id, "startDate", e.target.value)} onClick={e => e.stopPropagation()}
-                            className="text-xs border border-blue-300 rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400" />
-                        ) : (
-                          <span className="text-xs text-slate-600 whitespace-nowrap">
-                            {row.startDate ? formatDate(row.startDate) : <span className="text-slate-300 italic">Not set</span>}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* End Date */}
-                      <td className="px-3 py-2">
-                        {isEditing ? (
-                          <div>
-                            <input type="date" value={row.endDate} onChange={e => updateRow(row.id, "endDate", e.target.value)} onClick={e => e.stopPropagation()}
-                              className={`text-xs border rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 ${row._dateError ? "border-red-400 focus:ring-red-400" : "border-blue-300 focus:ring-blue-400"}`} />
-                            {row._dateError && (
-                              <div className="text-xs text-red-600 mt-0.5 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" /> End before Start
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div>
-                            <span className={`text-xs whitespace-nowrap ${row._dateError ? "text-red-600 font-semibold" : "text-slate-600"}`}>
-                              {row.endDate ? formatDate(row.endDate) : <span className="text-slate-300 italic">Not set</span>}
-                            </span>
-                            {row._dateError && <div className="text-xs text-red-500">⚠ Date error</div>}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-3 py-2">
-                        {isEditing ? (
-                          <select value={row.status} onChange={e => updateRow(row.id, "status", e.target.value as BatchStatus)} onClick={e => e.stopPropagation()}
-                            className="text-xs border border-blue-300 rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400">
-                            {statusOptions.map(s => <option key={s}>{s}</option>)}
-                          </select>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
-                            style={{ backgroundColor: statusMeta.bg, color: statusMeta.color }}>
-                            <StatusIcon className="w-3 h-3" />
-                            {row.status}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Depends On */}
-                      <td className="px-3 py-2 max-w-[160px]">
-                        {isEditing ? (
-                          <input
-                            value={row.dependsOn}
-                            onChange={e => updateRow(row.id, "dependsOn", e.target.value)}
-                            onClick={e => e.stopPropagation()}
-                            placeholder="e.g. Batch 5, Batch 6"
-                            className={`w-full text-xs border rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 ${row._depConflict ? "border-red-400 focus:ring-red-400" : "border-blue-300 focus:ring-blue-400"}`}
-                          />
-                        ) : (
-                          <div>
-                            {row.dependsOn ? (
-                              <div className="flex flex-wrap gap-1">
-                                {row.dependsOn.split(",").map(d => d.trim()).filter(Boolean).map(dep => (
-                                  <span key={dep} className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
-                                    {dep}
-                                  </span>
-                                ))}
-                                {row._depConflict && <span className="text-xs text-red-500 font-semibold">⚠ Conflict</span>}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-slate-300 italic">None</span>
-                            )}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Notes */}
-                      <td className="px-3 py-2 max-w-[180px]">
-                        {isEditing ? (
-                          <textarea value={row.notes} onChange={e => updateRow(row.id, "notes", e.target.value)} onClick={e => e.stopPropagation()}
-                            rows={2} className="w-full text-xs border border-blue-300 rounded px-1.5 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none" />
-                        ) : (
-                          <span className="text-xs text-slate-500 line-clamp-2">{row.notes || <span className="italic text-slate-300">No notes</span>}</span>
-                        )}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-1">
-                          {isEditing && (
-                            <button onClick={e => { e.stopPropagation(); setEditingId(null); }}
-                              className="p-1 rounded hover:bg-green-100 text-green-600 transition-colors" title="Done editing">
-                              <CheckCircle2 className="w-4 h-4" />
-                            </button>
-                          )}
-                          <button onClick={e => { e.stopPropagation(); deleteRow(row.id); }}
-                            className="p-1 rounded hover:bg-red-100 text-red-400 hover:text-red-600 transition-colors" title="Delete row">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="px-6 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-            <button onClick={addRow} className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-              <Plus className="w-3.5 h-3.5" /> Add row
-            </button>
-            <div className="text-xs text-slate-400 italic">
-              Click any row to edit · Depends On: comma-separated batch names · Changes are local only
-            </div>
-          </div>
-        </div>
-
-        {/* ── Footer ── */}
-        <div className="flex items-start gap-2 text-xs text-slate-400 px-1 pb-4">
-          <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          <span>
-            <strong>Data isolation:</strong> This page does not read from or write to the Control Panel, Batch Roadmap, API Coverage, or any system data.
-            All entries are local state only and are not persisted across sessions.
-            Scenario: <em>{scenario.label}</em> · {scenario.description}
-          </span>
+        {/* ── GOVERNANCE FOOTER ────────────────────────────────────────────────── */}
+        <div style={{
+          fontSize: "11px", color: "#94a3b8", textAlign: "center",
+          borderTop: "1px solid #f1f5f9", paddingTop: "16px",
+        }}>
+          <strong style={{ color: "#64748b" }}>Planning View Only — Not Source of Truth.</strong>{" "}
+          Official batch status, sequencing, and delivery tracking are maintained in the Batch Roadmap and Control Panel.
         </div>
       </div>
 
-      {/* ── Shift Downstream Modal ── */}
+      {/* ── SHIFT DOWNSTREAM MODAL ───────────────────────────────────────────── */}
       {shiftOffer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.45)" }}>
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                <ArrowDownToLine className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <div className="font-bold text-slate-800">Shift Downstream Batches?</div>
-                <div className="text-xs text-slate-500 mt-0.5">
-                  <strong>{shiftOffer.batchLabel}</strong> end date moved +{shiftOffer.deltaDays} day{shiftOffer.deltaDays !== 1 ? "s" : ""}
-                </div>
-              </div>
-            </div>
-            <p className="text-sm text-slate-600 mb-3">
-              {shiftOffer.affectedBatches.length} dependent batch{shiftOffer.affectedBatches.length !== 1 ? "es" : ""} can be shifted forward by the same amount to preserve sequencing:
+        <div className="no-print" style={{
+          position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+        }}>
+          <div style={{
+            backgroundColor: "white", borderRadius: "14px", padding: "28px 32px",
+            maxWidth: "420px", width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
+          }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", margin: "0 0 8px" }}>
+              Shift Downstream Batches?
+            </h3>
+            <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 16px" }}>
+              End date moved forward by <strong>{shiftOffer.delta} days</strong>. Shift these dependent batches by the same amount?
             </p>
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {shiftOffer.affectedBatches.map(b => (
-                <span key={b} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">{b}</span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "20px" }}>
+              {shiftOffer.affected.map(b => (
+                <span key={b} style={{
+                  fontSize: "11px", fontWeight: 600, color: "#1e40af",
+                  backgroundColor: "#dbeafe", padding: "3px 8px", borderRadius: "4px",
+                }}>{b}</span>
               ))}
             </div>
-            <div className="text-xs text-slate-400 italic mb-4">
-              Planning view only — no system data is modified.
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShiftOffer(null)}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                Skip
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button onClick={applyShift} style={{
+                flex: 1, fontSize: "13px", fontWeight: 600, color: "white",
+                backgroundColor: "#2563eb", border: "none", borderRadius: "8px",
+                padding: "10px", cursor: "pointer",
+              }}>
+                Shift {shiftOffer.delta} Days Downstream
               </button>
-              <button
-                onClick={applyShiftDownstream}
-                className="flex-1 px-4 py-2 rounded-lg text-sm font-bold text-white transition-colors hover:opacity-90"
-                style={{ backgroundColor: "#003A8F" }}
-              >
-                Shift {shiftOffer.deltaDays} Day{shiftOffer.deltaDays !== 1 ? "s" : ""} Downstream
+              <button onClick={() => setShiftOffer(null)} style={{
+                flex: 1, fontSize: "13px", fontWeight: 500, color: "#64748b",
+                backgroundColor: "transparent", border: "1px solid #e2e8f0",
+                borderRadius: "8px", padding: "10px", cursor: "pointer",
+              }}>
+                Skip
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Print CSS ── */}
-      <style>{`
-        @media print {
-          /* Hide sidebar, nav, controls, modals */
-          nav, aside, [class*="Sidebar"], .print\\:hidden { display: none !important; }
-          body { background: white !important; }
-          .min-h-screen { min-height: unset !important; }
-          /* Remove shadows and borders for clean print */
-          .shadow-sm, .shadow-lg { box-shadow: none !important; }
-          /* Ensure full width */
-          .max-w-7xl { max-width: 100% !important; }
-          /* Page breaks */
-          .bg-white { break-inside: avoid; }
-          /* Print header */
-          .max-w-7xl::before {
-            content: "DCT Platform · Batch Delivery Calendar · Planning View Only";
-            display: block;
-            font-size: 10px;
-            color: #64748b;
-            text-align: right;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 4px;
-          }
-        }
-      `}</style>
-
-      {/* ── Reset Confirmation Modal ── */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <RotateCcw className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <div className="font-bold text-slate-800">Reset to Baseline?</div>
-                <div className="text-xs text-slate-500">All current edits will be lost.</div>
-              </div>
-            </div>
-            <p className="text-sm text-slate-600 mb-5">
-              This will restore the original 10-batch baseline plan and reset the scenario to <strong>PI Planning Draft v1</strong>. This action cannot be undone.
+      {/* ── RESET CONFIRM MODAL ──────────────────────────────────────────────── */}
+      {resetConfirm && (
+        <div className="no-print" style={{
+          position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+        }}>
+          <div style={{
+            backgroundColor: "white", borderRadius: "14px", padding: "28px 32px",
+            maxWidth: "360px", width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
+          }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", margin: "0 0 8px" }}>
+              Reset to Baseline?
+            </h3>
+            <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 20px" }}>
+              All current edits will be lost. This cannot be undone.
             </p>
-            <div className="flex gap-3">
-              <button onClick={() => setShowResetConfirm(false)}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                Cancel
-              </button>
-              <button onClick={resetToBaseline}
-                className="flex-1 px-4 py-2 rounded-lg text-sm font-bold text-white transition-colors hover:opacity-90"
-                style={{ backgroundColor: "#dc2626" }}>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button onClick={() => { setRows(BASELINE_ROWS.map(r => ({ ...r }))); setResetConfirm(false); }} style={{
+                flex: 1, fontSize: "13px", fontWeight: 600, color: "white",
+                backgroundColor: "#dc2626", border: "none", borderRadius: "8px",
+                padding: "10px", cursor: "pointer",
+              }}>
                 Reset
+              </button>
+              <button onClick={() => setResetConfirm(false)} style={{
+                flex: 1, fontSize: "13px", fontWeight: 500, color: "#64748b",
+                backgroundColor: "transparent", border: "1px solid #e2e8f0",
+                borderRadius: "8px", padding: "10px", cursor: "pointer",
+              }}>
+                Cancel
               </button>
             </div>
           </div>
