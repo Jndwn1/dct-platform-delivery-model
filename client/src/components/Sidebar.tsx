@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useBatchStatus, contextToSidebarBadge, type BatchKey } from "@/contexts/BatchStatusContext";
+import { useBatchStatus, contextToSidebarBadge, type BatchKey, type BatchStatus } from "@/contexts/BatchStatusContext";
 
 interface NavItem {
   label: string;
@@ -26,19 +26,45 @@ const PLATFORM_ITEMS: NavItem[] = [
   { label: "Batch Delivery Calendar", path: "/batch-calendar", icon: "▤", badge: "Planning", badgeColor: "#64748b" },
 ];
 
-// Batch items — FC + Batches 1–8 visible; 9–11 hidden (Future/Stretch scope)
+// PI 1 batch items (FC + B1–B3) — Foundation & AI Mapping
 const BATCH_ITEM_DEFS: { label: string; path: string; batchKey: BatchKey }[] = [
-  { label: "Foundation Core",                                   path: "/batch/foundation-core", batchKey: "foundation-core" },
-  { label: "Batch 1 — File Ingestion & Initial Storage",        path: "/batch/1",               batchKey: "1" },
-  { label: "Batch 2 — Normalization & Cross-LOB Taxonomy",      path: "/batch/2",               batchKey: "2" },
-  { label: "Batch 2A — Contract Enforcement & Classification",  path: "/batch/2a",              batchKey: "2a" },
-  { label: "Batch 3 — Tax Domain Authority & Tax Taxonomy",     path: "/batch/3",               batchKey: "3" },
-  { label: "Batch 4 — AI Tax Mapping & Explainability",         path: "/batch/4",               batchKey: "4" },
-  { label: "Batch 5 — Entity Identity & Structure",             path: "/batch/5",               batchKey: "5" },
-  { label: "Batch 6 — Practitioner Review, Adjustments & Lock", path: "/batch/6",               batchKey: "6" },
-  { label: "Batch 7 — Client Tax Profile & Eligibility",        path: "/batch/7",               batchKey: "7" },
-  { label: "Batch 8 — Exceptions & Remediation",                path: "/batch/8",               batchKey: "8" },
-  // Batches 9–11 hidden — Future/Stretch scope, not in current delivery
+  { label: "FC — Foundation Core",                              path: "/batch/foundation-core", batchKey: "foundation-core" },
+  { label: "B1 — File Ingestion & Initial Storage",             path: "/batch/1",               batchKey: "1" },
+  { label: "B2 — Normalization & Cross-LOB Taxonomy",           path: "/batch/2",               batchKey: "2" },
+  { label: "B2A — Contract Enforcement & Classification",       path: "/batch/2a",              batchKey: "2a" },
+  { label: "B3 — Tax Domain Authority & Tax Taxonomy",          path: "/batch/3",               batchKey: "3" },
+];
+
+// PI 2 batch items (B4–B11) — Entity, Workflow & Tax Ready
+const PI2_BATCH_ITEMS: { label: string; path: string; batchKey: BatchKey }[] = [
+  { label: "B4 — AI Tax Mapping & Explainability",              path: "/batch/4",               batchKey: "4" },
+  { label: "B5 — Entity Identity & Structure",                  path: "/batch/5",               batchKey: "5" },
+  { label: "B6 — Practitioner Review, Adjustments & Lock",      path: "/batch/6",               batchKey: "6" },
+  { label: "B7 — Client Tax Profile & Eligibility",             path: "/batch/7",               batchKey: "7" },
+  { label: "B8 — Exceptions & Remediation",                     path: "/batch/8",               batchKey: "8" },
+  { label: "B9 — Rollforward & Prior Year Intelligence",        path: "/batch/9",               batchKey: "9" },
+  { label: "B10 — Return Assembly & Lineage Closure",           path: "/batch/10",              batchKey: "10" },
+  { label: "B11 — Learning Governance & Model Evolution",       path: "/batch/11",              batchKey: "11" },
+];
+
+// PI 3 batch items (B12–B19) — Intelligence, Provision & Audit
+const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
+  { label: "B12 — TIM Integration & Engagement Ops",            path: "/batch/12",              batchKey: "12" },
+  { label: "B13 — Platform Reference & Document Provenance",    path: "/batch/13",              batchKey: "13" },
+  { label: "B14 — Tax Computation Rules & Formula Gov.",        path: "/batch/14",              batchKey: "14" },
+  { label: "B15 — Tax Provision Reference & ASC 740",           path: "/batch/15",              batchKey: "15" },
+  { label: "B16 — Audit Trail & Lineage Governance",            path: "/batch/16",              batchKey: "16" },
+  { label: "B17 — Decision Support — Overrides & Workpapers",   path: "/batch/17",              batchKey: "17" },
+  { label: "B18 — Provision Computation, DTA/DTL & ETR",        path: "/batch/18",              batchKey: "18" },
+  { label: "B19 — Provision Workflow, Sign-Off & Cross-LOB",    path: "/batch/19",              batchKey: "19" },
+];
+
+// PI 4 batch items (B20–B23) — Governance, QC & Analytics
+const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
+  { label: "B20 — Firm Governance & Professional Standards",    path: "/batch/20",              batchKey: "20" },
+  { label: "B21 — Quality Control",                             path: "/batch/21",              batchKey: "21" },
+  { label: "B22 — Client Communication & Outstanding Items",    path: "/batch/22",              batchKey: "22" },
+  { label: "B23 — Benchmark & Peer Analytics",                  path: "/batch/23",              batchKey: "23" },
 ];
 
 
@@ -69,13 +95,17 @@ const TOOL_ITEMS: NavItem[] = [
 
 // PI Planning removed — PI2/PI3 pages removed per governance cleanup
 
+// Roger UI — Roger-specific pages
+const ROGER_UI_ITEMS: NavItem[] = [
+  { label: "Roger API Evolution",    path: "/roger-api",           icon: "⚡", badge: "Export", badgeColor: "#003865" },
+];
+
 // Governance — alphabetical
 const GOVERNANCE_ITEMS: NavItem[] = [
   { label: "AAP Review Model",       path: "/aap-review",          icon: "◈" },
   { label: "Data Governance & SoT",  path: "/data-governance",     icon: "⚖", badge: "New", badgeColor: "#059669" },
   { label: "Data Lineage",           path: "/lineage",             icon: "⌥" },
   { label: "Governance Timeline",    path: "/governance-timeline", icon: "▤" },
-  { label: "Roger API Evolution",    path: "/roger-api",           icon: "⚡" },
   { label: "Tax Mapping Confidence", path: "/tax-mapping",         icon: "◇" },
 ];
 
@@ -294,7 +324,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
             padding: "10px 12px 3px"
           }}>
             <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#475569" }}>
-              Batches (FC + 1–10)
+              Batches by PI
             </span>
             <button
               onClick={() => setBatchesOpen(!batchesOpen)}
@@ -303,22 +333,40 @@ export default function Sidebar({ activeSection }: SidebarProps) {
               {batchesOpen ? "▲" : "▼"}
             </button>
           </div>
-          {batchesOpen && BATCH_ITEM_DEFS.map((def) => {
-            const badge = contextToSidebarBadge(statuses[def.batchKey]);
-            const navItem: NavItem = {
-              label: def.label,
-              path: def.path,
-              indent: true,
-              status: badge?.label,
-              statusColor: badge?.color,
-            };
-            return <NavItem key={def.path} item={navItem} />;
-          })}
+          {batchesOpen && (
+            <>
+              {/* PI 1 */}
+              <div style={{ padding: "4px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#3b82f6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 1 — Foundation &amp; AI Mapping</div>
+              {BATCH_ITEM_DEFS.map((def) => {
+                const badge = contextToSidebarBadge(statuses[def.batchKey]);
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+              })}
+              {/* PI 2 */}
+              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#10b981", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 — Entity, Workflow &amp; Tax Ready</div>
+              {PI2_BATCH_ITEMS.map((def) => {
+                const badge = contextToSidebarBadge(statuses[def.batchKey]);
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+              })}
+              {/* PI 3 */}
+              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#8b5cf6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 3 — Intelligence, Provision &amp; Audit</div>
+              {PI3_BATCH_ITEMS.map((def) => {
+                const badge = contextToSidebarBadge("Planned" as BatchStatus);
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+              })}
+              {/* PI 4 */}
+              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#f59e0b", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 4 — Governance, QC &amp; Analytics</div>
+              {PI4_BATCH_ITEMS.map((def) => {
+                const badge = contextToSidebarBadge("Planned" as BatchStatus);
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+              })}
+            </>
+          )}
         </div>
 
         <NavSection title="Gates" items={GATE_ITEMS} />
         <NavSection title="Agents" items={AGENT_ITEMS} />
         <NavSection title="Tools" items={TOOL_ITEMS} />
+        <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
         <NavSection title="Governance" items={GOVERNANCE_ITEMS} />
         <NavSection title="Diagrams" items={DIAGRAM_ITEMS} />
       </div>
@@ -327,7 +375,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
       <div style={{ borderTopWidth: "1px", borderTopColor: "#1e2a3a", padding: "10px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
           <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#10b981", flexShrink: 0 }} />
-          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Platform Active · Batch 1–2</span>
+          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Platform Active · FC–B23</span>
         </div>
         <div style={{ fontSize: "10px", color: "#475569", marginBottom: "6px" }}>DCT — Data Consolidation Team</div>
         <button
