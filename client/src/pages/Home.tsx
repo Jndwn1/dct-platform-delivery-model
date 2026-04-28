@@ -213,9 +213,9 @@ export default function Home() {
           </div>
           <div style={{ marginTop: "14px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
             {[
-              { color: "#1e3a5f", label: "PDC — Financial truth, lineage anchor" },
+              { color: "#1e3a5f", label: "PDC (Phoenix Data Consolidation) — Financial truth, lineage anchor" },
               { color: "#7c3aed", label: "Orchestrator — Stateless, no persistence" },
-              { color: "#065f46", label: "TDC — Tax decisions, immutable" },
+              { color: "#065f46", label: "TDC (Tax Data Consolidation) — Tax decisions, immutable" },
               { color: "#0f1623", label: "Roger — Read-only, no writes" },
             ].map(l => (
               <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
