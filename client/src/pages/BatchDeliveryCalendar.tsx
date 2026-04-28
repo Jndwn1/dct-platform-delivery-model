@@ -6,7 +6,7 @@
 // DESIGN PHILOSOPHY: Executive-first. Timeline is the primary visual.
 // Clean, calm, RSM-branded. Understandable in under 60 seconds.
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import {
   AlertTriangle, Calendar, Download, RotateCcw, Plus, Trash2,
   CheckCircle2, Clock, AlertCircle, Printer, ChevronDown, ChevronRight,
@@ -263,9 +263,17 @@ interface GanttProps {
   showDeps: boolean;
   showCriticalPath: boolean;
   criticalPath: Set<string>;
+  piFilter?: string;
 }
 
-function GanttChart({ rows, showDeps, showCriticalPath, criticalPath }: GanttProps) {
+const PI_BAND_COLORS: Record<string, { bg: string; border: string; text: string; label: string }> = {
+  "PI 1": { bg: "#f0f4ff", border: "#c7d7f9", text: "#1e3a5f", label: "PI 1 — Foundation & AI Mapping" },
+  "PI 2": { bg: "#eff6ff", border: "#bfdbfe", text: "#1e40af", label: "PI 2 — Entity, Workflow & Tax Ready" },
+  "PI 3": { bg: "#f0fdf4", border: "#bbf7d0", text: "#166534", label: "PI 3 — Intelligence, Provision & Audit" },
+  "PI 4": { bg: "#fff7ed", border: "#fed7aa", text: "#7c2d12", label: "PI 4 — Governance, QC & Analytics" },
+};
+
+function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter = "All" }: GanttProps) {
   const validRows = rows.filter(r => parseDate(r.startDate) && parseDate(r.endDate) && !r._dateError);
 
   if (validRows.length === 0) {
@@ -401,73 +409,112 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath }: GanttPro
             </defs>
           </svg>
 
-          {/* Batch rows */}
-          {validRows.map((r, i) => {
-            const start = parseDate(r.startDate)!;
-            const end = parseDate(r.endDate)!;
-            const left = (daysBetween(minDate, start) / totalDays) * 100;
-            const width = Math.max((daysBetween(start, end) / totalDays) * 100, 0.8);
-            const isCP = showCriticalPath && criticalPath.has(r.batch);
-            const isCompleted = r.status === "Completed";
-            const isAtRisk = r.status === "At Risk";
-            const barColor = isCompleted ? "#166534" : isAtRisk ? "#d97706" : SYSTEM_BAR[r.system];
+          {/* Batch rows — with PI swimlane dividers when showing All PIs */}
+          {(() => {
+            const elements: React.ReactNode[] = [];
+            let lastPi = "";
+            validRows.forEach((r, i) => {
+              // Insert PI swimlane divider when PI changes (only in "All" view)
+              if (piFilter === "All" && r.pi !== lastPi) {
+                lastPi = r.pi;
+                const band = PI_BAND_COLORS[r.pi];
+                if (band) {
+                  elements.push(
+                    <div key={`pi-divider-${r.pi}`} style={{
+                      display: "flex", alignItems: "center",
+                      height: "28px",
+                      backgroundColor: band.bg,
+                      borderTop: `2px solid ${band.border}`,
+                      borderBottom: `1px solid ${band.border}`,
+                      marginTop: i > 0 ? "4px" : "0",
+                    }}>
+                      <div style={{
+                        width: `${LABEL_W}px`, flexShrink: 0,
+                        paddingLeft: "4px", paddingRight: "12px",
+                      }}>
+                        <span style={{
+                          fontSize: "10px", fontWeight: 700, color: band.text,
+                          textTransform: "uppercase", letterSpacing: "0.06em",
+                        }}>
+                          {band.label}
+                        </span>
+                      </div>
+                      <div style={{ flex: 1, height: "1px", backgroundColor: band.border }} />
+                    </div>
+                  );
+                }
+              }
 
-            return (
-              <div key={r.id} style={{
-                display: "flex", alignItems: "center",
-                height: `${ROW_H}px`,
-                borderBottom: i < validRows.length - 1 ? "1px solid #f1f5f9" : "none",
-              }}>
-                {/* Label */}
-                <div style={{
-                  width: `${LABEL_W}px`, flexShrink: 0,
-                  paddingRight: "12px", overflow: "hidden",
+              const start = parseDate(r.startDate)!;
+              const end = parseDate(r.endDate)!;
+              const left = (daysBetween(minDate, start) / totalDays) * 100;
+              const width = Math.max((daysBetween(start, end) / totalDays) * 100, 0.8);
+              const isCP = showCriticalPath && criticalPath.has(r.batch);
+              const isCompleted = r.status === "Completed";
+              const isAtRisk = r.status === "At Risk";
+              const barColor = isCompleted ? "#166534" : isAtRisk ? "#d97706" : SYSTEM_BAR[r.system];
+              const band = PI_BAND_COLORS[r.pi];
+              const rowBg = piFilter === "All" && band ? band.bg + "66" : "transparent";
+
+              elements.push(
+                <div key={r.id} style={{
+                  display: "flex", alignItems: "center",
+                  height: `${ROW_H}px`,
+                  backgroundColor: rowBg,
+                  borderBottom: i < validRows.length - 1 ? "1px solid #f1f5f9" : "none",
                 }}>
+                  {/* Label */}
                   <div style={{
-                    fontSize: "12px", fontWeight: isCP ? 700 : 500,
-                    color: isCP ? "#0f172a" : "#374151",
-                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    width: `${LABEL_W}px`, flexShrink: 0,
+                    paddingRight: "12px", overflow: "hidden",
                   }}>
-                    {isCP && <span style={{ color: "#f97316", marginRight: "4px" }}>★</span>}
-                    {r.batch}
-                  </div>
-                  <div style={{
-                    fontSize: "10px", color: "#94a3b8",
-                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                  }}>
-                    {r.system}
-                  </div>
-                </div>
-
-                {/* Bar area */}
-                <div style={{ flex: 1, position: "relative", height: "100%", zIndex: 2 }}>
-                  <div style={{
-                    position: "absolute",
-                    left: `${left}%`,
-                    width: `${width}%`,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    height: "28px",
-                    backgroundColor: barColor,
-                    borderRadius: "5px",
-                    display: "flex", alignItems: "center",
-                    paddingLeft: "8px", paddingRight: "8px",
-                    overflow: "hidden",
-                    boxShadow: isCP ? `0 0 0 2px #f97316, 0 2px 6px rgba(249,115,22,0.25)` : "0 1px 3px rgba(0,0,0,0.12)",
-                    opacity: 1,
-                    transition: "box-shadow 0.2s",
-                  }}>
-                    <span style={{
-                      fontSize: "10px", fontWeight: 600, color: "#fff",
+                    <div style={{
+                      fontSize: "12px", fontWeight: isCP ? 700 : 500,
+                      color: isCP ? "#0f172a" : "#374151",
                       whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                     }}>
-                      {r.name}
-                    </span>
+                      {isCP && <span style={{ color: "#f97316", marginRight: "4px" }}>★</span>}
+                      {r.batch}
+                    </div>
+                    <div style={{
+                      fontSize: "10px", color: "#94a3b8",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}>
+                      {r.system}
+                    </div>
+                  </div>
+
+                  {/* Bar area */}
+                  <div style={{ flex: 1, position: "relative", height: "100%", zIndex: 2 }}>
+                    <div style={{
+                      position: "absolute",
+                      left: `${left}%`,
+                      width: `${width}%`,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      height: "28px",
+                      backgroundColor: barColor,
+                      borderRadius: "5px",
+                      display: "flex", alignItems: "center",
+                      paddingLeft: "8px", paddingRight: "8px",
+                      overflow: "hidden",
+                      boxShadow: isCP ? `0 0 0 2px #f97316, 0 2px 6px rgba(249,115,22,0.25)` : "0 1px 3px rgba(0,0,0,0.12)",
+                      opacity: 1,
+                      transition: "box-shadow 0.2s",
+                    }}>
+                      <span style={{
+                        fontSize: "10px", fontWeight: 600, color: "#fff",
+                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      }}>
+                        {r.name}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            });
+            return elements;
+          })()}
         </div>
 
         {/* Legend */}
@@ -525,6 +572,8 @@ export default function BatchDeliveryCalendar() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [shiftOffer, setShiftOffer] = useState<{ batchId: string; delta: number; affected: string[] } | null>(null);
   const [resetConfirm, setResetConfirm] = useState(false);
+  const [piFilter, setPiFilter] = useState<string>("All"); // "All" | "PI 1" | "PI 2" | "PI 3" | "PI 4"
+
 
   const scenario = SCENARIOS.find(s => s.id === scenarioId) ?? SCENARIOS[0];
 
@@ -556,6 +605,148 @@ export default function BatchDeliveryCalendar() {
   }, [rows]);
 
   const criticalPath = useMemo(() => computeCriticalPath(validatedRows), [validatedRows]);
+
+  // ── Print-optimized Gantt export ─────────────────────────────────────────────
+  const printGantt = useCallback(() => {
+    const piLabel = piFilter === "All" ? "All PIs" : piFilter;
+    const filtered = piFilter === "All" ? validatedRows : validatedRows.filter(r => r.pi === piFilter);
+    const rows = filtered;
+    const allDates = rows.filter(r => r.startDate && r.endDate)
+      .flatMap(r => [new Date(r.startDate), new Date(r.endDate)]);
+    if (allDates.length === 0) return;
+    const minD = new Date(Math.min(...allDates.map(d => d.getTime())));
+    const maxD = new Date(Math.max(...allDates.map(d => d.getTime())));
+    minD.setDate(minD.getDate() - 7);
+    maxD.setDate(maxD.getDate() + 14);
+    const totalDays = Math.round((maxD.getTime() - minD.getTime()) / 86400000);
+    const ROW_H = 36;
+    const LABEL_W = 220;
+    const CHART_W = 900;
+
+    // Group rows by PI for swimlane dividers
+    const piOrder = ["PI 1", "PI 2", "PI 3", "PI 4"];
+    const grouped: { pi: string; rows: typeof rows }[] = [];
+    for (const pi of piOrder) {
+      const piRows = rows.filter(r => r.pi === pi);
+      if (piRows.length > 0) grouped.push({ pi, rows: piRows });
+    }
+
+    const PI_COLORS: Record<string, string> = {
+      "PI 1": "#1e3a5f", "PI 2": "#1e40af", "PI 3": "#166534", "PI 4": "#7c2d12",
+    };
+    const SYS_COLORS: Record<string, string> = {
+      PDC: "#2563eb", TDC: "#059669", Orchestrator: "#7c3aed", Roger: "#0ea5e9", Platform: "#94a3b8",
+    };
+    const STATUS_COLORS: Record<string, string> = {
+      Completed: "#166534", "In Progress": "#2563eb", Planned: "#94a3b8", "At Risk": "#d97706", "On Hold": "#6b7280",
+    };
+
+    // Build month markers
+    const months: { label: string; pct: number }[] = [];
+    const mc = new Date(minD.getFullYear(), minD.getMonth(), 1);
+    while (mc <= maxD) {
+      const pct = ((mc.getTime() - minD.getTime()) / 86400000 / totalDays) * 100;
+      if (pct >= 0 && pct <= 100) {
+        months.push({ label: mc.toLocaleDateString("en-US", { month: "short", year: "2-digit" }), pct });
+      }
+      mc.setMonth(mc.getMonth() + 1);
+    }
+
+    // Build HTML rows
+    let rowsHtml = "";
+    for (const group of grouped) {
+      const piColor = PI_COLORS[group.pi] || "#1e3a5f";
+      rowsHtml += `
+        <tr>
+          <td colspan="2" style="background:${piColor};color:white;font-size:11px;font-weight:700;
+            padding:5px 12px;letter-spacing:0.06em;text-transform:uppercase;border-bottom:2px solid white;">
+            ${group.pi} &rarr; ${group.pi === "PI 1" ? "Foundation & AI Mapping" : group.pi === "PI 2" ? "Entity, Workflow & Tax Ready" : group.pi === "PI 3" ? "Intelligence, Provision & Audit" : "Governance, QC & Analytics"}
+          </td>
+        </tr>`;
+      for (const r of group.rows) {
+        if (!r.startDate || !r.endDate) continue;
+        const s = new Date(r.startDate);
+        const e = new Date(r.endDate);
+        const leftPct = ((s.getTime() - minD.getTime()) / 86400000 / totalDays) * 100;
+        const widthPct = Math.max(((e.getTime() - s.getTime()) / 86400000 / totalDays) * 100, 1.2);
+        const isCompleted = r.status === "Completed";
+        const barColor = isCompleted ? STATUS_COLORS["Completed"] : (SYS_COLORS[r.system] || "#94a3b8");
+        rowsHtml += `
+          <tr style="border-bottom:1px solid #f1f5f9;">
+            <td style="width:${LABEL_W}px;padding:4px 8px;font-size:11px;font-weight:600;color:#374151;
+              white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${LABEL_W}px;">
+              ${r.batch}<br/><span style="font-size:9px;color:#94a3b8;font-weight:400;">${r.system}</span>
+            </td>
+            <td style="position:relative;height:${ROW_H}px;padding:0;">
+              <div style="position:absolute;left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%;
+                top:50%;transform:translateY(-50%);height:22px;background:${barColor};
+                border-radius:4px;display:flex;align-items:center;padding:0 6px;overflow:hidden;">
+                <span style="font-size:9px;font-weight:600;color:white;white-space:nowrap;
+                  overflow:hidden;text-overflow:ellipsis;">${r.name}</span>
+              </div>
+            </td>
+          </tr>`;
+      }
+    }
+
+    // Month header row
+    let monthHeaderCells = `<td style="width:${LABEL_W}px;"></td><td style="position:relative;height:24px;">`;
+    for (const m of months) {
+      monthHeaderCells += `<span style="position:absolute;left:${m.pct.toFixed(1)}%;transform:translateX(-50%);
+        font-size:10px;color:#94a3b8;font-weight:500;white-space:nowrap;">${m.label}</span>`;
+    }
+    monthHeaderCells += `</td>`;
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>DCT Batch Delivery Calendar — ${piLabel}</title>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 24px; background: white; color: #0f172a; }
+    h1 { font-size: 18px; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
+    .sub { font-size: 12px; color: #64748b; margin: 0 0 20px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    td { vertical-align: middle; }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    @media print {
+      body { padding: 12px; }
+      button { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+    <div>
+      <h1>DCT Batch Delivery Calendar</h1>
+      <p class="sub">RSM · CATT · Planning View Only — Not Source of Truth &nbsp;|&nbsp; Filter: ${piLabel} &nbsp;|&nbsp; ${rows.length} batches</p>
+    </div>
+    <button onclick="window.print()" style="font-size:12px;padding:8px 16px;background:#2563eb;color:white;
+      border:none;border-radius:6px;cursor:pointer;">Print / Save as PDF</button>
+  </div>
+  <table style="width:100%;">
+    <colgroup>
+      <col style="width:${LABEL_W}px;"/>
+      <col style="width:${CHART_W}px;"/>
+    </colgroup>
+    <tr>${monthHeaderCells}</tr>
+    ${rowsHtml}
+  </table>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>PDC</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#059669;"></div>TDC</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#166534;"></div>Completed</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div>Platform</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d97706;"></div>At Risk</div>
+  </div>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (win) { win.document.write(html); win.document.close(); }
+  }, [validatedRows, piFilter]);
 
   // ── Executive summary metrics ────────────────────────────────────────────────
 
@@ -912,17 +1103,61 @@ export default function BatchDeliveryCalendar() {
           backgroundColor: "white", border: "1px solid #e2e8f0",
           borderRadius: "12px", padding: "24px", marginBottom: "24px",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
-            <div style={{ width: "3px", height: "16px", backgroundColor: "#2563eb", borderRadius: "2px" }} />
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Delivery Timeline
-            </span>
+          {/* Gantt section header + PI filter + Print button */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ width: "3px", height: "16px", backgroundColor: "#2563eb", borderRadius: "2px" }} />
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Delivery Timeline
+              </span>
+            </div>
+            {/* PI filter pills */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 500, marginRight: "2px" }}>Show:</span>
+              {(["All", "PI 1", "PI 2", "PI 3", "PI 4"] as const).map(pi => {
+                const active = piFilter === pi;
+                const piColors: Record<string, string> = {
+                  "All": "#2563eb", "PI 1": "#1e3a5f", "PI 2": "#1e40af", "PI 3": "#166534", "PI 4": "#7c2d12",
+                };
+                const c = piColors[pi] || "#2563eb";
+                return (
+                  <button
+                    key={pi}
+                    onClick={() => setPiFilter(pi)}
+                    style={{
+                      fontSize: "11px", fontWeight: active ? 700 : 500,
+                      color: active ? "white" : c,
+                      background: active ? c : "white",
+                      border: `1px solid ${active ? c : "#e2e8f0"}`,
+                      borderRadius: "20px",
+                      padding: "4px 12px",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {pi}
+                  </button>
+                );
+              })}
+              <button
+                onClick={printGantt}
+                style={{
+                  fontSize: "11px", fontWeight: 500, color: "#374151",
+                  border: "1px solid #e2e8f0", borderRadius: "20px",
+                  padding: "4px 12px", backgroundColor: "white", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: "4px", marginLeft: "8px",
+                }}
+              >
+                <Printer size={11} /> Print View
+              </button>
+            </div>
           </div>
           <GanttChart
-            rows={validatedRows}
+            rows={piFilter === "All" ? validatedRows : validatedRows.filter(r => r.pi === piFilter)}
             showDeps={showDeps}
             showCriticalPath={showCP}
             criticalPath={criticalPath}
+            piFilter={piFilter}
           />
         </div>
 
