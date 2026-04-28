@@ -34,14 +34,6 @@ interface BatchRow {
   _depConflict?: boolean;
 }
 
-// ─── SCENARIOS ────────────────────────────────────────────────────────────────
-
-const SCENARIOS = [
-  { id: "v1",     label: "PI Planning Draft v1",  description: "Initial planning estimate — unreviewed" },
-  { id: "v2",     label: "PI Planning Draft v2",  description: "Revised after architecture sync" },
-  { id: "final",  label: "PI Planning Final",     description: "Agreed baseline for PI execution" },
-  { id: "custom", label: "Custom Scenario",       description: "Ad-hoc scenario for what-if analysis" },
-];
 
 // ─── BASELINE DATA ────────────────────────────────────────────────────────────
 
@@ -562,7 +554,6 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
 
 export default function BatchDeliveryCalendar() {
   const [rows, setRows] = useState<BatchRow[]>(() => BASELINE_ROWS.map(r => ({ ...r })));
-  const [scenarioId, setScenarioId] = useState("v1");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<BatchRow | null>(null);
   const [showDeps, setShowDeps] = useState(true);
@@ -575,7 +566,6 @@ export default function BatchDeliveryCalendar() {
   const [piFilter, setPiFilter] = useState<string>("All"); // "All" | "PI 1" | "PI 2" | "PI 3" | "PI 4"
 
 
-  const scenario = SCENARIOS.find(s => s.id === scenarioId) ?? SCENARIOS[0];
 
   // ── Validation ──────────────────────────────────────────────────────────────
 
@@ -841,14 +831,14 @@ export default function BatchDeliveryCalendar() {
   // ── Export CSV ───────────────────────────────────────────────────────────────
 
   const exportCSV = useCallback(() => {
-    const header = "Scenario,PI,Batch,System,Name,Start Date,End Date,Status,Depends On,Notes";
+    const header = "PI,Batch,System,Name,Start Date,End Date,Status,Depends On,Notes";
     const lines = validatedRows.map(r =>
-      [scenario.label, r.pi, r.batch, r.system, `"${r.name}"`, r.startDate, r.endDate, r.status, `"${r.dependsOn}"`, `"${r.notes}"`].join(",")
+      [r.pi, r.batch, r.system, `"${r.name}"`, r.startDate, r.endDate, r.status, `"${r.dependsOn}"`, `"${r.notes}"`].join(",")
     );
     const blob = new Blob([`PLANNING VIEW ONLY — NOT SOURCE OF TRUTH\n${header}\n${lines.join("\n")}`], { type: "text/csv" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-    a.download = `dct-batch-calendar-${scenarioId}.csv`; a.click();
-  }, [validatedRows, scenario, scenarioId]);
+    a.download = `dct-batch-calendar.csv`; a.click();
+  }, [validatedRows]);
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -872,40 +862,17 @@ export default function BatchDeliveryCalendar() {
         {/* ── HEADER ──────────────────────────────────────────────────────────── */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap", gap: "16px" }}>
           <div>
-            {/* Scenario label */}
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: "6px",
-              fontSize: "11px", fontWeight: 600, color: "#64748b",
-              border: "1px solid #e2e8f0", borderRadius: "6px",
-              padding: "3px 10px", marginBottom: "8px", backgroundColor: "#f8fafc",
-              letterSpacing: "0.04em", textTransform: "uppercase",
-            }}>
-              <Calendar size={11} />
-              Scenario: {scenario.label}
-            </div>
             <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#0f172a", margin: 0, lineHeight: 1.2 }}>
               Batch Delivery Calendar
             </h1>
             <p style={{ fontSize: "13px", color: "#64748b", margin: "4px 0 0", maxWidth: "520px" }}>
-              Manual planning view for scenario modeling and scheduling discussions.
+              Planning view for scheduling discussions and PI delivery tracking.
               Data entered here does not update any other platform view.
             </p>
           </div>
 
           {/* Controls — top right, minimal */}
           <div className="no-print" style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            {/* Scenario selector */}
-            <select
-              value={scenarioId}
-              onChange={e => setScenarioId(e.target.value)}
-              style={{
-                fontSize: "12px", border: "1px solid #e2e8f0", borderRadius: "7px",
-                padding: "6px 10px", color: "#374151", backgroundColor: "white",
-                cursor: "pointer", outline: "none",
-              }}
-            >
-              {SCENARIOS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-            </select>
 
             <button
               onClick={() => setShowAdvanced(v => !v)}
