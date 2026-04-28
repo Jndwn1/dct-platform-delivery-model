@@ -394,6 +394,10 @@ export default function BatchControlPanel() {
   const gates = deriveGateStatus(statuses);
   const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
   const [poSummaryCopied, setPoSummaryCopied] = useState(false);
+  const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
+  const [expandedAdoRows, setExpandedAdoRows] = useState<Set<number>>(new Set());
+  const toggleNote = (i: number) => setExpandedNotes(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
+  const toggleAdo = (i: number) => setExpandedAdoRows(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
 
   const complete = BATCH_KEYS.filter(k => statuses[k] === "Complete").length;
   const dev      = BATCH_KEYS.filter(k => statuses[k] === "Dev").length;
@@ -698,70 +702,146 @@ RECOMMENDED NEXT ACTION:
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <SectionHeader title="Roger UI Data Availability" subtitle="Which data points are ready for Roger to consume now vs carried forward to PI 2" />
         <div className="overflow-x-auto">
-          <table className="w-full" style={{fontSize: '11px', tableLayout: 'fixed'}}>
+          <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
             <colgroup>
-              <col style={{width: '155px'}} />
-              <col style={{width: '80px'}} />
-              <col style={{width: '68px'}} />
-              <col style={{width: '105px'}} />
-              <col style={{width: '165px'}} />
-              <col style={{width: '185px'}} />
-              <col style={{width: 'auto'}} />
-              <col style={{width: '80px'}} />
+              {/* Data Point 23% */}
+              <col style={{width: '23%'}} />
+              {/* Source 9% */}
+              <col style={{width: '9%'}} />
+              {/* Batch 8% */}
+              <col style={{width: '8%'}} />
+              {/* Availability 11% */}
+              <col style={{width: '11%'}} />
+              {/* API Endpoint 18% */}
+              <col style={{width: '18%'}} />
+              {/* ADO Story 18% */}
+              <col style={{width: '18%'}} />
+              {/* Notes 10% */}
+              <col style={{width: '10%'}} />
+              {/* Owner 3% */}
+              <col style={{width: '3%'}} />
             </colgroup>
             <thead>
-              <tr className="bg-[#003865] text-white">
-                <th className="text-left px-2 py-2 font-semibold">Data Point</th>
-                <th className="text-left px-2 py-2 font-semibold">Source</th>
-                <th className="text-left px-2 py-2 font-semibold">Batch</th>
-                <th className="text-left px-2 py-2 font-semibold">Availability</th>
-                <th className="text-left px-2 py-2 font-semibold">API Endpoint</th>
-                <th className="text-left px-2 py-2 font-semibold">ADO Story (ID)</th>
-                <th className="text-left px-2 py-2 font-semibold">Notes / Gap</th>
-                <th className="text-left px-2 py-2 font-semibold">Owner</th>
+              <tr style={{background: '#002a52', borderBottom: '2px solid #001d3d'}}>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Data Point</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Source</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Batch</th>
+                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Availability</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">API Endpoint</th>
+                <th className="text-right px-3 py-2.5 font-bold text-white text-xs tracking-wide">ADO Story (ID)</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Notes / Gap</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Owner</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {ROGER_DATA_POINTS.map((d, i) => {
                 const rStyle = ROGER_STYLE[d.availability];
+                const prevBatch = i > 0 ? ROGER_DATA_POINTS[i - 1].batch : null;
+                const isNewBatch = d.batch !== prevBatch;
+                const isGap = d.notes.toLowerCase().includes("block") || d.notes.toLowerCase().includes("gap") || d.notes.toLowerCase().includes("not yet") || d.notes.toLowerCase().includes("pending");
+                const noteIcon = isGap ? "⚠️" : "ℹ️";
+                const noteExpanded = expandedNotes.has(i);
+                const adoExpanded = expandedAdoRows.has(i);
+                const visibleStories = adoExpanded ? d.adoStories : d.adoStories.slice(0, 2);
+                const hasMoreStories = d.adoStories.length > 2;
+                // Batch group tint — alternate subtle background per batch group
+                const batchIndex = ROGER_DATA_POINTS.findIndex(x => x.batch === d.batch);
+                const batchGroupIndex = ROGER_DATA_POINTS.filter((x, xi) => xi <= i && (xi === 0 || ROGER_DATA_POINTS[xi-1].batch !== x.batch)).length - 1;
+                const rowBg = batchGroupIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
                 return (
-                  <tr key={i} className="hover:bg-slate-50">
-                    <td className="px-2 py-1.5 font-medium text-slate-800" style={{wordBreak:'break-word'}}>{d.dataPoint}</td>
-                    <td className="px-2 py-1.5 text-slate-600" style={{wordBreak:'break-word'}}>{d.source}</td>
-                    <td className="px-2 py-1.5 font-semibold text-[#003865] whitespace-nowrap">{d.batch}</td>
-                    <td className="px-2 py-1.5">
-                      <Badge label={d.availability} bg={rStyle.bg} text={rStyle.text} />
+                  <tr
+                    key={i}
+                    style={{background: rowBg, borderTop: isNewBatch && i > 0 ? '2px solid #e2e8f0' : '1px solid #f1f5f9'}}
+                    className="transition-colors hover:bg-blue-50"
+                    onMouseEnter={e => (e.currentTarget.style.background = '#eff6ff')}
+                    onMouseLeave={e => (e.currentTarget.style.background = rowBg)}
+                  >
+                    {/* Data Point */}
+                    <td className="px-3 font-medium text-slate-800" style={{padding: '12px 12px', wordBreak:'break-word', verticalAlign:'top'}}>{d.dataPoint}</td>
+                    {/* Source */}
+                    <td className="px-3 text-slate-500 text-xs" style={{padding: '12px 12px', wordBreak:'break-word', verticalAlign:'top'}}>{d.source}</td>
+                    {/* Batch */}
+                    <td className="px-3 font-semibold text-xs" style={{padding: '12px 12px', color:'#003865', whiteSpace:'nowrap', verticalAlign:'top'}}>{d.batch}</td>
+                    {/* Availability — centered badge */}
+                    <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top', textAlign:'center'}}>
+                      <span
+                        className={`inline-flex items-center justify-center font-semibold rounded-full ${rStyle.bg} ${rStyle.text}`}
+                        style={{fontSize:'10px', padding:'3px 10px', whiteSpace:'nowrap', minWidth:'90px'}}
+                      >
+                        {d.availability}
+                      </span>
                     </td>
-                    <td className="px-2 py-1.5 font-mono text-slate-500" style={{wordBreak:'break-all', fontSize:'10px'}}>{d.apiEndpoint}</td>
-                    <td className="px-2 py-1.5" style={{wordBreak:'break-word'}}>
-                      {d.adoStories.map((s, si) => (
-                        <div key={si} className="mb-1 last:mb-0">
+                    {/* API Endpoint — monospace with tint */}
+                    <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top'}}>
+                      <span
+                        className="font-mono text-slate-600 rounded px-1.5 py-0.5 block"
+                        style={{fontSize:'9.5px', background:'#f1f5f9', wordBreak:'break-all', lineHeight:'1.5'}}
+                      >
+                        {d.apiEndpoint}
+                      </span>
+                    </td>
+                    {/* ADO Story — right-aligned stacked cards */}
+                    <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top', textAlign:'right'}}>
+                      {visibleStories.map((s, si) => (
+                        <div key={si} style={{marginBottom: si < visibleStories.length - 1 ? '8px' : 0}}>
                           {s.id ? (
-                            <span
-                              title="Click to view ADO work item"
-                              className="cursor-help inline-block"
-                            >
-                              <span className="text-slate-700" style={{fontSize:'10px'}}>{s.title}</span>
+                            <div className="inline-block text-right">
+                              <div className="text-slate-700 leading-snug" style={{fontSize:'10px'}}>{s.title}</div>
                               <span
-                                className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-blue-50 text-blue-700 border border-blue-200"
-                                title={`ADO Story ID: ${s.id} — Click to view ADO work item`}
+                                className="inline-flex items-center justify-center font-bold rounded bg-blue-50 text-blue-700 border border-blue-200 mt-0.5"
+                                style={{fontSize:'9px', padding:'2px 7px'}}
+                                title={`ADO Story ID: ${s.id} — View in Azure DevOps`}
                               >
                                 #{s.id}
                               </span>
-                            </span>
+                            </div>
                           ) : (
                             <span className="text-slate-400 italic" style={{fontSize:'10px'}}>{s.title}</span>
                           )}
                         </div>
                       ))}
+                      {hasMoreStories && (
+                        <button
+                          onClick={() => toggleAdo(i)}
+                          className="text-blue-600 hover:text-blue-800 font-medium mt-1 block ml-auto"
+                          style={{fontSize:'9.5px'}}
+                        >
+                          {adoExpanded ? '▲ show less' : `+${d.adoStories.length - 2} more`}
+                        </button>
+                      )}
                     </td>
-                    <td className="px-2 py-1.5 text-slate-600" style={{whiteSpace: 'normal', wordBreak: 'break-word'}}>
+                    {/* Notes / Gap — truncated with expand */}
+                    <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top'}}>
                       <div className="flex items-start gap-1">
-                        <span className="flex-1">{d.notes}</span>
+                        <span style={{fontSize:'11px', lineHeight:'1.1', flexShrink:0}}>{noteIcon}</span>
+                        <div className="flex-1">
+                          <span
+                            className="text-slate-600 leading-snug"
+                            style={{
+                              fontSize:'10.5px',
+                              display: noteExpanded ? 'block' : '-webkit-box',
+                              WebkitLineClamp: noteExpanded ? undefined : 3,
+                              WebkitBoxOrient: 'vertical' as const,
+                              overflow: noteExpanded ? 'visible' : 'hidden',
+                            }}
+                          >
+                            {d.notes}
+                          </span>
+                          {d.notes.length > 80 && (
+                            <button
+                              onClick={() => toggleNote(i)}
+                              className="text-blue-500 hover:text-blue-700 font-medium mt-0.5 block"
+                              style={{fontSize:'9.5px'}}
+                            >
+                              {noteExpanded ? 'show less' : '...'}
+                            </button>
+                          )}
+                        </div>
                         <CopyNoteButton text={d.notes} />
                       </div>
                     </td>
-                    <td className="px-2 py-1.5 text-slate-600" style={{wordBreak:'break-word'}}>{d.owner}</td>
+                    {/* Owner */}
+                    <td className="px-3 text-slate-500 text-xs" style={{padding: '12px 12px', wordBreak:'break-word', verticalAlign:'top'}}>{d.owner}</td>
                   </tr>
                 );
               })}
