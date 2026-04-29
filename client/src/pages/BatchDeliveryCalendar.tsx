@@ -266,6 +266,20 @@ const PI_BAND_COLORS: Record<string, { bg: string; border: string; text: string;
 };
 
 function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter = "All" }: GanttProps) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [containerW, setContainerW] = React.useState(0);
+
+  // Measure container width on mount and resize
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+    const obs = new ResizeObserver(entries => {
+      for (const e of entries) setContainerW(e.contentRect.width);
+    });
+    obs.observe(containerRef.current);
+    setContainerW(containerRef.current.getBoundingClientRect().width);
+    return () => obs.disconnect();
+  }, []);
+
   const validRows = rows.filter(r => parseDate(r.startDate) && parseDate(r.endDate) && !r._dateError);
 
   if (validRows.length === 0) {
@@ -276,68 +290,93 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
     );
   }
 
+  const LABEL_W = 220;
+  const ROW_H   = 56;
+  const BAR_H   = 32;
+  const HEADER_H = 40;
+
+  // ── Shared time scale ──────────────────────────────────────────────────────
   const allDates = validRows.flatMap(r => [parseDate(r.startDate)!, parseDate(r.endDate)!]);
-  const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
-  const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
-  minDate.setDate(minDate.getDate() - 7);
-  maxDate.setDate(maxDate.getDate() + 14);
+  const rawMin = new Date(Math.min(...allDates.map(d => d.getTime())));
+  const rawMax = new Date(Math.max(...allDates.map(d => d.getTime())));
+  // Pad 7 days before first batch, 21 days after last
+  const minDate = new Date(rawMin); minDate.setDate(minDate.getDate() - 7);
+  const maxDate = new Date(rawMax); maxDate.setDate(maxDate.getDate() + 21);
   const totalDays = daysBetween(minDate, maxDate);
 
-  // Quarter markers only (less clutter than monthly)
-  const quarters: { label: string; left: number }[] = [];
-  const qCursor = new Date(minDate.getFullYear(), Math.floor(minDate.getMonth() / 3) * 3, 1);
-  while (qCursor <= maxDate) {
-    const left = (daysBetween(minDate, qCursor) / totalDays) * 100;
-    if (left >= 0 && left <= 100) {
-      quarters.push({
-        label: `Q${Math.floor(qCursor.getMonth() / 3) + 1} ${qCursor.getFullYear()}`,
-        left,
-      });
-    }
-    qCursor.setMonth(qCursor.getMonth() + 3);
+  // chartW = the pixel width of the bar area (to the right of labels)
+  const chartW = Math.max(containerW - LABEL_W, 100);
+
+  // Convert a date to an x pixel position within the chart area
+  function dateToX(d: Date): number {
+    return (daysBetween(minDate, d) / totalDays) * chartW;
   }
 
-  // Month markers (lighter, for reference)
-  const months: { label: string; left: number }[] = [];
+  // Today
+  const today = new Date();
+  const todayX = dateToX(today);
+  const showToday = todayX >= 0 && todayX <= chartW;
+
+  // Month grid lines & labels
+  const monthMarkers: { label: string; x: number }[] = [];
   const mCursor = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
   while (mCursor <= maxDate) {
-    const left = (daysBetween(minDate, mCursor) / totalDays) * 100;
-    if (left >= 0 && left <= 100) {
-      months.push({
-        label: mCursor.toLocaleDateString("en-US", { month: "short" }),
-        left,
+    const x = dateToX(mCursor);
+    if (x >= 0 && x <= chartW) {
+      monthMarkers.push({
+        label: mCursor.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+        x,
       });
     }
     mCursor.setMonth(mCursor.getMonth() + 1);
   }
 
-  const ROW_H = 56;   // executive-ready row height
-  const LABEL_W = 220;
-  const svgH = validRows.length * ROW_H + 40;
-  // Today marker
-  const today = new Date();
-  const todayLeft = totalDays > 0 ? (daysBetween(minDate, today) / totalDays) * 100 : -1;
-  const showToday = todayLeft >= 0 && todayLeft <= 100;
+  // ── Row layout — account for PI dividers ──────────────────────────────────
+  // Build a flat list of items (dividers + rows) with their y positions
+  interface DividerItem { type: "divider"; pi: string; y: number; h: number }
+  interface RowItem     { type: "row";     row: BatchRow; rowIndex: number; y: number; h: number }
+  type LayoutItem = DividerItem | RowItem;
 
-  // Dependency arrows
-  const arrows: { x1: number; y1: number; x2: number; y2: number; conflict: boolean; critical: boolean }[] = [];
-  if (showDeps) {
-    const rowIndex: Record<string, number> = {};
-    validRows.forEach((r, i) => { rowIndex[r.batch] = i; });
+  const layoutItems: LayoutItem[] = [];
+  let yOffset = 0;
+  let lastPi = "";
+  let rowIndex = 0;
+  validRows.forEach(r => {
+    if (piFilter === "All" && r.pi !== lastPi) {
+      lastPi = r.pi;
+      const DIVIDER_H = 28;
+      layoutItems.push({ type: "divider", pi: r.pi, y: yOffset, h: DIVIDER_H });
+      yOffset += DIVIDER_H;
+    }
+    layoutItems.push({ type: "row", row: r, rowIndex, y: yOffset, h: ROW_H });
+    yOffset += ROW_H;
+    rowIndex++;
+  });
+  const totalGridH = yOffset;
 
-    validRows.forEach((r, i) => {
+  // Map from batch label → y center (for dependency arrows)
+  const rowYCenter: Record<string, number> = {};
+  layoutItems.forEach(item => {
+    if (item.type === "row") {
+      rowYCenter[item.row.batch] = item.y + item.h / 2;
+    }
+  });
+
+  // ── Dependency arrows (pixel coords) ──────────────────────────────────────
+  interface Arrow { x1: number; y1: number; x2: number; y2: number; conflict: boolean; critical: boolean }
+  const arrows: Arrow[] = [];
+  if (showDeps && chartW > 0) {
+    validRows.forEach(r => {
       const deps = r.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
       deps.forEach(dep => {
-        const di = rowIndex[dep];
-        if (di === undefined) return;
-        const depRow = validRows[di];
-        const depEnd = parseDate(depRow.endDate)!;
-        const rStart = parseDate(r.startDate)!;
-
-        const x1 = ((daysBetween(minDate, depEnd) / totalDays) * 100);
-        const y1 = di * ROW_H + ROW_H / 2 + 32;
-        const x2 = ((daysBetween(minDate, rStart) / totalDays) * 100);
-        const y2 = i * ROW_H + ROW_H / 2 + 32;
+        const depRow = validRows.find(v => v.batch === dep);
+        if (!depRow) return;
+        const depEnd  = parseDate(depRow.endDate)!;
+        const rStart  = parseDate(r.startDate)!;
+        const x1 = dateToX(depEnd);
+        const y1 = rowYCenter[dep] ?? 0;
+        const x2 = dateToX(rStart);
+        const y2 = rowYCenter[r.batch] ?? 0;
         const conflict = rStart < depEnd;
         const critical = showCriticalPath && criticalPath.has(r.batch) && criticalPath.has(dep);
         arrows.push({ x1, y1, x2, y2, conflict, critical });
@@ -346,247 +385,345 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
   }
 
   return (
-    <div style={{ overflowX: "auto", overflowY: "visible" }}>
-      <div style={{ minWidth: "700px", position: "relative" }}>
-        {/* Month header — executive style */}
-        <div style={{ marginLeft: `${LABEL_W}px`, position: "relative", height: "36px", marginBottom: "0", borderBottom: "2px solid #e2e8f0", backgroundColor: "#f8fafc", borderRadius: "6px 6px 0 0" }}>
-          {/* Today label in header */}
-          {showToday && (
+    <div ref={containerRef} style={{ overflowX: "auto", overflowY: "visible", minWidth: "600px" }}>
+      {containerW === 0 ? null : (
+        <div style={{ width: containerW, position: "relative" }}>
+
+          {/* ── HEADER ROW (month labels + Today badge) ── */}
+          <div style={{
+            display: "flex",
+            height: `${HEADER_H}px`,
+            borderBottom: "2px solid #e2e8f0",
+            backgroundColor: "#f8fafc",
+            borderRadius: "8px 8px 0 0",
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            {/* Label column header */}
             <div style={{
-              position: "absolute", left: `${todayLeft}%`, top: 0,
-              transform: "translateX(-50%)",
-              display: "flex", flexDirection: "column", alignItems: "center",
-              zIndex: 10,
+              width: `${LABEL_W}px`, flexShrink: 0,
+              display: "flex", alignItems: "center",
+              paddingLeft: "8px",
+              borderRight: "1px solid #e2e8f0",
             }}>
-              <div style={{
-                backgroundColor: "#ef4444", color: "white",
-                fontSize: "9px", fontWeight: 700, letterSpacing: "0.05em",
-                padding: "2px 7px", borderRadius: "0 0 4px 4px",
-                whiteSpace: "nowrap",
-              }}>
-                TODAY
-              </div>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                Batch
+              </span>
             </div>
-          )}
-          {months.map((m, i) => (
-            <div key={i} style={{
-              position: "absolute", left: `${m.left}%`, top: "50%",
-              transform: "translate(-50%, -50%)",
-              fontSize: "11px", color: "#64748b", fontWeight: 600, whiteSpace: "nowrap",
-              letterSpacing: "0.02em",
-            }}>
-              {m.label}
-            </div>
-          ))}
-        </div>
-
-        {/* Rows */}
-        <div style={{ position: "relative" }}>
-          {/* SVG for dependency arrows */}
-          <svg
-            style={{ position: "absolute", left: `${LABEL_W}px`, top: 0, width: `calc(100% - ${LABEL_W}px)`, height: `${svgH}px`, pointerEvents: "none", zIndex: 1 }}
-            viewBox={`0 0 100 ${svgH}`}
-            preserveAspectRatio="none"
-          >
-            {/* Vertical grid lines — minimal, only at quarters */}
-            {quarters.map((q, i) => (
-              <line key={i} x1={q.left} y1={0} x2={q.left} y2={svgH}
-                stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="3,4" />
-            ))}
-
-            {/* Dependency arrows */}
-            {arrows.map((a, i) => {
-              const color = a.conflict ? "#f59e0b" : a.critical ? "#f97316" : "#cbd5e1";
-              const strokeW = a.critical ? "0.6" : "0.4";
-              const midX = (a.x1 + a.x2) / 2;
-              return (
-                <g key={i}>
-                  <path
-                    d={`M ${a.x1} ${a.y1} C ${midX} ${a.y1}, ${midX} ${a.y2}, ${a.x2} ${a.y2}`}
-                    fill="none" stroke={color} strokeWidth={strokeW}
-                    strokeDasharray={a.conflict ? "2,2" : undefined}
-                    markerEnd={`url(#arrow-${a.conflict ? "conflict" : a.critical ? "critical" : "normal"})`}
-                  />
-                </g>
-              );
-            })}
-
-            {/* Today marker line */}
-            {showToday && (
-              <g>
-                <line
-                  x1={todayLeft} y1={0} x2={todayLeft} y2={svgH}
-                  stroke="#ef4444" strokeWidth="0.5" strokeDasharray="3,3"
-                />
-                <rect x={todayLeft - 5} y={0} width={10} height={14} rx={2} fill="#ef4444" />
-                <text x={todayLeft} y={10} textAnchor="middle" fill="white"
-                  style={{ fontSize: "5px", fontWeight: 700, fontFamily: "system-ui" }}>
-                  TODAY
-                </text>
-              </g>
-            )}
-            <defs>
-              {[
-                { id: "arrow-normal",   color: "#cbd5e1" },
-                { id: "arrow-conflict", color: "#f59e0b" },
-                { id: "arrow-critical", color: "#f97316" },
-              ].map(({ id, color }) => (
-                <marker key={id} id={id} markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
-                  <path d="M0,0 L0,4 L4,2 z" fill={color} />
-                </marker>
+            {/* Chart header — month labels */}
+            <div style={{ flex: 1, position: "relative" }}>
+              {monthMarkers.map((m, i) => (
+                <div key={i} style={{
+                  position: "absolute",
+                  left: `${m.x}px`,
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                  fontSize: "11px", fontWeight: 600, color: "#64748b",
+                  whiteSpace: "nowrap", letterSpacing: "0.02em",
+                  pointerEvents: "none",
+                }}>
+                  {m.label}
+                </div>
               ))}
-            </defs>
-          </svg>
+              {/* TODAY badge in header */}
+              {showToday && (
+                <div style={{
+                  position: "absolute",
+                  left: `${todayX}px`,
+                  top: 0,
+                  transform: "translateX(-50%)",
+                  zIndex: 20,
+                }}>
+                  <div style={{
+                    backgroundColor: "#ef4444", color: "white",
+                    fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em",
+                    padding: "3px 8px",
+                    borderRadius: "0 0 5px 5px",
+                    whiteSpace: "nowrap",
+                    boxShadow: "0 2px 6px rgba(239,68,68,0.35)",
+                  }}>
+                    TODAY
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-          {/* Batch rows — with PI swimlane dividers when showing All PIs */}
-          {(() => {
-            const elements: React.ReactNode[] = [];
-            let lastPi = "";
-            validRows.forEach((r, i) => {
-              // Insert PI swimlane divider when PI changes (only in "All" view)
-              if (piFilter === "All" && r.pi !== lastPi) {
-                lastPi = r.pi;
-                const band = PI_BAND_COLORS[r.pi];
-                if (band) {
-                  elements.push(
-                    <div key={`pi-divider-${r.pi}`} style={{
-                      display: "flex", alignItems: "center",
-                      height: "28px",
+          {/* ── GRID + ROWS ── */}
+          <div style={{ display: "flex", position: "relative" }}>
+
+            {/* Label column */}
+            <div style={{
+              width: `${LABEL_W}px`, flexShrink: 0,
+              borderRight: "1px solid #e2e8f0",
+              position: "relative", zIndex: 5,
+              backgroundColor: "white",
+            }}>
+              {layoutItems.map((item, idx) => {
+                if (item.type === "divider") {
+                  const band = PI_BAND_COLORS[item.pi];
+                  if (!band) return null;
+                  return (
+                    <div key={`div-label-${item.pi}`} style={{
+                      height: `${item.h}px`,
                       backgroundColor: band.bg,
                       borderTop: `2px solid ${band.border}`,
                       borderBottom: `1px solid ${band.border}`,
-                      marginTop: i > 0 ? "4px" : "0",
+                      display: "flex", alignItems: "center",
+                      paddingLeft: "8px",
                     }}>
-                      <div style={{
-                        width: `${LABEL_W}px`, flexShrink: 0,
-                        paddingLeft: "4px", paddingRight: "12px",
+                      <span style={{
+                        fontSize: "10px", fontWeight: 700, color: band.text,
+                        textTransform: "uppercase", letterSpacing: "0.07em",
                       }}>
-                        <span style={{
-                          fontSize: "10px", fontWeight: 700, color: band.text,
-                          textTransform: "uppercase", letterSpacing: "0.06em",
-                        }}>
-                          {band.label}
-                        </span>
-                      </div>
-                      <div style={{ flex: 1, height: "1px", backgroundColor: band.border }} />
+                        {band.label}
+                      </span>
                     </div>
                   );
                 }
-              }
-
-              const start = parseDate(r.startDate)!;
-              const end = parseDate(r.endDate)!;
-              const left = (daysBetween(minDate, start) / totalDays) * 100;
-              const width = Math.max((daysBetween(start, end) / totalDays) * 100, 0.8);
-              const isCP = showCriticalPath && criticalPath.has(r.batch);
-              const isCompleted = r.status === "Completed";
-              const isAtRisk = r.status === "At Risk";
-              const barColor = isCompleted ? "#166534" : isAtRisk ? "#d97706" : SYSTEM_BAR[r.system];
-              const band = PI_BAND_COLORS[r.pi];
-              const rowBg = piFilter === "All" && band ? band.bg + "66" : "transparent";
-
-              elements.push(
-                <div key={r.id} style={{
-                  display: "flex", alignItems: "center",
-                  height: `${ROW_H}px`,
-                  backgroundColor: rowBg,
-                  borderBottom: i < validRows.length - 1 ? "1px solid #f1f5f9" : "none",
-                }}>
-                  {/* Label */}
-                  <div style={{
-                    width: `${LABEL_W}px`, flexShrink: 0,
-                    paddingRight: "12px", overflow: "hidden",
+                const r = item.row;
+                const isCP = showCriticalPath && criticalPath.has(r.batch);
+                const band = PI_BAND_COLORS[r.pi];
+                const rowBg = piFilter === "All" && band ? band.bg + "55" : "transparent";
+                return (
+                  <div key={`label-${r.id}`} style={{
+                    height: `${item.h}px`,
+                    backgroundColor: rowBg,
+                    borderBottom: "1px solid #f1f5f9",
+                    display: "flex", flexDirection: "column", justifyContent: "center",
+                    paddingLeft: "8px", paddingRight: "12px",
+                    overflow: "hidden",
                   }}>
                     <div style={{
-                      fontSize: "12px", fontWeight: isCP ? 700 : 500,
-                      color: isCP ? "#0f172a" : "#374151",
+                      fontSize: "12px", fontWeight: 600, color: "#1e293b",
                       whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      display: "flex", alignItems: "center", gap: "4px",
                     }}>
-                      {isCP && <span style={{ color: "#f97316", marginRight: "4px" }}>★</span>}
+                      {isCP && <span style={{ color: "#f97316", fontSize: "10px", flexShrink: 0 }}>★</span>}
                       {r.batch}
                     </div>
                     <div style={{
-                      fontSize: "10px", color: "#94a3b8",
+                      fontSize: "10px", color: "#94a3b8", fontWeight: 500,
                       whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      marginTop: "1px",
                     }}>
                       {r.system}
                     </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  {/* Bar area */}
-                  <div style={{ flex: 1, position: "relative", height: "100%", zIndex: 2 }}>
-                    <div style={{
-                      position: "absolute",
-                      left: `${left}%`,
-                      width: `${width}%`,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      height: "28px",
-                      backgroundColor: barColor,
-                      borderRadius: "5px",
-                      display: "flex", alignItems: "center",
-                      paddingLeft: "8px", paddingRight: "8px",
-                      overflow: "hidden",
-                      boxShadow: isCP ? `0 0 0 2px #f97316, 0 2px 6px rgba(249,115,22,0.25)` : "0 1px 3px rgba(0,0,0,0.12)",
-                      opacity: 1,
-                      transition: "box-shadow 0.2s",
-                    }}>
+            {/* Chart area — SVG overlay + HTML bars */}
+            <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+
+              {/* ── LAYER 1: Grid lines (SVG, back) ── */}
+              <svg
+                style={{
+                  position: "absolute", top: 0, left: 0,
+                  width: `${chartW}px`, height: `${totalGridH}px`,
+                  pointerEvents: "none", zIndex: 1,
+                }}
+              >
+                {/* Vertical month grid lines */}
+                {monthMarkers.map((m, i) => (
+                  <line key={i}
+                    x1={m.x} y1={0} x2={m.x} y2={totalGridH}
+                    stroke="#e8edf3" strokeWidth="1"
+                  />
+                ))}
+                {/* Horizontal row separators */}
+                {layoutItems.map((item, i) => (
+                  <line key={i}
+                    x1={0} y1={item.y + item.h} x2={chartW} y2={item.y + item.h}
+                    stroke="#f1f5f9" strokeWidth="1"
+                  />
+                ))}
+              </svg>
+
+              {/* ── LAYER 2: Today line (SVG, above grid) ── */}
+              {showToday && (
+                <svg
+                  style={{
+                    position: "absolute", top: 0, left: 0,
+                    width: `${chartW}px`, height: `${totalGridH}px`,
+                    pointerEvents: "none", zIndex: 2,
+                  }}
+                >
+                  <line
+                    x1={todayX} y1={0} x2={todayX} y2={totalGridH}
+                    stroke="#ef4444" strokeWidth="1.5" opacity="0.7"
+                  />
+                </svg>
+              )}
+
+              {/* ── LAYER 3: Dependency lines (SVG) ── */}
+              {showDeps && arrows.length > 0 && (
+                <svg
+                  style={{
+                    position: "absolute", top: 0, left: 0,
+                    width: `${chartW}px`, height: `${totalGridH}px`,
+                    pointerEvents: "none", zIndex: 3,
+                    overflow: "visible",
+                  }}
+                >
+                  <defs>
+                    {[
+                      { id: "arr-normal",   color: "#94a3b8" },
+                      { id: "arr-conflict", color: "#f59e0b" },
+                      { id: "arr-critical", color: "#f97316" },
+                    ].map(({ id, color }) => (
+                      <marker key={id} id={id} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                        <path d="M0,0 L0,6 L6,3 z" fill={color} opacity="0.8" />
+                      </marker>
+                    ))}
+                  </defs>
+                  {arrows.map((a, i) => {
+                    const color   = a.conflict ? "#f59e0b" : a.critical ? "#f97316" : "#94a3b8";
+                    const strokeW = a.critical ? 1.5 : 1;
+                    const markId  = a.conflict ? "arr-conflict" : a.critical ? "arr-critical" : "arr-normal";
+                    // Smooth elbow: go right from x1, then curve down/up to x2
+                    const midX = (a.x1 + a.x2) / 2;
+                    const d = `M ${a.x1} ${a.y1} C ${midX} ${a.y1}, ${midX} ${a.y2}, ${a.x2} ${a.y2}`;
+                    return (
+                      <path key={i} d={d}
+                        fill="none"
+                        stroke={color} strokeWidth={strokeW} opacity="0.7"
+                        strokeDasharray={a.conflict ? "4,3" : undefined}
+                        markerEnd={`url(#${markId})`}
+                      />
+                    );
+                  })}
+                </svg>
+              )}
+
+              {/* ── LAYER 4: PI swimlane dividers (HTML, above deps) ── */}
+              {piFilter === "All" && layoutItems.filter(i => i.type === "divider").map(item => {
+                if (item.type !== "divider") return null;
+                const band = PI_BAND_COLORS[item.pi];
+                if (!band) return null;
+                return (
+                  <div key={`div-chart-${item.pi}`} style={{
+                    position: "absolute", top: `${item.y}px`, left: 0,
+                    width: "100%", height: `${item.h}px`,
+                    backgroundColor: band.bg,
+                    borderTop: `2px solid ${band.border}`,
+                    borderBottom: `1px solid ${band.border}`,
+                    zIndex: 4,
+                  }} />
+                );
+              })}
+
+              {/* ── LAYER 5: Batch bars (HTML, front) ── */}
+              {layoutItems.map(item => {
+                if (item.type !== "row") return null;
+                const r = item.row;
+                const start = parseDate(r.startDate)!;
+                const end   = parseDate(r.endDate)!;
+                const barX  = dateToX(start);
+                const barW  = Math.max(dateToX(end) - barX, 4);
+                const isCP       = showCriticalPath && criticalPath.has(r.batch);
+                const isCompleted = r.status === "Completed";
+                const isAtRisk    = r.status === "At Risk";
+                const barColor    = isCompleted ? "#166534" : isAtRisk ? "#d97706" : SYSTEM_BAR[r.system];
+                const band = PI_BAND_COLORS[r.pi];
+                const rowBg = piFilter === "All" && band ? band.bg + "55" : "transparent";
+                return (
+                  <div key={`bar-${r.id}`} style={{
+                    position: "absolute",
+                    top: `${item.y}px`,
+                    left: 0,
+                    width: "100%",
+                    height: `${item.h}px`,
+                    backgroundColor: rowBg,
+                    zIndex: 5,
+                  }}>
+                    <div
+                      title={`${r.batch} — ${r.name}\n${r.startDate} → ${r.endDate}\nStatus: ${r.status}${r.dependsOn ? "\nDepends on: " + r.dependsOn : ""}`}
+                      style={{
+                        position: "absolute",
+                        left: `${barX}px`,
+                        width: `${barW}px`,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        height: `${BAR_H}px`,
+                        backgroundColor: barColor,
+                        borderRadius: "6px",
+                        display: "flex", alignItems: "center",
+                        paddingLeft: "10px", paddingRight: "10px",
+                        overflow: "hidden",
+                        boxShadow: isCP
+                          ? "0 0 0 2px #f97316, 0 2px 8px rgba(249,115,22,0.3)"
+                          : isCompleted
+                          ? "0 1px 4px rgba(22,101,52,0.2)"
+                          : "0 1px 4px rgba(0,0,0,0.1)",
+                        cursor: "default",
+                        transition: "filter 0.15s",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.1)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.filter = "none"; }}
+                    >
+                      {isCompleted && (
+                        <span style={{ fontSize: "13px", marginRight: "5px", flexShrink: 0, color: "rgba(255,255,255,0.9)" }}>✓</span>
+                      )}
                       <span style={{
-                        fontSize: "10px", fontWeight: 600, color: "#fff",
+                        fontSize: "11px", fontWeight: 600, color: "#fff",
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                        letterSpacing: "0.01em",
                       }}>
                         {r.name}
                       </span>
                     </div>
                   </div>
-                </div>
-              );
-            });
-            return elements;
-          })()}
-        </div>
+                );
+              })}
 
-        {/* Legend */}
-        <div style={{
-          marginTop: "16px", marginLeft: `${LABEL_W}px`,
-          display: "flex", gap: "20px", flexWrap: "wrap",
-        }}>
-          {[
-            { color: "#2563eb", label: "PDC (Phoenix Data Consolidation)" },
-            { color: "#059669", label: "TDC (Tax Data Consolidation)" },
-            { color: "#166534", label: "Completed (Dark Green)" },
-            { color: "#94a3b8", label: "Platform / Infrastructure" },
-            { color: "#d97706", label: "At Risk" },
-          { color: "#ef4444", label: "Today (Apr 28, 2026)", isLine: true },
-          ].map(l => (
-            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              {(l as any).isLine
-                ? <div style={{ width: "14px", height: "2px", backgroundColor: l.color, flexShrink: 0, opacity: 0.7 }} />
-                : <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: l.color, flexShrink: 0 }} />
-              }
-              <span style={{ fontSize: "11px", color: "#64748b" }}>{l.label}</span>
-            </div>
-          ))}
-          {showDeps && (
-            <>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: "20px", height: "1px", backgroundColor: "#cbd5e1" }} />
-                <span style={{ fontSize: "11px", color: "#64748b" }}>Dependency</span>
+            </div>{/* end chart area */}
+          </div>{/* end grid+rows */}
+
+          {/* ── LEGEND ── */}
+          <div style={{
+            marginTop: "16px", marginLeft: `${LABEL_W}px`,
+            display: "flex", gap: "20px", flexWrap: "wrap",
+          }}>
+            {[
+              { color: "#2563eb", label: "PDC (Phoenix Data Consolidation)" },
+              { color: "#059669", label: "TDC (Tax Data Consolidation)" },
+              { color: "#166534", label: "Completed" },
+              { color: "#94a3b8", label: "Platform / Infrastructure" },
+              { color: "#d97706", label: "At Risk" },
+              { color: "#ef4444", label: "Today", isLine: true },
+            ].map(l => (
+              <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                {(l as any).isLine
+                  ? <div style={{ width: "16px", height: "2px", backgroundColor: l.color, flexShrink: 0, opacity: 0.7 }} />
+                  : <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: l.color, flexShrink: 0 }} />
+                }
+                <span style={{ fontSize: "11px", color: "#64748b" }}>{l.label}</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: "20px", height: "1px", backgroundColor: "#f59e0b", borderTop: "1px dashed #f59e0b" }} />
-                <span style={{ fontSize: "11px", color: "#64748b" }}>Conflict</span>
-              </div>
-              {showCriticalPath && (
+            ))}
+            {showDeps && (
+              <>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <div style={{ width: "20px", height: "2px", backgroundColor: "#f97316" }} />
-                  <span style={{ fontSize: "11px", color: "#64748b" }}>★ Critical Path</span>
+                  <div style={{ width: "20px", height: "1px", backgroundColor: "#94a3b8" }} />
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>Dependency</span>
                 </div>
-              )}
-            </>
-          )}
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ width: "20px", height: "1px", backgroundColor: "#f59e0b", borderTop: "1px dashed #f59e0b" }} />
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>Conflict</span>
+                </div>
+                {showCriticalPath && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <div style={{ width: "20px", height: "2px", backgroundColor: "#f97316" }} />
+                    <span style={{ fontSize: "11px", color: "#64748b" }}>★ Critical Path</span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
         </div>
-      </div>
+      )}
     </div>
   );
 }
