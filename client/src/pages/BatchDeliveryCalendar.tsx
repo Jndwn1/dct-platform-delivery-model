@@ -1339,8 +1339,11 @@ export default function BatchDeliveryCalendar() {
           const uniqueInFlight = pi2InFlight.filter((v, i, a) => a.indexOf(v) === i).join(", ");
           return (
             <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", marginBottom: "24px", overflow: "hidden" }}>
-              <button
+              <div
                 onClick={() => setShowExec(v => !v)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === "Enter" || e.key === " ") setShowExec(v => !v); }}
                 style={{
                   width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
                   padding: "14px 20px", background: "none", border: "none", cursor: "pointer",
@@ -1445,7 +1448,7 @@ export default function BatchDeliveryCalendar() {
                   >⬆ Copy as Text</button>
                   <span style={{ fontSize: "12px", color: "#94a3b8" }}>{showExec ? "▲ Collapse" : "▼ Expand"}</span>
                 </div>
-              </button>
+              </div>
               {showExec && (
                 <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "20px" }}>
                   {/* 1. Current State */}
