@@ -61,67 +61,67 @@ const BASELINE_ROWS: BatchRow[] = [
     id: "pi2-b2a-pdc", pi: "PI 2", batch: "B2A", system: "PDC",
     name: "Orchestrator Classification Result & Contract Enforcement",
     startDate: "2026-04-29", endDate: "2026-05-04", status: "Committed",
-    notes: "Batch 2A PDC. Tiny — TBD.", dependsOn: "B5",
+    notes: "Batch 2A PDC. Classification contract enforcement. Requires Entity Identity.", dependsOn: "B5",
   },
   {
     id: "pi2-b7-tdc", pi: "PI 2", batch: "B7", system: "TDC",
     name: "Client Tax Profile & Eligibility",
     startDate: "2026-05-01", endDate: "2026-05-11", status: "Committed",
-    notes: "Batch 7 TDC.", dependsOn: "B6",
+    notes: "Batch 7 TDC. Requires B2A classification contract, B5 entity identity, and B6 review lock.", dependsOn: "B2A,B5,B6",
   },
   {
     id: "pi2-b8-pdc", pi: "PI 2", batch: "B8", system: "PDC",
     name: "Exceptions & Remediation",
     startDate: "2026-05-05", endDate: "2026-05-13", status: "Committed",
-    notes: "Batch 8 PDC.", dependsOn: "B5",
+    notes: "Batch 8 PDC. Requires B5 entity identity and B2A classification contract.", dependsOn: "B5,B2A",
   },
   {
     id: "pi2-b8-tdc", pi: "PI 2", batch: "B8", system: "TDC",
     name: "Exceptions & Remediation",
     startDate: "2026-05-12", endDate: "2026-05-20", status: "Committed",
-    notes: "Batch 8 TDC. Follows B8 PDC.", dependsOn: "B8",
+    notes: "Batch 8 TDC. Sequential after B8 PDC.", dependsOn: "B8",
   },
   {
     id: "pi2-b9-pdc", pi: "PI 2", batch: "B9", system: "PDC",
     name: "IMS Integration & Prior Year Retrieval",
     startDate: "2026-05-14", endDate: "2026-05-26", status: "Committed",
-    notes: "Batch 9 PDC.", dependsOn: "B8",
+    notes: "Batch 9 PDC. Requires B8 exceptions cleared.", dependsOn: "B8",
   },
   {
     id: "pi2-b9-tdc", pi: "PI 2", batch: "B9", system: "TDC",
     name: "Rollforward & Prior Year Intelligence",
     startDate: "2026-05-21", endDate: "2026-06-02", status: "Committed",
-    notes: "Batch 9 TDC. Follows B9 PDC.", dependsOn: "B9",
+    notes: "Batch 9 TDC. Sequential after B9 PDC.", dependsOn: "B9",
   },
   {
     id: "pi2-b16-pdc", pi: "PI 2", batch: "B16", system: "PDC",
     name: "Audit Trail & Lineage Governance (PDC)",
     startDate: "2026-05-27", endDate: "2026-06-04", status: "Stretch",
-    notes: "Batch 16 PDC. Stretch — committed.", dependsOn: "B9",
+    notes: "Batch 16 PDC. Stretch — committed. Runs parallel, feeds future B16 TDC.", dependsOn: "B9",
   },
   {
     id: "pi2-b10-tdc", pi: "PI 2", batch: "B10", system: "TDC",
     name: "Return Assembly, Filing & Lineage",
     startDate: "2026-06-03", endDate: "2026-06-11", status: "Committed",
-    notes: "Batch 10 TDC.", dependsOn: "B9",
+    notes: "Batch 10 TDC. Requires B6 review lock and B9 prior year intelligence.", dependsOn: "B6,B9",
   },
   {
     id: "pi2-b24-pdc", pi: "PI 2", batch: "B24", system: "PDC",
     name: "Advisory Opportunity Reference (PDC)",
     startDate: "2026-06-05", endDate: "2026-06-15", status: "Stretch",
-    notes: "Batch 24 PDC. Stretch — opportunistic.", dependsOn: "B16",
+    notes: "Batch 24 PDC. Stretch — opportunistic. Non-blocking.", dependsOn: "B16",
   },
   {
     id: "pi2-b11-tdc", pi: "PI 2", batch: "B11", system: "TDC",
     name: "Learning Governance & Model Evolution",
     startDate: "2026-06-12", endDate: "2026-06-22", status: "Committed",
-    notes: "Batch 11 TDC.", dependsOn: "B10",
+    notes: "Batch 11 TDC. Requires B10 return assembly complete.", dependsOn: "B10",
   },
   {
     id: "pi2-b25-pdc", pi: "PI 2", batch: "B25", system: "PDC",
     name: "Advisory Opportunity Detection (PDC)",
     startDate: "2026-06-16", endDate: "2026-06-24", status: "Stretch",
-    notes: "Batch 25 PDC. Stretch — opportunistic.", dependsOn: "B24",
+    notes: "Batch 25 PDC. Stretch — opportunistic. Non-blocking.", dependsOn: "B24",
   },
   // ── PI 3 ─────────────────────────────────────────────────────────────────────
   {
@@ -1247,65 +1247,289 @@ export default function BatchDeliveryCalendar() {
           </div>
         </div>
 
-        {/* ── EXECUTIVE SUMMARY CARD ───────────────────────────────────────────── */}
-        <div style={{
-          display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px",
-          marginBottom: "24px",
-        }}>
-          {[
+        {/* ── SUMMARY TILES (4 KPI cards) ─────────────────────────────────────── */}
+        {(() => {
+          const pi2Rows = validatedRows.filter(r => r.pi === "PI 2");
+          const pi2Done = pi2Rows.filter(r => r.status === "Done").length;
+          const pi2Pct = pi2Rows.length > 0 ? Math.round((pi2Done / pi2Rows.length) * 100) : 0;
+          const cpCount = summary.cpOrdered.length;
+          const parallelTracks = (() => {
+            // Count rows that overlap in time with at least one other row
+            const valid2 = validatedRows.filter(r => parseDate(r.startDate) && parseDate(r.endDate));
+            let maxOverlap = 1;
+            for (const r of valid2) {
+              const rs = parseDate(r.startDate)!.getTime();
+              const re = parseDate(r.endDate)!.getTime();
+              const overlapping = valid2.filter(x => {
+                if (x.id === r.id) return false;
+                const xs = parseDate(x.startDate)!.getTime();
+                const xe = parseDate(x.endDate)!.getTime();
+                return xs < re && xe > rs;
+              }).length + 1;
+              if (overlapping > maxOverlap) maxOverlap = overlapping;
+            }
+            return maxOverlap;
+          })();
+          const riskLevel = riskCount === 0 ? "Green" : riskCount <= 2 ? "Yellow" : "Red";
+          const riskColor = riskLevel === "Green" ? "#059669" : riskLevel === "Yellow" ? "#d97706" : "#dc2626";
+          const tiles = [
             {
-              label: "Total Timeline",
-              value: summary.totalDays > 0 ? `${summary.totalDays} days` : "—",
-              sub: summary.minD && summary.maxD
-                ? `${formatShort(summary.minD.toISOString())} → ${formatShort(summary.maxD.toISOString())}`
-                : "Set dates to calculate",
-              accent: "#2563eb",
-            },
-            {
-              label: "Critical Path",
-              value: `${summary.cpOrdered.length} batches · ${summary.cpTotalDays}d`,
-              sub: cpStart && cpEnd ? `${formatShort(cpStart)} → ${formatShort(cpEnd)}` : "—",
-              accent: "#f97316",
-            },
-            {
-              label: "Workstreams",
-              value: `${summary.systemGroups.size} systems`,
-              sub: `${summary.piGroups.size} PIs · ${validatedRows.length} batches total`,
+              label: "PI 2 Complete",
+              value: `${pi2Pct}%`,
+              sub: `${pi2Done} of ${pi2Rows.length} batches done`,
               accent: "#059669",
             },
             {
-              label: "Risks",
-              value: riskCount > 0 ? `${riskCount} identified` : "None",
-              sub: riskCount > 0 ? "Click to view details" : "No conflicts detected",
-              accent: riskCount > 0 ? "#d97706" : "#059669",
+              label: "Critical Path",
+              value: `${cpCount} batches`,
+              sub: cpStart && cpEnd ? `${formatShort(cpStart)} → ${formatShort(cpEnd)} · ${summary.cpTotalDays}d` : "Toggle Critical Path ON",
+              accent: "#1e40af",
+              tooltip: "Critical Path: Determines earliest possible delivery of Return Assembly and downstream tax workflows",
+            },
+            {
+              label: "Parallel Tracks",
+              value: `${parallelTracks} active`,
+              sub: `${summary.piGroups.size} PIs · ${validatedRows.length} batches total`,
+              accent: "#7c3aed",
+            },
+            {
+              label: "Risk Indicator",
+              value: riskLevel,
+              sub: riskCount > 0 ? `${riskCount} risk${riskCount > 1 ? "s" : ""} — click to view` : "No conflicts detected",
+              accent: riskColor,
               onClick: riskCount > 0 ? () => setShowRiskDetail(v => !v) : undefined,
             },
-          ].map((card, i) => (
-            <div
-              key={i}
-              onClick={card.onClick}
-              style={{
-                backgroundColor: "white",
-                border: "1px solid #e2e8f0",
-                borderTop: `3px solid ${card.accent}`,
-                borderRadius: "10px",
-                padding: "16px 18px",
-                cursor: card.onClick ? "pointer" : "default",
-                transition: "box-shadow 0.15s",
-              }}
-              onMouseEnter={e => { if (card.onClick) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
-            >
-              <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>
-                {card.label}
-              </div>
-              <div style={{ fontSize: "20px", fontWeight: 700, color: card.accent, lineHeight: 1.1, marginBottom: "4px" }}>
-                {card.value}
-              </div>
-              <div style={{ fontSize: "11px", color: "#94a3b8" }}>{card.sub}</div>
+          ];
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "24px" }}>
+              {tiles.map((card, i) => (
+                <div
+                  key={i}
+                  onClick={card.onClick}
+                  title={card.tooltip}
+                  style={{
+                    backgroundColor: "white",
+                    border: "1px solid #e2e8f0",
+                    borderTop: `3px solid ${card.accent}`,
+                    borderRadius: "10px",
+                    padding: "16px 18px",
+                    cursor: card.onClick ? "pointer" : "default",
+                    transition: "box-shadow 0.15s",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+                >
+                  <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>
+                    {card.label}
+                  </div>
+                  <div style={{ fontSize: "20px", fontWeight: 700, color: card.accent, lineHeight: 1.1, marginBottom: "4px" }}>
+                    {card.value}
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#94a3b8" }}>{card.sub}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()}
+
+        {/* ── PO EXECUTIVE SUMMARY ─────────────────────────────────────────────── */}
+        {(() => {
+          const [showExec, setShowExec] = React.useState(false);
+          const pi2InFlight = validatedRows.filter(r => r.pi === "PI 2" && r.status === "Committed").map(r => r.batch);
+          const uniqueInFlight = pi2InFlight.filter((v, i, a) => a.indexOf(v) === i).join(", ");
+          return (
+            <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", marginBottom: "24px", overflow: "hidden" }}>
+              <button
+                onClick={() => setShowExec(v => !v)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "14px 20px", background: "none", border: "none", cursor: "pointer",
+                  borderBottom: showExec ? "1px solid #e2e8f0" : "none",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "3px", height: "16px", backgroundColor: "#1e40af", borderRadius: "2px" }} />
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    PO Executive Summary
+                  </span>
+                  <span style={{ fontSize: "11px", color: "#94a3b8" }}>— PI 2 delivery status · auto-generated</span>
+                </div>
+                <span style={{ fontSize: "12px", color: "#94a3b8" }}>{showExec ? "▲ Collapse" : "▼ Expand"}</span>
+              </button>
+              {showExec && (
+                <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+                  {/* 1. Current State */}
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #dbeafe", paddingBottom: "4px" }}>
+                      1 — Current State
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                      <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px 14px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#166534", marginBottom: "4px" }}>✓ Completed</div>
+                        <div style={{ fontSize: "12px", color: "#374151" }}>
+                          <strong>Batch 4 (TDC)</strong> — AI Mapping Proposals & Decisions is complete. The AI classification layer is locked and available as a dependency for downstream batches.
+                        </div>
+                      </div>
+                      <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "12px 14px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", marginBottom: "4px" }}>⚡ Actively In Flight</div>
+                        <div style={{ fontSize: "12px", color: "#374151" }}>
+                          <strong>Batches {uniqueInFlight || "5, 6, 2A, 7, 8, 9"}</strong> — Entity Identity, Practitioner Review, Classification Contract, Client Eligibility, Exceptions, and IMS/Prior Year are all running concurrently across PDC and TDC tracks.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2. Critical Path Insight */}
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #dbeafe", paddingBottom: "4px" }}>
+                      2 — Critical Path Insight
+                    </div>
+                    <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.6" }}>
+                      The true critical path runs: <strong style={{ color: "#1e40af" }}>B5 → B6 → B7 → B8 (PDC→TDC) → B9 (PDC→TDC) → B10</strong>. This chain determines the earliest possible delivery of Return Assembly (B10), which gates all PI 3 MVP work.
+                      <br /><br />
+                      <span style={{ color: "#d97706", fontWeight: 600 }}>⚠ B2A Risk:</span> Batch 2A (Orchestrator Classification Contract) starts Apr 29 and must complete by May 4. It is a <strong>required predecessor for B7 (Eligibility)</strong> and B8 (Exceptions). Any delay in B2A compresses the B7 start window and introduces risk to the B8→B9 chain.
+                    </div>
+                  </div>
+                  {/* 3. Delivery Outlook */}
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #dbeafe", paddingBottom: "4px" }}>
+                      3 — Delivery Outlook
+                    </div>
+                    <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.6" }}>
+                      <strong>Earliest realistic B10 completion:</strong> Jun 11, 2026 (assuming no slippage in B8/B9 chain).<br />
+                      <strong>PI 2 scope achievability:</strong> Committed batches (B5–B11) are achievable if B2A closes on time. Stretch batches (B16 PDC, B24 PDC, B25 PDC) are isolated and non-blocking — they do not affect the critical path.
+                    </div>
+                  </div>
+                  {/* 4. Risks */}
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#d97706", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #fde68a", paddingBottom: "4px" }}>
+                      4 — Risks
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {[
+                        { label: "Dependency compression", detail: "B2A (Apr 29–May 4) feeds B7 (May 1 start). There is a 3-day overlap window — B7 cannot fully start until B2A closes." },
+                        { label: "PDC/TDC misalignment", detail: "B8 PDC ends May 13; B8 TDC starts May 12. One-day overlap is intentional but fragile — any PDC delay pushes TDC." },
+                        { label: "Late-start B2A risk", detail: "B2A starts Apr 29 — 7 days after B5/B6. If B5 slips, B2A's classification contract is delayed, cascading to B7 and B8." },
+                        { label: "Exception + Prior Year overlap", detail: "B8 TDC (May 12–20) and B9 PDC (May 14–26) overlap by 6 days. These are independent tracks but share engineering bandwidth." },
+                      ].map((risk, i) => (
+                        <div key={i} style={{ display: "flex", gap: "10px", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "6px", padding: "8px 12px" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", minWidth: "180px" }}>⚠ {risk.label}</span>
+                          <span style={{ fontSize: "11px", color: "#78350f" }}>{risk.detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* 5. Opportunities */}
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#059669", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #bbf7d0", paddingBottom: "4px" }}>
+                      5 — Opportunities
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {[
+                        { label: "Parallelization active", detail: "B5 (PDC) and B6 (TDC) run concurrently Apr 22–30. B8 PDC and B9 PDC overlap May 14–26. This is healthy parallel execution." },
+                        { label: "Stretch work isolated", detail: "B16 PDC, B24 PDC, B25 PDC are non-blocking. They can slip without affecting the committed delivery path." },
+                        { label: "Strong PI 3 sequencing", detail: "B11 (Learning Governance, Jun 12–22) cleanly gates PI 3 entry. B14 TDC starts Jun 23 — one day after B11 closes. Transition is tight but clean." },
+                      ].map((opp, i) => (
+                        <div key={i} style={{ display: "flex", gap: "10px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px", padding: "8px 12px" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: "#166534", minWidth: "180px" }}>✓ {opp.label}</span>
+                          <span style={{ fontSize: "11px", color: "#14532d" }}>{opp.detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ── ROADMAP ANALYSIS ─────────────────────────────────────────────────── */}
+        {(() => {
+          const [showRoadmap, setShowRoadmap] = React.useState(false);
+          return (
+            <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", marginBottom: "24px", overflow: "hidden" }}>
+              <button
+                onClick={() => setShowRoadmap(v => !v)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "14px 20px", background: "none", border: "none", cursor: "pointer",
+                  borderBottom: showRoadmap ? "1px solid #e2e8f0" : "none",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "3px", height: "16px", backgroundColor: "#7c3aed", borderRadius: "2px" }} />
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    Roadmap Analysis
+                  </span>
+                  <span style={{ fontSize: "11px", color: "#94a3b8" }}>— sequencing health · bottlenecks · PI transition readiness</span>
+                </div>
+                <span style={{ fontSize: "12px", color: "#94a3b8" }}>{showRoadmap ? "▲ Collapse" : "▼ Expand"}</span>
+              </button>
+              {showRoadmap && (
+                <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+                  {[
+                    {
+                      letter: "A", title: "Sequencing Health", color: "#1e40af",
+                      items: [
+                        "Batches are logically ordered: B4 → B5/B6 → B2A → B7 → B8 → B9 → B10 → B11 follows a clean dependency chain.",
+                        "No hard violations detected. B2A starts Apr 29 while B5 ends Apr 30 — a 1-day overlap that is acceptable given B2A only needs B5 entity schema, not final delivery.",
+                        "B7 (TDC) starts May 1 while B2A ends May 4 — a 3-day gap risk. B7 should not advance past its classification contract gate until B2A closes.",
+                      ],
+                    },
+                    {
+                      letter: "B", title: "Parallelization", color: "#7c3aed",
+                      items: [
+                        "Safe parallel: B5 (PDC) ∥ B6 (TDC) — Apr 22–30. Independent workstreams, no shared gate.",
+                        "Safe parallel: B8 PDC ∥ B9 PDC — May 5–13 overlap. Both depend on B5 but are independent of each other.",
+                        "Risky overlap: B8 TDC (May 12–20) ∥ B9 PDC (May 14–26). These share engineering bandwidth and the B9 PDC team may be pulled into B8 TDC issues.",
+                        "Stretch tracks (B16 PDC, B24 PDC, B25 PDC) are safely isolated from the committed path.",
+                      ],
+                    },
+                    {
+                      letter: "C", title: "Bottlenecks", color: "#d97706",
+                      items: [
+                        "Primary bottleneck: B7/B8/B9 chain (May 1–Jun 2). Five batches converge here across PDC and TDC. Any single slip cascades.",
+                        "B2A is the narrowest point: 4 business days (Apr 29–May 4) to deliver classification contract enforcement before B7 and B8 gates open.",
+                        "B9 TDC ends Jun 2 and B10 TDC starts Jun 3 — zero buffer. This is the tightest handoff in PI 2.",
+                      ],
+                    },
+                    {
+                      letter: "D", title: "PI Transition Readiness", color: "#059669",
+                      items: [
+                        "PI 3 entry gate: B11 TDC (Jun 12–22) must close before PI 3 MVP work begins.",
+                        "B14 TDC (PI 3) starts Jun 23 — one day after B11 closes. This is clean but leaves no buffer for B11 slippage.",
+                        "Recommendation: Confirm B11 scope is locked by Jun 5 to protect the PI 3 start date.",
+                        "PI 3 carries no inherited risk from stretch batches — B16/B24/B25 PDC are isolated.",
+                      ],
+                    },
+                    {
+                      letter: "E", title: "Recommended Adjustments (dates unchanged)", color: "#dc2626",
+                      items: [
+                        "Buffer needed: B2A → B7 handoff. Add a 1-day classification contract review gate before B7 TDC advances past schema lock.",
+                        "Fragile handoff: B9 TDC → B10 TDC (Jun 2 → Jun 3). Flag this as a watch item in sprint review. Any B9 TDC slip pushes B10 and delays PI 3 entry.",
+                        "Fragile handoff: B11 TDC → B14 TDC (Jun 22 → Jun 23). Recommend a PI 2 close-out checkpoint on Jun 22 before PI 3 kickoff.",
+                        "Stretch ladder: Confirm B16 PDC (May 27–Jun 4) owner is not shared with B9 TDC (May 21–Jun 2) team to avoid bandwidth conflict.",
+                      ],
+                    },
+                  ].map((section) => (
+                    <div key={section.letter}>
+                      <div style={{ fontSize: "12px", fontWeight: 700, color: section.color, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: `1px solid ${section.color}22`, paddingBottom: "4px" }}>
+                        {section.letter} — {section.title}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                        {section.items.map((item, i) => (
+                          <div key={i} style={{ display: "flex", gap: "8px", fontSize: "12px", color: "#374151", lineHeight: "1.5" }}>
+                            <span style={{ color: section.color, fontWeight: 700, minWidth: "12px" }}>·</span>
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ── RISK DETAIL (collapsible) ────────────────────────────────────────── */}
         {showRiskDetail && summary.risks.length > 0 && (
@@ -1550,7 +1774,7 @@ export default function BatchDeliveryCalendar() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
                 <thead>
                   <tr style={{ backgroundColor: "#f8fafc" }}>
-                    {["PI", "Batch", "System", "Name", "Start", "End", "Status", "Depends On", "Notes", ""].map(h => (
+                    {["PI", "Batch", "System", "Name", "Start", "End", "Status", "Critical Path", "Depends On", "Notes", ""].map(h => (
                       <th key={h} style={{
                         padding: "10px 12px", textAlign: "left",
                         fontSize: "10px", fontWeight: 700, color: "#94a3b8",
@@ -1628,13 +1852,13 @@ export default function BatchDeliveryCalendar() {
                         style={{
                           cursor: "pointer",
                           backgroundColor: hasIssue ? "#fffbeb" : i % 2 === 0 ? "white" : "#fafafa",
-                          borderLeft: isCP ? "3px solid #f97316" : "3px solid transparent",
+                          borderLeft: isCP ? "3px solid #1e40af" : "3px solid transparent",
                         }}
                         onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.backgroundColor = "#f0f9ff"}
                         onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.backgroundColor = hasIssue ? "#fffbeb" : i % 2 === 0 ? "white" : "#fafafa"}
                       >
                         <td style={{ padding: "10px 12px", color: "#64748b" }}>{r.pi}</td>
-                        <td style={{ padding: "10px 12px", fontWeight: 600, color: isCP ? "#c2410c" : "#0f172a" }}>
+                        <td style={{ padding: "10px 12px", fontWeight: 600, color: isCP ? "#1e40af" : "#0f172a" }}>
                           {isCP && "★ "}{r.batch}
                         </td>
                         <td style={{ padding: "10px 12px" }}>
@@ -1653,6 +1877,13 @@ export default function BatchDeliveryCalendar() {
                             color: sb.color, backgroundColor: sb.bg,
                             padding: "2px 7px", borderRadius: "4px",
                           }}>{r.status}</span>
+                        </td>
+                        <td style={{ padding: "10px 12px", textAlign: "center" }}>
+                          {isCP ? (
+                            <span title="On Critical Path — determines earliest delivery of Return Assembly and downstream tax workflows" style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px", cursor: "help" }}>Yes ★</span>
+                          ) : (
+                            <span style={{ fontSize: "11px", color: "#cbd5e1" }}>—</span>
+                          )}
                         </td>
                         <td style={{ padding: "10px 12px", color: r._depConflict ? "#d97706" : "#64748b", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {r._depConflict && "⚠ "}{r.dependsOn || "—"}
