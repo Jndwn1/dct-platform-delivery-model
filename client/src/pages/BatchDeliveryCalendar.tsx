@@ -205,45 +205,114 @@ function generateId(): string {
   return "row-" + Math.random().toString(36).slice(2, 8);
 }
 
-// ─── CRITICAL PATH ────────────────────────────────────────────────────────────
+// ─── CRITICAL PATH ENGINE ─────────────────────────────────────────────────────
+// SOURCE OF TRUTH: Batch Delivery Calendar (BASELINE_ROWS)
+// Algorithm: Longest dependency-driven path using unique row IDs as graph nodes.
+// Rules:
+//   1. Explicit dependsOn fields (batch label → all rows with that label)
+//   2. Implicit PDC→TDC platform flow: same batch#, PDC end → TDC start
+//   3. Duplicates resolved by unique ID — no "last row wins" collapse
+// GOVERNANCE: This function is the ONLY source of critical path data. Never edit output manually.
 
-function computeCriticalPath(rows: BatchRow[]): Set<string> {
-  const byLabel: Record<string, BatchRow> = {};
-  for (const r of rows) byLabel[r.batch] = r;
-  const memo: Record<string, number> = {};
+interface CpNode { id: string; batch: string; system: string; pi: string; name: string; startDate: string; endDate: string; status: BatchStatus; }
+interface CpResult { criticalIds: Set<string>; orderedPath: CpNode[]; totalDays: number; }
 
-  function chainLength(label: string, visited = new Set<string>()): number {
-    if (memo[label] !== undefined) return memo[label];
-    if (visited.has(label)) return 0;
-    visited.add(label);
-    const row = byLabel[label];
-    if (!row) return 0;
-    const start = parseDate(row.startDate);
-    const end = parseDate(row.endDate);
-    const ownDuration = start && end ? daysBetween(start, end) : 0;
-    const deps = row.dependsOn.split(",").map(s => s.trim()).filter(Boolean);
-    const maxPred = deps.length > 0 ? Math.max(...deps.map(d => chainLength(d, new Set(visited)))) : 0;
-    memo[label] = maxPred + ownDuration;
-    return memo[label];
+function computeCriticalPath(rows: BatchRow[]): CpResult {
+  const valid = rows.filter(r => parseDate(r.startDate) && parseDate(r.endDate) && !r._dateError);
+  if (valid.length === 0) return { criticalIds: new Set(), orderedPath: [], totalDays: 0 };
+
+  const byBatch: Record<string, BatchRow[]> = {};
+  for (const r of valid) {
+    if (!byBatch[r.batch]) byBatch[r.batch] = [];
+    byBatch[r.batch].push(r);
   }
 
-  for (const r of rows) chainLength(r.batch);
-  const maxLen = Math.max(0, ...Object.values(memo));
-  if (maxLen === 0) return new Set();
+  const predecessors: Record<string, string[]> = {};
+  for (const r of valid) predecessors[r.id] = [];
 
-  const criticalLabels = new Set<string>();
-  const queue: string[] = Object.entries(memo).filter(([, v]) => v === maxLen).map(([k]) => k);
-  while (queue.length > 0) {
-    const label = queue.pop()!;
-    if (criticalLabels.has(label)) continue;
-    criticalLabels.add(label);
-    const row = byLabel[label];
-    if (!row) continue;
-    row.dependsOn.split(",").map(s => s.trim()).filter(Boolean).forEach(dep => {
-      if (!criticalLabels.has(dep)) queue.push(dep);
-    });
+  for (const r of valid) {
+    const deps = r.dependsOn.split(",").map((s: string) => s.trim()).filter(Boolean);
+    for (const dep of deps) {
+      const depRows = byBatch[dep] || [];
+      for (const dr of depRows) {
+        const drEnd = parseDate(dr.endDate);
+        const rStart = parseDate(r.startDate);
+        if (drEnd && rStart && drEnd <= rStart && !predecessors[r.id].includes(dr.id)) {
+          predecessors[r.id].push(dr.id);
+        }
+      }
+    }
+    if (r.system === "TDC") {
+      const sameBatch = (byBatch[r.batch] || []).filter((x: BatchRow) => x.system === "PDC");
+      for (const pdc of sameBatch) {
+        const pdcEnd = parseDate(pdc.endDate);
+        const rStart = parseDate(r.startDate);
+        if (pdcEnd && rStart && pdcEnd <= rStart && !predecessors[r.id].includes(pdc.id)) {
+          predecessors[r.id].push(pdc.id);
+        }
+      }
+    }
   }
-  return criticalLabels;
+
+  const dist: Record<string, number> = {};
+  function longestTo(id: string, stack: Set<string>): number {
+    if (dist[id] !== undefined) return dist[id];
+    if (stack.has(id)) return 0;
+    const newStack = new Set(stack);
+    newStack.add(id);
+    const row = valid.find((r: BatchRow) => r.id === id)!;
+    const s = parseDate(row.startDate)!;
+    const e = parseDate(row.endDate)!;
+    const own = daysBetween(s, e);
+    const preds = predecessors[id] || [];
+    const maxPred = preds.length > 0 ? Math.max(...preds.map((p: string) => longestTo(p, newStack))) : 0;
+    dist[id] = maxPred + own;
+    return dist[id];
+  }
+  for (const r of valid) longestTo(r.id, new Set<string>());
+
+  const maxDist = Math.max(0, ...Object.values(dist));
+  if (maxDist === 0) return { criticalIds: new Set(), orderedPath: [], totalDays: 0 };
+
+  const criticalIds = new Set<string>();
+  const traceQueue: string[] = valid.filter((r: BatchRow) => dist[r.id] === maxDist).map((r: BatchRow) => r.id);
+  while (traceQueue.length > 0) {
+    const id = traceQueue.pop()!;
+    if (criticalIds.has(id)) continue;
+    criticalIds.add(id);
+    const row = valid.find((r: BatchRow) => r.id === id)!;
+    const own = daysBetween(parseDate(row.startDate)!, parseDate(row.endDate)!);
+    for (const pred of (predecessors[id] || [])) {
+      const predRow = valid.find((r: BatchRow) => r.id === pred);
+      if (!predRow) continue;
+      const predEnd = parseDate(predRow.endDate)!;
+      const rowStart = parseDate(row.startDate)!;
+      const gap = daysBetween(predEnd, rowStart);
+      if (Math.abs((dist[pred] || 0) + gap + own - dist[id]) <= 1) {
+        traceQueue.push(pred);
+      }
+    }
+  }
+
+  const orderedPath: CpNode[] = valid
+    .filter((r: BatchRow) => criticalIds.has(r.id))
+    .sort((a: BatchRow, b: BatchRow) => (parseDate(a.startDate)?.getTime() ?? 0) - (parseDate(b.startDate)?.getTime() ?? 0))
+    .map((r: BatchRow) => ({ id: r.id, batch: r.batch, system: r.system, pi: r.pi, name: r.name, startDate: r.startDate, endDate: r.endDate, status: r.status }));
+
+  const firstStart = parseDate(orderedPath[0]?.startDate);
+  const lastEnd = parseDate(orderedPath[orderedPath.length - 1]?.endDate);
+  const totalDays = firstStart && lastEnd ? daysBetween(firstStart, lastEnd) : maxDist;
+
+  return { criticalIds, orderedPath, totalDays };
+}
+
+function computeCriticalPathLabels(rows: BatchRow[]): Set<string> {
+  const { criticalIds } = computeCriticalPath(rows);
+  const labelSet = new Set<string>();
+  for (const r of rows) {
+    if (criticalIds.has(r.id)) labelSet.add(r.batch);
+  }
+  return labelSet;
 }
 
 // ─── GANTT CHART ──────────────────────────────────────────────────────────────
@@ -768,7 +837,8 @@ export default function BatchDeliveryCalendar() {
     });
   }, [rows]);
 
-  const criticalPath = useMemo(() => computeCriticalPath(validatedRows), [validatedRows]);
+  const criticalPathResult = useMemo(() => computeCriticalPath(validatedRows), [validatedRows]);
+  const criticalPath = useMemo(() => computeCriticalPathLabels(validatedRows), [validatedRows]);
 
   // ── Print-optimized Gantt export ─────────────────────────────────────────────
   const printGantt = useCallback(() => {
@@ -924,12 +994,12 @@ export default function BatchDeliveryCalendar() {
     const maxD = allDates.length ? new Date(Math.max(...allDates.map(d => d.getTime()))) : null;
     const totalDays = minD && maxD ? daysBetween(minD, maxD) : 0;
     const risks = validatedRows.filter(r => r._dateError || r._depConflict || r.status === "Stretch");
-    const cpBatches = validatedRows.filter(r => criticalPath.has(r.batch));
-    const cpOrdered = cpBatches.sort((a, b) => (parseDate(a.startDate)?.getTime() ?? 0) - (parseDate(b.startDate)?.getTime() ?? 0));
+    const cpOrdered = criticalPathResult.orderedPath;
+    const cpTotalDays = criticalPathResult.totalDays;
     const piGroups = new Set(validatedRows.map(r => r.pi));
     const systemGroups = new Set(validatedRows.map(r => r.system));
-    return { totalDays, minD, maxD, risks, cpOrdered, piGroups, systemGroups };
-  }, [validatedRows, criticalPath]);
+    return { totalDays, minD, maxD, risks, cpOrdered, cpTotalDays, piGroups, systemGroups };
+  }, [validatedRows, criticalPath, criticalPathResult]);
 
   // ── Row editing ──────────────────────────────────────────────────────────────
 
@@ -1135,7 +1205,7 @@ export default function BatchDeliveryCalendar() {
             },
             {
               label: "Critical Path",
-              value: `${summary.cpOrdered.length} batches`,
+              value: `${summary.cpOrdered.length} batches · ${summary.cpTotalDays}d`,
               sub: cpStart && cpEnd ? `${formatShort(cpStart)} → ${formatShort(cpEnd)}` : "—",
               accent: "#f97316",
             },
@@ -1203,44 +1273,125 @@ export default function BatchDeliveryCalendar() {
         )}
 
         {/* ── CRITICAL PATH SEQUENCE ───────────────────────────────────────────── */}
-        {showCP && summary.cpOrdered.length > 0 && (
-          <div style={{
-            backgroundColor: "white", border: "1px solid #e2e8f0",
-            borderRadius: "10px", padding: "16px 20px", marginBottom: "24px",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-              <div style={{ width: "3px", height: "16px", backgroundColor: "#f97316", borderRadius: "2px" }} />
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Critical Path
-              </span>
-              <span style={{ fontSize: "11px", color: "#94a3b8" }}>
-                — longest dependency chain · {summary.totalDays} calendar days
-              </span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0" }}>
-              {summary.cpOrdered.map((r, i) => (
-                <div key={r.id} style={{ display: "flex", alignItems: "center" }}>
-                  <div style={{
-                    display: "flex", flexDirection: "column", alignItems: "center",
-                    padding: "6px 12px",
-                    backgroundColor: "#fff7ed",
-                    border: "1px solid #fed7aa",
-                    borderRadius: "7px",
-                    minWidth: "90px",
-                  }}>
-                    <span style={{ fontSize: "11px", fontWeight: 700, color: "#c2410c" }}>{r.batch}</span>
-                    <span style={{ fontSize: "10px", color: "#94a3b8", marginTop: "2px" }}>
-                      {formatShort(r.startDate)} → {formatShort(r.endDate)}
-                    </span>
+        {showCP && summary.cpOrdered.length > 0 && (() => {
+          // Group by PI for swimlane display
+          const piOrder = ["PI 2", "PI 3", "PI 4"];
+          const piColors: Record<string, { bg: string; border: string; header: string; label: string }> = {
+            "PI 2": { bg: "#eff6ff", border: "#bfdbfe", header: "#1e40af", label: "PI 2 — Entity, Workflow & Tax Ready" },
+            "PI 3": { bg: "#f0fdf4", border: "#bbf7d0", header: "#166534", label: "PI 3 — Intelligence, Provision & Audit" },
+            "PI 4": { bg: "#fefce8", border: "#fde68a", header: "#92400e", label: "PI 4 — Governance, QC & Analytics" },
+          };
+          const grouped: Record<string, typeof summary.cpOrdered> = {};
+          for (const r of summary.cpOrdered) {
+            if (!grouped[r.pi]) grouped[r.pi] = [];
+            grouped[r.pi].push(r);
+          }
+          const sysLabel = (sys: string) => sys === "PDC" ? "PDC" : sys === "TDC" ? "TDC" : sys;
+          const sysColor = (sys: string) => sys === "PDC" ? "#2563eb" : sys === "TDC" ? "#059669" : "#7c3aed";
+          return (
+            <div style={{
+              backgroundColor: "white", border: "1px solid #e2e8f0",
+              borderRadius: "12px", padding: "20px 24px", marginBottom: "24px",
+            }}>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
+                <div style={{ width: "3px", height: "18px", backgroundColor: "#f97316", borderRadius: "2px" }} />
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Critical Path
+                </span>
+                <span style={{ fontSize: "11px", color: "#94a3b8", marginLeft: "4px" }}>
+                  {summary.cpOrdered.length} batches · {summary.cpTotalDays} calendar days
+                </span>
+                <span style={{
+                  marginLeft: "auto", fontSize: "10px", color: "#64748b",
+                  backgroundColor: "#f1f5f9", border: "1px solid #e2e8f0",
+                  borderRadius: "4px", padding: "2px 8px", fontStyle: "italic",
+                }}>
+                  Auto-derived from Batch Delivery Calendar · Read-only
+                </span>
+              </div>
+              <p style={{ fontSize: "11px", color: "#94a3b8", margin: "0 0 16px 13px" }}>
+                Longest dependency-driven sequence. PDC precedes TDC where platform flow applies. Updates automatically when calendar data changes.
+              </p>
+
+              {/* PI Swimlanes */}
+              {piOrder.filter(pi => grouped[pi]?.length > 0).map((pi, piIdx) => {
+                const band = piColors[pi] || { bg: "#f8fafc", border: "#e2e8f0", header: "#475569", label: pi };
+                const piRows = grouped[pi];
+                return (
+                  <div key={pi} style={{ marginBottom: piIdx < piOrder.filter(p => grouped[p]?.length > 0).length - 1 ? "16px" : "0" }}>
+                    {/* PI label */}
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: "8px",
+                      marginBottom: "8px",
+                    }}>
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: band.header }} />
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: band.header, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        {band.label}
+                      </span>
+                      <div style={{ flex: 1, height: "1px", backgroundColor: band.border }} />
+                    </div>
+                    {/* Batch cards */}
+                    <div style={{ display: "flex", alignItems: "stretch", flexWrap: "wrap", gap: "0", paddingLeft: "18px" }}>
+                      {piRows.map((r, i) => (
+                        <div key={r.id} style={{ display: "flex", alignItems: "center" }}>
+                          <div style={{
+                            display: "flex", flexDirection: "column",
+                            padding: "8px 14px",
+                            backgroundColor: band.bg,
+                            border: `1.5px solid ${band.border}`,
+                            borderLeft: `3px solid ${sysColor(r.system)}`,
+                            borderRadius: "8px",
+                            minWidth: "120px",
+                            maxWidth: "180px",
+                          }}>
+                            {/* Batch # + system badge */}
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+                              <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a" }}>{r.batch}</span>
+                              <span style={{
+                                fontSize: "9px", fontWeight: 700,
+                                color: sysColor(r.system),
+                                backgroundColor: r.system === "PDC" ? "#dbeafe" : r.system === "TDC" ? "#dcfce7" : "#f3e8ff",
+                                borderRadius: "3px", padding: "1px 5px",
+                              }}>
+                                {sysLabel(r.system)}
+                              </span>
+                            </div>
+                            {/* Name */}
+                            <span style={{ fontSize: "10px", color: "#374151", lineHeight: "1.3", marginBottom: "4px" }}>
+                              {r.name}
+                            </span>
+                            {/* Date range */}
+                            <span style={{ fontSize: "9px", color: "#94a3b8" }}>
+                              {formatDate(r.startDate)} → {formatDate(r.endDate)}
+                            </span>
+                          </div>
+                          {i < piRows.length - 1 && (
+                            <div style={{ display: "flex", alignItems: "center", padding: "0 4px" }}>
+                              <div style={{ width: "16px", height: "1.5px", backgroundColor: "#f97316" }} />
+                              <div style={{
+                                width: 0, height: 0,
+                                borderTop: "4px solid transparent",
+                                borderBottom: "4px solid transparent",
+                                borderLeft: "6px solid #f97316",
+                              }} />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {/* Cross-PI arrow if this PI feeds the next */}
+                      {piIdx < piOrder.filter(p => grouped[p]?.length > 0).length - 1 && (
+                        <div style={{ display: "flex", alignItems: "center", padding: "0 8px" }}>
+                          <span style={{ fontSize: "10px", color: "#94a3b8", fontStyle: "italic" }}>→ PI {parseInt(pi.replace("PI ", "")) + 1}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {i < summary.cpOrdered.length - 1 && (
-                    <div style={{ width: "20px", height: "1px", backgroundColor: "#f97316", flexShrink: 0 }} />
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ── GANTT TIMELINE ───────────────────────────────────────────────────── */}
         <div style={{
