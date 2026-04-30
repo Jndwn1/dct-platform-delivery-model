@@ -1352,9 +1352,99 @@ export default function BatchDeliveryCalendar() {
                   <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                     PO Executive Summary
                   </span>
-                  <span style={{ fontSize: "11px", color: "#94a3b8" }}>— PI 2 delivery status · auto-generated</span>
+                  <span style={{ fontSize: "11px", color: "#94a3b8" }}>— PI 2–4 delivery status · auto-generated</span>
                 </div>
-                <span style={{ fontSize: "12px", color: "#94a3b8" }}>{showExec ? "▲ Collapse" : "▼ Expand"}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      const pi2InFlight2 = validatedRows.filter(r => r.pi === "PI 2" && r.status === "Committed").map(r => r.batch).filter((v, i, a) => a.indexOf(v) === i).join(", ");
+                      const pi2Done2 = validatedRows.filter(r => r.pi === "PI 2" && r.status === "Done").length;
+                      const pi2Total2 = validatedRows.filter(r => r.pi === "PI 2").length;
+                      const pi3Mvp = validatedRows.filter(r => r.pi === "PI 3" && r.status === "MVP").map(r => r.batch).filter((v, i, a) => a.indexOf(v) === i).join(", ");
+                      const pi4Committed = validatedRows.filter(r => r.pi === "PI 4" && r.status === "Committed").map(r => r.batch).filter((v, i, a) => a.indexOf(v) === i).join(", ");
+                      const cpBatches = summary.cpOrdered.map(n => `${n.batch} (${n.system})`).join(" → ");
+                      const text = [
+                        "DCT PLATFORM — PO EXECUTIVE SUMMARY",
+                        "Generated: " + new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+                        "Source: Batch Delivery Calendar (auto-generated)",
+                        "",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "1. CURRENT STATE — PI 2",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        `✓ Completed: Batch 4 (TDC) — AI Mapping Proposals & Decisions. ${pi2Done2} of ${pi2Total2} PI 2 batches done.`,
+                        `⚡ Actively In Flight: ${pi2InFlight2 || "B5, B6, B2A, B7, B8, B9"} — running concurrently across PDC and TDC tracks.`,
+                        "",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "2. CRITICAL PATH INSIGHT",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        `True critical path: ${cpBatches || "B5 → B6 → B7 → B8 → B9 → B10 → B11"}`,
+                        "This chain determines the earliest possible delivery of Return Assembly (B10), which gates all PI 3 MVP work.",
+                        "⚠ B2A Risk: Batch 2A (Apr 29–May 4) is a required predecessor for B7 and B8. Any delay cascades to the B8→B9 chain.",
+                        "",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "3. DELIVERY OUTLOOK",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "Earliest realistic B10 completion: Jun 11, 2026 (assuming no slippage in B8/B9 chain).",
+                        "PI 2 scope achievability: Committed batches (B5–B11) are achievable if B2A closes on time.",
+                        "Stretch batches (B16 PDC, B24 PDC, B25 PDC) are isolated and non-blocking.",
+                        "",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "4. RISKS",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "⚠ Dependency compression: B2A (Apr 29–May 4) feeds B7 (May 1 start). 3-day overlap window.",
+                        "⚠ PDC/TDC misalignment: B8 PDC ends May 13; B8 TDC starts May 12. One-day overlap is fragile.",
+                        "⚠ Late-start B2A risk: B2A starts Apr 29 — 7 days after B5/B6. B5 slip cascades to B7 and B8.",
+                        "⚠ Exception + Prior Year overlap: B8 TDC (May 12–20) and B9 PDC (May 14–26) share engineering bandwidth.",
+                        "",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "5. OPPORTUNITIES",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "✓ Parallelization active: B5 (PDC) ∥ B6 (TDC) Apr 22–30. Healthy parallel execution.",
+                        "✓ Stretch work isolated: B16/B24/B25 PDC are non-blocking and will not affect committed delivery.",
+                        "✓ Strong PI 3 sequencing: B11 (Jun 12–22) cleanly gates PI 3 entry. B14 TDC starts Jun 23.",
+                        "",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "6. PI 3 — MVP READINESS",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        `MVP batches in scope: ${pi3Mvp || "B14, B15, B18, B19, B24, B25, B17, B16"} (TDC track, Jun–Sep 2026).`,
+                        "Entry gate: B11 TDC (Learning Governance) must close Jun 22 before PI 3 MVP work begins.",
+                        "PI 3 carries no inherited risk from PI 2 stretch batches — B16/B24/B25 PDC are isolated.",
+                        "Tightest handoff: B9 TDC → B10 TDC (Jun 2 → Jun 3). Zero buffer. Flag as watch item.",
+                        "",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "7. PI 4 — COMMITTED SCOPE",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        `Committed batches: ${pi4Committed || "B21 (TDC) — Quality Control Review Records (Sep 14–22, 2026)"}.`,
+                        "PI 4 entry gate: B16 TDC (Audit Trail & Lineage Governance) must close Sep 11 before PI 4 begins.",
+                        "PI 4 scope is lean — single committed batch. Confirm whether additional PI 4 batches are planned.",
+                        "",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        "END OF SUMMARY",
+                      ].join("\n");
+                      navigator.clipboard.writeText(text).then(() => {
+                        const btn = e.currentTarget as HTMLButtonElement;
+                        btn.textContent = "✓ Copied!";
+                        btn.style.backgroundColor = "#dcfce7";
+                        btn.style.color = "#166534";
+                        btn.style.borderColor = "#bbf7d0";
+                        setTimeout(() => {
+                          btn.textContent = "⬆ Copy as Text";
+                          btn.style.backgroundColor = "white";
+                          btn.style.color = "#1e40af";
+                          btn.style.borderColor = "#bfdbfe";
+                        }, 2500);
+                      });
+                    }}
+                    style={{
+                      fontSize: "11px", fontWeight: 600, color: "#1e40af",
+                      backgroundColor: "white", border: "1px solid #bfdbfe",
+                      borderRadius: "6px", padding: "5px 12px", cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >⬆ Copy as Text</button>
+                  <span style={{ fontSize: "12px", color: "#94a3b8" }}>{showExec ? "▲ Collapse" : "▼ Expand"}</span>
+                </div>
               </button>
               {showExec && (
                 <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -1434,14 +1524,81 @@ export default function BatchDeliveryCalendar() {
                           <span style={{ fontSize: "11px", color: "#14532d" }}>{opp.detail}</span>
                         </div>
                       ))}
+                     </div>
+                  </div>
+
+                  {/* 6. PI 3 MVP Readiness */}
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #e9d5ff", paddingBottom: "4px" }}>
+                      6 — PI 3 MVP Readiness
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                      <div style={{ backgroundColor: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "8px", padding: "12px 14px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#6b21a8", marginBottom: "4px" }}>MVP Batches in Scope</div>
+                        <div style={{ fontSize: "12px", color: "#374151" }}>
+                          <strong>B14, B15, B18, B19, B24, B25, B17, B16</strong> — Tax Computation, Provision, Advisory, Decision Support, and Audit Trail (TDC track, Jun–Sep 2026).
+                        </div>
+                      </div>
+                      <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "12px 14px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", marginBottom: "4px" }}>PI 3 Entry Gate</div>
+                        <div style={{ fontSize: "12px", color: "#374151" }}>
+                          <strong>B11 TDC</strong> (Learning Governance) must close <strong>Jun 22</strong> before PI 3 MVP work begins. B14 TDC starts Jun 23 — one-day transition window.
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {[
+                        { label: "PI 3 risk inheritance", detail: "PI 3 carries no risk from PI 2 stretch batches. B16/B24/B25 PDC are isolated and non-blocking.", ok: true },
+                        { label: "Tightest PI 3 handoff", detail: "B9 TDC → B10 TDC (Jun 2 → Jun 3). Zero buffer. Flag as watch item in sprint review.", ok: false },
+                        { label: "PI 3 close-out gate", detail: "B16 TDC (Audit Trail & Lineage Governance) closes Sep 11 — this is the PI 3 exit gate and PI 4 entry dependency.", ok: true },
+                        { label: "Committed PDC track", detail: "B12, B13, B20, B21, B22, B23 PDC run parallel to TDC MVP track. No PDC batch is on the TDC critical path.", ok: true },
+                      ].map((item, i) => (
+                        <div key={i} style={{ display: "flex", gap: "10px", backgroundColor: item.ok ? "#f0fdf4" : "#fffbeb", border: `1px solid ${item.ok ? "#bbf7d0" : "#fde68a"}`, borderRadius: "6px", padding: "8px 12px" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: item.ok ? "#166534" : "#92400e", minWidth: "180px" }}>{item.ok ? "✓" : "⚠"} {item.label}</span>
+                          <span style={{ fontSize: "11px", color: item.ok ? "#14532d" : "#78350f" }}>{item.detail}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
+
+                  {/* 7. PI 4 Committed Scope */}
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#b45309", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #fde68a", paddingBottom: "4px" }}>
+                      7 — PI 4 Committed Scope
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                      <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "12px 14px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", marginBottom: "4px" }}>Committed Batches</div>
+                        <div style={{ fontSize: "12px", color: "#374151" }}>
+                          <strong>B21 TDC</strong> — Quality Control Review Records (Sep 14–22, 2026). Single committed batch in PI 4 scope.
+                        </div>
+                      </div>
+                      <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "12px 14px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", marginBottom: "4px" }}>PI 4 Entry Gate</div>
+                        <div style={{ fontSize: "12px", color: "#374151" }}>
+                          <strong>B16 TDC</strong> (Audit Trail & Lineage Governance) must close <strong>Sep 11</strong> before PI 4 begins. B21 TDC starts Sep 14 — 3-day buffer.
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {[
+                        { label: "PI 4 scope is lean", detail: "Only 1 committed batch currently in PI 4. Confirm whether B22 TDC, B23 TDC, or additional governance batches are planned.", ok: false },
+                        { label: "Clean entry gate", detail: "B16 TDC → B21 TDC has a 3-day buffer (Sep 11 → Sep 14). This is the healthiest PI transition in the roadmap.", ok: true },
+                        { label: "No stretch or MVP in PI 4", detail: "PI 4 is committed-only. All stretch and MVP work is contained within PI 2 and PI 3 respectively.", ok: true },
+                      ].map((item, i) => (
+                        <div key={i} style={{ display: "flex", gap: "10px", backgroundColor: item.ok ? "#f0fdf4" : "#fffbeb", border: `1px solid ${item.ok ? "#bbf7d0" : "#fde68a"}`, borderRadius: "6px", padding: "8px 12px" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: item.ok ? "#166534" : "#92400e", minWidth: "180px" }}>{item.ok ? "✓" : "⚠"} {item.label}</span>
+                          <span style={{ fontSize: "11px", color: item.ok ? "#14532d" : "#78350f" }}>{item.detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               )}
             </div>
           );
         })()}
-
         {/* ── ROADMAP ANALYSIS ─────────────────────────────────────────────────── */}
         {(() => {
           const [showRoadmap, setShowRoadmap] = React.useState(false);
@@ -1774,7 +1931,7 @@ export default function BatchDeliveryCalendar() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
                 <thead>
                   <tr style={{ backgroundColor: "#f8fafc" }}>
-                    {["PI", "Batch", "System", "Name", "Start", "End", "Status", "Critical Path", "Depends On", "Notes", ""].map(h => (
+                    {["PI", "Batch", "System", "Name", "Start", "End", "Status", "Critical Path", "Blocking", "Blocked By", "Notes", ""].map(h => (
                       <th key={h} style={{
                         padding: "10px 12px", textAlign: "left",
                         fontSize: "10px", fontWeight: 700, color: "#94a3b8",
@@ -1885,9 +2042,39 @@ export default function BatchDeliveryCalendar() {
                             <span style={{ fontSize: "11px", color: "#cbd5e1" }}>—</span>
                           )}
                         </td>
-                        <td style={{ padding: "10px 12px", color: r._depConflict ? "#d97706" : "#64748b", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {r._depConflict && "⚠ "}{r.dependsOn || "—"}
-                        </td>
+                        {(() => {
+                          // Blocking: which batches depend on THIS batch
+                          const blockingList = validatedRows
+                            .filter(x => x.id !== r.id && x.dependsOn.split(",").map(d => d.trim()).includes(r.batch))
+                            .map(x => `${x.batch} (${x.system})`)
+                            .filter((v, i, a) => a.indexOf(v) === i);
+                          // Blocked By: which batches THIS batch depends on
+                          const blockedByList = r.dependsOn
+                            ? r.dependsOn.split(",").map(d => d.trim()).filter(Boolean)
+                            : [];
+                          return (
+                            <>
+                              <td style={{ padding: "10px 12px", maxWidth: "130px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {blockingList.length > 0 ? (
+                                  <span title={blockingList.join(", ")} style={{ fontSize: "11px", color: "#1e40af", fontWeight: 600, cursor: "help" }}>
+                                    {blockingList.slice(0, 2).join(", ")}{blockingList.length > 2 ? ` +${blockingList.length - 2}` : ""}
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: "11px", color: "#cbd5e1" }}>—</span>
+                                )}
+                              </td>
+                              <td style={{ padding: "10px 12px", maxWidth: "130px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {blockedByList.length > 0 ? (
+                                  <span title={blockedByList.join(", ")} style={{ fontSize: "11px", color: r._depConflict ? "#d97706" : "#64748b", cursor: "help" }}>
+                                    {r._depConflict && "⚠ "}{blockedByList.slice(0, 2).join(", ")}{blockedByList.length > 2 ? ` +${blockedByList.length - 2}` : ""}
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: "11px", color: "#cbd5e1" }}>—</span>
+                                )}
+                              </td>
+                            </>
+                          );
+                        })()}
                         <td style={{ padding: "10px 12px", color: "#94a3b8", maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.notes || "—"}</td>
                         <td style={{ padding: "10px 12px" }}>
                           <button
