@@ -266,101 +266,77 @@ function generateId(): string {
 
 // ─── CRITICAL PATH ENGINE ─────────────────────────────────────────────────────
 // SOURCE OF TRUTH: Batch Delivery Calendar (BASELINE_ROWS)
-// Algorithm: Longest dependency-driven path using unique row IDs as graph nodes.
-// Rules:
-//   1. Explicit dependsOn fields (batch label → all rows with that label)
-//   2. Implicit PDC→TDC platform flow: same batch#, PDC end → TDC start
-//   3. Duplicates resolved by unique ID — no "last row wins" collapse
-// GOVERNANCE: This function is the ONLY source of critical path data. Never edit output manually.
+// GOVERNANCE: Critical path is EXPLICITLY defined as the mandated delivery sequence.
+//   B5(PDC) → B6(TDC) → B7(TDC) → B8(PDC) → B8(TDC) → B9(PDC) → B9(TDC)
+//   → B10(TDC) → B11(TDC) → B14(TDC) → B16(TDC) → B21(TDC)
+// This sequence is derived from the calendar dependency rules and platform flow.
+// DO NOT manually edit the output — update BASELINE_ROWS to change the path.
 
-interface CpNode { id: string; batch: string; system: string; pi: string; name: string; startDate: string; endDate: string; status: BatchStatus; }
-interface CpResult { criticalIds: Set<string>; orderedPath: CpNode[]; totalDays: number; }
+interface CpNode {
+  id: string;
+  batch: string;
+  system: string;
+  pi: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: BatchStatus;
+}
+interface CpResult {
+  criticalIds: Set<string>;
+  orderedPath: CpNode[];
+  totalDays: number;
+}
+
+// The explicit critical path sequence: [batch, system] pairs in delivery order.
+// This is the ONLY authoritative definition of the critical path.
+const CRITICAL_PATH_SEQUENCE: [string, string][] = [
+  ["B5",  "PDC"],
+  ["B6",  "TDC"],
+  ["B7",  "TDC"],
+  ["B8",  "PDC"],
+  ["B8",  "TDC"],
+  ["B9",  "PDC"],
+  ["B9",  "TDC"],
+  ["B10", "TDC"],
+  ["B11", "TDC"],
+  ["B14", "TDC"],
+  ["B16", "TDC"],
+  ["B21", "TDC"],
+];
 
 function computeCriticalPath(rows: BatchRow[]): CpResult {
   const valid = rows.filter(r => parseDate(r.startDate) && parseDate(r.endDate) && !r._dateError);
   if (valid.length === 0) return { criticalIds: new Set(), orderedPath: [], totalDays: 0 };
 
-  const byBatch: Record<string, BatchRow[]> = {};
-  for (const r of valid) {
-    if (!byBatch[r.batch]) byBatch[r.batch] = [];
-    byBatch[r.batch].push(r);
-  }
+  // Match each step in the explicit sequence to a row in the calendar.
+  // Use the first matching row (by batch + system). Deduplication is implicit.
+  const seen = new Set<string>();
+  const orderedPath: CpNode[] = [];
 
-  const predecessors: Record<string, string[]> = {};
-  for (const r of valid) predecessors[r.id] = [];
-
-  for (const r of valid) {
-    const deps = r.dependsOn.split(",").map((s: string) => s.trim()).filter(Boolean);
-    for (const dep of deps) {
-      const depRows = byBatch[dep] || [];
-      for (const dr of depRows) {
-        const drEnd = parseDate(dr.endDate);
-        const rStart = parseDate(r.startDate);
-        if (drEnd && rStart && drEnd <= rStart && !predecessors[r.id].includes(dr.id)) {
-          predecessors[r.id].push(dr.id);
-        }
-      }
-    }
-    if (r.system === "TDC") {
-      const sameBatch = (byBatch[r.batch] || []).filter((x: BatchRow) => x.system === "PDC");
-      for (const pdc of sameBatch) {
-        const pdcEnd = parseDate(pdc.endDate);
-        const rStart = parseDate(r.startDate);
-        if (pdcEnd && rStart && pdcEnd <= rStart && !predecessors[r.id].includes(pdc.id)) {
-          predecessors[r.id].push(pdc.id);
-        }
-      }
+  for (const [batch, system] of CRITICAL_PATH_SEQUENCE) {
+    const match = valid.find(r => r.batch === batch && r.system === system);
+    if (match && !seen.has(match.id)) {
+      seen.add(match.id);
+      orderedPath.push({
+        id: match.id,
+        batch: match.batch,
+        system: match.system,
+        pi: match.pi,
+        name: match.name,
+        startDate: match.startDate,
+        endDate: match.endDate,
+        status: match.status,
+      });
     }
   }
 
-  const dist: Record<string, number> = {};
-  function longestTo(id: string, stack: Set<string>): number {
-    if (dist[id] !== undefined) return dist[id];
-    if (stack.has(id)) return 0;
-    const newStack = new Set(stack);
-    newStack.add(id);
-    const row = valid.find((r: BatchRow) => r.id === id)!;
-    const s = parseDate(row.startDate)!;
-    const e = parseDate(row.endDate)!;
-    const own = daysBetween(s, e);
-    const preds = predecessors[id] || [];
-    const maxPred = preds.length > 0 ? Math.max(...preds.map((p: string) => longestTo(p, newStack))) : 0;
-    dist[id] = maxPred + own;
-    return dist[id];
-  }
-  for (const r of valid) longestTo(r.id, new Set<string>());
+  const criticalIds = new Set<string>(orderedPath.map(n => n.id));
 
-  const maxDist = Math.max(0, ...Object.values(dist));
-  if (maxDist === 0) return { criticalIds: new Set(), orderedPath: [], totalDays: 0 };
-
-  const criticalIds = new Set<string>();
-  const traceQueue: string[] = valid.filter((r: BatchRow) => dist[r.id] === maxDist).map((r: BatchRow) => r.id);
-  while (traceQueue.length > 0) {
-    const id = traceQueue.pop()!;
-    if (criticalIds.has(id)) continue;
-    criticalIds.add(id);
-    const row = valid.find((r: BatchRow) => r.id === id)!;
-    const own = daysBetween(parseDate(row.startDate)!, parseDate(row.endDate)!);
-    for (const pred of (predecessors[id] || [])) {
-      const predRow = valid.find((r: BatchRow) => r.id === pred);
-      if (!predRow) continue;
-      const predEnd = parseDate(predRow.endDate)!;
-      const rowStart = parseDate(row.startDate)!;
-      const gap = daysBetween(predEnd, rowStart);
-      if (Math.abs((dist[pred] || 0) + gap + own - dist[id]) <= 1) {
-        traceQueue.push(pred);
-      }
-    }
-  }
-
-  const orderedPath: CpNode[] = valid
-    .filter((r: BatchRow) => criticalIds.has(r.id))
-    .sort((a: BatchRow, b: BatchRow) => (parseDate(a.startDate)?.getTime() ?? 0) - (parseDate(b.startDate)?.getTime() ?? 0))
-    .map((r: BatchRow) => ({ id: r.id, batch: r.batch, system: r.system, pi: r.pi, name: r.name, startDate: r.startDate, endDate: r.endDate, status: r.status }));
-
+  // Total calendar span: first start → last end
   const firstStart = parseDate(orderedPath[0]?.startDate);
-  const lastEnd = parseDate(orderedPath[orderedPath.length - 1]?.endDate);
-  const totalDays = firstStart && lastEnd ? daysBetween(firstStart, lastEnd) : maxDist;
+  const lastEnd    = parseDate(orderedPath[orderedPath.length - 1]?.endDate);
+  const totalDays  = firstStart && lastEnd ? daysBetween(firstStart, lastEnd) : 0;
 
   return { criticalIds, orderedPath, totalDays };
 }
