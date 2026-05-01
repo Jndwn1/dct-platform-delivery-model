@@ -1255,6 +1255,9 @@ export default function BatchDeliveryCalendar() {
   const [shiftOffer, setShiftOffer] = useState<{ batchId: string; delta: number; affected: string[] } | null>(null);
   const [resetConfirm, setResetConfirm] = useState(false);
   const [piFilter, setPiFilter] = useState<string>("All"); // "All" | "PI 1" | "PI 2" | "PI 3" | "PI 4"
+  const [showExec, setShowExec] = useState(false);
+  const [showRoadmap, setShowRoadmap] = useState(false);
+  const [copiedExec, setCopiedExec] = useState(false);
 
 
 
@@ -1960,7 +1963,6 @@ export default function BatchDeliveryCalendar() {
         </div>
         {/* ── PO EXECUTIVE SUMMARY ─────────────────────────────────────────────── */}
         {(() => {
-          const [showExec, setShowExec] = React.useState(false);
           const pi2InFlight = validatedRows.filter(r => r.pi === "PI 2" && r.status === "Committed").map(r => r.batch);
           const uniqueInFlight = pi2InFlight.filter((v, i, a) => a.indexOf(v) === i).join(", ");
           return (
@@ -2052,26 +2054,32 @@ export default function BatchDeliveryCalendar() {
                         "END OF SUMMARY",
                       ].join("\n");
                       navigator.clipboard.writeText(text).then(() => {
-                        const btn = e.currentTarget as HTMLButtonElement;
-                        btn.textContent = "✓ Copied!";
-                        btn.style.backgroundColor = "#dcfce7";
-                        btn.style.color = "#166534";
-                        btn.style.borderColor = "#bbf7d0";
-                        setTimeout(() => {
-                          btn.textContent = "⬆ Copy as Text";
-                          btn.style.backgroundColor = "white";
-                          btn.style.color = "#1e40af";
-                          btn.style.borderColor = "#bfdbfe";
-                        }, 2500);
+                        setCopiedExec(true);
+                        setTimeout(() => setCopiedExec(false), 2500);
+                      }).catch(() => {
+                        // Fallback: try execCommand
+                        const ta = document.createElement("textarea");
+                        ta.value = text;
+                        ta.style.position = "fixed";
+                        ta.style.opacity = "0";
+                        document.body.appendChild(ta);
+                        ta.focus();
+                        ta.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(ta);
+                        setCopiedExec(true);
+                        setTimeout(() => setCopiedExec(false), 2500);
                       });
                     }}
                     style={{
-                      fontSize: "11px", fontWeight: 600, color: "#1e40af",
-                      backgroundColor: "white", border: "1px solid #bfdbfe",
+                      fontSize: "11px", fontWeight: 600,
+                      color: copiedExec ? "#166534" : "#1e40af",
+                      backgroundColor: copiedExec ? "#dcfce7" : "white",
+                      border: copiedExec ? "1px solid #bbf7d0" : "1px solid #bfdbfe",
                       borderRadius: "6px", padding: "5px 12px", cursor: "pointer",
                       transition: "all 0.2s",
                     }}
-                  >⬆ Copy as Text</button>
+                  >{copiedExec ? "✓ Copied!" : "⬆ Copy as Text"}</button>
                   <span style={{ fontSize: "12px", color: "#94a3b8" }}>{showExec ? "▲ Collapse" : "▼ Expand"}</span>
                 </div>
               </div>
@@ -2243,7 +2251,6 @@ export default function BatchDeliveryCalendar() {
         })()}
         {/* ── ROADMAP ANALYSIS ─────────────────────────────────────────────────── */}
         {(() => {
-          const [showRoadmap, setShowRoadmap] = React.useState(false);
           return (
             <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", marginBottom: "24px", overflow: "hidden" }}>
               <button
