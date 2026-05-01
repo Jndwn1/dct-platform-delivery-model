@@ -52,6 +52,25 @@ const PI_GROUPS = [
   },
 ];
 
+// ─── DETAIL ROUTE MAP (dctData ID → /batch/:id param) ──────────────────────
+// Maps AB-style IDs used in allBatches to the route param accepted by BatchDetailPage
+
+const DETAIL_ROUTE_MAP: Record<string, string> = {
+  "FC-00":  "fc",
+  "AB-01":  "1",
+  "AB-02":  "2",
+  "AB-02A": "2a",
+  "AB-03":  "3",
+  "AB-04":  "4",
+  "AB-05":  "5",
+  "AB-06":  "6",
+  "AB-07":  "7",
+  "AB-08":  "8",
+  "AB-09":  "9",
+  "AB-10":  "10",
+  "AB-11":  "11",
+};
+
 // ─── BATCH PARAM MAP ─────────────────────────────────────────────────────────
 
 const BATCH_PARAM_MAP: Record<string, string> = {
@@ -145,10 +164,11 @@ function TimelineStrip({ batches }: { batches: typeof allBatches }) {
 
 // ─── BATCH CARD (condensed) ───────────────────────────────────────────────────
 
-function BatchCard({ batch, isExpanded, onToggle }: {
+function BatchCard({ batch, isExpanded, onToggle, detailPath }: {
   batch: typeof allBatches[0];
   isExpanded: boolean;
   onToggle: () => void;
+  detailPath: string | null;
 }) {
   const cfg = STATUS_CFG[batch.status] || STATUS_CFG.PLANNED;
   const StatusIcon = cfg.icon;
@@ -226,8 +246,23 @@ function BatchCard({ batch, isExpanded, onToggle }: {
           </div>
         </div>
 
-        {/* Expand icon */}
-        <div style={{ flexShrink: 0 }}>
+        {/* Expand icon + detail link */}
+        <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+          {detailPath && (
+            <Link href={detailPath}>
+              <span
+                onClick={e => e.stopPropagation()}
+                style={{
+                  fontSize: "10px", fontWeight: 700, color: "#2563eb",
+                  backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+                  borderRadius: "4px", padding: "2px 7px", cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Detail →
+              </span>
+            </Link>
+          )}
           {isExpanded
             ? <ChevronDown style={{ width: "14px", height: "14px", color: "#94a3b8" }} />
             : <ChevronRight style={{ width: "14px", height: "14px", color: "#94a3b8" }} />
@@ -299,6 +334,24 @@ function BatchCard({ batch, isExpanded, onToggle }: {
                   </span>
                 )}
               </div>
+
+              {/* View Full Detail link */}
+              {detailPath && (
+                <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "10px", display: "flex", justifyContent: "flex-end" }}>
+                  <Link href={detailPath}>
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", gap: "5px",
+                      fontSize: "11px", fontWeight: 700, color: "#1e40af",
+                      backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+                      borderRadius: "6px", padding: "5px 12px", cursor: "pointer",
+                      transition: "background 0.15s",
+                    }}>
+                      View Full PO Walkthrough
+                      <ArrowRight style={{ width: "11px", height: "11px" }} />
+                    </span>
+                  </Link>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -438,6 +491,7 @@ export default function BatchRoadmap() {
             batch={batch}
             isExpanded={expanded === batch.id}
             onToggle={() => toggle(batch.id)}
+            detailPath={DETAIL_ROUTE_MAP[batch.id] ? `/batch/${DETAIL_ROUTE_MAP[batch.id]}` : null}
           />
         ))}
       </div>
