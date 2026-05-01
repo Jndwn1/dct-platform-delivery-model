@@ -7,10 +7,11 @@
 // Clean, calm, RSM-branded. Understandable in under 60 seconds.
 
 import React, { useState, useMemo, useRef, useCallback } from "react";
+import * as XLSX from "xlsx";
 import {
   AlertTriangle, Calendar, Download, RotateCcw, Plus, Trash2,
   CheckCircle2, Clock, AlertCircle, Printer, ChevronDown, ChevronRight,
-  Info, Eye, EyeOff, Copy,
+  Info, Eye, EyeOff, Copy, Upload, X as XIcon,
 } from "lucide-react";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -851,7 +852,418 @@ function GanttChart({ rows, showDeps, showCriticalPath, criticalPath, piFilter =
   );
 }
 
-// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
+
+
+// ─── UPLOAD & ANALYZE MODAL ───────────────────────────────────────────────────
+
+type UploadedRow = {
+  pi: string;
+  status: string;
+  batch: string;
+  system: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+};
+
+type DiffItem = {
+  type: "added" | "removed" | "changed" | "unchanged";
+  batch: string;
+  system: string;
+  name: string;
+  pi: string;
+  changes: { field: string; from: string; to: string }[];
+};
+
+function normalizeHeader(h: string): string {
+  return h.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function parseUploadedRows(data: Record<string, string>[]): UploadedRow[] {
+  return data.map(row => {
+    const keys = Object.keys(row).reduce<Record<string, string>>((acc, k) => {
+      acc[normalizeHeader(k)] = String(row[k] ?? "");
+      return acc;
+    }, {});
+    const pi = keys["pi"] || keys["pigroup"] || keys["piname"] || "";
+    const status = keys["status"] || keys["deliverystatus"] || "";
+    const batch = keys["newbatch"] || keys["batchnew"] || keys["new"] || keys["batch"] || keys["batchnumber"] || keys["batchno"] || "";
+    const system = keys["feat"] || keys["platform"] || keys["system"] || keys["pdctdc"] || "";
+    const name = keys["name"] || keys["featurename"] || keys["batchname"] || keys["description"] || "";
+    const startDate = keys["start"] || keys["startdate"] || keys["startdt"] || "";
+    const endDate = keys["end"] || keys["enddate"] || keys["enddt"] || "";
+    return { pi, status, batch, system, name, startDate, endDate };
+  }).filter(r => r.batch || r.name);
+}
+
+function computeCalendarDiff(baseline: BatchRow[], uploaded: UploadedRow[]): DiffItem[] {
+  const result: DiffItem[] = [];
+  const baseMap = new Map<string, BatchRow>();
+  baseline.forEach(r => { baseMap.set(`${r.batch}|${r.system}`, r); });
+  const uploadMap = new Map<string, UploadedRow>();
+  uploaded.forEach(r => { uploadMap.set(`${r.batch}|${r.system}`, r); });
+
+  uploaded.forEach(u => {
+    const key = `${u.batch}|${u.system}`;
+    const base = baseMap.get(key);
+    if (!base) {
+      result.push({ type: "added", batch: u.batch, system: u.system, name: u.name, pi: u.pi, changes: [] });
+    } else {
+      const changes: { field: string; from: string; to: string }[] = [];
+      if (u.status && u.status !== base.status) changes.push({ field: "Status", from: base.status, to: u.status });
+      if (u.startDate && u.startDate !== base.startDate) changes.push({ field: "Start Date", from: base.startDate || "—", to: u.startDate });
+      if (u.endDate && u.endDate !== base.endDate) changes.push({ field: "End Date", from: base.endDate || "—", to: u.endDate });
+      if (u.pi && u.pi !== base.pi) changes.push({ field: "PI", from: base.pi, to: u.pi });
+      if (u.name && u.name !== base.name) changes.push({ field: "Name", from: base.name, to: u.name });
+      result.push({ type: changes.length > 0 ? "changed" : "unchanged", batch: u.batch, system: u.system, name: u.name || base.name, pi: u.pi || base.pi, changes });
+    }
+  });
+
+  baseline.forEach(b => {
+    if (!uploadMap.has(`${b.batch}|${b.system}`)) {
+      result.push({ type: "removed", batch: b.batch, system: b.system, name: b.name, pi: b.pi, changes: [] });
+    }
+  });
+
+  return result;
+}
+
+function UploadAnalyzeModal({ baselineRows, onClose }: { baselineRows: BatchRow[]; onClose: () => void }) {
+  const [phase, setPhase] = React.useState<"idle" | "parsing" | "done" | "error">("idle");
+  const [fileName, setFileName] = React.useState("");
+  const [diff, setDiff] = React.useState<DiffItem[]>([]);
+  const [errorMsg, setErrorMsg] = React.useState("");
+  const [uploadedRows, setUploadedRows] = React.useState<UploadedRow[]>([]);
+  const [activeTab, setActiveTab] = React.useState<"summary" | "added" | "removed" | "changed" | "raw">("summary");
+  const fileRef = React.useRef<HTMLInputElement>(null);
+  const [copied, setCopied] = React.useState(false);
+
+  const handleFile = React.useCallback((file: File) => {
+    setFileName(file.name);
+    setPhase("parsing");
+    setErrorMsg("");
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        let rows: Record<string, string>[] = [];
+
+        if (file.name.match(/\.xlsx?$/i)) {
+          const wb = XLSX.read(data as ArrayBuffer, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: "" });
+        } else if (file.name.endsWith(".csv") || file.type === "text/csv") {
+          const wb = XLSX.read(data as string, { type: "string" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: "" });
+        } else if (file.type.startsWith("image/")) {
+          setErrorMsg("Image files cannot be parsed automatically. Please export your calendar as Excel (.xlsx) or CSV and upload that instead.");
+          setPhase("error");
+          return;
+        } else {
+          setErrorMsg("Unsupported file type. Please upload an Excel (.xlsx) or CSV (.csv) file.");
+          setPhase("error");
+          return;
+        }
+
+        const parsed = parseUploadedRows(rows);
+        if (parsed.length === 0) {
+          setErrorMsg("No batch rows found. Ensure your file has columns: PI, Status, Batch #, Platform, Name, Start, End.");
+          setPhase("error");
+          return;
+        }
+        const diffResult = computeCalendarDiff(baselineRows, parsed);
+        setUploadedRows(parsed);
+        setDiff(diffResult);
+        setPhase("done");
+        setActiveTab("summary");
+      } catch (err) {
+        setErrorMsg("Failed to parse file: " + String(err));
+        setPhase("error");
+      }
+    };
+
+    if (file.name.endsWith(".csv") || file.type === "text/csv") {
+      reader.readAsText(file);
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
+  }, [baselineRows]);
+
+  const handleDrop = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  }, [handleFile]);
+
+  const added = diff.filter(d => d.type === "added");
+  const removed = diff.filter(d => d.type === "removed");
+  const changed = diff.filter(d => d.type === "changed");
+  const unchanged = diff.filter(d => d.type === "unchanged");
+
+  const copyAnalysis = () => {
+    const lines = [
+      "DCT PLATFORM \u2014 BATCH CALENDAR UPLOAD ANALYSIS",
+      `File: ${fileName}`,
+      `Analyzed: ${new Date().toLocaleString()}`,
+      "\u2550".repeat(60),
+      "",
+      "SUMMARY",
+      `  Uploaded rows: ${uploadedRows.length}`,
+      `  Baseline rows: ${baselineRows.length}`,
+      `  Added (new): ${added.length}`,
+      `  Removed: ${removed.length}`,
+      `  Changed: ${changed.length}`,
+      `  Unchanged: ${unchanged.length}`,
+      "",
+    ];
+    if (added.length > 0) {
+      lines.push("ADDED BATCHES");
+      added.forEach(d => lines.push(`  + ${d.batch} (${d.system}) \u2014 ${d.name} [${d.pi}]`));
+      lines.push("");
+    }
+    if (removed.length > 0) {
+      lines.push("REMOVED BATCHES");
+      removed.forEach(d => lines.push(`  - ${d.batch} (${d.system}) \u2014 ${d.name} [${d.pi}]`));
+      lines.push("");
+    }
+    if (changed.length > 0) {
+      lines.push("CHANGED BATCHES");
+      changed.forEach(d => {
+        lines.push(`  ~ ${d.batch} (${d.system}) \u2014 ${d.name}`);
+        d.changes.forEach(c => lines.push(`      ${c.field}: "${c.from}" \u2192 "${c.to}"`));
+      });
+    }
+    navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
+
+  const TABS: { id: "summary" | "added" | "removed" | "changed" | "raw"; label: string; color?: string }[] = [
+    { id: "summary", label: "Summary" },
+    { id: "added", label: `Added (${added.length})`, color: "#166534" },
+    { id: "removed", label: `Removed (${removed.length})`, color: "#991b1b" },
+    { id: "changed", label: `Changed (${changed.length})`, color: "#92400e" },
+    { id: "raw", label: `All Rows (${uploadedRows.length})` },
+  ];
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.65)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ backgroundColor: "white", borderRadius: "16px", width: "100%", maxWidth: "860px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 25px 60px rgba(0,0,0,0.25)" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #e2e8f0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ width: "3px", height: "18px", backgroundColor: "#7c3aed", borderRadius: "2px" }} />
+            <span style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>Upload & Analyze Calendar</span>
+            <span style={{ fontSize: "11px", color: "#94a3b8" }}>— compare against current baseline</span>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: "4px", fontSize: "18px", lineHeight: 1 }}>
+            &times;
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
+          {phase === "idle" && (
+            <div
+              onDrop={handleDrop}
+              onDragOver={e => e.preventDefault()}
+              onClick={() => fileRef.current?.click()}
+              style={{ border: "2px dashed #c4b5fd", borderRadius: "12px", padding: "48px 24px", textAlign: "center", cursor: "pointer", backgroundColor: "#faf5ff" }}
+            >
+              <Upload size={32} style={{ color: "#7c3aed", margin: "0 auto 12px", display: "block" }} />
+              <p style={{ fontSize: "14px", fontWeight: 600, color: "#4c1d95", margin: "0 0 6px" }}>Drop your calendar file here, or click to browse</p>
+              <p style={{ fontSize: "12px", color: "#7c3aed", margin: 0 }}>Accepts Excel (.xlsx), CSV (.csv)</p>
+              <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "8px" }}>Expected columns: PI &middot; Status &middot; Batch # &middot; Platform (PDC/TDC) &middot; Name &middot; Start Date &middot; End Date</p>
+              <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+            </div>
+          )}
+
+          {phase === "parsing" && (
+            <div style={{ textAlign: "center", padding: "48px" }}>
+              <div style={{ fontSize: "13px", color: "#7c3aed", fontWeight: 600 }}>Parsing {fileName}&hellip;</div>
+            </div>
+          )}
+
+          {phase === "error" && (
+            <div style={{ backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "20px 24px" }}>
+              <p style={{ fontSize: "13px", fontWeight: 700, color: "#991b1b", margin: "0 0 6px" }}>&nbsp;&#9888; Parse Error</p>
+              <p style={{ fontSize: "12px", color: "#7f1d1d", margin: 0 }}>{errorMsg}</p>
+              <button onClick={() => { setPhase("idle"); setErrorMsg(""); }} style={{ marginTop: "12px", fontSize: "11px", fontWeight: 600, color: "#1e40af", border: "1px solid #bfdbfe", borderRadius: "6px", padding: "5px 12px", backgroundColor: "white", cursor: "pointer" }}>Try Again</button>
+            </div>
+          )}
+
+          {phase === "done" && (
+            <div>
+              {/* File info bar */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "10px 14px" }}>
+                <span style={{ fontSize: "12px", color: "#374151" }}>
+                  <strong>{fileName}</strong> &mdash; {uploadedRows.length} rows parsed &middot; compared against {baselineRows.length} baseline rows
+                </span>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button onClick={copyAnalysis} style={{ fontSize: "11px", fontWeight: 600, color: copied ? "#166534" : "#1e40af", border: `1px solid ${copied ? "#bbf7d0" : "#bfdbfe"}`, borderRadius: "6px", padding: "4px 10px", backgroundColor: copied ? "#f0fdf4" : "white", cursor: "pointer" }}>
+                    {copied ? "✓ Copied!" : "⬆ Copy Analysis"}
+                  </button>
+                  <button onClick={() => { setPhase("idle"); setDiff([]); setFileName(""); }} style={{ fontSize: "11px", color: "#64748b", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 10px", backgroundColor: "white", cursor: "pointer" }}>
+                    Upload New File
+                  </button>
+                </div>
+              </div>
+
+              {/* Summary tiles */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "20px" }}>
+                {[
+                  { label: "Added", count: added.length, color: "#166534", bg: "#f0fdf4", border: "#bbf7d0" },
+                  { label: "Removed", count: removed.length, color: "#991b1b", bg: "#fef2f2", border: "#fecaca" },
+                  { label: "Changed", count: changed.length, color: "#92400e", bg: "#fffbeb", border: "#fde68a" },
+                  { label: "Unchanged", count: unchanged.length, color: "#374151", bg: "#f8fafc", border: "#e2e8f0" },
+                ].map(t => (
+                  <div key={t.label} style={{ backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "12px 14px", textAlign: "center" }}>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: t.color }}>{t.count}</div>
+                    <div style={{ fontSize: "11px", color: t.color, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tabs */}
+              <div style={{ display: "flex", gap: "4px", marginBottom: "14px", borderBottom: "1px solid #e2e8f0" }}>
+                {TABS.map(tab => (
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ fontSize: "11px", fontWeight: activeTab === tab.id ? 700 : 500, color: activeTab === tab.id ? (tab.color || "#1e40af") : "#64748b", border: "none", background: "none", cursor: "pointer", padding: "6px 12px", borderBottom: activeTab === tab.id ? `2px solid ${tab.color || "#1e40af"}` : "2px solid transparent" }}>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab: Summary */}
+              {activeTab === "summary" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {added.length === 0 && removed.length === 0 && changed.length === 0 && (
+                    <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "14px 16px", fontSize: "13px", color: "#166534", fontWeight: 600 }}>
+                      &#10003; No differences found &mdash; uploaded calendar matches the current baseline exactly.
+                    </div>
+                  )}
+                  {added.length > 0 && (
+                    <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px 14px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#166534", marginBottom: "6px" }}>&#10010; {added.length} New Batch{added.length > 1 ? "es" : ""} in Uploaded File</div>
+                      {added.map((d, i) => <div key={i} style={{ fontSize: "11px", color: "#14532d", padding: "2px 0" }}>{d.batch} ({d.system}) &mdash; {d.name} [{d.pi}]</div>)}
+                    </div>
+                  )}
+                  {removed.length > 0 && (
+                    <div style={{ backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "12px 14px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", marginBottom: "6px" }}>&#10006; {removed.length} Batch{removed.length > 1 ? "es" : ""} in Baseline Not Found in Upload</div>
+                      {removed.map((d, i) => <div key={i} style={{ fontSize: "11px", color: "#7f1d1d", padding: "2px 0" }}>{d.batch} ({d.system}) &mdash; {d.name} [{d.pi}]</div>)}
+                    </div>
+                  )}
+                  {changed.length > 0 && (
+                    <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "12px 14px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", marginBottom: "6px" }}>~ {changed.length} Batch{changed.length > 1 ? "es" : ""} with Changes</div>
+                      {changed.map((d, i) => (
+                        <div key={i} style={{ fontSize: "11px", color: "#78350f", padding: "3px 0", borderBottom: i < changed.length - 1 ? "1px solid #fde68a" : "none" }}>
+                          <strong>{d.batch} ({d.system})</strong> &mdash; {d.name}
+                          {d.changes.map((c, j) => (
+                            <span key={j} style={{ marginLeft: "8px", color: "#92400e" }}>
+                              {c.field}: <span style={{ textDecoration: "line-through", color: "#b45309" }}>{c.from}</span> &rarr; <strong>{c.to}</strong>
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab: Added */}
+              {activeTab === "added" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {added.length === 0 ? <p style={{ fontSize: "12px", color: "#94a3b8" }}>No new batches found.</p> :
+                    added.map((d, i) => (
+                      <div key={i} style={{ display: "flex", gap: "10px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px", padding: "8px 12px", alignItems: "center" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 700, color: "#166534", minWidth: "80px" }}>&#10010; {d.batch}</span>
+                        <span style={{ fontSize: "11px", color: "#374151", minWidth: "50px" }}>{d.system}</span>
+                        <span style={{ fontSize: "11px", color: "#374151", flex: 1 }}>{d.name}</span>
+                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>{d.pi}</span>
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
+
+              {/* Tab: Removed */}
+              {activeTab === "removed" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {removed.length === 0 ? <p style={{ fontSize: "12px", color: "#94a3b8" }}>No removed batches.</p> :
+                    removed.map((d, i) => (
+                      <div key={i} style={{ display: "flex", gap: "10px", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", padding: "8px 12px", alignItems: "center" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", minWidth: "80px" }}>&#10006; {d.batch}</span>
+                        <span style={{ fontSize: "11px", color: "#374151", minWidth: "50px" }}>{d.system}</span>
+                        <span style={{ fontSize: "11px", color: "#374151", flex: 1 }}>{d.name}</span>
+                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>{d.pi}</span>
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
+
+              {/* Tab: Changed */}
+              {activeTab === "changed" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {changed.length === 0 ? <p style={{ fontSize: "12px", color: "#94a3b8" }}>No changed batches.</p> :
+                    changed.map((d, i) => (
+                      <div key={i} style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "10px 14px" }}>
+                        <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400e", marginBottom: "6px" }}>~ {d.batch} ({d.system}) &mdash; {d.name}</div>
+                        {d.changes.map((c, j) => (
+                          <div key={j} style={{ display: "flex", gap: "8px", fontSize: "11px", color: "#78350f", padding: "2px 0" }}>
+                            <span style={{ minWidth: "90px", fontWeight: 600 }}>{c.field}:</span>
+                            <span style={{ textDecoration: "line-through", color: "#b45309" }}>{c.from}</span>
+                            <span>&rarr;</span>
+                            <strong>{c.to}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
+
+              {/* Tab: Raw */}
+              {activeTab === "raw" && (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
+                    <thead>
+                      <tr style={{ backgroundColor: "#f1f5f9" }}>
+                        {["PI", "Status", "Batch", "Platform", "Name", "Start", "End"].map(h => (
+                          <th key={h} style={{ padding: "6px 10px", textAlign: "left", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e2e8f0", whiteSpace: "nowrap" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {uploadedRows.map((r, i) => (
+                        <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                          <td style={{ padding: "5px 10px", color: "#374151" }}>{r.pi}</td>
+                          <td style={{ padding: "5px 10px", color: "#374151" }}>{r.status}</td>
+                          <td style={{ padding: "5px 10px", fontWeight: 600, color: "#1e40af" }}>{r.batch}</td>
+                          <td style={{ padding: "5px 10px", color: "#374151" }}>{r.system}</td>
+                          <td style={{ padding: "5px 10px", color: "#374151", maxWidth: "220px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</td>
+                          <td style={{ padding: "5px 10px", color: "#374151", whiteSpace: "nowrap" }}>{r.startDate}</td>
+                          <td style={{ padding: "5px 10px", color: "#374151", whiteSpace: "nowrap" }}>{r.endDate}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BatchDeliveryCalendar() {
   const [rows, setRows] = useState<BatchRow[]>(() => BASELINE_ROWS.map(r => ({ ...r })));
@@ -862,6 +1274,7 @@ export default function BatchDeliveryCalendar() {
   const [showTable, setShowTable] = useState(false);
   const [showRiskDetail, setShowRiskDetail] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
   const [shiftOffer, setShiftOffer] = useState<{ batchId: string; delta: number; affected: string[] } | null>(null);
   const [resetConfirm, setResetConfirm] = useState(false);
   const [piFilter, setPiFilter] = useState<string>("All"); // "All" | "PI 1" | "PI 2" | "PI 3" | "PI 4"
@@ -1291,6 +1704,18 @@ export default function BatchDeliveryCalendar() {
               }}
             >
               <Copy size={12} /> Copy Page
+            </button>
+            <button
+              onClick={() => setShowUpload(true)}
+              style={{
+                fontSize: "11px", fontWeight: 600, color: "#7c3aed",
+                border: "1px solid #e9d5ff", borderRadius: "7px",
+                padding: "6px 10px", backgroundColor: "white", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "5px",
+                transition: "all 0.2s",
+              }}
+            >
+              <Upload size={12} /> Upload & Analyze
             </button>
 
             <button onClick={() => window.print()} style={{
@@ -2262,6 +2687,14 @@ export default function BatchDeliveryCalendar() {
           </div>
         </div>
       )}
+
+        {/* ── UPLOAD & ANALYZE MODAL ──────────────────────────────────────────── */}
+        {showUpload && (
+          <UploadAnalyzeModal
+            baselineRows={BASELINE_ROWS}
+            onClose={() => setShowUpload(false)}
+          />
+        )}
     </div>
   );
 }
