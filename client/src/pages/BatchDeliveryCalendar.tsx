@@ -1834,6 +1834,67 @@ export default function BatchDeliveryCalendar() {
           );
         })()}
 
+        {/* ── DELIVERY HEADLINES, COUNTS & FOOTNOTES ────────────────────────── */}
+        <div style={{
+          backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px",
+          padding: "20px 24px", marginBottom: "24px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+            <div style={{ width: "3px", height: "16px", backgroundColor: "#1e40af", borderRadius: "2px" }} />
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Delivery Headlines &amp; Counts
+            </span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            {/* Headlines */}
+            <div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px", borderBottom: "1px solid #dbeafe", paddingBottom: "4px" }}>
+                Key Milestones
+              </div>
+              {[
+                { label: "Provision delivered (B19)", date: "Mon 8/3" },
+                { label: "Advisory delivered (B25 TDC)", date: "Fri 8/21" },
+                { label: "MVP-required complete (B16 TDC close)", date: "Fri 9/11 — 3 BD before 9/16" },
+                { label: "Program last close", date: "Tue 9/22" },
+              ].map((h, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "5px 0", borderBottom: "1px solid #f1f5f9" }}>
+                  <span style={{ fontSize: "12px", color: "#374151" }}>{h.label}</span>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#1e40af", whiteSpace: "nowrap", marginLeft: "12px" }}>{h.date}</span>
+                </div>
+              ))}
+            </div>
+            {/* Counts */}
+            <div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px", borderBottom: "1px solid #dbeafe", paddingBottom: "4px" }}>
+                Status Counts
+              </div>
+              {[
+                { status: "Done", count: "1", detail: "Batch 4", color: "#059669", bg: "#dcfce7" },
+                { status: "Committed", count: "18", detail: "PI 2 + PI 3 + PI 4 non-MVP-gating work", color: "#1e40af", bg: "#dbeafe" },
+                { status: "Stretch", count: "3", detail: "PI 2 PDC ladder (B16 PDC committed; B24/B25 PDC opportunistic)", color: "#ea580c", bg: "#ffedd5" },
+                { status: "MVP", count: "8", detail: "TDC critical path through cross-LOB Audit deliverable", color: "#7c3aed", bg: "#ede9fe" },
+              ].map((c, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "5px 0", borderBottom: "1px solid #f1f5f9" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: c.color, backgroundColor: c.bg, padding: "2px 8px", borderRadius: "4px", minWidth: "72px", textAlign: "center" }}>{c.status}</span>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", minWidth: "20px" }}>{c.count}</span>
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>{c.detail}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Footnotes */}
+          <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid #f1f5f9" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>Footnotes</div>
+            <ul style={{ margin: 0, paddingLeft: "18px", display: "flex", flexDirection: "column", gap: "4px" }}>
+              <li style={{ fontSize: "11px", color: "#64748b", lineHeight: "1.5" }}>
+                Stretch ladder executes in order. Batch 16 PDC committed; Batches 24 PDC and 25 PDC opportunistic.
+              </li>
+              <li style={{ fontSize: "11px", color: "#64748b", lineHeight: "1.5" }}>
+                Batches 16, 21, 24, 25 each have PDC and TDC Features executing in different PIs — see Batch ALL roster for full Epic structure.
+              </li>
+            </ul>
+          </div>
+        </div>
         {/* ── PO EXECUTIVE SUMMARY ─────────────────────────────────────────────── */}
         {(() => {
           const [showExec, setShowExec] = React.useState(false);
@@ -1979,9 +2040,22 @@ export default function BatchDeliveryCalendar() {
                       2 — Critical Path Insight
                     </div>
                     <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.6" }}>
-                      The true critical path runs: <strong style={{ color: "#1e40af" }}>B5 → B6 → B7 → B8 (PDC→TDC) → B9 (PDC→TDC) → B10</strong>. This chain determines the earliest possible delivery of Return Assembly (B10), which gates all PI 3 MVP work.
-                      <br /><br />
-                      <span style={{ color: "#d97706", fontWeight: 600 }}>⚠ B2A Risk:</span> Batch 2A (Orchestrator Classification Contract) starts Apr 29 and must complete by May 4. It is a <strong>required predecessor for B7 (Eligibility)</strong> and B8 (Exceptions). Any delay in B2A compresses the B7 start window and introduces risk to the B8→B9 chain.
+                      {(() => {
+                        const cpSteps = summary.cpOrdered.map(n => `${n.batch} (${n.system})`).join(" → ");
+                        const cpFirst = summary.cpOrdered[0];
+                        const cpLast  = summary.cpOrdered[summary.cpOrdered.length - 1];
+                        return (
+                          <>
+                            The true critical path runs: <strong style={{ color: "#1e40af" }}>{cpSteps || "B5 → B6 → B7 → B8 → B9 → B10 → B11 → B14 → B16 → B21"}</strong>.
+                            {cpFirst && cpLast && (
+                              <> Spans <strong>{formatDate(cpFirst.startDate)}</strong> → <strong>{formatDate(cpLast.endDate)}</strong> ({summary.cpTotalDays} calendar days).</>
+                            )}
+                            {" "}This chain determines the earliest possible delivery of Return Assembly (B10), which gates all PI 3 MVP work.
+                            <br /><br />
+                            <span style={{ color: "#d97706", fontWeight: 600 }}>⚠ B2A Risk:</span> Batch 2A (Orchestrator Classification Contract) starts Apr 29 and must complete by May 4. It is a <strong>required predecessor for B7 (Eligibility)</strong> and B8 (Exceptions). Any delay in B2A compresses the B7 start window and introduces risk to the B8→B9 chain.
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                   {/* 3. Delivery Outlook */}
@@ -2450,7 +2524,10 @@ export default function BatchDeliveryCalendar() {
                   {validatedRows.map((r, i) => {
                     const isEditing = editingId === r.id;
                     const isCP = showCP && criticalPath.has(r.batch);
-                    const hasIssue = r._dateError || r._depConflict;
+                    const today = new Date("2026-05-01");
+                    const startD = parseDate(r.startDate);
+                    const isAtRisk = isCP && startD !== null && startD < today && r.status !== "Done" && r.status !== "Committed";
+                    const hasIssue = r._dateError || r._depConflict || isAtRisk;
                     const sb = STATUS_BADGE[r.status];
 
                     if (isEditing && editDraft) {
@@ -2513,7 +2590,7 @@ export default function BatchDeliveryCalendar() {
                         onClick={() => startEdit(r)}
                         style={{
                           cursor: "pointer",
-                          backgroundColor: hasIssue ? "#fffbeb" : i % 2 === 0 ? "white" : "#fafafa",
+                          backgroundColor: isAtRisk ? "#fef2f2" : hasIssue ? "#fffbeb" : i % 2 === 0 ? "white" : "#fafafa",
                           borderLeft: isCP ? "3px solid #1e40af" : "3px solid transparent",
                         }}
                         onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.backgroundColor = "#f0f9ff"}
@@ -2542,7 +2619,14 @@ export default function BatchDeliveryCalendar() {
                         </td>
                         <td style={{ padding: "10px 12px", textAlign: "center" }}>
                           {isCP ? (
-                            <span title="On Critical Path — determines earliest delivery of Return Assembly and downstream tax workflows" style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px", cursor: "help" }}>Yes ★</span>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+                              <span title="On Critical Path — determines earliest delivery of Return Assembly and downstream tax workflows" style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px", cursor: "help" }}>Yes ★</span>
+                              {isAtRisk && (
+                                <span title="At-Risk: Start date has passed but status is not Done or Committed — may impact critical path delivery" style={{ fontSize: "10px", fontWeight: 700, color: "#dc2626", backgroundColor: "#fee2e2", padding: "1px 6px", borderRadius: "4px", cursor: "help" }}>
+                                  ⚠ At Risk
+                                </span>
+                              )}
+                            </div>
                           ) : (
                             <span style={{ fontSize: "11px", color: "#cbd5e1" }}>—</span>
                           )}
