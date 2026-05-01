@@ -1314,21 +1314,38 @@ export default function BatchDeliveryCalendar() {
   // ── Print-optimized Gantt export ─────────────────────────────────────────────
   const printGantt = useCallback(() => {
     const piLabel = piFilter === "All" ? "All PIs" : piFilter;
-    const filtered = piFilter === "All" ? validatedRows : validatedRows.filter(r => r.pi === piFilter);
-    const rows = filtered;
-    const allDates = rows.filter(r => r.startDate && r.endDate)
-      .flatMap(r => [new Date(r.startDate), new Date(r.endDate)]);
-    if (allDates.length === 0) return;
-    const minD = new Date(Math.min(...allDates.map(d => d.getTime())));
-    const maxD = new Date(Math.max(...allDates.map(d => d.getTime())));
-    minD.setDate(minD.getDate() - 7);
-    maxD.setDate(maxD.getDate() + 14);
-    const totalDays = Math.round((maxD.getTime() - minD.getTime()) / 86400000);
-    const ROW_H = 36;
-    const LABEL_W = 220;
-    const CHART_W = 900;
+    const rows = piFilter === "All" ? validatedRows : validatedRows.filter(r => r.pi === piFilter);
 
-    // Group rows by PI for swimlane dividers
+    // Status colors (background, text, border)
+    const STATUS_STYLE: Record<string, { bg: string; color: string; border: string; label: string }> = {
+      "Done":      { bg: "#f0fdf4", color: "#166534", border: "#16a34a", label: "✓ Done" },
+      "Committed": { bg: "#eff6ff", color: "#1e40af", border: "#2563eb", label: "Committed" },
+      "Stretch":   { bg: "#fffbeb", color: "#92400e", border: "#ea580c", label: "Stretch" },
+      "MVP":       { bg: "#faf5ff", color: "#6b21a8", border: "#7c3aed", label: "MVP" },
+    };
+    const SYS_COLOR: Record<string, string> = {
+      PDC: "#2563eb", TDC: "#059669", Orchestrator: "#7c3aed", Roger: "#0ea5e9", Platform: "#94a3b8",
+    };
+    const PI_COLOR: Record<string, string> = {
+      "PI 1": "#1e3a5f", "PI 2": "#1e40af", "PI 3": "#166534", "PI 4": "#7c2d12",
+    };
+    const PI_THEME: Record<string, string> = {
+      "PI 1": "Foundation & AI Mapping",
+      "PI 2": "Entity, Workflow & Tax Ready",
+      "PI 3": "Intelligence, Provision & Audit",
+      "PI 4": "Governance, QC & Analytics",
+    };
+
+    // Build critical path set
+    const cpBatches: Set<string> = criticalPath;
+
+    // Count by status
+    const doneCnt = rows.filter(r => r.status === "Done").length;
+    const committedCnt = rows.filter(r => r.status === "Committed").length;
+    const stretchCnt = rows.filter(r => r.status === "Stretch").length;
+    const mvpCnt = rows.filter(r => r.status === "MVP").length;
+
+    // Group by PI
     const piOrder = ["PI 1", "PI 2", "PI 3", "PI 4"];
     const grouped: { pi: string; rows: typeof rows }[] = [];
     for (const pi of piOrder) {
@@ -1336,248 +1353,196 @@ export default function BatchDeliveryCalendar() {
       if (piRows.length > 0) grouped.push({ pi, rows: piRows });
     }
 
-    const PI_COLORS: Record<string, string> = {
-      "PI 1": "#1e3a5f", "PI 2": "#1e40af", "PI 3": "#166534", "PI 4": "#7c2d12",
-    };
-    const SYS_COLORS: Record<string, string> = {
-      PDC: "#2563eb", TDC: "#059669", Orchestrator: "#7c3aed", Roger: "#0ea5e9", Platform: "#94a3b8",
-    };
-    const STATUS_COLORS: Record<string, string> = {
-  "Done":      "#16a34a",
-  "Committed": "#2563eb",
-  "Stretch":   "#ea580c",
-  "MVP":       "#7c3aed",
-};
-
-    // Build month markers
-    const months: { label: string; pct: number }[] = [];
-    const mc = new Date(minD.getFullYear(), minD.getMonth(), 1);
-    while (mc <= maxD) {
-      const pct = ((mc.getTime() - minD.getTime()) / 86400000 / totalDays) * 100;
-      if (pct >= 0 && pct <= 100) {
-        months.push({ label: mc.toLocaleDateString("en-US", { month: "short", year: "2-digit" }), pct });
-      }
-      mc.setMonth(mc.getMonth() + 1);
-    }
-
-    // Build HTML rows
-    let rowsHtml = "";
+    // Build batch rows HTML — Outlook-safe: no position:absolute, all inline styles
+    let batchRowsHtml = "";
     for (const group of grouped) {
-      const piColor = PI_COLORS[group.pi] || "#1e3a5f";
-      rowsHtml += `
+      const piColor = PI_COLOR[group.pi] || "#1e3a5f";
+      const piTheme = PI_THEME[group.pi] || "";
+      // PI header row
+      batchRowsHtml += `
         <tr>
-          <td colspan="2" style="background:${piColor};color:white;font-size:11px;font-weight:700;
-            padding:5px 12px;letter-spacing:0.06em;text-transform:uppercase;border-bottom:2px solid white;">
-            ${group.pi} &rarr; ${group.pi === "PI 1" ? "Foundation & AI Mapping" : group.pi === "PI 2" ? "Entity, Workflow & Tax Ready" : group.pi === "PI 3" ? "Intelligence, Provision & Audit" : "Governance, QC & Analytics"}
+          <td colspan="6" style="background-color:${piColor};color:#ffffff;font-size:11px;font-weight:700;
+            padding:7px 12px;letter-spacing:0.07em;text-transform:uppercase;border-bottom:2px solid #ffffff;">
+            ${group.pi} &rarr; ${piTheme}
           </td>
         </tr>`;
       for (const r of group.rows) {
-        if (!r.startDate || !r.endDate) continue;
-        const s = new Date(r.startDate);
-        const e = new Date(r.endDate);
-        const leftPct = ((s.getTime() - minD.getTime()) / 86400000 / totalDays) * 100;
-        const widthPct = Math.max(((e.getTime() - s.getTime()) / 86400000 / totalDays) * 100, 1.2);
-        const barColor = STATUS_BADGE[r.status]?.bar ?? (SYS_COLORS[r.system] || "#94a3b8");
-        const isCompleted = r.status === "Done";
-        rowsHtml += `
-          <tr style="border-bottom:1px solid #f1f5f9;">
-            <td style="width:${LABEL_W}px;padding:4px 8px;font-size:11px;font-weight:600;color:#374151;
-              white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${LABEL_W}px;">
-              ${r.batch}<br/><span style="font-size:9px;color:#94a3b8;font-weight:400;">${r.system}</span>
-            </td>
-            <td style="position:relative;height:${ROW_H}px;padding:0;">
-              <div style="position:absolute;left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%;
-                top:50%;transform:translateY(-50%);height:22px;background:${barColor};
-                border-radius:4px;display:flex;align-items:center;padding:0 6px;overflow:hidden;">
-                <span style="font-size:9px;font-weight:600;color:white;white-space:nowrap;
-                  overflow:hidden;text-overflow:ellipsis;">${r.name}</span>
-              </div>
-            </td>
-          </tr>`;
-      }
-    }
-
-    // Month header row
-    let monthHeaderCells = `<td style="width:${LABEL_W}px;"></td><td style="position:relative;height:24px;">`;
-    for (const m of months) {
-      monthHeaderCells += `<span style="position:absolute;left:${m.pct.toFixed(1)}%;transform:translateX(-50%);
-        font-size:10px;color:#94a3b8;font-weight:500;white-space:nowrap;">${m.label}</span>`;
-    }
-    monthHeaderCells += `</td>`;
-
-    // Build summary counts for tiles
-    const doneCnt = rows.filter(r => r.status === "Done").length;
-    const committedCnt = rows.filter(r => r.status === "Committed").length;
-    const stretchCnt = rows.filter(r => r.status === "Stretch").length;
-    const mvpCnt = rows.filter(r => r.status === "MVP").length;
-    // criticalPath is a Set<string> of batch labels
-    const cpBatches: Set<string> = criticalPath;
-    // Build batch table rows HTML
-    let tableRowsHtml = "";
-    for (const group of grouped) {
-      const piColor = PI_COLORS[group.pi] || "#1e3a5f";
-      const piTheme = group.pi === "PI 1" ? "Foundation & AI Mapping" : group.pi === "PI 2" ? "Entity, Workflow & Tax Ready" : group.pi === "PI 3" ? "Intelligence, Provision & Audit" : "Governance, QC & Analytics";
-      tableRowsHtml += `<tr><td colspan="7" style="background:${piColor};color:white;font-size:10px;font-weight:700;padding:4px 10px;letter-spacing:0.06em;text-transform:uppercase;">${group.pi} — ${piTheme}</td></tr>`;
-      for (const r of group.rows) {
+        const ss = STATUS_STYLE[r.status] || { bg: "#f8fafc", color: "#374151", border: "#94a3b8", label: r.status };
+        const sysColor = SYS_COLOR[r.system] || "#94a3b8";
         const isCP = cpBatches.has(r.batch);
-        const statusColors: Record<string, string> = { Done: "#166534", Committed: "#1e40af", Stretch: "#92400e", MVP: "#6b21a8" };
-        const statusBgs: Record<string, string> = { Done: "#f0fdf4", Committed: "#eff6ff", Stretch: "#fffbeb", MVP: "#faf5ff" };
-        const sc = statusColors[r.status] || "#374151";
-        const sb = statusBgs[r.status] || "#f8fafc";
-        tableRowsHtml += `<tr style="border-bottom:1px solid #f1f5f9;">
-          <td style="padding:5px 8px;font-size:10px;font-weight:700;color:#1e40af;">${r.batch}${isCP ? " ★" : ""}</td>
-          <td style="padding:5px 8px;font-size:10px;color:#374151;">${r.system}</td>
-          <td style="padding:5px 8px;"><span style="background:${sb};color:${sc};font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;">${r.status}</span></td>
-          <td style="padding:5px 8px;font-size:10px;color:#374151;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</td>
-          <td style="padding:5px 8px;font-size:10px;color:#64748b;white-space:nowrap;">${r.startDate || "TBD"}</td>
-          <td style="padding:5px 8px;font-size:10px;color:#64748b;white-space:nowrap;">${r.endDate || "TBD"}</td>
-          <td style="padding:5px 8px;text-align:center;font-size:10px;">${isCP ? '<span style="color:#c2410c;font-weight:700;">★ Yes</span>' : '<span style="color:#94a3b8;">—</span>'}</td>
+        const startFmt = r.startDate || "TBD";
+        const endFmt = r.endDate || "TBD";
+        batchRowsHtml += `
+        <tr style="border-bottom:1px solid #e2e8f0;">
+          <td style="padding:7px 10px;border-left:4px solid ${ss.border};background-color:${ss.bg};
+            font-size:11px;font-weight:700;color:#1e3a5f;white-space:nowrap;min-width:60px;">
+            ${r.batch}${isCP ? " &#9733;" : ""}
+          </td>
+          <td style="padding:7px 10px;background-color:#ffffff;font-size:10px;font-weight:700;
+            color:${sysColor};white-space:nowrap;min-width:55px;">
+            ${r.system}
+          </td>
+          <td style="padding:7px 10px;background-color:${ss.bg};font-size:10px;font-weight:700;
+            color:${ss.color};white-space:nowrap;min-width:80px;">
+            ${ss.label}
+          </td>
+          <td style="padding:7px 10px;background-color:#ffffff;font-size:11px;color:#374151;
+            min-width:200px;max-width:280px;">
+            ${r.name}
+          </td>
+          <td style="padding:7px 10px;background-color:#f8fafc;font-size:10px;color:#64748b;
+            white-space:nowrap;min-width:70px;">
+            ${startFmt}
+          </td>
+          <td style="padding:7px 10px;background-color:#f8fafc;font-size:10px;color:#64748b;
+            white-space:nowrap;min-width:70px;">
+            ${endFmt}
+          </td>
         </tr>`;
       }
     }
 
     const html = `<!DOCTYPE html>
-<html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml">
 <head>
   <meta charset="utf-8"/>
-  <title>DCT Batch Delivery Calendar — ${piLabel}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>DCT Batch Delivery Calendar &mdash; ${piLabel}</title>
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <![endif]-->
   <style>
-    * { box-sizing: border-box; }
-    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #f8fafc; color: #0f172a; }
-    .page { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    /* Header */
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .rsm-logo { font-size: 22px; font-weight: 900; color: #1e3a5f; letter-spacing: -0.5px; }
-    .rsm-logo span { color: #2563eb; }
-    .header-title { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0; }
-    .header-sub { font-size: 11px; color: #64748b; margin: 2px 0 0; }
-    .header-right { display: flex; gap: 8px; align-items: center; }
-    /* Summary tiles */
-    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-    .tile { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; text-align: center; }
-    .tile-count { font-size: 24px; font-weight: 800; margin: 0; }
-    .tile-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 2px 0 0; }
-    /* Gantt section */
-    .section-title { font-size: 12px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
-    .gantt-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 20px; overflow: hidden; }
-    table.gantt { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    table.gantt td { vertical-align: middle; }
-    /* Legend */
-    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; padding: 10px 14px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; }
-    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #64748b; }
-    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-    /* Batch table */
-    .table-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
-    table.batch-table { width: 100%; border-collapse: collapse; font-size: 10px; }
-    table.batch-table th { background: #1e3a5f; color: white; padding: 7px 8px; text-align: left; font-weight: 700; font-size: 10px; white-space: nowrap; }
-    table.batch-table td { vertical-align: middle; }
-    /* Footer */
-    .footer { font-size: 10px; color: #94a3b8; text-align: center; padding-top: 12px; border-top: 1px solid #e2e8f0; }
-    @media print {
-      body { background: white; }
-      .page { padding: 12px; }
-      .no-print { display: none !important; }
-      .gantt-wrap, .table-wrap { break-inside: avoid; }
-    }
+    body { margin:0; padding:0; background:#f1f5f9; font-family:Calibri,Arial,sans-serif; }
+    @media print { .no-print { display:none !important; } body { background:white; } }
   </style>
 </head>
-<body>
-<div class="page">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <div class="rsm-logo">RS<span>M</span></div>
-      <div>
-        <h1 class="header-title">DCT Batch Delivery Calendar</h1>
-        <p class="header-sub">CATT · Data Consolidation Team &nbsp;|&nbsp; Filter: ${piLabel} &nbsp;|&nbsp; ${rows.length} batches &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "long", day: "numeric" })}</p>
-      </div>
-    </div>
-    <div class="header-right no-print">
-      <button onclick="window.print()" style="font-size:11px;padding:7px 14px;background:#1e3a5f;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🖨 Print / Save as PDF</button>
-    </div>
-  </div>
+<body style="margin:0;padding:20px;background:#f1f5f9;font-family:Calibri,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:800px;margin:0 auto;">
+  <tr>
+    <td>
 
-  <!-- Summary Tiles -->
-  <div class="tiles">
-    <div class="tile">
-      <p class="tile-count" style="color:#166534;">${doneCnt}</p>
-      <p class="tile-label" style="color:#166534;">Done</p>
-    </div>
-    <div class="tile">
-      <p class="tile-count" style="color:#1e40af;">${committedCnt}</p>
-      <p class="tile-label" style="color:#1e40af;">Committed</p>
-    </div>
-    <div class="tile">
-      <p class="tile-count" style="color:#ea580c;">${stretchCnt}</p>
-      <p class="tile-label" style="color:#ea580c;">Stretch</p>
-    </div>
-    <div class="tile">
-      <p class="tile-count" style="color:#7c3aed;">${mvpCnt}</p>
-      <p class="tile-label" style="color:#7c3aed;">MVP</p>
-    </div>
-  </div>
-
-  <!-- Gantt Chart -->
-  <p class="section-title">Delivery Timeline</p>
-  <div class="gantt-wrap">
-    <table class="gantt" style="width:100%;">
-      <colgroup>
-        <col style="width:${LABEL_W}px;"/>
-        <col/>
-      </colgroup>
-      <tr>${monthHeaderCells}</tr>
-      ${rowsHtml}
-    </table>
-  </div>
-
-  <!-- Legend -->
-  <div class="legend">
-    <strong style="font-size:10px;color:#374151;margin-right:4px;">Status:</strong>
-    <div class="legend-item"><div class="legend-dot" style="background:#16a34a;"></div>Done</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Committed</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#ea580c;"></div>Stretch</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#7c3aed;"></div>MVP</div>
-    <span style="margin:0 8px;color:#e2e8f0;">|</span>
-    <strong style="font-size:10px;color:#374151;margin-right:4px;">Platform:</strong>
-    <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>PDC</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#059669;"></div>TDC</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div>Platform</div>
-    <span style="margin:0 8px;color:#e2e8f0;">|</span>
-    <div class="legend-item" style="color:#c2410c;font-weight:700;">★ = On Critical Path</div>
-  </div>
-
-  <!-- Batch Table -->
-  <p class="section-title">Batch Status Table</p>
-  <div class="table-wrap">
-    <table class="batch-table">
-      <thead>
+      <!-- Header -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"
+        style="background-color:#1e3a5f;border-radius:8px 8px 0 0;margin-bottom:0;">
         <tr>
-          <th style="width:80px;">Batch</th>
-          <th style="width:70px;">Platform</th>
-          <th style="width:90px;">Status</th>
-          <th>Name</th>
-          <th style="width:80px;">Start</th>
-          <th style="width:80px;">End</th>
-          <th style="width:80px;text-align:center;">Critical Path</th>
+          <td style="padding:16px 20px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td>
+                  <span style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">
+                    RS<span style="color:#60a5fa;">M</span>
+                  </span>
+                  &nbsp;&nbsp;
+                  <span style="font-size:15px;font-weight:700;color:#ffffff;">DCT Batch Delivery Calendar</span>
+                  <br/>
+                  <span style="font-size:10px;color:#93c5fd;">
+                    CATT &middot; Data Consolidation Team &nbsp;|&nbsp; Filter: ${piLabel}
+                    &nbsp;|&nbsp; ${rows.length} batches
+                    &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "long", day: "numeric" })}
+                  </span>
+                </td>
+                <td align="right" class="no-print">
+                  <button onclick="window.print()" style="font-size:11px;padding:7px 14px;
+                    background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;
+                    font-weight:600;">&#128424; Print / Save as PDF</button>
+                </td>
+              </tr>
+            </table>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        ${tableRowsHtml}
-      </tbody>
-    </table>
-  </div>
+      </table>
 
-  <!-- Footer -->
-  <div class="footer">
-    DCT Platform Gate Verification Dashboard &nbsp;·&nbsp; RSM CATT &nbsp;·&nbsp; Planning view only — not source of truth &nbsp;·&nbsp; Auto-generated · Read-only
-  </div>
-</div>
+      <!-- Summary Tiles -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"
+        style="background-color:#ffffff;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;
+          margin-bottom:0;">
+        <tr>
+          <td width="25%" align="center" style="padding:14px 8px;border-right:1px solid #e2e8f0;
+            border-bottom:3px solid #16a34a;">
+            <div style="font-size:26px;font-weight:800;color:#166534;line-height:1;">${doneCnt}</div>
+            <div style="font-size:10px;font-weight:700;color:#166534;text-transform:uppercase;
+              letter-spacing:0.08em;margin-top:3px;">Done</div>
+          </td>
+          <td width="25%" align="center" style="padding:14px 8px;border-right:1px solid #e2e8f0;
+            border-bottom:3px solid #2563eb;">
+            <div style="font-size:26px;font-weight:800;color:#1e40af;line-height:1;">${committedCnt}</div>
+            <div style="font-size:10px;font-weight:700;color:#1e40af;text-transform:uppercase;
+              letter-spacing:0.08em;margin-top:3px;">Committed</div>
+          </td>
+          <td width="25%" align="center" style="padding:14px 8px;border-right:1px solid #e2e8f0;
+            border-bottom:3px solid #ea580c;">
+            <div style="font-size:26px;font-weight:800;color:#92400e;line-height:1;">${stretchCnt}</div>
+            <div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;
+              letter-spacing:0.08em;margin-top:3px;">Stretch</div>
+          </td>
+          <td width="25%" align="center" style="padding:14px 8px;
+            border-bottom:3px solid #7c3aed;">
+            <div style="font-size:26px;font-weight:800;color:#6b21a8;line-height:1;">${mvpCnt}</div>
+            <div style="font-size:10px;font-weight:700;color:#6b21a8;text-transform:uppercase;
+              letter-spacing:0.08em;margin-top:3px;">MVP</div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Section label -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"
+        style="background-color:#f8fafc;border:1px solid #e2e8f0;border-top:none;margin-bottom:0;">
+        <tr>
+          <td style="padding:8px 12px;">
+            <span style="font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;
+              letter-spacing:0.07em;">Batch Status by PI</span>
+            &nbsp;&nbsp;
+            <span style="font-size:10px;color:#94a3b8;">
+              &#9733; = On Critical Path &nbsp;&middot;&nbsp;
+              Left border color = Status &nbsp;&middot;&nbsp;
+              PDC = <span style="color:#2563eb;font-weight:700;">Blue</span> &nbsp;
+              TDC = <span style="color:#059669;font-weight:700;">Green</span>
+            </span>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Batch Table -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"
+        style="border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;
+          border-radius:0 0 8px 8px;overflow:hidden;margin-bottom:16px;">
+        <!-- Column headers -->
+        <tr style="background-color:#1e3a5f;">
+          <td style="padding:7px 10px;font-size:10px;font-weight:700;color:#ffffff;
+            white-space:nowrap;min-width:60px;">Batch</td>
+          <td style="padding:7px 10px;font-size:10px;font-weight:700;color:#ffffff;
+            white-space:nowrap;min-width:55px;">Platform</td>
+          <td style="padding:7px 10px;font-size:10px;font-weight:700;color:#ffffff;
+            white-space:nowrap;min-width:80px;">Status</td>
+          <td style="padding:7px 10px;font-size:10px;font-weight:700;color:#ffffff;
+            min-width:200px;">Feature Name</td>
+          <td style="padding:7px 10px;font-size:10px;font-weight:700;color:#ffffff;
+            white-space:nowrap;min-width:70px;">Start</td>
+          <td style="padding:7px 10px;font-size:10px;font-weight:700;color:#ffffff;
+            white-space:nowrap;min-width:70px;">End</td>
+        </tr>
+        ${batchRowsHtml}
+      </table>
+
+      <!-- Footer -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center" style="padding:10px;font-size:10px;color:#94a3b8;">
+            DCT Platform Gate Verification Dashboard &middot; RSM CATT &middot;
+            Planning view only &mdash; not source of truth &middot; Auto-generated &middot; Read-only
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
 </body>
 </html>`;
+
     const win = window.open("", "_blank");
     if (win) { win.document.write(html); win.document.close(); }
-  }, [validatedRows, piFilter]);
+  }, [validatedRows, piFilter, criticalPath]);
 
   // ── Executive summary metrics ────────────────────────────────────────────────
 
