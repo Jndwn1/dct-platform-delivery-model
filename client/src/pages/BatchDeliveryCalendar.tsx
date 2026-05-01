@@ -1405,53 +1405,176 @@ export default function BatchDeliveryCalendar() {
     }
     monthHeaderCells += `</td>`;
 
+    // Build summary counts for tiles
+    const doneCnt = rows.filter(r => r.status === "Done").length;
+    const committedCnt = rows.filter(r => r.status === "Committed").length;
+    const stretchCnt = rows.filter(r => r.status === "Stretch").length;
+    const mvpCnt = rows.filter(r => r.status === "MVP").length;
+    // criticalPath is a Set<string> of batch labels
+    const cpBatches: Set<string> = criticalPath;
+    // Build batch table rows HTML
+    let tableRowsHtml = "";
+    for (const group of grouped) {
+      const piColor = PI_COLORS[group.pi] || "#1e3a5f";
+      const piTheme = group.pi === "PI 1" ? "Foundation & AI Mapping" : group.pi === "PI 2" ? "Entity, Workflow & Tax Ready" : group.pi === "PI 3" ? "Intelligence, Provision & Audit" : "Governance, QC & Analytics";
+      tableRowsHtml += `<tr><td colspan="7" style="background:${piColor};color:white;font-size:10px;font-weight:700;padding:4px 10px;letter-spacing:0.06em;text-transform:uppercase;">${group.pi} — ${piTheme}</td></tr>`;
+      for (const r of group.rows) {
+        const isCP = cpBatches.has(r.batch);
+        const statusColors: Record<string, string> = { Done: "#166534", Committed: "#1e40af", Stretch: "#92400e", MVP: "#6b21a8" };
+        const statusBgs: Record<string, string> = { Done: "#f0fdf4", Committed: "#eff6ff", Stretch: "#fffbeb", MVP: "#faf5ff" };
+        const sc = statusColors[r.status] || "#374151";
+        const sb = statusBgs[r.status] || "#f8fafc";
+        tableRowsHtml += `<tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:5px 8px;font-size:10px;font-weight:700;color:#1e40af;">${r.batch}${isCP ? " ★" : ""}</td>
+          <td style="padding:5px 8px;font-size:10px;color:#374151;">${r.system}</td>
+          <td style="padding:5px 8px;"><span style="background:${sb};color:${sc};font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;">${r.status}</span></td>
+          <td style="padding:5px 8px;font-size:10px;color:#374151;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</td>
+          <td style="padding:5px 8px;font-size:10px;color:#64748b;white-space:nowrap;">${r.startDate || "TBD"}</td>
+          <td style="padding:5px 8px;font-size:10px;color:#64748b;white-space:nowrap;">${r.endDate || "TBD"}</td>
+          <td style="padding:5px 8px;text-align:center;font-size:10px;">${isCP ? '<span style="color:#c2410c;font-weight:700;">★ Yes</span>' : '<span style="color:#94a3b8;">—</span>'}</td>
+        </tr>`;
+      }
+    }
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
   <title>DCT Batch Delivery Calendar — ${piLabel}</title>
   <style>
-    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 24px; background: white; color: #0f172a; }
-    h1 { font-size: 18px; font-weight: 700; margin: 0 0 4px; color: #0f172a; }
-    .sub { font-size: 12px; color: #64748b; margin: 0 0 20px; }
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    td { vertical-align: middle; }
-    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
-    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #f8fafc; color: #0f172a; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .rsm-logo { font-size: 22px; font-weight: 900; color: #1e3a5f; letter-spacing: -0.5px; }
+    .rsm-logo span { color: #2563eb; }
+    .header-title { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0; }
+    .header-sub { font-size: 11px; color: #64748b; margin: 2px 0 0; }
+    .header-right { display: flex; gap: 8px; align-items: center; }
+    /* Summary tiles */
+    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+    .tile { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; text-align: center; }
+    .tile-count { font-size: 24px; font-weight: 800; margin: 0; }
+    .tile-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 2px 0 0; }
+    /* Gantt section */
+    .section-title { font-size: 12px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
+    .gantt-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 20px; overflow: hidden; }
+    table.gantt { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    table.gantt td { vertical-align: middle; }
+    /* Legend */
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; padding: 10px 14px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #64748b; }
     .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    /* Batch table */
+    .table-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+    table.batch-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    table.batch-table th { background: #1e3a5f; color: white; padding: 7px 8px; text-align: left; font-weight: 700; font-size: 10px; white-space: nowrap; }
+    table.batch-table td { vertical-align: middle; }
+    /* Footer */
+    .footer { font-size: 10px; color: #94a3b8; text-align: center; padding-top: 12px; border-top: 1px solid #e2e8f0; }
     @media print {
-      body { padding: 12px; }
-      button { display: none !important; }
+      body { background: white; }
+      .page { padding: 12px; }
+      .no-print { display: none !important; }
+      .gantt-wrap, .table-wrap { break-inside: avoid; }
     }
   </style>
 </head>
 <body>
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
-    <div>
-      <h1>DCT Batch Delivery Calendar</h1>
-      <p class="sub">RSM · CATT · Planning View Only — Not Source of Truth &nbsp;|&nbsp; Filter: ${piLabel} &nbsp;|&nbsp; ${rows.length} batches</p>
+<div class="page">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="rsm-logo">RS<span>M</span></div>
+      <div>
+        <h1 class="header-title">DCT Batch Delivery Calendar</h1>
+        <p class="header-sub">CATT · Data Consolidation Team &nbsp;|&nbsp; Filter: ${piLabel} &nbsp;|&nbsp; ${rows.length} batches &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "long", day: "numeric" })}</p>
+      </div>
     </div>
-    <button onclick="window.print()" style="font-size:12px;padding:8px 16px;background:#2563eb;color:white;
-      border:none;border-radius:6px;cursor:pointer;">Print / Save as PDF</button>
+    <div class="header-right no-print">
+      <button onclick="window.print()" style="font-size:11px;padding:7px 14px;background:#1e3a5f;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🖨 Print / Save as PDF</button>
+    </div>
   </div>
-  <table style="width:100%;">
-    <colgroup>
-      <col style="width:${LABEL_W}px;"/>
-      <col style="width:${CHART_W}px;"/>
-    </colgroup>
-    <tr>${monthHeaderCells}</tr>
-    ${rowsHtml}
-  </table>
+
+  <!-- Summary Tiles -->
+  <div class="tiles">
+    <div class="tile">
+      <p class="tile-count" style="color:#166534;">${doneCnt}</p>
+      <p class="tile-label" style="color:#166534;">Done</p>
+    </div>
+    <div class="tile">
+      <p class="tile-count" style="color:#1e40af;">${committedCnt}</p>
+      <p class="tile-label" style="color:#1e40af;">Committed</p>
+    </div>
+    <div class="tile">
+      <p class="tile-count" style="color:#ea580c;">${stretchCnt}</p>
+      <p class="tile-label" style="color:#ea580c;">Stretch</p>
+    </div>
+    <div class="tile">
+      <p class="tile-count" style="color:#7c3aed;">${mvpCnt}</p>
+      <p class="tile-label" style="color:#7c3aed;">MVP</p>
+    </div>
+  </div>
+
+  <!-- Gantt Chart -->
+  <p class="section-title">Delivery Timeline</p>
+  <div class="gantt-wrap">
+    <table class="gantt" style="width:100%;">
+      <colgroup>
+        <col style="width:${LABEL_W}px;"/>
+        <col/>
+      </colgroup>
+      <tr>${monthHeaderCells}</tr>
+      ${rowsHtml}
+    </table>
+  </div>
+
+  <!-- Legend -->
   <div class="legend">
+    <strong style="font-size:10px;color:#374151;margin-right:4px;">Status:</strong>
+    <div class="legend-item"><div class="legend-dot" style="background:#16a34a;"></div>Done</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Committed</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ea580c;"></div>Stretch</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7c3aed;"></div>MVP</div>
+    <span style="margin:0 8px;color:#e2e8f0;">|</span>
+    <strong style="font-size:10px;color:#374151;margin-right:4px;">Platform:</strong>
     <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>PDC</div>
     <div class="legend-item"><div class="legend-dot" style="background:#059669;"></div>TDC</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#166534;"></div>Completed</div>
     <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div>Platform</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#d97706;"></div>At Risk</div>
+    <span style="margin:0 8px;color:#e2e8f0;">|</span>
+    <div class="legend-item" style="color:#c2410c;font-weight:700;">★ = On Critical Path</div>
   </div>
+
+  <!-- Batch Table -->
+  <p class="section-title">Batch Status Table</p>
+  <div class="table-wrap">
+    <table class="batch-table">
+      <thead>
+        <tr>
+          <th style="width:80px;">Batch</th>
+          <th style="width:70px;">Platform</th>
+          <th style="width:90px;">Status</th>
+          <th>Name</th>
+          <th style="width:80px;">Start</th>
+          <th style="width:80px;">End</th>
+          <th style="width:80px;text-align:center;">Critical Path</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableRowsHtml}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    DCT Platform Gate Verification Dashboard &nbsp;·&nbsp; RSM CATT &nbsp;·&nbsp; Planning view only — not source of truth &nbsp;·&nbsp; Auto-generated · Read-only
+  </div>
+</div>
 </body>
 </html>`;
-
     const win = window.open("", "_blank");
     if (win) { win.document.write(html); win.document.close(); }
   }, [validatedRows, piFilter]);
@@ -1641,60 +1764,7 @@ export default function BatchDeliveryCalendar() {
             </button>
             <button
               id="copy-page-btn"
-              onClick={() => {
-                const scope = piFilter === "All" ? validatedRows : validatedRows.filter(r => r.pi === piFilter);
-                const piGroups: Record<string, BatchRow[]> = {};
-                scope.forEach(r => { if (!piGroups[r.pi]) piGroups[r.pi] = []; piGroups[r.pi].push(r); });
-                const cpIds = new Set(summary.cpOrdered.map(n => n.id));
-                const lines: string[] = [
-                  "DCT PLATFORM — BATCH DELIVERY CALENDAR",
-                  `Generated: ${new Date().toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "long", day: "numeric" })}`,
-                  piFilter !== "All" ? `Filter: ${piFilter}` : "Filter: All PIs",
-                  `Total Batches: ${scope.length}`,
-                  "═".repeat(72),
-                ];
-                Object.entries(piGroups).forEach(([pi, rows]) => {
-                  const band = PI_BAND_COLORS[pi];
-                  lines.push("");
-                  lines.push(`▌ ${pi}${band ? " — " + band.label : ""} (${rows.length} batches)`);
-                  lines.push("─".repeat(72));
-                  lines.push(` ${ "Batch".padEnd(10) }${ "Platform".padEnd(10) }${ "Status".padEnd(12) }${ "Name".padEnd(40) }${ "Start".padEnd(10) }  End`);
-                  lines.push(" " + "─".repeat(70));
-                  rows.forEach(r => {
-                    const cp = cpIds.has(r.id) ? " ★" : "  ";
-                    const batch = (r.batch + cp).padEnd(10);
-                    const sys = r.system.padEnd(10);
-                    const status = r.status.padEnd(12);
-                    const name = r.name.length > 38 ? r.name.slice(0, 37) + "…" : r.name.padEnd(40);
-                    const start = r.startDate || "TBD";
-                    const end = r.endDate || "TBD";
-                    lines.push(` ${batch}${sys}${status}${name}${start.padEnd(10)}  ${end}`);
-                  });
-                });
-                lines.push("");
-                lines.push("═".repeat(72));
-                lines.push(`Critical Path (${summary.cpOrdered.length} batches): ${summary.cpOrdered.map(n => n.batch).join(" → ")}`);
-                lines.push(`Critical Path Duration: ${summary.cpTotalDays} days`);
-                lines.push("★ = On Critical Path");
-                lines.push("");
-                lines.push("Source: DCT Batch Delivery Calendar (auto-generated · read-only)");
-                navigator.clipboard.writeText(lines.join("\n")).then(() => {
-                  const btn = document.getElementById("copy-page-btn") as HTMLButtonElement | null;
-                  if (btn) {
-                    const orig = btn.innerHTML;
-                    btn.innerHTML = "✓ Copied!";
-                    btn.style.backgroundColor = "#dcfce7";
-                    btn.style.color = "#166534";
-                    btn.style.borderColor = "#bbf7d0";
-                    setTimeout(() => {
-                      btn.innerHTML = orig;
-                      btn.style.backgroundColor = "white";
-                      btn.style.color = "#1e40af";
-                      btn.style.borderColor = "#bfdbfe";
-                    }, 2500);
-                  }
-                });
-              }}
+              onClick={printGantt}
               style={{
                 fontSize: "11px", fontWeight: 600, color: "#1e40af",
                 border: "1px solid #bfdbfe", borderRadius: "7px",
@@ -1703,7 +1773,7 @@ export default function BatchDeliveryCalendar() {
                 transition: "all 0.2s",
               }}
             >
-              <Copy size={12} /> Copy Page
+              <Copy size={12} /> Copy View
             </button>
             <button
               onClick={() => setShowUpload(true)}
