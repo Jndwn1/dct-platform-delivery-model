@@ -10,7 +10,7 @@ import React, { useState, useMemo, useRef, useCallback } from "react";
 import {
   AlertTriangle, Calendar, Download, RotateCcw, Plus, Trash2,
   CheckCircle2, Clock, AlertCircle, Printer, ChevronDown, ChevronRight,
-  Info, Eye, EyeOff,
+  Info, Eye, EyeOff, Copy,
 } from "lucide-react";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -1225,6 +1225,72 @@ export default function BatchDeliveryCalendar() {
               display: "flex", alignItems: "center", gap: "5px",
             }}>
               <Download size={12} /> Export
+            </button>
+            <button
+              id="copy-page-btn"
+              onClick={() => {
+                const scope = piFilter === "All" ? validatedRows : validatedRows.filter(r => r.pi === piFilter);
+                const piGroups: Record<string, BatchRow[]> = {};
+                scope.forEach(r => { if (!piGroups[r.pi]) piGroups[r.pi] = []; piGroups[r.pi].push(r); });
+                const cpIds = new Set(summary.cpOrdered.map(n => n.id));
+                const lines: string[] = [
+                  "DCT PLATFORM — BATCH DELIVERY CALENDAR",
+                  `Generated: ${new Date().toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "long", day: "numeric" })}`,
+                  piFilter !== "All" ? `Filter: ${piFilter}` : "Filter: All PIs",
+                  `Total Batches: ${scope.length}`,
+                  "═".repeat(72),
+                ];
+                Object.entries(piGroups).forEach(([pi, rows]) => {
+                  const band = PI_BAND_COLORS[pi];
+                  lines.push("");
+                  lines.push(`▌ ${pi}${band ? " — " + band.label : ""} (${rows.length} batches)`);
+                  lines.push("─".repeat(72));
+                  lines.push(` ${ "Batch".padEnd(10) }${ "Platform".padEnd(10) }${ "Status".padEnd(12) }${ "Name".padEnd(40) }${ "Start".padEnd(10) }  End`);
+                  lines.push(" " + "─".repeat(70));
+                  rows.forEach(r => {
+                    const cp = cpIds.has(r.id) ? " ★" : "  ";
+                    const batch = (r.batch + cp).padEnd(10);
+                    const sys = r.system.padEnd(10);
+                    const status = r.status.padEnd(12);
+                    const name = r.name.length > 38 ? r.name.slice(0, 37) + "…" : r.name.padEnd(40);
+                    const start = r.startDate || "TBD";
+                    const end = r.endDate || "TBD";
+                    lines.push(` ${batch}${sys}${status}${name}${start.padEnd(10)}  ${end}`);
+                  });
+                });
+                lines.push("");
+                lines.push("═".repeat(72));
+                lines.push(`Critical Path (${summary.cpOrdered.length} batches): ${summary.cpOrdered.map(n => n.batch).join(" → ")}`);
+                lines.push(`Critical Path Duration: ${summary.cpTotalDays} days`);
+                lines.push("★ = On Critical Path");
+                lines.push("");
+                lines.push("Source: DCT Batch Delivery Calendar (auto-generated · read-only)");
+                navigator.clipboard.writeText(lines.join("\n")).then(() => {
+                  const btn = document.getElementById("copy-page-btn") as HTMLButtonElement | null;
+                  if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = "✓ Copied!";
+                    btn.style.backgroundColor = "#dcfce7";
+                    btn.style.color = "#166534";
+                    btn.style.borderColor = "#bbf7d0";
+                    setTimeout(() => {
+                      btn.innerHTML = orig;
+                      btn.style.backgroundColor = "white";
+                      btn.style.color = "#1e40af";
+                      btn.style.borderColor = "#bfdbfe";
+                    }, 2500);
+                  }
+                });
+              }}
+              style={{
+                fontSize: "11px", fontWeight: 600, color: "#1e40af",
+                border: "1px solid #bfdbfe", borderRadius: "7px",
+                padding: "6px 10px", backgroundColor: "white", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "5px",
+                transition: "all 0.2s",
+              }}
+            >
+              <Copy size={12} /> Copy Page
             </button>
 
             <button onClick={() => window.print()} style={{
