@@ -1249,6 +1249,7 @@ export default function BatchDeliveryCalendar() {
   const [showCP, setShowCP] = useState(true);
   const [showTable, setShowTable] = useState(false);
   const [showRiskDetail, setShowRiskDetail] = useState(false);
+  const riskDetailRef = useRef<HTMLDivElement>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [shiftOffer, setShiftOffer] = useState<{ batchId: string; delta: number; affected: string[] } | null>(null);
@@ -1799,7 +1800,17 @@ export default function BatchDeliveryCalendar() {
               value: riskLevel,
               sub: riskCount > 0 ? `${riskCount} risk${riskCount > 1 ? "s" : ""} — click to view` : "No conflicts detected",
               accent: riskColor,
-              onClick: riskCount > 0 ? () => setShowRiskDetail(v => !v) : undefined,
+              onClick: riskCount > 0 ? () => {
+                setShowRiskDetail(v => {
+                  const next = !v;
+                  if (next) {
+                    setTimeout(() => {
+                      riskDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 50);
+                  }
+                  return next;
+                });
+              } : undefined,
             },
           ];
           return (
@@ -1834,6 +1845,58 @@ export default function BatchDeliveryCalendar() {
           );
         })()}
 
+        {/* ── RISK DETAIL INLINE (appears below summary tiles) ─────────────── */}
+        {showRiskDetail && summary.risks.length > 0 && (
+          <div
+            ref={riskDetailRef}
+            style={{
+              backgroundColor: "#fffbeb", border: "2px solid #fde68a",
+              borderRadius: "10px", padding: "16px 20px", marginBottom: "20px",
+              scrollMarginTop: "80px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#92400e" }}>
+                ⚠ {summary.risks.length} risk{summary.risks.length > 1 ? "s" : ""} identified
+              </div>
+              <button
+                onClick={() => setShowRiskDetail(false)}
+                style={{ fontSize: "11px", color: "#92400e", background: "none", border: "none", cursor: "pointer", padding: "2px 8px", borderRadius: "4px", backgroundColor: "#fde68a" }}
+              >
+                ✕ Close
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {summary.risks.map(r => (
+                <div key={r.id} style={{
+                  display: "flex", alignItems: "flex-start", gap: "10px",
+                  backgroundColor: "white", border: "1px solid #fde68a",
+                  borderRadius: "6px", padding: "8px 12px",
+                }}>
+                  <div style={{ minWidth: "80px" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", backgroundColor: "#dbeafe", padding: "2px 6px", borderRadius: "4px" }}>
+                      {r.batch}
+                    </span>
+                    <div style={{ fontSize: "10px", color: "#64748b", marginTop: "3px" }}>{r.system} · {r.pi}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", marginBottom: "2px" }}>{r.name}</div>
+                    <div style={{ fontSize: "11px", color: "#78350f" }}>
+                      {r._dateError && "⚠ End date is before start date"}
+                      {r._depConflict && !r._dateError && "⚠ Starts before a dependency completes"}
+                      {r.status === "Stretch" && !r._dateError && !r._depConflict && "Stretch Goal — opportunistic, non-blocking"}
+                    </div>
+                    {r.notes && <div style={{ fontSize: "11px", color: "#a16207", marginTop: "2px" }}>{r.notes}</div>}
+                  </div>
+                  <div style={{ minWidth: "90px", textAlign: "right" }}>
+                    <div style={{ fontSize: "11px", color: "#64748b" }}>{r.startDate}</div>
+                    <div style={{ fontSize: "11px", color: "#64748b" }}>{r.endDate}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {/* ── DELIVERY HEADLINES, COUNTS & FOOTNOTES ────────────────────────── */}
         <div style={{
           backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px",
@@ -2267,28 +2330,6 @@ export default function BatchDeliveryCalendar() {
           );
         })()}
 
-        {/* ── RISK DETAIL (collapsible) ────────────────────────────────────────── */}
-        {showRiskDetail && summary.risks.length > 0 && (
-          <div style={{
-            backgroundColor: "#fffbeb", border: "1px solid #fde68a",
-            borderRadius: "10px", padding: "14px 18px", marginBottom: "20px",
-          }}>
-            <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400e", marginBottom: "8px" }}>
-              ⚠ {summary.risks.length} risk{summary.risks.length > 1 ? "s" : ""} identified
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {summary.risks.map(r => (
-                <div key={r.id} style={{ fontSize: "12px", color: "#78350f" }}>
-                  <strong>{r.batch}</strong>
-                  {r._dateError && " — End date is before start date"}
-                  {r._depConflict && !r._dateError && " — Starts before a dependency completes"}
-                  {r.status === "Stretch" && !r._dateError && !r._depConflict && " — Stretch Goal"}
-                  {r.notes && <span style={{ color: "#a16207" }}> · {r.notes}</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* ── CRITICAL PATH SEQUENCE ───────────────────────────────────────────── */}
         {showCP && summary.cpOrdered.length > 0 && (() => {
