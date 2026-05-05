@@ -209,15 +209,28 @@ const BASELINE_ROWS: BatchRow[] = [
     startDate: "2026-09-02", endDate: "2026-09-11", status: "MVP",
     notes: "Batch 16 TDC. MVP. TDC side of B16 PDC (PI 2).", dependsOn: "B17",
   },
-  // ── PI 4 ─────────────────────────────────────────────────────────────────────
+  // ── PI 4 ─────────────────────────────────────────────────────────────────────────────
   {
     id: "pi4-b21-tdc", pi: "PI 4", batch: "B21", system: "TDC",
     name: "Quality Control Review Records",
     startDate: "2026-09-14", endDate: "2026-09-22", status: "Committed",
     notes: "Batch 21 TDC. PI 4 committed.", dependsOn: "B16",
   },
+  {
+    id: "pi4-b22-tdc", pi: "PI 4", batch: "B22", system: "TDC",
+    name: "Client Communication & Outstanding Items",
+    startDate: "2026-09-23", endDate: "2026-10-01", status: "Committed",
+    notes: "Batch 22 TDC. PI 4 completion. Outstanding item lifecycle: REQUESTED → RECEIVED → CLOSED. Extends Engagement Operations from B12.",
+    dependsOn: "B21",
+  },
+  {
+    id: "pi4-b23-tdc", pi: "PI 4", batch: "B23", system: "TDC",
+    name: "Benchmark & Peer Analytics",
+    startDate: "2026-10-05", endDate: "2026-10-14", status: "Committed",
+    notes: "Batch 23 TDC. PI 4 completion. Peer group definitions, industry benchmark data, Roger analytics surface. Outlier indicators visible.",
+    dependsOn: "B22",
+  },
 ];
-
 // ─── COLORS ───────────────────────────────────────────────────────────────────
 // RSM palette: Blue = PDC, Green = TDC, Gray = completed/platform, Amber = risk
 
@@ -2046,9 +2059,10 @@ export default function BatchDeliveryCalendar() {
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
                         "7. PI 4 — COMMITTED SCOPE",
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                        `Committed batches: ${pi4Committed || "B21 (TDC) — Quality Control Review Records (Sep 14–22, 2026)"}.`,
-                        "PI 4 entry gate: B16 TDC (Audit Trail & Lineage Governance) must close Sep 11 before PI 4 begins.",
-                        "PI 4 scope is lean — single committed batch. Confirm whether additional PI 4 batches are planned.",
+                        `Committed batches (3): ${pi4Committed || "B21 TDC — Quality Control Review Records (Sep 14–22) | B22 TDC — Client Communication & Outstanding Items (Sep 23–Oct 1) | B23 TDC — Benchmark & Peer Analytics (Oct 5–14)"}.`,
+                        "PI 4 entry gate: B16 TDC (Audit Trail & Lineage Governance) must close Sep 11 before PI 4 begins. B21 TDC starts Sep 14 — 3-day buffer.",
+                        "PI 4 runs Sep 14 – Oct 14, 2026. B21 → B22 → B23 TDC in sequence. Committed-only — no stretch or MVP in PI 4.",
+                        "Sequential chain with 1-day buffers between batches. Clean close-out pattern. Platform delivery complete Oct 14.",
                         "",
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
                         "END OF SUMMARY",
@@ -2218,23 +2232,26 @@ export default function BatchDeliveryCalendar() {
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
                       <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "12px 14px" }}>
-                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", marginBottom: "4px" }}>Committed Batches</div>
-                        <div style={{ fontSize: "12px", color: "#374151" }}>
-                          <strong>B21 TDC</strong> — Quality Control Review Records (Sep 14–22, 2026). Single committed batch in PI 4 scope.
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", marginBottom: "6px" }}>Committed Batches (3)</div>
+                        <div style={{ fontSize: "12px", color: "#374151", display: "flex", flexDirection: "column", gap: "4px" }}>
+                          <div><strong>B21 TDC</strong> — Quality Control Review Records (Sep 14–22)</div>
+                          <div><strong>B22 TDC</strong> — Client Communication & Outstanding Items (Sep 23–Oct 1)</div>
+                          <div><strong>B23 TDC</strong> — Benchmark & Peer Analytics (Oct 5–14)</div>
                         </div>
                       </div>
                       <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "12px 14px" }}>
                         <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", marginBottom: "4px" }}>PI 4 Entry Gate</div>
                         <div style={{ fontSize: "12px", color: "#374151" }}>
-                          <strong>B16 TDC</strong> (Audit Trail & Lineage Governance) must close <strong>Sep 11</strong> before PI 4 begins. B21 TDC starts Sep 14 — 3-day buffer.
+                          <strong>B16 TDC</strong> (Audit Trail & Lineage Governance) must close <strong>Sep 11</strong> before PI 4 begins. B21 TDC starts Sep 14 — 3-day buffer. PI 4 closes Oct 14 with B23 TDC.
                         </div>
                       </div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                       {[
-                        { label: "PI 4 scope is lean", detail: "Only 1 committed batch currently in PI 4. Confirm whether B22 TDC, B23 TDC, or additional governance batches are planned.", ok: false },
+                        { label: "PI 4 swimlane complete", detail: "3 committed TDC batches: B21 (QC), B22 (Client Comms), B23 (Benchmarks). PI 4 runs Sep 14 – Oct 14, 2026.", ok: true },
                         { label: "Clean entry gate", detail: "B16 TDC → B21 TDC has a 3-day buffer (Sep 11 → Sep 14). This is the healthiest PI transition in the roadmap.", ok: true },
                         { label: "No stretch or MVP in PI 4", detail: "PI 4 is committed-only. All stretch and MVP work is contained within PI 2 and PI 3 respectively.", ok: true },
+                        { label: "Sequential PI 4 chain", detail: "B21 → B22 → B23 TDC run in sequence with 1-day buffers. No parallel TDC work in PI 4 — clean close-out pattern.", ok: true },
                       ].map((item, i) => (
                         <div key={i} style={{ display: "flex", gap: "10px", backgroundColor: item.ok ? "#f0fdf4" : "#fffbeb", border: `1px solid ${item.ok ? "#bbf7d0" : "#fde68a"}`, borderRadius: "6px", padding: "8px 12px" }}>
                           <span style={{ fontSize: "11px", fontWeight: 700, color: item.ok ? "#166534" : "#92400e", minWidth: "180px" }}>{item.ok ? "✓" : "⚠"} {item.label}</span>
