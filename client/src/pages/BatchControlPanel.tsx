@@ -13,7 +13,7 @@ import {
   useBatchStatus, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
 } from "@/contexts/BatchStatusContext";
-import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity } from "lucide-react";
+import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send } from "lucide-react";
 
 // ── CopyNoteButton ────────────────────────────────────────────────────────────
 function CopyNoteButton({ text }: { text: string }) {
@@ -430,6 +430,7 @@ export default function BatchControlPanel() {
   const { statuses, setStatus, resetAll, gates, lastUpdated, syncLog, clearSyncLog, unlockedBatches, piCompletion, cascade } = useBatchStatus();
   const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
   const [poSummaryCopied, setPoSummaryCopied] = useState(false);
+  const [poSummaryGeneratedAt, setPoSummaryGeneratedAt] = useState<string | null>(null);
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
   const [expandedAdoRows, setExpandedAdoRows] = useState<Set<number>>(new Set());
   const [adoCopied, setAdoCopied] = useState(false);
@@ -672,11 +673,26 @@ export default function BatchControlPanel() {
     `RECOMMENDED NEXT ACTION:\n• Confirm Batch 2A FirmTaxonomyId enforcement decision with engineering (ADR-06 pending approval)\n• Publish TDC Records API contract to unblock Roger Batch 4 view\n• Update Consumer Guide with missing endpoint documentation (Processing Run API, Normalized TB, Mapping Decisions)\n• Confirm Batch 5 EntityId contract scope with PDC team before PI 2 sprint planning`,
   ].filter(s => s !== "").join("\n");
 
+  const formatTimestamp = () => new Date().toLocaleString("en-US", {
+    month: "long", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit", hour12: true,
+  });
+
   const copyPoSummary = () => {
+    const ts = formatTimestamp();
+    setPoSummaryGeneratedAt(ts);
     navigator.clipboard.writeText(poSummaryText).then(() => {
       setPoSummaryCopied(true);
       setTimeout(() => setPoSummaryCopied(false), 3000);
     });
+  };
+
+  const sendToTeams = () => {
+    const ts = formatTimestamp();
+    setPoSummaryGeneratedAt(ts);
+    // Teams deep link: opens a new chat with pre-filled message
+    const message = encodeURIComponent(poSummaryText);
+    window.open(`https://teams.microsoft.com/l/chat/0/0?message=${message}`, "_blank");
   };
 
   return (
@@ -1344,15 +1360,32 @@ export default function BatchControlPanel() {
           cascadeDone={cascade.completedSteps.includes(4)}
         />
         <div className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Auto-generated from current batch data</div>
-            <button
-              onClick={copyPoSummary}
-              className="flex items-center gap-1.5 text-xs font-semibold bg-[#003865] text-white px-3 py-1.5 rounded-lg hover:bg-blue-900 transition-colors"
-            >
-              {poSummaryCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              {poSummaryCopied ? "Copied!" : "Copy Full Summary"}
-            </button>
+          <div className="flex items-start justify-between mb-3 gap-3 flex-wrap">
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Auto-generated from current batch data</div>
+              {poSummaryGeneratedAt && (
+                <div className="text-xs text-slate-400 mt-0.5">
+                  Generated: {poSummaryGeneratedAt}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={sendToTeams}
+                className="flex items-center gap-1.5 text-xs font-semibold bg-[#464EB8] text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+                title="Open Microsoft Teams with this summary pre-filled"
+              >
+                <Send className="w-3.5 h-3.5" />
+                Send to Teams
+              </button>
+              <button
+                onClick={copyPoSummary}
+                className="flex items-center gap-1.5 text-xs font-semibold bg-[#003865] text-white px-3 py-1.5 rounded-lg hover:bg-blue-900 transition-colors"
+              >
+                {poSummaryCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {poSummaryCopied ? "Copied!" : "Copy Full Summary"}
+              </button>
+            </div>
           </div>
           <pre className="text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-4 whitespace-pre-wrap font-mono leading-relaxed overflow-x-auto">
             {poSummaryText}
