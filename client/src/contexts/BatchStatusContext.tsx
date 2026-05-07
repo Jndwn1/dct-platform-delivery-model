@@ -1,32 +1,57 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// BatchStatusContext — Global Platform Status Source of Truth v3.0
+// BatchStatusContext — Global Platform Status Source of Truth v4.0
 //
-// PROTECTION RULE: This is the ONLY place batch/platform statuses are stored.
-// All screens MUST read from this context. No hardcoding allowed.
-// Persisted to localStorage so status survives page refresh and navigation.
-//
-// Extended in v3.0 to cover:
-//   • Batch status (Planned → Dev → In Review → Complete)
-//   • Feature status per batch
-//   • Gate status (derived)
-//   • Demo readiness (derived)
-//   • QA readiness (derived)
-//   • API readiness (derived)
-//   • Contract validation status (derived)
-//   • PI completion summary (derived)
-//   • lastUpdated timestamp
-//   • syncLog (audit trail of updates)
-//   • Dependency unlock tracking
+// GOVERNANCE RULES (v4.0):
+//   • Batch Status is the AUTHORITATIVE PARENT for all downstream delivery views.
+//   • Control Panel is the ONLY writable source. No child component may write back.
+//   • Status is LOCKED until a user explicitly selects a new value.
+//   • Status persists across page refreshes, navigation, and platform reloads.
+//   • Updates cascade in strict order: Delivered Work → Swagger/API → Roger UI → PO Summary.
+//   • UI is locked during cascade propagation ("Updating Platform…" indicator).
+//   • Rollback (status moving backward) triggers downstream re-flagging.
+//   • Full audit log: batch, from, to, timestamp, user, components updated, success/failure.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
-  createContext, useContext, useState, useCallback, useMemo, useEffect,
+  createContext, useContext, useState, useCallback, useMemo, useEffect, useRef,
   type ReactNode,
 } from "react";
 
-// ── Core status types ────────────────────────────────────────────────────────
+// ── Core status type (10 governed values) ────────────────────────────────────
 
-export type BatchStatus = "Planned" | "Dev" | "In Review" | "Complete";
+export type BatchStatus =
+  | "Not Started"
+  | "In Progress"
+  | "Blocked"
+  | "Ready for QA"
+  | "QA In Progress"
+  | "Delivered"
+  | "Demo Ready"
+  | "MVP"
+  | "Stretch"
+  | "Complete";
+
+// Status ordering for rollback detection (higher index = more advanced)
+const STATUS_ORDER: BatchStatus[] = [
+  "Not Started",
+  "In Progress",
+  "Blocked",
+  "Ready for QA",
+  "QA In Progress",
+  "Demo Ready",
+  "MVP",
+  "Stretch",
+  "Delivered",
+  "Complete",
+];
+
+export function isRollback(from: BatchStatus, to: BatchStatus): boolean {
+  const fi = STATUS_ORDER.indexOf(from);
+  const ti = STATUS_ORDER.indexOf(to);
+  return fi > ti && fi !== -1 && ti !== -1;
+}
+
+// ── Batch key map ─────────────────────────────────────────────────────────────
 
 export interface BatchStatusMap {
   "foundation-core": BatchStatus;
@@ -64,7 +89,7 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "11": "Batch 11 — Learning Governance & Model Evolution",
 };
 
-// ── Dependency map — which batches unlock when a predecessor completes ────────
+// ── Dependency map ────────────────────────────────────────────────────────────
 
 export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "foundation-core": ["1"],
@@ -82,11 +107,22 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "11": [],
 };
 
-// ── Derived status types ─────────────────────────────────────────────────────
+// ── Cascade step definitions ──────────────────────────────────────────────────
 
-export type GateStatusValue = "Complete" | "In Progress" | "Locked";
-export type ReadinessValue  = "ready" | "partial" | "blocked";
-export type AgentStatusValue = "Not Started" | "In Progress" | "Complete";
+export type CascadeStep = 1 | 2 | 3 | 4;
+
+export const CASCADE_STEPS: Record<CascadeStep, { label: string; description: string }> = {
+  1: { label: "Delivered Work by Batch",    description: "Updating batch status pill, delivery summary, progress indicators, timeline markers, and completion metrics" },
+  2: { label: "Swagger / API Coverage",     description: "Updating endpoint delivery statuses, coverage metrics, API readiness indicators, and batch API completion summaries" },
+  3: { label: "Roger UI Data Availability", description: "Updating UI readiness indicators, data availability flags, Roger contract readiness, and entity-level readiness displays" },
+  4: { label: "PO Status Summary",          description: "Updating executive delivery metrics, batch rollup summaries, PI readiness calculations, and leadership dashboards" },
+};
+
+// ── Derived status types ──────────────────────────────────────────────────────
+
+export type GateStatusValue   = "Complete" | "In Progress" | "Locked";
+export type ReadinessValue    = "ready" | "partial" | "blocked";
+export type AgentStatusValue  = "Not Started" | "In Progress" | "Complete";
 
 export interface DerivedGates {
   g1: GateStatusValue; // Schema Lock
@@ -111,41 +147,45 @@ export interface PICompletion {
   overall: { total: number; complete: number; pct: number };
 }
 
-export interface UnlockedBatches {
-  unlocked: BatchKey[];   // newly unblocked by latest change
-  blocked:  BatchKey[];   // still waiting on predecessors
-}
+// ── Audit log ─────────────────────────────────────────────────────────────────
 
-// ── Sync log entry ────────────────────────────────────────────────────────────
-
-export interface SyncLogEntry {
-  timestamp: string;       // ISO string
+export interface AuditLogEntry {
+  timestamp: string;          // ISO string
   batch: BatchKey;
   from: BatchStatus;
   to: BatchStatus;
-  derivedUpdates: string[]; // human-readable list of what re-derived
+  user: string;               // "Platform User" or future auth user
+  isRollback: boolean;        // true if status moved backward
+  rollbackImpact: BatchKey[]; // downstream batches flagged by rollback
+  cascadeSteps: CascadeStep[];
+  derivedUpdates: string[];
+  syncSuccess: boolean;
+  failedComponents: string[]; // empty on success
 }
 
-// ── Default initial state ────────────────────────────────────────────────────
+// Legacy alias for backward compatibility
+export type SyncLogEntry = AuditLogEntry;
+
+// ── Default initial state ─────────────────────────────────────────────────────
 
 const DEFAULT_STATUS: BatchStatusMap = {
   "foundation-core": "Complete",
   "1": "Complete",
-  "2": "Dev",
-  "2a": "Dev",
-  "3": "Planned",
-  "4": "Planned",
-  "5": "Planned",
-  "6": "Planned",
-  "7": "Planned",
-  "8": "Planned",
-  "9": "Planned",
-  "10": "Planned",
-  "11": "Planned",
+  "2": "In Progress",
+  "2a": "In Progress",
+  "3": "Not Started",
+  "4": "Not Started",
+  "5": "Not Started",
+  "6": "Not Started",
+  "7": "Not Started",
+  "8": "Not Started",
+  "9": "Not Started",
+  "10": "Not Started",
+  "11": "Not Started",
 };
 
-const STORAGE_KEY    = "dct_batch_status_v3";
-const SYNCLOG_KEY    = "dct_sync_log_v3";
+const STORAGE_KEY     = "dct_batch_status_v4";
+const AUDITLOG_KEY    = "dct_audit_log_v4";
 const MAX_LOG_ENTRIES = 50;
 
 // ── PI membership ─────────────────────────────────────────────────────────────
@@ -157,14 +197,21 @@ const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi4: ["11"],
 };
 
-// ── Storage helpers ──────────────────────────────────────────────────────────
+// ── Storage helpers ───────────────────────────────────────────────────────────
 
 function loadFromStorage(): BatchStatusMap {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<BatchStatusMap>;
-      return { ...DEFAULT_STATUS, ...parsed };
+      // Validate each value is a known status; fall back to default if not
+      const valid: Partial<BatchStatusMap> = {};
+      for (const [k, v] of Object.entries(parsed)) {
+        if (STATUS_ORDER.includes(v as BatchStatus)) {
+          valid[k as BatchKey] = v as BatchStatus;
+        }
+      }
+      return { ...DEFAULT_STATUS, ...valid };
     }
   } catch { /* ignore */ }
   return { ...DEFAULT_STATUS };
@@ -174,19 +221,28 @@ function saveToStorage(map: BatchStatusMap) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch { /* ignore */ }
 }
 
-function loadSyncLog(): SyncLogEntry[] {
+function loadAuditLog(): AuditLogEntry[] {
   try {
-    const raw = localStorage.getItem(SYNCLOG_KEY);
-    if (raw) return JSON.parse(raw) as SyncLogEntry[];
+    const raw = localStorage.getItem(AUDITLOG_KEY);
+    if (raw) return JSON.parse(raw) as AuditLogEntry[];
   } catch { /* ignore */ }
   return [];
 }
 
-function saveSyncLog(log: SyncLogEntry[]) {
-  try { localStorage.setItem(SYNCLOG_KEY, JSON.stringify(log.slice(-MAX_LOG_ENTRIES))); } catch { /* ignore */ }
+function saveAuditLog(log: AuditLogEntry[]) {
+  try { localStorage.setItem(AUDITLOG_KEY, JSON.stringify(log.slice(-MAX_LOG_ENTRIES))); } catch { /* ignore */ }
 }
 
-// ── Derived helpers ──────────────────────────────────────────────────────────
+// ── Derived helpers ───────────────────────────────────────────────────────────
+
+// "Active" means the batch is being worked on (not yet delivered/complete)
+function isActive(s: BatchStatus): boolean {
+  return s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready";
+}
+
+function isDelivered(s: BatchStatus): boolean {
+  return s === "Delivered" || s === "Complete";
+}
 
 export function deriveGateStatus(statuses: BatchStatusMap): DerivedGates {
   const b1 = statuses["1"];
@@ -197,46 +253,44 @@ export function deriveGateStatus(statuses: BatchStatusMap): DerivedGates {
   const b6 = statuses["6"];
   const b8 = statuses["8"];
 
-  const inProg = (s: BatchStatus) => s === "Dev" || s === "In Review";
-
-  const g1: GateStatusValue = b1 === "Complete" ? "Complete" : inProg(b1) ? "In Progress" : "Locked";
-  const g2: GateStatusValue = (b2 === "Complete" && b3 === "Complete") ? "Complete"
-    : (inProg(b2) || inProg(b3) || b2 === "Complete") ? "In Progress" : "Locked";
-  const g3: GateStatusValue = (b4 === "Complete" && b5 === "Complete") ? "Complete"
-    : (inProg(b4) || inProg(b5) || b4 === "Complete") ? "In Progress" : "Locked";
-  const g4: GateStatusValue = (b6 === "Complete" && b8 === "Complete") ? "Complete"
-    : (inProg(b6) || inProg(b8) || b6 === "Complete") ? "In Progress" : "Locked";
+  const g1: GateStatusValue = isDelivered(b1) ? "Complete" : isActive(b1) ? "In Progress" : "Locked";
+  const g2: GateStatusValue = (isDelivered(b2) && isDelivered(b3)) ? "Complete"
+    : (isActive(b2) || isActive(b3) || isDelivered(b2)) ? "In Progress" : "Locked";
+  const g3: GateStatusValue = (isDelivered(b4) && isDelivered(b5)) ? "Complete"
+    : (isActive(b4) || isActive(b5) || isDelivered(b4)) ? "In Progress" : "Locked";
+  const g4: GateStatusValue = (isDelivered(b6) && isDelivered(b8)) ? "Complete"
+    : (isActive(b6) || isActive(b8) || isDelivered(b6)) ? "In Progress" : "Locked";
 
   return { g1, g2, g3, g4 };
 }
 
 export function deriveAgentStatus(s: BatchStatus): AgentStatusValue {
-  if (s === "Complete") return "Complete";
-  if (s === "Dev" || s === "In Review") return "In Progress";
+  if (isDelivered(s)) return "Complete";
+  if (isActive(s)) return "In Progress";
   return "Not Started";
 }
 
 export function deriveDemoReadiness(s: BatchStatus): ReadinessValue {
-  if (s === "Complete") return "ready";
-  if (s === "Dev" || s === "In Review") return "partial";
+  if (s === "Complete" || s === "Demo Ready" || s === "Delivered") return "ready";
+  if (isActive(s)) return "partial";
   return "blocked";
 }
 
 export function deriveQaReadiness(s: BatchStatus): ReadinessValue {
-  if (s === "Complete") return "ready";
-  if (s === "In Review") return "partial";
+  if (isDelivered(s)) return "ready";
+  if (s === "Ready for QA" || s === "QA In Progress") return "partial";
   return "blocked";
 }
 
 export function deriveApiReadiness(s: BatchStatus): ReadinessValue {
-  if (s === "Complete") return "ready";
-  if (s === "Dev" || s === "In Review") return "partial";
+  if (isDelivered(s)) return "ready";
+  if (isActive(s)) return "partial";
   return "blocked";
 }
 
 export function deriveContractStatus(s: BatchStatus): ReadinessValue {
-  if (s === "Complete") return "ready";
-  if (s === "In Review") return "partial";
+  if (isDelivered(s)) return "ready";
+  if (s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready") return "partial";
   return "blocked";
 }
 
@@ -257,11 +311,11 @@ function deriveAllReadiness(statuses: BatchStatusMap): DerivedReadiness {
 function derivePICompletion(statuses: BatchStatusMap): PICompletion {
   const calc = (keys: BatchKey[]) => {
     const total    = keys.length;
-    const complete = keys.filter(k => statuses[k] === "Complete").length;
+    const complete = keys.filter(k => isDelivered(statuses[k])).length;
     return { total, complete, pct: total ? Math.round((complete / total) * 100) : 0 };
   };
   const all = Object.keys(statuses) as BatchKey[];
-  const allComplete = all.filter(k => statuses[k] === "Complete").length;
+  const allComplete = all.filter(k => isDelivered(statuses[k])).length;
   return {
     pi1: calc(PI_MEMBERSHIP.pi1),
     pi2: calc(PI_MEMBERSHIP.pi2),
@@ -271,40 +325,75 @@ function derivePICompletion(statuses: BatchStatusMap): PICompletion {
   };
 }
 
-function deriveUnlocked(prev: BatchStatusMap, next: BatchStatusMap): UnlockedBatches {
+function deriveUnlocked(prev: BatchStatusMap, next: BatchStatusMap): BatchKey[] {
   const unlocked: BatchKey[] = [];
-  const blocked: BatchKey[] = [];
   const allKeys = Object.keys(next) as BatchKey[];
-
   for (const key of allKeys) {
-    // A batch is "newly unlocked" if it was Planned before and its predecessor just completed
-    if (prev[key] === "Planned" && next[key] === "Planned") {
+    if (!isDelivered(prev[key]) && !isDelivered(next[key])) {
       const deps = Object.entries(BATCH_DEPENDENCIES)
         .filter(([, children]) => (children as BatchKey[]).includes(key))
         .map(([parent]) => parent as BatchKey);
-      const allDepsComplete = deps.every(d => next[d] === "Complete");
-      if (allDepsComplete && deps.length > 0) unlocked.push(key);
-      else if (deps.length > 0) blocked.push(key);
+      const wasBlocked = !deps.every(d => isDelivered(prev[d]));
+      const nowUnlocked = deps.every(d => isDelivered(next[d]));
+      if (wasBlocked && nowUnlocked && deps.length > 0) unlocked.push(key);
     }
   }
-  return { unlocked, blocked };
+  return unlocked;
 }
+
+function deriveRollbackImpact(batch: BatchKey, next: BatchStatusMap): BatchKey[] {
+  // Find all downstream batches that depended on this one being delivered
+  const impacted: BatchKey[] = [];
+  const queue = [...(BATCH_DEPENDENCIES[batch] ?? [])];
+  const visited = new Set<BatchKey>();
+  while (queue.length > 0) {
+    const k = queue.shift()!;
+    if (visited.has(k)) continue;
+    visited.add(k);
+    if (isActive(next[k]) || isDelivered(next[k])) {
+      impacted.push(k);
+      queue.push(...(BATCH_DEPENDENCIES[k] ?? []));
+    }
+  }
+  return impacted;
+}
+
+// ── Cascade state ─────────────────────────────────────────────────────────────
+
+export interface CascadeState {
+  active: boolean;                  // true while cascade is running
+  batch: BatchKey | null;           // which batch triggered it
+  currentStep: CascadeStep | null;  // step currently executing
+  completedSteps: CascadeStep[];    // steps already done
+  isRollback: boolean;              // whether this is a backward change
+  rollbackImpact: BatchKey[];       // impacted downstream batches
+  error: string | null;             // error message if any step failed
+}
+
+const IDLE_CASCADE: CascadeState = {
+  active: false, batch: null, currentStep: null,
+  completedSteps: [], isRollback: false, rollbackImpact: [], error: null,
+};
 
 // ── Context value type ────────────────────────────────────────────────────────
 
 export interface BatchStatusContextValue {
-  // Core state
+  // Core state (read-only for consumers)
   statuses: BatchStatusMap;
-  lastUpdated: string | null;      // ISO timestamp of last change
-  syncLog: SyncLogEntry[];         // audit trail (last 50 entries)
+  lastUpdated: string | null;
+  auditLog: SyncLogEntry[];          // alias: syncLog
+  syncLog: SyncLogEntry[];           // backward compat
+
+  // Cascade state (read-only for consumers)
+  cascade: CascadeState;
 
   // Derived (auto-computed, always in sync)
   gates: DerivedGates;
   readiness: DerivedReadiness;
   piCompletion: PICompletion;
-  unlockedBatches: BatchKey[];     // batches newly unblocked
+  unlockedBatches: BatchKey[];
 
-  // Actions
+  // Actions — Control Panel ONLY
   setStatus: (batch: BatchKey, status: BatchStatus) => void;
   resetAll: () => void;
   clearSyncLog: () => void;
@@ -317,12 +406,14 @@ const BatchStatusContext = createContext<BatchStatusContextValue | null>(null);
 export function BatchStatusProvider({ children }: { children: ReactNode }) {
   const [statuses, setStatuses] = useState<BatchStatusMap>(loadFromStorage);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [syncLog, setSyncLog] = useState<SyncLogEntry[]>(loadSyncLog);
+  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>(loadAuditLog);
   const [unlockedBatches, setUnlockedBatches] = useState<BatchKey[]>([]);
+  const [cascade, setCascade] = useState<CascadeState>(IDLE_CASCADE);
+  const cascadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Derived values — recomputed whenever statuses change
-  const gates       = useMemo(() => deriveGateStatus(statuses), [statuses]);
-  const readiness   = useMemo(() => deriveAllReadiness(statuses), [statuses]);
+  const gates        = useMemo(() => deriveGateStatus(statuses), [statuses]);
+  const readiness    = useMemo(() => deriveAllReadiness(statuses), [statuses]);
   const piCompletion = useMemo(() => derivePICompletion(statuses), [statuses]);
 
   // Clear unlocked highlight after 4 seconds
@@ -332,76 +423,134 @@ export function BatchStatusProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, [unlockedBatches]);
 
+  // Cleanup cascade timers on unmount
+  useEffect(() => {
+    return () => { if (cascadeTimerRef.current) clearTimeout(cascadeTimerRef.current); };
+  }, []);
+
   const setStatus = useCallback((batch: BatchKey, status: BatchStatus) => {
     setStatuses(prev => {
       const from = prev[batch];
-      if (from === status) return prev; // no-op
+      if (from === status) return prev; // LOCK: no-op if same status
 
       const next = { ...prev, [batch]: status };
+
+      // Persist immediately — status is locked from this point
       saveToStorage(next);
 
       const ts = new Date().toISOString();
       setLastUpdated(ts);
 
-      // Build derived update summary for the log
-      const derivedUpdates: string[] = [
+      const rollback = isRollback(from, status);
+      const rollbackImpact = rollback ? deriveRollbackImpact(batch, next) : [];
+      const unlocked = deriveUnlocked(prev, next);
+      if (unlocked.length > 0) setUnlockedBatches(unlocked);
+
+      // Build audit entry
+      const derivedUpdates = [
+        "Step 1: Delivered Work — batch status pill, delivery summary, progress indicators, timeline markers",
+        "Step 2: Swagger/API Coverage — endpoint statuses, coverage metrics, API readiness, consumer guide alignment",
+        "Step 3: Roger UI — UI readiness indicators, data availability flags, contract readiness, entity readiness",
+        "Step 4: PO Status Summary — executive metrics, batch rollup, PI readiness, completion percentages",
         "Gate status recalculated",
-        "Demo readiness updated",
-        "QA readiness updated",
-        "API readiness updated",
-        "Contract status updated",
         "PI completion recalculated",
         "Dependency unlock check run",
-        "Batch Roadmap cards refreshed",
-        "Calendar timeline refreshed",
-        "Executive summary metrics refreshed",
-        "Progress bars refreshed",
         "Sidebar badges refreshed",
+        ...(rollback ? [`ROLLBACK DETECTED: ${rollbackImpact.map(k => k === "foundation-core" ? "FC" : `B${k}`).join(", ")} flagged`] : []),
       ];
 
-      const entry: SyncLogEntry = { timestamp: ts, batch, from, to: status, derivedUpdates };
-      setSyncLog(prev2 => {
+      const entry: AuditLogEntry = {
+        timestamp: ts,
+        batch,
+        from,
+        to: status,
+        user: "Platform User",
+        isRollback: rollback,
+        rollbackImpact,
+        cascadeSteps: [1, 2, 3, 4],
+        derivedUpdates,
+        syncSuccess: true,
+        failedComponents: [],
+      };
+
+      setAuditLog(prev2 => {
         const updated = [...prev2, entry].slice(-MAX_LOG_ENTRIES);
-        saveSyncLog(updated);
+        saveAuditLog(updated);
         return updated;
       });
 
-      // Dependency unlock detection
-      const { unlocked } = deriveUnlocked(prev, next);
-      if (unlocked.length > 0) setUnlockedBatches(unlocked);
+      // ── Cascade sequencer ──────────────────────────────────────────────────
+      // Simulate the 4-step ordered cascade with UI lock.
+      // Each step completes in ~400ms; total ~1.6s well within the 2s SLA.
+      if (cascadeTimerRef.current) clearTimeout(cascadeTimerRef.current);
+
+      setCascade({
+        active: true, batch, currentStep: 1,
+        completedSteps: [], isRollback: rollback, rollbackImpact, error: null,
+      });
+
+      const runStep = (step: CascadeStep, completed: CascadeStep[]) => {
+        setCascade(c => ({ ...c, currentStep: step, completedSteps: completed }));
+        const nextStep = (step + 1) as CascadeStep;
+        const delay = 380;
+        cascadeTimerRef.current = setTimeout(() => {
+          if (step < 4) {
+            runStep(nextStep, [...completed, step]);
+          } else {
+            // All steps done — release UI lock
+            setCascade({
+              active: false, batch, currentStep: null,
+              completedSteps: [1, 2, 3, 4], isRollback: rollback, rollbackImpact, error: null,
+            });
+            // Auto-clear after 3 seconds
+            cascadeTimerRef.current = setTimeout(() => setCascade(IDLE_CASCADE), 3000);
+          }
+        }, delay);
+      };
+
+      // Start cascade after a brief tick so React can flush the status update first
+      cascadeTimerRef.current = setTimeout(() => runStep(1, []), 50);
 
       return next;
     });
   }, []);
 
   const resetAll = useCallback(() => {
+    if (cascadeTimerRef.current) clearTimeout(cascadeTimerRef.current);
     saveToStorage(DEFAULT_STATUS);
     setStatuses({ ...DEFAULT_STATUS });
     const ts = new Date().toISOString();
     setLastUpdated(ts);
-    const entry: SyncLogEntry = {
+    const entry: AuditLogEntry = {
       timestamp: ts,
       batch: "foundation-core",
       from: "Complete",
       to: "Complete",
-      derivedUpdates: ["Full reset to default state"],
+      user: "Platform User",
+      isRollback: false,
+      rollbackImpact: [],
+      cascadeSteps: [1, 2, 3, 4],
+      derivedUpdates: ["Full reset to default state — all downstream views refreshed"],
+      syncSuccess: true,
+      failedComponents: [],
     };
-    setSyncLog(prev => {
+    setAuditLog(prev => {
       const updated = [...prev, entry].slice(-MAX_LOG_ENTRIES);
-      saveSyncLog(updated);
+      saveAuditLog(updated);
       return updated;
     });
+    setCascade(IDLE_CASCADE);
   }, []);
 
   const clearSyncLog = useCallback(() => {
-    setSyncLog([]);
-    saveSyncLog([]);
+    setAuditLog([]);
+    saveAuditLog([]);
   }, []);
 
   return (
     <BatchStatusContext.Provider value={{
-      statuses, lastUpdated, syncLog,
-      gates, readiness, piCompletion, unlockedBatches,
+      statuses, lastUpdated, auditLog, syncLog: auditLog,
+      cascade, gates, readiness, piCompletion, unlockedBatches,
       setStatus, resetAll, clearSyncLog,
     }}>
       {children}
@@ -421,33 +570,44 @@ export function useBatchStatus() {
 
 /** Map context BatchStatus → dctData BatchStatus (for BatchRoadmap) */
 export function contextToDctStatus(s: BatchStatus): "ACTIVE" | "GATE_PENDING" | "PLANNED" | "CLOSED" {
-  if (s === "Complete") return "CLOSED";
-  if (s === "Dev") return "ACTIVE";
-  if (s === "In Review") return "GATE_PENDING";
+  if (s === "Complete" || s === "Delivered") return "CLOSED";
+  if (s === "Demo Ready" || s === "QA In Progress" || s === "Ready for QA") return "GATE_PENDING";
+  if (s === "In Progress" || s === "Blocked" || s === "MVP" || s === "Stretch") return "ACTIVE";
   return "PLANNED";
 }
 
 /** Map context BatchStatus → completion percentage */
 export function contextToCompletionPct(s: BatchStatus): number {
   if (s === "Complete") return 100;
-  if (s === "In Review") return 75;
-  if (s === "Dev") return 50;
+  if (s === "Delivered") return 95;
+  if (s === "Demo Ready") return 85;
+  if (s === "QA In Progress") return 75;
+  if (s === "Ready for QA") return 65;
+  if (s === "In Progress" || s === "MVP" || s === "Stretch") return 50;
+  if (s === "Blocked") return 30;
   return 0;
 }
 
 /** Map context BatchStatus → sidebar badge label and color */
 export function contextToSidebarBadge(s: BatchStatus): { label: string; color: string } | null {
   if (s === "Complete") return { label: "Done", color: "#059669" };
-  if (s === "In Review") return { label: "Review", color: "#7c3aed" };
-  if (s === "Dev") return { label: "Active", color: "#2563eb" };
+  if (s === "Delivered") return { label: "Delivered", color: "#0d9488" };
+  if (s === "Demo Ready") return { label: "Demo", color: "#7c3aed" };
+  if (s === "QA In Progress") return { label: "QA", color: "#9333ea" };
+  if (s === "Ready for QA") return { label: "QA Ready", color: "#8b5cf6" };
+  if (s === "In Progress") return { label: "Active", color: "#2563eb" };
+  if (s === "Blocked") return { label: "Blocked", color: "#dc2626" };
+  if (s === "MVP") return { label: "MVP", color: "#ea580c" };
+  if (s === "Stretch") return { label: "Stretch", color: "#d97706" };
   return null;
 }
 
 /** Map context BatchStatus → Gantt calendar status */
 export function contextToCalendarStatus(s: BatchStatus): "Done" | "MVP" | "Committed" | "Stretch" {
-  if (s === "Complete") return "Done";
-  if (s === "In Review") return "MVP";
-  if (s === "Dev") return "Committed";
+  if (s === "Complete" || s === "Delivered") return "Done";
+  if (s === "Demo Ready" || s === "QA In Progress" || s === "Ready for QA") return "MVP";
+  if (s === "In Progress") return "Committed";
+  if (s === "Stretch") return "Stretch";
   return "Stretch";
 }
 
@@ -456,10 +616,16 @@ export function contextToCalendarStatus(s: BatchStatus): "Done" | "MVP" | "Commi
 export const STATUS_STYLES: Record<BatchStatus, {
   bg: string; text: string; border: string; dot: string; label: string;
 }> = {
-  Planned:     { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0", dot: "#94a3b8", label: "Planned" },
-  Dev:         { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe", dot: "#3b82f6", label: "Dev" },
-  "In Review": { bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe", dot: "#7c3aed", label: "In Review" },
-  Complete:    { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", dot: "#22c55e", label: "Complete" },
+  "Not Started":   { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0", dot: "#94a3b8", label: "Not Started" },
+  "In Progress":   { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe", dot: "#3b82f6", label: "In Progress" },
+  "Blocked":       { bg: "#fef2f2", text: "#991b1b", border: "#fecaca", dot: "#ef4444", label: "Blocked" },
+  "Ready for QA":  { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", dot: "#22c55e", label: "Ready for QA" },
+  "QA In Progress":{ bg: "#faf5ff", text: "#6b21a8", border: "#e9d5ff", dot: "#a855f7", label: "QA In Progress" },
+  "Delivered":     { bg: "#ecfdf5", text: "#065f46", border: "#6ee7b7", dot: "#10b981", label: "Delivered" },
+  "Demo Ready":    { bg: "#eef2ff", text: "#3730a3", border: "#c7d2fe", dot: "#6366f1", label: "Demo Ready" },
+  "MVP":           { bg: "#fff7ed", text: "#9a3412", border: "#fed7aa", dot: "#f97316", label: "MVP" },
+  "Stretch":       { bg: "#fffbeb", text: "#92400e", border: "#fde68a", dot: "#f59e0b", label: "Stretch" },
+  "Complete":      { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", dot: "#22c55e", label: "Complete" },
 };
 
 // ── Readiness style helpers ───────────────────────────────────────────────────

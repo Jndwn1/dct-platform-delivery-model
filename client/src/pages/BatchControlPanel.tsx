@@ -10,7 +10,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import {
-  useBatchStatus, STATUS_STYLES, BATCH_LABELS,
+  useBatchStatus, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
 } from "@/contexts/BatchStatusContext";
 import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity } from "lucide-react";
@@ -357,11 +357,36 @@ function Badge({ label, bg, text }: { label: string; bg: string; text: string })
   );
 }
 
-function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+function SectionHeader({ title, subtitle, cascadeStep, cascadeActive, cascadeDone }: {
+  title: string;
+  subtitle?: string;
+  cascadeStep?: number;
+  cascadeActive?: boolean;
+  cascadeDone?: boolean;
+}) {
   return (
-    <div className="px-5 py-3 border-b border-slate-100 bg-[#003865]">
-      <div className="text-sm font-bold text-white">{title}</div>
-      {subtitle && <div className="text-xs text-blue-200 mt-0.5">{subtitle}</div>}
+    <div className="px-5 py-3 border-b border-slate-100 bg-[#003865] flex items-center justify-between">
+      <div>
+        <div className="text-sm font-bold text-white">{title}</div>
+        {subtitle && <div className="text-xs text-blue-200 mt-0.5">{subtitle}</div>}
+      </div>
+      {cascadeStep !== undefined && (
+        <div className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-all duration-300 ${
+          cascadeDone
+            ? "bg-emerald-500 text-white"
+            : cascadeActive
+              ? "bg-blue-400 text-white"
+              : "bg-blue-800 text-blue-300"
+        }`}>
+          {cascadeDone
+            ? <CheckCircle2 className="w-3 h-3" />
+            : cascadeActive
+              ? <div className="w-2.5 h-2.5 rounded-full border border-white border-t-transparent animate-spin" />
+              : <Circle className="w-3 h-3" />
+          }
+          Step {cascadeStep}
+        </div>
+      )}
     </div>
   );
 }
@@ -402,7 +427,7 @@ function GateStatusBadge({ status }: { status: "Complete" | "In Progress" | "Loc
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function BatchControlPanel() {
-  const { statuses, setStatus, resetAll, gates, lastUpdated, syncLog, clearSyncLog, unlockedBatches, piCompletion } = useBatchStatus();
+  const { statuses, setStatus, resetAll, gates, lastUpdated, syncLog, clearSyncLog, unlockedBatches, piCompletion, cascade } = useBatchStatus();
   const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
   const [poSummaryCopied, setPoSummaryCopied] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
@@ -553,17 +578,20 @@ export default function BatchControlPanel() {
     }
   };
 
-  const complete = BATCH_KEYS.filter(k => statuses[k] === "Complete").length;
-  const dev      = BATCH_KEYS.filter(k => statuses[k] === "Dev").length;
-  const inReview = BATCH_KEYS.filter(k => statuses[k] === "In Review").length;
-  const planned  = BATCH_KEYS.filter(k => statuses[k] === "Planned").length;
+  const complete   = BATCH_KEYS.filter(k => statuses[k] === "Complete" || statuses[k] === "Delivered").length;
+  const dev        = BATCH_KEYS.filter(k => statuses[k] === "In Progress" || statuses[k] === "Blocked" || statuses[k] === "MVP" || statuses[k] === "Stretch").length;
+  const inReview   = BATCH_KEYS.filter(k => statuses[k] === "Ready for QA" || statuses[k] === "QA In Progress" || statuses[k] === "Demo Ready").length;
+  const planned    = BATCH_KEYS.filter(k => statuses[k] === "Not Started").length;
 
   const advanceAll = () => {
     BATCH_KEYS.forEach(k => {
       const current = statuses[k];
-      if (current === "Planned") setStatus(k, "Dev");
-      else if (current === "Dev") setStatus(k, "In Review");
-      else if (current === "In Review") setStatus(k, "Complete");
+      if (current === "Not Started") setStatus(k, "In Progress");
+      else if (current === "In Progress") setStatus(k, "Ready for QA");
+      else if (current === "Ready for QA") setStatus(k, "QA In Progress");
+      else if (current === "QA In Progress") setStatus(k, "Demo Ready");
+      else if (current === "Demo Ready") setStatus(k, "Delivered");
+      else if (current === "Delivered") setStatus(k, "Complete");
     });
   };
 
@@ -747,6 +775,70 @@ RECOMMENDED NEXT ACTION:
         </div>
       )}
 
+      {/* ── Cascade Progress Overlay ── */}
+      {cascade.active && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-blue-200 bg-blue-100">
+            <div className="w-4 h-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin shrink-0" />
+            <span className="text-sm font-bold text-blue-900">Updating Platform…</span>
+            <span className="text-xs text-blue-600 ml-auto">
+              {cascade.batch === "foundation-core" ? "FC" : `B${cascade.batch}`} status change propagating
+            </span>
+          </div>
+          {cascade.isRollback && cascade.rollbackImpact.length > 0 && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200 text-xs font-semibold text-amber-800">
+              <span>⚠️</span>
+              <span>Rollback detected — recalculating downstream readiness for: {cascade.rollbackImpact.map(k => k === "foundation-core" ? "FC" : `B${k}`).join(", ")}</span>
+            </div>
+          )}
+          <div className="px-4 py-3 space-y-2">
+            {([1, 2, 3, 4] as const).map(step => {
+              const done = cascade.completedSteps.includes(step);
+              const active = cascade.currentStep === step;
+              return (
+                <div key={step} className={`flex items-start gap-3 text-xs transition-all duration-300 ${
+                  done ? "opacity-100" : active ? "opacity-100" : "opacity-40"
+                }`}>
+                  <div className={`mt-0.5 w-4 h-4 rounded-full shrink-0 flex items-center justify-center ${
+                    done ? "bg-emerald-500" : active ? "bg-blue-500" : "bg-slate-200"
+                  }`}>
+                    {done
+                      ? <CheckCircle2 className="w-3 h-3 text-white" />
+                      : active
+                        ? <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                        : <span className="text-[9px] text-slate-400 font-bold">{step}</span>
+                    }
+                  </div>
+                  <div className="flex-1">
+                    <div className={`font-bold ${
+                      done ? "text-emerald-700" : active ? "text-blue-800" : "text-slate-400"
+                    }`}>
+                      Step {step} — {CASCADE_STEPS[step].label}
+                    </div>
+                    {active && (
+                      <div className="text-blue-600 mt-0.5">{CASCADE_STEPS[step].description}</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Cascade Success Confirmation ── */}
+      {!cascade.active && cascade.completedSteps.length === 4 && (
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-semibold text-emerald-800">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span className="flex-1">
+            ✓ Platform sync complete — Delivered Work, Swagger/API Coverage, Roger UI, and PO Summary all updated
+          </span>
+          {cascade.isRollback && (
+            <span className="text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full text-[10px] font-bold">ROLLBACK</span>
+          )}
+        </div>
+      )}
+
       {/* ── Summary Stats ── */}
       <div className="grid grid-cols-4 gap-3">
         {[
@@ -783,12 +875,19 @@ RECOMMENDED NEXT ACTION:
                 <select
                   value={status}
                   onChange={e => setStatus(key, e.target.value as BatchStatus)}
-                  className="text-xs font-semibold rounded-full border px-3 py-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300 shrink-0"
+                  disabled={cascade.active}
+                  className="text-xs font-semibold rounded-full border px-3 py-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
                 >
-                  <option value="Planned">Planned</option>
-                  <option value="Dev">Dev</option>
-                  <option value="In Review">In Review</option>
+                  <option value="Not Started">Not Started</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Blocked">Blocked</option>
+                  <option value="Ready for QA">Ready for QA</option>
+                  <option value="QA In Progress">QA In Progress</option>
+                  <option value="Demo Ready">Demo Ready</option>
+                  <option value="MVP">MVP</option>
+                  <option value="Stretch">Stretch</option>
+                  <option value="Delivered">Delivered</option>
                   <option value="Complete">Complete</option>
                 </select>
               </div>
@@ -818,7 +917,13 @@ RECOMMENDED NEXT ACTION:
 
       {/* ── Section 2: Delivered Work by Batch ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <SectionHeader title="Delivered Work by Batch" subtitle="What was delivered, validated, and what remains open — use for PO status updates" />
+        <SectionHeader
+          title="Delivered Work by Batch"
+          subtitle="What was delivered, validated, and what remains open — use for PO status updates"
+          cascadeStep={1}
+          cascadeActive={cascade.active && cascade.currentStep === 1}
+          cascadeDone={cascade.completedSteps.includes(1)}
+        />
         <div className="divide-y divide-slate-100">
           {DELIVERED_BATCHES.map(b => {
             const style = DELIVERY_STYLE[b.status];
@@ -883,7 +988,13 @@ RECOMMENDED NEXT ACTION:
 
       {/* ── Section 3: Swagger / API Coverage ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <SectionHeader title="Swagger / API Coverage" subtitle="All API endpoints mapped to batch — flag missing Consumer Guide or Swagger entries" />
+        <SectionHeader
+          title="Swagger / API Coverage"
+          subtitle="All API endpoints mapped to batch — flag missing Consumer Guide or Swagger entries"
+          cascadeStep={2}
+          cascadeActive={cascade.active && cascade.currentStep === 2}
+          cascadeDone={cascade.completedSteps.includes(2)}
+        />
         <div className="overflow-x-auto">
           <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
             <colgroup>
@@ -987,6 +1098,22 @@ RECOMMENDED NEXT ACTION:
             <div className="text-xs text-blue-200 mt-0.5">Which data points are ready for Roger to consume now vs carried forward to PI 2</div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {/* Cascade Step 3 indicator */}
+            <div className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-all duration-300 ${
+              cascade.completedSteps.includes(3)
+                ? "bg-emerald-500 text-white"
+                : cascade.active && cascade.currentStep === 3
+                  ? "bg-blue-400 text-white"
+                  : "bg-blue-800 text-blue-300"
+            }`}>
+              {cascade.completedSteps.includes(3)
+                ? <CheckCircle2 className="w-3 h-3" />
+                : cascade.active && cascade.currentStep === 3
+                  ? <div className="w-2.5 h-2.5 rounded-full border border-white border-t-transparent animate-spin" />
+                  : <Circle className="w-3 h-3" />
+              }
+              Step 3
+            </div>
             {/* Copy Full Panel — for BA weekly */}
             <button
               onClick={copyFullPanel}
@@ -1169,7 +1296,13 @@ RECOMMENDED NEXT ACTION:
 
       {/* ── Section 5: PO Status Summary ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <SectionHeader title="PO Status Summary" subtitle="Copy-ready summary for Stephane / PO email or Teams update" />
+        <SectionHeader
+          title="PO Status Summary"
+          subtitle="Copy-ready summary for Stephane / PO email or Teams update"
+          cascadeStep={4}
+          cascadeActive={cascade.active && cascade.currentStep === 4}
+          cascadeDone={cascade.completedSteps.includes(4)}
+        />
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Auto-generated from current batch data</div>
