@@ -595,51 +595,82 @@ export default function BatchControlPanel() {
     });
   };
 
-  // Build PO Status Summary
-  const deliveredBatches = DELIVERED_BATCHES.filter(b => b.status === "Delivered").map(b => b.label);
-  const inProgressBatches = DELIVERED_BATCHES.filter(b => b.status === "In Progress" || b.status === "Carried Forward" || b.status === "Backlogged").map(b => b.label);
+  // ── Dynamic PO Status Summary (rebuilds whenever statuses change) ────────────
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  // Classify each batch by live context status
+  const liveDeliveredBatches = DELIVERED_BATCHES.filter(b => {
+    const s = statuses[b.key as BatchKey];
+    return s === "Delivered" || s === "Complete";
+  }).map(b => b.label);
+
+  const liveInProgressBatches = DELIVERED_BATCHES.filter(b => {
+    const s = statuses[b.key as BatchKey];
+    return s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready" || s === "MVP" || s === "Stretch";
+  }).map(b => b.label);
+
+  const liveBlockedBatches = DELIVERED_BATCHES.filter(b => {
+    const s = statuses[b.key as BatchKey];
+    return s === "Blocked";
+  }).map(b => b.label);
+
+  const liveNotStartedBatches = DELIVERED_BATCHES.filter(b => {
+    const s = statuses[b.key as BatchKey];
+    return s === "Not Started";
+  }).map(b => b.label);
+
   const apisDelivered = SWAGGER_ENTRIES.filter(e => e.status === "Delivered").length;
   const apisMissing = SWAGGER_ENTRIES.filter(e => e.status === "Missing" || e.missingFromSwagger).length;
   const rogerAvailable = ROGER_DATA_POINTS.filter(d => d.availability === "Available").length;
   const rogerBlocked = ROGER_DATA_POINTS.filter(d => d.availability === "Not Available").length;
-  const carryForward = DELIVERED_BATCHES.flatMap(b => b.open).filter(o => o.length > 0);
 
-  const poSummaryText = `DCT Platform — Delivery Status Update (v2.1 — April 28, 2026)
-DELIVERED:
-${deliveredBatches.map(b => `• ${b}`).join("\n")}
-IN PROGRESS (PI 2 Committed):
-${inProgressBatches.map(b => `• ${b}`).join("\n")}
-API COVERAGE:
-• ${apisDelivered} of ${SWAGGER_ENTRIES.length} endpoints delivered
-• ${apisMissing} endpoints missing from Swagger or Consumer Guide
-• Batch 4 TDC Records API (Roger primary contract) not yet published — blocking Roger practitioner view
-• Batch 2A Classification Enforcement contract not yet in Swagger — blocking gap
-ROGER UI DATA AVAILABILITY:
-• ${rogerAvailable} of ${ROGER_DATA_POINTS.length} data points available to Roger
-• ${rogerBlocked} data points not yet available
-• FirmTaxonomyId on normalized records: NOT AVAILABLE — Orchestrator not returning classification (Batch 2A blocking gap)
-PI 2 COMMITTED BATCHES IN PROGRESS:
-• Batch 5 (PDC): Entity Identity & Structure — parallel to Batch 4. Closing EntityId risk from PI 1.
-• Batch 6 (TDC): Practitioner Review, Adjustments & Lock — sequential after Batch 4. Six-state adjustment lifecycle in development.
-• Batch 7 (TDC): Client Tax Profile & Eligibility — sequential after Batch 6. Three-Tier Eligibility Model defined.
-• Batch 8 (PDC + TDC): Exception Handling — in progress. PDC parallel to Batch 7, TDC sequential.
-CARRY-FORWARD ITEMS:
-• Batch 2A: FirmTaxonomyId enforcement and classification rejection audit log
-• Batch 4: TDC Records API (Roger primary read contract)
-• Swagger/Consumer Guide alignment: 6 endpoints missing from Consumer Guide
-OPEN DECISIONS:
-• FirmTaxonomyId enforcement: REQUIRED on all PDC records (ADR-06 proposed)
-• Which system generates JobId — Tax Portal or PDC?
-• Engagement code ownership between EODS and CEM
-RISKS / BLOCKERS:
-• Orchestrator not returning FirmTaxonomyId — blocks Batch 2 normalization completeness (Batch 2A)
-• TDC Records API not published — blocks Roger practitioner view (Batch 4)
-• Batch 2A contract enforcement not yet in Swagger — DEP-04 blocking
-RECOMMENDED NEXT ACTION:
-• Confirm Batch 2A FirmTaxonomyId enforcement decision with engineering (ADR-06 pending approval)
-• Publish TDC Records API contract to unblock Roger Batch 4 view
-• Update Consumer Guide with missing endpoint documentation (Processing Run API, Normalized TB, Mapping Decisions)
-• Confirm Batch 5 EntityId contract scope with PDC team before PI 2 sprint planning`;
+  // Carry-forward: open items from batches that are NOT yet complete
+  const liveCarryForward = DELIVERED_BATCHES
+    .filter(b => {
+      const s = statuses[b.key as BatchKey];
+      return s !== "Delivered" && s !== "Complete";
+    })
+    .flatMap(b => b.open.map(o => `${b.label.split(" — ")[0]}: ${o}`))
+    .filter(o => o.length > 0);
+
+  // Blockers: only show for Blocked batches
+  const liveBlockers = DELIVERED_BATCHES
+    .filter(b => statuses[b.key as BatchKey] === "Blocked")
+    .flatMap(b => b.open.map(o => `${b.label.split(" — ")[0]}: ${o}`));
+
+  const poSummaryText = [
+    `DCT Platform — Delivery Status Update (${today})`,
+    "",
+    liveDeliveredBatches.length > 0
+      ? `DELIVERED (${liveDeliveredBatches.length}):\n${liveDeliveredBatches.map(b => `• ${b}`).join("\n")}`
+      : "DELIVERED:\n• No batches marked Delivered yet",
+    "",
+    liveInProgressBatches.length > 0
+      ? `IN PROGRESS (${liveInProgressBatches.length}):\n${liveInProgressBatches.map(b => `• ${b}`).join("\n")}`
+      : "IN PROGRESS:\n• No batches currently in progress",
+    liveBlockedBatches.length > 0
+      ? `\nBLOCKED (${liveBlockedBatches.length}):\n${liveBlockedBatches.map(b => `• ${b}`).join("\n")}`
+      : "",
+    liveNotStartedBatches.length > 0
+      ? `\nNOT STARTED (${liveNotStartedBatches.length}):\n${liveNotStartedBatches.map(b => `• ${b}`).join("\n")}`
+      : "",
+    "",
+    `API COVERAGE:\n• ${apisDelivered} of ${SWAGGER_ENTRIES.length} endpoints delivered\n• ${apisMissing} endpoints missing from Swagger or Consumer Guide\n• Batch 4 TDC Records API (Roger primary contract) not yet published — blocking Roger practitioner view\n• Batch 2A Classification Enforcement contract not yet in Swagger — blocking gap`,
+    "",
+    `ROGER UI DATA AVAILABILITY:\n• ${rogerAvailable} of ${ROGER_DATA_POINTS.length} data points available to Roger\n• ${rogerBlocked} data points not yet available\n• FirmTaxonomyId on normalized records: NOT AVAILABLE — Orchestrator not returning classification (Batch 2A blocking gap)`,
+    "",
+    liveCarryForward.length > 0
+      ? `CARRY-FORWARD ITEMS:\n${liveCarryForward.map(o => `• ${o}`).join("\n")}`
+      : "CARRY-FORWARD ITEMS:\n• None — all open items resolved",
+    "",
+    liveBlockers.length > 0
+      ? `RISKS / BLOCKERS:\n${liveBlockers.map(o => `• ${o}`).join("\n")}`
+      : "RISKS / BLOCKERS:\n• No active blockers",
+    "",
+    `OPEN DECISIONS:\n• FirmTaxonomyId enforcement: REQUIRED on all PDC records (ADR-06 proposed)\n• Which system generates JobId — Tax Portal or PDC?\n• Engagement code ownership between EODS and CEM`,
+    "",
+    `RECOMMENDED NEXT ACTION:\n• Confirm Batch 2A FirmTaxonomyId enforcement decision with engineering (ADR-06 pending approval)\n• Publish TDC Records API contract to unblock Roger Batch 4 view\n• Update Consumer Guide with missing endpoint documentation (Processing Run API, Normalized TB, Mapping Decisions)\n• Confirm Batch 5 EntityId contract scope with PDC team before PI 2 sprint planning`,
+  ].filter(s => s !== "").join("\n");
 
   const copyPoSummary = () => {
     navigator.clipboard.writeText(poSummaryText).then(() => {
