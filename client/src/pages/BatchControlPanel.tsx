@@ -926,7 +926,16 @@ RECOMMENDED NEXT ACTION:
         />
         <div className="divide-y divide-slate-100">
           {DELIVERED_BATCHES.map(b => {
-            const style = DELIVERY_STYLE[b.status];
+            // Use live context status — overrides the hardcoded static value
+            const liveStatus: BatchStatus = statuses[b.key as BatchKey] ?? "Not Started";
+            // Map BatchStatus → DeliveryStatus for the style lookup
+            const deliveryStatus: DeliveryStatus = (
+              liveStatus === "Complete" || liveStatus === "Delivered" ? "Delivered" :
+              liveStatus === "In Progress" || liveStatus === "Ready for QA" || liveStatus === "QA In Progress" || liveStatus === "Demo Ready" || liveStatus === "MVP" || liveStatus === "Stretch" ? "In Progress" :
+              liveStatus === "Blocked" ? "Needs PO/Dev Confirmation" :
+              "Not Started"
+            );
+            const style = DELIVERY_STYLE[deliveryStatus];
             const isExpanded = expandedBatch === b.key;
             return (
               <div key={b.key}>
@@ -935,7 +944,7 @@ RECOMMENDED NEXT ACTION:
                   className="w-full flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors text-left"
                 >
                   <div className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded border ${style.bg} ${style.text} ${style.border}`}>
-                    {b.status}
+                    {liveStatus}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-slate-800">{b.label}</div>
