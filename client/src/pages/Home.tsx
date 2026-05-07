@@ -4,6 +4,7 @@
 // 9-section structure: Purpose → Flow → Ownership → Batches → Invariants → Enables → NOT → Roger → Failure Modes
 
 import { Link } from "wouter";
+import { useBatchStatus } from "@/contexts/BatchStatusContext";
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ title, subtitle, children, accent }: {
@@ -132,6 +133,15 @@ function BatchRow({ id, name, scope, note }: { id: string; name: string; scope: 
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function Home() {
+  const { statuses, piCompletion, gates, lastUpdated } = useBatchStatus();
+  const totalBatches = Object.keys(statuses).length;
+  const completedBatches = Object.values(statuses).filter(s => s === "Complete").length;
+  const activeBatches = Object.values(statuses).filter(s => s === "Dev" || s === "In Review").length;
+  const overallPct = Math.round((completedBatches / totalBatches) * 100);
+  const lastUpdatedLabel = lastUpdated
+    ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+    : null;
+
   return (
     <div style={{ padding: "28px 32px", maxWidth: "1100px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
 
@@ -154,7 +164,7 @@ export default function Home() {
         </div>
         <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
           {[
-            { label: "Batches 1–8 Active", color: "#059669" },
+            { label: `Batches Active: ${activeBatches}`, color: "#059669" },
             { label: "API-First Architecture", color: "#2563eb" },
             { label: "Governed AI Integration", color: "#7c3aed" },
             { label: "Roger Read-Only", color: "#0f1623" },
@@ -165,6 +175,56 @@ export default function Home() {
             }}>{b.label}</span>
           ))}
         </div>
+      </div>
+
+      {/* ── Live Platform Status Bar ── */}
+      <div style={{
+        backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+        borderRadius: "10px", padding: "14px 20px", marginBottom: "28px",
+        display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "200px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
+            ● Platform Status
+          </div>
+          <div style={{ flex: 1, height: "8px", backgroundColor: "#d1fae5", borderRadius: "4px", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${overallPct}%`, backgroundColor: "#059669", borderRadius: "4px", transition: "width 0.4s ease" }} />
+          </div>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#059669", whiteSpace: "nowrap" }}>{overallPct}% Complete</div>
+        </div>
+        <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+          {[
+            { label: "Complete", value: completedBatches, color: "#059669" },
+            { label: "Active", value: activeBatches, color: "#2563eb" },
+            { label: "Planned", value: totalBatches - completedBatches - activeBatches, color: "#94a3b8" },
+          ].map(s => (
+            <div key={s.label} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: "16px", fontWeight: 800, color: s.color }}>{s.value}</div>
+              <div style={{ fontSize: "10px", color: "#64748b", fontWeight: 600 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          {[
+            { label: "G1 Schema Lock", status: gates.g1 },
+            { label: "G2 Invariant Lock", status: gates.g2 },
+            { label: "G3 Contract Pub", status: gates.g3 },
+            { label: "G4 Lineage Close", status: gates.g4 },
+          ].map(g => (
+            <div key={g.label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <div style={{
+                width: "8px", height: "8px", borderRadius: "50%",
+                backgroundColor: g.status === "Complete" ? "#059669" : g.status === "In Progress" ? "#2563eb" : "#94a3b8",
+              }} />
+              <span style={{ fontSize: "10px", fontWeight: 600, color: "#374151" }}>{g.label}</span>
+            </div>
+          ))}
+        </div>
+        {lastUpdatedLabel && (
+          <div style={{ fontSize: "10px", color: "#6b7280", whiteSpace: "nowrap" }}>
+            ↻ Last updated: {lastUpdatedLabel}
+          </div>
+        )}
       </div>
 
       {/* ── 1. Purpose ── */}

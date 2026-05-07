@@ -11,6 +11,25 @@ import {
   type BatchEntry,
   type BatchStatus,
 } from "@/lib/batchModel";
+import { useBatchStatus, type BatchKey } from "@/contexts/BatchStatusContext";
+
+// Map batchModel ID → context BatchKey (e.g. "B1" → "1", "FC" → "foundation-core")
+function batchModelIdToContextKey(id: string): BatchKey | null {
+  if (id === "FC") return "foundation-core";
+  const m = id.match(/^B(\d+[A-Za-z]?)$/);
+  if (!m) return null;
+  const num = m[1].toLowerCase();
+  const validKeys = ["1","2","2a","3","4","5","6","7","8","9","10","11"];
+  return validKeys.includes(num) ? num as BatchKey : null;
+}
+
+// Map context BatchStatus → batchModel BatchStatus
+function contextStatusToBatchModel(s: string): BatchStatus {
+  if (s === "Complete") return "Complete";
+  if (s === "In Review") return "Review";
+  if (s === "Dev") return "Dev";
+  return "Planned";
+}
 
 // ── URL param → batch ID normalizer ──────────────────────────────────────────
 // Sidebar links use /batch/1, /batch/2a, /batch/foundation-core etc.
@@ -454,13 +473,19 @@ export default function BatchDetailPage() {
     );
   }
 
+  // Override batch.status with live context status (single source of truth)
+  const { statuses, lastUpdated, piCompletion, readiness } = useBatchStatus();
+  const ctxKey = batchModelIdToContextKey(batchId);
+  const liveStatus: BatchStatus = ctxKey ? contextStatusToBatchModel(statuses[ctxKey]) : batch.status;
+  const liveBatch: BatchEntry = { ...batch, status: liveStatus };
+
   const content = BATCH_CONTENT[batchId];
-  const statusHex = STATUS_HEX[batch.status];
-  const piHex = PI_HEX[batch.pi] ?? PI_HEX.Parallel;
-  const areaHex = AREA_HEX[batch.area] ?? AREA_HEX.Platform;
+  const statusHex = STATUS_HEX[liveBatch.status];
+  const piHex = PI_HEX[liveBatch.pi] ?? PI_HEX.Parallel;
+  const areaHex = AREA_HEX[liveBatch.area] ?? AREA_HEX.Platform;
   const piGroup = PI_GROUPS.find(g => g.batchIds.includes(batchId));
 
-  const completionPct = batch.status === "Complete" ? 100 : batch.status === "Review" ? 75 : batch.status === "Dev" ? 50 : 0;
+  const completionPct = liveBatch.status === "Complete" ? 100 : liveBatch.status === "Review" ? 75 : liveBatch.status === "Dev" ? 50 : 0;
 
   const currentIdx = ALL_IDS.indexOf(batchId);
   const prevId = currentIdx > 0 ? ALL_IDS[currentIdx - 1] : null;
@@ -481,7 +506,7 @@ export default function BatchDetailPage() {
             <span>›</span>
           </>
         )}
-        <span style={{ color: "#0f172a", fontWeight: 600 }}>{batchId} — {batch.name}</span>
+        <span style={{ color: "#0f172a", fontWeight: 600 }}>{batchId} — {liveBatch.name}</span>
       </div>
 
       {/* Header card */}
@@ -499,13 +524,13 @@ export default function BatchDetailPage() {
               color: piHex.color, backgroundColor: piHex.bg, border: `1px solid ${piHex.border}`,
               borderRadius: "12px", padding: "2px 10px", marginBottom: "10px",
             }}>
-              {batch.piLabel}
+              {liveBatch.piLabel}
             </div>
             <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f172a", margin: "0 0 6px", lineHeight: "1.3" }}>
-              {batchId} — {batch.fullName}
+              {batchId} — {liveBatch.fullName}
             </h1>
             <p style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6", margin: "0 0 12px" }}>
-              {batch.description}
+              {liveBatch.description}
             </p>
             {/* Meta chips */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -521,24 +546,24 @@ export default function BatchDetailPage() {
                 fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "10px",
                 backgroundColor: areaHex.bg, color: areaHex.text, border: "1px solid transparent",
               }}>
-                {batch.area}
+                {liveBatch.area}
               </span>
-              {batch.storyCount > 0 && (
+              {liveBatch.storyCount > 0 && (
                 <span style={{
                   fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px",
                   backgroundColor: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0",
                 }}>
-                  {batch.storyCount} {batch.storyCount === 1 ? "Story" : "Stories"}
+                  {liveBatch.storyCount} {liveBatch.storyCount === 1 ? "Story" : "Stories"}
                 </span>
               )}
-              {batch.piCommitment && (
+              {liveBatch.piCommitment && (
                 <span style={{
                   fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "10px",
-                  backgroundColor: batch.piCommitment === "Committed" ? "#f0fdf4" : batch.piCommitment === "Stretch" ? "#fffbeb" : "#f8fafc",
-                  color: batch.piCommitment === "Committed" ? "#166534" : batch.piCommitment === "Stretch" ? "#92400e" : "#475569",
+                  backgroundColor: liveBatch.piCommitment === "Committed" ? "#f0fdf4" : liveBatch.piCommitment === "Stretch" ? "#fffbeb" : "#f8fafc",
+                  color: liveBatch.piCommitment === "Committed" ? "#166534" : liveBatch.piCommitment === "Stretch" ? "#92400e" : "#475569",
                   border: "1px solid transparent",
                 }}>
-                  {batch.piCommitment}
+                  {liveBatch.piCommitment}
                 </span>
               )}
             </div>
@@ -571,7 +596,7 @@ export default function BatchDetailPage() {
           Key Outcomes
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {batch.keyOutcomes.map((o, i) => (
+          {liveBatch.keyOutcomes.map((o, i) => (
             <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
               <span style={{
                 flexShrink: 0, width: "18px", height: "18px", borderRadius: "50%",
@@ -588,7 +613,7 @@ export default function BatchDetailPage() {
       </div>
 
       {/* Dependencies */}
-      {batch.dependencies.length > 0 && (
+      {liveBatch.dependencies.length > 0 && (
         <div style={{
           backgroundColor: "white", borderRadius: "10px", border: "1px solid #e2e8f0",
           padding: "14px 20px", marginBottom: "14px",
@@ -598,7 +623,7 @@ export default function BatchDetailPage() {
             Depends On
           </span>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            {batch.dependencies.map(dep => (
+            {liveBatch.dependencies.map(dep => (
               <Link key={dep} href={`/batch/${dep.replace("B", "").replace("FC", "foundation-core").replace("MT", "mt")}`}>
                 <span style={{
                   fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "8px",

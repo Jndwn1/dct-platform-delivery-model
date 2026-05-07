@@ -8,9 +8,12 @@
 //   5. PO Status Summary (copy-ready)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from "react";
-import { useBatchStatus, deriveGateStatus, STATUS_STYLES, BATCH_LABELS, type BatchKey, type BatchStatus } from "@/contexts/BatchStatusContext";
-import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy } from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  useBatchStatus, STATUS_STYLES, BATCH_LABELS,
+  type BatchKey, type BatchStatus,
+} from "@/contexts/BatchStatusContext";
+import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity } from "lucide-react";
 
 // ── CopyNoteButton ────────────────────────────────────────────────────────────
 function CopyNoteButton({ text }: { text: string }) {
@@ -399,14 +402,30 @@ function GateStatusBadge({ status }: { status: "Complete" | "In Progress" | "Loc
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function BatchControlPanel() {
-  const { statuses, setStatus, resetAll } = useBatchStatus();
-  const gates = deriveGateStatus(statuses);
+  const { statuses, setStatus, resetAll, gates, lastUpdated, syncLog, clearSyncLog, unlockedBatches, piCompletion } = useBatchStatus();
   const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
   const [poSummaryCopied, setPoSummaryCopied] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
   const [expandedAdoRows, setExpandedAdoRows] = useState<Set<number>>(new Set());
   const [adoCopied, setAdoCopied] = useState(false);
   const [panelCopied, setPanelCopied] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [syncFlash, setSyncFlash] = useState(false);
+  const prevLastUpdated = useRef<string | null>(null);
+
+  // Flash the sync indicator whenever a status update propagates
+  useEffect(() => {
+    if (lastUpdated && lastUpdated !== prevLastUpdated.current) {
+      prevLastUpdated.current = lastUpdated;
+      setSyncFlash(true);
+      const t = setTimeout(() => setSyncFlash(false), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [lastUpdated]);
+
+  const lastUpdatedLabel = lastUpdated
+    ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" })
+    : null;
   const copyFullPanel = () => {
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     // Build styled HTML table rows
@@ -614,6 +633,16 @@ RECOMMENDED NEXT ACTION:
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowDebug(d => !d)}
+            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+              showDebug ? "bg-amber-50 border-amber-300 text-amber-700" : "text-slate-500 border-slate-200 hover:bg-slate-50"
+            }`}
+            title="Toggle debug / sync log"
+          >
+            <Bug className="w-3.5 h-3.5" />
+            Debug
+          </button>
+          <button
             onClick={advanceAll}
             className="flex items-center gap-1.5 text-xs font-semibold bg-[#003865] text-white px-3 py-1.5 rounded-lg hover:bg-blue-900 transition-colors"
           >
@@ -629,6 +658,94 @@ RECOMMENDED NEXT ACTION:
           </button>
         </div>
       </div>
+
+      {/* ── Sync Status Bar ── */}
+      <div
+        className="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all duration-500"
+        style={{
+          backgroundColor: syncFlash ? "#f0fdf4" : "#f8fafc",
+          borderColor: syncFlash ? "#86efac" : "#e2e8f0",
+          color: syncFlash ? "#166534" : "#64748b",
+        }}
+      >
+        <Activity className={`w-3.5 h-3.5 shrink-0 ${syncFlash ? "text-emerald-500" : "text-slate-400"}`} />
+        <span className="flex-1">
+          {syncFlash
+            ? "✓ Status update propagated to all platform views — Roadmap, Calendar, Detail Pages, Executive Summary, Home"
+            : "Control Panel is the single source of truth. All platform views sync automatically on status change."}
+        </span>
+        {lastUpdatedLabel && (
+          <span className="shrink-0 text-slate-400 font-normal">
+            Last updated: {lastUpdatedLabel}
+          </span>
+        )}
+      </div>
+
+      {/* ── Dependency Unlock Notification ── */}
+      {unlockedBatches.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50 text-xs font-semibold text-blue-800">
+          <span className="text-base">🔓</span>
+          <span>
+            Dependency unlocked: {unlockedBatches.map(k => k === "foundation-core" ? "FC" : `B${k}`).join(", ")} — now available to start
+          </span>
+        </div>
+      )}
+
+      {/* ── Debug / Sync Log Panel ── */}
+      {showDebug && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-amber-200">
+            <div className="flex items-center gap-2">
+              <Bug className="w-3.5 h-3.5 text-amber-600" />
+              <span className="text-xs font-bold text-amber-800 uppercase tracking-wide">Sync Log — Last {syncLog.length} Updates</span>
+            </div>
+            <button
+              onClick={clearSyncLog}
+              className="text-xs text-amber-600 hover:text-amber-900 font-semibold"
+            >
+              Clear log
+            </button>
+          </div>
+          <div className="max-h-64 overflow-y-auto divide-y divide-amber-100">
+            {syncLog.length === 0 ? (
+              <div className="px-4 py-3 text-xs text-amber-600 italic">No updates recorded yet. Change a batch status to see propagation.</div>
+            ) : (
+              [...syncLog].reverse().map((entry, i) => (
+                <div key={i} className="px-4 py-2.5">
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="font-mono text-amber-500 shrink-0">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                    <span className="font-bold text-amber-900">{entry.batch === "foundation-core" ? "FC" : `B${entry.batch}`}</span>
+                    <span className="text-amber-600">{entry.from} → {entry.to}</span>
+                    <span className="text-amber-500 text-xs">{entry.derivedUpdates.length} views updated</span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {entry.derivedUpdates.map((d, j) => (
+                      <span key={j} className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{d}</span>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="px-4 py-2 border-t border-amber-200 bg-amber-100">
+            <div className="text-xs font-bold text-amber-800 mb-1">PI Completion (live)</div>
+            <div className="flex gap-4">
+              {(["pi1","pi2","pi3","pi4"] as const).map(pi => (
+                <div key={pi} className="text-center">
+                  <div className="text-sm font-bold text-amber-900">{piCompletion[pi].pct}%</div>
+                  <div className="text-[10px] text-amber-600 uppercase">{pi.toUpperCase()}</div>
+                  <div className="text-[10px] text-amber-500">{piCompletion[pi].complete}/{piCompletion[pi].total}</div>
+                </div>
+              ))}
+              <div className="text-center border-l border-amber-200 pl-4">
+                <div className="text-sm font-bold text-amber-900">{piCompletion.overall.pct}%</div>
+                <div className="text-[10px] text-amber-600 uppercase">Overall</div>
+                <div className="text-[10px] text-amber-500">{piCompletion.overall.complete}/{piCompletion.overall.total}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Summary Stats ── */}
       <div className="grid grid-cols-4 gap-3">

@@ -6,8 +6,9 @@
 // DESIGN PHILOSOPHY: Executive-first. Timeline is the primary visual.
 // Clean, calm, RSM-branded. Understandable in under 60 seconds.
 
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import * as XLSX from "xlsx";
+import { useBatchStatus, contextToCalendarStatus } from "@/contexts/BatchStatusContext";
 import {
   AlertTriangle, Calendar, Download, RotateCcw, Plus, Trash2,
   CheckCircle2, Clock, AlertCircle, Printer, ChevronDown, ChevronRight,
@@ -1254,8 +1255,30 @@ function UploadAnalyzeModal({ baselineRows, onClose }: { baselineRows: BatchRow[
   );
 }
 
+// ── Batch key → calendar row ID prefix mapping ─────────────────────────────
+// Maps the numeric/FC batch key from BatchStatusContext to the batch label
+// used in BASELINE_ROWS (e.g. "2" → "B2", "foundation-core" → "FC").
+function batchKeyToLabel(key: string): string {
+  if (key === "foundation-core") return "FC";
+  return `B${key}`;
+}
+
 export default function BatchDeliveryCalendar() {
+  const { statuses, lastUpdated, piCompletion } = useBatchStatus();
   const [rows, setRows] = useState<BatchRow[]>(() => BASELINE_ROWS.map(r => ({ ...r })));
+
+  // Sync row statuses from the shared context whenever statuses change
+  useEffect(() => {
+    setRows(prev => prev.map(r => {
+      // Find the matching context key for this row's batch label
+      const ctxKey = Object.keys(statuses).find(k => batchKeyToLabel(k) === r.batch);
+      if (!ctxKey) return r;
+      const ctxStatus = contextToCalendarStatus(statuses[ctxKey as keyof typeof statuses]);
+      if (ctxStatus === r.status) return r; // no change
+      return { ...r, status: ctxStatus };
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statuses]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<BatchRow | null>(null);
   const [showDeps, setShowDeps] = useState(true);
