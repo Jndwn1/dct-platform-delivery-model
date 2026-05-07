@@ -538,157 +538,117 @@ export default function BATouchpointSummary() {
             </div>
           </SectionCard>
 
-          {/* ── Section 2: Delivered Work by Batch ── */}
-          <SectionCard id="SECTION 2" title="Delivered Work by Batch" icon={<CheckCircle2 className="w-4 h-4" />}>
-            {qualifyingBatches.length === 0 ? (
-              <div className="text-sm text-slate-500 text-center py-6">No batches currently meet the qualifying filter criteria.</div>
-            ) : (
-              <div className="space-y-4">
-                {qualifyingBatches.map(b => {
-                  const live = statuses[b.key as BatchKey] || "Not Started";
-                  const pill = STATUS_PILL[live] || STATUS_PILL["Not Started"];
-                  return (
-                    <div key={b.key} className="border border-slate-200 rounded-lg overflow-hidden">
-                      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
-                        <div className="font-semibold text-sm text-[#003865]">{b.label}</div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-500">{b.owner}</span>
-                          <Pill label={live} bg={pill.bg} text={pill.text} />
-                        </div>
-                      </div>
-                      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-xs font-semibold text-slate-500 mb-1.5">DELIVERED</div>
-                          <ul className="space-y-1">
-                            {b.delivered.map((d, i) => (
-                              <li key={i} className="flex items-start gap-1.5 text-xs text-slate-700">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />{d}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className="space-y-3">
-                          <div>
-                            <div className="text-xs font-semibold text-slate-500 mb-1">READINESS</div>
-                            <div className="text-xs text-slate-700">{b.readiness}</div>
-                          </div>
-                          {b.open.length > 0 && (
-                            <div>
-                              <div className="text-xs font-semibold text-amber-600 mb-1">OPEN ITEMS</div>
-                              <ul className="space-y-1">
-                                {b.open.map((o, i) => (
-                                  <li key={i} className="flex items-start gap-1.5 text-xs text-amber-700">
-                                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />{o}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="px-4 pb-3">
-                        <div className="text-xs text-slate-500 bg-blue-50 border border-blue-100 rounded p-2 italic">{b.poNote}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </SectionCard>
-
-          {/* ── Section 3: Swagger / API Coverage ── */}
-          <SectionCard id="SECTION 3" title="Swagger / API Coverage" icon={<FileText className="w-4 h-4" />}>
-            <div className="flex gap-4 mb-4 flex-wrap">
-              {[
-                { label: "Delivered", count: apisDelivered, color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-                { label: "In Progress", count: ALL_SWAGGER.filter(e => e.status === "In Progress").length, color: "text-blue-700 bg-blue-50 border-blue-200" },
-                { label: "Missing / Unpublished", count: apisMissing, color: "text-red-700 bg-red-50 border-red-200" },
-                { label: "Needs Confirmation", count: ALL_SWAGGER.filter(e => e.status === "Needs PO/Dev Confirmation").length, color: "text-amber-700 bg-amber-50 border-amber-200" },
-              ].map(m => (
-                <div key={m.label} className={`border rounded-lg px-3 py-2 text-center ${m.color}`}>
-                  <div className="text-xl font-bold">{m.count}</div>
-                  <div className="text-xs">{m.label}</div>
-                </div>
-              ))}
+          {/* ── Section 2: Delivered Work (Batches 1–7) ── */}
+          <SectionCard id="SECTION 2" title="Delivered Work (Batches 1–7)" icon={<CheckCircle2 className="w-4 h-4" />}>
+            <div className="text-sm text-slate-600 bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mb-4 italic">
+              Delivery through Batch 7 establishes the foundation for entity structure, governed workflow, and eligibility required for tax-ready outputs.
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="text-left px-3 py-2 font-semibold text-slate-600">Endpoint</th>
-                    <th className="text-left px-3 py-2 font-semibold text-slate-600">Batch</th>
-                    <th className="text-left px-3 py-2 font-semibold text-slate-600">Status</th>
-                    <th className="text-left px-3 py-2 font-semibold text-slate-600">Consumer Guide</th>
-                    <th className="text-left px-3 py-2 font-semibold text-slate-600">Flags</th>
+                    <th className="text-left px-3 py-2 font-semibold text-slate-600 w-20">Batch</th>
+                    <th className="text-left px-3 py-2 font-semibold text-slate-600">Name</th>
+                    <th className="text-left px-3 py-2 font-semibold text-slate-600 w-28">Status</th>
+                    <th className="text-left px-3 py-2 font-semibold text-slate-600">Key Delivered Capabilities</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {ALL_SWAGGER.map((e, i) => (
-                    <tr key={i} className={`border-b border-slate-100 ${e.missingFromSwagger ? "bg-red-50" : ""}`}>
-                      <td className="px-3 py-2">
-                        <div className="font-medium text-slate-800">{e.endpoint}</div>
-                        <div className="text-slate-400 font-mono">{e.path}</div>
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">{e.batch}</td>
-                      <td className="px-3 py-2">
-                        <Pill label={e.status}
-                          bg={e.status === "Delivered" ? "bg-emerald-100" : e.status === "In Progress" ? "bg-blue-100" : e.status === "Missing" ? "bg-red-100" : "bg-amber-100"}
-                          text={e.status === "Delivered" ? "text-emerald-800" : e.status === "In Progress" ? "text-blue-800" : e.status === "Missing" ? "text-red-700" : "text-amber-800"}
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <Pill label={e.consumerGuide}
-                          bg={e.consumerGuide === "Aligned" ? "bg-emerald-100" : e.consumerGuide === "Partial" ? "bg-amber-100" : "bg-red-100"}
-                          text={e.consumerGuide === "Aligned" ? "text-emerald-800" : e.consumerGuide === "Partial" ? "text-amber-800" : "text-red-700"}
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        {e.missingFromSwagger && <span className="text-red-600 font-semibold">⚠ Swagger</span>}
-                        {e.missingFromGuide && <span className="text-amber-600 font-semibold ml-1">⚠ Guide</span>}
-                        {!e.missingFromSwagger && !e.missingFromGuide && <span className="text-emerald-600">✓</span>}
-                      </td>
-                    </tr>
-                  ))}
+                  {ALL_BATCHES.filter(b => {
+                    const keys = ["foundation-core","1","2","2a","3","4","5","6","7"];
+                    return keys.includes(b.key);
+                  }).map(b => {
+                    const live = statuses[b.key as BatchKey] || b.status as BatchStatus;
+                    const pill = STATUS_PILL[live] || STATUS_PILL["Not Started"];
+                    const caps = b.delivered.filter(d => !d.toLowerCase().includes("in progress")).slice(0, 2);
+                    return (
+                      <tr key={b.key} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td className="px-3 py-2.5 font-mono text-slate-500 align-top">
+                          {b.key === "foundation-core" ? "FC" : b.key === "2a" ? "B2A" : `B${b.key}`}
+                        </td>
+                        <td className="px-3 py-2.5 font-medium text-slate-800 align-top">{b.label.replace(/^Batch \S+ — /, "").replace(/^Foundation Core$/, "Foundation Core")}</td>
+                        <td className="px-3 py-2.5 align-top">
+                          <Pill label={live} bg={pill.bg} text={pill.text} />
+                        </td>
+                        <td className="px-3 py-2.5 align-top">
+                          {caps.length > 0 ? (
+                            <ul className="space-y-0.5">
+                              {caps.map((c, i) => (
+                                <li key={i} className="flex items-start gap-1.5 text-slate-700">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />{c}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="text-slate-400 italic">In progress</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </SectionCard>
 
-          {/* ── Section 4: Roger UI Data Availability ── */}
-          <SectionCard id="SECTION 4" title="Roger UI Data Availability" icon={<Activity className="w-4 h-4" />}>
-            <div className="flex gap-4 mb-4 flex-wrap">
-              {[
-                { label: "🟢 Available", count: ALL_ROGER.filter(d => d.availability === "Available").length, color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-                { label: "🟡 Partial", count: ALL_ROGER.filter(d => d.availability === "Partially Available").length, color: "text-amber-700 bg-amber-50 border-amber-200" },
-                { label: "🔴 Not Available", count: ALL_ROGER.filter(d => d.availability === "Not Available").length, color: "text-red-700 bg-red-50 border-red-200" },
-              ].map(m => (
-                <div key={m.label} className={`border rounded-lg px-3 py-2 text-center ${m.color}`}>
-                  <div className="text-xl font-bold">{m.count}</div>
-                  <div className="text-xs">{m.label}</div>
-                </div>
-              ))}
+          {/* ── Section 3: API / Endpoint + Roger UI Availability (Batches 2–7) ── */}
+          <SectionCard id="SECTION 3" title="API / Endpoint View — Batches 2–7" icon={<FileText className="w-4 h-4" />}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="text-left px-3 py-2 font-semibold text-slate-600">Endpoint</th>
+                    <th className="text-left px-3 py-2 font-semibold text-slate-600 w-20">Batch</th>
+                    <th className="text-left px-3 py-2 font-semibold text-slate-600 w-32">Status</th>
+                    <th className="text-left px-3 py-2 font-semibold text-slate-600 w-36">Roger UI Data Availability</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    // Batches 2–7 only, sorted by batch then endpoint
+                    const b27 = ["Batch 2","Batch 2A","Batch 3","Batch 4","Batch 5","Batch 6","Batch 7"];
+                    const rows = ALL_SWAGGER
+                      .filter(e => b27.includes(e.batch))
+                      .sort((a, b) => b27.indexOf(a.batch) - b27.indexOf(b.batch));
+                    return rows.map((e, i) => {
+                      // Find Roger availability for this endpoint
+                      const roger = ALL_ROGER.find(r => r.apiEndpoint === e.path || r.batch === e.batch && r.apiEndpoint !== "—");
+                      const avail: RogerAvailability = roger?.availability ?? "Not Available";
+                      const rogerPill = ROGER_PILL[avail];
+                      const statusBg = e.status === "Delivered" ? "bg-emerald-100" : e.status === "In Progress" ? "bg-blue-100" : e.status === "Missing" ? "bg-red-100" : "bg-amber-100";
+                      const statusText = e.status === "Delivered" ? "text-emerald-800" : e.status === "In Progress" ? "text-blue-800" : e.status === "Missing" ? "text-red-700" : "text-amber-800";
+                      const availBg = avail === "Available" ? "bg-emerald-100" : avail === "Partially Available" ? "bg-amber-100" : "bg-slate-100";
+                      const availText = avail === "Available" ? "text-emerald-800" : avail === "Partially Available" ? "text-amber-800" : "text-slate-500";
+                      const availLabel = avail === "Available" ? "🟢 Available" : avail === "Partially Available" ? "🟡 Partial" : "□ Not Available";
+                      return (
+                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                          <td className="px-3 py-2.5">
+                            <div className="font-medium text-slate-800">{e.endpoint}</div>
+                            <div className="text-slate-400 font-mono text-[10px] mt-0.5">{e.path}</div>
+                          </td>
+                          <td className="px-3 py-2.5 text-slate-600 font-medium">{e.batch}</td>
+                          <td className="px-3 py-2.5">
+                            <Pill label={e.status === "Needs PO/Dev Confirmation" ? "Needs Confirmation" : e.status} bg={statusBg} text={statusText} />
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <Pill label={availLabel} bg={availBg} text={availText} />
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
+                </tbody>
+              </table>
             </div>
-            <div className="space-y-2">
-              {ALL_ROGER.map((d, i) => {
-                const rp = ROGER_PILL[d.availability];
-                return (
-                  <div key={i} className={`border rounded-lg p-3 ${d.availability === "Not Available" ? "border-red-200 bg-red-50" : d.availability === "Partially Available" ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
-                    <div className="flex items-start justify-between gap-2 flex-wrap">
-                      <div className="flex-1">
-                        <div className="text-xs font-semibold text-slate-800">{d.dataPoint}</div>
-                        <div className="text-xs text-slate-500 mt-0.5">{d.batch} · {d.source} · <span className="font-mono">{d.apiEndpoint}</span></div>
-                        <div className="text-xs text-slate-600 mt-1">{d.notes}</div>
-                      </div>
-                      <Pill label={`${rp.icon} ${d.availability}`} bg={rp.bg} text={rp.text} />
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="mt-3 flex gap-4 text-xs text-slate-500">
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Available — data visible in Roger UI</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Partial — some fields available, incomplete</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span> Not Available — no UI consumption yet</span>
             </div>
           </SectionCard>
 
-          {/* ── Section 5: Risks & Blockers ── */}
-          <SectionCard id="SECTION 5" title="Risks & Blockers" icon={<AlertTriangle className="w-4 h-4" />}>
+          {/* ── Section 4: Risks & Blockers ── */}
+          <SectionCard id="SECTION 4" title="Risks & Blockers" icon={<AlertTriangle className="w-4 h-4" />}>
             <div className="space-y-3">
               {RISKS.map((r, i) => (
                 <div key={i} className={`border rounded-lg p-4 ${r.severity === "HIGH" ? "border-red-200 bg-red-50" : r.severity === "MEDIUM" ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50"}`}>
@@ -709,8 +669,8 @@ export default function BATouchpointSummary() {
             </div>
           </SectionCard>
 
-          {/* ── Section 6: Dependencies ── */}
-          <SectionCard id="SECTION 6" title="Dependencies" icon={<Link2 className="w-4 h-4" />}>
+          {/* ── Section 5: Dependencies ── */}
+          <SectionCard id="SECTION 5" title="Dependencies" icon={<Link2 className="w-4 h-4" />}>
             <div className="space-y-3">
               {DEPENDENCIES.map((d, i) => (
                 <div key={i} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
@@ -728,8 +688,8 @@ export default function BATouchpointSummary() {
             </div>
           </SectionCard>
 
-          {/* ── Section 7: Open Decisions ── */}
-          <SectionCard id="SECTION 7" title="Open Decisions" icon={<Shield className="w-4 h-4" />}>
+          {/* ── Section 6: Open Decisions ── */}
+          <SectionCard id="SECTION 6" title="Open Decisions" icon={<Shield className="w-4 h-4" />}>
             <div className="space-y-3">
               {DECISIONS.map((d, i) => (
                 <div key={i} className="border border-slate-200 rounded-lg p-4 bg-white">
@@ -755,8 +715,8 @@ export default function BATouchpointSummary() {
             </div>
           </SectionCard>
 
-          {/* ── Section 8: Recommended Next Actions ── */}
-          <SectionCard id="SECTION 8" title="Recommended Next Actions" icon={<CheckCircle2 className="w-4 h-4" />}>
+          {/* ── Section 7: Recommended Next Actions ── */}
+          <SectionCard id="SECTION 7" title="Recommended Next Actions" icon={<CheckCircle2 className="w-4 h-4" />}>
             <div className="space-y-2">
               {ACTIONS.map((a, i) => (
                 <div key={i} className="flex items-start gap-3 border border-slate-200 rounded-lg p-3 bg-white">
