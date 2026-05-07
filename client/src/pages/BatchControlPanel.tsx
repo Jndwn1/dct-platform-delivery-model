@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { Link } from "wouter";
 import {
   useBatchStatus, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
@@ -707,6 +708,13 @@ export default function BatchControlPanel() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href="/ba-touchpoint"
+            className="flex items-center gap-1.5 text-xs font-semibold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            BA Touchpoint Summary
+          </Link>
           <button
             onClick={() => setShowDebug(d => !d)}
             className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${

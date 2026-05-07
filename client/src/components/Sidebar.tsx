@@ -87,6 +87,7 @@ const AGENT_ITEMS: NavItem[] = [
 const TOOL_ITEMS: NavItem[] = [
   { label: "Classification Walkthrough", path: "/classification-walkthrough", icon: "⚑", badge: "Decision", badgeColor: "#dc2626" },
   { label: "Control Panel",              path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
+  { label: "BA Touchpoint Summary",       path: "/ba-touchpoint",              icon: "📋", badge: "BA",       badgeColor: "#059669" },
   { label: "Data Model & Gaps",          path: "/data-model",                 icon: "▦", badge: "Exec",     badgeColor: "#7c3aed" },
   { label: "Roger UI Data Mapping",      path: "/roger-mapping",              icon: "≡" },
   { label: "Run Agent Simulation",       path: "/demo",                       icon: "▶", badge: "Live",     badgeColor: "#dc2626" },

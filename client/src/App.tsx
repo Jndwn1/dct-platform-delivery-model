@@ -35,6 +35,7 @@ import AAPReviewPage from "./pages/AAPReviewPage";
 import RogerMappingPage from "./pages/RogerMappingPage";
 import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
 import BatchDetailPage from "./pages/BatchDetailPage";
+import BATouchpointSummary from "./pages/BATouchpointSummary";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -79,6 +80,7 @@ function Router() {
         <Route path="/roger-api" component={RogerApiEvolution} />
         <Route path="/runtime-journey" component={RuntimeJourney} />
         <Route path="/control-panel" component={BatchControlPanel} />
+        <Route path="/ba-touchpoint" component={BATouchpointSummary} />
 
         {/* Batch detail routes */}
         <Route path="/batch/:id" component={BatchDetailPage} />
