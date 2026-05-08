@@ -7,6 +7,7 @@
 import { useState, useMemo } from "react";
 import { getDataAvailabilityRows, batchStatusBadge, validateBatchRefs, type SwaggerContractStatus } from "../lib/batchModelSource";
 import { ROGER_MODEL_GROUPS, READINESS_STYLE, OWNER_STYLE } from "../lib/rogerModelData";
+import DCTSummaryAgent from "../components/DCTSummaryAgent";
 
 // ─── ROGER MODEL GROUPINGS COMPONENT ─────────────────────────────────────────
 function RogerModelGroupings() {
@@ -449,6 +450,8 @@ export default function DataModelPage() {
           <RogerModelGroupings />
         </div>
       </div>
+      {/* DCT Summary Agent — floating panel */}
+      <DCTSummaryAgent />
     </div>
   );
 }
