@@ -143,12 +143,67 @@ interface FilterState {
   govStatus: GovStatus | "";
   owner: Owner | "";
   risk: string;
-  batch: string;
+  batches: string[];   // multi-select
   adr: boolean;
   leadershipView: boolean;
 }
 
-const DEFAULT_FILTERS: FilterState = { screen: "", govStatus: "", owner: "", risk: "", batch: "", adr: false, leadershipView: false };
+const DEFAULT_FILTERS: FilterState = { screen: "", govStatus: "", owner: "", risk: "", batches: [], adr: false, leadershipView: false };
+
+// ─── BATCH DISCOVERY HELPERS ─────────────────────────────────────────────────
+function normalizeBatch(raw: string): string {
+  if (!raw) return "Undefined";
+  const s = raw.trim();
+  // Already normalized
+  if (/^(FC|B\d+|Cross-Batch|Future|ADR Dependent|Undefined)$/.test(s)) return s;
+  // "Batch 5" / "Batch 05" → B5
+  const m = s.match(/[Bb]atch\s*0*(\d+)/);
+  if (m) return `B${m[1]}`;
+  // "B-5" → B5
+  const m2 = s.match(/^[Bb]-?(\d+)$/);
+  if (m2) return `B${m2[1]}`;
+  return s;
+}
+
+function discoverBatches(screens: typeof SCREEN1_MAPPING[]): string[] {
+  const set = new Set<string>();
+  screens.forEach(sc => {
+    sc.fields.forEach(f => {
+      const b = normalizeBatch(f.batch ?? "");
+      if (b) set.add(b);
+      // ADR-tagged fields → also add "ADR Dependent"
+      if (f.adrRef) set.add("ADR Dependent");
+      // Multiple batch refs in notes
+      const noteMatches = (f.notes ?? "").match(/B\d+/g);
+      if (noteMatches && noteMatches.length > 1) set.add("Cross-Batch");
+    });
+  });
+  return Array.from(set);
+}
+
+const BATCH_GROUPS: { label: string; values: string[] }[] = [
+  { label: "Active Delivery Batches", values: ["B1","B2","B3","B4","B5","B6","B7","B8","B9","B10"] },
+  { label: "Governance / Future",     values: ["Cross-Batch","ADR Dependent","Future","Undefined"] },
+  { label: "Foundational / Core",     values: ["FC"] },
+];
+
+const BATCH_HEATMAP: { batch: string; focus: string; maturity: "high" | "medium" | "low" | "none" }[] = [
+  { batch: "FC",  focus: "Foundation / Lookups",         maturity: "high"   },
+  { batch: "B4",  focus: "AI Tax Mapping",               maturity: "medium" },
+  { batch: "B5",  focus: "Entity Identity",              maturity: "medium" },
+  { batch: "B6",  focus: "Workflow / Practitioner",      maturity: "low"    },
+  { batch: "B7",  focus: "Eligibility / Profile",        maturity: "low"    },
+  { batch: "B8",  focus: "Exceptions / Remediation",     maturity: "none"   },
+  { batch: "B9",  focus: "Prior Year / Rollforward",     maturity: "none"   },
+  { batch: "B10", focus: "Filing / Assembly",            maturity: "none"   },
+];
+
+const MATURITY_STYLE: Record<string, { bg: string; text: string; label: string }> = {
+  high:   { bg: "#d1fae5", text: "#065f46", label: "Delivered" },
+  medium: { bg: "#fef9c3", text: "#854d0e", label: "Partial"   },
+  low:    { bg: "#ffedd5", text: "#9a3412", label: "Planned"   },
+  none:   { bg: "#f3f4f6", text: "#6b7280", label: "Future"    },
+};
 
 function ScreenSection({ section, filters }: { section: typeof SCREEN1_MAPPING; filters: FilterState }) {
   const [expanded, setExpanded] = useState(true);
@@ -158,7 +213,13 @@ function ScreenSection({ section, filters }: { section: typeof SCREEN1_MAPPING; 
       if (filters.owner && f.sourceSystem !== filters.owner) return false;
       if (filters.risk && f.riskLevel !== filters.risk) return false;
       if (filters.adr && !f.adrRef) return false;
-      if (filters.batch && f.batch !== filters.batch) return false;
+      if (filters.batches.length > 0) {
+        const nb = normalizeBatch(f.batch ?? "");
+        const isAdrDep = filters.batches.includes("ADR Dependent") && !!f.adrRef;
+        const isCross  = filters.batches.includes("Cross-Batch") && (f.notes ?? "").match(/B\d+/g)?.length! > 1;
+        const isUndef  = filters.batches.includes("Undefined") && !f.batch;
+        if (!filters.batches.includes(nb) && !isAdrDep && !isCross && !isUndef) return false;
+      }
       return true;
     });
   }, [section.fields, filters]);
@@ -196,13 +257,44 @@ function ScreenSection({ section, filters }: { section: typeof SCREEN1_MAPPING; 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function RogerMappingPage() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [showBatchHeatmap, setShowBatchHeatmap] = useState(false);
   const tiles = useMemo(() => computeSummaryTiles(), []);
 
   const setFilter = (key: keyof FilterState, val: string | boolean) =>
     setFilters(f => ({ ...f, [key]: val }));
 
+  const toggleBatch = (b: string) =>
+    setFilters(f => ({
+      ...f,
+      batches: f.batches.includes(b) ? f.batches.filter(x => x !== b) : [...f.batches, b],
+    }));
+
   const screens = [SCREEN1_MAPPING, SCREEN2_MAPPING, SCREEN3_MAPPING, SCREEN4_MAPPING];
   const visibleScreens = filters.screen ? screens.filter(s => s.id === filters.screen) : screens;
+
+  // Dynamic batch discovery
+  const discoveredBatches = useMemo(() => discoverBatches(screens), []);
+
+  // Batch field counts
+  const batchCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    screens.forEach(sc => {
+      sc.fields.forEach(f => {
+        const nb = normalizeBatch(f.batch ?? "");
+        if (nb) counts[nb] = (counts[nb] ?? 0) + 1;
+        if (f.adrRef) counts["ADR Dependent"] = (counts["ADR Dependent"] ?? 0) + 1;
+      });
+    });
+    return counts;
+  }, []);
+
+  // Build grouped options: only show batches that exist in data OR are canonical
+  const groupedOptions = useMemo(() => {
+    return BATCH_GROUPS.map(g => ({
+      ...g,
+      values: g.values.filter(v => discoveredBatches.includes(v) || g.label === "Active Delivery Batches"),
+    }));
+  }, [discoveredBatches]);
 
   return (
     <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
@@ -248,7 +340,8 @@ export default function RogerMappingPage() {
       {!filters.leadershipView && (
         <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "14px 16px", marginBottom: "20px" }}>
           <div style={{ fontSize: "10px", fontWeight: 800, color: "#374151", marginBottom: "10px", letterSpacing: "0.08em" }}>GLOBAL FILTERS</div>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
+            {/* Screen */}
             <select value={filters.screen} onChange={e => setFilter("screen", e.target.value)} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
               <option value="">All Screens</option>
               <option value="my-clients">My Clients</option>
@@ -256,6 +349,7 @@ export default function RogerMappingPage() {
               <option value="return-detail">Return Detail</option>
               <option value="consolidation-detail">Consolidation Detail</option>
             </select>
+            {/* Gov Status */}
             <select value={filters.govStatus} onChange={e => setFilter("govStatus", e.target.value)} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
               <option value="">All Gov Status</option>
               <option value="governed">Governed</option>
@@ -264,27 +358,120 @@ export default function RogerMappingPage() {
               <option value="missing">Missing API</option>
               <option value="adr-required">ADR Required</option>
             </select>
+            {/* Owner */}
             <select value={filters.owner} onChange={e => setFilter("owner", e.target.value as Owner | "")} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
               <option value="">All Owners</option>
               {["TIM", "Roger", "CEM", "PDC", "TDC", "Orchestrator"].map(o => <option key={o} value={o}>{o}</option>)}
             </select>
+            {/* Risk */}
             <select value={filters.risk} onChange={e => setFilter("risk", e.target.value)} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
               <option value="">All Risk Levels</option>
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
-            <select value={filters.batch} onChange={e => setFilter("batch", e.target.value)} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
-              <option value="">All Batches</option>
-              {["FC", "B4", "B5", "B6", "B7", "B8", "B10"].map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-            <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", cursor: "pointer" }}>
+            {/* ADR */}
+            <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", cursor: "pointer", paddingTop: "7px" }}>
               <input type="checkbox" checked={filters.adr} onChange={e => setFilter("adr", e.target.checked)} />
               ADR Dependencies Only
             </label>
+            {/* Clear */}
             <button onClick={() => setFilters(DEFAULT_FILTERS)} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #d1d5db", background: "white", fontSize: "12px", cursor: "pointer", color: "#374151" }}>
               Clear Filters
             </button>
+          </div>
+
+          {/* ── BATCH FILTER ─────────────────────────────────────────────────── */}
+          <div style={{ marginTop: "12px", padding: "12px 14px", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 800, color: "#374151", letterSpacing: "0.08em" }}>BATCH FILTER</span>
+                {filters.batches.length > 0 && (
+                  <span style={{ fontSize: "10px", background: "#003087", color: "white", padding: "1px 7px", borderRadius: "9999px", fontWeight: 700 }}>{filters.batches.length} selected</span>
+                )}
+                <span
+                  title="Batches represent DCT roadmap alignment, governance readiness, and architecture dependency sequencing."
+                  style={{ fontSize: "11px", color: "#9ca3af", cursor: "help", fontWeight: 700 }}
+                >ⓘ</span>
+              </div>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <button onClick={() => setShowBatchHeatmap(v => !v)} style={{ fontSize: "10px", padding: "3px 8px", border: "1px solid #d1d5db", borderRadius: "4px", background: showBatchHeatmap ? "#003087" : "white", color: showBatchHeatmap ? "white" : "#374151", cursor: "pointer", fontWeight: 600 }}>
+                  {showBatchHeatmap ? "▲ Hide Heatmap" : "▼ Batch Heatmap"}
+                </button>
+                {filters.batches.length > 0 && (
+                  <button onClick={() => setFilters(f => ({ ...f, batches: [] }))} style={{ fontSize: "10px", padding: "3px 8px", border: "1px solid #d1d5db", borderRadius: "4px", background: "white", color: "#374151", cursor: "pointer" }}>Clear Batches</button>
+                )}
+              </div>
+            </div>
+
+            {/* Grouped batch toggle buttons */}
+            {groupedOptions.map(group => (
+              <div key={group.label} style={{ marginBottom: "8px" }}>
+                <div style={{ fontSize: "9px", fontWeight: 700, color: "#9ca3af", letterSpacing: "0.1em", marginBottom: "5px", textTransform: "uppercase" }}>{group.label}</div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  {group.values.map(b => {
+                    const active = filters.batches.includes(b);
+                    const count = batchCounts[b] ?? 0;
+                    const inData = discoveredBatches.includes(b);
+                    return (
+                      <button
+                        key={b}
+                        onClick={() => toggleBatch(b)}
+                        title={`${b}${inData ? ` · ${count} mapping${count !== 1 ? "s" : ""}` : " · No data yet"}`}
+                        style={{
+                          padding: "4px 10px",
+                          borderRadius: "9999px",
+                          border: active ? "2px solid #003087" : "1.5px solid #d1d5db",
+                          background: active ? "#003087" : inData ? "white" : "#f9fafb",
+                          color: active ? "white" : inData ? "#374151" : "#9ca3af",
+                          fontSize: "11px",
+                          fontWeight: active ? 700 : 500,
+                          cursor: "pointer",
+                          transition: "all 0.12s",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
+                        }}
+                      >
+                        {b}
+                        {inData && count > 0 && (
+                          <span style={{ fontSize: "9px", background: active ? "rgba(255,255,255,0.25)" : "#e5e7eb", color: active ? "white" : "#6b7280", padding: "0 4px", borderRadius: "9999px", fontWeight: 700 }}>{count}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {/* Governance note */}
+            <div style={{ marginTop: "8px", fontSize: "10px", color: "#6b7280", fontStyle: "italic", borderTop: "1px solid #e5e7eb", paddingTop: "8px" }}>
+              Batch alignment reflects roadmap sequencing and governance maturity — not all UI semantics are fully governed at the current batch state.
+            </div>
+
+            {/* Mini Batch Heatmap */}
+            {showBatchHeatmap && (
+              <div style={{ marginTop: "12px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 800, color: "#374151", marginBottom: "8px", letterSpacing: "0.06em" }}>BATCH GOVERNANCE MATURITY HEATMAP</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "6px" }}>
+                  {BATCH_HEATMAP.map(item => {
+                    const ms = MATURITY_STYLE[item.maturity];
+                    const isActive = filters.batches.includes(item.batch);
+                    return (
+                      <div
+                        key={item.batch}
+                        onClick={() => toggleBatch(item.batch)}
+                        style={{ padding: "8px 10px", borderRadius: "6px", background: ms.bg, border: isActive ? "2px solid #003087" : "1px solid transparent", cursor: "pointer", transition: "border 0.1s" }}
+                      >
+                        <div style={{ fontSize: "12px", fontWeight: 800, color: ms.text }}>{item.batch}</div>
+                        <div style={{ fontSize: "9px", color: ms.text, marginTop: "2px", lineHeight: 1.3 }}>{item.focus}</div>
+                        <div style={{ fontSize: "9px", fontWeight: 700, color: ms.text, marginTop: "4px", background: "rgba(0,0,0,0.07)", borderRadius: "3px", padding: "1px 4px", display: "inline-block" }}>{ms.label}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
