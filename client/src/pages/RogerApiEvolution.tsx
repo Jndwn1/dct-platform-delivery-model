@@ -601,10 +601,10 @@ export default function RogerApiEvolution() {
                   { method: "PATCH",  path: "/api/returns/{returnId}/members/{entityId}",               desc: "Change member role inline via RoleBadge" },
                   { method: "PUT",    path: "/api/returns/{returnId}/members/{entityId}/role",          desc: "Dedicated role update — preferred when only role is changing" },
                   { method: "GET",    path: "/api/clients/{clientId}/entities/available?returnId={id}", desc: "Available entities for Add Members drawer — excludes existing members" },
-                ].map(ep => {
+                ].map((ep, i) => {
                   const mc = METHOD_COLORS[ep.method] || METHOD_COLORS.GET;
                   return (
-                    <div key={ep.path} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "7px 10px", borderRadius: "6px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                    <div key={`return-ep-${i}`} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "7px 10px", borderRadius: "6px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
                       <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", backgroundColor: mc.bg, color: mc.text, flexShrink: 0, marginTop: "1px", fontFamily: "monospace" }}>{ep.method}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <code style={{ fontSize: "11px", color: "#1e293b", fontFamily: "monospace", display: "block", marginBottom: "2px" }}>{ep.path}</code>
