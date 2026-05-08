@@ -9,8 +9,9 @@
 
 import { useState, useMemo } from "react";
 import { getRogerScreenBatchRefs, batchStatusBadge } from "../lib/batchModelSource";
+import { READINESS_STYLE, OWNER_STYLE, type Readiness } from "../lib/rogerModelData";
 
-type TabId = "screen1" | "screen2" | "ownership";
+type TabId = "screen1" | "screen2" | "ownership" | "api-matrix";
 
 interface DataRow {
   dataPoint: string;
@@ -314,6 +315,197 @@ function OwnershipContent() {
   );
 }
 
+// ─── API Mapping Matrix tab ─────────────────────────────────────────────────
+
+const MOCK_STYLE_API: Record<string, { bg: string; text: string }> = {
+  Real:    { bg: "#d1fae5", text: "#065f46" },
+  Mocked:  { bg: "#dbeafe", text: "#1e40af" },
+  Derived: { bg: "#fef3c7", text: "#92400e" },
+  Future:  { bg: "#f3f4f6", text: "#6b7280" },
+};
+
+interface ApiRow {
+  uiComponent: string;
+  apiEndpoint: string;
+  sourceField: string;
+  owner: string;
+  batch: string;
+  readiness: Readiness;
+  mockVsReal: "Real" | "Mocked" | "Derived" | "Future";
+  blocker: string;
+}
+
+interface ApiScreen {
+  id: string;
+  title: string;
+  subtitle: string;
+  apiBase: string;
+  rows: ApiRow[];
+}
+
+const API_SCREENS: ApiScreen[] = [
+  {
+    id: "my-clients", title: "1. My Clients", subtitle: "Client landing page — one row per client group.", apiBase: "GET /api/clients?taxYear={year}",
+    rows: [
+      { uiComponent: "Client Name",          apiEndpoint: "GET /api/clients",  sourceField: "name",            owner: "PDC",   batch: "FC",  readiness: "Delivered", mockVsReal: "Real",    blocker: "—" },
+      { uiComponent: "Tax Year dropdown",    apiEndpoint: "GET /api/lookups",  sourceField: "options[]",       owner: "PDC",   batch: "FC",  readiness: "Delivered", mockVsReal: "Real",    blocker: "—" },
+      { uiComponent: "Entity Count",         apiEndpoint: "GET /api/clients",  sourceField: "entityCount",     owner: "PDC",   batch: "B5",  readiness: "Partial",   mockVsReal: "Mocked",  blocker: "Batch 5 entity identity in progress" },
+      { uiComponent: "% Complete",           apiEndpoint: "GET /api/clients",  sourceField: "pctcompleted",    owner: "TIM",   batch: "B10", readiness: "Mocked",    mockVsReal: "Mocked",  blocker: "TIM integration not yet delivered" },
+      { uiComponent: "Deliverables",         apiEndpoint: "GET /api/clients",  sourceField: "deliverables",    owner: "TIM",   batch: "B10", readiness: "Mocked",    mockVsReal: "Mocked",  blocker: "TIM integration not yet delivered" },
+      { uiComponent: "Approaching Date",     apiEndpoint: "GET /api/clients",  sourceField: "approachingDate", owner: "TIM",   batch: "B10", readiness: "Mocked",    mockVsReal: "Mocked",  blocker: "Client due date authority unclear" },
+      { uiComponent: "On Track / At Risk",   apiEndpoint: "—",                 sourceField: "(derived)",       owner: "Roger", batch: "B10", readiness: "Missing",   mockVsReal: "Mocked",  blocker: "On-track/risk calculation logic not defined" },
+      { uiComponent: "Overdue Flag",         apiEndpoint: "—",                 sourceField: "(derived)",       owner: "TIM",   batch: "B10", readiness: "Missing",   mockVsReal: "Mocked",  blocker: "Overdue logic not yet implemented" },
+    ],
+  },
+  {
+    id: "entities", title: "2. Entities", subtitle: "Entity grid — all entities under a client for the selected tax year.", apiBase: "GET /api/clients/{clientId}/entities?taxYear={year}",
+    rows: [
+      { uiComponent: "Entity ID",      apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "entityId",    owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "Batch 5 entity identity in progress" },
+      { uiComponent: "Entity Code",    apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "entityCode",  owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "CEM sync required" },
+      { uiComponent: "Entity Name",    apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "entityName",  owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "Live CEM sync not yet delivered" },
+      { uiComponent: "EIN",            apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "ein",         owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "EIN sourced from CEM — sync gap" },
+      { uiComponent: "Entity Type",    apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "type",        owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "C-Corp | S-Corp | Partnership | LLC | Disregarded | Foreign" },
+      { uiComponent: "Tax Return",     apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "taxReturn",   owner: "TDC", batch: "B7", readiness: "Missing",  mockVsReal: "Future",  blocker: "Batch 7 eligibility/profile not yet started" },
+      { uiComponent: "Filing Status",  apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "filingStatus",owner: "TDC", batch: "B6", readiness: "Missing",  mockVsReal: "Future",  blocker: "Filing workflow aggregation not delivered" },
+    ],
+  },
+  {
+    id: "return-detail", title: "3. Return Detail", subtitle: "Return membership management — full CRUD. Batch 5 entity structure and Batch 6 workflow required.", apiBase: "GET /api/returns/{returnId}/members",
+    rows: [
+      { uiComponent: "Return Name (editable)",     apiEndpoint: "PUT /api/returns/{returnId}/name",                   sourceField: "returnName",  owner: "TDC",   batch: "B6", readiness: "Missing", mockVsReal: "Future", blocker: "Batch 6 workflow/signoff not yet started" },
+      { uiComponent: "Member list",               apiEndpoint: "GET /api/returns/{returnId}/members",                sourceField: "members[]",   owner: "PDC",   batch: "B5", readiness: "Missing", mockVsReal: "Future", blocker: "Depends on Batch 5 entity identity" },
+      { uiComponent: "Role (Parent/Member)",      apiEndpoint: "PATCH /api/returns/{returnId}/members/{entityId}",   sourceField: "role",        owner: "TDC",   batch: "B6", readiness: "Missing", mockVsReal: "Future", blocker: "Parent | Member | Elimination — role governance needed" },
+      { uiComponent: "Add Members",               apiEndpoint: "POST /api/returns/{returnId}/members",               sourceField: "entityIds[]", owner: "Roger", batch: "B5", readiness: "Missing", mockVsReal: "Future", blocker: "Requires Batch 5 available entities endpoint" },
+      { uiComponent: "Remove Member",             apiEndpoint: "DELETE /api/returns/{returnId}/members/{entityId}",  sourceField: "entityId",    owner: "TDC",   batch: "B6", readiness: "Missing", mockVsReal: "Future", blocker: "Cannot remove last Parent — governance rule (409)" },
+      { uiComponent: "Available entities",        apiEndpoint: "GET /api/clients/{clientId}/entities/available",     sourceField: "available[]", owner: "PDC",   batch: "B5", readiness: "Missing", mockVsReal: "Future", blocker: "Excludes already-attached members" },
+    ],
+  },
+  {
+    id: "consolidation", title: "4. Consolidation Detail", subtitle: "Consolidated filing view — slim grid load, lazy detail fetch on click.", apiBase: "GET /api/clients/{clientId}/consolidations",
+    rows: [
+      { uiComponent: "Filing Name",       apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "name",        owner: "TDC", batch: "B6",  readiness: "Missing",  mockVsReal: "Future",  blocker: "Workflow APIs not yet delivered" },
+      { uiComponent: "Filing Type",       apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "type",        owner: "TDC", batch: "B6",  readiness: "Missing",  mockVsReal: "Future",  blocker: "federal-extension | federal-compliance | state | international" },
+      { uiComponent: "AI Process %",      apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "aiProcess",   owner: "TDC", batch: "B4",  readiness: "Partial",  mockVsReal: "Mocked",  blocker: "Mapping proposals in progress (Batch 4)" },
+      { uiComponent: "Due Date",          apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "dueDate",     owner: "TIM", batch: "B10", readiness: "Mocked",   mockVsReal: "Mocked",  blocker: "TIM integration dependency" },
+      { uiComponent: "Status",            apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "status",      owner: "TDC", batch: "B6",  readiness: "Missing",  mockVsReal: "Future",  blocker: "On Track | At Risk | Overdue | Completed" },
+      { uiComponent: "% Complete",        apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "pctComplete", owner: "TDC", batch: "B6",  readiness: "Missing",  mockVsReal: "Future",  blocker: "Workflow completion aggregation not defined" },
+      { uiComponent: "Issue Count badge", apiEndpoint: "GET /api/consolidations/{id}/issues",        sourceField: "issueCount",  owner: "TDC", batch: "B6",  readiness: "Mocked",   mockVsReal: "Mocked",  blocker: "Issue APIs mocked — Batch 6 dependency" },
+      { uiComponent: "Document Count",   apiEndpoint: "GET /api/consolidations/{id}/documents",     sourceField: "docCount",    owner: "DMS", batch: "B10", readiness: "Mocked",   mockVsReal: "Mocked",  blocker: "Document ingestion dependency" },
+    ],
+  },
+  {
+    id: "issues", title: "5. Issues Drawer", subtitle: "Lazy loaded on issues badge click. TDC owns issue state. All data currently mocked.", apiBase: "GET /api/consolidations/{id}/issues",
+    rows: [
+      { uiComponent: "Issue Title",    apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "title",       owner: "TDC", batch: "B6",  readiness: "Mocked", mockVsReal: "Mocked", blocker: "Issue APIs mocked" },
+      { uiComponent: "Priority badge", apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "priority",    owner: "TDC", batch: "B6",  readiness: "Mocked", mockVsReal: "Mocked", blocker: "High | Medium | Low" },
+      { uiComponent: "Status badge",   apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "status",      owner: "TDC", batch: "B6",  readiness: "Mocked", mockVsReal: "Mocked", blocker: "Open | In Review | Resolved" },
+      { uiComponent: "Assignee",       apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "assignee",    owner: "TIM", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "Assignee source — TIM or Roger user?" },
+      { uiComponent: "Created Date",   apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "createdDate", owner: "TDC", batch: "B6",  readiness: "Mocked", mockVsReal: "Mocked", blocker: "YYYY-MM-DD" },
+    ],
+  },
+  {
+    id: "documents", title: "6. Documents Drawer", subtitle: "Lazy loaded on documents badge click. DMS owns document state. All data currently mocked.", apiBase: "GET /api/consolidations/{id}/documents",
+    rows: [
+      { uiComponent: "File Name",     apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "name",         owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "Document ingestion dependency" },
+      { uiComponent: "Document Type",apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "type",         owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "Workpaper | Tax Form | Reconciliation" },
+      { uiComponent: "Status badge", apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "status",       owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "Pending | Received" },
+      { uiComponent: "Due Date",     apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "dueDate",      owner: "TIM", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "TIM due date authority" },
+      { uiComponent: "Uploaded By",  apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "uploadedBy",   owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "—" },
+      { uiComponent: "File Size",    apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "size",         owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "e.g. 240KB" },
+    ],
+  },
+];
+
+function ApiMatrixContent() {
+  const [openScreens, setOpenScreens] = useState<Set<string>>(new Set(["my-clients"]));
+  const toggle = (id: string) => setOpenScreens(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const allRows = API_SCREENS.flatMap(s => s.rows);
+  const total = allRows.length;
+  const counts = allRows.reduce((acc, r) => { acc[r.readiness] = (acc[r.readiness] || 0) + 1; return acc; }, {} as Record<Readiness, number>);
+
+  return (
+    <div>
+      {/* Summary bar */}
+      <div style={{ border: "1px solid #e5e7eb", borderRadius: "10px", padding: "16px", marginBottom: "20px", backgroundColor: "white" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Platform Coverage — {total} UI Components Mapped</div>
+        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+          {(Object.entries(counts) as [Readiness, number][]).map(([s, n]) => (
+            <div key={s} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: READINESS_STYLE[s].text }}>{n}</div>
+              <div style={{ fontSize: "10px", color: "#6b7280" }}>{s}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: "10px", height: "6px", borderRadius: "9999px", backgroundColor: "#f3f4f6", overflow: "hidden", display: "flex" }}>
+          {(Object.entries(counts) as [Readiness, number][]).map(([s, n]) => (
+            <div key={s} style={{ width: `${(n / total) * 100}%`, backgroundColor: READINESS_STYLE[s].bg }} title={`${s}: ${n}`} />
+          ))}
+        </div>
+      </div>
+
+      {/* Screen cards */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {API_SCREENS.map(screen => {
+          const open = openScreens.has(screen.id);
+          const sc = screen.rows.reduce((acc, r) => { acc[r.readiness] = (acc[r.readiness] || 0) + 1; return acc; }, {} as Record<Readiness, number>);
+          return (
+            <div key={screen.id} style={{ border: "1px solid #e5e7eb", borderRadius: "10px", overflow: "hidden" }}>
+              <button onClick={() => toggle(screen.id)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", backgroundColor: "#003865", color: "white", border: "none", cursor: "pointer", textAlign: "left" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 700 }}>{screen.title}</span>
+                  <span style={{ fontSize: "10px", color: "#93c5fd", fontFamily: "monospace" }}>{screen.apiBase}</span>
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    {(Object.entries(sc) as [Readiness, number][]).filter(([,n]) => n > 0).map(([s, n]) => (
+                      <span key={s} style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "9999px", backgroundColor: READINESS_STYLE[s].bg, color: READINESS_STYLE[s].text, fontWeight: 700 }}>{n} {s.slice(0,1)}</span>
+                    ))}
+                  </div>
+                </div>
+                <span style={{ color: "#93c5fd", fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
+              </button>
+              {open && (
+                <div style={{ padding: "12px 16px" }}>
+                  <p style={{ fontSize: "11px", color: "#6b7280", marginBottom: "10px", fontStyle: "italic" }}>{screen.subtitle}</p>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                      <thead>
+                        <tr style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
+                          {["UI Component","API Endpoint","Source Field","Owner","Batch","Readiness","Mock vs Real","Blocker"].map(h => (
+                            <th key={h} style={{ padding: "7px 10px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {screen.rows.map((r, i) => {
+                          const rs = READINESS_STYLE[r.readiness];
+                          const ms = MOCK_STYLE_API[r.mockVsReal] || { bg: "#f3f4f6", text: "#374151" };
+                          const os = OWNER_STYLE[r.owner] || { bg: "#f3f4f6", text: "#374151" };
+                          return (
+                            <tr key={i} style={{ borderBottom: "1px solid #f3f4f6", backgroundColor: r.readiness === "Missing" ? "#fff5f5" : i % 2 === 0 ? "white" : "#fafafa" }}>
+                              <td style={{ padding: "8px 10px", fontWeight: 600, color: "#111827" }}>{r.uiComponent}</td>
+                              <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: "10px", color: "#6b7280", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.apiEndpoint}>{r.apiEndpoint}</td>
+                              <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: "10px", color: "#9ca3af" }}>{r.sourceField}</td>
+                              <td style={{ padding: "8px 10px" }}><span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px", backgroundColor: os.bg, color: os.text }}>{r.owner}</span></td>
+                              <td style={{ padding: "8px 10px", fontFamily: "monospace", color: "#374151" }}>{r.batch}</td>
+                              <td style={{ padding: "8px 10px" }}><span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "9999px", whiteSpace: "nowrap", backgroundColor: rs.bg, color: rs.text }}>{rs.label}</span></td>
+                              <td style={{ padding: "8px 10px" }}><span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 6px", borderRadius: "4px", backgroundColor: ms.bg, color: ms.text }}>{r.mockVsReal}</span></td>
+                              <td style={{ padding: "8px 10px", color: "#6b7280", fontSize: "11px" }}>{r.blocker !== "—" ? <span>⚠ {r.blocker}</span> : <span style={{ color: "#d1d5db" }}>—</span>}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function RogerMappingPage() {
@@ -331,6 +523,7 @@ export default function RogerMappingPage() {
     { id: "screen1", label: "Screen 1 — My Clients" },
     { id: "screen2", label: "Screen 2 — Filing Structure (Client Drill-Down)" },
     { id: "ownership", label: "Ownership Summary" },
+    { id: "api-matrix", label: "API Mapping Matrix" },
   ];
 
   return (
@@ -395,6 +588,7 @@ export default function RogerMappingPage() {
         {activeTab === "screen1" && <Screen1Content />}
         {activeTab === "screen2" && <Screen2Content />}
         {activeTab === "ownership" && <OwnershipContent />}
+        {activeTab === "api-matrix" && <ApiMatrixContent />}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 // Matches reference: rsm-ai-team-niua6bzx.manus.space
 
 import { useState } from "react";
+import { useBatchStatus } from "../contexts/BatchStatusContext";
 
 const API_BATCHES = [
   {
@@ -100,6 +101,32 @@ const API_BATCHES = [
     note: "Gate 4 — Lineage Closure. Roger displays the lineage closure summary on the home page once all TAX_READY records are assembled. Filing status is read-only in Roger; submission is owned by the filing agent. Lineage records are immutable.",
   },
 ];
+
+// Map API_BATCHES batch labels to context status keys
+const BATCH_CONTEXT_KEY: Record<string, string> = {
+  "Batch 2": "B2",
+  "Batch 3": "B3",
+  "Batch 4": "B4",
+  "Batch 5": "B5",
+  "Batch 6": "B6",
+  "Batch 7": "B7",
+  "Batch 8": "B8",
+  "Batch 9": "B9",
+  "Batch 10": "B10",
+};
+
+const STATUS_PILL: Record<string, { bg: string; text: string; label: string }> = {
+  "Delivered":      { bg: "#d1fae5", text: "#065f46", label: "Delivered" },
+  "Complete":       { bg: "#d1fae5", text: "#065f46", label: "Complete" },
+  "Demo Ready":     { bg: "#dbeafe", text: "#1e40af", label: "Demo Ready" },
+  "In Progress":    { bg: "#fef3c7", text: "#92400e", label: "In Progress" },
+  "Ready for QA":   { bg: "#ede9fe", text: "#5b21b6", label: "Ready for QA" },
+  "QA In Progress": { bg: "#ede9fe", text: "#5b21b6", label: "QA In Progress" },
+  "Blocked":        { bg: "#fee2e2", text: "#991b1b", label: "Blocked" },
+  "MVP":            { bg: "#fef3c7", text: "#92400e", label: "MVP" },
+  "Stretch":        { bg: "#f3f4f6", text: "#6b7280", label: "Stretch" },
+  "Not Started":    { bg: "#f3f4f6", text: "#9ca3af", label: "Not Started" },
+};
 
 const METHOD_COLORS: Record<string, { bg: string; text: string }> = {
   GET: { bg: "#eff6ff", text: "#1d4ed8" },
@@ -408,6 +435,7 @@ function ExportPanel({ onClose }: { onClose: () => void }) {
 
 export default function RogerApiEvolution() {
   const [showExport, setShowExport] = useState(false);
+  const { statuses } = useBatchStatus();
 
   return (
     <div style={{ backgroundColor: "#f8fafc", minHeight: "100%", padding: "24px 28px" }}>
@@ -455,9 +483,31 @@ export default function RogerApiEvolution() {
         </p>
       </div>
 
+      {/* Batch timeline bar */}
+      <div style={{ border: "1px solid #e2e8f0", borderRadius: "10px", padding: "14px 18px", marginBottom: "24px", backgroundColor: "white" }}>
+        <div style={{ fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>API Delivery Timeline — Live Status</div>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {API_BATCHES.map(b => {
+            const key = BATCH_CONTEXT_KEY[b.batch];
+            const rawStatus = key ? ((statuses as unknown as Record<string, string>)[key] || "Not Started") : "Not Started";
+            const pill = STATUS_PILL[rawStatus] || STATUS_PILL["Not Started"];
+            return (
+              <div key={b.batch} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "9999px", backgroundColor: pill.bg, color: pill.text, whiteSpace: "nowrap" }}>{b.batch}</span>
+                <span style={{ fontSize: "9px", color: pill.text, fontWeight: 600, whiteSpace: "nowrap" }}>{pill.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Batch API sections */}
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        {API_BATCHES.map((b) => (
+        {API_BATCHES.map((b) => {
+          const key = BATCH_CONTEXT_KEY[b.batch];
+          const rawStatus = key ? ((statuses as unknown as Record<string, string>)[key] || "Not Started") : "Not Started";
+          const pill = STATUS_PILL[rawStatus] || STATUS_PILL["Not Started"];
+          return (
           <div key={b.batch} style={{
             backgroundColor: "white", borderRadius: "10px",
             borderWidth: "1px", borderColor: "#e2e8f0",
@@ -475,6 +525,11 @@ export default function RogerApiEvolution() {
                 {b.batch}
               </span>
               <span style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>{b.label}</span>
+              {key && (
+                <span style={{ marginLeft: "auto", fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "9999px", backgroundColor: pill.bg, color: pill.text }}>
+                  {pill.label}
+                </span>
+              )}
             </div>
 
             <div style={{ padding: "16px 20px" }}>
@@ -536,7 +591,8 @@ export default function RogerApiEvolution() {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
