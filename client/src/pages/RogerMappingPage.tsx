@@ -1,167 +1,111 @@
-// DCT Platform — Roger UI Data Point Mapping
-// Design: Strict revert to match reference site https://rsm-ai-team-niua6bzx.manus.space/#roger-ui-mapping
-// 3 tabs: Screen 1 — My Clients | Screen 2 — Filing Structure | Ownership Summary
-// Each tab: RULE banner, Legend, then data sections with 3-column PDC/Firm/TDC tables
-// Colors: PDC = blue, Firm = gray, TDC = orange
-//
-// GOVERNANCE RULE: Batch delivery tags are derived from batchModelSource.ts
-// (which reads from dctData.ts). DO NOT hardcode batch names or statuses here.
+// DCT Platform — Roger UI Data Point Mapping & Governance Alignment
+// Source: Roger API Design v1.0 (05.07.2026) + TIM Governance Gap Analysis
+// Design: Executive-ready RSM styling, Deep RSM Blue headers
+// Green = validated | Yellow = partial | Orange/Red = governance/lineage gaps
 
 import { useState, useMemo } from "react";
-import { getRogerScreenBatchRefs, batchStatusBadge } from "../lib/batchModelSource";
-import { READINESS_STYLE, OWNER_STYLE, type Readiness } from "../lib/rogerModelData";
+import {
+  SCREEN1_MAPPING, SCREEN2_MAPPING, SCREEN3_MAPPING, SCREEN4_MAPPING,
+  HEATMAP_DATA, ADR_CARDS, computeSummaryTiles,
+  type FieldMapping, type GovStatus, type Owner, type HeatmapValue,
+} from "../lib/rogerGovernanceData";
 
-type TabId = "screen1" | "screen2" | "ownership" | "api-matrix";
+// ─── Style helpers ────────────────────────────────────────────────────────────
+const RSM_BLUE = "#003087";
+const RSM_BLUE_LIGHT = "#e8eef7";
 
-interface DataRow {
-  dataPoint: string;
-  isNew?: boolean;
-  isTbd?: boolean;
-  pdc: string;
-  firm: string;
-  tdc: string;
-}
+const GOV_STYLE: Record<GovStatus, { bg: string; text: string; label: string; dot: string }> = {
+  governed:       { bg: "#dcfce7", text: "#166534", label: "Governed",       dot: "#16a34a" },
+  partial:        { bg: "#fef9c3", text: "#854d0e", label: "Partial",        dot: "#ca8a04" },
+  gap:            { bg: "#ffedd5", text: "#9a3412", label: "Governance Gap", dot: "#ea580c" },
+  missing:        { bg: "#fee2e2", text: "#991b1b", label: "Missing API",    dot: "#dc2626" },
+  "adr-required": { bg: "#ede9fe", text: "#5b21b6", label: "ADR Required",   dot: "#7c3aed" },
+};
 
-// ─── Screen 1 — My Clients ────────────────────────────────────────────────────
+const HEAT_STYLE: Record<HeatmapValue, { bg: string; text: string; label: string }> = {
+  governed:  { bg: "#dcfce7", text: "#166534", label: "Governed"  },
+  partial:   { bg: "#fef9c3", text: "#854d0e", label: "Partial"   },
+  undefined: { bg: "#ffedd5", text: "#9a3412", label: "Undefined" },
+  missing:   { bg: "#fee2e2", text: "#991b1b", label: "Missing"   },
+};
 
-const SCREEN1_SUMMARY: DataRow[] = [
-  { dataPoint: "Total Client Groups", pdc: "Client group concept lives upstream — accessed via PDC integration", firm: "PDC surfaces client group list for Roger display", tdc: "—" },
-  { dataPoint: "Total Entities", pdc: "Entity count per client group (EODS / CEM + PDC)", firm: "PDC normalizes entity-to-group mapping", tdc: "—" },
-  { dataPoint: "On Track Count", pdc: "—", firm: "Orchestrator reads PDC + TDC status; writes back via API", tdc: "Derived using TDC rule definitions — includes formula, inputs, version, timestamp" },
-  { dataPoint: "At Risk Count", pdc: "—", firm: "Orchestrator aggregates status signals", tdc: "Calculated from due date vs. process step" },
-  { dataPoint: "Overdue Count", pdc: "—", firm: "Orchestrator aggregates status signals", tdc: "Calculated from due date vs. process step" },
-  { dataPoint: "Tax Year", isNew: true, pdc: "PeriodStart / PeriodEnd dates stored in PDC", firm: "Orchestrator passes period context to TDC", tdc: "TaxYear derived from PeriodStart / PeriodEnd — TDC provides derived value" },
-];
+const RISK_STYLE: Record<string, { bg: string; text: string }> = {
+  high:   { bg: "#fee2e2", text: "#991b1b" },
+  medium: { bg: "#ffedd5", text: "#9a3412" },
+  low:    { bg: "#dcfce7", text: "#166534" },
+  none:   { bg: "#f3f4f6", text: "#6b7280" },
+};
 
-const SCREEN1_TABLE: DataRow[] = [
-  { dataPoint: "Client Group Name", pdc: "Source of Truth = EODS / CEM via PDC integration", firm: "PDC surfaces for Roger display", tdc: "—" },
-  { dataPoint: "Engagement Code", pdc: "Source of Truth = EODS / CEM via PDC integration", firm: "PDC surfaces for Roger display", tdc: "—" },
-  { dataPoint: "Role", pdc: "Engagement roles upstream via PDC integration", firm: "Snapshot captured at time of action — cannot be looked up dynamically later", tdc: "Process roles owned by TDC — snapshot frozen at assignment (Still Open)" },
-  { dataPoint: "Process Step — Data Collection", pdc: "Ingestion status (DocumentId + RunId)", firm: "Orchestrator reads PDC status; PDC and TDC never talk directly", tdc: "—" },
-  { dataPoint: "Process Step — Normalization", isNew: true, pdc: "Normalized financial facts (vNormalizedTb)", firm: "Orchestrator confirms normalization complete before TDC handoff", tdc: "—" },
-  { dataPoint: "Process Step — Preparation", pdc: "—", firm: "Orchestrator routes to TDC after PDC normalization", tdc: "AI mapping proposals generated (RecordId)" },
-  { dataPoint: "Process Step — Review", pdc: "—", firm: "Orchestrator tracks review state", tdc: "Practitioner review in progress" },
-  { dataPoint: "Process Step — Client Approval", pdc: "—", firm: "Orchestrator gates filing until approval confirmed", tdc: "Sign-off required before lock — Roger read-only" },
-  { dataPoint: "Process Step — Filing", pdc: "—", firm: "Orchestrator confirms filing handoff", tdc: "Return assembled and submitted" },
-  { dataPoint: "Process Step — Completed", pdc: "—", firm: "Orchestrator closes workflow chain", tdc: "Return filed with confirmation" },
-  { dataPoint: "Entities Count per Row", pdc: "Count of entities within client group (EODS / CEM + PDC)", firm: "PDC normalizes entity-to-group mapping", tdc: "—" },
-  { dataPoint: "Complete %", pdc: "—", firm: "Orchestrator aggregates PDC + TDC workflow signals", tdc: "Rollup of process step progression — derived and persisted in TDC" },
-  { dataPoint: "Due Date", pdc: "PeriodStart / PeriodEnd stored in PDC — governing temporal fields", firm: "Orchestrator passes period context to TDC", tdc: "Derived from return type + jurisdiction; TaxYear is derived from PeriodStart/PeriodEnd in TDC — TIM future dependency TBD" },
-  { dataPoint: "Days Left", pdc: "—", firm: "Orchestrator surfaces computed value to Roger", tdc: "Computed and persisted in TDC for traceability (based on DueDate)" },
-  { dataPoint: "Status (On Track / At Risk / Overdue)", pdc: "—", firm: "Orchestrator reads TDC status signals", tdc: "Business logic comparing due date to progress — derived and persisted in TDC" },
-  { dataPoint: "Industry", pdc: "Reference data in PDC; assignment in EODS / CEM", firm: "PDC surfaces for Roger display", tdc: "—" },
-  { dataPoint: "Period Filter", isNew: true, pdc: "PeriodStart + PeriodEnd stored in PDC — governing query fields", firm: "Orchestrator passes period context to TDC", tdc: "TaxYear derived from PeriodStart / PeriodEnd — display-only in Roger; not a stored or query field" },
-];
+const OWNER_COLOR: Record<string, string> = {
+  TIM: "#0ea5e9", Roger: "#8b5cf6", CEM: "#f59e0b",
+  PDC: "#003087", TDC: "#059669", Orchestrator: "#6366f1", Unknown: "#9ca3af",
+};
 
-// ─── Screen 2 — Filing Structure ─────────────────────────────────────────────
-
-const SCREEN2_SUMMARY: DataRow[] = [
-  { dataPoint: "Total Filings", pdc: "—", firm: "Orchestrator aggregates filing counts", tdc: "Count of filings — all business logic owned by TDC" },
-  { dataPoint: "Total Entities", pdc: "Entity count within client group (EODS / CEM + PDC)", firm: "PDC normalizes entity-to-group mapping", tdc: "—" },
-  { dataPoint: "Avg. Completion %", pdc: "—", firm: "Orchestrator aggregates PDC + TDC workflow signals", tdc: "Average process step completion — derived and persisted in TDC" },
-  { dataPoint: "Completed Count", pdc: "—", firm: "Orchestrator reads TDC filing status", tdc: "Count of returns with filed status — all business logic owned by TDC" },
-];
-
-const SCREEN2_TABLE: DataRow[] = [
-  { dataPoint: "Filing Name", pdc: "—", firm: "Orchestrator maps PDC records to TDC return templates", tdc: "Return name from type and template — TDC owns" },
-  { dataPoint: "Federal / State / International", pdc: "—", firm: "Orchestrator routes by jurisdiction type", tdc: "Jurisdiction type — TDC owns" },
-  { dataPoint: "Entities per Consolidation", pdc: "Entity source of truth (EODS / CEM + PDC)", firm: "PDC normalizes entity-to-consolidation mapping", tdc: "Aggregated from PDC + TDC — entities in consolidated return" },
-  { dataPoint: "AI Process %", pdc: "—", firm: "Orchestrator aggregates workflow signals from PDC + TDC", tdc: "Overall workflow completion % — derived and persisted in TDC" },
-  { dataPoint: "Issue Count", pdc: "—", firm: "Orchestrator surfaces unresolved item counts", tdc: "Count of unresolved items — derived and persisted in TDC" },
-  { dataPoint: "Document Status", isNew: true, pdc: "Portal / DUO — source TBD", firm: "Orchestrator reads document status from portal layer", tdc: "TDC owns business logic — source TBD (Portal / DUO)" },
-  { dataPoint: "Due Date", pdc: "PeriodStart / PeriodEnd stored in PDC — governing temporal fields", firm: "Orchestrator passes period context to TDC", tdc: "Derived from return type + jurisdiction; TaxYear is derived from PeriodStart/PeriodEnd in TDC — TIM dependency pending" },
-  { dataPoint: "Days Left", pdc: "—", firm: "Orchestrator surfaces computed value to Roger", tdc: "Computed and persisted in TDC for traceability" },
-  { dataPoint: "Status", pdc: "—", firm: "Orchestrator reads TDC status signals", tdc: "Business logic comparing due date to progress — derived and persisted in TDC" },
-];
-
-const SCREEN2_WORKFLOW: DataRow[] = [
-  { dataPoint: "TB Step Status", pdc: "Trial balance ingested and normalized — DocumentId + RunId status", firm: "Orchestrator reads PDC ingestion status", tdc: "—" },
-  { dataPoint: "TB Issue Count", pdc: "Ingestion or normalization exceptions — PDC owns", firm: "Orchestrator surfaces exception counts", tdc: "—" },
-  { dataPoint: "Book Return Step Status", pdc: "—", firm: "Orchestrator routes PDC normalized facts to TDC mapping", tdc: "Book-basis mapping decisions accepted (RecordId)" },
-  { dataPoint: "Book Return Issue Count", pdc: "—", firm: "Orchestrator surfaces mapping exceptions", tdc: "Mapping exceptions — TDC owns" },
-  { dataPoint: "Book Adj Step Status", pdc: "—", firm: "Orchestrator routes adjustment approvals", tdc: "Book adjustments entered and approved — TDC owns" },
-  { dataPoint: "Book Adj Issue Count", pdc: "—", firm: "Orchestrator surfaces unapproved items", tdc: "Unapproved book adjustments — TDC owns" },
-  { dataPoint: "Reclass Adj Step Status", pdc: "—", firm: "Orchestrator routes reclassification approvals", tdc: "Reclassification adjustments approved — TDC owns" },
-  { dataPoint: "Reclass Adj Issue Count", pdc: "—", firm: "Orchestrator surfaces unapproved items", tdc: "Unapproved reclassification adjustments — TDC owns" },
-  { dataPoint: "Tax Adj Step Status", pdc: "—", firm: "Orchestrator routes tax adjustment approvals", tdc: "Tax adjustments entered and approved — TDC owns" },
-  { dataPoint: "Tax Adj Issue Count", pdc: "—", firm: "Orchestrator surfaces unapproved items", tdc: "Unapproved tax adjustments — TDC owns" },
-  { dataPoint: "Book to Tax Step Status", pdc: "—", firm: "Orchestrator confirms dual sign-off complete", tdc: "Tax-ready records locked with sign-off — TDC owns" },
-  { dataPoint: "Entity List within Consolidation", pdc: "Entity source of truth (EODS / CEM + PDC)", firm: "PDC normalizes entity-to-consolidation mapping", tdc: "Entities in consolidated return — TDC aggregates" },
-];
-
-// ─── Shared sub-components ────────────────────────────────────────────────────
-
-function RuleBanner() {
+// ─── Sub-components ───────────────────────────────────────────────────────────
+function SectionHeader({ num, title, subtitle }: { num: string; title: string; subtitle?: string }) {
   return (
-    <div style={{ border: "1px solid #fed7aa", backgroundColor: "#fff7ed", borderRadius: "8px", padding: "12px 16px", display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "16px" }}>
-      <span style={{ backgroundColor: "#f97316", color: "white", fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "3px", flexShrink: 0, marginTop: "1px" }}>RULE</span>
-      <p style={{ margin: 0, fontSize: "13px", color: "#9a3412" }}>
-        Roger does not perform business logic or calculations. All derived values are computed and persisted in TDC for traceability.
-      </p>
-    </div>
-  );
-}
-
-function Legend() {
-  return (
-    <div style={{ border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", borderRadius: "8px", padding: "12px 16px", marginBottom: "24px", fontSize: "12px", color: "#374151" }}>
-      <span style={{ fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "11px", marginRight: "12px" }}>LEGEND</span>
-      <span style={{ marginRight: "16px" }}>
-        <span style={{ backgroundColor: "#10b981", color: "white", fontSize: "10px", fontWeight: 700, padding: "1px 5px", borderRadius: "3px", marginRight: "4px" }}>NEW</span>
-        Field newly added to this screen — not yet in production
-      </span>
-      <span>
-        <span style={{ backgroundColor: "#f97316", color: "white", fontSize: "10px", fontWeight: 700, padding: "1px 5px", borderRadius: "3px", marginRight: "4px" }}>RULE</span>
-        Platform governance rule — enforced across all Roger screens
-      </span>
-      <div style={{ marginTop: "8px" }}>
-        <span style={{ fontWeight: 700, color: "#9ca3af", marginRight: "6px" }}>TBD</span>
-        Source or ownership not yet confirmed — open for discussion
-        <span style={{ marginLeft: "16px" }}>
-          <span style={{ display: "inline-block", width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#10b981", marginRight: "4px", verticalAlign: "middle" }}></span>
-          Row highlight = new field
-        </span>
+    <div style={{ background: RSM_BLUE, borderRadius: "10px 10px 0 0", padding: "14px 20px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <span style={{ background: "rgba(255,255,255,0.15)", color: "white", fontWeight: 800, fontSize: "11px", padding: "3px 8px", borderRadius: "4px", letterSpacing: "0.05em" }}>SECTION {num}</span>
+        <span style={{ color: "white", fontWeight: 700, fontSize: "15px" }}>{title}</span>
       </div>
+      {subtitle && <div style={{ color: "rgba(255,255,255,0.75)", fontSize: "11px", marginTop: "4px" }}>{subtitle}</div>}
     </div>
   );
 }
 
-function ResponsibilityRow() {
+function GovBadge({ status }: { status: GovStatus }) {
+  const s = GOV_STYLE[status];
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", marginBottom: "10px" }}>
-      <span style={{ color: "#374151", fontWeight: 500 }}>Clear separation of responsibilities:</span>
-      <span style={{ backgroundColor: "#dbeafe", color: "#1e40af", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", fontSize: "11px" }}>Financial Truth (PDC)</span>
-      <span style={{ color: "#9ca3af" }}>→</span>
-      <span style={{ backgroundColor: "#f3f4f6", color: "#374151", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", fontSize: "11px" }}>Firm Standardization</span>
-      <span style={{ color: "#9ca3af" }}>→</span>
-      <span style={{ backgroundColor: "#ffedd5", color: "#9a3412", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", fontSize: "11px" }}>Tax Judgment (TDC)</span>
-    </div>
+    <span style={{ background: s.bg, color: s.text, fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot, display: "inline-block" }} />
+      {s.label}
+    </span>
   );
 }
 
-function DataTable({ rows }: { rows: DataRow[] }) {
+function RiskBadge({ level }: { level: string }) {
+  const s = RISK_STYLE[level] ?? RISK_STYLE.none;
+  return (
+    <span style={{ background: s.bg, color: s.text, fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", whiteSpace: "nowrap" }}>
+      {level.toUpperCase()}
+    </span>
+  );
+}
+
+function OwnerChip({ owner }: { owner: string }) {
+  const color = OWNER_COLOR[owner] ?? "#9ca3af";
+  return (
+    <span style={{ background: color + "18", color, border: `1px solid ${color}40`, fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", whiteSpace: "nowrap" }}>
+      {owner}
+    </span>
+  );
+}
+
+function FieldTable({ fields }: { fields: FieldMapping[] }) {
   return (
     <div style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
         <thead>
-          <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-            <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "11px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", width: "22%" }}>DATA POINT</th>
-            <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "11px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em", width: "26%" }}>PDC — FINANCIAL TRUTH</th>
-            <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.05em", width: "26%" }}>FIRM — TRANSFORMATION LAYER</th>
-            <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "11px", fontWeight: 700, color: "#c2410c", textTransform: "uppercase", letterSpacing: "0.05em", width: "26%" }}>TDC — TAX JUDGMENT</th>
+          <tr style={{ background: "#f8fafc" }}>
+            {["UI Field", "Roger API Field", "TIM Support", "Source", "Gov Status", "Risk", "Notes / ADR"].map(h => (
+              <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontWeight: 700, color: "#374151", borderBottom: "2px solid #e5e7eb", whiteSpace: "nowrap", fontSize: "11px" }}>{h}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, i) => (
-            <tr key={i} style={{ borderBottom: "1px solid #f3f4f6", backgroundColor: row.isNew ? "#f0fdf4" : (i % 2 === 0 ? "white" : "#fafafa") }}>
-              <td style={{ padding: "10px 12px", fontSize: "13px", fontWeight: 600, color: "#111827", verticalAlign: "top" }}>
-                {row.dataPoint}
-                {row.isNew && <span style={{ marginLeft: "6px", backgroundColor: "#10b981", color: "white", fontSize: "10px", fontWeight: 700, padding: "1px 5px", borderRadius: "3px" }}>NEW</span>}
-                {row.isTbd && <span style={{ marginLeft: "6px", color: "#9ca3af", fontSize: "11px", fontWeight: 700 }}>TBD</span>}
+          {fields.map((f, i) => (
+            <tr key={i} style={{ background: i % 2 === 0 ? "white" : "#fafafa", borderBottom: "1px solid #f3f4f6" }}>
+              <td style={{ padding: "8px 10px", fontWeight: 600, color: "#111827" }}>{f.uiField}</td>
+              <td style={{ padding: "8px 10px", fontFamily: "monospace", color: "#374151", fontSize: "11px" }}>{f.rogerApiField}</td>
+              <td style={{ padding: "8px 10px", color: "#6b7280", maxWidth: "160px" }}>{f.timSupport}</td>
+              <td style={{ padding: "8px 10px" }}><OwnerChip owner={f.sourceSystem} /></td>
+              <td style={{ padding: "8px 10px" }}><GovBadge status={f.govStatus} /></td>
+              <td style={{ padding: "8px 10px" }}><RiskBadge level={f.riskLevel} /></td>
+              <td style={{ padding: "8px 10px", color: "#6b7280", maxWidth: "200px", lineHeight: "1.4" }}>
+                {f.notes}
+                {f.adrRef && <span style={{ marginLeft: "6px", background: "#ede9fe", color: "#5b21b6", fontSize: "10px", fontWeight: 700, padding: "1px 5px", borderRadius: "3px" }}>{f.adrRef}</span>}
               </td>
-              <td style={{ padding: "10px 12px", fontSize: "12px", color: row.pdc === "—" ? "#d1d5db" : "#1e40af", verticalAlign: "top", lineHeight: "1.5" }}>{row.pdc}</td>
-              <td style={{ padding: "10px 12px", fontSize: "12px", color: row.firm === "—" ? "#d1d5db" : "#374151", verticalAlign: "top", lineHeight: "1.5" }}>{row.firm}</td>
-              <td style={{ padding: "10px 12px", fontSize: "12px", color: row.tdc === "—" ? "#d1d5db" : "#c2410c", verticalAlign: "top", lineHeight: "1.5" }}>{row.tdc}</td>
             </tr>
           ))}
         </tbody>
@@ -170,426 +114,487 @@ function DataTable({ rows }: { rows: DataRow[] }) {
   );
 }
 
-function SectionBlock({ title, rows, note }: { title: string; rows: DataRow[]; note?: string }) {
+function ArchNotes({ notes, findings, risks, warningBanner }: { notes: string[]; findings: string[]; risks: string[]; warningBanner?: string }) {
   return (
-    <div style={{ border: "1px solid #e5e7eb", borderRadius: "8px", overflow: "hidden", marginBottom: "24px" }}>
-      <div style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb", padding: "12px 16px" }}>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>{title}</div>
-        <ResponsibilityRow />
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", padding: "16px", background: "#f8fafc", borderTop: "1px solid #e5e7eb" }}>
+      <div>
+        <div style={{ fontSize: "10px", fontWeight: 800, color: "#374151", marginBottom: "6px", letterSpacing: "0.08em" }}>ARCHITECTURE NOTES</div>
+        {notes.map((n, i) => <div key={i} style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", paddingLeft: "10px", borderLeft: "2px solid #93c5fd" }}>• {n}</div>)}
       </div>
-      {note && (
-        <div style={{ backgroundColor: "#fffbeb", borderBottom: "1px solid #fde68a", padding: "8px 16px", fontSize: "12px", color: "#92400e", fontStyle: "italic" }}>{note}</div>
-      )}
-      <DataTable rows={rows} />
-    </div>
-  );
-}
-
-// ─── Tab content ──────────────────────────────────────────────────────────────
-
-function Screen1Content() {
-  return (
-    <div>
-      <RuleBanner />
-      <Legend />
-      <SectionBlock title="Summary Cards — PDC → Firm → TDC" rows={SCREEN1_SUMMARY} />
-      <SectionBlock title="Table Columns — PDC → Firm → TDC" rows={SCREEN1_TABLE} />
-    </div>
-  );
-}
-
-function Screen2Content() {
-  return (
-    <div>
-      <RuleBanner />
-      <Legend />
-      <SectionBlock title="Summary Cards — PDC → Firm → TDC" rows={SCREEN2_SUMMARY} />
-      <SectionBlock title="Table Columns — PDC → Firm → TDC" rows={SCREEN2_TABLE} />
-      <SectionBlock
-        title="AI Process Workflow Steps — PDC → Firm → TDC"
-        rows={SCREEN2_WORKFLOW}
-        note="AI Process Workflow Steps are driven by PDC/TDC and are read-only in Roger. May move to a dedicated Review screen."
-      />
-      <p style={{ fontSize: "11px", color: "#9ca3af", fontStyle: "italic", marginTop: "4px" }}>
-        All process steps are orchestrated via AI Orchestrator. Orchestrator reads from PDC and TDC and writes back via APIs. PDC and TDC do NOT communicate directly. Roger is read-only.
-      </p>
-    </div>
-  );
-}
-
-function OwnershipContent() {
-  const dctOwns = [
-    "Ingestion (PDC) — ingestion status and record counts",
-    "Normalization (PDC) — normalized financial facts (vNormalizedTb)",
-    "Mapping (TDC) — AI mapping proposals and mapping decisions",
-    "Adjustments (TDC) — adjustment lifecycle and approval status",
-    "Tax-ready records (TDC) — tax-ready record lock status",
-    "Due dates (TDC — TIM pending) — derived from return type + jurisdiction",
-    "Filing (TDC) — return assembly and filing confirmation",
-    "Process steps (PDC + TDC) — Data Collection through Completed; Roger is read-only from both",
-    "Issue counts (TDC) — unresolved proposals, unapproved adjustments, unsigned records",
-  ];
-  const notDct = [
-    "Client group names and identifiers — Source of Truth = EODS / CEM via PDC integration",
-    "Engagement codes — Source of Truth = EODS / CEM via PDC integration",
-    "Entity-to-client-group assignments — Source of Truth = EODS / CEM via PDC integration",
-    "Industry assignment per client — Source of Truth = EODS / CEM via PDC integration",
-    "Entity counts (source of truth needs EODS/CEM alignment) — Source of Truth = EODS / CEM via PDC integration",
-  ];
-  const needsDiscussion = [
-    "Client Approval ownership — Source = TBD (Likely NOT fully TDC). Ownership unresolved. Must define system of record, whether approval is persisted in TDC, and whether it acts as a gating step before filing.",
-    "Snapshot contract (Task 3 dependency) — Role assignments must be snapshotted at time of action; cannot be dynamically looked up later.",
-    "Summary card rule definitions (TDC-owned) — exact rule definitions for On Track / At Risk / Overdue need to be confirmed.",
-    "Period filtering strategy — Should Roger filter by date range (start/end date), derived tax year, or both?",
-    "RunId vs Period default — Should UI default to latest RunId or latest period?",
-    "Multi-period display — Can one entity show multiple periods at once? Or one active period per view?",
-    "Tax Year vs Date display — Should Roger display Tax Year only? Or show underlying dates too? Roger will consume period context as start/end dates; TDC will provide TaxYear as a derived value.",
-  ];
-
-  const sectionStyle = (borderColor: string, bgColor: string) => ({
-    border: `1px solid ${borderColor}`,
-    borderRadius: "8px",
-    overflow: "hidden" as const,
-    marginBottom: "24px",
-  });
-
-  const headerStyle = (bgColor: string, borderColor: string) => ({
-    backgroundColor: bgColor,
-    borderBottom: `1px solid ${borderColor}`,
-    padding: "12px 16px",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  });
-
-  return (
-    <div>
-      <RuleBanner />
-      <Legend />
-
-      <div style={sectionStyle("#a7f3d0", "#d1fae5")}>
-        <div style={headerStyle("#ecfdf5", "#a7f3d0")}>
-          <span style={{ color: "#059669", fontSize: "18px" }}>✓</span>
-          <h3 style={{ margin: 0, fontSize: "12px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.05em" }}>DCT OWNS — DELIVERED INCREMENTALLY ACROSS BATCHES</h3>
-        </div>
-        <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-          {dctOwns.map((item, i) => (
-            <li key={i} style={{ padding: "10px 16px", fontSize: "13px", color: "#374151", borderBottom: i < dctOwns.length - 1 ? "1px solid #f3f4f6" : "none", display: "flex", alignItems: "flex-start", gap: "8px" }}>
-              <span style={{ color: "#10b981", marginTop: "2px", flexShrink: 0 }}>●</span>
-              {item}
-            </li>
-          ))}
-        </ul>
+      <div>
+        <div style={{ fontSize: "10px", fontWeight: 800, color: "#374151", marginBottom: "6px", letterSpacing: "0.08em" }}>GOVERNANCE FINDINGS</div>
+        {findings.map((f, i) => <div key={i} style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", paddingLeft: "10px", borderLeft: "2px solid #fbbf24" }}>• {f}</div>)}
       </div>
-
-      <div style={sectionStyle("#bfdbfe", "#dbeafe")}>
-        <div style={headerStyle("#eff6ff", "#bfdbfe")}>
-          <span style={{ color: "#2563eb", fontSize: "16px" }}>🗄</span>
-          <h3 style={{ margin: 0, fontSize: "12px", fontWeight: 700, color: "#1e3a8a", textTransform: "uppercase", letterSpacing: "0.05em" }}>NOT DCT — ORIGINATES FROM EODS / CEM (SOURCE OF TRUTH), ACCESSED VIA PDC INTEGRATION LAYER</h3>
-        </div>
-        <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-          {notDct.map((item, i) => (
-            <li key={i} style={{ padding: "10px 16px", fontSize: "13px", color: "#374151", borderBottom: i < notDct.length - 1 ? "1px solid #f3f4f6" : "none", display: "flex", alignItems: "flex-start", gap: "8px" }}>
-              <span style={{ color: "#60a5fa", marginTop: "2px", flexShrink: 0 }}>●</span>
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div style={sectionStyle("#fde68a", "#fef3c7")}>
-        <div style={headerStyle("#fffbeb", "#fde68a")}>
-          <span style={{ color: "#d97706", fontSize: "18px" }}>?</span>
-          <h3 style={{ margin: 0, fontSize: "12px", fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.05em" }}>NEEDS DISCUSSION</h3>
-        </div>
-        <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-          {needsDiscussion.map((item, i) => (
-            <li key={i} style={{ padding: "10px 16px", fontSize: "13px", color: "#374151", borderBottom: i < needsDiscussion.length - 1 ? "1px solid #f3f4f6" : "none", display: "flex", alignItems: "flex-start", gap: "8px" }}>
-              <span style={{ color: "#fbbf24", marginTop: "2px", flexShrink: 0 }}>●</span>
-              {item}
-            </li>
-          ))}
-        </ul>
+      <div>
+        <div style={{ fontSize: "10px", fontWeight: 800, color: "#374151", marginBottom: "6px", letterSpacing: "0.08em" }}>RISK INDICATORS</div>
+        {risks.map((r, i) => <div key={i} style={{ fontSize: "11px", color: "#9a3412", marginBottom: "4px", paddingLeft: "10px", borderLeft: "2px solid #f97316" }}>⚠ {r}</div>)}
+        {warningBanner && (
+          <div style={{ marginTop: "8px", background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "6px", padding: "8px 10px", color: "#991b1b", fontSize: "11px", fontWeight: 700 }}>
+            🚨 {warningBanner}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ─── API Mapping Matrix tab ─────────────────────────────────────────────────
-
-const MOCK_STYLE_API: Record<string, { bg: string; text: string }> = {
-  Real:    { bg: "#d1fae5", text: "#065f46" },
-  Mocked:  { bg: "#dbeafe", text: "#1e40af" },
-  Derived: { bg: "#fef3c7", text: "#92400e" },
-  Future:  { bg: "#f3f4f6", text: "#6b7280" },
-};
-
-interface ApiRow {
-  uiComponent: string;
-  apiEndpoint: string;
-  sourceField: string;
-  owner: string;
+interface FilterState {
+  screen: string;
+  govStatus: GovStatus | "";
+  owner: Owner | "";
+  risk: string;
   batch: string;
-  readiness: Readiness;
-  mockVsReal: "Real" | "Mocked" | "Derived" | "Future";
-  blocker: string;
+  adr: boolean;
+  leadershipView: boolean;
 }
 
-interface ApiScreen {
-  id: string;
-  title: string;
-  subtitle: string;
-  apiBase: string;
-  rows: ApiRow[];
-}
+const DEFAULT_FILTERS: FilterState = { screen: "", govStatus: "", owner: "", risk: "", batch: "", adr: false, leadershipView: false };
 
-const API_SCREENS: ApiScreen[] = [
-  {
-    id: "my-clients", title: "1. My Clients", subtitle: "Client landing page — one row per client group.", apiBase: "GET /api/clients?taxYear={year}",
-    rows: [
-      { uiComponent: "Client Name",          apiEndpoint: "GET /api/clients",  sourceField: "name",            owner: "PDC",   batch: "FC",  readiness: "Delivered", mockVsReal: "Real",    blocker: "—" },
-      { uiComponent: "Tax Year dropdown",    apiEndpoint: "GET /api/lookups",  sourceField: "options[]",       owner: "PDC",   batch: "FC",  readiness: "Delivered", mockVsReal: "Real",    blocker: "—" },
-      { uiComponent: "Entity Count",         apiEndpoint: "GET /api/clients",  sourceField: "entityCount",     owner: "PDC",   batch: "B5",  readiness: "Partial",   mockVsReal: "Mocked",  blocker: "Batch 5 entity identity in progress" },
-      { uiComponent: "% Complete",           apiEndpoint: "GET /api/clients",  sourceField: "pctcompleted",    owner: "TIM",   batch: "B10", readiness: "Mocked",    mockVsReal: "Mocked",  blocker: "TIM integration not yet delivered" },
-      { uiComponent: "Deliverables",         apiEndpoint: "GET /api/clients",  sourceField: "deliverables",    owner: "TIM",   batch: "B10", readiness: "Mocked",    mockVsReal: "Mocked",  blocker: "TIM integration not yet delivered" },
-      { uiComponent: "Approaching Date",     apiEndpoint: "GET /api/clients",  sourceField: "approachingDate", owner: "TIM",   batch: "B10", readiness: "Mocked",    mockVsReal: "Mocked",  blocker: "Client due date authority unclear" },
-      { uiComponent: "On Track / At Risk",   apiEndpoint: "—",                 sourceField: "(derived)",       owner: "Roger", batch: "B10", readiness: "Missing",   mockVsReal: "Mocked",  blocker: "On-track/risk calculation logic not defined" },
-      { uiComponent: "Overdue Flag",         apiEndpoint: "—",                 sourceField: "(derived)",       owner: "TIM",   batch: "B10", readiness: "Missing",   mockVsReal: "Mocked",  blocker: "Overdue logic not yet implemented" },
-    ],
-  },
-  {
-    id: "entities", title: "2. Entities", subtitle: "Entity grid — all entities under a client for the selected tax year.", apiBase: "GET /api/clients/{clientId}/entities?taxYear={year}",
-    rows: [
-      { uiComponent: "Entity ID",      apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "entityId",    owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "Batch 5 entity identity in progress" },
-      { uiComponent: "Entity Code",    apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "entityCode",  owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "CEM sync required" },
-      { uiComponent: "Entity Name",    apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "entityName",  owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "Live CEM sync not yet delivered" },
-      { uiComponent: "EIN",            apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "ein",         owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "EIN sourced from CEM — sync gap" },
-      { uiComponent: "Entity Type",    apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "type",        owner: "PDC", batch: "B5", readiness: "Partial",  mockVsReal: "Mocked",  blocker: "C-Corp | S-Corp | Partnership | LLC | Disregarded | Foreign" },
-      { uiComponent: "Tax Return",     apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "taxReturn",   owner: "TDC", batch: "B7", readiness: "Missing",  mockVsReal: "Future",  blocker: "Batch 7 eligibility/profile not yet started" },
-      { uiComponent: "Filing Status",  apiEndpoint: "GET /api/clients/{clientId}/entities", sourceField: "filingStatus",owner: "TDC", batch: "B6", readiness: "Missing",  mockVsReal: "Future",  blocker: "Filing workflow aggregation not delivered" },
-    ],
-  },
-  {
-    id: "return-detail", title: "3. Return Detail", subtitle: "Return membership management — full CRUD. Batch 5 entity structure and Batch 6 workflow required.", apiBase: "GET /api/returns/{returnId}/members",
-    rows: [
-      { uiComponent: "Return Name (editable)",     apiEndpoint: "PUT /api/returns/{returnId}/name",                   sourceField: "returnName",  owner: "TDC",   batch: "B6", readiness: "Missing", mockVsReal: "Future", blocker: "Batch 6 workflow/signoff not yet started" },
-      { uiComponent: "Member list",               apiEndpoint: "GET /api/returns/{returnId}/members",                sourceField: "members[]",   owner: "PDC",   batch: "B5", readiness: "Missing", mockVsReal: "Future", blocker: "Depends on Batch 5 entity identity" },
-      { uiComponent: "Role (Parent/Member)",      apiEndpoint: "PATCH /api/returns/{returnId}/members/{entityId}",   sourceField: "role",        owner: "TDC",   batch: "B6", readiness: "Missing", mockVsReal: "Future", blocker: "Parent | Member | Elimination — role governance needed" },
-      { uiComponent: "Add Members",               apiEndpoint: "POST /api/returns/{returnId}/members",               sourceField: "entityIds[]", owner: "Roger", batch: "B5", readiness: "Missing", mockVsReal: "Future", blocker: "Requires Batch 5 available entities endpoint" },
-      { uiComponent: "Remove Member",             apiEndpoint: "DELETE /api/returns/{returnId}/members/{entityId}",  sourceField: "entityId",    owner: "TDC",   batch: "B6", readiness: "Missing", mockVsReal: "Future", blocker: "Cannot remove last Parent — governance rule (409)" },
-      { uiComponent: "Available entities",        apiEndpoint: "GET /api/clients/{clientId}/entities/available",     sourceField: "available[]", owner: "PDC",   batch: "B5", readiness: "Missing", mockVsReal: "Future", blocker: "Excludes already-attached members" },
-    ],
-  },
-  {
-    id: "consolidation", title: "4. Consolidation Detail", subtitle: "Consolidated filing view — slim grid load, lazy detail fetch on click.", apiBase: "GET /api/clients/{clientId}/consolidations",
-    rows: [
-      { uiComponent: "Filing Name",       apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "name",        owner: "TDC", batch: "B6",  readiness: "Missing",  mockVsReal: "Future",  blocker: "Workflow APIs not yet delivered" },
-      { uiComponent: "Filing Type",       apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "type",        owner: "TDC", batch: "B6",  readiness: "Missing",  mockVsReal: "Future",  blocker: "federal-extension | federal-compliance | state | international" },
-      { uiComponent: "AI Process %",      apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "aiProcess",   owner: "TDC", batch: "B4",  readiness: "Partial",  mockVsReal: "Mocked",  blocker: "Mapping proposals in progress (Batch 4)" },
-      { uiComponent: "Due Date",          apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "dueDate",     owner: "TIM", batch: "B10", readiness: "Mocked",   mockVsReal: "Mocked",  blocker: "TIM integration dependency" },
-      { uiComponent: "Status",            apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "status",      owner: "TDC", batch: "B6",  readiness: "Missing",  mockVsReal: "Future",  blocker: "On Track | At Risk | Overdue | Completed" },
-      { uiComponent: "% Complete",        apiEndpoint: "GET /api/clients/{clientId}/consolidations", sourceField: "pctComplete", owner: "TDC", batch: "B6",  readiness: "Missing",  mockVsReal: "Future",  blocker: "Workflow completion aggregation not defined" },
-      { uiComponent: "Issue Count badge", apiEndpoint: "GET /api/consolidations/{id}/issues",        sourceField: "issueCount",  owner: "TDC", batch: "B6",  readiness: "Mocked",   mockVsReal: "Mocked",  blocker: "Issue APIs mocked — Batch 6 dependency" },
-      { uiComponent: "Document Count",   apiEndpoint: "GET /api/consolidations/{id}/documents",     sourceField: "docCount",    owner: "DMS", batch: "B10", readiness: "Mocked",   mockVsReal: "Mocked",  blocker: "Document ingestion dependency" },
-    ],
-  },
-  {
-    id: "issues", title: "5. Issues Drawer", subtitle: "Lazy loaded on issues badge click. TDC owns issue state. All data currently mocked.", apiBase: "GET /api/consolidations/{id}/issues",
-    rows: [
-      { uiComponent: "Issue Title",    apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "title",       owner: "TDC", batch: "B6",  readiness: "Mocked", mockVsReal: "Mocked", blocker: "Issue APIs mocked" },
-      { uiComponent: "Priority badge", apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "priority",    owner: "TDC", batch: "B6",  readiness: "Mocked", mockVsReal: "Mocked", blocker: "High | Medium | Low" },
-      { uiComponent: "Status badge",   apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "status",      owner: "TDC", batch: "B6",  readiness: "Mocked", mockVsReal: "Mocked", blocker: "Open | In Review | Resolved" },
-      { uiComponent: "Assignee",       apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "assignee",    owner: "TIM", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "Assignee source — TIM or Roger user?" },
-      { uiComponent: "Created Date",   apiEndpoint: "GET /api/consolidations/{id}/issues", sourceField: "createdDate", owner: "TDC", batch: "B6",  readiness: "Mocked", mockVsReal: "Mocked", blocker: "YYYY-MM-DD" },
-    ],
-  },
-  {
-    id: "documents", title: "6. Documents Drawer", subtitle: "Lazy loaded on documents badge click. DMS owns document state. All data currently mocked.", apiBase: "GET /api/consolidations/{id}/documents",
-    rows: [
-      { uiComponent: "File Name",     apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "name",         owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "Document ingestion dependency" },
-      { uiComponent: "Document Type",apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "type",         owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "Workpaper | Tax Form | Reconciliation" },
-      { uiComponent: "Status badge", apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "status",       owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "Pending | Received" },
-      { uiComponent: "Due Date",     apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "dueDate",      owner: "TIM", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "TIM due date authority" },
-      { uiComponent: "Uploaded By",  apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "uploadedBy",   owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "—" },
-      { uiComponent: "File Size",    apiEndpoint: "GET /api/consolidations/{id}/documents", sourceField: "size",         owner: "DMS", batch: "B10", readiness: "Mocked", mockVsReal: "Mocked", blocker: "e.g. 240KB" },
-    ],
-  },
-];
-
-function ApiMatrixContent() {
-  const [openScreens, setOpenScreens] = useState<Set<string>>(new Set(["my-clients"]));
-  const toggle = (id: string) => setOpenScreens(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-
-  const allRows = API_SCREENS.flatMap(s => s.rows);
-  const total = allRows.length;
-  const counts = allRows.reduce((acc, r) => { acc[r.readiness] = (acc[r.readiness] || 0) + 1; return acc; }, {} as Record<Readiness, number>);
+function ScreenSection({ section, filters }: { section: typeof SCREEN1_MAPPING; filters: FilterState }) {
+  const [expanded, setExpanded] = useState(true);
+  const filtered = useMemo(() => {
+    return section.fields.filter(f => {
+      if (filters.govStatus && f.govStatus !== filters.govStatus) return false;
+      if (filters.owner && f.sourceSystem !== filters.owner) return false;
+      if (filters.risk && f.riskLevel !== filters.risk) return false;
+      if (filters.adr && !f.adrRef) return false;
+      if (filters.batch && f.batch !== filters.batch) return false;
+      return true;
+    });
+  }, [section.fields, filters]);
 
   return (
-    <div>
-      {/* Summary bar */}
-      <div style={{ border: "1px solid #e5e7eb", borderRadius: "10px", padding: "16px", marginBottom: "20px", backgroundColor: "white" }}>
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Platform Coverage — {total} UI Components Mapped</div>
-        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          {(Object.entries(counts) as [Readiness, number][]).map(([s, n]) => (
-            <div key={s} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "20px", fontWeight: 700, color: READINESS_STYLE[s].text }}>{n}</div>
-              <div style={{ fontSize: "10px", color: "#6b7280" }}>{s}</div>
-            </div>
-          ))}
+    <div style={{ border: "1px solid #e5e7eb", borderRadius: "10px", overflow: "hidden", marginBottom: "20px" }}>
+      <div
+        style={{ background: RSM_BLUE, padding: "12px 16px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        onClick={() => setExpanded(e => !e)}
+      >
+        <div>
+          <div style={{ color: "white", fontWeight: 700, fontSize: "14px" }}>{section.screen}</div>
+          <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "11px", fontFamily: "monospace", marginTop: "2px" }}>{section.method} {section.endpoint}</div>
         </div>
-        <div style={{ marginTop: "10px", height: "6px", borderRadius: "9999px", backgroundColor: "#f3f4f6", overflow: "hidden", display: "flex" }}>
-          {(Object.entries(counts) as [Readiness, number][]).map(([s, n]) => (
-            <div key={s} style={{ width: `${(n / total) * 100}%`, backgroundColor: READINESS_STYLE[s].bg }} title={`${s}: ${n}`} />
-          ))}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px" }}>{filtered.length} fields</span>
+          <span style={{ color: "white", fontSize: "16px" }}>{expanded ? "▲" : "▼"}</span>
         </div>
       </div>
-
-      {/* Screen cards */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {API_SCREENS.map(screen => {
-          const open = openScreens.has(screen.id);
-          const sc = screen.rows.reduce((acc, r) => { acc[r.readiness] = (acc[r.readiness] || 0) + 1; return acc; }, {} as Record<Readiness, number>);
-          return (
-            <div key={screen.id} style={{ border: "1px solid #e5e7eb", borderRadius: "10px", overflow: "hidden" }}>
-              <button onClick={() => toggle(screen.id)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", backgroundColor: "#003865", color: "white", border: "none", cursor: "pointer", textAlign: "left" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 700 }}>{screen.title}</span>
-                  <span style={{ fontSize: "10px", color: "#93c5fd", fontFamily: "monospace" }}>{screen.apiBase}</span>
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    {(Object.entries(sc) as [Readiness, number][]).filter(([,n]) => n > 0).map(([s, n]) => (
-                      <span key={s} style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "9999px", backgroundColor: READINESS_STYLE[s].bg, color: READINESS_STYLE[s].text, fontWeight: 700 }}>{n} {s.slice(0,1)}</span>
-                    ))}
-                  </div>
-                </div>
-                <span style={{ color: "#93c5fd", fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
-              </button>
-              {open && (
-                <div style={{ padding: "12px 16px" }}>
-                  <p style={{ fontSize: "11px", color: "#6b7280", marginBottom: "10px", fontStyle: "italic" }}>{screen.subtitle}</p>
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-                      <thead>
-                        <tr style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
-                          {["UI Component","API Endpoint","Source Field","Owner","Batch","Readiness","Mock vs Real","Blocker"].map(h => (
-                            <th key={h} style={{ padding: "7px 10px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {screen.rows.map((r, i) => {
-                          const rs = READINESS_STYLE[r.readiness];
-                          const ms = MOCK_STYLE_API[r.mockVsReal] || { bg: "#f3f4f6", text: "#374151" };
-                          const os = OWNER_STYLE[r.owner] || { bg: "#f3f4f6", text: "#374151" };
-                          return (
-                            <tr key={i} style={{ borderBottom: "1px solid #f3f4f6", backgroundColor: r.readiness === "Missing" ? "#fff5f5" : i % 2 === 0 ? "white" : "#fafafa" }}>
-                              <td style={{ padding: "8px 10px", fontWeight: 600, color: "#111827" }}>{r.uiComponent}</td>
-                              <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: "10px", color: "#6b7280", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.apiEndpoint}>{r.apiEndpoint}</td>
-                              <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: "10px", color: "#9ca3af" }}>{r.sourceField}</td>
-                              <td style={{ padding: "8px 10px" }}><span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px", backgroundColor: os.bg, color: os.text }}>{r.owner}</span></td>
-                              <td style={{ padding: "8px 10px", fontFamily: "monospace", color: "#374151" }}>{r.batch}</td>
-                              <td style={{ padding: "8px 10px" }}><span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "9999px", whiteSpace: "nowrap", backgroundColor: rs.bg, color: rs.text }}>{rs.label}</span></td>
-                              <td style={{ padding: "8px 10px" }}><span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 6px", borderRadius: "4px", backgroundColor: ms.bg, color: ms.text }}>{r.mockVsReal}</span></td>
-                              <td style={{ padding: "8px 10px", color: "#6b7280", fontSize: "11px" }}>{r.blocker !== "—" ? <span>⚠ {r.blocker}</span> : <span style={{ color: "#d1d5db" }}>—</span>}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      {expanded && (
+        <>
+          <FieldTable fields={filtered} />
+          <ArchNotes
+            notes={section.archNotes}
+            findings={section.govFindings}
+            risks={section.riskIndicators}
+            warningBanner={section.id === "return-detail" ? "Consolidated Filing Governance Risk — no filing authority or lock state defined" : undefined}
+          />
+        </>
+      )}
     </div>
   );
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
-
 export default function RogerMappingPage() {
-  const [activeTab, setActiveTab] = useState<TabId>("screen1");
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const tiles = useMemo(() => computeSummaryTiles(), []);
 
-  // GOVERNANCE: Batch delivery tags resolved live from Batch Model (dctData.ts)
-  const batchRefs = useMemo(() => getRogerScreenBatchRefs(), []);
-  const activeBatchRef = batchRefs.find((r) => r.screenId === (
-    activeTab === "screen1" ? "screen-1-my-clients" :
-    activeTab === "screen2" ? "screen-2-filing-structure" :
-    "screen-ownership-summary"
-  ));
+  const setFilter = (key: keyof FilterState, val: string | boolean) =>
+    setFilters(f => ({ ...f, [key]: val }));
 
-  const tabs: { id: TabId; label: string }[] = [
-    { id: "screen1", label: "Screen 1 — My Clients" },
-    { id: "screen2", label: "Screen 2 — Filing Structure (Client Drill-Down)" },
-    { id: "ownership", label: "Ownership Summary" },
-    { id: "api-matrix", label: "API Mapping Matrix" },
-  ];
+  const screens = [SCREEN1_MAPPING, SCREEN2_MAPPING, SCREEN3_MAPPING, SCREEN4_MAPPING];
+  const visibleScreens = filters.screen ? screens.filter(s => s.id === filters.screen) : screens;
 
   return (
-    <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "24px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-          <div style={{ width: "40px", height: "40px", backgroundColor: "#dbeafe", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ fontSize: "18px" }}>🖥</span>
-          </div>
+    <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
+
+      {/* Page Header */}
+      <div style={{ background: `linear-gradient(135deg, ${RSM_BLUE} 0%, #1a4a8a 100%)`, borderRadius: "12px", padding: "24px 28px", marginBottom: "24px", color: "white" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <h1 style={{ margin: "0 0 4px", fontSize: "22px", fontWeight: 700, color: "#111827" }}>Roger UI — Data Point Mapping</h1>
-            <p style={{ margin: 0, fontSize: "13px", color: "#6b7280", maxWidth: "600px" }}>
-              Where every data point on the Roger screens comes from — Roger UI displays only. It does NOT calculate. All business logic is owned and persisted in TDC. Roger is strictly read-only.
-            </p>
+            <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", opacity: 0.7, marginBottom: "6px" }}>DCT PLATFORM · ARCHITECTURE GOVERNANCE</div>
+            <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 800 }}>Roger UI Data Point Mapping & Governance Alignment</h1>
+            <div style={{ opacity: 0.75, fontSize: "12px", marginTop: "6px" }}>Source: Roger API Design v1.0 (05.07.2026) · TIM Governance Gap Analysis · DCT Architecture Review</div>
           </div>
-        </div>
-        <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-          <span style={{ backgroundColor: "#dbeafe", color: "#1e40af", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "4px" }}>Roger</span>
-          <span style={{ backgroundColor: "#f3f4f6", color: "#374151", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "4px" }}>DCT Platform</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end" }}>
+            <button
+              onClick={() => setFilter("leadershipView", !filters.leadershipView)}
+              style={{ background: filters.leadershipView ? "#fbbf24" : "rgba(255,255,255,0.15)", color: filters.leadershipView ? "#78350f" : "white", border: "none", borderRadius: "6px", padding: "7px 14px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}
+            >
+              {filters.leadershipView ? "👁 Leadership View ON" : "👁 Leadership Simplified View"}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Governance: Batch Delivery Tag — resolved from Batch Model */}
-      {activeBatchRef && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", padding: "8px 12px", backgroundColor: activeBatchRef.isOrphaned ? "#fef3c7" : "#f0f9ff", borderRadius: "6px", border: `1px solid ${activeBatchRef.isOrphaned ? "#fcd34d" : "#bae6fd"}` }}>
-          <span style={{ fontSize: "11px", fontWeight: 700, color: "#0369a1" }}>BATCH DELIVERY</span>
-          <span style={{ fontSize: "11px", color: "#374151" }}>{activeBatchRef.batchId} — {activeBatchRef.batchName}</span>
-          {(() => { const b = batchStatusBadge(activeBatchRef.batchStatus); return <span style={{ fontSize: "10px", fontWeight: 700, padding: "1px 6px", borderRadius: "3px", backgroundColor: b.bg, color: b.text }}>{b.label}</span>; })()}
-          {activeBatchRef.isOrphaned && <span style={{ fontSize: "10px", fontWeight: 700, color: "#dc2626" }}>⚠ ORPHANED — batch not in Batch Model</span>}
-          <span style={{ marginLeft: "auto", fontSize: "10px", color: "#9ca3af" }}>Source: dctData.ts · batchModelSource.ts</span>
-        </div>
-      )}
-
-      {/* Tab navigation */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "24px", borderBottom: "1px solid #e5e7eb", paddingBottom: "0" }}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: "8px 16px",
-              fontSize: "13px",
-              fontWeight: 500,
-              borderRadius: "6px 6px 0 0",
-              border: "1px solid",
-              borderBottom: "none",
-              cursor: "pointer",
-              transition: "all 0.15s",
-              backgroundColor: activeTab === tab.id ? "#1e293b" : "white",
-              color: activeTab === tab.id ? "white" : "#6b7280",
-              borderColor: activeTab === tab.id ? "#1e293b" : "#e5e7eb",
-            }}
-          >
-            {tab.label}
-          </button>
+      {/* Summary Tiles */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "10px", marginBottom: "20px" }}>
+        {[
+          { label: "Total Screens",       value: tiles.totalScreens,      bg: RSM_BLUE_LIGHT, text: RSM_BLUE },
+          { label: "Fully Governed APIs", value: tiles.fullyMapped,       bg: "#dcfce7",       text: "#166534" },
+          { label: "Partial Mappings",    value: tiles.partial,           bg: "#fef9c3",       text: "#854d0e" },
+          { label: "Governance Gaps",     value: tiles.gaps,              bg: "#ffedd5",       text: "#9a3412" },
+          { label: "ADR Dependencies",    value: tiles.adrDeps,           bg: "#ede9fe",       text: "#5b21b6" },
+          { label: "Consolidated Risks",  value: tiles.consolidatedRisks, bg: "#fee2e2",       text: "#991b1b" },
+          { label: "Unmapped Points",     value: tiles.unmapped,          bg: "#f3f4f6",       text: "#374151" },
+        ].map(t => (
+          <div key={t.label} style={{ background: t.bg, borderRadius: "8px", padding: "12px 14px", textAlign: "center" }}>
+            <div style={{ fontSize: "24px", fontWeight: 800, color: t.text }}>{t.value}</div>
+            <div style={{ fontSize: "10px", fontWeight: 600, color: t.text, opacity: 0.8, marginTop: "2px", lineHeight: "1.3" }}>{t.label}</div>
+          </div>
         ))}
       </div>
 
-      {/* Tab content */}
-      <div>
-        {activeTab === "screen1" && <Screen1Content />}
-        {activeTab === "screen2" && <Screen2Content />}
-        {activeTab === "ownership" && <OwnershipContent />}
-        {activeTab === "api-matrix" && <ApiMatrixContent />}
+      {/* Global Filters */}
+      {!filters.leadershipView && (
+        <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "14px 16px", marginBottom: "20px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 800, color: "#374151", marginBottom: "10px", letterSpacing: "0.08em" }}>GLOBAL FILTERS</div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            <select value={filters.screen} onChange={e => setFilter("screen", e.target.value)} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
+              <option value="">All Screens</option>
+              <option value="my-clients">My Clients</option>
+              <option value="entities">Entities</option>
+              <option value="return-detail">Return Detail</option>
+              <option value="consolidation-detail">Consolidation Detail</option>
+            </select>
+            <select value={filters.govStatus} onChange={e => setFilter("govStatus", e.target.value)} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
+              <option value="">All Gov Status</option>
+              <option value="governed">Governed</option>
+              <option value="partial">Partial</option>
+              <option value="gap">Governance Gap</option>
+              <option value="missing">Missing API</option>
+              <option value="adr-required">ADR Required</option>
+            </select>
+            <select value={filters.owner} onChange={e => setFilter("owner", e.target.value as Owner | "")} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
+              <option value="">All Owners</option>
+              {["TIM", "Roger", "CEM", "PDC", "TDC", "Orchestrator"].map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+            <select value={filters.risk} onChange={e => setFilter("risk", e.target.value)} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
+              <option value="">All Risk Levels</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <select value={filters.batch} onChange={e => setFilter("batch", e.target.value)} style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "12px" }}>
+              <option value="">All Batches</option>
+              {["FC", "B4", "B5", "B6", "B7", "B8", "B10"].map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+            <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", cursor: "pointer" }}>
+              <input type="checkbox" checked={filters.adr} onChange={e => setFilter("adr", e.target.checked)} />
+              ADR Dependencies Only
+            </label>
+            <button onClick={() => setFilters(DEFAULT_FILTERS)} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #d1d5db", background: "white", fontSize: "12px", cursor: "pointer", color: "#374151" }}>
+              Clear Filters
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Legend */}
+      {!filters.leadershipView && (
+        <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 800, color: "#374151", marginBottom: "8px", letterSpacing: "0.08em" }}>LEGEND</div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            {[
+              { label: "Operationally Supported", bg: "#fef9c3", text: "#854d0e" },
+              { label: "Governance Gap",          bg: "#ffedd5", text: "#9a3412" },
+              { label: "Requires ADR",            bg: "#ede9fe", text: "#5b21b6" },
+              { label: "Missing API",             bg: "#fee2e2", text: "#991b1b" },
+              { label: "Consolidated Filing Risk",bg: "#fee2e2", text: "#991b1b" },
+              { label: "Roger Assumption",        bg: "#f0fdf4", text: "#166534" },
+              { label: "TIM Limitation",          bg: "#e0f2fe", text: "#0369a1" },
+            ].map(l => (
+              <span key={l.label} style={{ background: l.bg, color: l.text, fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "4px" }}>{l.label}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ownership Boundaries */}
+      {!filters.leadershipView && (
+        <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ fontSize: "11px", fontWeight: 700, color: "#374151" }}>Ownership Boundaries:</span>
+          {(["TIM", "CEM", "Roger", "PDC", "TDC"] as Owner[]).map(o => (
+            <span key={o} style={{ background: OWNER_COLOR[o] + "18", color: OWNER_COLOR[o], border: `1px solid ${OWNER_COLOR[o]}40`, fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "4px" }}>{o}</span>
+          ))}
+        </div>
+      )}
+
+      {/* Sections 1–4: Screen Mapping Tables */}
+      <div style={{ marginBottom: "20px" }}>
+        <SectionHeader num="1–4" title="Roger UI Screen Data Mapping" subtitle="API endpoint mappings, TIM operational support, governance status, and ownership boundaries" />
+        <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "16px", background: "white" }}>
+          {visibleScreens.map(s => <ScreenSection key={s.id} section={s} filters={filters} />)}
+        </div>
       </div>
+
+      {/* Section 5 — Returns Detail Governance */}
+      <div style={{ marginBottom: "20px" }}>
+        <SectionHeader num="5" title="Returns Detail Governance Analysis" subtitle="GET /api/consolidations/{consolidationId}/returns — Operational vs Governed Semantics" />
+        <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "20px", background: "white" }}>
+          <div style={{ background: "#fee2e2", border: "2px solid #fca5a5", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px", display: "flex", gap: "12px", alignItems: "flex-start" }}>
+            <span style={{ fontSize: "20px" }}>🚨</span>
+            <div>
+              <div style={{ fontWeight: 800, color: "#991b1b", fontSize: "13px" }}>HIGH SEVERITY — Governance Assumption Risk</div>
+              <div style={{ color: "#b91c1c", fontSize: "12px", marginTop: "4px" }}>Roger UI assumptions may exceed TIM governance capabilities. Parent/Subsidiary roles are operationally modeled — no governed filing authority has been defined.</div>
+            </div>
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", marginBottom: "16px" }}>
+            <thead>
+              <tr style={{ background: "#f8fafc" }}>
+                {["Field", "API Field", "Role", "Governance Status", "Notes"].map(h => (
+                  <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontWeight: 700, color: "#374151", borderBottom: "2px solid #e5e7eb", fontSize: "11px" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { f: "Return ID",    api: "returnId",    role: "Identifier",   gov: "partial" as GovStatus, note: "Per-entity return id. Links to entity detail." },
+                { f: "Entity ID",    api: "entityId",    role: "Identifier",   gov: "partial" as GovStatus, note: "Entity id. No lineage ownership confirmed." },
+                { f: "Entity Name",  api: "entityName",  role: "Display",      gov: "partial" as GovStatus, note: "Legal name from PDC entity master." },
+                { f: "EIN",          api: "ein",         role: "Identifier",   gov: "partial" as GovStatus, note: "Federal EIN. No governed EIN lineage chain." },
+                { f: "Role",         api: "role",        role: "Filing Role",  gov: "gap"     as GovStatus, note: "Parent | Subsidiary | Disregarded. Operationally modeled. No filing authority." },
+                { f: "Status",       api: "status",      role: "Operational",  gov: "gap"     as GovStatus, note: "Not Started | In Progress | In Review | Completed. Operational only." },
+                { f: "% Complete",   api: "pctComplete", role: "Metric",       gov: "gap"     as GovStatus, note: "Per-return completion. No lineage. No governed rollup." },
+              ].map((r, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? "white" : "#fafafa", borderBottom: "1px solid #f3f4f6" }}>
+                  <td style={{ padding: "8px 10px", fontWeight: 600 }}>{r.f}</td>
+                  <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: "11px" }}>{r.api}</td>
+                  <td style={{ padding: "8px 10px", color: "#6b7280" }}>{r.role}</td>
+                  <td style={{ padding: "8px 10px" }}><GovBadge status={r.gov} /></td>
+                  <td style={{ padding: "8px 10px", color: "#6b7280" }}>{r.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "8px", padding: "14px 16px" }}>
+            <div style={{ fontWeight: 700, color: "#9a3412", fontSize: "12px", marginBottom: "8px" }}>OPERATIONAL vs GOVERNED SEMANTICS</div>
+            {[
+              "Parent/Subsidiary roles are operationally modeled — governance ownership is unresolved",
+              "Filing authority is unclear — no system has been designated as the filing authority owner",
+              "No governed approval chain has been identified",
+              "No audit lineage identified for return-level state changes",
+              "Roger UI assumptions about role semantics may exceed TIM governance capabilities",
+            ].map((item, i) => (
+              <div key={i} style={{ fontSize: "11px", color: "#9a3412", marginBottom: "4px", paddingLeft: "10px", borderLeft: "2px solid #f97316" }}>• {item}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 6 — Issues & Documents Governance */}
+      <div style={{ marginBottom: "20px" }}>
+        <SectionHeader num="6" title="Issues & Documents Governance" subtitle="GET /api/consolidations/{id}/issues · GET /api/consolidations/{id}/documents" />
+        <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "20px", background: "white" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+            {[
+              { title: "Issues Drawer", endpoint: "GET /api/consolidations/{consolidationId}/issues", fields: ["id", "title", "step", "priority", "status", "assignee", "createdDate"], findings: ["Operational issue tracking exists", "No immutable governance chain", "No governed evidence retention model", "No filing approval evidence model"] },
+              { title: "Documents Drawer", endpoint: "GET /api/consolidations/{consolidationId}/documents", fields: ["id", "name", "type", "status", "dueDate", "receivedDate", "uploadedBy", "size"], findings: ["Document metadata exists operationally", "No immutable governance chain", "No governed evidence retention model", "No filing approval evidence model"] },
+            ].map(drawer => (
+              <div key={drawer.title} style={{ border: "1px solid #e5e7eb", borderRadius: "8px", overflow: "hidden" }}>
+                <div style={{ background: "#f8fafc", padding: "10px 14px", borderBottom: "1px solid #e5e7eb" }}>
+                  <div style={{ fontWeight: 700, color: "#111827", fontSize: "13px" }}>{drawer.title}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#6b7280", marginTop: "2px" }}>{drawer.endpoint}</div>
+                </div>
+                <div style={{ padding: "12px 14px" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#374151", marginBottom: "6px" }}>API FIELDS</div>
+                  <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "12px" }}>
+                    {drawer.fields.map(f => <span key={f} style={{ background: "#f3f4f6", color: "#374151", fontSize: "10px", fontFamily: "monospace", padding: "2px 6px", borderRadius: "3px" }}>{f}</span>)}
+                  </div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#9a3412", marginBottom: "6px" }}>GOVERNANCE FINDINGS</div>
+                  {drawer.findings.map((f, i) => <div key={i} style={{ fontSize: "11px", color: "#9a3412", marginBottom: "3px", paddingLeft: "8px", borderLeft: "2px solid #f97316" }}>• {f}</div>)}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "14px 16px" }}>
+            <div style={{ fontWeight: 700, color: "#1d4ed8", fontSize: "12px", marginBottom: "8px" }}>FUTURE GOVERNANCE REQUIREMENTS</div>
+            {["Immutable issue audit chain — governed evidence retention model", "Filing approval evidence model — links issues to filing signoff", "Document governance chain — immutable receipt and retention records", "Governed document approval workflow — links documents to filing authority"].map((r, i) => (
+              <div key={i} style={{ fontSize: "11px", color: "#1d4ed8", marginBottom: "4px", paddingLeft: "10px", borderLeft: "2px solid #93c5fd" }}>→ {r}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 7 — End-to-End Architecture Flow */}
+      <div style={{ marginBottom: "20px" }}>
+        <SectionHeader num="7" title="End-to-End Architecture Flow" subtitle="System layer ownership and governance boundary analysis" />
+        <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "20px", background: "white" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0", marginBottom: "20px" }}>
+            {[
+              { layer: "TIM Operational Layer", desc: "Task management, deliverables, due dates, issue tracking", color: "#0ea5e9", callout: "Operational only — governance not explicitly defined" },
+              { layer: "CEM Synchronization Layer", desc: "Client/entity master data synchronization from EODS", color: "#f59e0b", callout: "Undefined ownership boundaries with PDC" },
+              { layer: "Roger UI Layer", desc: "Practitioner-facing UI — reads from TIM, PDC, TDC via Orchestrator", color: "#8b5cf6", callout: "Missing governance mediation — mixes operational and governed data" },
+              { layer: "PDC Governance Layer", desc: "Phoenix Data Consolidation — entity master, financial records, normalization", color: "#003087", callout: "Potential duplication risk with TIM entity data" },
+              { layer: "TDC Filing Authority Layer", desc: "Tax Data Consolidation — tax-ready records, AI mapping, practitioner decisions, governed sign-off", color: "#059669", callout: "Filing authority and lineage ownership unresolved for consolidated returns" },
+            ].map((l, i, arr) => (
+              <div key={i} style={{ width: "100%", maxWidth: "700px" }}>
+                <div style={{ background: l.color, borderRadius: "8px", padding: "12px 16px", color: "white" }}>
+                  <div style={{ fontWeight: 700, fontSize: "13px" }}>{l.layer}</div>
+                  <div style={{ fontSize: "11px", opacity: 0.85, marginTop: "2px" }}>{l.desc}</div>
+                </div>
+                {i < arr.length - 1 && (
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", padding: "6px 0" }}>
+                    <div style={{ width: "2px", height: "20px", background: "#d1d5db" }} />
+                    <span style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "4px", padding: "2px 8px", fontSize: "10px", color: "#9a3412", fontWeight: 600 }}>⚠ {l.callout}</span>
+                    <div style={{ width: "2px", height: "20px", background: "#d1d5db" }} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 8 — Governance Gap Heatmap */}
+      <div style={{ marginBottom: "20px" }}>
+        <SectionHeader num="8" title="Governance Gap Heatmap" subtitle="Capability ownership across all systems — Green = Governed · Yellow = Partial · Orange = Undefined · Red = Missing" />
+        <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "20px", background: "white" }}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+              <thead>
+                <tr style={{ background: RSM_BLUE }}>
+                  <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, fontSize: "12px", minWidth: "180px" }}>Governance Capability</th>
+                  {["TIM", "Roger", "CEM", "PDC", "TDC"].map(sys => (
+                    <th key={sys} style={{ padding: "10px 14px", textAlign: "center", color: "white", fontWeight: 700, fontSize: "12px", minWidth: "100px" }}>{sys}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {HEATMAP_DATA.map((row, i) => (
+                  <tr key={i} style={{ background: i % 2 === 0 ? "white" : "#fafafa" }}>
+                    <td style={{ padding: "10px 14px", fontWeight: 600, color: "#111827", borderBottom: "1px solid #f3f4f6" }}>{row.capability}</td>
+                    {(["TIM", "Roger", "CEM", "PDC", "TDC"] as const).map(sys => {
+                      const val = row[sys];
+                      const s = HEAT_STYLE[val];
+                      return (
+                        <td key={sys} style={{ padding: "8px 14px", textAlign: "center", borderBottom: "1px solid #f3f4f6" }}>
+                          <span style={{ background: s.bg, color: s.text, fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "4px", display: "inline-block" }}>{s.label}</span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
+            {Object.entries(HEAT_STYLE).map(([k, v]) => (
+              <span key={k} style={{ background: v.bg, color: v.text, fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "4px" }}>{v.label}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 9 — ADR Dependency Tracker */}
+      <div style={{ marginBottom: "20px" }}>
+        <SectionHeader num="9" title="ADR Dependency Tracker" subtitle="Architecture Decision Records required to resolve governance gaps" />
+        <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "20px", background: "white" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: "14px" }}>
+            {ADR_CARDS.map(adr => (
+              <div key={adr.id} style={{ border: `2px solid ${adr.severity === "high" ? "#fca5a5" : adr.severity === "medium" ? "#fed7aa" : "#d1fae5"}`, borderRadius: "8px", overflow: "hidden" }}>
+                <div style={{ background: adr.severity === "high" ? "#fee2e2" : adr.severity === "medium" ? "#fff7ed" : "#f0fdf4", padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <span style={{ fontWeight: 800, color: RSM_BLUE, fontSize: "12px" }}>{adr.id}</span>
+                    <span style={{ fontWeight: 700, color: "#111827", fontSize: "12px" }}>{adr.title}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <RiskBadge level={adr.severity} />
+                    <span style={{ background: adr.currentStatus === "Open" ? "#fee2e2" : "#fef9c3", color: adr.currentStatus === "Open" ? "#991b1b" : "#854d0e", fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px" }}>{adr.currentStatus}</span>
+                  </div>
+                </div>
+                <div style={{ padding: "12px 14px", fontSize: "11px", color: "#374151" }}>
+                  <div style={{ marginBottom: "8px" }}>{adr.description}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div>
+                      <div style={{ fontWeight: 700, color: "#374151", fontSize: "10px", marginBottom: "3px" }}>WHY NEEDED</div>
+                      <div style={{ color: "#6b7280" }}>{adr.whyNeeded}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, color: "#991b1b", fontSize: "10px", marginBottom: "3px" }}>RISK IF UNRESOLVED</div>
+                      <div style={{ color: "#9a3412" }}>{adr.riskIfUnresolved}</div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                      {adr.impactedSystems.map(s => <OwnerChip key={s} owner={s} />)}
+                    </div>
+                    <div style={{ fontSize: "10px", color: "#6b7280" }}>Proposed Owner: <strong>{adr.proposedOwner}</strong></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 10 — BA / PO Governance Summary */}
+      <div style={{ marginBottom: "20px" }}>
+        <SectionHeader num="10" title="BA / PO Governance Summary" subtitle="Auto-generated from current governance findings" />
+        <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "20px", background: "white" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            {/* BA Summary */}
+            <div style={{ border: "1px solid #bfdbfe", borderRadius: "8px", overflow: "hidden" }}>
+              <div style={{ background: "#eff6ff", padding: "10px 14px", borderBottom: "1px solid #bfdbfe" }}>
+                <div style={{ fontWeight: 700, color: "#1d4ed8", fontSize: "13px" }}>📋 BA Governance Summary</div>
+                <div style={{ fontSize: "10px", color: "#3b82f6", marginTop: "2px" }}>Missing requirements · Open decisions · UI dependency risks · Data mapping gaps</div>
+              </div>
+              <div style={{ padding: "14px" }}>
+                {[
+                  { label: "Missing Requirements", items: ["No governed filing authority defined for consolidated returns", "No entity contribution lineage requirement identified", "No filing signoff requirement in any current contract", "No filing lock state requirement defined"] },
+                  { label: "Open Business Decisions", items: ["Who owns filing authority for consolidated returns?", "Are TIM deliverables equivalent to governed filings?", "What constitutes a valid filing signoff?", "Which system owns the filing lock state?"] },
+                  { label: "UI Dependency Risks", items: ["Roger UI displays TIM operational data alongside governed PDC/TDC data", "Completion % has no lineage backing — practitioners may misinterpret", "Parent role has no filing authority backing — governance risk in consolidated returns"] },
+                  { label: "Data Mapping Gaps", items: [`${tiles.gaps} governance gaps across 4 Roger UI screens`, `${tiles.adrDeps} open ADRs blocking governed data contracts`, "FilingStatus is operational — no governed filing state contract exists", "Deliverables count is operational — no governed filing deliverable contract"] },
+                ].map(section => (
+                  <div key={section.label} style={{ marginBottom: "12px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 800, color: "#1d4ed8", marginBottom: "5px", letterSpacing: "0.06em" }}>{section.label.toUpperCase()}</div>
+                    {section.items.map((item, i) => <div key={i} style={{ fontSize: "11px", color: "#374151", marginBottom: "3px", paddingLeft: "10px", borderLeft: "2px solid #93c5fd" }}>• {item}</div>)}
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* PO Summary */}
+            <div style={{ border: "1px solid #d1fae5", borderRadius: "8px", overflow: "hidden" }}>
+              <div style={{ background: "#f0fdf4", padding: "10px 14px", borderBottom: "1px solid #d1fae5" }}>
+                <div style={{ fontWeight: 700, color: "#065f46", fontSize: "13px" }}>📊 PO Governance Summary</div>
+                <div style={{ fontSize: "10px", color: "#059669", marginTop: "2px" }}>Architecture risks · Governance blockers · Delivery impacts · ADR escalation needs</div>
+              </div>
+              <div style={{ padding: "14px" }}>
+                {[
+                  { label: "Architecture Risks", items: ["Roger UI mixes operational TIM data with governed PDC/TDC data — no mediation layer", "Consolidated filing governance is undefined — ADR-1 open", "Filing authority ownership is unresolved — ADR-2 open", "No immutable audit chain for any filing-level state change"] },
+                  { label: "Governance Blockers", items: [`${tiles.adrDeps} open ADRs blocking governed filing contracts`, "No TDC filing signoff contract exists", "No PDC entity contribution lineage contract exists", "No filing lock state contract in any system"] },
+                  { label: "Delivery Impacts", items: ["Batches B6, B7, B8 cannot close Gate 4 (Lineage Closure) without ADR resolution", "Roger UI demo readiness is limited — most data is mocked or operational", "PI 3 and PI 4 delivery risk elevated by unresolved consolidated filing governance"] },
+                  { label: "ADR Escalation Needs", items: ["ADR-1 (Consolidated Filing Governance) — escalate to Architecture Board", "ADR-2 (Filing Authority Ownership) — escalate to TDC PO + Architecture", "ADR-4 (Filing Signoff Governance) — escalate to Compliance + TDC", "ADR-7 (Filing Lock & Finalization) — escalate to TDC PO"] },
+                ].map(section => (
+                  <div key={section.label} style={{ marginBottom: "12px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 800, color: "#065f46", marginBottom: "5px", letterSpacing: "0.06em" }}>{section.label.toUpperCase()}</div>
+                    {section.items.map((item, i) => <div key={i} style={{ fontSize: "11px", color: "#374151", marginBottom: "3px", paddingLeft: "10px", borderLeft: "2px solid #6ee7b7" }}>• {item}</div>)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 11 — Executive Footer */}
+      <div style={{ background: RSM_BLUE, borderRadius: "10px", padding: "20px 24px", color: "white", textAlign: "center" }}>
+        <div style={{ fontWeight: 800, fontSize: "16px", marginBottom: "6px" }}>Roger UI Mapping & Governance Alignment</div>
+        <div style={{ opacity: 0.8, fontSize: "12px", marginBottom: "4px" }}>Prepared by DCT · Source: Roger API Design v1.0 + TIM Swagger Analysis</div>
+        <div style={{ opacity: 0.7, fontSize: "11px", marginBottom: "16px" }}>Architecture Governance Review Required</div>
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+          {[
+            { label: "⬇ Export Executive PDF", action: () => window.print() },
+            { label: "📋 Copy Architecture Summary", action: () => navigator.clipboard.writeText(`Roger UI Mapping & Governance Alignment\n\nGovernance Gaps: ${tiles.gaps}\nOpen ADRs: ${tiles.adrDeps}\nConsolidated Filing Risks: ${tiles.consolidatedRisks}\n\nPrepared by DCT — Architecture Governance Review Required`) },
+            { label: "📊 Copy Governance Gap Report", action: () => navigator.clipboard.writeText(HEATMAP_DATA.map(r => `${r.capability}: TIM=${r.TIM} Roger=${r.Roger} CEM=${r.CEM} PDC=${r.PDC} TDC=${r.TDC}`).join("\n")) },
+            { label: "🗂 Copy ADR Tracker", action: () => navigator.clipboard.writeText(ADR_CARDS.map(a => `${a.id}: ${a.title}\nStatus: ${a.currentStatus} | Owner: ${a.proposedOwner}\n${a.description}`).join("\n\n")) },
+          ].map(btn => (
+            <button key={btn.label} onClick={btn.action} style={{ background: "rgba(255,255,255,0.15)", color: "white", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "6px", padding: "8px 16px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>
+              {btn.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }
