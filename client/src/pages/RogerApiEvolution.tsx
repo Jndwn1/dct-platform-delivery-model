@@ -501,6 +501,185 @@ export default function RogerApiEvolution() {
         </div>
       </div>
 
+      {/* Roger UI Consumer APIs — from Roger API Design v1.0 */}
+      <div style={{ border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", marginBottom: "24px", backgroundColor: "white" }}>
+        <div style={{ padding: "14px 20px", backgroundColor: "#0f172a", display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "12px", fontWeight: 800, padding: "3px 10px", borderRadius: "10px", backgroundColor: "#1e40af", color: "white" }}>Roger UI</span>
+          <span style={{ fontSize: "15px", fontWeight: 800, color: "white" }}>Consumer API Reference — v1.0</span>
+          <span style={{ marginLeft: "auto", fontSize: "11px", color: "#94a3b8" }}>Last updated 05.07.2026 · Roger API Design document</span>
+        </div>
+        <div style={{ padding: "12px 20px", backgroundColor: "#f0f9ff", borderBottom: "1px solid #bae6fd" }}>
+          <p style={{ fontSize: "12px", color: "#0369a1", lineHeight: "1.6", margin: 0 }}>
+            These are the APIs the <strong>Roger UI calls directly</strong> — the consumer-facing contract layer sitting above PDC and TDC.
+            Roger reads from PDC/TDC via the batch contracts (Batches 2–10 above) and exposes a simplified UI API for its own pages.
+            Roger and the Orchestrator are <strong>consumers only</strong> — they do not own data design, consolidation logic, or governance.
+          </p>
+        </div>
+        <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+          {/* My Clients */}
+          <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ padding: "10px 16px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", backgroundColor: "#eff6ff", color: "#1d4ed8" }}>My Clients</span>
+              <code style={{ fontSize: "12px", color: "#1e293b", fontFamily: "monospace" }}>GET /api/clients?taxYear={'{year}'}</code>
+              <span style={{ fontSize: "11px", color: "#64748b" }}>— Landing page client grid</span>
+            </div>
+            <div style={{ padding: "12px 16px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>Response Fields</div>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                <thead><tr style={{ backgroundColor: "#f8fafc" }}>
+                  <th style={{ padding: "6px 10px", textAlign: "left", color: "#64748b", fontWeight: 600, borderBottom: "1px solid #e2e8f0" }}>Field</th>
+                  <th style={{ padding: "6px 10px", textAlign: "left", color: "#64748b", fontWeight: 600, borderBottom: "1px solid #e2e8f0" }}>Type</th>
+                  <th style={{ padding: "6px 10px", textAlign: "left", color: "#64748b", fontWeight: 600, borderBottom: "1px solid #e2e8f0" }}>Notes</th>
+                </tr></thead>
+                <tbody>
+                  {[{f:"clientId",t:"string",n:"Unique client id — used in /entities/{clientId} and /consolidation-detail/{clientId}"},{f:"name",t:"string",n:"Client display name"},{f:"pctcompleted",t:"number",n:"Overall completion percent (0–100)"},{f:"entityCount",t:"number",n:"Number of entities under this client"},{f:"deliverables",t:"number",n:"Outstanding deliverables count"},{f:"approachingDate",t:"ISO date",n:"Nearest upcoming due date — YYYY-MM-DD"}].map(r => (
+                    <tr key={r.f} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "6px 10px" }}><code style={{ fontFamily: "monospace", color: "#1e293b" }}>{r.f}</code></td>
+                      <td style={{ padding: "6px 10px", color: "#7c3aed", fontFamily: "monospace", fontSize: "11px" }}>{r.t}</td>
+                      <td style={{ padding: "6px 10px", color: "#475569" }}>{r.n}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Lookups */}
+          <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ padding: "10px 16px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", backgroundColor: "#f0fdf4", color: "#166534" }}>Lookups</span>
+              <code style={{ fontSize: "12px", color: "#1e293b", fontFamily: "monospace" }}>GET /api/lookups?key={'{key}'}</code>
+              <span style={{ fontSize: "11px", color: "#64748b" }}>— Dropdown options (e.g. tax-years)</span>
+            </div>
+            <div style={{ padding: "12px 16px", fontSize: "12px", color: "#475569" }}>
+              Returns <code style={{ fontFamily: "monospace", backgroundColor: "#f1f5f9", padding: "1px 4px", borderRadius: "3px" }}>{'{ key: string, options: (string|number)[] }'}</code>.
+              Used to populate the Tax Year selector and other dynamic dropdowns. Supported keys: <code style={{ fontFamily: "monospace", backgroundColor: "#f1f5f9", padding: "1px 4px", borderRadius: "3px" }}>tax-years</code>.
+            </div>
+          </div>
+
+          {/* Entities */}
+          <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ padding: "10px 16px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", backgroundColor: "#eff6ff", color: "#1d4ed8" }}>Entities</span>
+              <code style={{ fontSize: "12px", color: "#1e293b", fontFamily: "monospace" }}>GET /api/clients/{'{clientId}'}/entities?taxYear={'{year}'}</code>
+            </div>
+            <div style={{ padding: "12px 16px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>Entity Fields</div>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                <thead><tr style={{ backgroundColor: "#f8fafc" }}>
+                  <th style={{ padding: "6px 10px", textAlign: "left", color: "#64748b", fontWeight: 600, borderBottom: "1px solid #e2e8f0" }}>Field</th>
+                  <th style={{ padding: "6px 10px", textAlign: "left", color: "#64748b", fontWeight: 600, borderBottom: "1px solid #e2e8f0" }}>Type</th>
+                  <th style={{ padding: "6px 10px", textAlign: "left", color: "#64748b", fontWeight: 600, borderBottom: "1px solid #e2e8f0" }}>Notes</th>
+                </tr></thead>
+                <tbody>
+                  {[{f:"entityId",t:"string",n:"Unique entity id — used in routes and downstream APIs"},{f:"entityCode",t:"string",n:"Internal short code displayed in Entity Code column"},{f:"entityName",t:"string",n:"Legal name displayed in Entity Name column"},{f:"ein",t:"string",n:"Federal EIN — formatted NN-NNNNNNN"},{f:"type",t:"enum",n:"C-Corp | S-Corp | Partnership | LLC | Disregarded | Foreign"},{f:"taxReturn",t:"string",n:"Tax return form label — e.g. Form 1120, Form 1120-S, Form 1065"},{f:"filingStatus",t:"enum",n:"Not Started | In Progress | In Review | Completed"}].map(r => (
+                    <tr key={r.f} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "6px 10px" }}><code style={{ fontFamily: "monospace", color: "#1e293b" }}>{r.f}</code></td>
+                      <td style={{ padding: "6px 10px", color: "#7c3aed", fontFamily: "monospace", fontSize: "11px" }}>{r.t}</td>
+                      <td style={{ padding: "6px 10px", color: "#475569" }}>{r.n}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Return Detail */}
+          <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ padding: "10px 16px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", backgroundColor: "#fef3c7", color: "#92400e" }}>Return Detail</span>
+              <span style={{ fontSize: "12px", color: "#1e293b", fontWeight: 600 }}>7 endpoints — member management, role changes, name editing</span>
+            </div>
+            <div style={{ padding: "12px 16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {[
+                  { method: "GET",    path: "/api/returns/{returnId}/members",                          desc: "List all members on a return — drives grid on page mount" },
+                  { method: "PUT",    path: "/api/returns/{returnId}/name",                             desc: "Update return display name — inline edit dialog" },
+                  { method: "POST",   path: "/api/returns/{returnId}/members",                          desc: "Add members (batch) — triggered after Add Members drawer confirm" },
+                  { method: "DELETE", path: "/api/returns/{returnId}/members/{entityId}",               desc: "Remove a member — row delete icon (cannot remove only Parent)" },
+                  { method: "PATCH",  path: "/api/returns/{returnId}/members/{entityId}",               desc: "Change member role inline via RoleBadge" },
+                  { method: "PUT",    path: "/api/returns/{returnId}/members/{entityId}/role",          desc: "Dedicated role update — preferred when only role is changing" },
+                  { method: "GET",    path: "/api/clients/{clientId}/entities/available?returnId={id}", desc: "Available entities for Add Members drawer — excludes existing members" },
+                ].map(ep => {
+                  const mc = METHOD_COLORS[ep.method] || METHOD_COLORS.GET;
+                  return (
+                    <div key={ep.path} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "7px 10px", borderRadius: "6px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", backgroundColor: mc.bg, color: mc.text, flexShrink: 0, marginTop: "1px", fontFamily: "monospace" }}>{ep.method}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <code style={{ fontSize: "11px", color: "#1e293b", fontFamily: "monospace", display: "block", marginBottom: "2px" }}>{ep.path}</code>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>{ep.desc}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: "10px", padding: "8px 12px", backgroundColor: "#fffbeb", borderRadius: "6px", border: "1px solid #fde68a", fontSize: "11px", color: "#92400e" }}>
+                <strong>Role enum:</strong> Parent | Member | Elimination &nbsp;·&nbsp; <strong>Cannot remove</strong> the only Parent member — promote another first &nbsp;·&nbsp; <strong>Cannot set multiple Parents</strong> — demote existing Parent first
+              </div>
+            </div>
+          </div>
+
+          {/* Consolidation Detail */}
+          <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ padding: "10px 16px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", backgroundColor: "#f0fdf4", color: "#166534" }}>Consolidation Detail</span>
+              <span style={{ fontSize: "12px", color: "#1e293b", fontWeight: 600 }}>4 endpoints — filings grid + lazy-loaded drawers</span>
+            </div>
+            <div style={{ padding: "12px 16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {[
+                  { method: "GET", path: "/api/clients/{clientId}/consolidations?taxYear={year}", desc: "Filings grid — slim payload on page mount. Summary tiles derived client-side." },
+                  { method: "GET", path: "/api/consolidations/{consolidationId}/returns",         desc: "Returns detail — lazy-loaded on Returns count cell click" },
+                  { method: "GET", path: "/api/consolidations/{consolidationId}/issues",          desc: "Issues drawer — lazy-loaded on issues badge click. Filterable by status/priority/step." },
+                  { method: "GET", path: "/api/consolidations/{consolidationId}/documents",       desc: "Documents drawer — lazy-loaded on documents badge click. Filterable by status/type." },
+                ].map(ep => {
+                  const mc = METHOD_COLORS[ep.method] || METHOD_COLORS.GET;
+                  return (
+                    <div key={ep.path} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "7px 10px", borderRadius: "6px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", backgroundColor: mc.bg, color: mc.text, flexShrink: 0, marginTop: "1px", fontFamily: "monospace" }}>{ep.method}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <code style={{ fontSize: "11px", color: "#1e293b", fontFamily: "monospace", display: "block", marginBottom: "2px" }}>{ep.path}</code>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>{ep.desc}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: "10px", padding: "8px 12px", backgroundColor: "#f0fdf4", borderRadius: "6px", border: "1px solid #bbf7d0", fontSize: "11px", color: "#166534" }}>
+                <strong>Lazy loading pattern:</strong> Grid loads eagerly with slim payload. Issues, documents, returns, and workflow-step details load on user click — keeps initial response small.
+                &nbsp;·&nbsp; <strong>Summary tiles</strong> (ConsolidationSummaryTiles.tsx) are derived client-side from the consolidations list — no separate endpoint.
+              </div>
+            </div>
+          </div>
+
+          {/* Shared error schema */}
+          <div style={{ border: "1px solid #fecaca", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ padding: "10px 16px", backgroundColor: "#fef2f2", borderBottom: "1px solid #fecaca", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", backgroundColor: "#fee2e2", color: "#991b1b" }}>Error Schema</span>
+              <span style={{ fontSize: "12px", color: "#1e293b", fontWeight: 600 }}>Shared across all Roger UI endpoints</span>
+            </div>
+            <div style={{ padding: "12px 16px" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                <thead><tr style={{ backgroundColor: "#f8fafc" }}>
+                  <th style={{ padding: "6px 10px", textAlign: "left", color: "#64748b", fontWeight: 600, borderBottom: "1px solid #e2e8f0" }}>HTTP Code</th>
+                  <th style={{ padding: "6px 10px", textAlign: "left", color: "#64748b", fontWeight: 600, borderBottom: "1px solid #e2e8f0" }}>Notes</th>
+                </tr></thead>
+                <tbody>
+                  {[{c:"400",n:"INVALID_REQUEST — Missing or invalid query param"},{c:"401",n:"UNAUTHORIZED — Missing or expired auth token"},{c:"403",n:"FORBIDDEN — User lacks access to client or consolidation"},{c:"404",n:"NOT_FOUND — Resource does not exist"},{c:"500",n:"INTERNAL_ERROR — Server fault"}].map(r => (
+                    <tr key={r.c} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "6px 10px" }}><code style={{ fontFamily: "monospace", color: "#991b1b", fontWeight: 700 }}>{r.c}</code></td>
+                      <td style={{ padding: "6px 10px", color: "#475569" }}>{r.n}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       {/* Batch API sections */}
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
         {API_BATCHES.map((b) => {
