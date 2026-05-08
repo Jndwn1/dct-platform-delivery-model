@@ -9,6 +9,7 @@ import { getDataAvailabilityRows, batchStatusBadge, validateBatchRefs, type Swag
 import { ROGER_MODEL_GROUPS, READINESS_STYLE, OWNER_STYLE } from "../lib/rogerModelData";
 import DCTSummaryAgent from "../components/DCTSummaryAgent";
 import MyClientsGovernancePanel from "../components/MyClientsGovernancePanel";
+import EntitiesGovernancePanel from "../components/EntitiesGovernancePanel";
 
 // ─── ROGER MODEL GROUPINGS COMPONENT ─────────────────────────────────────────
 function RogerModelGroupings() {
@@ -448,6 +449,16 @@ export default function DataModelPage() {
         </div>
         <div style={s.sectionBody}>
           <MyClientsGovernancePanel />
+        </div>
+      </div>
+      {/* Section 8 — Entities Governance Intelligence */}
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={s.sectionTitle}>Entities — Governance Intelligence</span>
+          <span style={{ fontSize: "11px", color: "#9ca3af" }}>GET /api/clients/&#123;clientId&#125;/entities · PDC Identity Authority · TDC Workflow Authority · Roger API Design v1.0</span>
+        </div>
+        <div style={s.sectionBody}>
+          <EntitiesGovernancePanel />
         </div>
       </div>
       {/* Section 6 — Roger API Model Groupings */}
