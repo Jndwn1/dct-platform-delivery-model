@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import { getDataAvailabilityRows, batchStatusBadge, validateBatchRefs, type SwaggerContractStatus } from "../lib/batchModelSource";
 import { ROGER_MODEL_GROUPS, READINESS_STYLE, OWNER_STYLE } from "../lib/rogerModelData";
 import DCTSummaryAgent from "../components/DCTSummaryAgent";
+import MyClientsGovernancePanel from "../components/MyClientsGovernancePanel";
 
 // ─── ROGER MODEL GROUPINGS COMPONENT ─────────────────────────────────────────
 function RogerModelGroupings() {
@@ -437,6 +438,16 @@ export default function DataModelPage() {
               )}
             </div>
           ))}
+        </div>
+      </div>
+      {/* Section 7 — My Clients Governance Intelligence */}
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={s.sectionTitle}>My Clients — Governance Intelligence</span>
+          <span style={{ fontSize: "11px", color: "#9ca3af" }}>Roger API Design v1.0 · Governance Gap Analysis · 2026-05-08</span>
+        </div>
+        <div style={s.sectionBody}>
+          <MyClientsGovernancePanel />
         </div>
       </div>
       {/* Section 6 — Roger API Model Groupings */}
