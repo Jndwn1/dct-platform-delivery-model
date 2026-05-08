@@ -361,6 +361,20 @@ export default function MyClientsGovernancePanel() {
         </button>
       </div>
 
+      {/* ── WHAT IS MY CLIENTS ── */}
+      <div style={{ padding: "14px 18px", backgroundColor: "#003865", borderRadius: "8px", marginBottom: "12px", color: "white" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#93c5fd", marginBottom: "6px" }}>What is My Clients?</div>
+        <p style={{ fontSize: "12px", margin: 0, lineHeight: 1.7, color: "#e2e8f0" }}>
+          <strong style={{ color: "white" }}>My Clients</strong> is the primary landing screen in the Roger UI. It presents a practitioner-facing list of all active client engagements for the selected tax year, giving practitioners a real-time view of delivery status, filing progress, and risk indicators across their portfolio.
+        </p>
+        <p style={{ fontSize: "12px", margin: "8px 0 0", lineHeight: 1.7, color: "#e2e8f0" }}>
+          Each row in the My Clients list represents a <strong style={{ color: "white" }}>client group</strong> — an entity or consolidated filing unit — and surfaces key delivery signals: completion percentage, deliverable count, approaching due dates, and on-track / at-risk status. These signals are consumed from PDC (entity data), TDC (filing records), and TIM (workflow and scheduling), making My Clients the primary integration point between the DCT platform and the practitioner experience.
+        </p>
+        <p style={{ fontSize: "12px", margin: "8px 0 0", lineHeight: 1.7, color: "#cbd5e1" }}>
+          <em>Governance note:</em> While the screen is operationally functional, several fields — including % Complete, On Track / At Risk, and Overdue Flag — rely on derived calculations and unresolved business semantics that require formal architecture alignment before authoritative implementation.
+        </p>
+      </div>
+
       {/* ── EXECUTIVE NARRATIVE ── */}
       <div style={{ padding: "14px 18px", backgroundColor: "#f0f4f8", borderLeft: "4px solid #003865", borderRadius: "0 8px 8px 0", marginBottom: "16px" }}>
         <p style={{ fontSize: "12px", color: "#374151", margin: 0, lineHeight: 1.6 }}>
