@@ -296,6 +296,7 @@ export default function MyClientsGovernancePanel() {
   const [adrFilter, setAdrFilter] = useState<AdrDependency | "All">("All");
   const [riskFilter, setRiskFilter] = useState<RiskLevel | "All">("All");
   const [execView, setExecView] = useState(false);
+  const [showWhatIs, setShowWhatIs] = useState(false);
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [expandedField, setExpandedField] = useState<string | null>(null);
@@ -361,18 +362,29 @@ export default function MyClientsGovernancePanel() {
         </button>
       </div>
 
-      {/* ── WHAT IS MY CLIENTS ── */}
-      <div style={{ padding: "14px 18px", backgroundColor: "#003865", borderRadius: "8px", marginBottom: "12px", color: "white" }}>
-        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#93c5fd", marginBottom: "6px" }}>What is My Clients?</div>
-        <p style={{ fontSize: "12px", margin: 0, lineHeight: 1.7, color: "#e2e8f0" }}>
-          <strong style={{ color: "white" }}>My Clients</strong> is the primary landing screen in the Roger UI. It presents a practitioner-facing list of all active client engagements for the selected tax year, giving practitioners a real-time view of delivery status, filing progress, and risk indicators across their portfolio.
-        </p>
-        <p style={{ fontSize: "12px", margin: "8px 0 0", lineHeight: 1.7, color: "#e2e8f0" }}>
-          Each row in the My Clients list represents a <strong style={{ color: "white" }}>client group</strong> — an entity or consolidated filing unit — and surfaces key delivery signals: completion percentage, deliverable count, approaching due dates, and on-track / at-risk status. These signals are consumed from PDC (entity data), TDC (filing records), and TIM (workflow and scheduling), making My Clients the primary integration point between the DCT platform and the practitioner experience.
-        </p>
-        <p style={{ fontSize: "12px", margin: "8px 0 0", lineHeight: 1.7, color: "#cbd5e1" }}>
-          <em>Governance note:</em> While the screen is operationally functional, several fields — including % Complete, On Track / At Risk, and Overdue Flag — rely on derived calculations and unresolved business semantics that require formal architecture alignment before authoritative implementation.
-        </p>
+      {/* ── WHAT IS MY CLIENTS (collapsible) ── */}
+      <div style={{ marginBottom: "12px" }}>
+        <button
+          onClick={() => setShowWhatIs(v => !v)}
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", backgroundColor: showWhatIs ? "#003865" : "#f0f4f8", color: showWhatIs ? "white" : "#003865", border: "1.5px solid #003865", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
+        >
+          <span style={{ fontSize: "14px" }}>ⓘ</span>
+          What is My Clients?
+          <span style={{ fontSize: "10px", opacity: 0.7 }}>{showWhatIs ? "▲" : "▼"}</span>
+        </button>
+        {showWhatIs && (
+          <div style={{ marginTop: "8px", padding: "14px 18px", backgroundColor: "#003865", borderRadius: "8px", color: "white", animation: "fadeIn 0.15s ease" }}>
+            <p style={{ fontSize: "12px", margin: 0, lineHeight: 1.7, color: "#e2e8f0" }}>
+              <strong style={{ color: "white" }}>My Clients</strong> is the primary landing screen in the Roger UI. It presents a practitioner-facing list of all active client engagements for the selected tax year, giving practitioners a real-time view of delivery status, filing progress, and risk indicators across their portfolio.
+            </p>
+            <p style={{ fontSize: "12px", margin: "8px 0 0", lineHeight: 1.7, color: "#e2e8f0" }}>
+              Each row represents a <strong style={{ color: "white" }}>client group</strong> — an entity or consolidated filing unit — and surfaces key delivery signals: completion percentage, deliverable count, approaching due dates, and on-track / at-risk status. These signals are consumed from PDC (entity data), TDC (filing records), and TIM (workflow and scheduling), making My Clients the primary integration point between the DCT platform and the practitioner experience.
+            </p>
+            <p style={{ fontSize: "12px", margin: "8px 0 0", lineHeight: 1.7, color: "#cbd5e1" }}>
+              <em>Governance note:</em> While the screen is operationally functional, several fields — including % Complete, On Track / At Risk, and Overdue Flag — rely on derived calculations and unresolved business semantics that require formal architecture alignment before authoritative implementation.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ── EXECUTIVE NARRATIVE ── */}
