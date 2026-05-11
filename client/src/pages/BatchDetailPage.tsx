@@ -51,6 +51,12 @@ interface BatchContent {
   lead: string;
   entryCondition: string;
   exitCondition: string;
+  executiveNote?: string;
+  governanceTags?: string[];
+  governanceBoundary?: string;
+  openClarifications?: string;
+  excludedFields?: string[];
+  deliverableProjectionFields?: string[];
   stories: { title: string; wmbt: string }[];
 }
 
@@ -218,25 +224,40 @@ const BATCH_CONTENT: Record<string, BatchContent> = {
     systems: ["TDC", "Orchestrator", "Roger UI"],
     lead: "TDC Workstream Lead + AI Workstream Lead",
     entryCondition: "Batch 4 complete; sufficient practitioner decision volume available",
-    exitCondition: "Learning signals captured; model registry live; confidence trend data available to Roger",
+    exitCondition: "Learning signals captured under human-controlled promotion governance; model registry live; PromotionHash validated; O12 lineage published; confidence trend data available to Roger",
+    executiveNote: "Batch 11 governs how practitioner decisions become controlled learning signals without allowing autonomous model evolution or uncontrolled AI feedback loops.",
+    governanceTags: ["Lineage Critical", "TDC"],
     stories: [
-      { title: "Learning Signal Capture & Feedback Record", wmbt: "Decision outcomes attached to proposals and model versions as immutable feedback records." },
-      { title: "Model Registry & Version Governance", wmbt: "Registration, approval workflow, deployment gate, and rollback all governed and auditable." },
-      { title: "Confidence Trend Analytics & Drift Detection", wmbt: "Queryable metrics by model version, entity type, and period. Drift detection flags statistically significant changes." },
-      { title: "Batch 11 Read Contract (Roger Read Surface)", wmbt: "Roger surfaces model version context on mapping proposals and confidence trend data for leadership." },
+      { title: "Immutable Learning Signal Capture", wmbt: "Practitioner decision outcomes captured as immutable learning signals. Signals derived exclusively from ORCHESTRATOR-source events — no direct practitioner input or ad hoc signal injection permitted." },
+      { title: "Consent-Evaluated Signal Persistence", wmbt: "Every learning signal evaluated against consent rules before persistence. Signals failing consent evaluation are discarded and logged. Revocation workflows supported — revoked signals are suppressed from future training runs." },
+      { title: "Human-Controlled Promotion Governance", wmbt: "No autonomous model promotion. Every model promotion requires explicit human approval. PromotionHash validated at promotion gate to ensure signal integrity. Promotion record is immutable and auditable." },
+      { title: "De-identification Enforcement", wmbt: "All learning signals de-identified before persistence. PII and client-identifiable data stripped at signal capture. De-identification enforcement logged as a lineage event." },
+      { title: "Model Registry & Version Governance", wmbt: "Model registration, approval workflow, deployment gate, and rollback all governed and auditable. No model version deployed without passing promotion gate." },
+      { title: "Confidence Trend Analytics & Drift Detection", wmbt: "Queryable metrics by model version, entity type, and period. Drift detection flags statistically significant changes. Drift events published as O12 lineage events." },
+      { title: "O12 Lineage Publication", wmbt: "All learning governance events — signal capture, consent evaluation, promotion, revocation — published as O12 lineage events. Additive-only contract behavior: no event may be deleted or mutated." },
+      { title: "Batch 11 Read Contract (Roger Read Surface)", wmbt: "Roger surfaces model version context on mapping proposals and confidence trend data for leadership via governed read contract only." },
     ],
   },
   B12: {
     gate: "G4 — Lineage Closure",
     systems: ["PDC", "TIM", "Roger UI"],
     lead: "PDC Workstream Lead",
-    entryCondition: "Batch 5 complete; TIM integration available",
-    exitCondition: "Engagement lifecycle events flowing from TIM; engagement code ownership established; Roger surfacing engagement status",
+    entryCondition: "Batch 5 complete; TIM integration available; deliverables and task-state endpoints stable",
+    exitCondition: "PDC synchronizing engagements, scope, team assignments, deliverables, and deliverable task state from TIM; Roger consuming all operational engagement data through PDC governed read contracts only",
+    executiveNote: "PDC remains the single integration point for TIM operational data. Roger consumes engagement, deliverable, and task-state projections through governed PDC read contracts only.",
+    governanceBoundary: "TIM Deliverables are operational workflow metadata only and are NOT governed filing records. TDC Filing Records remain the sole filing authority.",
+    governanceTags: ["PDC", "Read Contract", "Operational Metadata Only"],
+    deliverableProjectionFields: ["deliverableId", "form", "jurisdiction", "statutory due date", "extension due date", "current due date", "status", "consolidated flag", "task state", "last updated metadata"],
+    excludedFields: ["signoff", "attestation", "filing authority", "return identifiers", "governed filing lifecycle", "amounts"],
+    openClarifications: "TIM phase hierarchy/object modeling remains under clarification pending confirmation whether phases are first-class TIM entities or workflow abstractions.",
     stories: [
-      { title: "TIM Engagement Code Integration", wmbt: "PDC syncs engagement data from TIM — project, phase, deliverable, task. TIM IDs reconciled to PDC canonical EntityId and ClientGroupId." },
-      { title: "Engagement Lifecycle Tracking", wmbt: "Lifecycle events (open, active, closed) tracked as immutable records with timestamps." },
-      { title: "Engagement Ownership Contract", wmbt: "TIM is the authoritative source for engagement codes. DCT does not create or modify engagement codes. Roger never calls TIM directly." },
-      { title: "Roger Engagement View", wmbt: "Roger surfaces engagement status, lifecycle events, and engagement-scoped processing summary via Engagement Operations read contract." },
+      { title: "PDC → TIM Engagement Synchronization", wmbt: "PDC synchronizes engagements, scope, and team assignments from TIM. TIM IDs reconciled to PDC canonical EntityId and ClientGroupId. Roger never calls TIM directly." },
+      { title: "Deliverables Endpoint Ingestion", wmbt: "PDC ingests deliverable data from TIM deliverables endpoint. Projection fields: deliverableId, form, jurisdiction, statutory due date, extension due date, current due date, status, consolidated flag. Explicitly excluded: signoff, attestation, filing authority, return identifiers, governed filing lifecycle, and amounts." },
+      { title: "Task-State Endpoint Ingestion", wmbt: "PDC ingests task-state data from TIM task-state endpoint. Task state projected as operational metadata only — not a governed filing record." },
+      { title: "Reconciliation Logic & Structured Sync Failures", wmbt: "Reconciliation logic applied to all TIM sync operations. Structured sync failures logged with root cause classification. Endpoint stability governance enforced — breaking TIM API changes require formal change notification." },
+      { title: "Engagement Lifecycle Tracking", wmbt: "Lifecycle events (open, active, closed) tracked as immutable records with timestamps. TIM Deliverables are operational workflow metadata only — not governed filing records." },
+      { title: "Engagement Ownership Contract", wmbt: "TIM is the authoritative source for engagement codes. DCT does not create or modify engagement codes. Roger never calls TIM directly. Consolidated filing hierarchy and filing lineage remain governed by Batch 10 and future consolidated-return governance batches." },
+      { title: "Roger Engagement View (PDC Read Contract)", wmbt: "Roger surfaces engagement status, deliverable projections, task-state, and lifecycle events via Engagement Operations read contract from PDC only. No direct Roger-to-TIM integration." },
       { title: "Identity Reconciliation", wmbt: "TIM IDs reconciled to PDC canonical EntityId and ClientGroupId. Reconciliation failures are logged and surfaced as exceptions." },
     ],
   },
@@ -258,11 +279,18 @@ const BATCH_CONTENT: Record<string, BatchContent> = {
     systems: ["TDC"],
     lead: "TDC Workstream Lead",
     entryCondition: "Batch 13 complete; computation rule taxonomy agreed",
-    exitCondition: "Versioned computation rules live; reconciliation formulas governed; computation audit records queryable",
+    exitCondition: "Governed tax formula registry live; deterministic execution enforced; formula lineage published; effective dating applied; computation audit records queryable; no ad hoc practitioner calculations permitted",
+    executiveNote: "Batch 14 establishes governed, reproducible tax computation logic as reusable platform assets.",
+    governanceTags: ["TDC", "Read Contract"],
     stories: [
-      { title: "Computation Rule Engine", wmbt: "Versioned computation rules for depreciation (MACRS, Straight-Line, Bonus) queryable by tax year." },
-      { title: "Limitation Rules", wmbt: "Limitation rules (Section 179, bonus depreciation phase-outs) governed as versioned reference data." },
-      { title: "Reconciliation Formulas", wmbt: "M-1, M-3, and Schedule L reconciliation formulas governed in TDC. Updates require version increment." },
+      { title: "Governed Tax Formula Registry", wmbt: "All tax computation formulas registered in the governed formula registry. No ad hoc practitioner calculations permitted outside the registry. Every formula is versioned, effective-dated, and immutable once published." },
+      { title: "Deterministic Execution", wmbt: "All formula executions are deterministic — same inputs always produce the same output. Execution traceable to formula version, entity, and tax year. Every computation is reproducible from the audit record." },
+      { title: "Formula Lineage", wmbt: "Formula lineage published for every computation. Lineage record includes formula version, input snapshot, execution timestamp, and output hash." },
+      { title: "Effective Dating", wmbt: "All formulas carry effective date ranges. Formula lookups resolve to the correct version for the applicable tax year. Retroactive formula changes require a new version — no in-place mutation." },
+      { title: "Computation Rule Engine", wmbt: "Versioned computation rules for depreciation (MACRS, Straight-Line, Bonus) queryable by tax year. Limitation rules (Section 179, bonus depreciation phase-outs) governed as versioned reference data." },
+      { title: "Cross-Formula Dependency Governance", wmbt: "Cross-formula dependencies tracked in the registry. Dependent formulas flagged when a dependency version changes. No formula may reference an unpublished or draft dependency." },
+      { title: "Rule Version Governance", wmbt: "Rule version governance enforced — every version increment requires review approval. Rollback to prior version supported via version registry." },
+      { title: "Reconciliation Formulas", wmbt: "M-1, M-3, and Schedule L reconciliation formulas governed in TDC. Updates require version increment. Reconciliation formulas are immutable once published." },
       { title: "Computation Audit Record", wmbt: "Computation audit record traceable to rule version, entity, and tax year. Every computation is reproducible." },
       { title: "Rate Tables", wmbt: "Tax rate tables (federal, state, blended) governed as versioned reference data queryable by jurisdiction and tax year." },
       { title: "Computation Rules Read Contract", wmbt: "Read contract published for Orchestrator and Batch 18 consumption." },
@@ -289,14 +317,22 @@ const BATCH_CONTENT: Record<string, BatchContent> = {
     gate: "G4 — Lineage Closure",
     systems: ["PDC", "TDC"],
     lead: "PDC Workstream Lead + TDC Workstream Lead",
-    entryCondition: "Batch 13 complete; audit event taxonomy agreed",
-    exitCondition: "Complete event log for TDC defined; PDC lineage event schema live; audit trail queryable by engagement",
+    entryCondition: "Batch 13 complete; audit event taxonomy agreed; EventTypeCatalog defined",
+    exitCondition: "Canonical audit lineage governance live; chain-participating event integrity enforced; tax-scope EventTypeCatalog governed; disclosure logging active; AccessLoggingRequirement enforced; immutable chain lineage published; legal hold enforcement operational",
+    executiveNote: "Batch 16 establishes immutable, legally defensible lineage and disclosure governance across all governed platform workflows.",
+    governanceTags: ["Lineage Critical", "PDC", "TDC"],
     stories: [
-      { title: "TDC Lineage Event Schema", wmbt: "Complete event log for TDC defined and queryable. Every mapping, decision, and lock event captured." },
-      { title: "PDC Platform-Wide Lineage Event Schema", wmbt: "PDC platform-wide lineage event schema covers ingestion, normalization, and entity sync." },
-      { title: "Retention Rules", wmbt: "Audit record retention rules defined and enforced. Records retained for regulatory compliance period." },
-      { title: "Audit Trail Read Contract", wmbt: "Roger and compliance teams can retrieve full audit trail for any engagement via governed read contract." },
-      { title: "Tamper-Evidence Verification", wmbt: "Cryptographic hash chain verification available for audit record integrity confirmation." },
+      { title: "Canonical Audit Lineage Governance", wmbt: "Canonical audit lineage governance established across PDC and TDC. Every governed event participates in the immutable chain. Chain-participating event integrity enforced — no event may be inserted, deleted, or mutated after publication." },
+      { title: "Tax-Scope EventTypeCatalog Governance", wmbt: "Tax-scope EventTypeCatalog governed in TDC. All TDC event types registered, versioned, and approved before use. EventTypeCatalog is the authoritative registry for all lineage event classifications." },
+      { title: "Disclosure Logging", wmbt: "Disclosure logging active for all governed data access events. Every disclosure event logged with actor, timestamp, data scope, and purpose. Disclosure log is immutable and queryable." },
+      { title: "AccessLoggingRequirement Governance", wmbt: "AccessLoggingRequirement enforced for all governed read contract consumers. Every read access logged against the AccessLoggingRequirement policy. Non-compliant access attempts are blocked and flagged." },
+      { title: "READ_CONTRACT_PUBLISHED Lineage Events", wmbt: "READ_CONTRACT_PUBLISHED events published to the lineage chain when governed read contracts are activated. Contract publication is a lineage-participating event — consumers can trace which contract version governs their data access." },
+      { title: "Immutable Chain Lineage", wmbt: "Immutable chain lineage enforced across all governed workflows. Hash chain verification available for any lineage segment. Tamper-evidence confirmation queryable by engagement, entity, and period." },
+      { title: "Legal Hold Enforcement", wmbt: "Legal hold enforcement operational. Records under legal hold are protected from deletion or modification. Legal hold status queryable by engagement. Hold release requires explicit authorized action." },
+      { title: "TDC Lineage Event Schema", wmbt: "Complete event log for TDC defined and queryable. Every mapping, decision, and lock event captured and chain-participating." },
+      { title: "PDC Platform-Wide Lineage Event Schema", wmbt: "PDC platform-wide lineage event schema covers ingestion, normalization, and entity sync. All PDC lineage events are additive-only." },
+      { title: "Retention Rules", wmbt: "Audit record retention rules defined and enforced. Records retained for regulatory compliance period. Retention policy versioned and auditable." },
+      { title: "Audit Trail Read Contract", wmbt: "Roger and compliance teams can retrieve full audit trail for any engagement via governed read contract. Audit trail spans both PDC canonical governance and TDC tax-scope governance." },
       { title: "Audit Trail Query API", wmbt: "Audit log queryable by entity, period, event type, actor, and date range." },
     ],
   },
@@ -402,6 +438,45 @@ const BATCH_CONTENT: Record<string, BatchContent> = {
       { title: "Roger Benchmark View", wmbt: "Roger surfaces benchmark context alongside tax-ready and provision-ready records. Outlier indicators visible — positions deviating from peer group surfaced." },
     ],
   },
+  B24: {
+    gate: "G4 — Lineage Closure",
+    systems: ["PDC", "TDC"],
+    lead: "PDC Workstream Lead (framework) + TDC Workstream Lead (tax advisory logic)",
+    entryCondition: "Batch 19 complete; advisory governance framework agreed; LOB-neutral advisory foundation scoped",
+    exitCondition: "Cross-LOB advisory governance framework live in PDC; tax-flavored advisory logic governed in TDC; governed advisory opportunity framework established; live detection workflows not yet executing",
+    executiveNote: "Batch 24 establishes the governed advisory opportunity framework but does not yet execute live detection workflows.",
+    governanceTags: ["Lineage Critical", "PDC", "TDC", "Read Contract"],
+    stories: [
+      { title: "PDC: Cross-LOB Advisory Governance Framework", wmbt: "Cross-LOB advisory governance framework established in PDC. LOB-neutral foundation — no LOB-specific advisory logic in PDC. OpportunityCategory governance: all advisory opportunity categories registered, versioned, and approved before use." },
+      { title: "PDC: ScoringFramework Governance", wmbt: "ScoringFramework governed in PDC as versioned reference data. Scoring logic is LOB-neutral. Updates require version increment and approval." },
+      { title: "PDC: SuppressionRule Governance", wmbt: "SuppressionRule governed in PDC. Suppression rules versioned and auditable. Suppression evaluation is deterministic and traceable." },
+      { title: "PDC: DetectionRun Scaffolding", wmbt: "DetectionRun scaffolding established in PDC. Detection runs are consumer-initiated only — no background jobs, schedulers, or autonomous processes may create detection artifacts." },
+      { title: "TDC: Tax-Flavored Advisory Logic", wmbt: "Tax-flavored advisory logic governed in TDC. TDC owns all tax-specific advisory rules — PDC does not contain tax advisory logic." },
+      { title: "TDC: TaxThresholdDefinition Governance", wmbt: "TaxThresholdDefinition governed in TDC as versioned reference data. Threshold definitions are effective-dated and immutable once published." },
+      { title: "TDC: TaxDetectionRule Governance", wmbt: "TaxDetectionRule governed in TDC. All tax detection rules registered, versioned, and approved before use. RuleSourceDeclaration required for every rule." },
+      { title: "TDC: TaxRuleExecutorRegistry Governance", wmbt: "TaxRuleExecutorRegistry governed in TDC. Executor registration required before any tax detection rule may execute. TaxYear precedence logic enforced — most recent applicable tax year governs." },
+    ],
+  },
+  B25: {
+    gate: "G4 — Lineage Closure",
+    systems: ["PDC", "TDC", "Orchestrator", "Roger UI"],
+    lead: "PDC Workstream Lead (orchestration/runtime) + TDC Workstream Lead (advisory content)",
+    entryCondition: "Batch 24 complete; advisory governance framework live; consumer-initiated detection pattern agreed",
+    exitCondition: "Consumer-initiated detection orchestration live; OpportunityRecord persisted; DecisionRecord governed; SurfacingRecord persisted; suppression evaluation engine operational; Advisory Detection Read Contract published; immutable advisory lineage active",
+    executiveNote: "Batch 25 operationalizes governed advisory opportunity workflows while preserving immutable lineage, suppression governance, and explicit practitioner interaction.",
+    governanceBoundary: "No background jobs, schedulers, streaming subscriptions, or autonomous processes may create advisory workflow artifacts.",
+    governanceTags: ["Lineage Critical", "PDC", "TDC", "Read Contract"],
+    stories: [
+      { title: "Consumer-Initiated Detection Orchestration", wmbt: "Detection orchestration is consumer-initiated only. No background jobs, schedulers, streaming subscriptions, or autonomous processes may create advisory workflow artifacts. Every detection run triggered by explicit consumer action." },
+      { title: "OpportunityRecord Persistence", wmbt: "OpportunityRecord persisted as an immutable record upon detection. OpportunityRecord includes detection run reference, rule version, entity, tax year, and opportunity classification." },
+      { title: "DecisionRecord Governance", wmbt: "DecisionRecord governed as an immutable practitioner decision artifact. Every accept, reject, or defer decision produces a DecisionRecord. DecisionRecord is chain-participating and lineage-published." },
+      { title: "SurfacingRecord Persistence", wmbt: "SurfacingRecord persisted when an opportunity is surfaced to a practitioner. Re-surface and close-out workflows supported. Every surfacing event is immutable and auditable." },
+      { title: "Suppression Evaluation Engine", wmbt: "Suppression evaluation engine operational. Every opportunity evaluated against active SuppressionRules before surfacing. Suppression decisions are logged and auditable." },
+      { title: "surface() API Behavior", wmbt: "surface() API governs how advisory opportunities are surfaced to practitioners. Re-surface workflows supported for previously suppressed or closed opportunities. Close-out workflows produce immutable close records." },
+      { title: "Advisory Detection Read Contract", wmbt: "Advisory Detection Read Contract published. Roger consumes advisory opportunity data through governed read contract only. No direct Roger-to-detection-engine integration." },
+      { title: "Immutable Advisory Lineage", wmbt: "All advisory workflow events — detection, surfacing, decision, suppression, close-out — published as immutable lineage events. Additive-only contract behavior enforced." },
+    ],
+  },
   MT: {
     gate: "None (parallel track)",
     systems: ["PDC", "TDC", "Platform Engineering"],
@@ -441,7 +516,7 @@ const AREA_HEX: Record<string, { bg: string; text: string }> = {
 };
 
 // ── All batch IDs in order (for prev/next) ────────────────────────────────────
-const ALL_IDS = ["FC", "B1", "B2", "B2A", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "MT"];
+const ALL_IDS = ["FC", "B1", "B2", "B2A", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "B24", "B25", "MT"];
 
 function batchNavLabel(id: string): string {
   const b = getBatchById(id);
@@ -675,6 +750,76 @@ export default function BatchDetailPage() {
               <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>{content.lead}</div>
             </div>
           </div>
+
+          {/* Governance Badges & Executive Note */}
+          {(content.executiveNote || content.governanceTags || content.governanceBoundary || content.openClarifications || content.deliverableProjectionFields || content.excludedFields) && (
+            <div style={{
+              backgroundColor: "#fffbeb", borderRadius: "10px", border: "1px solid #fde68a",
+              padding: "16px 20px", marginBottom: "14px",
+            }}>
+              {content.governanceTags && content.governanceTags.length > 0 && (
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: content.executiveNote ? "10px" : "0" }}>
+                  {content.governanceTags.map(tag => {
+                    const tagColors: Record<string, { bg: string; text: string; border: string }> = {
+                      "Lineage Critical": { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
+                      "PDC":             { bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe" },
+                      "TDC":             { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0" },
+                      "Read Contract":   { bg: "#f5f3ff", text: "#5b21b6", border: "#ddd6fe" },
+                      "Operational Metadata Only": { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
+                      "Governed Filing Authority": { bg: "#ecfdf5", text: "#065f46", border: "#6ee7b7" },
+                    };
+                    const c = tagColors[tag] || { bg: "#f1f5f9", text: "#475569", border: "#e2e8f0" };
+                    return (
+                      <span key={tag} style={{
+                        fontSize: "10px", fontWeight: 700, padding: "3px 9px", borderRadius: "6px",
+                        backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}`,
+                        textTransform: "uppercase", letterSpacing: "0.05em",
+                      }}>
+                        {tag}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+              {content.executiveNote && (
+                <div style={{ fontSize: "12px", color: "#78350f", lineHeight: "1.6", fontStyle: "italic", marginBottom: (content.governanceBoundary || content.openClarifications || content.deliverableProjectionFields) ? "10px" : "0" }}>
+                  {content.executiveNote}
+                </div>
+              )}
+              {content.governanceBoundary && (
+                <div style={{ backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px 14px", marginBottom: (content.openClarifications || content.deliverableProjectionFields) ? "10px" : "0" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#991b1b", marginBottom: "4px" }}>Governance Boundary</div>
+                  <div style={{ fontSize: "12px", color: "#7f1d1d", lineHeight: "1.5" }}>{content.governanceBoundary}</div>
+                </div>
+              )}
+              {content.openClarifications && (
+                <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "10px 14px", marginBottom: content.deliverableProjectionFields ? "10px" : "0" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#92400e", marginBottom: "4px" }}>Open Clarification</div>
+                  <div style={{ fontSize: "12px", color: "#78350f", lineHeight: "1.5" }}>{content.openClarifications}</div>
+                </div>
+              )}
+              {content.deliverableProjectionFields && content.deliverableProjectionFields.length > 0 && (
+                <div style={{ marginBottom: content.excludedFields ? "10px" : "0" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#1e40af", marginBottom: "6px" }}>Deliverable Projection Fields</div>
+                  <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
+                    {content.deliverableProjectionFields.map(f => (
+                      <span key={f} style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "5px", backgroundColor: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe" }}>{f}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {content.excludedFields && content.excludedFields.length > 0 && (
+                <div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#991b1b", marginBottom: "6px" }}>Explicitly Excluded Fields</div>
+                  <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
+                    {content.excludedFields.map(f => (
+                      <span key={f} style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "5px", backgroundColor: "#fef2f2", color: "#991b1b", border: "1px solid #fecaca" }}>{f}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Stories */}
           <div style={{
