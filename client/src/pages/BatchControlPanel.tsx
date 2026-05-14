@@ -38,7 +38,7 @@ function CopyNoteButton({ text }: { text: string }) {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type DeliveryStatus = "Delivered" | "In Progress" | "Carried Forward" | "Backlogged" | "Not Started" | "Needs PO/Dev Confirmation";
+type DeliveryStatus = "Delivered" | "Complete" | "In Progress" | "Carried Forward" | "Backlogged" | "Not Started" | "Needs PO/Dev Confirmation";
 type ApiStatus = "Delivered" | "In Progress" | "Missing" | "Needs PO/Dev Confirmation";
 type RogerAvailability = "Available" | "Partially Available" | "Not Available" | "Carried Forward" | "Backlogged";
 
@@ -110,23 +110,23 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
     key: "2",
     label: "Batch 2 — Normalization & Cross-LOB Taxonomy",
     owner: "PDC + AI Orchestrator",
-    status: "In Progress",
-    delivered: ["FileSchemas reference data", "FirmTaxonomy (XLOB) reference data", "EDGAR Corpus reference data", "Normalized record persistence (vNormalizedTb)"],
-    validated: ["FileSchemas queryable and versioned", "RunId assigned on processing"],
-    open: ["Normalized Trial Balance Contract (Roger Read Surface) — in progress", "Batch 2A contract enforcement not yet complete"],
-    readiness: "Partially API-ready · Demo partially ready",
-    poNote: "Batch 2 is in progress. Normalization reference data and XLOB taxonomy are operational. Normalized record persistence is functional. Roger read contract (vNormalizedTb) is pending Batch 2A contract enforcement completion.",
+    status: "Complete",
+    delivered: ["FileSchemas reference data", "FirmTaxonomy (XLOB) reference data", "EDGAR Corpus reference data", "Normalized record persistence (vNormalizedTb)", "Normalized Trial Balance Contract (Roger Read Surface)", "Batch 2A contract enforcement complete"],
+    validated: ["FileSchemas queryable and versioned", "RunId assigned on processing", "vNormalizedTb Roger read contract published"],
+    open: [],
+    readiness: "API-ready · Demo-ready",
+    poNote: "Batch 2 is complete. Normalization reference data and XLOB taxonomy are operational. Normalized record persistence is functional. Roger read contract (vNormalizedTb) is live. Batch 2A contract enforcement is complete.",
   },
   {
     key: "2a",
     label: "Batch 2A — Orchestrator Contract Enforcement & Classification",
     owner: "PDC + AI Orchestrator",
-    status: "In Progress",
-    delivered: ["FirmTaxonomyId enforcement rule defined", "Rejection logic for missing classification"],
-    validated: [],
-    open: ["Bulk insert vs upsert strategy — future scope", "Validation audit log not yet queryable", "Classification rejection demo not yet confirmed"],
-    readiness: "Backlog-only — not yet demo-ready",
-    poNote: "Batch 2A is in progress. Contract enforcement layer between Orchestrator and PDC is being defined. FirmTaxonomyId is required on every record. Classification rejection and audit log are open items. This is the blocking gap identified in the Classification Walkthrough.",
+    status: "Complete",
+    delivered: ["FirmTaxonomyId enforcement rule implemented", "Rejection logic for missing classification", "Classification status read contract", "Validation audit log queryable"],
+    validated: ["FirmTaxonomyId required on all PDC records", "Classification rejection confirmed in demo"],
+    open: [],
+    readiness: "API-ready · Demo-ready",
+    poNote: "Batch 2A is complete. Contract enforcement layer between Orchestrator and PDC is operational. FirmTaxonomyId is required on every record. Classification rejection and audit log are live.",
   },
   {
     key: "3",
@@ -143,83 +143,168 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
     key: "4",
     label: "Batch 4 — AI Tax Mapping & Explainability",
     owner: "TDC + AI Orchestrator",
-    status: "In Progress",
-    delivered: ["AI Mapping Proposals structure", "Confidence band framework (GREEN/YELLOW/RED)", "Mapping Decisions (immutable)"],
-    validated: ["Proposals include confidence score and band", "Decision audit structure confirmed"],
-    open: ["TDC Records API Contract (Roger Read Surface) — not yet published", "Decision Audit & Event Publishing — in progress", "Roger primary read contract pending"],
-    readiness: "Partially demo-ready · Roger contract pending",
-    poNote: "Batch 4 is in progress. AI mapping proposals are being delivered to TDC. Confidence bands and structured evidence are in place. Practitioner decision recording is functional. Roger's primary TDC read contract is the open item — this is the moment the platform comes to life for practitioners.",
+    status: "Complete",
+    delivered: ["AI Mapping Proposals structure", "Confidence band framework (GREEN/YELLOW/RED)", "Mapping Decisions (immutable)", "TDC Records API Contract (Roger Read Surface) — published", "Decision Audit & Event Publishing", "Roger primary read contract live"],
+    validated: ["Proposals include confidence score and band", "Decision audit structure confirmed", "Roger practitioner view unblocked"],
+    open: [],
+    readiness: "API-ready · Demo-ready",
+    poNote: "Batch 4 is complete. AI mapping proposals are live in TDC. Confidence bands and structured evidence are in place. Practitioner decision recording is functional. Roger's primary TDC read contract is published — the platform is live for practitioners.",
   },
   {
     key: "5",
     label: "Batch 5 — Entity Identity & Structure",
     owner: "PDC",
-    status: "In Progress",
-    delivered: ["Client Groups & Legal Entity Registry (in progress)", "Ownership Chains & Jurisdictions (in progress)"],
-    validated: [],
-    open: ["EntityId risk open since PI 1 — being closed", "CEM Integration & Sync — in progress", "User Entitlement Sync — future scope"],
-    readiness: "In progress — PI 2 Committed (parallel to Batch 4)",
-    poNote: "Batch 5 is in progress (PI 2 Committed, parallel to Batch 4). PDC is establishing the authoritative entity registry. Client Groups & Legal Entity Registry, Ownership Chains, Jurisdictions, and Entity Characteristics are in development. Entity Identity Read Contract (PDC-facing, ID: 1355868) is the primary Roger-facing deliverable. Closes the EntityId open item from PI 1.",
+    status: "Complete",
+    delivered: ["Client Groups & Legal Entity Registry", "Ownership Chains & Jurisdictions", "Entity Characteristics (DataSourceType, RBAC context)", "Entity Identity Read Contract (PDC-facing)", "CEM Integration & Sync"],
+    validated: ["EntityId risk from PI 1 closed", "Entity Identity Read Contract published"],
+    open: ["User Entitlement Sync — future scope"],
+    readiness: "API-ready · Demo-ready",
+    poNote: "Batch 5 is complete. PDC is the authoritative entity registry. Client Groups, Legal Entity Registry, Ownership Chains, Jurisdictions, and Entity Characteristics are operational. Entity Identity Read Contract is published. EntityId open item from PI 1 is closed.",
   },
   {
     key: "6",
     label: "Batch 6 — Practitioner Review, Adjustments & Lock",
     owner: "TDC",
-    status: "In Progress",
-    delivered: ["Review task generation logic (in progress)", "Six-state adjustment lifecycle defined (DRAFT → SUBMITTED → APPROVED → APPLIED → LOCKED)"],
-    validated: [],
-    open: ["Sequential — begins after Batch 4 closes", "Sign-Off, Lock & Entity Finalization — in progress", "Tax-Ready Record Derivation — in progress", "SHA-256 cryptographic hash sign-off — in progress"],
-    readiness: "In progress — PI 2 Committed (sequential after Batch 4)",
-    poNote: "Batch 6 is in progress (PI 2 Committed, sequential after Batch 4 closes). Practitioners will be able to do real work: review tasks generated automatically from data state, governed six-state adjustment lifecycle (DRAFT → SUBMITTED → APPROVED → APPLIED → LOCKED), tax-ready record derivation, and non-repudiable sign-off with SHA-256 hash. Key stories: Review Task Management (ID: 1350253), Book-to-Tax Adjustments (ID: 1350254), Tax-Ready Record Derivation (ID: 1350255).",
+    status: "Complete",
+    delivered: ["Review task generation from data state", "Six-state adjustment lifecycle (DRAFT → SUBMITTED → APPROVED → APPLIED → LOCKED)", "Sign-Off, Lock & Entity Finalization", "Tax-Ready Record Derivation", "SHA-256 cryptographic hash sign-off (non-repudiable)", "Approval Routing Rules engine"],
+    validated: ["Review tasks generated automatically", "Adjustment lifecycle confirmed in demo", "Sign-off hash verified"],
+    open: [],
+    readiness: "API-ready · Demo-ready",
+    poNote: "Batch 6 is complete. Practitioners can do real work: review tasks generated automatically from data state, governed six-state adjustment lifecycle, tax-ready record derivation, and non-repudiable sign-off with SHA-256 hash.",
   },
   {
     key: "7",
     label: "Batch 7 — Client Tax Profile & Eligibility",
     owner: "TDC",
+    status: "Complete",
+    delivered: ["Three-Tier Eligibility Model (Must Have / Must Not Have / Flag & Review)", "Client Tax Profile Lifecycle & Determination Records", "Controlled Group & Affiliated Group Determination", "Eligibility gate enforcement", "Flag & Review confirm/override workflow"],
+    validated: ["Eligibility gate blocks INELIGIBLE entities", "Controlled group determination confirmed", "Flag & Review workflow operational"],
+    open: [],
+    readiness: "API-ready · Demo-ready",
+    poNote: "Batch 7 is complete. TDC is the system of record for tax profile and eligibility determinations. Three-Tier Eligibility Model is live. Entities in INELIGIBLE or unresolved FLAG_AND_REVIEW state are blocked from downstream workflow.",
+  },
+  {
+    key: "8",
+    label: "Batch 8 — Exceptions & Remediation",
+    owner: "TDC + PDC",
     status: "In Progress",
-    delivered: ["Three-Tier Eligibility Model defined (Must Have / Must Not Have / Flag & Review)", "Client Tax Profile structure defined"],
+    delivered: ["Exception identification surface (TDC Records v2 Known Mapping)", "Proposal decision supersede workflow (in progress)", "Sign-off unlock for remediation (in progress)"],
     validated: [],
-    open: ["Sequential — begins after Batch 6 closes", "Controlled Group & Affiliated Group Determination — in progress", "Eligibility gate enforcement — in progress"],
-    readiness: "In progress — PI 2 Committed (sequential after Batch 6)",
-    poNote: "Batch 7 is in progress (PI 2 Committed, sequential after Batch 6 closes). TDC serves as system of record for tax profile and eligibility determinations. Three-Tier Eligibility Model (Must Have / Must Not Have / Flag & Review). Entities in INELIGIBLE or unresolved FLAG_AND_REVIEW state are blocked from downstream workflow. Key story: Client Tax Profile Lifecycle & Determination Records (ID: 1355882).",
+    open: ["ExceptionRecord API — in progress", "RemedyAction API — in progress", "Re-ingestion trigger API — in progress", "Remediation audit trail — in progress"],
+    readiness: "In progress — PI 2 Committed (sequential after Batch 7)",
+    poNote: "Batch 8 is the active delivery batch (PI 2 Committed, sequential after Batch 7 closes). TDC and PDC collaborate on exception identification, remediation workflow, and re-ingestion triggers. ExceptionRecord, RemedyAction, and re-ingestion audit trail are the primary deliverables. Target close: 5/20.",
   },
 ];
 
 const SWAGGER_ENTRIES: SwaggerEntry[] = [
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PDC (dev-pdc.api.rsmus.com) — RSM.TaxSolutions.PDC.Api
+  // ══════════════════════════════════════════════════════════════════════════
+
   // ── Batch 1 — File Ingestion & Initial Storage ────────────────────────────
-  { batch: "Batch 1", endpoint: "Ingestion Status API", path: "GET /api/pdc/ingestion/status/{jobId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "JobId-based status retrieval. EntityId, DocumentId, Timestamps returned." },
-  { batch: "Batch 1", endpoint: "Document Type API", path: "GET /api/pdc/documents/{documentId}/type", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "Document type classification. Consumer Guide alignment partial — missing PeriodStart/End fields." },
-  { batch: "Batch 1", endpoint: "Processing Run API", path: "GET /api/pdc/processing-runs/{runId}", status: "Delivered", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: false, notes: "RunId-based processing run retrieval. Not yet documented in Consumer Guide." },
-  // ── Batch 2 — Normalization & Cross-LOB Taxonomy ─────────────────────────
-  { batch: "Batch 2", endpoint: "Normalized Trial Balance Contract", path: "GET /api/pdc/normalized-tb", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "vNormalizedTb — EntityId + PeriodStart + PeriodEnd + RunId. Roger read surface. Delivered with Batch 2A enforcement." },
-  { batch: "Batch 2", endpoint: "FileSchemas Reference Data", path: "GET /api/pdc/schemas", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Queryable and versioned file schemas." },
-  { batch: "Batch 2", endpoint: "FirmTaxonomy (XLOB) Reference Data", path: "GET /api/pdc/taxonomy", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "XLOB taxonomy definitions. FirmTaxonomyId field documented in Consumer Guide." },
-  // ── Batch 2A — Orchestrator Contract Enforcement & Classification ─────────
-  { batch: "Batch 2A", endpoint: "Classification Enforcement Contract", path: "POST /api/pdc/orchestrator/validate", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "FirmTaxonomyId enforcement. Rejection + audit log. Delivered and documented." },
-  { batch: "Batch 2A", endpoint: "Classification Status Read", path: "GET /api/pdc/orchestrator/classification/{runId}", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "Returns ClassificationStatus per RunId. Consumer Guide missing rejection reason schema." },
-  // ── Batch 3 — Tax Domain Authority & Tax Taxonomy ────────────────────────
-  { batch: "Batch 3", endpoint: "TDC Reference Data Read Contract", path: "GET /api/tdc/reference-data", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Orchestrator-facing. TaxFormTemplates, MappingRules, ConfidenceBandThresholds." },
-  { batch: "Batch 3", endpoint: "Tax Form Templates API", path: "GET /api/tdc/tax-forms", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Queryable by Jurisdiction and TaxYear (derived from PeriodStart)." },
-  { batch: "Batch 3", endpoint: "Tax Taxonomy Accounts API", path: "GET /api/tdc/taxonomy-accounts", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TaxTaxonomyAccounts and MappingRules. Versioned and available." },
-  // ── Batch 4 — AI Tax Mapping & Explainability ─────────────────────────────
-  { batch: "Batch 4", endpoint: "AI Mapping Proposals API", path: "GET /api/tdc/mapping-proposals", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Confidence score + band (GREEN/YELLOW/RED) + structured evidence. Delivered and documented." },
-  { batch: "Batch 4", endpoint: "Mapping Decisions API", path: "GET /api/tdc/mapping-decisions", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Immutable decision records. PeriodStart/PeriodEnd fields aligned. Delivered." },
-  { batch: "Batch 4", endpoint: "TDC Records API (Roger Primary Contract)", path: "GET /api/tdc/records", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Roger primary read contract. Published. Roger practitioner view unblocked." },
-  { batch: "Batch 4", endpoint: "Confidence Band Thresholds API", path: "GET /api/tdc/confidence-bands", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "GREEN/YELLOW/RED threshold configuration. Queryable by TaxYear and Jurisdiction." },
-  // ── Batch 5 — Entity Identity & Structure ────────────────────────────────
-  { batch: "Batch 5", endpoint: "Entity Identity Read Contract", path: "GET /api/pdc/entities/{entityId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "ClientGroupId, EntityId hierarchy, RBAC context, DataSourceType. Delivered." },
-  { batch: "Batch 5", endpoint: "Client Groups API", path: "GET /api/pdc/client-groups", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Client Groups and Legal Entity Registry. Ownership chains and jurisdictions included." },
-  { batch: "Batch 5", endpoint: "Entity Characteristics API", path: "GET /api/pdc/entities/{entityId}/characteristics", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "Entity characteristics including DataSourceType. Consumer Guide missing RBAC context field." },
-  // ── Batch 6 — Practitioner Review, Adjustments & Lock ────────────────────
-  { batch: "Batch 6", endpoint: "Review Task Management API", path: "GET /api/tdc/review-tasks", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Review tasks generated from data state. Six-state lifecycle (DRAFT→SUBMITTED→APPROVED→APPLIED→LOCKED). Delivered." },
-  { batch: "Batch 6", endpoint: "Book-to-Tax Adjustments API", path: "POST /api/tdc/adjustments", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Governed six-state adjustment lifecycle. AdjustmentRecord with full audit trail." },
-  { batch: "Batch 6", endpoint: "Tax-Ready Record API", path: "GET /api/tdc/tax-ready", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TaxReadyRecord derived from mapping decisions + adjustments. Locked and signed off." },
-  { batch: "Batch 6", endpoint: "Sign-Off & Lock API", path: "POST /api/tdc/sign-off", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "SHA-256 cryptographic hash sign-off. Non-repudiable. Consumer Guide missing hash verification schema." },
-  // ── Batch 7 — Client Tax Profile & Eligibility ───────────────────────────
-  { batch: "Batch 7", endpoint: "Client Tax Profile API", path: "GET /api/tdc/tax-profile/{entityId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TaxProfile per EntityId. Includes filing status, tax year, jurisdiction, and profile metadata." },
-  { batch: "Batch 7", endpoint: "Eligibility Determination API", path: "GET /api/tdc/eligibility/{entityId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Three-Tier Eligibility Model (Must Have / Must Not Have / Flag & Review). EligibilityDetermination record." },
-  { batch: "Batch 7", endpoint: "Controlled Group Determination API", path: "GET /api/tdc/controlled-groups/{entityId}", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "Controlled Group and Affiliated Group determination. Consumer Guide missing consolidated filing flag documentation." },
-  { batch: "Batch 7", endpoint: "Eligibility Gate Enforcement API", path: "POST /api/tdc/eligibility/enforce", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "Blocks INELIGIBLE and unresolved FLAG_AND_REVIEW entities from downstream workflow. Gate enforcement delivered." },
+  { batch: "Batch 1", endpoint: "Ingestion — Submit File", path: "POST /api/v1/Ingestion", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Submits a new ingestion run. Returns IngestionRunId used for lineage anchor." },
+  { batch: "Batch 1", endpoint: "Ingestion — Get Run Status", path: "GET /api/v1/Ingestion/{runId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves ingestion run status by RunId. EntityId, DocumentId, Timestamps returned." },
+  { batch: "Batch 1", endpoint: "Processing Run — Create", path: "POST /api/v1/processing-runs", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Creates a new processing run for a given ingestion record." },
+  { batch: "Batch 1", endpoint: "Processing Run — Get by ID", path: "GET /api/v1/processing-runs/{id}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves the status of a processing run by its unique identifier." },
+  { batch: "Batch 1", endpoint: "Processing Run — Get Latest by Ingestion", path: "GET /api/v1/processing-runs/by-ingestion/{ingestionRunId}/latest", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves the latest processing run for a given ingestion run. Consumer Guide missing PeriodStart/End." },
+  { batch: "Batch 1", endpoint: "Processing Run — Submit Results", path: "POST /api/v1/processing-runs/{id}/results", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Submits the results of a completed processing run." },
+  { batch: "Batch 1", endpoint: "Document Type — Get All", path: "GET /api/v1/document-types", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all document types. Reference data for ingestion classification." },
+  { batch: "Batch 1", endpoint: "Document Type — Get by ID", path: "GET /api/v1/document-types/{id}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves a document type by its unique identifier." },
+  { batch: "Batch 1", endpoint: "File Schema — Get All", path: "GET /api/v1/file-schemas", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all active file schema versions. Versioned and queryable." },
+  { batch: "Batch 1", endpoint: "File Schema — Get Latest Active", path: "GET /api/v1/file-schemas/latest-active", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves the latest active file schema version per document type." },
+  { batch: "Batch 1", endpoint: "File Schema — Get by Type", path: "GET /api/v1/file-schemas/by-type/{documentTypeCode}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all active file schema versions for a given document type code." },
+
+  // ── Batch 2 — Normalization & Cross-LOB Taxonomy ──────────────────────────
+  { batch: "Batch 2", endpoint: "Data Records — Get Normalized", path: "GET /api/v1/data-records", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves normalized data records with optional filtering by entity, period, and classification status." },
+  { batch: "Batch 2", endpoint: "Taxonomy Concept — Get All", path: "GET /api/v1/taxonomy/concepts", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all active XLOB taxonomy concepts. Versioned." },
+  { batch: "Batch 2", endpoint: "Taxonomy Concept — Get by ID", path: "GET /api/v1/taxonomy/concepts/{id}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves a taxonomy concept by its unique identifier." },
+  { batch: "Batch 2", endpoint: "Characteristic Definition — Get All", path: "GET /api/v1/reference-data/characteristic-definitions", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all active characteristic definitions. Reference data for entity profiling." },
+  { batch: "Batch 2", endpoint: "Entity Type Ref — Get All", path: "GET /api/v1/reference-data/entity-types", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all active entity types. Reference data." },
+  { batch: "Batch 2", endpoint: "Jurisdiction Type Ref — Get All", path: "GET /api/v1/reference-data/jurisdiction-types", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all active jurisdiction types. Reference data." },
+
+  // ── Batch 2A — Orchestrator Contract Enforcement & Classification ──────────
+  { batch: "Batch 2A", endpoint: "Data Records — Submit Classification", path: "PATCH /api/v1/data-records/{id}/classify", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Submits a classification decision for a normalized record. FirmTaxonomyId enforcement." },
+
+  // ── Batch 3 — Tax Domain Authority & Tax Taxonomy ─────────────────────────
+  { batch: "Batch 3", endpoint: "TDC Reference Data Read Contract", path: "GET /api/v1/reference-data", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Orchestrator-facing read-only contract. TaxFormTemplates, MappingRules, ConfidenceBandThresholds." },
+  { batch: "Batch 3", endpoint: "Tax Forms — Get All", path: "GET /api/TaxForms", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves all tax forms with optional filtering by jurisdiction and tax year." },
+  { batch: "Batch 3", endpoint: "Tax Form Lines — Get by Form", path: "GET /api/tax-forms/{formId}/lines", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves all tax form lines for a given parent tax form, sorted by sort order." },
+  { batch: "Batch 3", endpoint: "Tax Taxonomy Accounts — Get All", path: "GET /api/TaxTaxonomyAccounts", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves tax taxonomy accounts with optional scoping by effective date." },
+  { batch: "Batch 3", endpoint: "Mapping Rules — Get All", path: "GET /api/MappingRules", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves all mapping rules. Versioned and queryable by tax year." },
+  { batch: "Batch 3", endpoint: "Return Templates — Get All", path: "GET /api/ReturnTemplates", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves all return templates. Reference data for tax form assembly." },
+  { batch: "Batch 3", endpoint: "Tax Year Locks — Get Status", path: "GET /api/TaxYearLocks/{taxYear}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves the lock status of a specific tax year. Returns default unlocked if no lock record exists." },
+  { batch: "Batch 3", endpoint: "Filing Due Dates — Get All", path: "GET /api/FilingDueDates", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves all filing due dates. Queryable by jurisdiction and tax year." },
+
+  // ── Batch 4 — AI Tax Mapping & Explainability ──────────────────────────────
+  { batch: "Batch 4", endpoint: "AI Mapping Proposals — Get", path: "GET /api/v1/ai-mapping-proposals", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves AI mapping proposals by tax year and by client and/or entity. Confidence score + band (GREEN/YELLOW/RED) + structured evidence." },
+  { batch: "Batch 4", endpoint: "AI Mapping Proposals — Bulk Submit", path: "POST /api/v1/ai-mapping-proposals/bulk", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Submits a batch of AI mapping proposals from the Orchestrator. Per-record validation." },
+  { batch: "Batch 4", endpoint: "Proposal Decisions — Bulk Confirm", path: "POST /api/v1/proposal-decisions/bulk", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Bulk confirms mapping proposal decisions. Immutable once confirmed." },
+  { batch: "Batch 4", endpoint: "Proposal Decisions — Get Confirmed", path: "GET /api/v1/proposal-decisions/confirmed", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves confirmed mapping decisions. Immutable decision records." },
+  { batch: "Batch 4", endpoint: "TDC Records v1 — Get", path: "GET /api/v1/tdc-records", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Roger primary read contract v1. Published. Roger practitioner view unblocked." },
+  { batch: "Batch 4", endpoint: "TDC Records v2 — Get", path: "GET /api/v2/tdc-records", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Roger primary read contract v2 with enhanced filtering and pagination." },
+  { batch: "Batch 4", endpoint: "TDC Records v2 — Adjustments", path: "GET /api/v2/tdc-records/adjustments", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves adjustment records scoped to TDC records. Roger read surface." },
+  { batch: "Batch 4", endpoint: "TDC Records v2 — Derived Records", path: "GET /api/v2/tdc-records/derived-records", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves derived TDC records. Roger read surface." },
+  { batch: "Batch 4", endpoint: "TDC Derivation — Get", path: "GET /api/v1/tdc-derivation", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves TDC derivation records. Consumer Guide missing derivation field schema." },
+  { batch: "Batch 4", endpoint: "Confidence Band Thresholds — Get", path: "GET /api/ConfidenceBandThresholds", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. GREEN/YELLOW/RED threshold configuration. Queryable by TaxYear and Jurisdiction." },
+
+  // ── Batch 5 — Entity Identity & Structure ─────────────────────────────────
+  { batch: "Batch 5", endpoint: "Clients — Get All", path: "GET /api/v1/clients", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all active clients. Client Groups and Legal Entity Registry." },
+  { batch: "Batch 5", endpoint: "Clients — Get by ID", path: "GET /api/v1/clients/{id}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves a client by its unique identifier." },
+  { batch: "Batch 5", endpoint: "Clients — Get by MDM Client", path: "GET /api/v1/clients/by-mdm-client/{mdmClientId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all clients for a given MDM client identifier." },
+  { batch: "Batch 5", endpoint: "Legal Entities — Get All", path: "GET /api/v1/legal-entities", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all legal entities for a client. Ownership chains and jurisdictions included." },
+  { batch: "Batch 5", endpoint: "Legal Entities — Get by ID", path: "GET /api/v1/legal-entities/{id}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves a legal entity by its unique identifier." },
+  { batch: "Batch 5", endpoint: "Legal Entities — Get by MDM Legal Entity", path: "GET /api/v1/legal-entities/by-mdm-legal-entity/{mdmLegalEntityId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves a legal entity by its MDM legal entity identifier." },
+  { batch: "Batch 5", endpoint: "Entity Characteristics — Get All", path: "GET /api/v1/entity-characteristics", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves entity characteristics. Includes DataSourceType and RBAC context." },
+  { batch: "Batch 5", endpoint: "Entity Characteristics — Get by MDM Legal Entity", path: "GET /api/v1/entity-characteristics/by-mdm-legal-entity/{mdmLegalEntityId}", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves entity characteristics by MDM legal entity. Consumer Guide missing RBAC context field." },
+  { batch: "Batch 5", endpoint: "Ownership Relationships — Get by Parent", path: "GET /api/v1/ownership-relationships/by-parent/{parentEntityId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all ownership relationships where the given entity is the parent." },
+  { batch: "Batch 5", endpoint: "Ownership Relationships — Get by Subsidiary", path: "GET /api/v1/ownership-relationships/by-subsidiary/{subsidiaryEntityId}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves all ownership relationships where the given entity is a subsidiary." },
+  { batch: "Batch 5", endpoint: "Jurisdiction Assignments — Get", path: "GET /api/v1/jurisdiction-assignments", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "PDC. Retrieves jurisdiction assignments for an entity." },
+  { batch: "Batch 5", endpoint: "Entity Profile Attributes — Get", path: "GET /api/v1/entity-profile-attributes", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves entity profile attributes. Used for tax profile determination." },
+
+  // ── Batch 6 — Practitioner Review, Adjustments & Lock ─────────────────────
+  { batch: "Batch 6", endpoint: "Review Tasks — Get", path: "GET /api/v1/review-tasks", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves review tasks. Six-state lifecycle (DRAFT→SUBMITTED→APPROVED→APPLIED→LOCKED)." },
+  { batch: "Batch 6", endpoint: "Review Tasks — Generate", path: "POST /api/v1/review-tasks/generate", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Generates review tasks from current data state." },
+  { batch: "Batch 6", endpoint: "TDC Records v2 — Review Tasks", path: "GET /api/v2/tdc-records/review-tasks", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves review tasks scoped to TDC records. Roger read surface." },
+  { batch: "Batch 6", endpoint: "Adjustments — Create", path: "POST /api/Adjustments", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Creates a single governed adjustment in DRAFT status. Linked to a tax-ready record." },
+  { batch: "Batch 6", endpoint: "Adjustments — Get by Entity Scope", path: "GET /api/Adjustments", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves all adjustments scoped by entity identifier and tax year." },
+  { batch: "Batch 6", endpoint: "Adjustments — Bulk Create", path: "POST /api/Adjustments/bulk", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Creates a batch of governed adjustments atomically in DRAFT status." },
+  { batch: "Batch 6", endpoint: "Adjustments — Submit for Approval", path: "PUT /api/Adjustments/{id}/submit", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Submits a DRAFT adjustment for approval. Resolves applicable approval routing rule." },
+  { batch: "Batch 6", endpoint: "Adjustments — Approve", path: "PUT /api/Adjustments/{id}/approve", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Approves a SUBMITTED adjustment. Captures approval routing rule version at approval time." },
+  { batch: "Batch 6", endpoint: "Adjustments — Reject", path: "PUT /api/Adjustments/{id}/reject", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Rejects a SUBMITTED adjustment with a required rejection reason. Immutably preserved." },
+  { batch: "Batch 6", endpoint: "Sign-Off — Get", path: "GET /api/v1/sign-off", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves sign-off records. Non-repudiable SHA-256 hash sign-off." },
+  { batch: "Batch 6", endpoint: "Sign-Off — Create", path: "POST /api/v1/sign-off", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Creates a sign-off record. Consumer Guide missing hash verification schema." },
+  { batch: "Batch 6", endpoint: "Approval Routing Rules — Get by Client", path: "GET /api/v1/approval-routing-rules/by-client", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves all active client-level and entity-level approval routing rules." },
+  { batch: "Batch 6", endpoint: "Approver Roles — Get All", path: "GET /api/v1/approver-roles", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves all active approver role definitions." },
+  { batch: "Batch 6", endpoint: "TDC Records v2 — Finalization State", path: "GET /api/v2/tdc-records/finalization-state", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves finalization state for TDC records. Lock events and sign-off status." },
+  { batch: "Batch 6", endpoint: "TDC Records v2 — Lock Events", path: "GET /api/v2/tdc-records/lock-events", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves lock events for TDC records. Audit trail for lock/unlock operations." },
+  { batch: "Batch 6", endpoint: "Entity Finalization — Get", path: "GET /api/v1/entity-finalization", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves entity finalization state. Used for sign-off gate enforcement." },
+  { batch: "Batch 6", endpoint: "Entity Review Status — Get", path: "GET /api/v1/entity-review-status", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves entity review status. Aggregated review task completion state." },
+
+  // ── Batch 7 — Client Tax Profile & Eligibility ────────────────────────────
+  { batch: "Batch 7", endpoint: "Tax Profile Determinations — Get", path: "GET /api/v1/tax-profile-determinations", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves tax profile determinations. TaxProfile per EntityId with filing status, tax year, jurisdiction." },
+  { batch: "Batch 7", endpoint: "Tax Profile Determinations — Get by ID", path: "GET /api/v1/tax-profile-determinations/{id}", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves a specific tax profile determination by ID." },
+  { batch: "Batch 7", endpoint: "Tax Profile Determinations — Gate Status", path: "GET /api/v1/tax-profile-determinations/gate-status", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves gate status for tax profile determinations. Blocks INELIGIBLE entities from downstream workflow." },
+  { batch: "Batch 7", endpoint: "Tax Profile Determinations — Redetermine", path: "POST /api/v1/tax-profile-determinations/redetermine", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Triggers re-determination of tax profile for an entity." },
+  { batch: "Batch 7", endpoint: "Controlled Group Determinations — Get", path: "GET /api/v1/controlled-group-determinations", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Returns active controlled-group determinations including the given entity." },
+  { batch: "Batch 7", endpoint: "Controlled Group Determinations — Run", path: "POST /api/v1/controlled-group-determinations", status: "Delivered", consumerGuide: "Partial", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Runs the requested ownership tests against the entity set. Consumer Guide missing consolidated filing flag." },
+  { batch: "Batch 7", endpoint: "Eligibility Tier Conditions — Get", path: "GET /api/v1/eligibility-tier-conditions", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Returns active tier conditions filtered by entity type / rule / tier. Three-Tier Eligibility Model." },
+  { batch: "Batch 7", endpoint: "Flag and Review — Get", path: "GET /api/v1/flag-and-review", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Retrieves FLAG_AND_REVIEW records. Entities requiring manual review before eligibility gate." },
+  { batch: "Batch 7", endpoint: "Flag and Review — Confirm", path: "POST /api/v1/flag-and-review/{id}/confirm", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Confirms a FLAG_AND_REVIEW record. Allows entity to proceed through eligibility gate." },
+  { batch: "Batch 7", endpoint: "Flag and Review — Override", path: "POST /api/v1/flag-and-review/{id}/override", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Overrides a FLAG_AND_REVIEW record with documented justification." },
+  { batch: "Batch 7", endpoint: "TDC Records v3 — Controlled Groups", path: "GET /api/v3/tdc-records/controlled-groups", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Roger read surface for controlled group determinations." },
+  { batch: "Batch 7", endpoint: "TDC Records v3 — Determinations", path: "GET /api/v3/tdc-records/determinations", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Roger read surface for tax profile determinations." },
+  { batch: "Batch 7", endpoint: "TDC Records v3 — Eligibility Gate", path: "GET /api/v3/tdc-records/eligibility-gate", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Roger read surface for eligibility gate status." },
+  { batch: "Batch 7", endpoint: "TDC Records v3 — Flag and Review", path: "GET /api/v3/tdc-records/flag-and-review", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Roger read surface for FLAG_AND_REVIEW records." },
+  { batch: "Batch 7", endpoint: "Corporate Profile Criteria — Get", path: "GET /api/v1/corporate-profile-criteria", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Returns active corporate profile criteria for a tax year." },
+  { batch: "Batch 7", endpoint: "Corporate Profile Thresholds — Get", path: "GET /api/v1/corporate-profile-thresholds", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Returns active corporate profile thresholds for a tax year." },
+  { batch: "Batch 7", endpoint: "Determination Confidence Thresholds — Get", path: "GET /api/v1/determination-confidence-thresholds", status: "Delivered", consumerGuide: "Aligned", missingFromGuide: false, missingFromSwagger: false, notes: "TDC. Returns active confidence thresholds for a tax year." },
+
+  // ── Batch 8 — Exceptions & Remediation (In Progress) ──────────────────────
+  { batch: "Batch 8", endpoint: "TDC Records v2 — Known Mapping", path: "GET /api/v2/tdc-records/known-mapping", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: false, notes: "TDC. Retrieves known mapping records. Part of exception identification surface. In progress." },
+  { batch: "Batch 8", endpoint: "Proposal Decisions — Supersede", path: "POST /api/v1/proposal-decisions/supersede", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: false, notes: "TDC. Supersedes an existing proposal decision. Used in remediation workflow. In progress." },
+  { batch: "Batch 8", endpoint: "Sign-Off — Unlock", path: "POST /api/v1/sign-off/{id}/unlock", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: false, notes: "TDC. Unlocks a previously locked sign-off. Used in exception remediation. In progress." },
+  { batch: "Batch 8", endpoint: "EDGAR Corpus — Get Versions", path: "GET /api/v1/edgar-corpus/versions", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: false, notes: "PDC. Retrieves EDGAR corpus versions. Reference data for exception classification. In progress." },
 ];
 
 const ROGER_DATA_POINTS: RogerDataPoint[] = [
@@ -364,6 +449,7 @@ function deriveRogerAvailability(batchKey: string, statuses: Record<string, stri
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const DELIVERY_STYLE: Record<DeliveryStatus, { bg: string; text: string; border: string }> = {
+  "Complete":                   { bg: "bg-emerald-50",  text: "text-emerald-800", border: "border-emerald-200" },
   "Delivered":                  { bg: "bg-emerald-50",  text: "text-emerald-800", border: "border-emerald-200" },
   "In Progress":                { bg: "bg-blue-50",     text: "text-blue-800",    border: "border-blue-200" },
   "Carried Forward":            { bg: "bg-amber-50",    text: "text-amber-800",   border: "border-amber-200" },
@@ -648,25 +734,30 @@ export default function BatchControlPanel() {
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   // Classify each batch by live context status
-  const liveDeliveredBatches = DELIVERED_BATCHES.filter(b => {
-    const s = statuses[b.key as BatchKey];
-    return s === "Delivered" || s === "Complete";
-  }).map(b => b.label);
+  // Build a full label map from DELIVERED_BATCHES for PO Summary (covers all tracked batches)
+  const BATCH_LABEL_MAP: Record<string, string> = Object.fromEntries(
+    DELIVERED_BATCHES.map(b => [b.key, b.label])
+  );
 
-  const liveInProgressBatches = DELIVERED_BATCHES.filter(b => {
-    const s = statuses[b.key as BatchKey];
-    return s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready" || s === "MVP" || s === "Stretch";
-  }).map(b => b.label);
+  const liveDeliveredBatches = BATCH_KEYS.filter(k => {
+    const s = statuses[k];
+    return (s === "Delivered" || s === "Complete") && BATCH_LABEL_MAP[k];
+  }).map(k => BATCH_LABEL_MAP[k]);
 
-  const liveBlockedBatches = DELIVERED_BATCHES.filter(b => {
-    const s = statuses[b.key as BatchKey];
-    return s === "Blocked";
-  }).map(b => b.label);
+  const liveInProgressBatches = BATCH_KEYS.filter(k => {
+    const s = statuses[k];
+    return (s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready" || s === "MVP" || s === "Stretch") && BATCH_LABEL_MAP[k];
+  }).map(k => BATCH_LABEL_MAP[k]);
 
-  const liveNotStartedBatches = DELIVERED_BATCHES.filter(b => {
-    const s = statuses[b.key as BatchKey];
-    return s === "Not Started";
-  }).map(b => b.label);
+  const liveBlockedBatches = BATCH_KEYS.filter(k => {
+    const s = statuses[k];
+    return s === "Blocked" && BATCH_LABEL_MAP[k];
+  }).map(k => BATCH_LABEL_MAP[k]);
+
+  const liveNotStartedBatches = BATCH_KEYS.filter(k => {
+    const s = statuses[k];
+    return s === "Not Started" && BATCH_LABEL_MAP[k];
+  }).map(k => BATCH_LABEL_MAP[k]);
 
   // ── Live Swagger entries — status derived from batch context ────────────────────────────────────────────────────────────────
   const liveSwaggerEntries: SwaggerEntry[] = SWAGGER_ENTRIES.map(e => ({
