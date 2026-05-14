@@ -103,11 +103,38 @@ function FailureCard({ text }: { text: string }) {
 }
 
 // ─── Batch row ────────────────────────────────────────────────────────────────
-function BatchRow({ id, name, scope, note }: { id: string; name: string; scope: string; note?: string }) {
-  const isActive = ["FC", "1", "2", "2A"].includes(id);
-  const isCommitted = ["3", "4", "5", "6", "7", "8"].includes(id);
-  const badgeColor = isActive ? "#059669" : isCommitted ? "#2563eb" : "#64748b";
-  const badgeLabel = isActive ? "Active" : isCommitted ? "PI 2" : "Stretch";
+// Maps Home.tsx batch IDs ("FC", "1", "2A", etc.) to BatchStatusContext keys
+function toBatchKey(id: string): string {
+  if (id === "FC") return "foundation-core";
+  return id.toLowerCase();
+}
+
+function BatchRow({ id, name, scope }: { id: string; name: string; scope: string }) {
+  const { statuses } = useBatchStatus();
+  const key = toBatchKey(id);
+  const ctxStatus = statuses[key as keyof typeof statuses];
+
+  // Derive badge appearance from live context status
+  let badgeLabel: string;
+  let badgeBg: string;
+  let badgeText: string;
+  let dotColor: string;
+
+  if (ctxStatus === "Complete") {
+    badgeLabel = "Done"; badgeBg = "#f0fdf4"; badgeText = "#166534"; dotColor = "#059669";
+  } else if (ctxStatus === "In Progress" || ctxStatus === "MVP" || ctxStatus === "Stretch") {
+    badgeLabel = "Active"; badgeBg = "#fff7ed"; badgeText = "#9a3412"; dotColor = "#ea580c";
+  } else if (ctxStatus === "Ready for QA" || ctxStatus === "QA In Progress" || ctxStatus === "Demo Ready") {
+    badgeLabel = "QA"; badgeBg = "#faf5ff"; badgeText = "#6b21a8"; dotColor = "#a855f7";
+  } else if (ctxStatus === "Delivered") {
+    badgeLabel = "Delivered"; badgeBg = "#ecfdf5"; badgeText = "#065f46"; dotColor = "#10b981";
+  } else if (ctxStatus === "Blocked") {
+    badgeLabel = "Blocked"; badgeBg = "#fef2f2"; badgeText = "#991b1b"; dotColor = "#ef4444";
+  } else {
+    // Not Started / unknown
+    badgeLabel = "Planned"; badgeBg = "#f8fafc"; badgeText = "#475569"; dotColor = "#94a3b8";
+  }
+
   return (
     <div style={{
       display: "grid", gridTemplateColumns: "60px 1fr 1fr auto",
@@ -124,9 +151,15 @@ function BatchRow({ id, name, scope, note }: { id: string; name: string; scope: 
       <div style={{ color: "#1e293b", fontWeight: 600 }}>{name}</div>
       <div style={{ color: "#475569" }}>{scope}</div>
       <div style={{
+        display: "flex", alignItems: "center", gap: "4px",
         fontSize: "10px", fontWeight: 700, letterSpacing: "0.05em",
-        color: badgeColor, whiteSpace: "nowrap",
-      }}>{badgeLabel}</div>
+        backgroundColor: badgeBg, color: badgeText,
+        border: `1px solid ${dotColor}30`,
+        borderRadius: "4px", padding: "2px 7px", whiteSpace: "nowrap",
+      }}>
+        <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: dotColor, flexShrink: 0, display: "inline-block" }} />
+        {badgeLabel}
+      </div>
     </div>
   );
 }
