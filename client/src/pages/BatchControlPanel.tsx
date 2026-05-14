@@ -776,6 +776,23 @@ export default function BatchControlPanel() {
   const rogerAvailable = liveRogerPoints.filter(d => d.availability === "Available").length;
   const rogerBlocked = liveRogerPoints.filter(d => d.availability === "Not Available").length;
 
+  // ── TDC / PDC split counters ────────────────────────────────────────────────
+  const tdcEntries = liveSwaggerEntries.filter(e => e.notes?.startsWith("TDC."));
+  const pdcEntries = liveSwaggerEntries.filter(e => e.notes?.startsWith("PDC."));
+  const tdcDelivered = tdcEntries.filter(e => e.status === "Delivered").length;
+  const pdcDelivered = pdcEntries.filter(e => e.status === "Delivered").length;
+  const tdcInProgress = tdcEntries.filter(e => e.status === "In Progress").length;
+  const pdcInProgress = pdcEntries.filter(e => e.status === "In Progress").length;
+  const tdcMissing = tdcEntries.filter(e => e.status === "Missing" || e.missingFromSwagger).length;
+  const pdcMissing = pdcEntries.filter(e => e.status === "Missing" || e.missingFromSwagger).length;
+  const tdcTotal = tdcEntries.length;
+  const pdcTotal = pdcEntries.length;
+
+  const tdcRogerPoints = liveRogerPoints.filter(d => d.source?.includes("TDC"));
+  const pdcRogerPoints = liveRogerPoints.filter(d => d.source?.includes("PDC") && !d.source?.includes("TDC"));
+  const tdcRogerAvailable = tdcRogerPoints.filter(d => d.availability === "Available").length;
+  const pdcRogerAvailable = pdcRogerPoints.filter(d => d.availability === "Available").length;
+
   // Carry-forward: open items from batches that are NOT yet complete
   const liveCarryForward = DELIVERED_BATCHES
     .filter(b => {
@@ -807,9 +824,9 @@ export default function BatchControlPanel() {
       ? `\nNOT STARTED (${liveNotStartedBatches.length}):\n${liveNotStartedBatches.map(b => `• ${b}`).join("\n")}`
       : "",
     "",
-    `API COVERAGE:\n• ${apisDelivered} of ${liveSwaggerEntries.length} endpoints delivered\n• ${apisMissing} endpoints missing from Swagger or Consumer Guide`,
+    `API COVERAGE (${apisDelivered} of ${liveSwaggerEntries.length} endpoints delivered):\n  TDC: ${tdcDelivered} delivered${tdcInProgress > 0 ? `, ${tdcInProgress} in progress` : ""} of ${tdcTotal} total${tdcMissing > 0 ? ` · ${tdcMissing} missing from Consumer Guide` : ""}\n  PDC: ${pdcDelivered} delivered${pdcInProgress > 0 ? `, ${pdcInProgress} in progress` : ""} of ${pdcTotal} total${pdcMissing > 0 ? ` · ${pdcMissing} missing from Consumer Guide` : ""}${apisMissing > 0 ? `\n• ${apisMissing} endpoint(s) missing from Swagger or Consumer Guide` : "\n• All delivered endpoints aligned with Consumer Guide"}`,
     "",
-    `ROGER UI DATA AVAILABILITY:\n• ${rogerAvailable} of ${liveRogerPoints.length} data points available to Roger\n• ${rogerBlocked} data points not yet available`,
+    `ROGER UI DATA AVAILABILITY (${rogerAvailable} of ${liveRogerPoints.length} data points available):\n  TDC: ${tdcRogerAvailable} of ${tdcRogerPoints.length} data points available\n  PDC: ${pdcRogerAvailable} of ${pdcRogerPoints.length} data points available\n• ${rogerBlocked} data point(s) not yet available to Roger`,
     "",
     liveCarryForward.length > 0
       ? `CARRY-FORWARD ITEMS:\n${liveCarryForward.map(o => `• ${o}`).join("\n")}`
