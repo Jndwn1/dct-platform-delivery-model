@@ -16,6 +16,36 @@ import {
 } from "@/contexts/BatchStatusContext";
 import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send, Download, FileSpreadsheet, FileJson, AlignLeft, Filter } from "lucide-react";
 
+// ── BatchExportButton ───────────────────────────────────────────────────────
+function BatchExportButton({ label, icon, onClick }: { label: string; icon: string; onClick: () => void }) {
+  const [clicked, setClicked] = useState(false);
+  const handleClick = () => {
+    onClick();
+    setClicked(true);
+    setTimeout(() => setClicked(false), 1500);
+  };
+  const iconEl = clicked ? <Check className="w-3 h-3" /> :
+    icon === "copy" ? <Copy className="w-3 h-3" /> :
+    icon === "clipboard" ? <ClipboardCopy className="w-3 h-3" /> :
+    icon === "mail" ? <Send className="w-3 h-3" /> :
+    icon === "json" ? <FileJson className="w-3 h-3" /> :
+    icon === "md" ? <AlignLeft className="w-3 h-3" /> :
+    <Download className="w-3 h-3" />;
+  return (
+    <button
+      onClick={handleClick}
+      className={`flex items-center gap-1 text-xs px-2 py-1 rounded border transition-colors font-medium ${
+        clicked
+          ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+      }`}
+    >
+      {iconEl}
+      {clicked ? "Done" : label}
+    </button>
+  );
+}
+
 // ── CopyNoteButton ────────────────────────────────────────────────────────────
 function CopyNoteButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -1147,164 +1177,306 @@ export default function BatchControlPanel() {
           cascadeDone={cascade.completedSteps.includes(1)}
         />
         {/* ── Export Panel ── */}
-        <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mr-1">
-            <Download className="w-3.5 h-3.5" />
-            Export Batch Delivery Data
-          </div>
-          {/* Filter selector */}
-          <div className="flex items-center gap-1.5">
-            <Filter className="w-3 h-3 text-slate-400" />
-            <select
-              id="batchExportFilter"
-              className="text-xs border border-slate-200 rounded px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#003865]"
-              defaultValue="all"
-              onChange={e => {
-                (window as any)._batchExportFilter = e.target.value;
-              }}
-            >
-              <option value="all">All Batches</option>
-              <option value="complete">Complete Only</option>
-              <option value="inprogress">In Progress Only</option>
-              <option value="open">Has Open Items</option>
-            </select>
-          </div>
-          {/* CSV Export */}
-          <button
-            onClick={() => {
-              const filterVal = (window as any)._batchExportFilter ?? "all";
-              const rows = DELIVERED_BATCHES.filter(b => {
-                const s = statuses[b.key as BatchKey] ?? "Not Started";
-                if (filterVal === "complete") return s === "Complete" || s === "Delivered";
-                if (filterVal === "inprogress") return s === "In Progress";
-                if (filterVal === "open") return b.open.length > 0;
-                return true;
-              });
-              const header = ["Batch","Owner","Status","Readiness","Delivered Items","Validated Items","Open Items","PO Note"];
-              const csvRows = rows.map(b => [
-                `"${b.label}"`,
-                `"${b.owner}"`,
-                `"${statuses[b.key as BatchKey] ?? "Not Started"}"`,
-                `"${b.readiness}"`,
-                `"${b.delivered.join(" | ")}"`,
-                `"${b.validated.join(" | ")}"`,
-                `"${b.open.join(" | ")}"`,
-                `"${b.poNote.replace(/"/g, "'")}"`
-              ]);
-              const csv = [header.join(","), ...csvRows.map(r => r.join(","))].join("\n");
-              const blob = new Blob([csv], { type: "text/csv" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a"); a.href = url;
-              a.download = `DCT_Batch_Delivery_${new Date().toISOString().slice(0,10)}.csv`;
-              a.click(); URL.revokeObjectURL(url);
-            }}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors font-medium"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            Export CSV
-          </button>
-          {/* JSON Export */}
-          <button
-            onClick={() => {
-              const filterVal = (window as any)._batchExportFilter ?? "all";
-              const rows = DELIVERED_BATCHES.filter(b => {
-                const s = statuses[b.key as BatchKey] ?? "Not Started";
-                if (filterVal === "complete") return s === "Complete" || s === "Delivered";
-                if (filterVal === "inprogress") return s === "In Progress";
-                if (filterVal === "open") return b.open.length > 0;
-                return true;
-              }).map(b => ({
-                batch: b.label, owner: b.owner,
-                status: statuses[b.key as BatchKey] ?? "Not Started",
-                readiness: b.readiness,
-                delivered: b.delivered,
-                validated: b.validated,
-                open: b.open,
-                poNote: b.poNote,
-              }));
-              const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a"); a.href = url;
-              a.download = `DCT_Batch_Delivery_${new Date().toISOString().slice(0,10)}.json`;
-              a.click(); URL.revokeObjectURL(url);
-            }}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors font-medium"
-          >
-            <FileJson className="w-3.5 h-3.5" />
-            Export JSON
-          </button>
-          {/* Formatted Text Export */}
-          <button
-            onClick={() => {
-              const filterVal = (window as any)._batchExportFilter ?? "all";
-              const rows = DELIVERED_BATCHES.filter(b => {
-                const s = statuses[b.key as BatchKey] ?? "Not Started";
-                if (filterVal === "complete") return s === "Complete" || s === "Delivered";
-                if (filterVal === "inprogress") return s === "In Progress";
-                if (filterVal === "open") return b.open.length > 0;
-                return true;
-              });
-              const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-              const lines = [
-                `DCT PLATFORM — DELIVERED WORK BY BATCH (${today})`,
-                `Generated from: DCT Gate Verification Dashboard`,
-                `Filter: ${filterVal === "all" ? "All Batches" : filterVal === "complete" ? "Complete Only" : filterVal === "inprogress" ? "In Progress Only" : "Has Open Items"}`,
-                `Total batches: ${rows.length}`,
+        {(() => {
+          // ── PI membership map for filter ──
+          const PI_MAP: Record<string,string> = {
+            "foundation-core":"PI 1","1":"PI 1","2":"PI 1","2a":"PI 1","3":"PI 1",
+            "4":"PI 2","5":"PI 2","6":"PI 2","7":"PI 2","8":"PI 2","9":"PI 2","10":"PI 2","11":"PI 2",
+            "12":"PI 3","13":"PI 3","14":"PI 3","15":"PI 3","16":"PI 3","17":"PI 3","18":"PI 3","19":"PI 3","24":"PI 3","25":"PI 3",
+            "20":"PI 4","21":"PI 4","22":"PI 4","23":"PI 4",
+          };
+          const DEMO_READY_KEYS = new Set(["foundation-core","1","2","2a","3","4","5","6","7"]);
+          const GOV_KEYS = new Set(["3","4","6","7","9","11","12","14","16","24","25"]);
+
+          const [exportFilter, setExportFilter] = useState<{pi:string;system:string;status:string;demoReady:boolean;govOnly:boolean}>({
+            pi:"all", system:"all", status:"all", demoReady:false, govOnly:false
+          });
+          const [emailTemplate, setEmailTemplate] = useState<"executive"|"po-weekly"|"qa-readiness">("po-weekly");
+          const [execRecapCopied, setExecRecapCopied] = useState(false);
+          const [allPoNotesCopied, setAllPoNotesCopied] = useState(false);
+
+          const applyFilter = (batches: typeof DELIVERED_BATCHES) => batches.filter(b => {
+            const s = statuses[b.key as BatchKey] ?? "Not Started";
+            const pi = PI_MAP[b.key] ?? "";
+            if (exportFilter.pi !== "all" && pi !== exportFilter.pi) return false;
+            if (exportFilter.system !== "all") {
+              const sys = exportFilter.system;
+              if (sys === "PDC" && !b.owner.includes("PDC")) return false;
+              if (sys === "TDC" && !b.owner.includes("TDC")) return false;
+            }
+            if (exportFilter.status !== "all") {
+              if (exportFilter.status === "complete" && s !== "Complete" && s !== "Delivered") return false;
+              if (exportFilter.status === "inprogress" && s !== "In Progress") return false;
+              if (exportFilter.status === "open" && b.open.length === 0) return false;
+            }
+            if (exportFilter.demoReady && !DEMO_READY_KEYS.has(b.key)) return false;
+            if (exportFilter.govOnly && !GOV_KEYS.has(b.key)) return false;
+            return true;
+          });
+
+          const buildBatchPayload = (b: typeof DELIVERED_BATCHES[0]) => ({
+            batchId: b.key,
+            batchName: b.label,
+            pi: PI_MAP[b.key] ?? "Unknown",
+            systemOwner: b.owner,
+            status: statuses[b.key as BatchKey] ?? "Not Started",
+            deliveryWindow: b.readiness,
+            demoReady: DEMO_READY_KEYS.has(b.key),
+            governanceFlags: GOV_KEYS.has(b.key) ? ["Governance-Aligned"] : [],
+            delivered: b.delivered,
+            validated: b.validated,
+            openItems: b.open,
+            dependencies: [],
+            risks: b.open.filter(o => o.toLowerCase().includes("risk") || o.toLowerCase().includes("block")),
+            poNote: b.poNote,
+            lastUpdated: new Date().toISOString(),
+          });
+
+          const buildEmailText = (b: typeof DELIVERED_BATCHES[0], template: typeof emailTemplate) => {
+            const s = statuses[b.key as BatchKey] ?? "Not Started";
+            if (template === "executive") {
+              return [
+                `${b.label}`,
+                `Status: ${s} | System: ${b.owner} | PI: ${PI_MAP[b.key] ?? "—"}`,
                 "",
-                "═".repeat(60),
+                `Summary: ${b.poNote}`,
                 "",
-                ...rows.flatMap(b => [
-                  `BATCH: ${b.label}`,
-                  `Owner: ${b.owner}  |  Status: ${statuses[b.key as BatchKey] ?? "Not Started"}`,
-                  `Readiness: ${b.readiness}`,
-                  "",
-                  "DELIVERED:",
-                  ...b.delivered.map(d => `  ✓ ${d}`),
-                  "",
-                  "VALIDATED:",
-                  ...(b.validated.length > 0 ? b.validated.map(v => `  ✓ ${v}`) : ["  (not yet validated)"]),
-                  "",
-                  "OPEN / CARRY-FORWARD:",
-                  ...(b.open.length > 0 ? b.open.map(o => `  › ${o}`) : ["  (none)"]),
-                  "",
-                  `PO NOTE: ${b.poNote}`,
-                  "",
-                  "─".repeat(60),
-                  "",
-                ]),
+                b.open.length > 0 ? `Open Items (${b.open.length}): ${b.open.join("; ")}` : "No open items.",
               ].join("\n");
-              const blob = new Blob([lines], { type: "text/plain" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a"); a.href = url;
-              a.download = `DCT_Batch_Delivery_${new Date().toISOString().slice(0,10)}.txt`;
-              a.click(); URL.revokeObjectURL(url);
-            }}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors font-medium"
-          >
-            <AlignLeft className="w-3.5 h-3.5" />
-            Export Text
-          </button>
-          {/* Copy All PO Notes */}
-          <button
-            onClick={() => {
-              const filterVal = (window as any)._batchExportFilter ?? "all";
-              const rows = DELIVERED_BATCHES.filter(b => {
+            }
+            if (template === "qa-readiness") {
+              return [
+                `QA READINESS — ${b.label}`,
+                `Status: ${s} | Readiness: ${b.readiness}`,
+                "",
+                "Validated:",
+                ...(b.validated.length > 0 ? b.validated.map(v => `• ${v}`) : ["• Not yet validated"]),
+                "",
+                "Open / Carry-Forward:",
+                ...(b.open.length > 0 ? b.open.map(o => `• ${o}`) : ["• None"]),
+              ].join("\n");
+            }
+            // po-weekly (default)
+            return [
+              `${b.label}`,
+              `Status: ${s}`,
+              `System: ${b.owner}`,
+              "",
+              "Delivered:",
+              ...b.delivered.map(d => `• ${d}`),
+              "",
+              "Validated:",
+              ...(b.validated.length > 0 ? b.validated.map(v => `• ${v}`) : ["• (none yet)"]),
+              "",
+              "Open / Carry Forward:",
+              ...(b.open.length > 0 ? b.open.map(o => `• ${o}`) : ["• None"]),
+              "",
+              `PO Summary:\n${b.poNote}`,
+            ].join("\n");
+          };
+
+          const buildMarkdown = (b: typeof DELIVERED_BATCHES[0]) => {
+            const s = statuses[b.key as BatchKey] ?? "Not Started";
+            return [
+              `## ${b.label}`,
+              `**Status:** ${s} | **System:** ${b.owner} | **PI:** ${PI_MAP[b.key] ?? "—"}`,
+              `**Readiness:** ${b.readiness}`,
+              "",
+              "### Delivered",
+              ...b.delivered.map(d => `- ${d}`),
+              "",
+              "### Validated",
+              ...(b.validated.length > 0 ? b.validated.map(v => `- ${v}`) : ["- *(not yet validated)*"]),
+              "",
+              "### Open / Carry-Forward",
+              ...(b.open.length > 0 ? b.open.map(o => `- ${o}`) : ["- *(none)*"]),
+              "",
+              "### PO Status Note",
+              b.poNote,
+            ].join("\n");
+          };
+
+          const buildWiki = (rows: typeof DELIVERED_BATCHES) => {
+            const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+            return [
+              `= DCT Platform — Delivered Work by Batch =`,
+              `Generated: ${today}`,
+              "",
+              ...rows.flatMap(b => {
                 const s = statuses[b.key as BatchKey] ?? "Not Started";
-                if (filterVal === "complete") return s === "Complete" || s === "Delivered";
-                if (filterVal === "inprogress") return s === "In Progress";
-                if (filterVal === "open") return b.open.length > 0;
-                return true;
-              });
-              const text = rows.map(b => `${b.label.split(" — ")[0]}: ${b.poNote}`).join("\n\n");
-              navigator.clipboard.writeText(text);
-            }}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors font-medium"
-          >
-            <ClipboardCopy className="w-3.5 h-3.5" />
-            Copy PO Notes
-          </button>
-          <span className="ml-auto text-xs text-slate-400">{DELIVERED_BATCHES.length} batches tracked</span>
-        </div>
+                return [
+                  `== ${b.label} ==`,
+                  `'''Status:''' ${s} | '''System:''' ${b.owner}`,
+                  "",
+                  "'''Delivered:'''",
+                  ...b.delivered.map(d => `* ${d}`),
+                  "",
+                  "'''Validated:'''",
+                  ...(b.validated.length > 0 ? b.validated.map(v => `* ${v}`) : ["* (not yet validated)"]),
+                  "",
+                  "'''Open / Carry-Forward:'''",
+                  ...(b.open.length > 0 ? b.open.map(o => `* ${o}`) : ["* (none)"]),
+                  "",
+                  `'''PO Note:''' ${b.poNote}`,
+                  "",
+                ];
+              }),
+            ].join("\n");
+          };
+
+          const buildExecRecap = (rows: typeof DELIVERED_BATCHES) => {
+            const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+            const complete = rows.filter(b => { const s = statuses[b.key as BatchKey]; return s === "Complete" || s === "Delivered"; });
+            const inProg = rows.filter(b => statuses[b.key as BatchKey] === "In Progress");
+            const openItems = rows.flatMap(b => b.open.map(o => `${b.label.split(" — ")[0]}: ${o}`));
+            const piCounts: Record<string,number> = {};
+            complete.forEach(b => { const p = PI_MAP[b.key] ?? "Unknown"; piCounts[p] = (piCounts[p] ?? 0) + 1; });
+            return [
+              `DCT PLATFORM — EXECUTIVE DELIVERY RECAP`,
+              `${today} | Source: DCT Gate Verification Dashboard`,
+              "",
+              "OVERALL COMPLETION",
+              `${complete.length} of ${rows.length} tracked batches are complete.`,
+              inProg.length > 0 ? `${inProg.length} batch(es) currently in progress: ${inProg.map(b => b.label.split(" — ")[0]).join(", ")}.` : "No batches currently in progress.",
+              "",
+              "PI PROGRESS SUMMARY",
+              ...Object.entries(piCounts).map(([pi, n]) => `${pi}: ${n} batch(es) complete`),
+              "",
+              "GOVERNANCE MILESTONES",
+              "• Schema Lock enforced on all delivered batches",
+              "• Invariant Lock active — no breaking changes permitted post-delivery",
+              "• Contract Publication confirmed for all Complete batches",
+              complete.some(b => GOV_KEYS.has(b.key)) ? `• ${complete.filter(b => GOV_KEYS.has(b.key)).length} governance-aligned batch(es) delivered` : "",
+              "",
+              "CARRY-FORWARD SUMMARY",
+              openItems.length > 0
+                ? openItems.map(o => `• ${o}`).join("\n")
+                : "• No open carry-forward items across delivered batches.",
+              "",
+              "UPCOMING DEPENDENCIES",
+              inProg.length > 0
+                ? inProg.map(b => `• ${b.label.split(" — ")[0]} — ${b.readiness}`).join("\n")
+                : "• No active dependency blockers identified.",
+              "",
+              "OPEN RISK SUMMARY",
+              openItems.filter(o => o.toLowerCase().includes("risk") || o.toLowerCase().includes("block") || o.toLowerCase().includes("pending")).length > 0
+                ? openItems.filter(o => o.toLowerCase().includes("risk") || o.toLowerCase().includes("block") || o.toLowerCase().includes("pending")).map(o => `• ${o}`).join("\n")
+                : "• No active risks identified at this time.",
+            ].filter(Boolean).join("\n");
+          };
+
+          const downloadFile = (content: string, filename: string, type: string) => {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
+            URL.revokeObjectURL(url);
+          };
+
+          const filtered = applyFilter(DELIVERED_BATCHES);
+          const dateStr = new Date().toISOString().slice(0,10);
+
+          return (
+            <div className="border-b border-slate-200">
+              {/* Row 1: Filters */}
+              <div className="px-5 py-2.5 bg-slate-50 flex flex-wrap items-center gap-2 border-b border-slate-100">
+                <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 mr-1"><Filter className="w-3 h-3" /> Filter:</span>
+                <select className="text-xs border border-slate-200 rounded px-2 py-1 bg-white text-slate-700" value={exportFilter.pi} onChange={e => setExportFilter(f => ({...f, pi: e.target.value}))}>
+                  <option value="all">All PIs</option>
+                  <option value="PI 1">PI 1</option>
+                  <option value="PI 2">PI 2</option>
+                  <option value="PI 3">PI 3</option>
+                  <option value="PI 4">PI 4</option>
+                </select>
+                <select className="text-xs border border-slate-200 rounded px-2 py-1 bg-white text-slate-700" value={exportFilter.system} onChange={e => setExportFilter(f => ({...f, system: e.target.value}))}>
+                  <option value="all">All Systems</option>
+                  <option value="PDC">PDC Only</option>
+                  <option value="TDC">TDC Only</option>
+                </select>
+                <select className="text-xs border border-slate-200 rounded px-2 py-1 bg-white text-slate-700" value={exportFilter.status} onChange={e => setExportFilter(f => ({...f, status: e.target.value}))}>
+                  <option value="all">All Statuses</option>
+                  <option value="complete">Complete Only</option>
+                  <option value="inprogress">In Progress Only</option>
+                  <option value="open">Has Open Items</option>
+                </select>
+                <label className="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
+                  <input type="checkbox" checked={exportFilter.demoReady} onChange={e => setExportFilter(f => ({...f, demoReady: e.target.checked}))} className="rounded" />
+                  Demo-Ready Only
+                </label>
+                <label className="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
+                  <input type="checkbox" checked={exportFilter.govOnly} onChange={e => setExportFilter(f => ({...f, govOnly: e.target.checked}))} className="rounded" />
+                  Governance Features Only
+                </label>
+                <span className="ml-auto text-xs text-slate-400">{filtered.length} of {DELIVERED_BATCHES.length} batches</span>
+              </div>
+              {/* Row 2: Email Template + Export All actions */}
+              <div className="px-5 py-2.5 bg-slate-50 flex flex-wrap items-center gap-2">
+                <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 mr-1"><Download className="w-3 h-3" /> Export All:</span>
+                <select className="text-xs border border-slate-200 rounded px-2 py-1 bg-white text-slate-700" value={emailTemplate} onChange={e => setEmailTemplate(e.target.value as typeof emailTemplate)}>
+                  <option value="po-weekly">PO Weekly Status</option>
+                  <option value="executive">Executive Summary</option>
+                  <option value="qa-readiness">QA Readiness Summary</option>
+                </select>
+                {/* CSV */}
+                <button onClick={() => {
+                  const header = ["BatchId","BatchName","PI","SystemOwner","Status","DeliveryWindow","DemoReady","GovernanceFlags","Delivered","Validated","OpenItems","Risks","PONote","LastUpdated"];
+                  const rows = filtered.map(b => { const p = buildBatchPayload(b); return [
+                    `"${p.batchId}"`,`"${p.batchName}"`,`"${p.pi}"`,`"${p.systemOwner}"`,`"${p.status}"`,`"${p.deliveryWindow}"`,
+                    `"${p.demoReady}"`,`"${p.governanceFlags.join("|")}"`,`"${p.delivered.join(" | ")}"`,`"${p.validated.join(" | ")}"`,
+                    `"${p.openItems.join(" | ")}"`,`"${p.risks.join(" | ")}"`,`"${p.poNote.replace(/"/g,"'")}"`,`"${p.lastUpdated}"`
+                  ].join(","); });
+                  downloadFile([header.join(","), ...rows].join("\n"), `DCT_Batch_Delivery_${dateStr}.csv`, "text/csv");
+                }} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-medium">
+                  <FileSpreadsheet className="w-3 h-3" /> CSV
+                </button>
+                {/* JSON */}
+                <button onClick={() => {
+                  downloadFile(JSON.stringify(filtered.map(buildBatchPayload), null, 2), `DCT_Batch_Delivery_${dateStr}.json`, "application/json");
+                }} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 font-medium">
+                  <FileJson className="w-3 h-3" /> JSON
+                </button>
+                {/* Markdown */}
+                <button onClick={() => {
+                  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+                  const md = [`# DCT Platform — Delivered Work by Batch`, `*Generated: ${today} | Filter: ${exportFilter.pi !== "all" ? exportFilter.pi : "All PIs"} · ${exportFilter.system !== "all" ? exportFilter.system : "All Systems"} · ${exportFilter.status !== "all" ? exportFilter.status : "All Statuses"}*`, "", ...filtered.map(buildMarkdown)].join("\n\n");
+                  downloadFile(md, `DCT_Batch_Delivery_${dateStr}.md`, "text/markdown");
+                }} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100 font-medium">
+                  <AlignLeft className="w-3 h-3" /> Markdown
+                </button>
+                {/* Email Format */}
+                <button onClick={() => {
+                  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+                  const templateLabel = emailTemplate === "executive" ? "Executive Summary" : emailTemplate === "qa-readiness" ? "QA Readiness" : "PO Weekly Status";
+                  const content = [`DCT PLATFORM — ${templateLabel.toUpperCase()} (${today})`, "", "═".repeat(60), "", ...filtered.map(b => buildEmailText(b, emailTemplate) + "\n\n" + "─".repeat(60))].join("\n");
+                  downloadFile(content, `DCT_Batch_${emailTemplate}_${dateStr}.txt`, "text/plain");
+                }} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-medium">
+                  <FileText className="w-3 h-3" /> Email Format
+                </button>
+                {/* Wiki/Confluence */}
+                <button onClick={() => {
+                  downloadFile(buildWiki(filtered), `DCT_Batch_Wiki_${dateStr}.txt`, "text/plain");
+                }} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-medium">
+                  <Link2 className="w-3 h-3" /> Wiki/Confluence
+                </button>
+                {/* Generate Executive Recap */}
+                <button onClick={() => {
+                  const recap = buildExecRecap(filtered);
+                  navigator.clipboard.writeText(recap).then(() => { setExecRecapCopied(true); setTimeout(() => setExecRecapCopied(false), 2000); });
+                }} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-[#003865] bg-[#003865] text-white hover:bg-[#002a4d] font-medium">
+                  {execRecapCopied ? <Check className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
+                  {execRecapCopied ? "Copied!" : "Generate Exec Recap"}
+                </button>
+                {/* Copy All PO Notes */}
+                <button onClick={() => {
+                  const text = filtered.map(b => `${b.label.split(" — ")[0]}:\n${b.poNote}`).join("\n\n");
+                  navigator.clipboard.writeText(text).then(() => { setAllPoNotesCopied(true); setTimeout(() => setAllPoNotesCopied(false), 2000); });
+                }} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-medium">
+                  {allPoNotesCopied ? <Check className="w-3 h-3" /> : <ClipboardCopy className="w-3 h-3" />}
+                  {allPoNotesCopied ? "Copied!" : "Copy All PO Notes"}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
         <div className="divide-y divide-slate-100">
           {DELIVERED_BATCHES.map(b => {
             // Use live context status — overrides the hardcoded static value
@@ -1367,6 +1539,85 @@ export default function BatchControlPanel() {
                         <div className="text-xs text-slate-700">{b.poNote}</div>
                       </div>
                       <CopyButton text={b.poNote} />
+                    </div>
+                    {/* Per-batch export actions */}
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
+                      <span className="text-xs text-slate-400 font-medium mr-0.5">Export this batch:</span>
+                      <BatchExportButton label="Copy Summary" icon="copy" onClick={() => {
+                        const s = statuses[b.key as BatchKey] ?? "Not Started";
+                        const text = [
+                          `${b.label}`,
+                          `Status: ${s} | System: ${b.owner}`,
+                          `Readiness: ${b.readiness}`,
+                          "",
+                          "Delivered: " + b.delivered.join(", "),
+                          "Validated: " + (b.validated.length > 0 ? b.validated.join(", ") : "(none yet)"),
+                          "Open: " + (b.open.length > 0 ? b.open.join(", ") : "None"),
+                        ].join("\n");
+                        navigator.clipboard.writeText(text);
+                      }} />
+                      <BatchExportButton label="Copy PO Update" icon="clipboard" onClick={() => {
+                        navigator.clipboard.writeText(b.poNote);
+                      }} />
+                      <BatchExportButton label="Copy Email" icon="mail" onClick={() => {
+                        const s = statuses[b.key as BatchKey] ?? "Not Started";
+                        const text = [
+                          `${b.label}`,
+                          `Status: ${s}`,
+                          `System: ${b.owner}`,
+                          "",
+                          "Delivered:",
+                          ...b.delivered.map(d => `• ${d}`),
+                          "",
+                          "Validated:",
+                          ...(b.validated.length > 0 ? b.validated.map(v => `• ${v}`) : ["• (none yet)"]),
+                          "",
+                          "Open / Carry Forward:",
+                          ...(b.open.length > 0 ? b.open.map(o => `• ${o}`) : ["• None"]),
+                          "",
+                          `PO Summary:\n${b.poNote}`,
+                        ].join("\n");
+                        navigator.clipboard.writeText(text);
+                      }} />
+                      <BatchExportButton label="Export JSON" icon="json" onClick={() => {
+                        const s = statuses[b.key as BatchKey] ?? "Not Started";
+                        const payload = {
+                          batchId: b.key, batchName: b.label, systemOwner: b.owner,
+                          status: s, deliveryWindow: b.readiness,
+                          delivered: b.delivered, validated: b.validated, openItems: b.open,
+                          poNote: b.poNote, lastUpdated: new Date().toISOString(),
+                        };
+                        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a"); a.href = url;
+                        a.download = `DCT_Batch_${b.key}_${new Date().toISOString().slice(0,10)}.json`;
+                        a.click(); URL.revokeObjectURL(url);
+                      }} />
+                      <BatchExportButton label="Export Markdown" icon="md" onClick={() => {
+                        const s = statuses[b.key as BatchKey] ?? "Not Started";
+                        const md = [
+                          `## ${b.label}`,
+                          `**Status:** ${s} | **System:** ${b.owner}`,
+                          `**Readiness:** ${b.readiness}`,
+                          "",
+                          "### Delivered",
+                          ...b.delivered.map(d => `- ${d}`),
+                          "",
+                          "### Validated",
+                          ...(b.validated.length > 0 ? b.validated.map(v => `- ${v}`) : ["- *(not yet validated)*"]),
+                          "",
+                          "### Open / Carry-Forward",
+                          ...(b.open.length > 0 ? b.open.map(o => `- ${o}`) : ["- *(none)*"]),
+                          "",
+                          "### PO Status Note",
+                          b.poNote,
+                        ].join("\n");
+                        const blob = new Blob([md], { type: "text/markdown" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a"); a.href = url;
+                        a.download = `DCT_Batch_${b.key}_${new Date().toISOString().slice(0,10)}.md`;
+                        a.click(); URL.revokeObjectURL(url);
+                      }} />
                     </div>
                   </div>
                 )}
