@@ -136,7 +136,7 @@ export default function Home() {
   const { statuses, piCompletion, gates, lastUpdated } = useBatchStatus();
   const totalBatches = Object.keys(statuses).length;
   const completedBatches = Object.values(statuses).filter(s => s === "Complete").length;
-  const activeBatches = Object.values(statuses).filter(s => s === "Dev" || s === "In Review").length;
+  const activeBatches = Object.values(statuses).filter(s => s === "Dev" || s === "In Review" || s === "In Progress").length;
   const overallPct = Math.round((completedBatches / totalBatches) * 100);
   const lastUpdatedLabel = lastUpdated
     ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })

@@ -10,7 +10,7 @@
  * PI values:     "PI1" | "PI2" | "PI3" | "PI4" | "Parallel"
  */
 
-export type BatchStatus = "Complete" | "Dev" | "Review" | "Planned";
+export type BatchStatus = "Complete" | "Dev" | "Review" | "Planned" | "Active";
 export type BatchArea = "PDC" | "TDC" | "Platform" | "PDC+TDC";
 export type BatchPI = "PI1" | "PI2" | "PI3" | "PI4" | "Parallel";
 
@@ -91,7 +91,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
     fullName: "Orchestrator Contract Enforcement",
     pi: "PI1",
     piLabel: "PI 1 — Foundation & AI Mapping",
-    status: "Dev",
+    status: "Complete",
     area: "Platform",
     storyCount: 2,
     description: "Enforce FirmTaxonomyId classification presence on all normalized records; bulk insert strategy.",
@@ -126,7 +126,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
     fullName: "AI Tax Mapping & Explainability",
     pi: "PI2",
     piLabel: "PI 2 — Entity, Workflow & Tax Ready",
-    status: "Dev",
+    status: "Complete",
     area: "TDC",
     storyCount: 4,
     description: "AI mapping proposals, mapping decisions, decision audit records, and TDC Records API for Roger.",
@@ -144,7 +144,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
     fullName: "Entity Identity & Structure",
     pi: "PI2",
     piLabel: "PI 2 — Entity, Workflow & Tax Ready",
-    status: "Dev",
+    status: "Complete",
     area: "PDC",
     storyCount: 5,
     description: "PDC as authoritative entity registry — client groups, legal entities, EntityId, CEM integration.",
@@ -162,7 +162,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
     fullName: "Practitioner Review, Adjustments & Lock",
     pi: "PI2",
     piLabel: "PI 2 — Entity, Workflow & Tax Ready",
-    status: "Planned",
+    status: "Complete",
     area: "PDC+TDC",
     storyCount: 4,
     description: "Review tasks, book-to-tax adjustments, tax-ready record derivation, sign-off and lock.",
@@ -180,7 +180,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
     fullName: "Client Tax Profile & Eligibility",
     pi: "PI2",
     piLabel: "PI 2 — Entity, Workflow & Tax Ready",
-    status: "Planned",
+    status: "Complete",
     area: "TDC",
     storyCount: 6,
     description: "TDC as SOR for tax profile and eligibility — three-tier model, controlled group determination.",
@@ -198,7 +198,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
     fullName: "Exceptions & Remediation",
     pi: "PI2",
     piLabel: "PI 2 — Entity, Workflow & Tax Ready",
-    status: "Planned",
+    status: "Active",
     area: "PDC+TDC",
     storyCount: 8,
     description: "Structured exception tracking across ingestion, normalization, mapping, and workflow.",
@@ -601,6 +601,12 @@ export const STATUS_STYLES: Record<BatchStatus, { bg: string; text: string; bord
     border: "border-slate-300",
     dot: "bg-slate-400",
   },
+  Active: {
+    bg: "bg-orange-100",
+    text: "text-orange-800",
+    border: "border-orange-300",
+    dot: "bg-orange-500",
+  },
 };
 
 export const AREA_STYLES: Record<BatchArea, { bg: string; text: string }> = {
@@ -645,6 +651,7 @@ export function getPIStatusCounts(pi: BatchPI): Record<BatchStatus, number> {
     Dev: batches.filter((b) => b.status === "Dev").length,
     Review: batches.filter((b) => b.status === "Review").length,
     Planned: batches.filter((b) => b.status === "Planned").length,
+    Active: batches.filter((b) => b.status === "Active").length,
   };
 }
 

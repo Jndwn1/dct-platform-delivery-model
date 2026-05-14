@@ -171,21 +171,21 @@ export type SyncLogEntry = AuditLogEntry;
 const DEFAULT_STATUS: BatchStatusMap = {
   "foundation-core": "Complete",
   "1": "Complete",
-  "2": "In Progress",
-  "2a": "In Progress",
-  "3": "Not Started",
-  "4": "Not Started",
-  "5": "Not Started",
-  "6": "Not Started",
-  "7": "Not Started",
-  "8": "Not Started",
+  "2": "Complete",
+  "2a": "Complete",
+  "3": "Complete",
+  "4": "Complete",
+  "5": "Complete",
+  "6": "Complete",
+  "7": "Complete",
+  "8": "In Progress",
   "9": "Not Started",
   "10": "Not Started",
   "11": "Not Started",
 };
 
-const STORAGE_KEY     = "dct_batch_status_v4";
-const AUDITLOG_KEY    = "dct_audit_log_v4";
+const STORAGE_KEY     = "dct_batch_status_v5";
+const AUDITLOG_KEY    = "dct_audit_log_v5";
 const MAX_LOG_ENTRIES = 50;
 
 // ── PI membership ─────────────────────────────────────────────────────────────

@@ -498,6 +498,7 @@ const STATUS_HEX: Record<BatchStatus, { bg: string; text: string; border: string
   Dev:      { bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe", dot: "#2563eb", label: "In Dev" },
   Review:   { bg: "#f5f3ff", text: "#5b21b6", border: "#ddd6fe", dot: "#7c3aed", label: "In Review" },
   Planned:  { bg: "#f8fafc", text: "#475569", border: "#e2e8f0", dot: "#94a3b8", label: "Planned" },
+  Active:   { bg: "#fff7ed", text: "#9a3412", border: "#fed7aa", dot: "#ea580c", label: "Active" },
 };
 
 const PI_HEX: Record<string, { color: string; bg: string; border: string }> = {

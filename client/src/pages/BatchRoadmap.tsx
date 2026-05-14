@@ -123,7 +123,7 @@ const FEATURES: FeatureRow[] = [
   // ── PI 2 — Committed ─────────────────────────────────────────────────────────
   {
     id: "pi2-b4", batch: "B4", name: "AI Mapping Proposals, Decisions & Governance", owner: "TDC", pi: "PI 2",
-    startDate: "", endDate: "", status: "Complete",
+    startDate: "", endDate: "", status: "Complete" as StatusType,
     batchSummary: "AI mapping proposals, human decisions, and governance. TDC governs all AI mapping decisions.",
     governanceFocus: "AI decision governance. Human-in-the-loop enforcement.",
     majorDependency: "B3 — Tax Domain Authority.",
@@ -133,7 +133,7 @@ const FEATURES: FeatureRow[] = [
   },
   {
     id: "pi2-b5", batch: "B5", name: "Entity Identity & Structure", owner: "PDC", pi: "PI 2",
-    startDate: "4/22", endDate: "4/30", status: "Complete",
+    startDate: "4/22", endDate: "4/30", status: "Complete" as StatusType,
     batchSummary: "Entity identity and structure. PDC governs all entity identity records.",
     governanceFocus: "Entity identity contract. PDC ownership boundary.",
     majorDependency: "B4 — AI Mapping.",
@@ -144,7 +144,7 @@ const FEATURES: FeatureRow[] = [
   },
   {
     id: "pi2-b6", batch: "B6", name: "Practitioner Review & Adjustment Workflow", owner: "TDC", pi: "PI 2",
-    startDate: "4/22", endDate: "4/30", status: "Complete",
+    startDate: "4/22", endDate: "4/30", status: "Complete" as StatusType,
     batchSummary: "Practitioner review and adjustment workflow. TDC governs all practitioner decisions.",
     governanceFocus: "Practitioner decision governance. Review lock enforcement.",
     majorDependency: "B4 — AI Mapping.",
@@ -155,7 +155,7 @@ const FEATURES: FeatureRow[] = [
   },
   {
     id: "pi2-b2a", batch: "B2A", name: "Orchestrator Classification Result & Contract Enforcement", owner: "PDC", pi: "PI 2",
-    startDate: "4/29", endDate: "5/9", status: "Complete",
+    startDate: "4/29", endDate: "5/9", status: "Complete" as StatusType,
     batchSummary: "Orchestrator classification result and contract enforcement. PDC enforces classification contracts.",
     governanceFocus: "Classification contract enforcement. Orchestrator boundary.",
     majorDependency: "B5 — Entity Identity.",
@@ -165,7 +165,7 @@ const FEATURES: FeatureRow[] = [
   },
   {
     id: "pi2-b7", batch: "B7", name: "Client Tax Profile & Eligibility", owner: "TDC", pi: "PI 2",
-    startDate: "5/1", endDate: "5/11", status: "Complete",
+    startDate: "5/1", endDate: "5/11", status: "Complete" as StatusType,
     batchSummary: "Client tax profile and eligibility. TDC governs all tax profile and eligibility determinations.",
     governanceFocus: "Tax profile governance. Eligibility determination authority.",
     majorDependency: "B2A, B5, B6 — Classification, Entity Identity, Review Lock.",
@@ -175,7 +175,7 @@ const FEATURES: FeatureRow[] = [
   },
   {
     id: "pi2-b8-pdc", batch: "B8", name: "Exceptions & Remediation", owner: "PDC", pi: "PI 2",
-    startDate: "5/12", endDate: "5/20", status: "Committed",
+    startDate: "5/12", endDate: "5/20", status: "Active",
     batchSummary: "Exceptions and remediation — PDC side. Exception records, remediation actions, re-ingestion triggers.",
     governanceFocus: "Exception record governance. Remediation action contract.",
     majorDependency: "B5 PDC, B2A — Entity Identity, Classification Contract.",
@@ -185,7 +185,7 @@ const FEATURES: FeatureRow[] = [
   },
   {
     id: "pi2-b8-tdc", batch: "B8", name: "Exceptions & Remediation", owner: "TDC", pi: "PI 2",
-    startDate: "5/12", endDate: "5/20", status: "Committed",
+    startDate: "5/12", endDate: "5/20", status: "Active",
     batchSummary: "Exceptions and remediation — TDC side. Parallel with B8 PDC.",
     governanceFocus: "TDC exception governance. Remediation authority.",
     majorDependency: "B8 PDC — Exception Records.",

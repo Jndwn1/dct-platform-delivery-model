@@ -69,10 +69,10 @@ const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
 
 
 const GATE_ITEMS: NavItem[] = [
-  { label: "Gate 1 — Schema Lock", path: "/gate/1", status: "Locked", statusColor: "#475569" },
-  { label: "Gate 2 — Invariant Lock", path: "/gate/2", status: "In Progress", statusColor: "#d97706" },
-  { label: "Gate 3 — Contract Publication", path: "/gate/3", status: "Pending", statusColor: "#334155" },
-  { label: "Gate 4 — Lineage Closure", path: "/gate/4", status: "Pending", statusColor: "#334155" },
+  { label: "Gate 1 — Schema Lock", path: "/gate/1", status: "Passed", statusColor: "#059669" },
+  { label: "Gate 2 — Invariant Lock", path: "/gate/2", status: "Passed", statusColor: "#059669" },
+  { label: "Gate 3 — Contract Publication", path: "/gate/3", status: "Passed", statusColor: "#059669" },
+  { label: "Gate 4 — Lineage Closure", path: "/gate/4", status: "In Progress", statusColor: "#d97706" },
 ];
 
 // Agents — alphabetical
@@ -376,7 +376,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
       <div style={{ borderTopWidth: "1px", borderTopColor: "#1e2a3a", padding: "10px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
           <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#10b981", flexShrink: 0 }} />
-          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Platform Active · FC–B23</span>
+          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Platform Active · FC–B7 Complete · B8 Active</span>
         </div>
         <div style={{ fontSize: "10px", color: "#475569", marginBottom: "6px" }}>DCT — Data Consolidation Team</div>
         <button
