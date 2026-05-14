@@ -14,7 +14,7 @@ import {
   useBatchStatus, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
 } from "@/contexts/BatchStatusContext";
-import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send } from "lucide-react";
+import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send, Download, FileSpreadsheet, FileJson, AlignLeft, Filter } from "lucide-react";
 
 // ── CopyNoteButton ────────────────────────────────────────────────────────────
 function CopyNoteButton({ text }: { text: string }) {
@@ -1146,6 +1146,165 @@ export default function BatchControlPanel() {
           cascadeActive={cascade.active && cascade.currentStep === 1}
           cascadeDone={cascade.completedSteps.includes(1)}
         />
+        {/* ── Export Panel ── */}
+        <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mr-1">
+            <Download className="w-3.5 h-3.5" />
+            Export Batch Delivery Data
+          </div>
+          {/* Filter selector */}
+          <div className="flex items-center gap-1.5">
+            <Filter className="w-3 h-3 text-slate-400" />
+            <select
+              id="batchExportFilter"
+              className="text-xs border border-slate-200 rounded px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#003865]"
+              defaultValue="all"
+              onChange={e => {
+                (window as any)._batchExportFilter = e.target.value;
+              }}
+            >
+              <option value="all">All Batches</option>
+              <option value="complete">Complete Only</option>
+              <option value="inprogress">In Progress Only</option>
+              <option value="open">Has Open Items</option>
+            </select>
+          </div>
+          {/* CSV Export */}
+          <button
+            onClick={() => {
+              const filterVal = (window as any)._batchExportFilter ?? "all";
+              const rows = DELIVERED_BATCHES.filter(b => {
+                const s = statuses[b.key as BatchKey] ?? "Not Started";
+                if (filterVal === "complete") return s === "Complete" || s === "Delivered";
+                if (filterVal === "inprogress") return s === "In Progress";
+                if (filterVal === "open") return b.open.length > 0;
+                return true;
+              });
+              const header = ["Batch","Owner","Status","Readiness","Delivered Items","Validated Items","Open Items","PO Note"];
+              const csvRows = rows.map(b => [
+                `"${b.label}"`,
+                `"${b.owner}"`,
+                `"${statuses[b.key as BatchKey] ?? "Not Started"}"`,
+                `"${b.readiness}"`,
+                `"${b.delivered.join(" | ")}"`,
+                `"${b.validated.join(" | ")}"`,
+                `"${b.open.join(" | ")}"`,
+                `"${b.poNote.replace(/"/g, "'")}"`
+              ]);
+              const csv = [header.join(","), ...csvRows.map(r => r.join(","))].join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url;
+              a.download = `DCT_Batch_Delivery_${new Date().toISOString().slice(0,10)}.csv`;
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors font-medium"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            Export CSV
+          </button>
+          {/* JSON Export */}
+          <button
+            onClick={() => {
+              const filterVal = (window as any)._batchExportFilter ?? "all";
+              const rows = DELIVERED_BATCHES.filter(b => {
+                const s = statuses[b.key as BatchKey] ?? "Not Started";
+                if (filterVal === "complete") return s === "Complete" || s === "Delivered";
+                if (filterVal === "inprogress") return s === "In Progress";
+                if (filterVal === "open") return b.open.length > 0;
+                return true;
+              }).map(b => ({
+                batch: b.label, owner: b.owner,
+                status: statuses[b.key as BatchKey] ?? "Not Started",
+                readiness: b.readiness,
+                delivered: b.delivered,
+                validated: b.validated,
+                open: b.open,
+                poNote: b.poNote,
+              }));
+              const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url;
+              a.download = `DCT_Batch_Delivery_${new Date().toISOString().slice(0,10)}.json`;
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors font-medium"
+          >
+            <FileJson className="w-3.5 h-3.5" />
+            Export JSON
+          </button>
+          {/* Formatted Text Export */}
+          <button
+            onClick={() => {
+              const filterVal = (window as any)._batchExportFilter ?? "all";
+              const rows = DELIVERED_BATCHES.filter(b => {
+                const s = statuses[b.key as BatchKey] ?? "Not Started";
+                if (filterVal === "complete") return s === "Complete" || s === "Delivered";
+                if (filterVal === "inprogress") return s === "In Progress";
+                if (filterVal === "open") return b.open.length > 0;
+                return true;
+              });
+              const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+              const lines = [
+                `DCT PLATFORM — DELIVERED WORK BY BATCH (${today})`,
+                `Generated from: DCT Gate Verification Dashboard`,
+                `Filter: ${filterVal === "all" ? "All Batches" : filterVal === "complete" ? "Complete Only" : filterVal === "inprogress" ? "In Progress Only" : "Has Open Items"}`,
+                `Total batches: ${rows.length}`,
+                "",
+                "═".repeat(60),
+                "",
+                ...rows.flatMap(b => [
+                  `BATCH: ${b.label}`,
+                  `Owner: ${b.owner}  |  Status: ${statuses[b.key as BatchKey] ?? "Not Started"}`,
+                  `Readiness: ${b.readiness}`,
+                  "",
+                  "DELIVERED:",
+                  ...b.delivered.map(d => `  ✓ ${d}`),
+                  "",
+                  "VALIDATED:",
+                  ...(b.validated.length > 0 ? b.validated.map(v => `  ✓ ${v}`) : ["  (not yet validated)"]),
+                  "",
+                  "OPEN / CARRY-FORWARD:",
+                  ...(b.open.length > 0 ? b.open.map(o => `  › ${o}`) : ["  (none)"]),
+                  "",
+                  `PO NOTE: ${b.poNote}`,
+                  "",
+                  "─".repeat(60),
+                  "",
+                ]),
+              ].join("\n");
+              const blob = new Blob([lines], { type: "text/plain" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url;
+              a.download = `DCT_Batch_Delivery_${new Date().toISOString().slice(0,10)}.txt`;
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors font-medium"
+          >
+            <AlignLeft className="w-3.5 h-3.5" />
+            Export Text
+          </button>
+          {/* Copy All PO Notes */}
+          <button
+            onClick={() => {
+              const filterVal = (window as any)._batchExportFilter ?? "all";
+              const rows = DELIVERED_BATCHES.filter(b => {
+                const s = statuses[b.key as BatchKey] ?? "Not Started";
+                if (filterVal === "complete") return s === "Complete" || s === "Delivered";
+                if (filterVal === "inprogress") return s === "In Progress";
+                if (filterVal === "open") return b.open.length > 0;
+                return true;
+              });
+              const text = rows.map(b => `${b.label.split(" — ")[0]}: ${b.poNote}`).join("\n\n");
+              navigator.clipboard.writeText(text);
+            }}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors font-medium"
+          >
+            <ClipboardCopy className="w-3.5 h-3.5" />
+            Copy PO Notes
+          </button>
+          <span className="ml-auto text-xs text-slate-400">{DELIVERED_BATCHES.length} batches tracked</span>
+        </div>
         <div className="divide-y divide-slate-100">
           {DELIVERED_BATCHES.map(b => {
             // Use live context status — overrides the hardcoded static value
