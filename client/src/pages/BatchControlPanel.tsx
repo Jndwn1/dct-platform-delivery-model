@@ -314,8 +314,35 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
   },
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+//// ── Batch label → context key mapping ────────────────────────────────────────────────────────────────
+// Maps "Batch 1" → "1", "Batch 2A" → "2a", "Batch FC" / "Foundation Core" → "foundation-core"
+function batchLabelToKey(batch: string): string {
+  const b = batch.trim();
+  if (b === "Foundation Core" || b === "Batch FC" || b === "FC") return "foundation-core";
+  const m = b.match(/Batch\s+([0-9]+[A-Za-z]?)/i);
+  if (m) return m[1].toLowerCase();
+  return b.toLowerCase();
+}
 
+// Derive live Swagger status from batch context status
+function deriveSwaggerStatus(batchKey: string, statuses: Record<string, string>): ApiStatus {
+  const s = statuses[batchKey];
+  if (s === "Complete" || s === "Delivered") return "Delivered";
+  if (s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready" || s === "MVP" || s === "Stretch") return "In Progress";
+  if (s === "Blocked") return "Needs PO/Dev Confirmation";
+  return "Missing";
+}
+
+// Derive live Roger availability from batch context status
+function deriveRogerAvailability(batchKey: string, statuses: Record<string, string>): RogerAvailability {
+  const s = statuses[batchKey];
+  if (s === "Complete" || s === "Delivered") return "Available";
+  if (s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready" || s === "MVP" || s === "Stretch") return "Partially Available";
+  if (s === "Blocked") return "Carried Forward";
+  return "Not Available";
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
 const DELIVERY_STYLE: Record<DeliveryStatus, { bg: string; text: string; border: string }> = {
   "Delivered":                  { bg: "bg-emerald-50",  text: "text-emerald-800", border: "border-emerald-200" },
   "In Progress":                { bg: "bg-blue-50",     text: "text-blue-800",    border: "border-blue-200" },
@@ -457,10 +484,10 @@ export default function BatchControlPanel() {
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     // Build styled HTML table rows
     let prevBatch = '';
-    const rows = ROGER_DATA_POINTS.map((d, i) => {
+    const rows = liveRogerPoints.map((d, i) => {
       const isNewBatch = d.batch !== prevBatch;
       prevBatch = d.batch;
-      const batchGroupIndex = ROGER_DATA_POINTS.filter((x, xi) => xi <= i && (xi === 0 || ROGER_DATA_POINTS[xi-1].batch !== x.batch)).length - 1;
+      const batchGroupIndex = liveRogerPoints.filter((x, xi) => xi <= i && (xi === 0 || liveRogerPoints[xi-1].batch !== x.batch)).length - 1;
       const rowBg = batchGroupIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
       const borderTop = isNewBatch && i > 0 ? '2px solid #cbd5e1' : '1px solid #f1f5f9';
       const availStyle = d.availability === 'Available'
@@ -547,7 +574,7 @@ export default function BatchControlPanel() {
   const toggleNote = (i: number) => setExpandedNotes(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
   const toggleAdo = (i: number) => setExpandedAdoRows(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
   const copyAdoIds = () => {
-    const ids = ROGER_DATA_POINTS.flatMap(d => d.adoStories.map(s => s.id)).filter(Boolean).join(', ');
+    const ids = liveRogerPoints.flatMap(d => d.adoStories.map(s => s.id)).filter(Boolean).join(', ');
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(ids).then(() => {
         setAdoCopied(true);
@@ -621,10 +648,22 @@ export default function BatchControlPanel() {
     return s === "Not Started";
   }).map(b => b.label);
 
-  const apisDelivered = SWAGGER_ENTRIES.filter(e => e.status === "Delivered").length;
-  const apisMissing = SWAGGER_ENTRIES.filter(e => e.status === "Missing" || e.missingFromSwagger).length;
-  const rogerAvailable = ROGER_DATA_POINTS.filter(d => d.availability === "Available").length;
-  const rogerBlocked = ROGER_DATA_POINTS.filter(d => d.availability === "Not Available").length;
+  // ── Live Swagger entries — status derived from batch context ────────────────────────────────────────────────────────────────
+  const liveSwaggerEntries: SwaggerEntry[] = SWAGGER_ENTRIES.map(e => ({
+    ...e,
+    status: deriveSwaggerStatus(batchLabelToKey(e.batch), statuses as unknown as Record<string, string>),
+  }));
+
+  // ── Live Roger data points — availability derived from batch context ────────────────────────────────────────────────────────────────
+  const liveRogerPoints: RogerDataPoint[] = ROGER_DATA_POINTS.map(d => ({
+    ...d,
+    availability: deriveRogerAvailability(batchLabelToKey(d.batch), statuses as unknown as Record<string, string>),
+  }));
+
+  const apisDelivered = liveSwaggerEntries.filter(e => e.status === "Delivered").length;
+  const apisMissing = liveSwaggerEntries.filter(e => e.status === "Missing" || e.missingFromSwagger).length;
+  const rogerAvailable = liveRogerPoints.filter(d => d.availability === "Available").length;
+  const rogerBlocked = liveRogerPoints.filter(d => d.availability === "Not Available").length;
 
   // Carry-forward: open items from batches that are NOT yet complete
   const liveCarryForward = DELIVERED_BATCHES
@@ -657,9 +696,9 @@ export default function BatchControlPanel() {
       ? `\nNOT STARTED (${liveNotStartedBatches.length}):\n${liveNotStartedBatches.map(b => `• ${b}`).join("\n")}`
       : "",
     "",
-    `API COVERAGE:\n• ${apisDelivered} of ${SWAGGER_ENTRIES.length} endpoints delivered\n• ${apisMissing} endpoints missing from Swagger or Consumer Guide\n• Batch 4 TDC Records API (Roger primary contract) not yet published — blocking Roger practitioner view\n• Batch 2A Classification Enforcement contract not yet in Swagger — blocking gap`,
+    `API COVERAGE:\n• ${apisDelivered} of ${liveSwaggerEntries.length} endpoints delivered\n• ${apisMissing} endpoints missing from Swagger or Consumer Guide`,
     "",
-    `ROGER UI DATA AVAILABILITY:\n• ${rogerAvailable} of ${ROGER_DATA_POINTS.length} data points available to Roger\n• ${rogerBlocked} data points not yet available\n• FirmTaxonomyId on normalized records: NOT AVAILABLE — Orchestrator not returning classification (Batch 2A blocking gap)`,
+    `ROGER UI DATA AVAILABILITY:\n• ${rogerAvailable} of ${liveRogerPoints.length} data points available to Roger\n• ${rogerBlocked} data points not yet available`,
     "",
     liveCarryForward.length > 0
       ? `CARRY-FORWARD ITEMS:\n${liveCarryForward.map(o => `• ${o}`).join("\n")}`
@@ -1084,11 +1123,11 @@ export default function BatchControlPanel() {
               </tr>
             </thead>
             <tbody>
-              {SWAGGER_ENTRIES.map((e, i) => {
+              {liveSwaggerEntries.map((e, i) => {
                 const apiStyle = API_STYLE[e.status];
-                const prevBatch = i > 0 ? SWAGGER_ENTRIES[i - 1].batch : null;
+                const prevBatch = i > 0 ? liveSwaggerEntries[i - 1].batch : null;
                 const isNewBatch = e.batch !== prevBatch;
-                const swaggerBatchGroupIndex = SWAGGER_ENTRIES.filter((x, xi) => xi <= i && (xi === 0 || SWAGGER_ENTRIES[xi-1].batch !== x.batch)).length - 1;
+                const swaggerBatchGroupIndex = liveSwaggerEntries.filter((x, xi) => xi <= i && (xi === 0 || liveSwaggerEntries[xi-1].batch !== x.batch)).length - 1;
                 const swaggerRowBg = swaggerBatchGroupIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
                 const isNoteGap = e.notes.toLowerCase().includes("block") || e.notes.toLowerCase().includes("gap") || e.notes.toLowerCase().includes("not yet") || e.notes.toLowerCase().includes("pending") || e.notes.toLowerCase().includes("missing");
                 return (
@@ -1239,9 +1278,9 @@ export default function BatchControlPanel() {
               </tr>
             </thead>
             <tbody>
-              {ROGER_DATA_POINTS.map((d, i) => {
+              {liveRogerPoints.map((d, i) => {
                 const rStyle = ROGER_STYLE[d.availability];
-                const prevBatch = i > 0 ? ROGER_DATA_POINTS[i - 1].batch : null;
+                const prevBatch = i > 0 ? liveRogerPoints[i - 1].batch : null;
                 const isNewBatch = d.batch !== prevBatch;
                 const isGap = d.notes.toLowerCase().includes("block") || d.notes.toLowerCase().includes("gap") || d.notes.toLowerCase().includes("not yet") || d.notes.toLowerCase().includes("pending");
                 const noteIcon = isGap ? "⚠️" : "ℹ️";
@@ -1250,8 +1289,8 @@ export default function BatchControlPanel() {
                 const visibleStories = adoExpanded ? d.adoStories : d.adoStories.slice(0, 2);
                 const hasMoreStories = d.adoStories.length > 2;
                 // Batch group tint — alternate subtle background per batch group
-                const batchIndex = ROGER_DATA_POINTS.findIndex(x => x.batch === d.batch);
-                const batchGroupIndex = ROGER_DATA_POINTS.filter((x, xi) => xi <= i && (xi === 0 || ROGER_DATA_POINTS[xi-1].batch !== x.batch)).length - 1;
+                const batchIndex = liveRogerPoints.findIndex(x => x.batch === d.batch);
+                const batchGroupIndex = liveRogerPoints.filter((x, xi) => xi <= i && (xi === 0 || liveRogerPoints[xi-1].batch !== x.batch)).length - 1;
                 const rowBg = batchGroupIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
                 return (
                   <tr
