@@ -15,6 +15,7 @@ import {
   type BatchKey, type BatchStatus,
 } from "@/contexts/BatchStatusContext";
 import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send, Download, FileSpreadsheet, FileJson, AlignLeft, Filter } from "lucide-react";
+import { BAAssistant } from "@/components/BAAssistant";
 
 // ── SwaggerBatchGroup ───────────────────────────────────────────────────────
 interface SwaggerGroupEntry { batch: string; endpoint: string; path: string; status: string; consumerGuide: string; missingFromGuide: boolean; missingFromSwagger: boolean; notes: string; owner?: string; }
@@ -2128,6 +2129,28 @@ export default function BatchControlPanel() {
           </table>
         </div>
       </div>
+
+      {/* ── BA Assistant: Roger UI Data Point Agent ── */}
+      <BAAssistant
+        rogerDataPoints={liveRogerPoints.map(d => ({
+          dataPoint: d.dataPoint,
+          source: d.source,
+          batch: d.batch,
+          availability: d.availability,
+          apiEndpoint: d.apiEndpoint,
+          notes: d.notes,
+          owner: d.owner,
+          adoStories: d.adoStories,
+        }))}
+        swaggerEntries={liveSwaggerEntries.map(e => ({
+          batch: e.batch,
+          endpoint: e.endpoint,
+          path: e.path,
+          status: e.status,
+          consumerGuide: e.consumerGuide,
+          notes: e.notes,
+        }))}
+      />
 
       {/* ── Section 5: PO Status Summary ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
