@@ -16,6 +16,269 @@ import {
 } from "@/contexts/BatchStatusContext";
 import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send, Download, FileSpreadsheet, FileJson, AlignLeft, Filter } from "lucide-react";
 
+// ── SwaggerBatchGroup ───────────────────────────────────────────────────────
+interface SwaggerGroupEntry { batch: string; endpoint: string; path: string; status: string; consumerGuide: string; missingFromGuide: boolean; missingFromSwagger: boolean; notes: string; owner?: string; }
+
+const GOV_BADGE_MAP: Record<string, { label: string; color: string; bg: string }> = {
+  "read-contract":   { label: "Read Contract",   color: "#1e40af", bg: "#dbeafe" },
+  "write-contract":  { label: "Write Contract",  color: "#7c3aed", bg: "#ede9fe" },
+  "lineage":         { label: "Lineage Enabled", color: "#065f46", bg: "#d1fae5" },
+  "immutable":       { label: "Immutable",       color: "#92400e", bg: "#fef3c7" },
+  "additive-only":   { label: "Additive-Only",   color: "#0e7490", bg: "#cffafe" },
+  "demo-ready":      { label: "Demo Ready",      color: "#166534", bg: "#bbf7d0" },
+};
+
+const BATCH_GOV_FLAGS: Record<string, string[]> = {
+  "Batch FC": ["lineage","demo-ready"],
+  "Batch 1": ["lineage","read-contract","demo-ready"],
+  "Batch 2": ["lineage","read-contract","demo-ready"],
+  "Batch 2A": ["write-contract","immutable","demo-ready"],
+  "Batch 3": ["read-contract","lineage","demo-ready"],
+  "Batch 4": ["immutable","additive-only","demo-ready"],
+  "Batch 5": ["lineage","read-contract","demo-ready"],
+  "Batch 6": ["immutable","write-contract","demo-ready"],
+  "Batch 7": ["lineage","read-contract","demo-ready"],
+  "Batch 8": ["lineage","additive-only"],
+};
+
+const ENDPOINT_GOV_FLAGS: Record<string, string[]> = {
+  "/api/v1/ingestion-jobs": ["lineage","additive-only"],
+  "/api/v1/documents": ["lineage","read-contract"],
+  "/api/v1/normalized-records": ["lineage","read-contract","immutable"],
+  "/api/v1/mapping-decisions": ["immutable","write-contract"],
+  "/api/v1/tax-profiles": ["read-contract","lineage"],
+  "/api/v1/eligibility": ["read-contract"],
+  "/api/v1/adjustments": ["immutable","write-contract"],
+  "/api/v1/sign-off": ["immutable","write-contract"],
+};
+
+function TruncatedNote({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const MAX = 80;
+  if (text.length <= MAX) return <span className="text-slate-600" style={{fontSize:'10px'}}>{text}</span>;
+  return (
+    <span className="text-slate-600" style={{fontSize:'10px'}}>
+      {expanded ? text : text.slice(0, MAX) + "…"}
+      <button onClick={() => setExpanded(e => !e)} className="ml-1 text-blue-600 hover:underline font-medium" style={{fontSize:'9.5px'}}>
+        {expanded ? "Less" : "More"}
+      </button>
+    </span>
+  );
+}
+
+function SwaggerBatchGroup({ batchName, entries, defaultOpen = false }: { batchName: string; entries: SwaggerGroupEntry[]; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const [showGapOnly, setShowGapOnly] = useState(false);
+  const [batchCopied, setBatchCopied] = useState<string|null>(null);
+
+  const delivered = entries.filter(e => e.status === "Delivered").length;
+  const partial   = entries.filter(e => e.status === "In Progress" || e.status === "Partial").length;
+  const missing   = entries.filter(e => e.status === "Missing" || e.status === "Needs PO/Dev Confirmation").length;
+  const missingGuide = entries.filter(e => e.missingFromGuide).length;
+  const missingSwagger = entries.filter(e => e.missingFromSwagger).length;
+  const coveragePct = entries.length > 0 ? Math.round((delivered / entries.length) * 100) : 0;
+  const guideAlignPct = entries.length > 0 ? Math.round(((entries.length - missingGuide) / entries.length) * 100) : 0;
+  const govFlags = BATCH_GOV_FLAGS[batchName] ?? [];
+  const owner = entries[0]?.owner ?? "";
+
+  const displayEntries = showGapOnly
+    ? entries.filter(e => e.missingFromGuide || e.missingFromSwagger || e.status !== "Delivered")
+    : entries;
+
+  const copyBatchSummary = (type: string) => {
+    let text = "";
+    if (type === "summary") {
+      text = [
+        `${batchName} — API Coverage Summary`,
+        `Owner: ${owner}`,
+        `Total APIs: ${entries.length} | Delivered: ${delivered} | Partial: ${partial} | Missing: ${missing}`,
+        `Coverage: ${coveragePct}% | Consumer Guide Alignment: ${guideAlignPct}%`,
+        missingGuide > 0 ? `Missing Consumer Guide: ${entries.filter(e=>e.missingFromGuide).map(e=>e.endpoint).join(", ")}` : "Consumer Guide: Fully aligned",
+        missingSwagger > 0 ? `Missing Swagger: ${entries.filter(e=>e.missingFromSwagger).map(e=>e.endpoint).join(", ")}` : "Swagger: Fully documented",
+      ].join("\n");
+    } else if (type === "po") {
+      text = [
+        `${batchName} — PO API Status`,
+        `${delivered} of ${entries.length} APIs delivered (${coveragePct}% coverage).`,
+        partial > 0 ? `${partial} endpoint(s) partially implemented.` : "",
+        missing > 0 ? `${missing} endpoint(s) require PO/Dev attention.` : "",
+        missingGuide > 0 ? `${missingGuide} Consumer Guide gap(s) identified.` : "Consumer Guide fully aligned.",
+      ].filter(Boolean).join("\n");
+    } else if (type === "qa") {
+      text = [
+        `QA ENDPOINT SUMMARY — ${batchName}`,
+        `Total Endpoints: ${entries.length}`,
+        "",
+        "DELIVERED (ready for QA):",
+        ...entries.filter(e=>e.status==="Delivered").map(e=>`  • ${e.endpoint} [${e.path}]`),
+        "",
+        entries.filter(e=>e.status!=="Delivered").length > 0 ? "NOT YET DELIVERED:" : "",
+        ...entries.filter(e=>e.status!=="Delivered").map(e=>`  • ${e.endpoint} — ${e.status}`),
+        "",
+        missingGuide > 0 ? `Consumer Guide Gaps (${missingGuide}):` : "",
+        ...entries.filter(e=>e.missingFromGuide).map(e=>`  • ${e.endpoint}`),
+      ].filter(s => s !== "").join("\n");
+    } else {
+      // export JSON
+      const payload = entries.map(e => ({ endpoint: e.endpoint, path: e.path, status: e.status, consumerGuide: e.consumerGuide, missingFromGuide: e.missingFromGuide, missingFromSwagger: e.missingFromSwagger, notes: e.notes }));
+      const blob = new Blob([JSON.stringify({ batch: batchName, owner, coverage: coveragePct, endpoints: payload }, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url;
+      a.download = `DCT_${batchName.replace(/ /g,"_")}_APIs_${new Date().toISOString().slice(0,10)}.json`;
+      a.click(); URL.revokeObjectURL(url);
+      setBatchCopied("json"); setTimeout(() => setBatchCopied(null), 1500);
+      return;
+    }
+    navigator.clipboard.writeText(text);
+    setBatchCopied(type); setTimeout(() => setBatchCopied(null), 1500);
+  };
+
+  return (
+    <div className="border-b border-slate-200 last:border-b-0">
+      {/* Batch Header */}
+      <div
+        className="flex flex-wrap items-center gap-2 px-4 py-2.5 cursor-pointer hover:bg-slate-50 transition-colors"
+        style={{background: open ? '#f0f7ff' : '#f8fafc'}}
+        onClick={() => setOpen(o => !o)}
+      >
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {open ? <ChevronUp className="w-3.5 h-3.5 text-slate-400 shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
+          <span className="text-xs font-bold text-[#003865] truncate">{batchName}</span>
+          {owner && <span className="text-xs text-slate-500 shrink-0">· {owner}</span>}
+          {govFlags.map(f => (
+            <span key={f} className="text-xs font-medium px-1.5 py-0.5 rounded shrink-0" style={{fontSize:'9px', background: GOV_BADGE_MAP[f]?.bg, color: GOV_BADGE_MAP[f]?.color}}>
+              {GOV_BADGE_MAP[f]?.label}
+            </span>
+          ))}
+        </div>
+        {/* Metrics */}
+        <div className="flex items-center gap-3 text-xs shrink-0" onClick={e => e.stopPropagation()}>
+          <span className="font-semibold" style={{color: coveragePct === 100 ? '#059669' : coveragePct >= 60 ? '#d97706' : '#dc2626'}}>{coveragePct}% coverage</span>
+          <span className="text-slate-500">{entries.length} APIs</span>
+          <span className="text-emerald-700 font-medium">{delivered} delivered</span>
+          {partial > 0 && <span className="text-amber-700">{partial} partial</span>}
+          {missing > 0 && <span className="text-red-700 font-medium">{missing} missing</span>}
+          {missingGuide > 0 && <span className="text-red-600 font-medium">{missingGuide} guide gap{missingGuide > 1 ? 's' : ''}</span>}
+          {missingSwagger > 0 && <span className="text-orange-600">{missingSwagger} swagger gap{missingSwagger > 1 ? 's' : ''}</span>}
+          <span
+            className="text-xs font-semibold px-2 py-0.5 rounded-full"
+            style={{background: guideAlignPct === 100 ? '#d1fae5' : '#fef3c7', color: guideAlignPct === 100 ? '#065f46' : '#92400e'}}
+          >
+            Guide {guideAlignPct}%
+          </span>
+        </div>
+      </div>
+
+      {/* Expanded Content */}
+      {open && (
+        <div className="border-t border-slate-100">
+          {/* Batch action bar */}
+          <div className="flex flex-wrap items-center gap-1.5 px-4 py-1.5 bg-white border-b border-slate-100">
+            <span className="text-xs text-slate-400 font-medium mr-0.5">Batch actions:</span>
+            {(["summary","po","qa","json"] as const).map(t => (
+              <button key={t} onClick={() => copyBatchSummary(t)}
+                className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded border transition-colors ${
+                  batchCopied === t ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {batchCopied === t ? <Check className="w-3 h-3" /> : t === "json" ? <FileJson className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                {batchCopied === t ? "Done" : t === "summary" ? "Copy Summary" : t === "po" ? "Copy PO Update" : t === "qa" ? "Copy QA Summary" : "Export JSON"}
+              </button>
+            ))}
+            <label className="ml-auto flex items-center gap-1 text-xs text-slate-500 cursor-pointer">
+              <input type="checkbox" checked={showGapOnly} onChange={e => { e.stopPropagation(); setShowGapOnly(e.target.checked); }} className="rounded" />
+              Gaps Only
+            </label>
+          </div>
+
+          {/* Documentation Gap Rollup */}
+          {(missingGuide > 0 || missingSwagger > 0) && (
+            <div className="px-4 py-1.5 bg-amber-50 border-b border-amber-100 flex flex-wrap gap-3">
+              {missingGuide > 0 && (
+                <div className="text-xs text-amber-800">
+                  <span className="font-semibold">⚠ Consumer Guide Gaps:</span>{" "}
+                  {entries.filter(e=>e.missingFromGuide).map(e=>e.endpoint).join(" · ")}
+                </div>
+              )}
+              {missingSwagger > 0 && (
+                <div className="text-xs text-orange-800">
+                  <span className="font-semibold">⚠ Swagger Gaps:</span>{" "}
+                  {entries.filter(e=>e.missingFromSwagger).map(e=>e.endpoint).join(" · ")}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Endpoint subtable */}
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{fontSize:'10.5px', borderCollapse:'collapse'}}>
+              <thead>
+                <tr style={{background:'#f1f5f9', borderBottom:'1px solid #e2e8f0'}}>
+                  <th className="text-left px-3 py-1.5 font-semibold text-slate-600 text-xs">Endpoint</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-slate-600 text-xs" style={{width:'5%'}}>Method</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-slate-600 text-xs" style={{width:'22%'}}>Path</th>
+                  <th className="text-center px-2 py-1.5 font-semibold text-slate-600 text-xs" style={{width:'9%'}}>Status</th>
+                  <th className="text-center px-2 py-1.5 font-semibold text-slate-600 text-xs" style={{width:'9%'}}>Guide</th>
+                  <th className="text-center px-2 py-1.5 font-semibold text-slate-600 text-xs" style={{width:'6%'}}>Swagger</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-slate-600 text-xs">Notes &amp; Badges</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayEntries.map((e, i) => {
+                  const method = e.path.includes("GET") ? "GET" : e.path.includes("POST") ? "POST" : e.path.includes("PUT") ? "PUT" : e.path.includes("DELETE") ? "DELETE" : "GET";
+                  const pathClean = e.path.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/,"");
+                  const epFlags = ENDPOINT_GOV_FLAGS[pathClean] ?? [];
+                  const isGap = e.notes.toLowerCase().includes("block") || e.notes.toLowerCase().includes("gap") || e.notes.toLowerCase().includes("not yet") || e.notes.toLowerCase().includes("pending") || e.notes.toLowerCase().includes("missing");
+                  const apiStyle = e.status === "Delivered" ? {bg:"#d1fae5",color:"#065f46"} : e.status === "In Progress" || e.status === "Partial" ? {bg:"#fef3c7",color:"#92400e"} : {bg:"#fee2e2",color:"#991b1b"};
+                  return (
+                    <tr key={i} style={{borderBottom:'1px solid #f1f5f9', background: i%2===0 ? '#ffffff' : '#fafafa'}}
+                      onMouseEnter={ev => (ev.currentTarget.style.background = '#eff6ff')}
+                      onMouseLeave={ev => (ev.currentTarget.style.background = i%2===0 ? '#ffffff' : '#fafafa')}
+                    >
+                      <td className="px-3 py-1.5 font-medium text-slate-800" style={{fontSize:'10.5px'}}>{e.endpoint}</td>
+                      <td className="px-2 py-1.5">
+                        <span className="font-mono font-bold rounded px-1" style={{fontSize:'9px', background:'#e0e7ff', color:'#3730a3'}}>{method}</span>
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <span className="font-mono text-slate-600 rounded px-1" style={{fontSize:'9px', background:'#f1f5f9', wordBreak:'break-all'}}>{pathClean}</span>
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        <span className="font-semibold rounded-full px-2 py-0.5" style={{fontSize:'9px', background:apiStyle.bg, color:apiStyle.color, whiteSpace:'nowrap'}}>{e.status}</span>
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        <span className="font-semibold rounded-full px-2 py-0.5" style={{fontSize:'9px',
+                          background: e.consumerGuide==='Aligned' ? '#d1fae5' : e.consumerGuide==='Partial' ? '#fef3c7' : '#fee2e2',
+                          color: e.consumerGuide==='Aligned' ? '#065f46' : e.consumerGuide==='Partial' ? '#92400e' : '#991b1b',
+                        }}>{e.consumerGuide}</span>
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        {e.missingFromSwagger
+                          ? <span className="font-bold rounded-full px-2 py-0.5 bg-red-100 text-red-700" style={{fontSize:'9px'}}>Gap</span>
+                          : <span className="font-semibold rounded-full px-2 py-0.5 bg-emerald-100 text-emerald-700" style={{fontSize:'9px'}}>✓</span>}
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <div className="flex flex-wrap items-center gap-1">
+                          {isGap && <span style={{fontSize:'10px'}}>⚠️</span>}
+                          <TruncatedNote text={e.notes} />
+                          {epFlags.map(f => (
+                            <span key={f} className="font-medium rounded px-1 py-0.5 shrink-0" style={{fontSize:'8.5px', background:GOV_BADGE_MAP[f]?.bg, color:GOV_BADGE_MAP[f]?.color}}>
+                              {GOV_BADGE_MAP[f]?.label}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── BatchExportButton ───────────────────────────────────────────────────────
 function BatchExportButton({ label, icon, onClick }: { label: string; icon: string; onClick: () => void }) {
   const [clicked, setClicked] = useState(false);
@@ -1628,108 +1891,29 @@ export default function BatchControlPanel() {
       </div>
 
       {/* ── Section 3: Swagger / API Coverage ── */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <SectionHeader
-          title="Swagger / API Coverage"
-          subtitle="All API endpoints mapped to batch — flag missing Consumer Guide or Swagger entries"
-          cascadeStep={2}
-          cascadeActive={cascade.active && cascade.currentStep === 2}
-          cascadeDone={cascade.completedSteps.includes(2)}
-        />
-        <div className="overflow-x-auto">
-          <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
-            <colgroup>
-              <col style={{width: '8%'}} />
-              <col style={{width: '18%'}} />
-              <col style={{width: '22%'}} />
-              <col style={{width: '13%'}} />
-              <col style={{width: '11%'}} />
-              <col style={{width: '8%'}} />
-              <col style={{width: '8%'}} />
-              <col style={{width: 'auto'}} />
-            </colgroup>
-            <thead>
-              <tr style={{background: '#002a52', borderBottom: '2px solid #001d3d'}}>
-                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Batch</th>
-                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Endpoint</th>
-                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Path</th>
-                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Status</th>
-                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Consumer Guide</th>
-                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Missing Guide?</th>
-                <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Missing Swagger?</th>
-                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {liveSwaggerEntries.map((e, i) => {
-                const apiStyle = API_STYLE[e.status];
-                const prevBatch = i > 0 ? liveSwaggerEntries[i - 1].batch : null;
-                const isNewBatch = e.batch !== prevBatch;
-                const swaggerBatchGroupIndex = liveSwaggerEntries.filter((x, xi) => xi <= i && (xi === 0 || liveSwaggerEntries[xi-1].batch !== x.batch)).length - 1;
-                const swaggerRowBg = swaggerBatchGroupIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
-                const isNoteGap = e.notes.toLowerCase().includes("block") || e.notes.toLowerCase().includes("gap") || e.notes.toLowerCase().includes("not yet") || e.notes.toLowerCase().includes("pending") || e.notes.toLowerCase().includes("missing");
-                return (
-                  <tr
-                    key={i}
-                    style={{background: swaggerRowBg, borderTop: isNewBatch && i > 0 ? '2px solid #e2e8f0' : '1px solid #f1f5f9'}}
-                    className="transition-colors"
-                    onMouseEnter={ev => (ev.currentTarget.style.background = '#eff6ff')}
-                    onMouseLeave={ev => (ev.currentTarget.style.background = swaggerRowBg)}
-                  >
-                    <td className="font-semibold text-xs" style={{padding:'12px 12px', color:'#003865', whiteSpace:'nowrap', verticalAlign:'top'}}>{e.batch}</td>
-                    <td className="font-medium text-slate-800" style={{padding:'12px 12px', wordBreak:'break-word', verticalAlign:'top', fontSize:'11px'}}>{e.endpoint}</td>
-                    <td style={{padding:'12px 12px', verticalAlign:'top'}}>
-                      <span
-                        className="font-mono text-slate-600 rounded px-1.5 py-0.5 block"
-                        style={{fontSize:'9.5px', background:'#f1f5f9', wordBreak:'break-all', lineHeight:'1.5'}}
-                      >
-                        {e.path}
-                      </span>
-                    </td>
-                    <td style={{padding:'12px 12px', verticalAlign:'top', textAlign:'center'}}>
-                      <span
-                        className={`inline-flex items-center justify-center font-semibold rounded-full ${apiStyle.bg} ${apiStyle.text}`}
-                        style={{fontSize:'10px', padding:'3px 10px', whiteSpace:'nowrap', minWidth:'80px'}}
-                      >
-                        {e.status}
-                      </span>
-                    </td>
-                    <td style={{padding:'12px 12px', verticalAlign:'top', textAlign:'center'}}>
-                      <span
-                        className={`inline-flex items-center justify-center font-semibold rounded-full`}
-                        style={{
-                          fontSize:'10px', padding:'3px 10px', whiteSpace:'nowrap', minWidth:'64px',
-                          background: e.consumerGuide === 'Aligned' ? '#d1fae5' : e.consumerGuide === 'Partial' ? '#fef3c7' : '#fee2e2',
-                          color: e.consumerGuide === 'Aligned' ? '#065f46' : e.consumerGuide === 'Partial' ? '#92400e' : '#991b1b',
-                        }}
-                      >
-                        {e.consumerGuide}
-                      </span>
-                    </td>
-                    <td style={{padding:'12px 12px', verticalAlign:'top', textAlign:'center'}}>
-                      {e.missingFromGuide
-                        ? <span className="inline-flex items-center justify-center font-bold rounded-full bg-red-100 text-red-700" style={{fontSize:'10px', padding:'3px 10px'}}>Yes</span>
-                        : <span className="inline-flex items-center justify-center font-semibold rounded-full bg-emerald-100 text-emerald-700" style={{fontSize:'10px', padding:'3px 10px'}}>No</span>}
-                    </td>
-                    <td style={{padding:'12px 12px', verticalAlign:'top', textAlign:'center'}}>
-                      {e.missingFromSwagger
-                        ? <span className="inline-flex items-center justify-center font-bold rounded-full bg-red-100 text-red-700" style={{fontSize:'10px', padding:'3px 10px'}}>Yes</span>
-                        : <span className="inline-flex items-center justify-center font-semibold rounded-full bg-emerald-100 text-emerald-700" style={{fontSize:'10px', padding:'3px 10px'}}>No</span>}
-                    </td>
-                    <td style={{padding:'12px 12px', verticalAlign:'top'}}>
-                      <div className="flex items-start gap-1">
-                        <span style={{fontSize:'11px', lineHeight:'1.1', flexShrink:0}}>{isNoteGap ? '⚠️' : 'ℹ️'}</span>
-                        <span className="flex-1 text-slate-600 leading-snug" style={{fontSize:'10.5px'}}>{e.notes}</span>
-                        <CopyNoteButton text={e.notes} />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* ── Section 3: Swagger / API Coverage (grouped) ── */}
+      {(() => {
+        // Build batch groups from liveSwaggerEntries
+        const batchOrder: string[] = [];
+        const batchMap: Record<string, SwaggerGroupEntry[]> = {};
+        liveSwaggerEntries.forEach(e => {
+          if (!batchMap[e.batch]) { batchMap[e.batch] = []; batchOrder.push(e.batch); }
+          batchMap[e.batch].push(e as SwaggerGroupEntry);
+        });
+
+        return (
+          <div className="space-y-0">
+            {batchOrder.map((bn, idx) => (
+              <SwaggerBatchGroup
+                key={bn}
+                batchName={bn}
+                entries={batchMap[bn]}
+                defaultOpen={idx === 0}
+              />
+            ))}
+          </div>
+        );
+      })()}
 
       {/* ── Section 4: Roger UI Data Availability ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">

@@ -98,7 +98,8 @@ const TOOL_ITEMS: NavItem[] = [
 
 // Roger UI — Roger-specific pages
 const ROGER_UI_ITEMS: NavItem[] = [
-  { label: "Roger API Evolution",    path: "/roger-api",           icon: "⚡", badge: "Export", badgeColor: "#003865" },
+  { label: "Integration Alignment Hub", path: "/integration-hub", icon: "⊕", badge: "Live",   badgeColor: "#059669" },
+  { label: "Roger API Evolution",       path: "/roger-api",       icon: "⚡", badge: "Export", badgeColor: "#003865" },
 ];
 
 // Governance — alphabetical

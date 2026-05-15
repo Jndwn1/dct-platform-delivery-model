@@ -23,6 +23,7 @@ import LineageExplorer from "./pages/LineageExplorer";
 
 // Platform pages
 import RogerApiEvolution from "./pages/RogerApiEvolution";
+import IntegrationAlignmentHub from "./pages/IntegrationAlignmentHub";
 import RuntimeJourney from "./pages/RuntimeJourney";
 import BatchControlPanel from "./pages/BatchControlPanel";
 import TaxonomyPage from "./pages/TaxonomyPage";
@@ -77,6 +78,7 @@ function Router() {
         <Route path="/lineage" component={LineageExplorer} />
 
         {/* Platform pages */}
+        <Route path="/integration-hub" component={IntegrationAlignmentHub} />
         <Route path="/roger-api" component={RogerApiEvolution} />
         <Route path="/runtime-journey" component={RuntimeJourney} />
         <Route path="/control-panel" component={BatchControlPanel} />
