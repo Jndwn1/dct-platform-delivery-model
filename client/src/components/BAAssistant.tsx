@@ -566,6 +566,100 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
     }]);
   };
 
+  // ── Local Answer Engine — answers questions directly from platform data without LLM ──
+  const localAnswerEngine = useCallback((q: string): string | null => {
+    const ql = q.toLowerCase();
+
+    // Helper: find matching data points by keyword
+    const matchDPs = rogerDataPoints.filter(d =>
+      ql.includes(d.dataPoint.toLowerCase().slice(0, 12)) ||
+      d.dataPoint.toLowerCase().split(/\s+/).some(w => w.length > 4 && ql.includes(w)) ||
+      (ql.includes(d.source.toLowerCase())) ||
+      (ql.includes(d.batch.toLowerCase()))
+    );
+
+    // Helper: find matching swagger entries
+    const matchAPIs = swaggerEntries.filter(s =>
+      ql.includes(s.endpoint.toLowerCase().slice(0, 12)) ||
+      s.endpoint.toLowerCase().split(/\s+/).some(w => w.length > 4 && ql.includes(w)) ||
+      ql.includes(s.path.toLowerCase().slice(0, 20)) ||
+      ql.includes(s.batch.toLowerCase())
+    );
+
+    // Q: What APIs does DCT need for [story/data point]?
+    if ((ql.includes("api") || ql.includes("endpoint") || ql.includes("provide")) && matchDPs.length > 0) {
+      const lines = matchDPs.map(d => {
+        const apis = swaggerEntries.filter(s => s.batch === d.batch || s.endpoint.toLowerCase().includes(d.dataPoint.toLowerCase().slice(0, 8)));
+        const apiList = apis.length > 0
+          ? apis.map(a => `  • \`${a.path}\` — ${a.endpoint} (${a.status})`).join("\n")
+          : `  • \`${d.apiEndpoint}\` (from Roger data point mapping)`;
+        return `**${d.dataPoint}**\n**Batch:** ${d.batch} | **Source:** ${d.source} | **Availability:** ${d.availability}\n**API Endpoints:**\n${apiList}\n**Owner:** ${d.owner}\n**Notes:** ${d.notes}`;
+      });
+      return `**API Endpoints Required — pulled from Control Panel data**\n\n${lines.join("\n\n---\n\n")}`;
+    }
+
+    // Q: What batch delivers [data point]?
+    if ((ql.includes("batch") || ql.includes("deliver") || ql.includes("which batch")) && matchDPs.length > 0) {
+      const lines = matchDPs.map(d =>
+        `**${d.dataPoint}** → **${d.batch}** (${d.source}) — Status: ${d.availability}\nAPI: \`${d.apiEndpoint}\`\nOwner: ${d.owner}`
+      );
+      return `**Batch Delivery Mapping — from Control Panel**\n\n${lines.join("\n\n")}`;
+    }
+
+    // Q: What is the availability / status of [data point]?
+    if ((ql.includes("availab") || ql.includes("status") || ql.includes("ready") || ql.includes("live")) && matchDPs.length > 0) {
+      const lines = matchDPs.map(d => {
+        const adoIds = d.adoStories.filter(s => s.id).map(s => `#${s.id} "${s.title}"`).join(", ") || "None";
+        return `**${d.dataPoint}**\nStatus: **${d.availability}** | Batch: ${d.batch} | Source: ${d.source}\nADO Stories: ${adoIds}\nNotes: ${d.notes}`;
+      });
+      return `**Availability Status — from Control Panel**\n\n${lines.join("\n\n")}`;
+    }
+
+    // Q: What are the gaps / what is blocking?
+    if (ql.includes("gap") || ql.includes("block") || ql.includes("missing") || ql.includes("not available") || ql.includes("not yet")) {
+      const gaps = rogerDataPoints.filter(d => d.availability !== "Available");
+      if (gaps.length === 0) return "**No Gaps Found** — all Roger data points show Available status in the Control Panel.";
+      const lines = gaps.map(d => {
+        const adoIds = d.adoStories.filter(s => s.id).map(s => `#${s.id}`).join(", ") || "—";
+        return `• **${d.dataPoint}** | ${d.batch} | ${d.availability} | Owner: ${d.owner} | ADO: ${adoIds}\n  _${d.notes}_`;
+      });
+      return `**Platform Gaps — ${gaps.length} data point(s) not yet Available**\n\n${lines.join("\n\n")}\n\n_Source: Roger UI Data Availability table, Control Panel_`;
+    }
+
+    // Q: Show all data points / list all APIs
+    if (ql.includes("all data point") || ql.includes("list all") || ql.includes("show all") || ql.includes("full list")) {
+      const lines = rogerDataPoints.map(d =>
+        `• **${d.dataPoint}** | ${d.batch} | ${d.availability} | \`${d.apiEndpoint}\``
+      );
+      return `**All Roger UI Data Points (${rogerDataPoints.length} total)**\n\n${lines.join("\n")}\n\n_Source: Control Panel — Roger UI Data Availability_`;
+    }
+
+    // Q: What APIs are in [batch]?
+    const batchMatch = ql.match(/batch\s*(\w+\d+|\d+|fc|b\d+)/i);
+    if (batchMatch) {
+      const bkey = batchMatch[1].toLowerCase();
+      const batchAPIs = swaggerEntries.filter(s => s.batch.toLowerCase().includes(bkey));
+      const batchDPs = rogerDataPoints.filter(d => d.batch.toLowerCase().includes(bkey));
+      if (batchAPIs.length > 0 || batchDPs.length > 0) {
+        const apiLines = batchAPIs.map(a => `  • \`${a.path}\` — ${a.endpoint} (${a.status})`).join("\n") || "  None found";
+        const dpLines = batchDPs.map(d => `  • ${d.dataPoint} — ${d.availability}`).join("\n") || "  None found";
+        return `**Batch ${batchMatch[1].toUpperCase()} — API & Data Point Summary**\n\n**API Endpoints (${batchAPIs.length}):**\n${apiLines}\n\n**Roger Data Points (${batchDPs.length}):**\n${dpLines}\n\n_Source: Control Panel_`;
+      }
+    }
+
+    // Q: What fields does [endpoint/data point] return?
+    if ((ql.includes("field") || ql.includes("payload") || ql.includes("return") || ql.includes("response")) && matchDPs.length > 0) {
+      const lines = matchDPs.map(d => {
+        const fields = (d as RogerDataPointCtx & { fieldsDelivered?: string[] }).fieldsDelivered;
+        const fieldList = fields && fields.length > 0 ? fields.map(f => `  • \`${f}\``).join("\n") : `  (Field details not available — see Control Panel table)`;
+        return `**${d.dataPoint}** (${d.batch})\n**API:** \`${d.apiEndpoint}\`\n**Fields:**\n${fieldList}`;
+      });
+      return `**Payload Fields — from Control Panel**\n\n${lines.join("\n\n")}`;
+    }
+
+    return null; // No local match — fall through to LLM
+  }, [rogerDataPoints, swaggerEntries]);
+
   // Detect 401 / API key errors and return a user-friendly fallback message
   const is401 = (e: unknown): boolean => {
     const msg = e instanceof Error ? e.message : String(e);
@@ -589,6 +683,15 @@ The assistant cannot connect to the AI service right now. This is a browser-side
     if (!q.trim() || loading) return;
     setHistory(h => [...h, { role: "user", content: q.trim(), timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
     setQuestion("");
+
+    // Try local engine first — answers from Control Panel data, no API needed
+    const localAnswer = localAnswerEngine(q.trim());
+    if (localAnswer) {
+      addAssistantMessage(localAnswer + "\n\n_📊 Answer sourced from Control Panel platform data — no AI API required._", q.trim());
+      return;
+    }
+
+    // Fall back to LLM for complex / open-ended questions
     try {
       const answer = await ask(buildMessages(q.trim()));
       addAssistantMessage(answer, q.trim());

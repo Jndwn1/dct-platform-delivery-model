@@ -36,6 +36,7 @@ import {
 import { ADR_CARDS, computeSummaryTiles } from "@/lib/rogerGovernanceData";
 import { BAOperationalGuide } from "@/components/BAOperationalGuide";
 import { RogerVsDCTRoles } from "@/components/RogerVsDCTRoles";
+import { BAAssistant, type RogerDataPointCtx, type SwaggerEntryCtx } from "@/components/BAAssistant";
 import { ROGER_MODEL_GROUPS } from "@/lib/rogerModelData";
 import { PI_GROUPS } from "@/lib/batchModel";
 import {
@@ -969,7 +970,31 @@ export default function IntegrationAlignmentHub() {
           <RogerVsDCTRoles />
         </div>
 
-        {/* ── Audit Log ─────────────────────────────────────────────────── */}
+        {/* ── BA Assistant ──────────────────────────────────────────────────── */}
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <BAAssistant
+            rogerDataPoints={ROGER_DATA_POINTS_STATIC.map((d): RogerDataPointCtx => ({
+              dataPoint: d.dataPoint,
+              source: d.system,
+              batch: `Batch ${d.batch}`,
+              availability: d.apiEndpoint === '— In Progress' ? 'In Progress' : 'Available',
+              apiEndpoint: d.apiEndpoint,
+              notes: d.apiEndpoint === '— In Progress' ? 'Active delivery — B8 in progress' : 'Delivered',
+              owner: d.owner,
+              adoStories: [],
+            }))}
+            swaggerEntries={ROGER_DATA_POINTS_STATIC.map((d): SwaggerEntryCtx => ({
+              batch: `Batch ${d.batch}`,
+              endpoint: d.dataPoint,
+              path: d.apiEndpoint,
+              status: d.apiEndpoint === '— In Progress' ? 'In Progress' : 'Delivered',
+              consumerGuide: 'See Control Panel',
+              notes: '',
+            }))}
+          />
+        </div>
+
+        {/* ── Audit Log ───────────────────────────────────────────────────── */}
         {auditLog && auditLog.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
