@@ -34,6 +34,8 @@ import {
   type ReadinessValue,
 } from "@/contexts/BatchStatusContext";
 import { ADR_CARDS, computeSummaryTiles } from "@/lib/rogerGovernanceData";
+import { BAOperationalGuide } from "@/components/BAOperationalGuide";
+import { RogerVsDCTRoles } from "@/components/RogerVsDCTRoles";
 import { ROGER_MODEL_GROUPS } from "@/lib/rogerModelData";
 import { PI_GROUPS } from "@/lib/batchModel";
 import {
@@ -956,6 +958,16 @@ export default function IntegrationAlignmentHub() {
               )}
             </div>
           )}
+        </div>
+
+        {/* ── BA Operational Guide ─────────────────────────────────── */}
+        <div className="bg-[#0a1628] border border-slate-700 rounded-xl overflow-hidden shadow-lg px-6 py-6">
+          <BAOperationalGuide />
+        </div>
+
+        {/* ── Roger BA vs DCT BA Roles ─────────────────────────────────── */}
+        <div className="bg-[#0a1628] border border-slate-700 rounded-xl overflow-hidden shadow-lg px-6 py-6">
+          <RogerVsDCTRoles />
         </div>
 
         {/* ── Audit Log ─────────────────────────────────────────────────── */}
