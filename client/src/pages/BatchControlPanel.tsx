@@ -370,6 +370,8 @@ interface RogerDataPoint {
   batch: string;
   availability: RogerAvailability;
   apiEndpoint: string;
+  /** Specific response fields/payload fields delivered by the API endpoint for Roger consumption */
+  fieldsDelivered: string[];
   adoStories: AdoStory[];   // ADO Tech Story traceability
   notes: string;
   owner: string;
@@ -615,21 +617,24 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
   {
     dataPoint: "File ingestion status (JobId, DocumentId, State)",
     source: "PDC", batch: "Batch 1", availability: "Available",
-    apiEndpoint: "GET /api/pdc/ingestion/status/{jobId}",
+    apiEndpoint: "GET /api/v1/Ingestion/{runId}",
+    fieldsDelivered: ["ingestionRunId", "documentId", "entityId", "status", "periodStart", "periodEnd", "createdAt", "updatedAt", "sourceFileName", "documentTypeCode"],
     adoStories: [{ title: "N/A – Delivered in Batch 1 foundation", id: "" }],
     notes: "Operational. Roger can confirm file arrival and processing state.", owner: "PDC",
   },
   {
     dataPoint: "Lineage anchor (DocumentId → EntityId → PeriodStart/End)",
     source: "PDC", batch: "Batch 1", availability: "Available",
-    apiEndpoint: "GET /api/pdc/ingestion/status/{jobId}",
+    apiEndpoint: "GET /api/v1/Ingestion/{runId}",
+    fieldsDelivered: ["documentId", "entityId", "periodStart", "periodEnd", "ingestionRunId", "lineageAnchorTimestamp", "sourceSystem"],
     adoStories: [{ title: "N/A – Delivered in Batch 1 foundation", id: "" }],
     notes: "Lineage immediately visible at ingestion.", owner: "PDC",
   },
   {
     dataPoint: "Normalized Trial Balance (vNormalizedTb)",
     source: "PDC", batch: "Batch 2", availability: "Partially Available",
-    apiEndpoint: "GET /api/pdc/normalized-tb",
+    apiEndpoint: "GET /api/v1/data-records",
+    fieldsDelivered: ["runId", "entityId", "accountCode", "accountDescription", "firmTaxonomyId", "normalizedAmount", "periodStart", "periodEnd", "documentId", "lineageRef", "schemaVersion"],
     adoStories: [
       { title: "Normalized TB Contract (Roger Read Surface)", id: "1349150" },
       { title: "File Schemas & Firm Financial Taxonomy Reference Data", id: "1349142" },
@@ -639,49 +644,56 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
   {
     dataPoint: "FirmTaxonomyId on normalized records",
     source: "PDC / Orchestrator", batch: "Batch 2A", availability: "Not Available",
-    apiEndpoint: "—",
+    apiEndpoint: "GET /api/v1/data-records (field pending)",
+    fieldsDelivered: ["firmTaxonomyId (MISSING — blocking)", "firmTaxonomyCode", "classificationStatus", "classificationSource", "rejectionReason"],
     adoStories: [{ title: "Enforce Classification Presence (FirmTaxonomyId)", id: "1370843" }],
     notes: "Blocking gap. Orchestrator not returning FirmTaxonomyId. Classification Walkthrough documents this gap.", owner: "PDC + Orchestrator",
   },
   {
     dataPoint: "Tax form templates and mapping rules",
     source: "TDC", batch: "Batch 3", availability: "Available",
-    apiEndpoint: "GET /api/tdc/reference-data",
+    apiEndpoint: "GET /api/v1/tax-form-templates",
+    fieldsDelivered: ["templateId", "formName", "jurisdiction", "taxYear", "formLines[]", "mappingRuleId", "confidenceBandThreshold", "version", "effectiveDate"],
     adoStories: [{ title: "TDC Reference Data Read Contract (Orchestrator Facing)", id: "1349152" }],
     notes: "Orchestrator-facing only. Not Roger-facing.", owner: "TDC",
   },
   {
     dataPoint: "AI mapping proposals (confidence + evidence)",
     source: "TDC", batch: "Batch 4", availability: "Partially Available",
-    apiEndpoint: "GET /api/tdc/mapping-proposals",
+    apiEndpoint: "GET /api/v1/mapping-proposals",
+    fieldsDelivered: ["proposalId", "entityId", "accountCode", "suggestedTaxLineId", "confidenceScore", "confidenceBand (GREEN/YELLOW/RED)", "evidenceSummary", "modelVersion", "createdAt", "status"],
     adoStories: [{ title: "AI Mapping Proposals", id: "1349156" }],
     notes: "Proposals available. Roger read contract (TDC Records API) not yet published.", owner: "TDC",
   },
   {
     dataPoint: "Mapping decisions (accept / override / reject)",
     source: "TDC", batch: "Batch 4", availability: "Partially Available",
-    apiEndpoint: "GET /api/tdc/mapping-decisions",
+    apiEndpoint: "GET /api/v1/mapping-decisions",
+    fieldsDelivered: ["decisionId", "proposalId", "entityId", "accountCode", "decisionType (ACCEPT/OVERRIDE/REJECT)", "decidedBy", "decidedAt", "overrideReason", "immutableHash", "taxYear (GAP — missing in Swagger)"],
     adoStories: [{ title: "Mapping Decisions", id: "1349157" }],
     notes: "Immutable decisions in place. Out of Sync — tax_year field gap in Swagger.", owner: "TDC",
   },
   {
     dataPoint: "Roger primary TDC read contract (GREEN/YELLOW/RED, pending vs decided)",
     source: "TDC", batch: "Batch 4", availability: "Not Available",
-    apiEndpoint: "GET /api/tdc/records",
+    apiEndpoint: "GET /api/v1/tdc-records",
+    fieldsDelivered: ["recordId", "entityId", "accountCode", "taxLineId", "confidenceBand (GREEN/YELLOW/RED)", "decisionStatus (PENDING/DECIDED)", "proposalId", "decisionId", "periodStart", "periodEnd", "lineageRef", "contractVersion"],
     adoStories: [{ title: "TDC Records API Contract (Roger Read Surface)", id: "1349158" }],
     notes: "Not yet published. This is the moment the platform comes to life for practitioners. Blocking.", owner: "TDC",
   },
   {
     dataPoint: "Entity identity (ClientGroupId, EntityId, hierarchy)",
     source: "PDC", batch: "Batch 5", availability: "Not Available",
-    apiEndpoint: "—",
+    apiEndpoint: "GET /api/v1/entities/{entityId}",
+    fieldsDelivered: ["entityId", "clientGroupId", "legalEntityName", "jurisdiction", "ownershipChain[]", "dataSourceType", "rbacContext", "cemSyncStatus", "effectiveDate", "entityCharacteristics[]"],
     adoStories: [{ title: "Entity Identity Read Contract (PDC-facing)", id: "1355868" }],
     notes: "In progress (PI 2). EntityId risk from PI 1 being closed. Entity Identity Read Contract (PDC-facing) is the Roger-facing deliverable.", owner: "PDC",
   },
   {
     dataPoint: "Review task state and adjustment lifecycle",
     source: "TDC", batch: "Batch 6", availability: "Not Available",
-    apiEndpoint: "—",
+    apiEndpoint: "GET /api/v1/review-tasks",
+    fieldsDelivered: ["taskId", "entityId", "taskType", "status (DRAFT/SUBMITTED/APPROVED/APPLIED/LOCKED)", "assignedTo", "dueDate", "adjustmentId", "adjustmentAmount", "approvalRoutingRuleId", "createdAt", "updatedAt"],
     adoStories: [
       { title: "Review Task Management & Entity Status", id: "1350253" },
       { title: "Book-to-Tax Adjustments & Approval Routing", id: "1350254" },
@@ -691,21 +703,24 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
   {
     dataPoint: "Tax-ready records (locked, derived)",
     source: "TDC", batch: "Batch 6", availability: "Not Available",
-    apiEndpoint: "—",
+    apiEndpoint: "GET /api/v1/tax-ready-records",
+    fieldsDelivered: ["taxReadyRecordId", "entityId", "taxLineId", "finalAmount", "derivationSource", "signOffHash (SHA-256)", "signedOffBy", "signedOffAt", "lockStatus", "periodStart", "periodEnd", "lineageRef"],
     adoStories: [{ title: "Tax-Ready Record Derivation", id: "1350255" }],
     notes: "In progress (PI 2). Tax-ready derivation from mapping decisions + approved adjustments. SHA-256 sign-off in development.", owner: "TDC",
   },
   {
     dataPoint: "Eligibility status and rule reasoning",
     source: "TDC", batch: "Batch 7", availability: "Not Available",
-    apiEndpoint: "—",
+    apiEndpoint: "GET /api/v1/eligibility/{entityId}",
+    fieldsDelivered: ["eligibilityId", "entityId", "eligibilityStatus (ELIGIBLE/INELIGIBLE/FLAG_AND_REVIEW)", "tier (MUST_HAVE/MUST_NOT_HAVE/FLAG_AND_REVIEW)", "ruleId", "ruleReasoning", "determinationDate", "controlledGroupId", "affiliatedGroupId", "overrideAllowed", "reviewOutcome"],
     adoStories: [{ title: "Client Tax Profile Lifecycle & Determination Records", id: "1355882" }],
     notes: "In progress (PI 2, sequential after Batch 6). Three-Tier Eligibility Model (Must Have / Must Not Have / Flag & Review). Ineligible entities blocked from downstream workflow.", owner: "TDC",
   },
   {
     dataPoint: "Exception status (ingestion, mapping, workflow)",
     source: "PDC + TDC", batch: "Batch 8", availability: "Not Available",
-    apiEndpoint: "—",
+    apiEndpoint: "GET /api/v1/exceptions",
+    fieldsDelivered: ["exceptionId", "entityId", "exceptionType (INGESTION/MAPPING/WORKFLOW)", "status (OPEN/IN_PROGRESS/RESOLVED/CLOSED/SUPPRESSED)", "severity", "sourceSystem", "batchRef", "remedyActionId", "createdAt", "resolvedAt", "auditTrail[]"],
     adoStories: [
       { title: "PDC Exception Record Structure & Failure Tracking", id: "1355898" },
       { title: "TDC Exception Record Structure & Failure Tracking", id: "1355902" },
@@ -715,7 +730,8 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
   {
     dataPoint: "Rollforward proposals & prior year intelligence",
     source: "PDC + TDC", batch: "Batch 9", availability: "Not Available",
-    apiEndpoint: "GET /api/tdc/rollforward",
+    apiEndpoint: "GET /api/v1/rollforward-proposals",
+    fieldsDelivered: ["rollforwardId", "entityId", "priorYearRecordId", "currentYearEntityId", "matchConfidence (EXACT/APPROXIMATE/NO_MATCH)", "proposedTaxLineId", "priorYearAmount", "deltaAmount", "imsSourceRef", "createdAt", "contractVersion"],
     adoStories: [
       { title: "IMS Inbound Retrieval Contract", id: "1350260" },
     ],
@@ -1981,22 +1997,24 @@ export default function BatchControlPanel() {
         <div className="overflow-x-auto">
           <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
             <colgroup>
-              {/* Data Point 20% */}
-              <col style={{width: '20%'}} />
-              {/* Source 10% */}
+              {/* Data Point 16% */}
+              <col style={{width: '16%'}} />
+              {/* Source 7% */}
+              <col style={{width: '7%'}} />
+              {/* Batch 6% */}
+              <col style={{width: '6%'}} />
+              {/* Availability 9% */}
+              <col style={{width: '9%'}} />
+              {/* API Endpoint 14% */}
+              <col style={{width: '14%'}} />
+              {/* Fields Delivered 18% */}
+              <col style={{width: '18%'}} />
+              {/* ADO Story 14% */}
+              <col style={{width: '14%'}} />
+              {/* Notes 10% */}
               <col style={{width: '10%'}} />
-              {/* Batch 7% */}
-              <col style={{width: '7%'}} />
-              {/* Availability 11% */}
-              <col style={{width: '11%'}} />
-              {/* API Endpoint 15% */}
-              <col style={{width: '15%'}} />
-              {/* ADO Story 17% */}
-              <col style={{width: '17%'}} />
-              {/* Notes 13% */}
-              <col style={{width: '13%'}} />
-              {/* Owner 7% */}
-              <col style={{width: '7%'}} />
+              {/* Owner 6% */}
+              <col style={{width: '6%'}} />
             </colgroup>
             <thead>
               <tr style={{background: '#002a52', borderBottom: '2px solid #001d3d'}}>
@@ -2005,6 +2023,12 @@ export default function BatchControlPanel() {
                 <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Batch</th>
                 <th className="text-center px-3 py-2.5 font-bold text-white text-xs tracking-wide">Availability</th>
                 <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">API Endpoint</th>
+                <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">
+                  <span className="flex items-center gap-1">
+                    Fields Delivered
+                    <span className="text-blue-300 font-normal text-xs">(payload)</span>
+                  </span>
+                </th>
                 <th className="text-right px-3 py-2.5 font-bold text-white text-xs tracking-wide">ADO Story (ID)</th>
                 <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Notes / Gap</th>
                 <th className="text-left px-3 py-2.5 font-bold text-white text-xs tracking-wide">Owner</th>
@@ -2056,6 +2080,44 @@ export default function BatchControlPanel() {
                       >
                         {d.apiEndpoint}
                       </span>
+                    </td>
+                    {/* Fields Delivered — expandable field chips */}
+                    <td className="px-3" style={{padding: '10px 12px', verticalAlign:'top'}}>
+                      {d.fieldsDelivered.length === 0 ? (
+                        <span className="text-slate-400 italic" style={{fontSize:'10px'}}>— pending</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {(expandedNotes.has(i + 1000) ? d.fieldsDelivered : d.fieldsDelivered.slice(0, 4)).map((f, fi) => {
+                            const isGapField = f.toLowerCase().includes('missing') || f.toLowerCase().includes('gap') || f.toLowerCase().includes('pending');
+                            return (
+                              <span
+                                key={fi}
+                                className={`inline-block rounded px-1.5 py-0.5 font-mono leading-snug ${
+                                  isGapField
+                                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                    : 'bg-slate-100 text-slate-600 border border-slate-200'
+                                }`}
+                                style={{fontSize:'8.5px', whiteSpace:'nowrap'}}
+                                title={f}
+                              >
+                                {f}
+                              </span>
+                            );
+                          })}
+                          {d.fieldsDelivered.length > 4 && (
+                            <button
+                              onClick={() => toggleNote(i + 1000)}
+                              className="text-blue-500 hover:text-blue-700 font-medium"
+                              style={{fontSize:'9px'}}
+                            >
+                              {expandedNotes.has(i + 1000)
+                                ? '▲ less'
+                                : `+${d.fieldsDelivered.length - 4} more`
+                              }
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                     {/* ADO Story — right-aligned stacked cards with clickable links */}
                     <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top', textAlign:'right'}}>
