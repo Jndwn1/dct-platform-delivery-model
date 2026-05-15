@@ -1,21 +1,25 @@
-// BAAssistant — AI-powered BA Assistant for the Roger UI Data Availability panel.
+// BAAssistant — Enterprise Governance Copilot
 //
-// Features:
-//   • ADO story link input — fetches the real work item (title, description,
-//     acceptance criteria, state, assigned-to, tags) via Azure DevOps REST API
-//     and injects the content into the AI system prompt for grounded answers
-//   • Free-text question input with multi-turn conversation history
-//   • Suggested question chips for common BA queries
-//   • Save to ADO — formats each assistant response as a clean ADO comment block
-//   • Gap Report mode — one-click summary of all non-Available data points
-//     with blocking ADO stories, formatted as a copy-ready PO update
+// Dual-mode ingestion:
+//   TAB 1 — ADO Link Mode: paste URL or story ID → auto-fetch work item
+//   TAB 2 — Paste Story Mode: paste raw story text, AC, Swagger, payloads, notes
+//
+// Capabilities:
+//   • Smart governance detection (lineage, EntityId, tax_year, additive-only, etc.)
+//   • 9 generated output actions (BA Summary, PO Summary, DEV Questions, QA Risks,
+//     Integration Gaps, Dependency Matrix, Roger Impact, Swagger Gap, Missing AC)
+//   • Multi-turn conversational Q&A grounded on live platform data + ingested content
+//   • Save to ADO, Copy for email/Teams, Gap Report
+//   • RSM color coding: Blue = structure, Green = aligned, Amber = warning, Red = blocking
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useLLM, type LLMMessage } from "@/hooks/useLLM";
 import {
   Bot, Send, Loader2, AlertCircle, ChevronDown, ChevronUp,
   Sparkles, Link2, RotateCcw, Copy, Check, ClipboardList,
-  FileWarning, ExternalLink, BookOpen, RefreshCw,
+  FileWarning, ExternalLink, BookOpen, RefreshCw, FileText,
+  Zap, Shield, GitBranch, Search, AlertTriangle, CheckCircle2,
+  Users, Code2, TestTube, BarChart3, Network,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -45,8 +49,6 @@ interface BAAssistantProps {
   swaggerEntries: SwaggerEntryCtx[];
 }
 
-// ── ADO Work Item type ────────────────────────────────────────────────────────
-
 interface AdoWorkItem {
   id: string;
   title: string;
@@ -57,28 +59,65 @@ interface AdoWorkItem {
   tags: string;
   storyPoints: string;
   iterationPath: string;
-  areaPath: string;
   url: string;
 }
 
 type AdoFetchStatus = "idle" | "loading" | "success" | "error" | "auth_required";
+type InputTab = "ado" | "paste";
+type CopyAction = "copy" | "ado" | "gap";
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  question?: string;
+  isGapReport?: boolean;
+  actionType?: string;
+}
+
+// ── Action button definitions ─────────────────────────────────────────────────
+
+const ACTION_BUTTONS = [
+  { id: "ba_summary",       label: "BA Summary",              icon: <FileText className="w-3 h-3" />,     color: "blue" },
+  { id: "po_summary",       label: "PO Summary",              icon: <Users className="w-3 h-3" />,        color: "blue" },
+  { id: "dev_questions",    label: "DEV Questions",           icon: <Code2 className="w-3 h-3" />,        color: "indigo" },
+  { id: "qa_risks",         label: "QA Risks",                icon: <TestTube className="w-3 h-3" />,     color: "amber" },
+  { id: "integration_gaps", label: "Integration Gaps",        icon: <Network className="w-3 h-3" />,      color: "red" },
+  { id: "dependency_matrix",label: "Dependency Matrix",       icon: <GitBranch className="w-3 h-3" />,   color: "purple" },
+  { id: "roger_impact",     label: "Roger Impact",            icon: <BarChart3 className="w-3 h-3" />,   color: "emerald" },
+  { id: "swagger_gaps",     label: "Swagger Gap Report",      icon: <Search className="w-3 h-3" />,       color: "orange" },
+  { id: "missing_ac",       label: "Missing AC",              icon: <AlertTriangle className="w-3 h-3" />, color: "amber" },
+] as const;
+
+type ActionId = typeof ACTION_BUTTONS[number]["id"];
+
+const ACTION_COLOR_MAP: Record<string, string> = {
+  blue:    "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-400",
+  indigo:  "bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 hover:border-indigo-400",
+  amber:   "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-400",
+  red:     "bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:border-red-400",
+  purple:  "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 hover:border-purple-400",
+  emerald: "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-400",
+  orange:  "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 hover:border-orange-400",
+};
 
 // ── Suggested questions ───────────────────────────────────────────────────────
 
 const SUGGESTED_QUESTIONS = [
-  "What API endpoints does DCT need to provide for 'Fetch client list for current user', and from which batch?",
-  "Which data points are currently blocking Roger from going live?",
-  "What is the availability status of the TDC Records API and which ADO stories cover it?",
-  "Which batch delivers the ExceptionRecord API and what is its current status?",
-  "What endpoints are In Progress for Batch 8 and what consumer guide gaps exist?",
-  "Which data points require both PDC and TDC to deliver, and what is the dependency order?",
-  "What is the difference between a Read Contract and a Write Contract in this platform?",
-  "Which batches have additive-only contracts and what does that mean for Roger consumers?",
+  "What APIs does Roger need from this story?",
+  "Which batch owns this functionality?",
+  "Is this Roger-facing or Orchestrator-facing?",
+  "What governance gaps exist in this story?",
+  "What blocking dependencies exist?",
+  "What questions should the BA ask the DEV?",
+  "Does this violate additive-only contract rules?",
+  "What Roger UI screens depend on this?",
+  "Is lineage addressed in this story?",
+  "What Swagger gaps exist for this feature?",
 ];
 
-// ── ADO story fetcher ─────────────────────────────────────────────────────────
+// ── HTML stripper ─────────────────────────────────────────────────────────────
 
-// Strips HTML tags from ADO rich-text fields
 function stripHtml(html: string): string {
   if (!html) return "";
   return html
@@ -94,31 +133,15 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+// ── ADO fetcher ───────────────────────────────────────────────────────────────
+
 async function fetchAdoWorkItem(storyId: string): Promise<AdoWorkItem> {
-  // Azure DevOps REST API — work items endpoint
-  // This is a public-facing call; ADO returns public project items without auth
-  // for RSMEquiCo/DCT if the project is set to public, otherwise it returns 401.
-  // We attempt the fetch and handle auth gracefully.
-  const org = "RSMEquiCo";
-  const project = "DCT";
-  const url = `https://dev.azure.com/${org}/${project}/_apis/wit/workitems/${storyId}?$expand=all&api-version=7.1`;
-
-  const res = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-    },
-  });
-
-  if (res.status === 401 || res.status === 203) {
-    throw new Error("AUTH_REQUIRED");
-  }
-  if (!res.ok) {
-    throw new Error(`ADO API returned ${res.status}`);
-  }
-
+  const url = `https://dev.azure.com/RSMEquiCo/DCT/_apis/wit/workitems/${storyId}?$expand=all&api-version=7.1`;
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  if (res.status === 401 || res.status === 203) throw new Error("AUTH_REQUIRED");
+  if (!res.ok) throw new Error(`ADO API returned ${res.status}`);
   const data = await res.json();
   const f = data.fields ?? {};
-
   return {
     id: storyId,
     title: f["System.Title"] ?? "",
@@ -129,150 +152,8 @@ async function fetchAdoWorkItem(storyId: string): Promise<AdoWorkItem> {
     tags: f["System.Tags"] ?? "",
     storyPoints: String(f["Microsoft.VSTS.Scheduling.StoryPoints"] ?? ""),
     iterationPath: f["System.IterationPath"] ?? "",
-    areaPath: f["System.AreaPath"] ?? "",
-    url: `https://dev.azure.com/${org}/${project}/_workitems/edit/${storyId}`,
+    url: `https://dev.azure.com/RSMEquiCo/DCT/_workitems/edit/${storyId}`,
   };
-}
-
-// ── System prompt builder ─────────────────────────────────────────────────────
-
-function buildSystemPrompt(
-  rogerDataPoints: RogerDataPointCtx[],
-  swaggerEntries: SwaggerEntryCtx[],
-  adoWorkItem: AdoWorkItem | null
-): string {
-  const dpSummary = rogerDataPoints
-    .map(
-      (d, i) =>
-        `[DP${i + 1}] "${d.dataPoint}" | Source: ${d.source} | Batch: ${d.batch} | Availability: ${d.availability} | API: ${d.apiEndpoint} | Owner: ${d.owner} | Notes: ${d.notes} | ADO: ${d.adoStories.map((s) => (s.id ? `#${s.id} "${s.title}"` : s.title)).join("; ")}`
-    )
-    .join("\n");
-
-  const swaggerSummary = swaggerEntries
-    .map(
-      (s) =>
-        `[API] ${s.batch} | ${s.endpoint} | ${s.path} | Status: ${s.status} | ConsumerGuide: ${s.consumerGuide} | Notes: ${s.notes}`
-    )
-    .join("\n");
-
-  // ADO story section — injected when a story has been successfully fetched
-  const adoStorySection = adoWorkItem
-    ? `
-
-LOADED ADO STORY (Story #${adoWorkItem.id}):
-Title: ${adoWorkItem.title}
-State: ${adoWorkItem.state}
-Assigned To: ${adoWorkItem.assignedTo || "Unassigned"}
-Story Points: ${adoWorkItem.storyPoints || "Not estimated"}
-Iteration: ${adoWorkItem.iterationPath}
-Tags: ${adoWorkItem.tags || "None"}
-
-Description:
-${adoWorkItem.description || "(No description)"}
-
-Acceptance Criteria:
-${adoWorkItem.acceptanceCriteria || "(No acceptance criteria defined)"}
-
-INSTRUCTIONS FOR THIS STORY:
-- The BA has loaded Story #${adoWorkItem.id}: "${adoWorkItem.title}"
-- Ground your answers in the story's description and acceptance criteria above
-- Identify which Roger Data Points (from the ROGER DATA POINTS list) are needed to fulfill this story
-- Identify which API endpoints (from the SWAGGER / API ENTRIES list) DCT must provide
-- State the batch, endpoint path, availability status, and any known gaps
-- If acceptance criteria reference specific fields or data, map them to the platform data above`
-    : "";
-
-  return `You are a DCT Platform BA Assistant embedded in the DCT Gate Verification Dashboard.
-Your role is to help Business Analysts (BAs) understand:
-- Which DCT API endpoints are needed for a given Roger UI user story
-- Which batch delivers those endpoints and their current status
-- What governance constraints apply (additive-only, immutable, lineage, read vs write contract)
-- What ADO stories are linked to each data point
-- What gaps or blockers exist for Roger consumption
-
-PLATFORM CONTEXT:
-- PDC = Phoenix Data Consolidation (financial data, ingestion, entity registry)
-- TDC = Tax Data Consolidation (tax decisions, mapping, eligibility, sign-off)
-- Roger = the practitioner-facing UI that READS from TDC and PDC via published Read Contracts
-- Roger is READ-ONLY. It never writes to PDC or TDC directly.
-- Batches are delivered sequentially within a PI (Program Increment). Each batch has a gate.
-- A Read Contract is only considered Published when all four gate conditions are met (Schema Lock, Invariant Lock, Contract Publication, Lineage Closure).
-- Additive-Only contracts may never remove or rename fields once published.
-
-ROGER DATA POINTS (live platform data):
-${dpSummary}
-
-SWAGGER / API ENTRIES (live platform data):
-${swaggerSummary}
-${adoStorySection}
-
-RESPONSE RULES:
-1. Always ground your answer in the data above. If a data point or endpoint is not in the data, say so clearly.
-2. When answering about a specific user story or feature, identify the matching data point(s) from the list above.
-3. Always state: the batch, the API endpoint path, the current availability/status, and any known gaps.
-4. If an ADO story ID is available, mention it as "#ID".
-5. Format your response with clear sections using markdown-style bold headers (e.g. **API Endpoints**, **Batch**, **Status**, **Gaps**).
-6. Keep answers concise but complete. Target 200–400 words.
-7. If a story has been loaded (see LOADED ADO STORY above), use its title, description, and acceptance criteria to give a precise, story-specific answer.
-8. Never fabricate endpoint paths, batch numbers, or ADO IDs. If uncertain, say "not found in current platform data."`;
-}
-
-// ── Gap Report prompt builder ─────────────────────────────────────────────────
-
-function buildGapReportPrompt(rogerDataPoints: RogerDataPointCtx[]): string {
-  const gaps = rogerDataPoints.filter((d) => d.availability !== "Available");
-  const gapLines = gaps
-    .map(
-      (d) =>
-        `- "${d.dataPoint}" | Batch: ${d.batch} | Status: ${d.availability} | Owner: ${d.owner} | ADO: ${d.adoStories.map((s) => (s.id ? `#${s.id}` : "—")).join(", ")} | Notes: ${d.notes}`
-    )
-    .join("\n");
-
-  return `Generate a copy-ready Gap Report for the PO (Stephane) summarizing all Roger UI data points that are NOT yet Available.
-
-NON-AVAILABLE DATA POINTS (${gaps.length} total):
-${gapLines}
-
-FORMAT REQUIREMENTS:
-- Start with a one-paragraph executive summary (2–3 sentences) stating how many gaps exist and the overall risk to Roger going live.
-- Then produce a table with columns: Data Point | Batch | Status | Owner | Blocking ADO Stories | Action Required
-- After the table, add a "Priority Actions" section listing the top 3 items that must be resolved first, with the ADO story IDs and recommended owner.
-- End with a "Next Steps" line suitable for a Teams or email update to Stephane.
-- Use plain text formatting (no markdown code blocks). Use | for table columns. Keep it professional and concise.
-- Do NOT fabricate any data. Use only the data provided above.`;
-}
-
-// ── ADO comment formatter ─────────────────────────────────────────────────────
-
-function formatAsAdoComment(
-  answer: string,
-  question: string,
-  adoWorkItem: AdoWorkItem | null,
-  adoId: string | null,
-  timestamp: string
-): string {
-  const storyRef = adoWorkItem
-    ? `Story #${adoWorkItem.id}: ${adoWorkItem.title}`
-    : adoId
-      ? `Story #${adoId}`
-      : "DCT Platform";
-  const date = new Date().toLocaleDateString("en-US", {
-    year: "numeric", month: "long", day: "numeric",
-  });
-
-  return `=== DCT Platform BA Assistant — ${date} ===
-
-Reference: ${storyRef}
-Question: ${question}
-
---- Platform Analysis ---
-${answer}
-
---- Source ---
-Generated by DCT Gate Verification Dashboard · BA Assistant
-Grounded on live ROGER_DATA_POINTS and SWAGGER_ENTRIES
-Timestamp: ${timestamp}
-`;
 }
 
 // ── ADO link parser ───────────────────────────────────────────────────────────
@@ -286,60 +167,349 @@ function parseAdoLink(link: string): { id: string; url: string } | null {
   return null;
 }
 
-// ── Chat message type ─────────────────────────────────────────────────────────
+// ── Smart paste parser ────────────────────────────────────────────────────────
 
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-  question?: string;
-  isGapReport?: boolean;
+function parsePastedContent(raw: string): {
+  detectedTitle: string;
+  detectedAC: string;
+  detectedEndpoints: string[];
+  detectedBatches: string[];
+  detectedFields: string[];
+  detectedDependencies: string[];
+  governanceFlags: string[];
+} {
+  const lines = raw.split("\n");
+
+  // Title: first non-empty line or line after "Title:" / "Story:"
+  let detectedTitle = "";
+  for (const line of lines) {
+    const t = line.replace(/^(title|story|user story|feature)[:\s]*/i, "").trim();
+    if (t.length > 5 && t.length < 200) { detectedTitle = t; break; }
+  }
+
+  // Acceptance criteria block
+  const acMatch = raw.match(/acceptance criteria[:\s\n]+([\s\S]{20,800}?)(?:\n\n|\n(?=[A-Z])|$)/i);
+  const detectedAC = acMatch ? acMatch[1].trim() : "";
+
+  // HTTP endpoints
+  const endpointMatches = raw.match(/(?:GET|POST|PUT|PATCH|DELETE)\s+\/[a-zA-Z0-9/_\-{}?=&.]+/g) ?? [];
+  const detectedEndpoints = Array.from(new Set(endpointMatches));
+
+  // Batch references
+  const batchMatches = raw.match(/\b[Bb]atch\s*\d+\b|\bB\d{1,2}\b|\bFC\b|\bB2A\b/g) ?? [];
+  const detectedBatches = Array.from(new Set(batchMatches));
+
+  // Payload fields (camelCase or snake_case identifiers in lists or JSON-like context)
+  const fieldMatches = raw.match(/\b(?:entityId|clientGroupId|taxYear|tax_year|firmTaxonomyId|periodStart|periodEnd|lineageRef|contractVersion|decisionId|proposalId|accountCode|confidenceBand|decisionStatus|immutableHash|recordId|taxLineId)\b/g) ?? [];
+  const detectedFields = Array.from(new Set(fieldMatches));
+
+  // Dependencies (ADO story IDs, "depends on", "blocked by")
+  const depMatches = raw.match(/(?:depends on|blocked by|requires|linked to)[^\n.]{0,80}/gi) ?? [];
+  const storyRefs = raw.match(/#\d{5,8}/g) ?? [];
+  const detectedDependencies = Array.from(new Set([...depMatches, ...storyRefs]));
+
+  // Governance flags
+  const governanceFlags: string[] = [];
+  if (!/lineage/i.test(raw)) governanceFlags.push("No lineage reference detected");
+  if (!/entityId|entity_id/i.test(raw)) governanceFlags.push("EntityId handling not mentioned");
+  if (!/periodStart|periodEnd|period_start|period_end/i.test(raw)) governanceFlags.push("PeriodStart/End not referenced");
+  if (/tax.?year/i.test(raw) && !/tax_year/i.test(raw)) governanceFlags.push("tax_year field inconsistency (camelCase vs snake_case)");
+  if (!/firmTaxonomyId|firm_taxonomy/i.test(raw)) governanceFlags.push("FirmTaxonomyId not referenced");
+  if (!/read contract|write contract|contract/i.test(raw)) governanceFlags.push("Read/Write contract distinction missing");
+  if (!/additive.?only/i.test(raw)) governanceFlags.push("Additive-only constraint not addressed");
+  if (!/error handling|exception|retry/i.test(raw)) governanceFlags.push("Error handling not specified");
+  if (!/owner|ownership/i.test(raw)) governanceFlags.push("Ownership boundary not defined");
+
+  return { detectedTitle, detectedAC, detectedEndpoints, detectedBatches, detectedFields, detectedDependencies, governanceFlags };
 }
 
-type CopyAction = "copy" | "ado" | "gap";
+// ── System prompt builder ─────────────────────────────────────────────────────
+
+function buildSystemPrompt(
+  rogerDataPoints: RogerDataPointCtx[],
+  swaggerEntries: SwaggerEntryCtx[],
+  adoWorkItem: AdoWorkItem | null,
+  pastedContent: string,
+  pastedParsed: ReturnType<typeof parsePastedContent> | null
+): string {
+  const dpSummary = rogerDataPoints
+    .map((d, i) =>
+      `[DP${i + 1}] "${d.dataPoint}" | Source: ${d.source} | Batch: ${d.batch} | Availability: ${d.availability} | API: ${d.apiEndpoint} | Owner: ${d.owner} | Notes: ${d.notes} | ADO: ${d.adoStories.map(s => s.id ? `#${s.id} "${s.title}"` : s.title).join("; ")}`
+    ).join("\n");
+
+  const swaggerSummary = swaggerEntries
+    .map(s => `[API] ${s.batch} | ${s.endpoint} | ${s.path} | Status: ${s.status} | ConsumerGuide: ${s.consumerGuide} | Notes: ${s.notes}`)
+    .join("\n");
+
+  const adoSection = adoWorkItem ? `
+
+LOADED ADO STORY (Story #${adoWorkItem.id}):
+Title: ${adoWorkItem.title}
+State: ${adoWorkItem.state}
+Assigned To: ${adoWorkItem.assignedTo || "Unassigned"}
+Story Points: ${adoWorkItem.storyPoints || "Not estimated"}
+Iteration: ${adoWorkItem.iterationPath}
+Tags: ${adoWorkItem.tags || "None"}
+
+Description:
+${adoWorkItem.description || "(No description)"}
+
+Acceptance Criteria:
+${adoWorkItem.acceptanceCriteria || "(No acceptance criteria defined)"}` : "";
+
+  const pasteSection = (pastedContent && pastedParsed) ? `
+
+PASTED STORY CONTENT (user-provided):
+${pastedContent.slice(0, 3000)}${pastedContent.length > 3000 ? "\n[...truncated]" : ""}
+
+AUTO-DETECTED FROM PASTE:
+- Title: ${pastedParsed.detectedTitle || "(not detected)"}
+- Acceptance Criteria: ${pastedParsed.detectedAC || "(not detected)"}
+- API Endpoints: ${pastedParsed.detectedEndpoints.join(", ") || "none"}
+- Batch References: ${pastedParsed.detectedBatches.join(", ") || "none"}
+- Payload Fields: ${pastedParsed.detectedFields.join(", ") || "none"}
+- Dependencies: ${pastedParsed.detectedDependencies.join("; ") || "none"}
+- Governance Flags: ${pastedParsed.governanceFlags.join("; ") || "none"}` : "";
+
+  return `You are the DCT Platform Enterprise Governance Copilot — an AI integration analyst and dependency discovery engine embedded in the DCT Gate Verification Dashboard.
+
+Your role is to help BAs, POs, DEVs, and QA teams:
+- Identify which DCT API endpoints are needed for a given Roger UI user story
+- Identify which batch delivers those endpoints and their current status
+- Detect governance gaps (lineage, EntityId, tax_year, additive-only, contract ownership)
+- Identify Roger ↔ DCT integration risks and blocking dependencies
+- Generate structured summaries for BA, PO, DEV, and QA audiences
+- Answer follow-up questions conversationally
+
+PLATFORM CONTEXT:
+- PDC = Phoenix Data Consolidation (financial data, ingestion, entity registry)
+- TDC = Tax Data Consolidation (tax decisions, mapping, eligibility, sign-off)
+- Roger = practitioner-facing UI — READ-ONLY, consumes via published Read Contracts
+- Orchestrator = AI execution engine, coordinates PDC/TDC workflows
+- Batches are delivered sequentially within a PI. Each batch requires 4 gate conditions:
+  G1 Schema Lock → G2 Invariant Lock → G3 Contract Publication → G4 Lineage Closure
+- Additive-Only contracts: fields may never be removed or renamed once published
+- Read Contract ≠ Write Contract — Roger only consumes Read Contracts
+
+ROGER DATA POINTS (live platform data):
+${dpSummary}
+
+SWAGGER / API ENTRIES (live platform data):
+${swaggerSummary}
+${adoSection}
+${pasteSection}
+
+RESPONSE RULES:
+1. Ground every answer in the data above. If a data point or endpoint is not in the data, say so clearly.
+2. Always state: batch, API endpoint path, current availability/status, and any known gaps.
+3. Format responses with bold markdown headers (e.g. **API Endpoints**, **Batch**, **Gaps**).
+4. For governance issues, use severity labels: [BLOCKING], [WARNING], [INFO].
+5. For generated outputs (BA Summary, PO Summary, etc.), use structured sections with clear headers.
+6. Never fabricate endpoint paths, batch numbers, or ADO IDs.
+7. If a story has been loaded or pasted, use its content to give story-specific answers.
+8. Keep answers concise but complete. Target 250–500 words for summaries, 150–300 for Q&A.`;
+}
+
+// ── Action prompt builders ────────────────────────────────────────────────────
+
+function buildActionPrompt(actionId: ActionId, storyContext: string): string {
+  const prompts: Record<ActionId, string> = {
+    ba_summary: `Generate a structured BA Summary for this story/content.
+
+Include:
+**Story Overview** — 2-3 sentence summary of what this story delivers
+**Platform Dependencies** — which systems (PDC, TDC, Roger, Orchestrator) are involved
+**API Requirements** — list each API endpoint needed, with batch and status
+**Governance Requirements** — lineage, contract type, additive-only, ownership
+**Open Questions** — top 3 questions the BA should resolve before sprint start
+**Acceptance Criteria Gaps** — any missing or ambiguous AC items
+**Recommended Actions** — immediate next steps for the BA
+
+${storyContext}`,
+
+    po_summary: `Generate a PO-ready executive summary for this story/content.
+
+Include:
+**Business Value** — what value this delivers to practitioners/Roger users
+**Delivery Risk** — Red/Amber/Green with one-line rationale
+**Batch Alignment** — which batch(es) own this, current status
+**Blocking Dependencies** — what must be resolved before this can ship
+**Roger Readiness Impact** — how this affects Roger going live
+**Recommended Decision** — what the PO needs to decide or approve
+**Timeline Risk** — any PI or sprint risk
+
+Keep it executive-level: concise, no technical jargon, decision-ready.
+
+${storyContext}`,
+
+    dev_questions: `Generate a list of DEV Clarification Questions for this story.
+
+Organize by category:
+**API Contract Questions** — endpoint paths, HTTP verbs, request/response schema
+**Data Model Questions** — field names, types, nullability, validation rules
+**Governance Questions** — lineage, immutability, additive-only compliance
+**Integration Questions** — which system owns what, dependency sequencing
+**Error Handling Questions** — retry logic, exception flows, rollback behavior
+**Performance Questions** — pagination, rate limits, timeout expectations
+
+Format each question as: "Q: [question] — Reason: [why this matters for delivery]"
+
+${storyContext}`,
+
+    qa_risks: `Generate a QA Risk Assessment for this story.
+
+Include:
+**High Risk Items** — [BLOCKING] items that could prevent QA sign-off
+**Medium Risk Items** — [WARNING] items that need test coverage
+**Low Risk Items** — [INFO] items to verify but unlikely to block
+**Missing Test Scenarios** — AC gaps that need test cases written
+**Integration Test Requirements** — cross-system flows to validate
+**Governance Verification** — lineage, contract, and ownership checks needed
+**Recommended QA Actions** — what QA should do before sprint start
+
+${storyContext}`,
+
+    integration_gaps: `Generate an Integration Gap Analysis for this story.
+
+Include:
+**Roger ↔ TDC Gaps** — missing or incomplete TDC API contracts
+**Roger ↔ PDC Gaps** — missing or incomplete PDC API contracts
+**Orchestrator Gaps** — any Orchestrator workflow dependencies not addressed
+**Swagger Gaps** — endpoints referenced but missing from Swagger
+**Contract Gaps** — Read/Write contract distinctions not defined
+**Lineage Gaps** — lineage references missing or incomplete
+**Ownership Gaps** — unclear system ownership boundaries
+**Severity** — label each gap as [BLOCKING], [WARNING], or [INFO]
+
+${storyContext}`,
+
+    dependency_matrix: `Generate a Dependency Matrix for this story.
+
+Format as a structured list:
+**Upstream Dependencies** (what this story needs from other batches/systems):
+- [Dependency] | Owner: [system] | Batch: [batch] | Status: [status] | Risk: [High/Med/Low]
+
+**Downstream Dependencies** (what depends on this story):
+- [Dependent feature] | Consumer: [system] | Impact if delayed: [description]
+
+**Cross-Team Dependencies**:
+- [Team] | Dependency type | Resolution needed by | Contact
+
+**Blocking Dependencies** (must be resolved before this story can start):
+- List each with ADO story ID if known
+
+${storyContext}`,
+
+    roger_impact: `Generate a Roger Impact Analysis for this story.
+
+Include:
+**Roger Screens Impacted** — which Roger UI screens depend on this story's APIs
+**Data Points Affected** — which Roger Data Points (from the platform data) are impacted
+**Availability Impact** — will this change the availability status of any data points?
+**Consumer Guide Impact** — does this require consumer guide updates?
+**Contract Impact** — does this affect any published Read Contracts?
+**Additive-Only Risk** — does this story add, remove, or rename any fields?
+**Roger Readiness Change** — will this move any data points from Not Available → Available?
+**Practitioner Impact** — what will practitioners see/gain in Roger when this ships?
+
+${storyContext}`,
+
+    swagger_gaps: `Generate a Swagger Gap Report for this story.
+
+Include:
+**Missing Endpoints** — APIs referenced in the story but not in Swagger
+**Incomplete Endpoints** — endpoints in Swagger but missing request/response schema
+**Consumer Guide Gaps** — endpoints with no consumer guide entry
+**Field-Level Gaps** — payload fields referenced in AC but not in Swagger schema
+**Contract Version Gaps** — endpoints without a published contract version
+**Additive-Only Violations** — any field removals or renames detected
+**Recommended Actions** — what the DEV/Architect needs to add to Swagger
+
+Format each gap as: [ENDPOINT] | Gap Type | Severity | Action Required
+
+${storyContext}`,
+
+    missing_ac: `Generate Missing Acceptance Criteria Suggestions for this story.
+
+Analyze the story content and identify:
+**Missing Functional AC** — business behavior not covered by existing AC
+**Missing API AC** — endpoint behavior, status codes, error responses not specified
+**Missing Governance AC** — lineage, contract, ownership, additive-only not addressed
+**Missing Data AC** — field validation, nullability, format rules not specified
+**Missing Integration AC** — cross-system behavior not tested
+**Missing Error AC** — exception flows, retry, rollback not specified
+**Missing Performance AC** — pagination, timeout, rate limit not addressed
+
+For each missing item, provide:
+"MISSING: [what is missing] — Suggested AC: Given [context], when [action], then [expected outcome]"
+
+${storyContext}`,
+  };
+  return prompts[actionId] ?? `Analyze this story for ${actionId}.`;
+}
+
+// ── ADO comment formatter ─────────────────────────────────────────────────────
+
+function formatAsAdoComment(answer: string, question: string, adoWorkItem: AdoWorkItem | null, adoId: string | null, timestamp: string): string {
+  const storyRef = adoWorkItem ? `Story #${adoWorkItem.id}: ${adoWorkItem.title}` : adoId ? `Story #${adoId}` : "DCT Platform";
+  const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  return `=== DCT Platform Governance Copilot — ${date} ===
+
+Reference: ${storyRef}
+Analysis Type: ${question}
+
+--- Platform Analysis ---
+${answer}
+
+--- Source ---
+Generated by DCT Gate Verification Dashboard · BA Assistant (Governance Copilot)
+Grounded on live ROGER_DATA_POINTS and SWAGGER_ENTRIES
+Timestamp: ${timestamp}
+`;
+}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProps) {
   const { ask, loading, error } = useLLM();
   const [expanded, setExpanded] = useState(true);
+  const [activeTab, setActiveTab] = useState<InputTab>("ado");
+
+  // ADO tab state
   const [adoLink, setAdoLink] = useState("");
+  const [adoFetchStatus, setAdoFetchStatus] = useState<AdoFetchStatus>("idle");
+  const [adoWorkItem, setAdoWorkItem] = useState<AdoWorkItem | null>(null);
+  const [adoFetchError, setAdoFetchError] = useState("");
+  const [lastFetchedId, setLastFetchedId] = useState("");
+
+  // Paste tab state
+  const [pastedContent, setPastedContent] = useState("");
+  const [pastedParsed, setPastedParsed] = useState<ReturnType<typeof parsePastedContent> | null>(null);
+  const [pasteAnalyzed, setPasteAnalyzed] = useState(false);
+
+  // Chat state
   const [question, setQuestion] = useState("");
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [copiedState, setCopiedState] = useState<{ idx: number; action: CopyAction } | null>(null);
   const [gapReportLoading, setGapReportLoading] = useState(false);
-
-  // ADO story fetch state
-  const [adoFetchStatus, setAdoFetchStatus] = useState<AdoFetchStatus>("idle");
-  const [adoWorkItem, setAdoWorkItem] = useState<AdoWorkItem | null>(null);
-  const [adoFetchError, setAdoFetchError] = useState<string>("");
-  const [lastFetchedId, setLastFetchedId] = useState<string>("");
+  const [actionLoading, setActionLoading] = useState<ActionId | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (history.length > 0) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
+    if (history.length > 0) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
 
   const parsedAdo = parseAdoLink(adoLink);
 
-  // Auto-fetch story when a valid ADO link is pasted (debounced)
+  // Auto-fetch ADO story on link input
   useEffect(() => {
     if (!parsedAdo) {
-      // Clear story if link is cleared
-      if (adoWorkItem) {
-        setAdoWorkItem(null);
-        setAdoFetchStatus("idle");
-        setAdoFetchError("");
-        setLastFetchedId("");
-      }
+      if (adoWorkItem) { setAdoWorkItem(null); setAdoFetchStatus("idle"); setAdoFetchError(""); setLastFetchedId(""); }
       return;
     }
-    if (parsedAdo.id === lastFetchedId) return; // already fetched this ID
-
+    if (parsedAdo.id === lastFetchedId) return;
     const timer = setTimeout(async () => {
       setAdoFetchStatus("loading");
       setAdoFetchError("");
@@ -352,82 +522,92 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
         const msg = err instanceof Error ? err.message : String(err);
         if (msg === "AUTH_REQUIRED") {
           setAdoFetchStatus("auth_required");
-          setAdoFetchError(
-            "ADO returned 401 — the project requires authentication. The assistant will still use the story ID to cross-reference platform data. To enable full story reading, ask your ADO admin to set the project visibility to Public, or paste the story title and acceptance criteria directly into the question box."
-          );
+          setAdoFetchError("ADO returned 401 — the project requires authentication. The assistant will still cross-reference Story #" + parsedAdo.id + " in platform data. Tip: switch to Paste Story tab and paste the story content directly.");
         } else {
           setAdoFetchStatus("error");
-          setAdoFetchError(`Could not fetch story: ${msg}. The assistant will still reference Story #${parsedAdo.id} in platform data.`);
+          setAdoFetchError(`Could not fetch story: ${msg}. Story ID will still be used to cross-reference platform data.`);
         }
         setLastFetchedId(parsedAdo.id);
       }
-    }, 600); // 600ms debounce
-
+    }, 600);
     return () => clearTimeout(timer);
   }, [parsedAdo?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const systemPrompt = buildSystemPrompt(rogerDataPoints, swaggerEntries, adoWorkItem);
+  // Analyze pasted content
+  const analyzePaste = () => {
+    if (!pastedContent.trim()) return;
+    const parsed = parsePastedContent(pastedContent);
+    setPastedParsed(parsed);
+    setPasteAnalyzed(true);
+  };
 
-  const buildMessages = useCallback(
-    (q: string): LLMMessage[] => {
-      const msgs: LLMMessage[] = [
-        { role: "system", content: systemPrompt },
-      ];
-      const recent = history.slice(-6);
-      for (const h of recent) {
-        msgs.push({ role: h.role, content: h.content });
-      }
-      msgs.push({ role: "user", content: q });
-      return msgs;
-    },
-    [systemPrompt, history]
+  const systemPrompt = buildSystemPrompt(
+    rogerDataPoints, swaggerEntries, adoWorkItem,
+    pasteAnalyzed ? pastedContent : "",
+    pasteAnalyzed ? pastedParsed : null
   );
 
-  const addAssistantMessage = (content: string, question?: string, isGapReport?: boolean) => {
-    const msg: ChatMessage = {
-      role: "assistant",
-      content,
+  const buildMessages = useCallback((q: string): LLMMessage[] => {
+    const msgs: LLMMessage[] = [{ role: "system", content: systemPrompt }];
+    const recent = history.slice(-6);
+    for (const h of recent) msgs.push({ role: h.role, content: h.content });
+    msgs.push({ role: "user", content: q });
+    return msgs;
+  }, [systemPrompt, history]);
+
+  const addAssistantMessage = (content: string, question?: string, isGapReport?: boolean, actionType?: string) => {
+    setHistory(h => [...h, {
+      role: "assistant", content,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      question,
-      isGapReport,
-    };
-    setHistory((h) => [...h, msg]);
+      question, isGapReport, actionType,
+    }]);
   };
 
   const submit = async (q: string) => {
     if (!q.trim() || loading) return;
-    const userMsg: ChatMessage = {
-      role: "user",
-      content: q.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
-    setHistory((h) => [...h, userMsg]);
+    setHistory(h => [...h, { role: "user", content: q.trim(), timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
     setQuestion("");
     try {
-      const msgs = buildMessages(q.trim());
-      const answer = await ask(msgs);
+      const answer = await ask(buildMessages(q.trim()));
       addAssistantMessage(answer, q.trim());
     } catch {
       addAssistantMessage("⚠️ The assistant encountered an error. Please try again.");
     }
   };
 
-  // ── Gap Report ──────────────────────────────────────────────────────────────
+  const runAction = async (actionId: ActionId) => {
+    if (actionLoading || loading) return;
+    setActionLoading(actionId);
+    const storyContext = adoWorkItem
+      ? `Story context: #${adoWorkItem.id} "${adoWorkItem.title}"`
+      : pasteAnalyzed && pastedParsed?.detectedTitle
+        ? `Story context: "${pastedParsed.detectedTitle}" (pasted content)`
+        : "No specific story loaded — analyze based on platform data.";
+    const actionLabel = ACTION_BUTTONS.find(a => a.id === actionId)?.label ?? actionId;
+    setHistory(h => [...h, { role: "user", content: `🔧 Generate ${actionLabel}`, timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
+    try {
+      const prompt = buildActionPrompt(actionId, storyContext);
+      const msgs: LLMMessage[] = [{ role: "system", content: systemPrompt }, { role: "user", content: prompt }];
+      const answer = await ask(msgs);
+      addAssistantMessage(answer, actionLabel, false, actionId);
+    } catch {
+      addAssistantMessage("⚠️ Generation failed. Please try again.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const runGapReport = async () => {
     if (gapReportLoading || loading) return;
     setGapReportLoading(true);
-    const userMsg: ChatMessage = {
-      role: "user",
-      content: "📊 Generate Gap Report — all non-Available data points with blocking ADO stories",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
-    setHistory((h) => [...h, userMsg]);
+    const gaps = rogerDataPoints.filter(d => d.availability !== "Available");
+    const gapLines = gaps.map(d =>
+      `- "${d.dataPoint}" | Batch: ${d.batch} | Status: ${d.availability} | Owner: ${d.owner} | ADO: ${d.adoStories.map(s => s.id ? `#${s.id}` : "—").join(", ")} | Notes: ${d.notes}`
+    ).join("\n");
+    setHistory(h => [...h, { role: "user", content: "📊 Generate Gap Report — all non-Available data points", timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
     try {
-      const gapPrompt = buildGapReportPrompt(rogerDataPoints);
-      const msgs: LLMMessage[] = [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: gapPrompt },
-      ];
+      const prompt = `Generate a copy-ready Gap Report for the PO (Stephane) summarizing all Roger UI data points that are NOT yet Available.\n\nNON-AVAILABLE DATA POINTS (${gaps.length} total):\n${gapLines}\n\nFORMAT: Executive summary paragraph → pipe-delimited table (Data Point | Batch | Status | Owner | Blocking ADO Stories | Action Required) → Priority Actions (top 3) → Next Steps line for Teams/email. No markdown code blocks. Professional and concise. Do NOT fabricate data.`;
+      const msgs: LLMMessage[] = [{ role: "system", content: systemPrompt }, { role: "user", content: prompt }];
       const answer = await ask(msgs);
       addAssistantMessage(answer, "Gap Report", true);
     } catch {
@@ -438,13 +618,9 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      submit(question);
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(question); }
   };
 
-  // ── Copy helpers ────────────────────────────────────────────────────────────
   const triggerCopy = (idx: number, action: CopyAction, text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       setCopiedState({ idx, action });
@@ -452,10 +628,8 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
     });
   };
 
-  const isCopied = (idx: number, action: CopyAction) =>
-    copiedState?.idx === idx && copiedState?.action === action;
+  const isCopied = (idx: number, action: CopyAction) => copiedState?.idx === idx && copiedState?.action === action;
 
-  // ── Render markdown bold ────────────────────────────────────────────────────
   const renderContent = (text: string) => {
     const lines = text.split("\n");
     return lines.map((line, i) => {
@@ -463,13 +637,9 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       return (
         <span key={i}>
           {parts.map((p, j) =>
-            p.startsWith("**") && p.endsWith("**") ? (
-              <strong key={j} className="font-semibold text-slate-900">
-                {p.slice(2, -2)}
-              </strong>
-            ) : (
-              <span key={j}>{p}</span>
-            )
+            p.startsWith("**") && p.endsWith("**")
+              ? <strong key={j} className="font-semibold text-slate-900">{p.slice(2, -2)}</strong>
+              : <span key={j}>{p}</span>
           )}
           {i < lines.length - 1 && <br />}
         </span>
@@ -477,7 +647,9 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
     });
   };
 
-  const gapCount = rogerDataPoints.filter((d) => d.availability !== "Available").length;
+  const gapCount = rogerDataPoints.filter(d => d.availability !== "Available").length;
+  const hasContext = !!(adoWorkItem || (pasteAnalyzed && pastedParsed));
+  const isAnyLoading = loading || gapReportLoading || !!actionLoading;
 
   return (
     <div className="bg-white border border-blue-200 rounded-xl overflow-hidden shadow-sm">
@@ -485,7 +657,7 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       {/* ── Header ── */}
       <button
         className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-[#003865] to-[#1a5a8a] text-white hover:from-[#004a80] hover:to-[#1e6fa3] transition-all"
-        onClick={() => setExpanded((e) => !e)}
+        onClick={() => setExpanded(e => !e)}
       >
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
@@ -495,18 +667,18 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
             <div className="text-sm font-bold flex items-center gap-2">
               BA Assistant
               <span className="text-xs font-normal bg-blue-500/30 text-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" /> AI-Powered
+                <Sparkles className="w-2.5 h-2.5" /> Governance Copilot
               </span>
             </div>
             <div className="text-xs text-blue-300 font-normal">
-              Drop an ADO story link · Reads story content · Ask about API endpoints, batches, and governance
+              ADO Link · Paste Story · Governance Detection · 9 Generated Outputs · Roger ↔ DCT Alignment
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {adoWorkItem && (
+          {hasContext && (
             <span className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-700/40 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <BookOpen className="w-2.5 h-2.5" /> Story loaded
+              <BookOpen className="w-2.5 h-2.5" /> Story in context
             </span>
           )}
           {history.length > 0 && (
@@ -521,167 +693,243 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       {expanded && (
         <div className="p-5 space-y-4">
 
-          {/* ── ADO Link Input ── */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
-              <Link2 className="w-3.5 h-3.5 text-blue-500" />
-              ADO Story Link
-              <span className="font-normal text-slate-400 normal-case tracking-normal">— paste link or story ID to load story content</span>
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={adoLink}
-                onChange={(e) => {
-                  setAdoLink(e.target.value);
-                  // Reset fetch state when input changes
-                  if (adoFetchStatus !== "idle") {
-                    setAdoFetchStatus("idle");
-                    setAdoWorkItem(null);
-                    setAdoFetchError("");
-                    setLastFetchedId("");
-                  }
-                }}
-                placeholder="https://dev.azure.com/RSMEquiCo/DCT/_workitems/edit/1234567  or just the story ID"
-                className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 pr-28 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 font-mono bg-slate-50"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                {/* Fetch status indicator */}
-                {adoFetchStatus === "loading" && (
-                  <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin" />
+          {/* ── Dual-Mode Tabs ── */}
+          <div className="flex border border-slate-200 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setActiveTab("ado")}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold transition-colors ${activeTab === "ado" ? "bg-[#003865] text-white" : "bg-slate-50 text-slate-600 hover:bg-slate-100"}`}
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              ADO Link Mode
+              {adoWorkItem && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+            </button>
+            <button
+              onClick={() => setActiveTab("paste")}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold transition-colors border-l border-slate-200 ${activeTab === "paste" ? "bg-[#003865] text-white" : "bg-slate-50 text-slate-600 hover:bg-slate-100"}`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Paste Story Mode
+              {pasteAnalyzed && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+            </button>
+          </div>
+
+          {/* ── TAB 1: ADO Link Mode ── */}
+          {activeTab === "ado" && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
+                  <Link2 className="w-3.5 h-3.5 text-blue-500" />
+                  ADO Story Link or ID
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={adoLink}
+                    onChange={e => {
+                      setAdoLink(e.target.value);
+                      if (adoFetchStatus !== "idle") { setAdoFetchStatus("idle"); setAdoWorkItem(null); setAdoFetchError(""); setLastFetchedId(""); }
+                    }}
+                    placeholder="https://dev.azure.com/RSMEquiCo/DCT/_workitems/edit/1234567  or just the story ID"
+                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 pr-28 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 font-mono bg-slate-50"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                    {adoFetchStatus === "loading" && <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin" />}
+                    {adoFetchStatus === "success" && <Check className="w-3.5 h-3.5 text-emerald-500" />}
+                    {(adoFetchStatus === "error" || adoFetchStatus === "auth_required") && <AlertCircle className="w-3.5 h-3.5 text-amber-500" />}
+                    {parsedAdo && (
+                      <a href={parsedAdo.url} target="_blank" rel="noopener noreferrer"
+                        className="text-xs font-bold text-blue-700 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-200 transition-colors flex items-center gap-1"
+                        onClick={e => e.stopPropagation()}>
+                        #{parsedAdo.id} <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {adoFetchStatus === "loading" && parsedAdo && (
+                  <div className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1.5 flex items-center gap-1.5">
+                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                    Reading Story #{parsedAdo.id} from Azure DevOps…
+                  </div>
                 )}
-                {adoFetchStatus === "success" && (
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+
+                {adoFetchStatus === "success" && adoWorkItem && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2.5 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="text-xs font-bold text-emerald-800">Story #{adoWorkItem.id} loaded</span>
+                        <span className="text-xs text-emerald-600 bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded-full">{adoWorkItem.state}</span>
+                      </div>
+                      <button onClick={() => { setAdoWorkItem(null); setAdoFetchStatus("idle"); setLastFetchedId(""); setAdoLink(""); }}
+                        className="text-xs text-emerald-500 hover:text-emerald-700 transition-colors" title="Clear story">
+                        <RefreshCw className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <div className="text-xs font-semibold text-slate-800 leading-snug">{adoWorkItem.title}</div>
+                    {adoWorkItem.assignedTo && <div className="text-xs text-slate-500">Assigned to: {adoWorkItem.assignedTo}</div>}
+                    {adoWorkItem.acceptanceCriteria && (
+                      <div className="text-xs text-slate-600 bg-white border border-emerald-100 rounded px-2 py-1.5 leading-relaxed max-h-20 overflow-y-auto">
+                        <span className="font-semibold text-slate-700">Acceptance Criteria: </span>
+                        {adoWorkItem.acceptanceCriteria.slice(0, 300)}{adoWorkItem.acceptanceCriteria.length > 300 ? "…" : ""}
+                      </div>
+                    )}
+                    <div className="text-xs text-emerald-700 font-medium flex items-center gap-1">
+                      <Zap className="w-3 h-3" /> Story content injected into AI context — all outputs will be grounded in this story
+                    </div>
+                  </div>
                 )}
-                {(adoFetchStatus === "error" || adoFetchStatus === "auth_required") && (
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                )}
-                {parsedAdo && (
-                  <a
-                    href={parsedAdo.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-bold text-blue-700 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-200 transition-colors flex items-center gap-1"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    #{parsedAdo.id} <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
+
+                {(adoFetchStatus === "auth_required" || adoFetchStatus === "error") && adoFetchError && (
+                  <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2 space-y-1">
+                    <div className="flex items-start gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                      <span>{adoFetchError}</span>
+                    </div>
+                    <button onClick={() => setActiveTab("paste")}
+                      className="text-xs text-blue-700 font-semibold hover:underline pl-5">
+                      → Switch to Paste Story tab to paste content manually
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
+          )}
 
-            {/* Story loaded — show summary card */}
-            {adoFetchStatus === "success" && adoWorkItem && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2.5 space-y-1.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span className="text-xs font-bold text-emerald-800">Story #{adoWorkItem.id} loaded</span>
-                    <span className="text-xs text-emerald-600 bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded-full">{adoWorkItem.state}</span>
-                  </div>
+          {/* ── TAB 2: Paste Story Mode ── */}
+          {activeTab === "paste" && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-blue-500" />
+                  Paste Story Content
+                  <span className="font-normal text-slate-400 normal-case tracking-normal">— story text, AC, Swagger snippets, API contracts, meeting notes</span>
+                </label>
+                <textarea
+                  value={pastedContent}
+                  onChange={e => { setPastedContent(e.target.value); if (pasteAnalyzed) { setPasteAnalyzed(false); setPastedParsed(null); } }}
+                  rows={7}
+                  placeholder={`Paste anything here:\n• ADO story text (title, description, acceptance criteria)\n• Swagger endpoint snippets\n• API payload examples\n• Dependency notes\n• Roger UI requirements\n• Meeting notes\n\nThe assistant will auto-detect endpoints, fields, batches, and governance gaps.`}
+                  className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 font-mono bg-slate-50 leading-relaxed resize-y"
+                />
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => {
-                      setAdoWorkItem(null);
-                      setAdoFetchStatus("idle");
-                      setLastFetchedId("");
-                      setAdoLink("");
-                    }}
-                    className="text-xs text-emerald-500 hover:text-emerald-700 transition-colors"
-                    title="Clear story"
+                    onClick={analyzePaste}
+                    disabled={!pastedContent.trim() || isAnyLoading}
+                    className="flex items-center gap-1.5 text-xs font-bold bg-[#003865] text-white px-4 py-2 rounded-lg hover:bg-[#004a80] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <RefreshCw className="w-3 h-3" />
+                    <Search className="w-3.5 h-3.5" /> Analyze Content
                   </button>
+                  {pastedContent.trim() && (
+                    <button onClick={() => { setPastedContent(""); setPastedParsed(null); setPasteAnalyzed(false); }}
+                      className="text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3" /> Clear
+                    </button>
+                  )}
+                  <span className="text-xs text-slate-400 ml-auto">{pastedContent.length} chars</span>
                 </div>
-                <div className="text-xs font-semibold text-slate-800 leading-snug">{adoWorkItem.title}</div>
-                {adoWorkItem.assignedTo && (
-                  <div className="text-xs text-slate-500">Assigned to: {adoWorkItem.assignedTo}</div>
-                )}
-                {adoWorkItem.acceptanceCriteria && (
-                  <div className="text-xs text-slate-600 bg-white border border-emerald-100 rounded px-2 py-1.5 leading-relaxed max-h-20 overflow-y-auto">
-                    <span className="font-semibold text-slate-700">Acceptance Criteria: </span>
-                    {adoWorkItem.acceptanceCriteria.slice(0, 300)}{adoWorkItem.acceptanceCriteria.length > 300 ? "…" : ""}
+              </div>
+
+              {/* Parsed results card */}
+              {pasteAnalyzed && pastedParsed && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span className="text-xs font-bold text-blue-800">Content analyzed — auto-detected findings</span>
                   </div>
-                )}
-                <div className="text-xs text-emerald-700 font-medium">
-                  ✓ Story content injected into AI context — answers will be grounded in this story's requirements
-                </div>
-              </div>
-            )}
-
-            {/* Fetch loading */}
-            {adoFetchStatus === "loading" && parsedAdo && (
-              <div className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1.5 flex items-center gap-1.5">
-                <Loader2 className="w-3 h-3 animate-spin shrink-0" />
-                Reading Story #{parsedAdo.id} from Azure DevOps…
-              </div>
-            )}
-
-            {/* Auth required / error */}
-            {(adoFetchStatus === "auth_required" || adoFetchStatus === "error") && adoFetchError && (
-              <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2 space-y-1">
-                <div className="flex items-start gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                  <span>{adoFetchError}</span>
-                </div>
-                {adoFetchStatus === "auth_required" && (
-                  <div className="text-amber-700 font-medium pl-5">
-                    Tip: You can paste the story's acceptance criteria directly into the question box and the assistant will use it.
+                  {pastedParsed.detectedTitle && (
+                    <div className="text-xs"><span className="font-semibold text-slate-700">Title: </span><span className="text-slate-600">{pastedParsed.detectedTitle}</span></div>
+                  )}
+                  {pastedParsed.detectedEndpoints.length > 0 && (
+                    <div className="text-xs"><span className="font-semibold text-slate-700">API Endpoints: </span>
+                      <span className="font-mono text-blue-700">{pastedParsed.detectedEndpoints.join(" · ")}</span>
+                    </div>
+                  )}
+                  {pastedParsed.detectedBatches.length > 0 && (
+                    <div className="text-xs"><span className="font-semibold text-slate-700">Batch References: </span>
+                      {pastedParsed.detectedBatches.map(b => (
+                        <span key={b} className="inline-block mr-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">{b}</span>
+                      ))}
+                    </div>
+                  )}
+                  {pastedParsed.detectedFields.length > 0 && (
+                    <div className="text-xs"><span className="font-semibold text-slate-700">Payload Fields: </span>
+                      <span className="font-mono text-slate-600">{pastedParsed.detectedFields.join(", ")}</span>
+                    </div>
+                  )}
+                  {pastedParsed.governanceFlags.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="text-xs font-semibold text-amber-700 flex items-center gap-1">
+                        <Shield className="w-3 h-3" /> Governance Flags ({pastedParsed.governanceFlags.length})
+                      </div>
+                      {pastedParsed.governanceFlags.map((flag, i) => (
+                        <div key={i} className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1 flex items-center gap-1.5">
+                          <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" /> {flag}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="text-xs text-blue-700 font-medium flex items-center gap-1">
+                    <Zap className="w-3 h-3" /> Content injected into AI context — all outputs will be grounded in this analysis
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* Linked (no fetch yet) */}
-            {adoFetchStatus === "idle" && parsedAdo && (
-              <div className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1.5 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                Story #{parsedAdo.id} detected — fetching story content…
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Gap Report Banner ── */}
           <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 gap-4">
             <div className="flex items-start gap-2.5">
               <FileWarning className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <div className="text-xs font-bold text-amber-800">Gap Report Mode</div>
+                <div className="text-xs font-bold text-amber-800">Platform Gap Report</div>
                 <div className="text-xs text-amber-700 mt-0.5">
                   {gapCount} data point{gapCount !== 1 ? "s" : ""} not yet Available for Roger.
-                  Generate a copy-ready PO summary with blocking ADO stories and priority actions.
+                  Generate a copy-ready PO summary with blocking ADO stories.
                 </div>
               </div>
             </div>
-            <button
-              onClick={runGapReport}
-              disabled={gapReportLoading || loading}
-              className="shrink-0 flex items-center gap-1.5 text-xs font-bold bg-amber-600 text-white px-3.5 py-2 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            >
-              {gapReportLoading ? (
-                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
-              ) : (
-                <><ClipboardList className="w-3.5 h-3.5" /> Generate Gap Report</>
-              )}
+            <button onClick={runGapReport} disabled={isAnyLoading}
+              className="shrink-0 flex items-center gap-1.5 text-xs font-bold bg-amber-600 text-white px-3.5 py-2 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+              {gapReportLoading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</> : <><ClipboardList className="w-3.5 h-3.5" /> Generate Gap Report</>}
             </button>
+          </div>
+
+          {/* ── 9 Action Buttons ── */}
+          <div className="space-y-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-blue-500" />
+              Generated Outputs
+              {!hasContext && <span className="font-normal text-slate-400 normal-case tracking-normal">— load a story for story-specific outputs</span>}
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {ACTION_BUTTONS.map(btn => (
+                <button
+                  key={btn.id}
+                  onClick={() => runAction(btn.id)}
+                  disabled={isAnyLoading}
+                  className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-2 rounded-lg border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${ACTION_COLOR_MAP[btn.color]}`}
+                >
+                  {actionLoading === btn.id ? <Loader2 className="w-3 h-3 animate-spin shrink-0" /> : btn.icon}
+                  <span className="truncate">{btn.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── Suggested Questions ── */}
           {history.length === 0 && (
             <div className="space-y-2">
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Suggested Questions</div>
-              {adoWorkItem && (
-                <div className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1.5 mb-1">
-                  Story <strong>#{adoWorkItem.id}</strong> is loaded. Try: <em>"What API endpoints does DCT need to provide for this story?"</em> or <em>"Which batch covers the requirements in this story?"</em>
+              {hasContext && (
+                <div className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1.5">
+                  Story context loaded — questions will be answered relative to the loaded story.
                 </div>
               )}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {SUGGESTED_QUESTIONS.map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => submit(q)}
-                    disabled={loading}
-                    className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5 hover:bg-blue-100 hover:border-blue-400 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
+                  <button key={i} onClick={() => submit(q)} disabled={isAnyLoading}
+                    className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5 hover:bg-blue-100 hover:border-blue-400 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed">
                     {q}
                   </button>
                 ))}
@@ -691,132 +939,87 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
 
           {/* ── Chat History ── */}
           {history.length > 0 && (
-            <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
-              {history.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
-                >
-                  {/* Avatar */}
-                  <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${
-                    msg.role === "user"
-                      ? "bg-[#003865] text-white"
-                      : msg.isGapReport
-                        ? "bg-gradient-to-br from-amber-500 to-orange-600 text-white"
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+              {history.map((msg, idx) => {
+                const actionBtn = msg.actionType ? ACTION_BUTTONS.find(a => a.id === msg.actionType) : null;
+                return (
+                  <div key={idx} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                    <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${
+                      msg.role === "user" ? "bg-[#003865] text-white"
+                        : msg.isGapReport ? "bg-gradient-to-br from-amber-500 to-orange-600 text-white"
+                        : actionBtn ? "bg-gradient-to-br from-indigo-500 to-blue-600 text-white"
                         : "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
-                  }`}>
-                    {msg.role === "user" ? "BA" : <Bot className="w-3.5 h-3.5" />}
-                  </div>
-
-                  {/* Bubble */}
-                  <div className={`flex-1 max-w-[87%] flex flex-col gap-1 ${msg.role === "user" ? "items-end" : "items-start"}`}>
-                    {msg.isGapReport && msg.role === "assistant" && (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 self-start">
-                        <FileWarning className="w-3 h-3" /> Gap Report
-                      </div>
-                    )}
-
-                    <div className={`rounded-xl px-4 py-3 text-xs leading-relaxed ${
-                      msg.role === "user"
-                        ? "bg-[#003865] text-white rounded-tr-sm"
-                        : msg.isGapReport
-                          ? "bg-amber-50 border border-amber-200 text-slate-700 rounded-tl-sm"
-                          : "bg-slate-50 border border-slate-200 text-slate-700 rounded-tl-sm"
                     }`}>
-                      {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
+                      {msg.role === "user" ? "BA" : <Bot className="w-3.5 h-3.5" />}
                     </div>
 
-                    {/* Action row for assistant messages */}
-                    {msg.role === "assistant" && (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-slate-400">{msg.timestamp}</span>
+                    <div className={`flex-1 max-w-[87%] flex flex-col gap-1 ${msg.role === "user" ? "items-end" : "items-start"}`}>
+                      {/* Action type label */}
+                      {msg.role === "assistant" && (msg.isGapReport || actionBtn) && (
+                        <div className={`flex items-center gap-1.5 text-xs font-semibold rounded-full px-2.5 py-0.5 self-start border ${
+                          msg.isGapReport ? "text-amber-700 bg-amber-50 border-amber-200"
+                            : "text-indigo-700 bg-indigo-50 border-indigo-200"
+                        }`}>
+                          {msg.isGapReport ? <FileWarning className="w-3 h-3" /> : actionBtn?.icon}
+                          {msg.isGapReport ? "Gap Report" : actionBtn?.label}
+                        </div>
+                      )}
 
-                        {/* Copy raw text */}
-                        <button
-                          onClick={() => triggerCopy(idx, "copy", msg.content)}
-                          className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                          title="Copy response text"
-                        >
-                          {isCopied(idx, "copy")
-                            ? <><Check className="w-3 h-3 text-emerald-500" /><span className="text-emerald-600">Copied</span></>
-                            : <><Copy className="w-3 h-3" /><span>Copy</span></>
-                          }
-                        </button>
-
-                        {/* Save to ADO */}
-                        <button
-                          onClick={() => {
-                            const adoText = formatAsAdoComment(
-                              msg.content,
-                              msg.question ?? (msg.isGapReport ? "Gap Report" : "BA Assistant Query"),
-                              adoWorkItem,
-                              parsedAdo?.id ?? null,
-                              msg.timestamp
-                            );
-                            triggerCopy(idx, "ado", adoText);
-                          }}
-                          className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
-                            isCopied(idx, "ado")
-                              ? "bg-emerald-50 border-emerald-300 text-emerald-700"
-                              : "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-400"
-                          }`}
-                          title="Format as ADO comment and copy to clipboard"
-                        >
-                          {isCopied(idx, "ado") ? (
-                            <><Check className="w-3 h-3" /> Saved to ADO</>
-                          ) : (
-                            <><ClipboardList className="w-3 h-3" /> Save to ADO</>
-                          )}
-                        </button>
-
-                        {/* Gap Report: plain copy for email */}
-                        {msg.isGapReport && (
-                          <button
-                            onClick={() => triggerCopy(idx, "gap", msg.content)}
-                            className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
-                              isCopied(idx, "gap")
-                                ? "bg-emerald-50 border-emerald-300 text-emerald-700"
-                                : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-400"
-                            }`}
-                            title="Copy Gap Report for email or Teams"
-                          >
-                            {isCopied(idx, "gap") ? (
-                              <><Check className="w-3 h-3" /> Copied for email</>
-                            ) : (
-                              <><Copy className="w-3 h-3" /> Copy for email / Teams</>
-                            )}
-                          </button>
-                        )}
+                      <div className={`rounded-xl px-4 py-3 text-xs leading-relaxed ${
+                        msg.role === "user" ? "bg-[#003865] text-white rounded-tr-sm"
+                          : msg.isGapReport ? "bg-amber-50 border border-amber-200 text-slate-700 rounded-tl-sm"
+                          : actionBtn ? "bg-indigo-50 border border-indigo-200 text-slate-700 rounded-tl-sm"
+                          : "bg-slate-50 border border-slate-200 text-slate-700 rounded-tl-sm"
+                      }`}>
+                        {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
 
-              {/* Loading indicator */}
-              {(loading || gapReportLoading) && (
+                      {msg.role === "assistant" && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs text-slate-400">{msg.timestamp}</span>
+                          <button onClick={() => triggerCopy(idx, "copy", msg.content)}
+                            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors" title="Copy">
+                            {isCopied(idx, "copy")
+                              ? <><Check className="w-3 h-3 text-emerald-500" /><span className="text-emerald-600">Copied</span></>
+                              : <><Copy className="w-3 h-3" /><span>Copy</span></>}
+                          </button>
+                          <button
+                            onClick={() => triggerCopy(idx, "ado", formatAsAdoComment(msg.content, msg.question ?? (msg.isGapReport ? "Gap Report" : msg.actionType ?? "BA Assistant Query"), adoWorkItem, parsedAdo?.id ?? null, msg.timestamp))}
+                            className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${isCopied(idx, "ado") ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-400"}`}
+                            title="Format as ADO comment and copy">
+                            {isCopied(idx, "ado") ? <><Check className="w-3 h-3" /> Saved to ADO</> : <><ClipboardList className="w-3 h-3" /> Save to ADO</>}
+                          </button>
+                          {(msg.isGapReport || actionBtn) && (
+                            <button onClick={() => triggerCopy(idx, "gap", msg.content)}
+                              className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${isCopied(idx, "gap") ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-400"}`}
+                              title="Copy for email / Teams">
+                              {isCopied(idx, "gap") ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy for email</>}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {isAnyLoading && (
                 <div className="flex gap-3">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                    gapReportLoading
-                      ? "bg-gradient-to-br from-amber-500 to-orange-600"
-                      : "bg-gradient-to-br from-blue-500 to-indigo-600"
-                  }`}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-gradient-to-br from-blue-500 to-indigo-600">
                     <Bot className="w-3.5 h-3.5 text-white" />
                   </div>
                   <div className="bg-slate-50 border border-slate-200 rounded-xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
                     <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin" />
                     <span className="text-xs text-slate-500">
-                      {gapReportLoading ? "Building gap report from platform data…" : "Searching platform data…"}
+                      {gapReportLoading ? "Building gap report…" : actionLoading ? `Generating ${ACTION_BUTTONS.find(a => a.id === actionLoading)?.label}…` : "Analyzing platform data…"}
                     </span>
                   </div>
                 </div>
               )}
-
               <div ref={bottomRef} />
             </div>
           )}
 
-          {/* ── Error ── */}
           {error && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 text-xs text-red-700">
               <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
@@ -824,70 +1027,50 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
             </div>
           )}
 
-          {/* ── Input ── */}
+          {/* ── Chat Input ── */}
           <div className="space-y-2">
             <div className="relative">
               <textarea
                 ref={textareaRef}
                 value={question}
-                onChange={(e) => setQuestion(e.target.value)}
+                onChange={e => setQuestion(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={3}
                 placeholder={
-                  adoWorkItem
-                    ? `Story #${adoWorkItem.id} is loaded. Ask: "What API endpoints does DCT need for this story?" or "Which batch covers this?"…`
-                    : "Ask about API endpoints, batches, governance, ADO stories… (Enter to send, Shift+Enter for new line)"
+                  hasContext
+                    ? "Ask about this story: APIs needed, batch alignment, governance gaps, Roger impact, missing AC… (Enter to send)"
+                    : "Ask about API endpoints, batches, governance, Roger integration, ADO stories… (Enter to send, Shift+Enter for new line)"
                 }
                 className="w-full text-xs border border-slate-200 rounded-xl px-4 py-3 pr-12 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 resize-none bg-slate-50 leading-relaxed"
-                disabled={loading || gapReportLoading}
+                disabled={isAnyLoading}
               />
-              <button
-                onClick={() => submit(question)}
-                disabled={loading || gapReportLoading || !question.trim()}
-                className="absolute right-3 bottom-3 w-7 h-7 rounded-lg bg-[#003865] text-white flex items-center justify-center hover:bg-[#004a80] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                title="Send (Enter)"
-              >
-                {loading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Send className="w-3.5 h-3.5" />
-                )}
+              <button onClick={() => submit(question)} disabled={isAnyLoading || !question.trim()}
+                className="absolute right-3 bottom-3 w-7 h-7 rounded-lg bg-[#003865] text-white flex items-center justify-center hover:bg-[#004a80] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               </button>
             </div>
-
-            {/* Bottom action row */}
             <div className="flex items-center justify-between">
               <div className="text-xs text-slate-400">
-                {adoWorkItem
-                  ? <span className="text-emerald-600 font-medium">📖 Story #{adoWorkItem.id} in context · </span>
-                  : null
-                }
-                Grounded on {rogerDataPoints.length} data points · {swaggerEntries.length} API endpoints · {gapCount} gaps
+                {hasContext && <span className="text-emerald-600 font-medium">📖 Story in context · </span>}
+                {rogerDataPoints.length} data points · {swaggerEntries.length} APIs · {gapCount} gaps
               </div>
               {history.length > 0 && (
-                <button
-                  onClick={() => setHistory([])}
-                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                >
+                <button onClick={() => setHistory([])} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors">
                   <RotateCcw className="w-3 h-3" /> Clear chat
                 </button>
               )}
             </div>
           </div>
 
-          {/* ── Follow-up chips (after first exchange) ── */}
+          {/* ── Follow-up chips ── */}
           {history.length > 0 && (
             <div className="border-t border-slate-100 pt-3 space-y-2">
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Follow-up questions</div>
               <div className="flex flex-wrap gap-1.5">
-                {SUGGESTED_QUESTIONS.slice(0, 4).map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => submit(q)}
-                    disabled={loading || gapReportLoading}
-                    className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-1 hover:bg-slate-100 hover:border-slate-300 transition-colors disabled:opacity-50"
-                  >
-                    {q.length > 60 ? q.slice(0, 57) + "…" : q}
+                {SUGGESTED_QUESTIONS.slice(0, 5).map((q, i) => (
+                  <button key={i} onClick={() => submit(q)} disabled={isAnyLoading}
+                    className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-1 hover:bg-slate-100 hover:border-slate-300 transition-colors disabled:opacity-50">
+                    {q.length > 55 ? q.slice(0, 52) + "…" : q}
                   </button>
                 ))}
               </div>
