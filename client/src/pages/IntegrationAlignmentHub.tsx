@@ -15,7 +15,7 @@
  *   batchModelSource    → DataAvailabilityRow
  */
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "wouter";
 import {
   useBatchStatus,
@@ -467,9 +467,8 @@ export default function IntegrationAlignmentHub() {
                     const ss = STATUS_STYLES[row.status];
                     const isExpanded = expandedBatch === row.key;
                     return (
-                      <>
+                      <React.Fragment key={row.key}>
                         <tr
-                          key={row.key}
                           className={`border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${isExpanded ? "bg-blue-50" : ""}`}
                           onClick={() => setExpandedBatch(isExpanded ? null : row.key)}
                         >
@@ -527,7 +526,7 @@ export default function IntegrationAlignmentHub() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
