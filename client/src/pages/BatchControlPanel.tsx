@@ -1995,26 +1995,26 @@ export default function BatchControlPanel() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full" style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0}}>
+          <table style={{fontSize: '11.5px', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0, width: '100%', minWidth: '1100px'}}>
             <colgroup>
-              {/* Data Point 16% */}
-              <col style={{width: '16%'}} />
-              {/* Source 7% */}
-              <col style={{width: '7%'}} />
-              {/* Batch 6% */}
-              <col style={{width: '6%'}} />
-              {/* Availability 9% */}
-              <col style={{width: '9%'}} />
-              {/* API Endpoint 14% */}
-              <col style={{width: '14%'}} />
-              {/* Fields Delivered 18% */}
-              <col style={{width: '18%'}} />
-              {/* ADO Story 14% */}
-              <col style={{width: '14%'}} />
-              {/* Notes 10% */}
-              <col style={{width: '10%'}} />
-              {/* Owner 6% */}
-              <col style={{width: '6%'}} />
+              {/* Data Point */}
+              <col style={{width: '170px'}} />
+              {/* Source */}
+              <col style={{width: '70px'}} />
+              {/* Batch */}
+              <col style={{width: '72px'}} />
+              {/* Availability */}
+              <col style={{width: '100px'}} />
+              {/* API Endpoint */}
+              <col style={{width: '200px'}} />
+              {/* Fields Delivered */}
+              <col style={{width: '220px'}} />
+              {/* ADO Story */}
+              <col style={{width: '160px'}} />
+              {/* Notes */}
+              <col style={{width: '130px'}} />
+              {/* Owner */}
+              <col style={{width: '70px'}} />
             </colgroup>
             <thead>
               <tr style={{background: '#002a52', borderBottom: '2px solid #001d3d'}}>
@@ -2075,8 +2075,8 @@ export default function BatchControlPanel() {
                     {/* API Endpoint — monospace with tint */}
                     <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top'}}>
                       <span
-                        className="font-mono text-slate-600 rounded px-1.5 py-0.5 block"
-                        style={{fontSize:'9.5px', background:'#f1f5f9', wordBreak:'break-all', lineHeight:'1.5'}}
+                        className="font-mono text-slate-700 rounded px-1.5 py-1 block"
+                        style={{fontSize:'10px', background:'#f1f5f9', wordBreak:'break-word', overflowWrap:'anywhere', lineHeight:'1.6', border:'1px solid #e2e8f0'}}
                       >
                         {d.apiEndpoint}
                       </span>
@@ -2097,7 +2097,7 @@ export default function BatchControlPanel() {
                                     ? 'bg-amber-100 text-amber-800 border border-amber-300'
                                     : 'bg-slate-100 text-slate-600 border border-slate-200'
                                 }`}
-                                style={{fontSize:'8.5px', whiteSpace:'nowrap'}}
+                                style={{fontSize:'9.5px', whiteSpace:'nowrap', maxWidth:'180px', overflow:'hidden', textOverflow:'ellipsis'}}
                                 title={f}
                               >
                                 {f}
@@ -2156,15 +2156,16 @@ export default function BatchControlPanel() {
                     <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top'}}>
                       <div className="flex items-start gap-1">
                         <span style={{fontSize:'11px', lineHeight:'1.1', flexShrink:0}}>{noteIcon}</span>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <span
-                            className="text-slate-600 leading-snug"
+                            className="text-slate-700 leading-relaxed"
                             style={{
-                              fontSize:'10.5px',
+                              fontSize:'11px',
                               display: noteExpanded ? 'block' : '-webkit-box',
                               WebkitLineClamp: noteExpanded ? undefined : 3,
                               WebkitBoxOrient: 'vertical' as const,
                               overflow: noteExpanded ? 'visible' : 'hidden',
+                              wordBreak: 'break-word',
                             }}
                           >
                             {d.notes}
@@ -2183,7 +2184,9 @@ export default function BatchControlPanel() {
                       </div>
                     </td>
                     {/* Owner */}
-                    <td className="px-3 text-slate-500 text-xs" style={{padding: '12px 12px', wordBreak:'break-word', verticalAlign:'top', whiteSpace:'normal', overflowWrap:'break-word'}}>{d.owner}</td>
+                    <td className="px-3" style={{padding: '12px 12px', verticalAlign:'top'}}>
+                      <span className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5" style={{fontSize:'10px', whiteSpace:'nowrap'}}>{d.owner}</span>
+                    </td>
                   </tr>
                 );
               })}
