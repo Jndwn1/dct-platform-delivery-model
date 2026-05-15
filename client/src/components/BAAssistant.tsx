@@ -470,6 +470,9 @@ Timestamp: ${timestamp}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+// Check if the Forge API key is available at runtime
+const FORGE_KEY_AVAILABLE = !!(import.meta.env.VITE_FRONTEND_FORGE_API_KEY);
+
 export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProps) {
   const { ask, loading, error } = useLLM();
   const [expanded, setExpanded] = useState(true);
@@ -563,6 +566,25 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
     }]);
   };
 
+  // Detect 401 / API key errors and return a user-friendly fallback message
+  const is401 = (e: unknown): boolean => {
+    const msg = e instanceof Error ? e.message : String(e);
+    return msg.includes("401") || msg.toLowerCase().includes("api key") || msg.toLowerCase().includes("auth");
+  };
+
+  const apiKeyFallback = (
+    `🔑 **AI Assistant Unavailable — API Key Required**
+
+The assistant cannot connect to the AI service right now. This is a browser-side API key limitation — the key used by this static app is not authorised in the current environment.
+
+**What you can still do:**
+• Switch to the **Paste Story** tab (top of this panel) and paste your story text, acceptance criteria, or API contract content directly — the smart parser will extract endpoints, fields, governance flags, and batch references automatically, and all 9 Generated Output buttons will work once content is loaded.
+• Use the **Generated Outputs** buttons after pasting content — BA Summary, PO Summary, DEV Questions, QA Risks, Integration Gaps, Dependency Matrix, Roger Impact, Swagger Gap Report, and Missing AC are all available.
+• The **Gap Report** button will also work once content is pasted.
+
+**To restore full AI chat:** The project can be upgraded to a full-stack deployment where the API key is held securely on the backend. Ask your Manus administrator to enable the backend upgrade.`
+  );
+
   const submit = async (q: string) => {
     if (!q.trim() || loading) return;
     setHistory(h => [...h, { role: "user", content: q.trim(), timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
@@ -570,8 +592,8 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
     try {
       const answer = await ask(buildMessages(q.trim()));
       addAssistantMessage(answer, q.trim());
-    } catch {
-      addAssistantMessage("⚠️ The assistant encountered an error. Please try again.");
+    } catch (e) {
+      addAssistantMessage(is401(e) ? apiKeyFallback : "⚠️ The assistant encountered an error. Please try again.");
     }
   };
 
@@ -590,8 +612,8 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       const msgs: LLMMessage[] = [{ role: "system", content: systemPrompt }, { role: "user", content: prompt }];
       const answer = await ask(msgs);
       addAssistantMessage(answer, actionLabel, false, actionId);
-    } catch {
-      addAssistantMessage("⚠️ Generation failed. Please try again.");
+    } catch (e) {
+      addAssistantMessage(is401(e) ? apiKeyFallback : "⚠️ Generation failed. Please try again.");
     } finally {
       setActionLoading(null);
     }
@@ -610,8 +632,8 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       const msgs: LLMMessage[] = [{ role: "system", content: systemPrompt }, { role: "user", content: prompt }];
       const answer = await ask(msgs);
       addAssistantMessage(answer, "Gap Report", true);
-    } catch {
-      addAssistantMessage("⚠️ Gap Report generation failed. Please try again.");
+    } catch (e) {
+      addAssistantMessage(is401(e) ? apiKeyFallback : "⚠️ Gap Report generation failed. Please try again.");
     } finally {
       setGapReportLoading(false);
     }
@@ -692,6 +714,17 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
 
       {expanded && (
         <div className="p-5 space-y-4">
+
+          {/* ── API Key Warning Banner ── */}
+          {!FORGE_KEY_AVAILABLE && (
+            <div className="flex items-start gap-3 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-800 space-y-1">
+                <div className="font-semibold">AI Chat Unavailable — API Key Not Found</div>
+                <div>The AI assistant requires a backend API key that is not available in this static deployment. <span className="font-semibold">Use Paste Story Mode</span> below — paste your story text or acceptance criteria and use the 9 Generated Output buttons to get structured BA, PO, DEV, and QA outputs without needing the AI chat.</div>
+              </div>
+            </div>
+          )}
 
           {/* ── Dual-Mode Tabs ── */}
           <div className="flex border border-slate-200 rounded-lg overflow-hidden">
