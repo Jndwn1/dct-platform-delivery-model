@@ -598,6 +598,16 @@ const SWAGGER_ENTRIES: SwaggerEntry[] = [
   { batch: "Batch 8", endpoint: "Proposal Decisions — Supersede", path: "POST /api/v1/proposal-decisions/supersede", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: false, notes: "TDC. Supersedes an existing proposal decision. Used in remediation workflow. In progress." },
   { batch: "Batch 8", endpoint: "Sign-Off — Unlock", path: "POST /api/v1/sign-off/{id}/unlock", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: false, notes: "TDC. Unlocks a previously locked sign-off. Used in exception remediation. In progress." },
   { batch: "Batch 8", endpoint: "EDGAR Corpus — Get Versions", path: "GET /api/v1/edgar-corpus/versions", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: false, notes: "PDC. Retrieves EDGAR corpus versions. Reference data for exception classification. In progress." },
+  // ── B8 Primary Deliverables (new) ─────────────────────────────────────────
+  { batch: "Batch 8", endpoint: "ExceptionRecord — Create", path: "POST /api/v1/exception-records", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "TDC. Creates a new exception record when a mapping or ingestion anomaly is detected. Immutable once committed. Primary B8 deliverable." },
+  { batch: "Batch 8", endpoint: "ExceptionRecord — Get by ID", path: "GET /api/v1/exception-records/{id}", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "TDC. Retrieves a single exception record by its unique identifier. Roger read surface for exception visibility." },
+  { batch: "Batch 8", endpoint: "ExceptionRecord — List by Batch", path: "GET /api/v1/exception-records", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "TDC. Lists all exception records filterable by batch, severity, and resolution status. Supports Roger exception dashboard." },
+  { batch: "Batch 8", endpoint: "RemedyAction — Create", path: "POST /api/v1/remedy-actions", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "TDC. Creates a remediation action linked to an ExceptionRecord. Tracks resolution steps, owner, and target date. Primary B8 deliverable." },
+  { batch: "Batch 8", endpoint: "RemedyAction — Update Status", path: "PATCH /api/v1/remedy-actions/{id}/status", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "TDC. Updates the resolution status of a remedy action (Open → In Progress → Resolved). Immutable audit trail appended on each transition." },
+  { batch: "Batch 8", endpoint: "RemedyAction — Get by Exception", path: "GET /api/v1/remedy-actions/by-exception/{exceptionId}", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "TDC. Retrieves all remedy actions associated with a given exception record. Roger read surface." },
+  { batch: "Batch 8", endpoint: "Re-ingestion Trigger — Submit", path: "POST /api/v1/reingestion-triggers", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "PDC. Submits a re-ingestion trigger for a document that failed initial processing or was flagged by an exception. Creates an immutable audit record of the trigger event." },
+  { batch: "Batch 8", endpoint: "Re-ingestion Trigger — Get Status", path: "GET /api/v1/reingestion-triggers/{triggerId}", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "PDC. Retrieves the current status of a re-ingestion trigger (Pending / Processing / Completed / Failed). Lineage-linked to the originating ExceptionRecord." },
+  { batch: "Batch 8", endpoint: "Re-ingestion Trigger — Audit Trail", path: "GET /api/v1/reingestion-triggers/{triggerId}/audit", status: "In Progress", consumerGuide: "Missing", missingFromGuide: true, missingFromSwagger: true, notes: "PDC. Returns the full immutable audit trail for a re-ingestion trigger event. Lineage closure dependency for B8 gate." },
 ];
 
 const ROGER_DATA_POINTS: RogerDataPoint[] = [
@@ -2161,6 +2171,248 @@ export default function BatchControlPanel() {
           </pre>
         </div>
       </div>
+
+      {/* ── Section 6 (Panel 7): Contract Readiness Matrix ── */}
+      {(() => {
+        // ── Contract metadata derived entirely from SWAGGER_ENTRIES + BATCH_GOV_FLAGS ──
+        // One row per batch. Contract status, version, additive-only flag, consumer guide
+        // alignment, and endpoint counts are all computed from live data — no static duplication.
+        const CONTRACT_META: Record<string, {
+          contractName: string;
+          version: string;
+          system: "PDC" | "TDC" | "PDC + TDC";
+          additiveOnly: boolean;
+          readContractPublished: boolean;
+          lineageEnabled: boolean;
+          immutable: boolean;
+          consumerGuideLink: string;
+          notes: string;
+        }> = {
+          "Batch FC":  { contractName: "Foundation Infrastructure",             version: "—",    system: "PDC + TDC", additiveOnly: false, readContractPublished: false, lineageEnabled: true,  immutable: false, consumerGuideLink: "—",                                          notes: "Infrastructure only. No Roger-facing contract." },
+          "Batch 1":   { contractName: "IngestionStatus Read Contract",          version: "v1",  system: "PDC",      additiveOnly: true,  readContractPublished: true,  lineageEnabled: true,  immutable: false, consumerGuideLink: "GET /api/v1/Ingestion/{runId}",           notes: "Roger can confirm file arrival and processing state." },
+          "Batch 2":   { contractName: "Normalized Trial Balance Read Contract", version: "v1",  system: "PDC",      additiveOnly: true,  readContractPublished: true,  lineageEnabled: true,  immutable: false, consumerGuideLink: "GET /api/v1/normalized-records",           notes: "vNormalizedTb Roger read contract published." },
+          "Batch 2A":  { contractName: "Classification Enforcement Contract",    version: "v1",  system: "PDC",      additiveOnly: false, readContractPublished: true,  lineageEnabled: false, immutable: true,  consumerGuideLink: "GET /api/v1/classification-status/{runId}", notes: "Write contract. FirmTaxonomyId required. Rejection audit log." },
+          "Batch 3":   { contractName: "TDC Reference Data Read Contract",       version: "v1",  system: "TDC",      additiveOnly: true,  readContractPublished: true,  lineageEnabled: true,  immutable: false, consumerGuideLink: "GET /api/TaxFormTemplates",                notes: "Orchestrator-facing. TaxFormTemplates, MappingRules, ConfidenceBandThresholds." },
+          "Batch 4":   { contractName: "TDC Records Read Contract",              version: "v2",  system: "TDC",      additiveOnly: true,  readContractPublished: true,  lineageEnabled: true,  immutable: true,  consumerGuideLink: "GET /api/v2/tdc-records",                  notes: "Roger primary read contract. v1 and v2 both published. Decisions immutable." },
+          "Batch 5":   { contractName: "Entity Identity Read Contract",          version: "v1",  system: "PDC",      additiveOnly: true,  readContractPublished: true,  lineageEnabled: true,  immutable: false, consumerGuideLink: "GET /api/v1/legal-entities",               notes: "PDC entity registry. Client Groups, Ownership Chains, Jurisdictions." },
+          "Batch 6":   { contractName: "Adjustment & Sign-Off Write Contract",   version: "v1",  system: "TDC",      additiveOnly: false, readContractPublished: true,  lineageEnabled: false, immutable: true,  consumerGuideLink: "GET /api/v1/adjustments",                  notes: "Six-state adjustment lifecycle. SHA-256 sign-off. Non-repudiable." },
+          "Batch 7":   { contractName: "Eligibility Determination Read Contract",version: "v1",  system: "TDC",      additiveOnly: true,  readContractPublished: true,  lineageEnabled: true,  immutable: true,  consumerGuideLink: "GET /api/v1/eligibility",                  notes: "Three-Tier Eligibility Model. Controlled Group determination." },
+          "Batch 8":   { contractName: "ExceptionRecord & RemedyAction Contract",version: "v1*", system: "PDC + TDC", additiveOnly: true,  readContractPublished: false, lineageEnabled: true,  immutable: true,  consumerGuideLink: "GET /api/v1/exception-records (In Progress)", notes: "In Progress. ExceptionRecord, RemedyAction, Re-ingestion Trigger. Contract pending gate." },
+        };
+
+        // Compute per-batch endpoint counts from liveSwaggerEntries
+        const endpointCounts: Record<string, { delivered: number; inProgress: number; total: number }> = {};
+        liveSwaggerEntries.forEach(e => {
+          if (!endpointCounts[e.batch]) endpointCounts[e.batch] = { delivered: 0, inProgress: 0, total: 0 };
+          endpointCounts[e.batch].total++;
+          if (e.status === "Delivered") endpointCounts[e.batch].delivered++;
+          else if (e.status === "In Progress") endpointCounts[e.batch].inProgress++;
+        });
+
+        const batchOrder = ["Batch FC", "Batch 1", "Batch 2", "Batch 2A", "Batch 3", "Batch 4", "Batch 5", "Batch 6", "Batch 7", "Batch 8"];
+
+        const [showContractMatrix, setShowContractMatrix] = useState(true);
+        const [contractFilter, setContractFilter] = useState<"all" | "published" | "in-progress" | "missing">("all");
+
+        const filteredBatches = batchOrder.filter(bn => {
+          const meta = CONTRACT_META[bn];
+          if (!meta) return false;
+          if (contractFilter === "published") return meta.readContractPublished;
+          if (contractFilter === "in-progress") return !meta.readContractPublished && bn === "Batch 8";
+          if (contractFilter === "missing") return !meta.readContractPublished && bn !== "Batch FC";
+          return true;
+        });
+
+        return (
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            {/* Header */}
+            <button
+              className="w-full flex items-center justify-between px-5 py-3.5 bg-[#003865] text-white hover:bg-[#004a80] transition-colors"
+              onClick={() => setShowContractMatrix(s => !s)}
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-300" />
+                <span className="text-sm font-bold">Panel 7 — Contract Readiness Matrix</span>
+                <span className="text-xs text-blue-300 font-normal">· Derived from SWAGGER_ENTRIES · Read Contract publication status per batch</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-blue-200">{batchOrder.filter(b => CONTRACT_META[b]?.readContractPublished).length} published · {batchOrder.filter(b => !CONTRACT_META[b]?.readContractPublished && b !== "Batch FC").length} pending</span>
+                {showContractMatrix ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </div>
+            </button>
+
+            {showContractMatrix && (
+              <div className="p-5 space-y-4">
+
+                {/* Governance rule */}
+                <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-xs text-blue-800">
+                  <Shield className="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-500" />
+                  <span>
+                    <strong>Governance Rule:</strong> A Read Contract is only considered Published when all four gate conditions are met for that batch.
+                    Additive-Only contracts may never remove or rename fields. Version history is immutable.
+                    Data derived from <strong>SWAGGER_ENTRIES</strong> and <strong>BATCH_GOV_FLAGS</strong> — no manual entry.
+                  </span>
+                </div>
+
+                {/* Summary tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "Contracts Published",  value: batchOrder.filter(b => CONTRACT_META[b]?.readContractPublished).length,                         color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
+                    { label: "Additive-Only",         value: batchOrder.filter(b => CONTRACT_META[b]?.additiveOnly && CONTRACT_META[b]?.readContractPublished).length, color: "text-cyan-700",    bg: "bg-cyan-50 border-cyan-200" },
+                    { label: "Lineage Enabled",       value: batchOrder.filter(b => CONTRACT_META[b]?.lineageEnabled).length,                                color: "text-blue-700",   bg: "bg-blue-50 border-blue-200" },
+                    { label: "Pending / In Progress", value: batchOrder.filter(b => !CONTRACT_META[b]?.readContractPublished && b !== "Batch FC").length,      color: "text-amber-700",  bg: "bg-amber-50 border-amber-200" },
+                  ].map(tile => (
+                    <div key={tile.label} className={`rounded-lg border px-4 py-3 ${tile.bg}`}>
+                      <div className={`text-2xl font-black ${tile.color}`}>{tile.value}</div>
+                      <div className="text-xs text-slate-600 mt-0.5">{tile.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Filter bar */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Filter:</span>
+                  {(["all", "published", "in-progress", "missing"] as const).map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setContractFilter(f)}
+                      className={`text-xs px-3 py-1 rounded-full font-semibold border transition-colors ${
+                        contractFilter === f
+                          ? "bg-[#003865] text-white border-[#003865]"
+                          : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                      }`}
+                    >
+                      {f === "all" ? "All Batches" : f === "published" ? "Published" : f === "in-progress" ? "In Progress" : "Pending"}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Matrix table */}
+                <div className="overflow-x-auto rounded-lg border border-slate-200">
+                  <table className="w-full text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="px-3 py-2.5 text-left font-semibold text-slate-600 w-24">Batch</th>
+                        <th className="px-3 py-2.5 text-left font-semibold text-slate-600">Contract Name</th>
+                        <th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-16">Version</th>
+                        <th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-20">System</th>
+                        <th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-24">Published</th>
+                        <th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-24">Additive-Only</th>
+                        <th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-20">Lineage</th>
+                        <th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-20">Immutable</th>
+                        <th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-20">Endpoints</th>
+                        <th className="px-3 py-2.5 text-left font-semibold text-slate-600">Consumer Guide Entry Point</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredBatches.map((bn, i) => {
+                        const meta = CONTRACT_META[bn];
+                        if (!meta) return null;
+                        const counts = endpointCounts[bn] ?? { delivered: 0, inProgress: 0, total: 0 };
+                        const isFC = bn === "Batch FC";
+                        const isInProgress = !meta.readContractPublished && !isFC;
+                        return (
+                          <tr key={bn} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                            {/* Batch */}
+                            <td className="px-3 py-2.5">
+                              <span className="font-bold text-slate-800">{bn.replace("Batch ", "B").replace("BFC", "FC")}</span>
+                            </td>
+                            {/* Contract Name */}
+                            <td className="px-3 py-2.5">
+                              <div className="font-medium text-slate-700">{meta.contractName}</div>
+                              <div className="text-slate-400 mt-0.5 leading-snug">{meta.notes}</div>
+                            </td>
+                            {/* Version */}
+                            <td className="px-3 py-2.5 text-center">
+                              <span className={`font-mono font-semibold ${
+                                meta.version === "—" ? "text-slate-400" :
+                                meta.version.includes("*") ? "text-amber-600" : "text-blue-700"
+                              }`}>{meta.version}</span>
+                            </td>
+                            {/* System */}
+                            <td className="px-3 py-2.5 text-center">
+                              <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
+                                meta.system === "PDC" ? "bg-blue-100 text-blue-800" :
+                                meta.system === "TDC" ? "bg-purple-100 text-purple-800" :
+                                "bg-slate-100 text-slate-700"
+                              }`}>{meta.system}</span>
+                            </td>
+                            {/* Published */}
+                            <td className="px-3 py-2.5 text-center">
+                              {isFC ? (
+                                <span className="text-slate-400">N/A</span>
+                              ) : meta.readContractPublished ? (
+                                <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Published
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-amber-600 font-semibold">
+                                  <Clock className="w-3.5 h-3.5" /> In Progress
+                                </span>
+                              )}
+                            </td>
+                            {/* Additive-Only */}
+                            <td className="px-3 py-2.5 text-center">
+                              {meta.additiveOnly ? (
+                                <span className="inline-flex items-center gap-1 text-cyan-700 font-semibold">
+                                  <Shield className="w-3 h-3" /> Yes
+                                </span>
+                              ) : (
+                                <span className="text-slate-400">No</span>
+                              )}
+                            </td>
+                            {/* Lineage */}
+                            <td className="px-3 py-2.5 text-center">
+                              {meta.lineageEnabled ? (
+                                <span className="text-emerald-600 font-semibold">✓</span>
+                              ) : (
+                                <span className="text-slate-300">—</span>
+                              )}
+                            </td>
+                            {/* Immutable */}
+                            <td className="px-3 py-2.5 text-center">
+                              {meta.immutable ? (
+                                <span className="inline-flex items-center gap-1 text-amber-700">
+                                  <Lock className="w-3 h-3" /> Yes
+                                </span>
+                              ) : (
+                                <span className="text-slate-300">—</span>
+                              )}
+                            </td>
+                            {/* Endpoints */}
+                            <td className="px-3 py-2.5 text-center">
+                              <div className="font-semibold text-slate-700">{counts.total}</div>
+                              {counts.inProgress > 0 && (
+                                <div className="text-amber-600 text-xs">{counts.inProgress} in prog.</div>
+                              )}
+                            </td>
+                            {/* Consumer Guide Entry Point */}
+                            <td className="px-3 py-2.5">
+                              <code className={`text-xs font-mono break-all ${
+                                isInProgress ? "text-amber-600" : "text-blue-700"
+                              }`}>{meta.consumerGuideLink}</code>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Legend */}
+                <div className="flex flex-wrap gap-4 text-xs text-slate-500 pt-1">
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Published — all four gates verified</div>
+                  <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-amber-500" /> In Progress — delivery active, contract pending gate</div>
+                  <div className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-cyan-500" /> Additive-Only — fields may only be added, never removed</div>
+                  <div className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-amber-500" /> Immutable — records locked after commitment</div>
+                  <div className="flex items-center gap-1.5"><span className="font-mono text-amber-600">v1*</span> — version pending final gate</div>
+                </div>
+
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── How it works ── */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
