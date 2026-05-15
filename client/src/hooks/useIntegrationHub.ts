@@ -113,6 +113,29 @@ export interface BlockingGap {
   autoResolveOnStatus?: BatchStatus;
 }
 
+export type CarryForwardReason =
+  | "dependency-blocked"
+  | "qa-blocked"
+  | "api-blocked"
+  | "contract-blocked"
+  | "adr-open"
+  | "active-incomplete";
+
+export interface CarryForwardItem {
+  batchKey: string;
+  batchLabel: string;
+  pi: string;
+  status: BatchStatus;
+  reasons: CarryForwardReason[];
+  blockedByLabels: string[];
+  openADRs: string[];
+  qaReadiness: ReadinessValue;
+  apiReadiness: ReadinessValue;
+  contractReadiness: ReadinessValue;
+  riskLevel: "high" | "medium" | "low";
+  source: SyncSource[];
+}
+
 export interface IntegrationSummaryTile {
   label: string;
   value: number | string;
@@ -151,6 +174,7 @@ export interface IntegrationHubState {
   activeBatches: number;
   blockedBatches: number;
   piCompletion: Record<string, number>;
+  carryForwardItems: CarryForwardItem[];
 }
 
 // ── Batch key → PI mapping ───────────────────────────────────────────────────
@@ -389,8 +413,76 @@ export function useIntegrationHub(): IntegrationHubState {
 
   // ── 7. Aggregate counts ───────────────────────────────────────────────────
   const completedBatches = batchRows.filter(r => r.status === "Complete" || r.status === "Delivered").length;
-    const activeBatches = batchRows.filter(r => r.status === "In Progress" || r.status === "Ready for QA" || r.status === "QA In Progress").length;
+  const activeBatches = batchRows.filter(r => r.status === "In Progress" || r.status === "Ready for QA" || r.status === "QA In Progress").length;
   const blockedBatches = batchRows.filter(r => r.blockedBy.length > 0).length;
+
+  // ── 8. Carry-forward items ─────────────────────────────────────────────────
+  const carryForwardItems = useMemo<CarryForwardItem[]>(() => {
+    // Build a map of open ADRs by batch key (keyword match on batch label)
+    const openADRsByBatch: Record<string, string[]> = {};
+    ADR_CARDS.forEach(card => {
+      if (card.currentStatus === "Open" || card.currentStatus === "In Progress") {
+        (Object.keys(BATCH_LABELS) as BatchKey[]).forEach(k => {
+          const label = (BATCH_LABELS[k] ?? "").toLowerCase();
+          const shortLabel = label.split("—")[0].trim();
+          if (
+            card.title.toLowerCase().includes(shortLabel) ||
+            card.description.toLowerCase().includes(`batch ${k}`)
+          ) {
+            if (!openADRsByBatch[k]) openADRsByBatch[k] = [];
+            if (!openADRsByBatch[k].includes(card.id)) openADRsByBatch[k].push(card.id);
+          }
+        });
+      }
+    });
+
+    return batchRows
+      .filter(row => {
+        const isNotComplete = row.status !== "Complete" && row.status !== "Delivered";
+        const hasBlockedDeps = row.blockedBy.length > 0;
+        const hasQaBlock = row.qaReadiness === "blocked";
+        const hasApiBlock = row.apiReadiness === "blocked";
+        const hasContractBlock = row.contractReadiness === "blocked";
+        const hasOpenADRs = (openADRsByBatch[row.key] ?? []).length > 0;
+        const isActiveIncomplete =
+          (row.status === "In Progress" || row.status === "Ready for QA") &&
+          (hasQaBlock || hasApiBlock || hasContractBlock);
+        return isNotComplete &&
+          (hasBlockedDeps || hasQaBlock || hasApiBlock || hasContractBlock || hasOpenADRs || isActiveIncomplete);
+      })
+      .map(row => {
+        const reasons: CarryForwardReason[] = [];
+        if (row.blockedBy.length > 0) reasons.push("dependency-blocked");
+        if (row.qaReadiness === "blocked") reasons.push("qa-blocked");
+        if (row.apiReadiness === "blocked") reasons.push("api-blocked");
+        if (row.contractReadiness === "blocked") reasons.push("contract-blocked");
+        if ((openADRsByBatch[row.key] ?? []).length > 0) reasons.push("adr-open");
+        if (row.status === "In Progress" || row.status === "Ready for QA") reasons.push("active-incomplete");
+
+        const riskLevel: "high" | "medium" | "low" =
+          row.blockedBy.length > 0 || row.qaReadiness === "blocked" ? "high" :
+          reasons.length >= 2 ? "medium" : "low";
+
+        return {
+          batchKey: row.key,
+          batchLabel: row.label,
+          pi: row.pi,
+          status: row.status,
+          reasons,
+          blockedByLabels: row.blockedBy.map(k => BATCH_LABELS[k] ?? k),
+          openADRs: openADRsByBatch[row.key] ?? [],
+          qaReadiness: row.qaReadiness,
+          apiReadiness: row.apiReadiness,
+          contractReadiness: row.contractReadiness,
+          riskLevel,
+          source: ["BatchStatusContext", "BatchRoadmap"] as SyncSource[],
+        };
+      })
+      .sort((a, b) => {
+        const order = { high: 0, medium: 1, low: 2 };
+        return order[a.riskLevel] - order[b.riskLevel];
+      });
+  }, [batchRows]);
 
   return {
     batchRows,
@@ -411,5 +503,6 @@ export function useIntegrationHub(): IntegrationHubState {
       pi3: piCompletion?.pi3?.pct ?? 0,
       pi4: piCompletion?.pi4?.pct ?? 0,
     },
+    carryForwardItems,
   };
 }

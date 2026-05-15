@@ -270,6 +270,72 @@ export default function IntegrationAlignmentHub() {
 
   const displayedGaps = showAllGaps ? blockingGaps : blockingGaps.slice(0, 3);
 
+  // ── Derived: carry-forward items (blocked/at-risk), grouped by PI ────────
+  const carryForwardItems = useMemo(() => {
+    // Map open ADR IDs to batch keys by keyword matching
+    const openADRsByBatch: Record<string, string[]> = {};
+    ADR_CARDS.forEach(card => {
+      if (card.currentStatus === "Open" || card.currentStatus === "In Progress") {
+        ALL_BATCH_KEYS.forEach(k => {
+          const bLabel = (BATCH_LABELS[k] ?? "").toLowerCase();
+          if (
+            card.description.toLowerCase().includes(`batch ${k}`) ||
+            card.title.toLowerCase().includes(bLabel.split("—")[0].trim())
+          ) {
+            if (!openADRsByBatch[k]) openADRsByBatch[k] = [];
+            if (!openADRsByBatch[k].includes(card.id)) openADRsByBatch[k].push(card.id);
+          }
+        });
+      }
+    });
+    return batchRows
+      .filter(row => {
+        const notComplete = row.status !== "Complete" && row.status !== "Delivered";
+        const hasBlockedDeps = row.blockedBy.length > 0;
+        const hasQaBlock = row.qaReadiness === "blocked";
+        const hasApiBlock = row.apiReadiness === "blocked";
+        const hasContractBlock = row.contractReadiness === "blocked";
+        const hasOpenADRs = (openADRsByBatch[row.key] ?? []).length > 0;
+        const isActiveIncomplete =
+          (row.status === "In Progress" || row.status === "Ready for QA") &&
+          (hasQaBlock || hasApiBlock || hasContractBlock);
+        return notComplete && (hasBlockedDeps || hasQaBlock || hasApiBlock || hasContractBlock || hasOpenADRs || isActiveIncomplete);
+      })
+      .map(row => {
+        const reasons: string[] = [];
+        if (row.blockedBy.length > 0) reasons.push("Dependency Blocked");
+        if (row.qaReadiness === "blocked") reasons.push("QA Blocked");
+        if (row.apiReadiness === "blocked") reasons.push("API Blocked");
+        if (row.contractReadiness === "blocked") reasons.push("Contract Blocked");
+        if ((openADRsByBatch[row.key] ?? []).length > 0) reasons.push("Open ADR");
+        if (row.status === "In Progress" || row.status === "Ready for QA") reasons.push("Active — Incomplete");
+        const riskLevel: "high" | "medium" | "low" =
+          row.blockedBy.length > 0 || row.qaReadiness === "blocked" ? "high" :
+          reasons.length >= 2 ? "medium" : "low";
+        return {
+          ...row,
+          reasons,
+          blockedByLabels: row.blockedBy.map(k => BATCH_LABELS[k as BatchKey] ?? k),
+          openADRs: openADRsByBatch[row.key] ?? [],
+          riskLevel,
+        };
+      })
+      .sort((a, b) =>
+        ({ high: 0, medium: 1, low: 2 }[a.riskLevel]) -
+        ({ high: 0, medium: 1, low: 2 }[b.riskLevel])
+      );
+  }, [batchRows]);
+
+  const carryForwardByPI = useMemo(() => {
+    const map: Record<string, typeof carryForwardItems> = {};
+    carryForwardItems.forEach(item => {
+      const pi = item.pi || "Unassigned";
+      if (!map[pi]) map[pi] = [];
+      map[pi].push(item);
+    });
+    return map;
+  }, [carryForwardItems]);
+
   return (
     <div className="min-h-screen bg-[#f0f4f8]">
 
@@ -721,6 +787,173 @@ export default function IntegrationAlignmentHub() {
                   <SourceBadge source="BatchDeliveryTracker" />
                 </span>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Panel 6: Carry-Forward Items ──────────────────────────────── */}
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div
+            className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2 cursor-pointer hover:bg-slate-100 transition-colors"
+            onClick={() => toggle("carry-forward")}
+          >
+            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-bold text-slate-700">Panel 6 — Carry-Forward Items</span>
+            {carryForwardItems.length > 0 ? (
+              <span className="ml-2 text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">
+                {carryForwardItems.length} at-risk
+              </span>
+            ) : (
+              <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">
+                All clear
+              </span>
+            )}
+            <span className="text-xs text-slate-400 ml-auto">Blocked or incomplete batches grouped by PI</span>
+            <SourceBadge source="BatchStatusContext" />
+            <SourceBadge source="BatchRoadmap" />
+            {expandedPanel === "carry-forward" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </div>
+
+          {expandedPanel === "carry-forward" && (
+            <div className="p-5">
+              {carryForwardItems.length === 0 ? (
+                <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 rounded-lg px-4 py-3 text-sm">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="font-semibold">No carry-forward items.</span>
+                  <span className="text-emerald-600">All active batches are on track with no blocking dependencies or open ADRs.</span>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Risk summary bar */}
+                  <div className="flex flex-wrap gap-3 text-xs">
+                    <span className="bg-red-50 text-red-700 font-semibold px-3 py-1.5 rounded-full border border-red-200">
+                      🔴 High Risk: {carryForwardItems.filter(i => i.riskLevel === "high").length}
+                    </span>
+                    <span className="bg-amber-50 text-amber-700 font-semibold px-3 py-1.5 rounded-full border border-amber-200">
+                      🟡 Medium Risk: {carryForwardItems.filter(i => i.riskLevel === "medium").length}
+                    </span>
+                    <span className="bg-slate-50 text-slate-600 font-semibold px-3 py-1.5 rounded-full border border-slate-200">
+                      ⚪ Low Risk: {carryForwardItems.filter(i => i.riskLevel === "low").length}
+                    </span>
+                    <span className="ml-auto text-slate-400 self-center text-xs">
+                      Source: BatchStatusContext · Batch Roadmap · ADR Cards
+                    </span>
+                  </div>
+
+                  {/* Grouped by PI */}
+                  {Object.entries(carryForwardByPI).map(([pi, items]) => (
+                    <div key={pi}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="h-px flex-1 bg-slate-200" />
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-widest px-2">{pi}</span>
+                        <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                          {items.length} item{items.length !== 1 ? "s" : ""}
+                        </span>
+                        <div className="h-px flex-1 bg-slate-200" />
+                      </div>
+                      <div className="space-y-3">
+                        {items.map(item => (
+                          <div
+                            key={item.key}
+                            className={`rounded-lg border px-4 py-3 ${
+                              item.riskLevel === "high"   ? "border-red-200 bg-red-50" :
+                              item.riskLevel === "medium" ? "border-amber-200 bg-amber-50" :
+                              "border-slate-200 bg-slate-50"
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`mt-1 w-2.5 h-2.5 rounded-full shrink-0 ${
+                                item.riskLevel === "high"   ? "bg-red-500" :
+                                item.riskLevel === "medium" ? "bg-amber-400" : "bg-slate-400"
+                              }`} />
+                              <div className="flex-1 min-w-0">
+                                {/* Batch name + status + PI */}
+                                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                  <span className="font-bold text-slate-800 text-sm">{item.label}</span>
+                                  <span
+                                    className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                                    style={{
+                                      background: STATUS_STYLES[item.status]?.bg ?? "#f1f5f9",
+                                      color: STATUS_STYLES[item.status]?.text ?? "#475569"
+                                    }}
+                                  >
+                                    {item.status}
+                                  </span>
+                                  <span className="text-xs text-slate-400">{item.pi}</span>
+                                </div>
+
+                                {/* Reason tags */}
+                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                  {item.reasons.map(r => (
+                                    <span key={r} className={`text-xs px-2 py-0.5 rounded font-medium ${
+                                      r === "Dependency Blocked" ? "bg-red-100 text-red-700" :
+                                      r === "QA Blocked"         ? "bg-orange-100 text-orange-700" :
+                                      r === "API Blocked"        ? "bg-purple-100 text-purple-700" :
+                                      r === "Contract Blocked"   ? "bg-rose-100 text-rose-700" :
+                                      r === "Open ADR"           ? "bg-yellow-100 text-yellow-700" :
+                                      "bg-slate-100 text-slate-600"
+                                    }`}>{r}</span>
+                                  ))}
+                                </div>
+
+                                {/* Blocked-by list */}
+                                {item.blockedByLabels.length > 0 && (
+                                  <div className="text-xs text-red-600 flex items-center gap-1.5 mb-1">
+                                    <Lock className="w-3 h-3" />
+                                    <span className="font-semibold">Blocked by:</span>
+                                    <span>{item.blockedByLabels.join(" · ")}</span>
+                                  </div>
+                                )}
+
+                                {/* Open ADRs */}
+                                {item.openADRs.length > 0 && (
+                                  <div className="text-xs text-amber-600 flex items-center gap-1.5 mb-1">
+                                    <AlertCircle className="w-3 h-3" />
+                                    <span className="font-semibold">Open ADRs:</span>
+                                    <span>{item.openADRs.join(", ")}</span>
+                                  </div>
+                                )}
+
+                                {/* Readiness indicators */}
+                                <div className="flex gap-4 mt-2">
+                                  {(["qaReadiness", "apiReadiness", "contractReadiness"] as const).map(field => {
+                                    const val = item[field];
+                                    const lbl = field === "qaReadiness" ? "QA" : field === "apiReadiness" ? "API" : "Contract";
+                                    return (
+                                      <span key={field} className={`text-xs flex items-center gap-1 ${
+                                        val === "ready"   ? "text-emerald-600" :
+                                        val === "partial" ? "text-amber-600" : "text-red-600"
+                                      }`}>
+                                        {val === "ready"   ? <CheckCircle2 className="w-3 h-3" /> :
+                                         val === "partial" ? <Clock className="w-3 h-3" /> :
+                                         <AlertTriangle className="w-3 h-3" />}
+                                        {lbl}: {val}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Footer note */}
+                  <div className="text-xs text-slate-400 border-t border-slate-100 pt-3 flex items-start gap-2">
+                    <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>
+                      Items appear automatically when a batch has unresolved dependencies, blocked readiness, or open ADRs.
+                      Resolving items in the{" "}
+                      <Link href="/control-panel">
+                        <span className="text-blue-600 hover:underline cursor-pointer font-semibold">DCT Control Panel</span>
+                      </Link>{" "}
+                      removes them here automatically.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
