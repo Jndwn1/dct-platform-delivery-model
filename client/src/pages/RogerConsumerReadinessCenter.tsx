@@ -70,22 +70,49 @@ const DEMO_STYLES: Record<DemoStatus, { bg: string; text: string }> = {
   "Conceptual":       { bg: "#f1f5f9", text: "#475569" },
 };
 
+// ── Swagger Snapshot Metadata ─────────────────────────────────────────────────
+const SWAGGER_SOURCES = [
+  { name: "TDC-Api",                  file: "pasted_content_49.txt (TDC Swagger)",  server: "https://dev-tdc.api.rsmus.com", version: "1.0.0", uploadDate: "2026-05-19", totalEndpoints: 141, tags: 35 },
+  { name: "RSM.TaxSolutions.PDC.Api", file: "pasted_content_50.txt (PDC Swagger)",  server: "https://dev-pdc.api.rsmus.com", version: "1.0.0", uploadDate: "2026-05-19", totalEndpoints: 63,  tags: 15 },
+];
+
 // Section 2 — Endpoint Readiness Matrix
+// Paths sourced directly from uploaded Swagger JSON snapshots (TDC v1.0.0, PDC v1.0.0)
+// Last Swagger upload: 2026-05-19 | Status source: DCT Control Panel
 const ENDPOINT_MATRIX = [
-  { batch: "FC",  api: "File Ingestion Status",       path: "GET /api/v1/ingestion/{runId}",        purpose: "Track ingestion job state",               capability: "View ingestion run status",            status: "Consumer Ready" as ReadinessStatus,    data: "Real Data" as DataStatus,    govStatus: "G3 Contract Published",    blockers: "None",                                    owner: "PDC" },
-  { batch: "B1",  api: "Lineage Anchor",               path: "GET /api/v1/ingestion/{runId}",        purpose: "DocumentId → EntityId → PeriodStart/End", capability: "Resolve lineage for a document",       status: "Consumer Ready" as ReadinessStatus,    data: "Real Data" as DataStatus,    govStatus: "G3 Contract Published",    blockers: "None",                                    owner: "PDC" },
-  { batch: "B2",  api: "Normalized Trial Balance",     path: "GET /api/v1/data-records",             purpose: "vNormalizedTb financial data",             capability: "Display TB data in Roger",             status: "Consumer Ready" as ReadinessStatus,    data: "Real Data" as DataStatus,    govStatus: "G3 Contract Published",    blockers: "None",                                    owner: "PDC" },
-  { batch: "B2A", api: "FirmTaxonomyId Enforcement",   path: "GET /api/v1/data-records",             purpose: "Enforce classification presence",          capability: "Filter by firm taxonomy",             status: "Partial Data" as ReadinessStatus,      data: "Partial" as DataStatus,      govStatus: "Field pending Orchestrator", blockers: "Orchestrator not returning FirmTaxonomyId", owner: "PDC + Orchestrator" },
-  { batch: "B3",  api: "Tax Form Templates",           path: "GET /api/v1/tax-form-templates",       purpose: "TDC reference data for mapping rules",    capability: "Display tax form options",             status: "Consumer Ready" as ReadinessStatus,    data: "Real Data" as DataStatus,    govStatus: "Orchestrator-facing only",  blockers: "Not Roger-facing directly",               owner: "TDC" },
-  { batch: "B4",  api: "AI Mapping Proposals",         path: "GET /api/v1/mapping-proposals",        purpose: "Confidence + evidence for proposals",     capability: "Show AI mapping suggestions",          status: "Consumer Ready" as ReadinessStatus,    data: "Real Data" as DataStatus,    govStatus: "G3 Contract Published",    blockers: "None",                                    owner: "TDC" },
-  { batch: "B5",  api: "Entity Identity & Structure",  path: "GET /api/v1/entities",                 purpose: "EntityId, FirmId, legal structure",       capability: "Resolve entity context in Roger",      status: "Consumer Ready" as ReadinessStatus,    data: "Real Data" as DataStatus,    govStatus: "G3 Contract Published",    blockers: "None",                                    owner: "PDC" },
-  { batch: "B6",  api: "Practitioner Review Queue",    path: "GET /api/v1/review-queue",             purpose: "Work queue for practitioner review",      capability: "Display review tasks in Roger",        status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus,   govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined",    owner: "Unresolved" },
-  { batch: "B7",  api: "Client Tax Profile",           path: "GET /api/v1/client-tax-profiles",      purpose: "Tax year, jurisdiction, filing status",   capability: "Show client tax context",              status: "Consumer Ready" as ReadinessStatus,    data: "Real Data" as DataStatus,    govStatus: "G3 Contract Published",    blockers: "None",                                    owner: "TDC" },
-  { batch: "B8",  api: "Exception Record",             path: "POST /api/v1/exceptions",              purpose: "Create and track exception records",      capability: "Log and track exceptions in Roger",    status: "Draft Contract" as ReadinessStatus,    data: "None" as DataStatus,         govStatus: "In Development",           blockers: "Contract not yet published",              owner: "PDC" },
-  { batch: "B8",  api: "Remedy Action",                path: "POST /api/v1/remedy-actions",          purpose: "Create remedy for exception",             capability: "Initiate remediation workflow",        status: "Draft Contract" as ReadinessStatus,    data: "None" as DataStatus,         govStatus: "In Development",           blockers: "Depends on Exception Record contract",    owner: "PDC" },
-  { batch: "B8",  api: "Re-ingestion Trigger",         path: "POST /api/v1/re-ingestion",            purpose: "Trigger re-ingestion after remedy",       capability: "Restart ingestion from Roger",         status: "Future State" as ReadinessStatus,      data: "None" as DataStatus,         govStatus: "Not yet designed",         blockers: "Blocked until B8 exception flow complete", owner: "PDC" },
-  { batch: "B9",  api: "Rollforward & Prior Year",     path: "GET /api/v1/rollforward",              purpose: "Prior year data for current period",      capability: "Show prior year comparison in Roger",  status: "Future State" as ReadinessStatus,      data: "None" as DataStatus,         govStatus: "Planned — PI 3",           blockers: "Not yet in scope",                        owner: "PDC" },
-  { batch: "B10", api: "Return Assembly & Lineage",    path: "GET /api/v1/return-assembly",          purpose: "Assembled return with lineage trace",     capability: "View assembled return in Roger",       status: "Future State" as ReadinessStatus,      data: "None" as DataStatus,         govStatus: "Planned — PI 3",           blockers: "Not yet in scope",                        owner: "TDC" },
+  // ── PDC Endpoints ──────────────────────────────────────────────────────────
+  { batch: "FC",  api: "File Ingestion Status",       path: "GET /api/v1/Ingestion/{runId}",                    purpose: "Track ingestion job state by run ID",                       capability: "View ingestion run status and processing state",        status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B1",  api: "Lineage Anchor (Processing Run)", path: "GET /api/v1/processing-runs/{id}",             purpose: "DocumentId → EntityId → PeriodStart/End lineage",          capability: "Resolve lineage for a document run",                   status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B1",  api: "Processing Run by Ingestion",  path: "GET /api/v1/processing-runs/by-ingestion/{ingestionRunId}/latest", purpose: "Latest processing run for an ingestion run", capability: "Confirm processing completed for ingestion",           status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B2",  api: "Normalized Trial Balance",     path: "GET /api/v1/data-records",                        purpose: "vNormalizedTb financial data records",                      capability: "Display TB data in Roger",                             status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B2A", api: "FirmTaxonomyId on Data Records", path: "GET /api/v1/data-records",                    purpose: "Enforce FirmTaxonomyId classification presence",           capability: "Filter records by firm taxonomy",                      status: "Partial Data" as ReadinessStatus,       data: "Partial" as DataStatus,    govStatus: "Field pending Orchestrator", blockers: "Orchestrator not returning FirmTaxonomyId in payload",   owner: "PDC + Orchestrator", swaggerSource: "PDC" },
+  { batch: "B5",  api: "Client List",                  path: "GET /api/v1/clients",                             purpose: "Retrieve all active clients for current user",             capability: "Populate client selector in Roger",                    status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B5",  api: "Legal Entity by Client",       path: "GET /api/v1/legal-entities",                      purpose: "All legal entities for a client",                          capability: "Resolve entity context and legal structure in Roger",  status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B5",  api: "Legal Entity by ID",           path: "GET /api/v1/legal-entities/{id}",                 purpose: "Single legal entity by unique identifier",                 capability: "Resolve individual entity details",                    status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B5",  api: "Jurisdiction Assignments",     path: "GET /api/v1/jurisdiction-assignments",            purpose: "Jurisdiction assignments for an entity",                   capability: "Show entity jurisdiction context in Roger",            status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B5",  api: "Ownership Relationships",      path: "GET /api/v1/ownership-relationships/by-parent/{parentEntityId}", purpose: "Entity ownership hierarchy", capability: "Display entity ownership structure",                   status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B5",  api: "Taxonomy Concepts",            path: "GET /api/v1/taxonomy/concepts",                   purpose: "All active taxonomy concepts",                             capability: "Populate taxonomy dropdowns in Roger",                 status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  { batch: "B5",  api: "File Schemas",                 path: "GET /api/v1/file-schemas",                        purpose: "All active file schema versions",                          capability: "Validate file format before upload",                   status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "PDC",  swaggerSource: "PDC" },
+  // ── TDC Endpoints ──────────────────────────────────────────────────────────
+  { batch: "B3",  api: "TDC Reference Data (Orchestrator-facing)", path: "GET /api/v1/reference-data", purpose: "Complete reference data contract by return type, jurisdiction, tax year", capability: "Read reference data via Orchestrator", status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus,  govStatus: "Orchestrator-facing Read Contract", blockers: "Not Roger-facing directly — consumed via Orchestrator", owner: "TDC", swaggerSource: "TDC" },
+  { batch: "B3",  api: "Tax Forms",                    path: "GET /api/TaxForms",                               purpose: "Tax forms by return type, jurisdiction, tax year",         capability: "Display tax form options in Roger",                    status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B3",  api: "Tax Form Lines",               path: "GET /api/tax-forms/{formId}/lines",               purpose: "All lines for a given tax form",                           capability: "Display form line details in Roger",                   status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B3",  api: "Mapping Rules",                path: "GET /api/MappingRules",                           purpose: "Mapping rules by rule type, jurisdiction, tax year",       capability: "Show mapping rule context in Roger",                   status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B3",  api: "Return Templates",             path: "GET /api/ReturnTemplates",                        purpose: "Return templates by return type, jurisdiction, tax year",  capability: "Display return template options",                      status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B4",  api: "AI Mapping Proposals",         path: "GET /api/v1/ai-mapping-proposals",                purpose: "AI proposals by tax year, client, entity",                 capability: "Show AI mapping suggestions in Roger",                 status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B4",  api: "Proposal Decisions (Confirmed)", path: "GET /api/v1/proposal-decisions/confirmed",    purpose: "Confirmed proposal decisions by client/entity",            capability: "Show confirmed mapping decisions in Roger",            status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B6",  api: "Adjustments by Entity Scope",  path: "GET /api/Adjustments",                            purpose: "All adjustments by entityId and taxYear",                  capability: "Display adjustment history in Roger",                  status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus,  govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined",                 owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B6",  api: "Adjustment by ID",             path: "GET /api/Adjustments/{id}",                       purpose: "Single adjustment with predecessor chain",                 capability: "View adjustment detail and lineage",                   status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus,  govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined",                 owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B6",  api: "Review Tasks",                 path: "GET /api/v1/review-tasks",                        purpose: "Review tasks for entity and tax year scope",               capability: "Display practitioner review queue in Roger",           status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus,  govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined",                 owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B6",  api: "Flag & Review Queue",          path: "GET /api/v1/flag-and-review",                     purpose: "Practitioner Flag & Review queue for an entity",           capability: "Show flagged items for practitioner review",           status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus,  govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined",                 owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B6",  api: "Entity Review Status",         path: "GET /api/v1/entity-review-status",                purpose: "Aggregate review status for entity and tax year",          capability: "Show review completion status in Roger",               status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus,  govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined",                 owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B6",  api: "Sign-Off Attestations",        path: "GET /api/v1/sign-off",                            purpose: "Sign-off attestation records for entity and tax year",     capability: "Display sign-off status in Roger",                     status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus,  govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined",                 owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B7",  api: "Entity Finalization State",    path: "GET /api/v1/entity-finalization",                 purpose: "Finalization state for entity and tax year",               capability: "Show finalization status in Roger",                    status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B7",  api: "Tax Profile Determinations",   path: "GET /api/v1/tax-profile-determinations",          purpose: "Tax profile determinations for entity scope",              capability: "Show client tax profile context in Roger",             status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B7",  api: "Controlled Group Determinations", path: "GET /api/v1/controlled-group-determinations", purpose: "Active controlled-group determinations for entity",        capability: "Show controlled group context in Roger",               status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B8",  api: "Exception Records (TDC Read)",  path: "GET /api/v1/TdcExceptionsRead",                   purpose: "Read exception records (TDC read contract)",               capability: "View exception records in Roger",                      status: "Draft Contract" as ReadinessStatus,     data: "None" as DataStatus,       govStatus: "In Development",             blockers: "Contract not yet published — B8 gate not passed",       owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B9",  api: "Rollforward & Prior Year",     path: "GET /api/v1/rollforward (planned)",               purpose: "Prior year data for current period",                       capability: "Show prior year comparison in Roger",                  status: "Future State" as ReadinessStatus,       data: "None" as DataStatus,       govStatus: "Planned — PI 3",             blockers: "Not yet in scope",                                      owner: "PDC",  swaggerSource: "N/A" },
+  { batch: "B10", api: "Return Assembly & Lineage",    path: "GET /api/v1/return-assembly (planned)",           purpose: "Assembled return with lineage trace",                      capability: "View assembled return in Roger",                       status: "Future State" as ReadinessStatus,       data: "None" as DataStatus,       govStatus: "Planned — PI 3",             blockers: "Not yet in scope",                                      owner: "TDC",  swaggerSource: "N/A" },
 ];
 
 // Section 3 — Roger UI Dependency Map
@@ -319,9 +346,45 @@ export default function RogerConsumerReadinessCenter() {
 
       <div className="px-6 py-6 space-y-8">
 
+        {/* ── DATA SOURCE STATUS CARD ─────────────────────────────────────── */}
+        <div className="bg-white rounded-xl border-2 border-slate-200 shadow-sm px-5 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Database className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">Data Source Status</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                <span className="text-xs font-bold text-amber-800">Swagger Source: Uploaded JSON Snapshot</span>
+              </div>
+              <div className="text-xs text-amber-700 leading-relaxed">
+                <strong>Live Sync:</strong> No — static snapshot only<br />
+                <strong>Last Uploaded:</strong> May 19, 2026 (pasted_content_49.txt = TDC API, pasted_content_50.txt = PDC API)<br />
+                <strong>Status:</strong> Swagger source is a static artifact. Endpoint data may be stale if the platform has changed since upload. Do not treat Swagger as a live contract source.
+              </div>
+            </div>
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+              <div className="flex items-center gap-2 mb-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-xs font-bold text-emerald-800">Current Status Source: DCT Control Panel</span>
+              </div>
+              <div className="text-xs text-emerald-700 leading-relaxed">
+                <strong>Live Sync:</strong> Yes — reflects current batch/API status<br />
+                <strong>Last Synced:</strong> {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}<br />
+                <strong>Status:</strong> Readiness, governance status, and blocker data sourced from the DCT Control Panel. This is the authoritative source for current delivery state.
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* ── SECTION 1: Executive Summary ─────────────────────────────────── */}
         <section>
           <SectionHeader num={1} title="Executive Summary" icon={<TrendingUp className="w-4 h-4" />} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-4 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section tells Roger what is currently usable, what is still blocked, and what needs governance or technical follow-up before consumption. Numbers are derived from the DCT Control Panel — the authoritative source for current delivery state.
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
             {[
               { label: "Consumer-Ready APIs",     value: consumerReady,  total: ENDPOINT_MATRIX.length, color: "#065f46", bg: "#d1fae5", icon: <CheckCircle2 className="w-4 h-4" /> },
@@ -360,6 +423,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 2: Endpoint Readiness Matrix ─────────────────────────── */}
         <section>
           <SectionHeader num={2} title="Roger Endpoint Readiness Matrix" icon={<Database className="w-4 h-4" />} count={`${ENDPOINT_MATRIX.length} APIs`} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section maps each endpoint to the batch, capability, source system, readiness status, data availability, and blocker so Roger can quickly see what can be consumed today versus what is pending governance, in development, or future state.
+          </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Filter bar */}
             <div className="px-4 py-3 flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50">
@@ -420,6 +487,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 3: Roger UI Dependency Map ───────────────────────────── */}
         <section>
           <SectionHeader num={3} title="Roger UI Screen Dependency Map" icon={<Layers className="w-4 h-4" />} count={`${SCREEN_DEPENDENCIES.length} screens`} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section shows which Roger screens or workflows depend on which APIs and whether the required data is available. Use this to identify which screens are ready to build or demo, and which are blocked by missing APIs or governance decisions.
+          </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs" style={{ minWidth: 900 }}>
@@ -461,6 +532,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 4: Consumer vs Platform Readiness ────────────────────── */}
         <section>
           <SectionHeader num={4} title="Consumer Readiness vs Platform Readiness" icon={<GitBranch className="w-4 h-4" />} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section separates APIs that exist from APIs Roger can actually use. An endpoint can be delivered by the platform but not consumer-ready if data, authentication, payloads, or governance are incomplete. Platform Exists ≠ Roger Can Consume.
+          </div>
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-3 flex items-start gap-2 text-xs text-amber-800">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
             <strong>Critical Distinction:</strong>&nbsp;Platform Exists ≠ Roger Can Consume. An API may exist in PDC/TDC but Roger cannot consume it until the Read Contract is published (G3 gate), governance is approved, and the payload is complete.
@@ -504,6 +579,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 5: Data Availability ─────────────────────────────────── */}
         <section>
           <SectionHeader num={5} title="Data Availability Status" icon={<Activity className="w-4 h-4" />} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section shows whether Roger is looking at real data, mock data, sample payloads, or draft contract data. Real Data means the pipeline is operational. Mock Data means the demo uses simulated values. Pipeline Validated means the end-to-end data flow has been tested.
+          </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs" style={{ minWidth: 800 }}>
@@ -540,6 +619,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 6: Gateway Access Model ──────────────────────────────── */}
         <section>
           <SectionHeader num={6} title="Gateway Access Model" icon={<Globe className="w-4 h-4" />} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section shows how Roger should consume governed DCT data without directly coupling to internal PDC/TDC services. Roger consumes governed Read Contracts via the Roger Gateway. The Gateway mediates access and enforces ownership boundaries so PDC/TDC can evolve independently.
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Flow visual */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-5">
@@ -593,6 +676,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 7: Governance & Ownership ────────────────────────────── */}
         <section>
           <SectionHeader num={7} title="Governance & Ownership" icon={<Users className="w-4 h-4" />} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section clarifies who owns the data and what Roger is allowed to consume. Roger is a consumer layer, not the system of record. PDC (Phoenix Data Consolidation) owns financial data. TDC (Tax Data Consolidation) owns tax decisions. Roger reads only — it does not write, derive, or govern.
+          </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs" style={{ minWidth: 700 }}>
@@ -648,6 +735,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 8: Integration Risks ─────────────────────────────────── */}
         <section>
           <SectionHeader num={8} title="Roger Integration Risks" icon={<AlertCircle className="w-4 h-4" />} count={`${INTEGRATION_RISKS.length} risks`} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section highlights the blockers that could prevent Roger from consuming the APIs or showing the data correctly. Click any risk to expand the resolution path. Critical and High risks must be resolved before Roger can go to UAT or production.
+          </div>
           <div className="space-y-2">
             {INTEGRATION_RISKS.map((risk, i) => (
               <div key={risk.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -691,6 +782,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 9: Demo Readiness ─────────────────────────────────────── */}
         <section>
           <SectionHeader num={9} title="Demo Readiness" icon={<Star className="w-4 h-4" />} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section tells the Roger team what can be shown in a demo today versus what is production-ready. Demo Ready means the capability works with real or seeded data and is safe to show. Mocked means the demo uses simulated values. Conceptual means the capability is not yet built.
+          </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs" style={{ minWidth: 700 }}>
@@ -720,6 +815,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 10: Open ADRs ─────────────────────────────────────────── */}
         <section>
           <SectionHeader num={10} title="Open Decisions & ADRs" icon={<FileText className="w-4 h-4" />} count={`${openAdrs} open`} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section lists the governance decisions that must be resolved before Roger can fully consume or rely on certain capabilities. Open ADRs with Critical or High impact are blocking Roger delivery. Escalate unresolved items to the architecture team.
+          </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs" style={{ minWidth: 700 }}>
@@ -766,6 +865,10 @@ export default function RogerConsumerReadinessCenter() {
         {/* ── SECTION 11: Next Actions ──────────────────────────────────────── */}
         <section>
           <SectionHeader num={11} title="Next Actions" icon={<Target className="w-4 h-4" />} count={`${NEXT_ACTIONS.length} actions`} />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
+            <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            This section gives the team a working action list for closing gaps and moving endpoints toward consumer readiness. Critical and High impact actions should be prioritized for the current sprint. Use ADO references to track progress in Azure DevOps.
+          </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs" style={{ minWidth: 700 }}>
