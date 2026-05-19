@@ -98,9 +98,10 @@ const TOOL_ITEMS: NavItem[] = [
 
 // Roger UI — Roger-specific pages
 const ROGER_UI_ITEMS: NavItem[] = [
-  { label: "Integration Alignment Hub",  path: "/integration-hub",         icon: "⊕", badge: "Live",   badgeColor: "#059669" },
-  { label: "Integration Simulation",     path: "/integration-simulation",  icon: "🎮", badge: "LIVE",   badgeColor: "#059669" },
-  { label: "Roger API Evolution",        path: "/roger-api",               icon: "⚡", badge: "Export", badgeColor: "#003865" },
+  { label: "Consumer Readiness Center",  path: "/roger-consumer-readiness", icon: "◎", badge: "NEW",    badgeColor: "#059669" },
+  { label: "Integration Alignment Hub",  path: "/integration-hub",          icon: "⊕", badge: "Live",   badgeColor: "#059669" },
+  { label: "Integration Simulation",     path: "/integration-simulation",   icon: "🎮", badge: "LIVE",   badgeColor: "#059669" },
+  { label: "Roger API Evolution",        path: "/roger-api",                icon: "⚡", badge: "Export", badgeColor: "#003865" },
 ];
 
 // Governance — alphabetical

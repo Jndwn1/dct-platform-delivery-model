@@ -37,6 +37,7 @@ import RogerMappingPage from "./pages/RogerMappingPage";
 import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
 import BatchDetailPage from "./pages/BatchDetailPage";
 import IntegrationSimulation from "./pages/IntegrationSimulation";
+import RogerConsumerReadinessCenter from "./pages/RogerConsumerReadinessCenter";
 import BATouchpointSummary from "./pages/BATouchpointSummary";
 
 // Layout
@@ -81,6 +82,7 @@ function Router() {
         {/* Platform pages */}
         <Route path="/integration-hub" component={IntegrationAlignmentHub} />
         <Route path="/integration-simulation" component={IntegrationSimulation} />
+        <Route path="/roger-consumer-readiness" component={RogerConsumerReadinessCenter} />
         <Route path="/roger-api" component={RogerApiEvolution} />
         <Route path="/runtime-journey" component={RuntimeJourney} />
         <Route path="/control-panel" component={BatchControlPanel} />
