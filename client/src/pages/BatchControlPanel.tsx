@@ -802,7 +802,7 @@ const GATE_LABELS = {
   g4: "G4 — Lineage Closure",
 };
 
-const BATCH_KEYS: BatchKey[] = ["foundation-core","1","2","3","4","5","6","7","8","9","10","11"];
+const BATCH_KEYS: BatchKey[] = ["foundation-core","1","2","2a","3","4","5","6","7","8","9","10","11"];
 
 function Badge({ label, bg, text }: { label: string; bg: string; text: string }) {
   return (
