@@ -237,27 +237,75 @@ export function RogerConsumerReadinessPanel() {
                     </tr>
                     {expandedRow === i && (
                       <tr className="bg-blue-50">
-                        <td colSpan={7} className="px-4 py-3">
-                          <div className="grid grid-cols-2 gap-4 text-xs">
-                            <div>
-                              <div className="font-semibold text-slate-700 mb-1">Governance Status</div>
-                              <div className="text-slate-600">{row.governanceStatus}</div>
+                        <td colSpan={7} className="px-4 py-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            {/* Section 1: Current Availability */}
+                            <div className="bg-white rounded-lg px-3 py-2.5 border border-slate-200">
+                              <div className="font-bold text-slate-700 mb-1 flex items-center gap-1">
+                                <span className="text-blue-600">1.</span> Current Availability
+                              </div>
+                              <DataBadge status={row.dataAvailability} />
+                              <div className="text-slate-500 mt-1 leading-snug">{row.governanceStatus}</div>
                             </div>
-                            <div>
-                              <div className="font-semibold text-slate-700 mb-1">Owner</div>
-                              <div className="text-slate-600">{row.owner}</div>
-                            </div>
-                            <div className="col-span-2">
-                              <div className="font-semibold text-slate-700 mb-1">Platform Exists vs Roger Can Consume</div>
-                              <div className="flex items-center gap-4">
+                            {/* Section 2: Consumer Readiness */}
+                            <div className="bg-white rounded-lg px-3 py-2.5 border border-slate-200">
+                              <div className="font-bold text-slate-700 mb-1 flex items-center gap-1">
+                                <span className="text-blue-600">2.</span> Consumer Readiness
+                              </div>
+                              <ReadinessBadge status={row.consumerReadiness} />
+                              <div className="flex items-center gap-3 mt-2">
                                 <span className={`flex items-center gap-1 font-semibold ${row.platformExists ? "text-emerald-700" : "text-slate-400"}`}>
-                                  {row.platformExists ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                                  Platform: {row.platformExists ? "Exists" : "In Development"}
+                                  {row.platformExists ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                  Platform {row.platformExists ? "Exists" : "In Dev"}
                                 </span>
-                                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                                <ArrowRight className="w-3 h-3 text-slate-400" />
                                 <span className={`flex items-center gap-1 font-semibold ${row.rogerCanConsume ? "text-emerald-700" : "text-red-600"}`}>
-                                  {row.rogerCanConsume ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-                                  Roger: {row.rogerCanConsume ? "Can Consume" : "Cannot Consume Yet"}
+                                  {row.rogerCanConsume ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                  Roger {row.rogerCanConsume ? "Can Consume" : "Cannot Consume Yet"}
+                                </span>
+                              </div>
+                            </div>
+                            {/* Section 3: Blocking Dependencies */}
+                            <div className="bg-white rounded-lg px-3 py-2.5 border border-slate-200">
+                              <div className="font-bold text-slate-700 mb-1 flex items-center gap-1">
+                                <span className="text-blue-600">3.</span> Blocking Dependencies
+                              </div>
+                              {row.blockers && row.blockers !== "None" ? (
+                                <div className="flex items-start gap-1">
+                                  <AlertTriangle className="w-3 h-3 text-amber-500 mt-0.5 shrink-0" />
+                                  <span className="text-amber-700 leading-snug">{row.blockers}</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 text-emerald-700">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  No blocking dependencies
+                                </div>
+                              )}
+                            </div>
+                            {/* Section 4: Ownership */}
+                            <div className="bg-white rounded-lg px-3 py-2.5 border border-slate-200">
+                              <div className="font-bold text-slate-700 mb-1 flex items-center gap-1">
+                                <span className="text-blue-600">4.</span> Ownership
+                              </div>
+                              <div className="text-slate-600 leading-snug">{row.owner}</div>
+                              <div className="text-slate-400 mt-1">Roger does not own lineage, governance, or tax authority</div>
+                            </div>
+                            {/* Section 5: Known Assumptions */}
+                            <div className="bg-white rounded-lg px-3 py-2.5 border border-slate-200 sm:col-span-2">
+                              <div className="font-bold text-slate-700 mb-1 flex items-center gap-1">
+                                <span className="text-blue-600">5.</span> Known Assumptions
+                              </div>
+                              <div className="flex items-start gap-1">
+                                <Info className="w-3 h-3 text-blue-400 mt-0.5 shrink-0" />
+                                <span className="text-slate-600 leading-snug">
+                                  {row.consumerReadiness === "Mock/Demo Only"
+                                    ? "This endpoint is available for demo/UAT only. Do not build production Roger workflows against this contract until governance is confirmed."
+                                    : row.consumerReadiness === "Governance Pending"
+                                    ? "Governance decisions are pending. Roger UI should treat this data as provisional. Field names and contract shape may change before final publication."
+                                    : row.consumerReadiness === "Blocked" || row.consumerReadiness === "Future State"
+                                    ? "This endpoint is not yet safe for Roger consumption. Roger UI should not reference this data in any production or demo workflow."
+                                    : "Contract is published and additive-only. Roger can rely on existing fields not being removed or renamed. New fields may be added in future batches."
+                                  }
                                 </span>
                               </div>
                             </div>

@@ -271,25 +271,33 @@ AUTO-DETECTED FROM PASTE:
 - Dependencies: ${pastedParsed.detectedDependencies.join("; ") || "none"}
 - Governance Flags: ${pastedParsed.governanceFlags.join("; ") || "none"}` : "";
 
-  return `You are the DCT Platform Enterprise Governance Copilot — an AI integration analyst and dependency discovery engine embedded in the DCT Gate Verification Dashboard.
+  return `You are the Roger Consumer Readiness Assistant embedded in the DCT Gate Verification Dashboard.
 
-Your role is to help BAs, POs, DEVs, and QA teams:
-- Identify which DCT API endpoints are needed for a given Roger UI user story
-- Identify which batch delivers those endpoints and their current status
-- Detect governance gaps (lineage, EntityId, tax_year, additive-only, contract ownership)
-- Identify Roger ↔ DCT integration risks and blocking dependencies
-- Generate structured summaries for BA, PO, DEV, and QA audiences
-- Answer follow-up questions conversationally
+Your role is NOT to explain how the platform is built internally.
+Your role IS to help Roger consumers answer:
+- What can Roger safely consume today?
+- What is still evolving or unstable?
+- What is blocked and why?
+- What governance decisions are pending?
+- What APIs and data are reliable?
+- What assumptions should Roger avoid making?
+- What dependencies must be resolved before production workflows are built?
 
-PLATFORM CONTEXT:
-- PDC = Phoenix Data Consolidation (financial data, ingestion, entity registry)
-- TDC = Tax Data Consolidation (tax decisions, mapping, eligibility, sign-off)
-- Roger = practitioner-facing UI — READ-ONLY, consumes via published Read Contracts
-- Orchestrator = AI execution engine, coordinates PDC/TDC workflows
-- Batches are delivered sequentially within a PI. Each batch requires 4 gate conditions:
-  G1 Schema Lock → G2 Invariant Lock → G3 Contract Publication → G4 Lineage Closure
-- Additive-Only contracts: fields may never be removed or renamed once published
-- Read Contract ≠ Write Contract — Roger only consumes Read Contracts
+CORE READINESS DEFINITIONS:
+- Demo Ready: Can support PI demo or simulation. May contain mock or partial assumptions.
+- API Ready: Endpoint exists and schema is usable. Does NOT imply governance completion.
+- Governance Ready: Ownership and business semantics approved.
+- Operationally Consumable: Roger can safely build workflows/UI without unstable assumptions.
+- Production Ready: Governance-approved, stable contract, validated data, operationally supported.
+
+PLATFORM CONTEXT (translate to consumer terms):
+- PDC (Phoenix Data Consolidation) = financial data source providing ingestion, entity registry, normalized records
+- TDC (Tax Data Consolidation) = tax decision source providing mapping, eligibility, sign-off, tax form rules
+- Roger = practitioner-facing UI, READ-ONLY consumer. Roger does not write to PDC or TDC.
+- Orchestrator = AI execution engine. Roger should not assume Orchestrator outputs are final until TDC confirms.
+- Batches = delivery units. Each batch gates on: Schema Lock, Invariant Lock, Contract Publication, Lineage Closure.
+- Additive-Only: once a contract is published, fields cannot be removed or renamed. Roger can rely on existing fields.
+- Read Contract is NOT Write Contract. Roger only consumes Read Contracts. Write contracts are internal to PDC/TDC.
 
 ROGER DATA POINTS (live platform data):
 ${dpSummary}
@@ -299,15 +307,32 @@ ${swaggerSummary}
 ${adoSection}
 ${pasteSection}
 
+OUTPUT FORMAT - for every dataset, API, or screen question, structure your answer with these 5 sections:
+
+**1. Current Availability**
+State one of: Available Now | Partial | Mock/Demo Only | Governance Pending | Not Ready
+
+**2. Consumer Readiness**
+State one of: Safe for UI Consumption | API Contract Unstable | Data Incomplete | UAT Only | Production-Ready | Demo-Ready Only
+
+**3. Blocking Dependencies**
+List any blockers. Use language like: "Blocked until [X]", "Requires [Y] before Roger can consume"
+
+**4. Ownership**
+Identify: PDC owner | TDC owner | Roger owner | Governance owner (use "Unresolved" if unknown)
+
+**5. Known Assumptions**
+List any: temporary UAT assumptions, mock data assumptions, future-state placeholders, pending governance decisions
+
 RESPONSE RULES:
-1. Ground every answer in the data above. If a data point or endpoint is not in the data, say so clearly.
-2. Always state: batch, API endpoint path, current availability/status, and any known gaps.
-3. Format responses with bold markdown headers (e.g. **API Endpoints**, **Batch**, **Gaps**).
+1. Ground every answer in the live platform data above. Never fabricate endpoint paths, batch numbers, or ADO IDs.
+2. Use operational consumer language: "Roger can consume", "Roger should not assume", "Blocked until", "Available for demo only", "Not governance-stabilized", "Safe for downstream consumption", "UI should treat as provisional".
+3. Avoid architecture-heavy internal language unless the user specifically asks for it.
 4. For governance issues, use severity labels: [BLOCKING], [WARNING], [INFO].
-5. For generated outputs (BA Summary, PO Summary, etc.), use structured sections with clear headers.
-6. Never fabricate endpoint paths, batch numbers, or ADO IDs.
+5. Never imply production readiness prematurely. Never assume governance decisions are finalized.
+6. Do NOT collapse TIM/TDC ownership boundaries or define client group semantics.
 7. If a story has been loaded or pasted, use its content to give story-specific answers.
-8. Keep answers concise but complete. Target 250–500 words for summaries, 150–300 for Q&A.`;
+8. Keep answers concise but complete. Target 200-400 words for summaries, 100-250 for Q&A.`;
 }
 
 // ── Action prompt builders ────────────────────────────────────────────────────
@@ -595,7 +620,7 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
           : `  • \`${d.apiEndpoint}\` (from Roger data point mapping)`;
         return `**${d.dataPoint}**\n**Batch:** ${d.batch} | **Source:** ${d.source} | **Availability:** ${d.availability}\n**API Endpoints:**\n${apiList}\n**Owner:** ${d.owner}\n**Notes:** ${d.notes}`;
       });
-      return `**API Endpoints Required — pulled from Control Panel data**\n\n${lines.join("\n\n---\n\n")}`;
+      return `**What Roger Needs to Consume This Data Point**\n\n${lines.join("\n\n---\n\n")}\n\n_\u{1F4CA} Sourced from live Control Panel data_`;
     }
 
     // Q: What batch delivers [data point]?
@@ -603,7 +628,7 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       const lines = matchDPs.map(d =>
         `**${d.dataPoint}** → **${d.batch}** (${d.source}) — Status: ${d.availability}\nAPI: \`${d.apiEndpoint}\`\nOwner: ${d.owner}`
       );
-      return `**Batch Delivery Mapping — from Control Panel**\n\n${lines.join("\n\n")}`;
+      return `**Batch Delivery — When Roger Can Consume**\n\n${lines.join("\n\n")}\n\n_\u{1F4CA} Sourced from live Control Panel data_`;
     }
 
     // Q: What is the availability / status of [data point]?
@@ -612,7 +637,7 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
         const adoIds = d.adoStories.filter(s => s.id).map(s => `#${s.id} "${s.title}"`).join(", ") || "None";
         return `**${d.dataPoint}**\nStatus: **${d.availability}** | Batch: ${d.batch} | Source: ${d.source}\nADO Stories: ${adoIds}\nNotes: ${d.notes}`;
       });
-      return `**Availability Status — from Control Panel**\n\n${lines.join("\n\n")}`;
+      return `**Consumer Readiness Status**\n\n${lines.join("\n\n")}\n\n_\u{1F4CA} Sourced from live Control Panel data_`;
     }
 
     // Q: What are the gaps / what is blocking?
@@ -621,9 +646,9 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       if (gaps.length === 0) return "**No Gaps Found** — all Roger data points show Available status in the Control Panel.";
       const lines = gaps.map(d => {
         const adoIds = d.adoStories.filter(s => s.id).map(s => `#${s.id}`).join(", ") || "—";
-        return `• **${d.dataPoint}** | ${d.batch} | ${d.availability} | Owner: ${d.owner} | ADO: ${adoIds}\n  _${d.notes}_`;
+        return `• **${d.dataPoint}** | ${d.batch} | Status: ${d.availability} [BLOCKING] | Owner: ${d.owner} | ADO: ${adoIds}\n  Roger should not assume this data is available. Blocked until delivery confirmed. _${d.notes}_`;
       });
-      return `**Platform Gaps — ${gaps.length} data point(s) not yet Available**\n\n${lines.join("\n\n")}\n\n_Source: Roger UI Data Availability table, Control Panel_`;
+      return `**Roger Consumption Blockers — ${gaps.length} data point(s) not yet safe to consume**\n\nRoger should not build production workflows against these data points until they reach Available status.\n\n${lines.join("\n\n")}\n\n_\u{1F4CA} Sourced from live Control Panel data_`;
     }
 
     // Q: Show all data points / list all APIs
@@ -631,7 +656,7 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       const lines = rogerDataPoints.map(d =>
         `• **${d.dataPoint}** | ${d.batch} | ${d.availability} | \`${d.apiEndpoint}\``
       );
-      return `**All Roger UI Data Points (${rogerDataPoints.length} total)**\n\n${lines.join("\n")}\n\n_Source: Control Panel — Roger UI Data Availability_`;
+      return `**Roger Consumer Data Availability — Full List (${rogerDataPoints.length} data points)**\n\n${lines.join("\n")}\n\n_\u{1F4CA} Sourced from live Control Panel data. Data points marked Available are safe for UI consumption. Others should be treated as provisional._`;
     }
 
     // Q: What APIs are in [batch]?
@@ -643,7 +668,7 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
       if (batchAPIs.length > 0 || batchDPs.length > 0) {
         const apiLines = batchAPIs.map(a => `  • \`${a.path}\` — ${a.endpoint} (${a.status})`).join("\n") || "  None found";
         const dpLines = batchDPs.map(d => `  • ${d.dataPoint} — ${d.availability}`).join("\n") || "  None found";
-        return `**Batch ${batchMatch[1].toUpperCase()} — API & Data Point Summary**\n\n**API Endpoints (${batchAPIs.length}):**\n${apiLines}\n\n**Roger Data Points (${batchDPs.length}):**\n${dpLines}\n\n_Source: Control Panel_`;
+        return `**Batch ${batchMatch[1].toUpperCase()} — What Roger Can Consume**\n\n**API Endpoints (${batchAPIs.length}):**\n${apiLines}\n\n**Roger Data Points (${batchDPs.length}):**\n${dpLines}\n\nNote: API Ready does not imply Governance Ready. Verify contract publication status before building production workflows.\n\n_\u{1F4CA} Sourced from live Control Panel data_`;
       }
     }
 
@@ -654,7 +679,7 @@ export function BAAssistant({ rogerDataPoints, swaggerEntries }: BAAssistantProp
         const fieldList = fields && fields.length > 0 ? fields.map(f => `  • \`${f}\``).join("\n") : `  (Field details not available — see Control Panel table)`;
         return `**${d.dataPoint}** (${d.batch})\n**API:** \`${d.apiEndpoint}\`\n**Fields:**\n${fieldList}`;
       });
-      return `**Payload Fields — from Control Panel**\n\n${lines.join("\n\n")}`;
+      return `**Fields Roger Can Consume**\n\n${lines.join("\n\n")}\n\nNote: Roger should treat fields as stable only after the batch contract is published (G3 gate). Fields may not be removed or renamed after publication (Additive-Only rule).\n\n_\u{1F4CA} Sourced from live Control Panel data_`;
     }
 
     return null; // No local match — fall through to LLM
@@ -687,7 +712,7 @@ The assistant cannot connect to the AI service right now. This is a browser-side
     // Try local engine first — answers from Control Panel data, no API needed
     const localAnswer = localAnswerEngine(q.trim());
     if (localAnswer) {
-      addAssistantMessage(localAnswer + "\n\n_📊 Answer sourced from Control Panel platform data — no AI API required._", q.trim());
+      addAssistantMessage(localAnswer + "\n\n_📊 Answer sourced from live Control Panel data — Roger consumer readiness view_", q.trim());
       return;
     }
 
