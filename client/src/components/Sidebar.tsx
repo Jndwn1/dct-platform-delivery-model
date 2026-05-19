@@ -14,6 +14,7 @@ interface NavItem {
   badge?: string;
   badgeColor?: string;
   indent?: boolean;
+  subBatch?: boolean;
   status?: string;
   statusColor?: string;
   isArchSync?: boolean;
@@ -36,18 +37,22 @@ const BATCH_ITEM_DEFS: { label: string; path: string; batchKey: BatchKey }[] = [
 ];
 
 // PI 2 batch items (B4–B11) — Entity, Workflow & Tax Ready
-const PI2_BATCH_ITEMS: { label: string; path: string; batchKey: BatchKey }[] = [
+const PI2_BATCH_ITEMS: { label: string; path: string; batchKey: BatchKey; indent?: boolean }[] = [
   { label: "B4 — AI Tax Mapping & Explainability",              path: "/batch/4",               batchKey: "4" },
   { label: "B5 — Entity Identity & Structure",                  path: "/batch/5",               batchKey: "5" },
   { label: "B6 — Practitioner Review, Adjustments & Lock",      path: "/batch/6",               batchKey: "6" },
   { label: "B7 — Client Tax Profile & Eligibility",             path: "/batch/7",               batchKey: "7" },
   { label: "B8 — Exceptions & Remediation",                     path: "/batch/8",               batchKey: "8" },
+  { label: "  B8 | PDC — Exception & Remediation",              path: "/batch/8-pdc",           batchKey: "8-pdc",  indent: true },
+  { label: "  B8 | TDC — Exceptions & Remediation",             path: "/batch/8-tdc",           batchKey: "8-tdc",  indent: true },
   { label: "B9 — Rollforward & Prior Year Intelligence",        path: "/batch/9",               batchKey: "9" },
+  { label: "  B9 | PDC — IMS Integration & Prior Year",         path: "/batch/9-pdc",           batchKey: "9-pdc",  indent: true },
+  { label: "  B9 | TDC — Rollforward & Prior Year Intel",       path: "/batch/9-tdc",           batchKey: "9-tdc",  indent: true },
   { label: "B10 — Return Assembly & Lineage Closure",           path: "/batch/10",              batchKey: "10" },
   { label: "B11 — Learning Governance & Model Evolution",       path: "/batch/11",              batchKey: "11" },
 ];
 
-// PI 3 batch items (B12–B19) — Intelligence, Provision & Audit
+// PI 3 batch items (B12–B25) — Intelligence, Provision & Audit
 const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B12 — TIM Integration & Engagement Ops",            path: "/batch/12",              batchKey: "12" },
   { label: "B13 — Platform Reference & Document Provenance",    path: "/batch/13",              batchKey: "13" },
@@ -57,6 +62,8 @@ const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B17 — Decision Support — Overrides & Workpapers",   path: "/batch/17",              batchKey: "17" },
   { label: "B18 — Provision Computation, DTA/DTL & ETR",        path: "/batch/18",              batchKey: "18" },
   { label: "B19 — Provision Workflow, Sign-Off & Cross-LOB",    path: "/batch/19",              batchKey: "19" },
+  { label: "B24 — Multi-Entity Consolidation & Rollup",         path: "/batch/24",              batchKey: "24" },
+  { label: "B25 — Cross-LOB Reporting & Delivery",              path: "/batch/25",              batchKey: "25" },
 ];
 
 // PI 4 batch items (B20–B23) — Governance, QC & Analytics
@@ -203,8 +210,10 @@ function NavItem({ item }: { item: NavItem }) {
     <div
       className="flex items-center rounded-sm transition-colors group"
       style={{
-        padding: item.indent ? "2px 12px 2px 20px" : "2px 12px",
+        padding: item.subBatch ? "2px 12px 2px 32px" : item.indent ? "2px 12px 2px 20px" : "2px 12px",
         backgroundColor: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+        borderLeft: item.subBatch ? "2px solid #1e3a5f" : "none",
+        marginLeft: item.subBatch ? "20px" : "0",
       }}
       onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
       onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
@@ -216,8 +225,9 @@ function NavItem({ item }: { item: NavItem }) {
         style={{
           padding: "3px 0",
           background: "none", border: "none", cursor: "pointer",
-          color: isActive ? "#ffffff" : "#94a3b8",
+          color: isActive ? "#ffffff" : item.subBatch ? "#64748b" : "#94a3b8",
           minWidth: 0,
+          fontSize: item.subBatch ? "10px" : undefined,
         }}
         onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "#e2e8f0"; }}
         onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.color = "#94a3b8"; }}
@@ -349,7 +359,8 @@ export default function Sidebar({ activeSection }: SidebarProps) {
               <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#10b981", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 — Entity, Workflow &amp; Tax Ready</div>
               {PI2_BATCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey]);
-                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+                const isSubBatch = def.indent === true;
+                return <NavItem key={def.path} item={{ label: def.label.trim(), path: def.path, indent: !isSubBatch, subBatch: isSubBatch, status: badge?.label, statusColor: badge?.color }} />;
               })}
               {/* PI 3 */}
               <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#8b5cf6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 3 — Intelligence, Provision &amp; Audit</div>

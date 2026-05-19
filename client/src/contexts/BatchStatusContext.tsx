@@ -64,7 +64,11 @@ export interface BatchStatusMap {
   "6": BatchStatus;
   "7": BatchStatus;
   "8": BatchStatus;
+  "8-pdc": BatchStatus;
+  "8-tdc": BatchStatus;
   "9": BatchStatus;
+  "9-pdc": BatchStatus;
+  "9-tdc": BatchStatus;
   "10": BatchStatus;
   "11": BatchStatus;
 }
@@ -84,7 +88,11 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "6": "Batch 6 — Practitioner Review, Adjustments & Lock",
   "7": "Batch 7 — Client Tax Profile & Eligibility",
   "8": "Batch 8 — Exceptions & Remediation",
+  "8-pdc": "Batch 8 | PDC — Exception & Remediation",
+  "8-tdc": "Batch 8 | TDC — Exceptions & Remediation",
   "9": "Batch 9 — PDC IMS Integration & Prior Year Retrieval / TDC Rollforward & Prior Year Intelligence",
+  "9-pdc": "Batch 9 | PDC — IMS Integration & Prior Year Retrieval",
+  "9-tdc": "Batch 9 | TDC — Rollforward & Prior Year Intelligence",
   "10": "Batch 10 — Return Assembly, Filing & Lineage Closure",
   "11": "Batch 11 — Learning Governance & Model Evolution",
 };
@@ -100,9 +108,13 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "4": ["6"],
   "5": ["6"],
   "6": ["7"],
-  "7": ["8"],
-  "8": ["9"],
+  "7": ["8", "8-pdc", "8-tdc"],
+  "8": ["9", "9-pdc", "9-tdc"],
+  "8-pdc": ["9-pdc"],
+  "8-tdc": ["9-tdc"],
   "9": ["10"],
+  "9-pdc": ["10"],
+  "9-tdc": ["10"],
   "10": ["11"],
   "11": [],
 };
@@ -179,7 +191,11 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "6": "Complete",
   "7": "Complete",
   "8": "In Progress",
+  "8-pdc": "Ready for QA",
+  "8-tdc": "In Progress",
   "9": "Not Started",
+  "9-pdc": "Ready for QA",
+  "9-tdc": "Ready for QA",
   "10": "Not Started",
   "11": "Not Started",
 };
@@ -193,7 +209,7 @@ const MAX_LOG_ENTRIES = 50;
 const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1: ["foundation-core", "1", "2", "2a"],
   pi2: ["3", "4", "5", "6", "7"],
-  pi3: ["8", "9", "10"],
+  pi3: ["8", "8-pdc", "8-tdc", "9", "9-pdc", "9-tdc", "10"],
   pi4: ["11"],
 };
 

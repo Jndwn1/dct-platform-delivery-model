@@ -333,7 +333,7 @@ function CopyNoteButton({ text }: { text: string }) {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type DeliveryStatus = "Delivered" | "Complete" | "In Progress" | "Carried Forward" | "Backlogged" | "Not Started" | "Needs PO/Dev Confirmation";
+type DeliveryStatus = "Delivered" | "Complete" | "In Progress" | "Ready for QA" | "Carried Forward" | "Backlogged" | "Not Started" | "Needs PO/Dev Confirmation";
 type ApiStatus = "Delivered" | "In Progress" | "Missing" | "Needs PO/Dev Confirmation";
 type RogerAvailability = "Available" | "Partially Available" | "Not Available" | "Carried Forward" | "Backlogged";
 
@@ -490,6 +490,50 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
     open: ["ExceptionRecord API — in progress", "RemedyAction API — in progress", "Re-ingestion trigger API — in progress", "Remediation audit trail — in progress"],
     readiness: "In progress — PI 2 Committed (sequential after Batch 7)",
     poNote: "Batch 8 is the active delivery batch (PI 2 Committed, sequential after Batch 7 closes). TDC and PDC collaborate on exception identification, remediation workflow, and re-ingestion triggers. ExceptionRecord, RemedyAction, and re-ingestion audit trail are the primary deliverables. Target close: 5/20.",
+  },
+  {
+    key: "8-pdc",
+    label: "Batch 8 | PDC — Exception & Remediation",
+    owner: "PDC",
+    status: "Ready for QA",
+    delivered: ["Re-ingestion Trigger API (Submit, Get Status, Audit Trail)", "ExceptionRecord linkage to PDC ingestion runs", "PDC-side remediation audit trail"],
+    validated: ["Re-ingestion trigger submit flow", "Lineage linkage to originating ExceptionRecord"],
+    open: ["Re-ingestion Trigger Audit Trail gate sign-off pending", "Consumer Guide entry missing"],
+    readiness: "Review Ready — awaiting TDC gate alignment",
+    poNote: "PDC track of Batch 8. Re-ingestion trigger APIs are the primary PDC deliverable. Lineage closure dependency for B8 gate. Status: Review Ready per ADO Feature #11.",
+  },
+  {
+    key: "8-tdc",
+    label: "Batch 8 | TDC — Exceptions & Remediation",
+    owner: "TDC",
+    status: "In Progress",
+    delivered: ["Exception identification surface (TDC Records v2 Known Mapping)", "Proposal decision supersede workflow (in progress)"],
+    validated: [],
+    open: ["ExceptionRecord API — in progress", "RemedyAction API — in progress", "Sign-off unlock for remediation — in progress"],
+    readiness: "Active — PI 2 Committed",
+    poNote: "TDC track of Batch 8. ExceptionRecord and RemedyAction APIs are the primary TDC deliverables. Immutable audit trail appended on each status transition. Status: Active per ADO Feature #10.",
+  },
+  {
+    key: "9-pdc",
+    label: "Batch 9 | PDC — IMS Integration & Prior Year Retrieval",
+    owner: "PDC",
+    status: "Ready for QA",
+    delivered: ["IMS integration contract (PDC side)", "Prior year retrieval API surface", "PDC-side rollforward trigger"],
+    validated: ["IMS integration endpoint structure"],
+    open: ["Consumer Guide entry missing", "Gate sign-off pending B8-PDC closure"],
+    readiness: "Review Ready — sequential after Batch 8 PDC closes",
+    poNote: "PDC track of Batch 9. IMS Integration and Prior Year Retrieval are the primary PDC deliverables. Sequential after Batch 8 PDC closes. Status: Review Ready per ADO Feature #12.",
+  },
+  {
+    key: "9-tdc",
+    label: "Batch 9 | TDC — Rollforward & Prior Year Intelligence",
+    owner: "TDC",
+    status: "Ready for QA",
+    delivered: ["v_rollforward contract extending TDC Records API", "Prior year proposals with EXACT / APPROXIMATE / NO_MATCH confidence scoring", "Rollforward intelligence surface (read-only)"],
+    validated: ["v_rollforward read contract structure", "Confidence scoring bands"],
+    open: ["Consumer Guide entry missing", "Gate sign-off pending B8-TDC closure"],
+    readiness: "Review Ready — sequential after Batch 8 TDC closes",
+    poNote: "TDC track of Batch 9. v_rollforward contract and prior year intelligence are the primary TDC deliverables. EXACT / APPROXIMATE / NO_MATCH confidence scoring. Status: Review Ready per ADO Feature #13.",
   },
 ];
 
@@ -773,6 +817,7 @@ const DELIVERY_STYLE: Record<DeliveryStatus, { bg: string; text: string; border:
   "Complete":                   { bg: "bg-emerald-50",  text: "text-emerald-800", border: "border-emerald-200" },
   "Delivered":                  { bg: "bg-emerald-50",  text: "text-emerald-800", border: "border-emerald-200" },
   "In Progress":                { bg: "bg-blue-50",     text: "text-blue-800",    border: "border-blue-200" },
+  "Ready for QA":               { bg: "bg-violet-50",   text: "text-violet-800",  border: "border-violet-200" },
   "Carried Forward":            { bg: "bg-amber-50",    text: "text-amber-800",   border: "border-amber-200" },
   "Backlogged":                 { bg: "bg-slate-50",    text: "text-slate-600",   border: "border-slate-200" },
   "Not Started":                { bg: "bg-slate-50",    text: "text-slate-500",   border: "border-slate-200" },
@@ -802,7 +847,7 @@ const GATE_LABELS = {
   g4: "G4 — Lineage Closure",
 };
 
-const BATCH_KEYS: BatchKey[] = ["foundation-core","1","2","2a","3","4","5","6","7","8","9","10","11"];
+const BATCH_KEYS: BatchKey[] = ["foundation-core","1","2","2a","3","4","5","6","7","8","8-pdc","8-tdc","9","9-pdc","9-tdc","10","11"];
 
 function Badge({ label, bg, text }: { label: string; bg: string; text: string }) {
   return (
