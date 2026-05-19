@@ -16,6 +16,7 @@ import {
 } from "@/contexts/BatchStatusContext";
 import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send, Download, FileSpreadsheet, FileJson, AlignLeft, Filter } from "lucide-react";
 import { BAAssistant } from "@/components/BAAssistant";
+import { RogerConsumerReadinessPanel } from "@/components/RogerConsumerReadinessPanel";
 
 // ── SwaggerBatchGroup ───────────────────────────────────────────────────────
 interface SwaggerGroupEntry { batch: string; endpoint: string; path: string; status: string; consumerGuide: string; missingFromGuide: boolean; missingFromSwagger: boolean; notes: string; owner?: string; }
@@ -1395,6 +1396,9 @@ export default function BatchControlPanel() {
           </div>
         ))}
       </div>
+
+      {/* ── Roger Consumer Readiness ── */}
+      <RogerConsumerReadinessPanel />
 
       {/* ── Section 1: Batch Status ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">

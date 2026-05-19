@@ -37,6 +37,7 @@ import { ADR_CARDS, computeSummaryTiles } from "@/lib/rogerGovernanceData";
 import { BAOperationalGuide } from "@/components/BAOperationalGuide";
 import { RogerVsDCTRoles } from "@/components/RogerVsDCTRoles";
 import { BAAssistant, type RogerDataPointCtx, type SwaggerEntryCtx } from "@/components/BAAssistant";
+import { RogerScreenDependencyMap } from "@/components/RogerScreenDependencyMap";
 import { ROGER_MODEL_GROUPS } from "@/lib/rogerModelData";
 import { PI_GROUPS } from "@/lib/batchModel";
 import {
@@ -968,6 +969,11 @@ export default function IntegrationAlignmentHub() {
         {/* ── Roger BA vs DCT BA Roles ─────────────────────────────────── */}
         <div className="bg-[#0a1628] border border-slate-700 rounded-xl overflow-hidden shadow-lg px-6 py-6">
           <RogerVsDCTRoles />
+        </div>
+
+        {/* ── Roger Consumer Readiness: Screen Map + Gateway + Demo ── */}
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <RogerScreenDependencyMap />
         </div>
 
         {/* ── BA Assistant ──────────────────────────────────────────────────── */}
