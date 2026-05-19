@@ -4,7 +4,7 @@
 //          4 governance panels, executive view, filters, and export options.
 // Source: pasted_content_32.txt spec · Roger API Design v1.0 · 2026-05-08
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 type GovStatus = "Governed" | "Operational" | "Derived" | "Requires ADR" | "Undefined" | "Partial";
@@ -526,9 +526,8 @@ export default function EntitiesGovernancePanel() {
           </thead>
           <tbody>
             {filtered.map(f => (
-              <>
+              <React.Fragment key={f.uiField}>
                 <tr
-                  key={f.uiField}
                   onClick={() => setExpandedField(expandedField === f.uiField ? null : f.uiField)}
                   style={{ cursor: "pointer", backgroundColor: expandedField === f.uiField ? "#f0f9ff" : "white", transition: "background 0.1s" }}
                 >
@@ -554,7 +553,7 @@ export default function EntitiesGovernancePanel() {
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
