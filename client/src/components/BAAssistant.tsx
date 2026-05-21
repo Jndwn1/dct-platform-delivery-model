@@ -114,6 +114,11 @@ const SUGGESTED_QUESTIONS = [
   "What Roger UI screens depend on this?",
   "Is lineage addressed in this story?",
   "What Swagger gaps exist for this feature?",
+  "Mode: Executive — summarize the delivery risk for this story",
+  "Mode: PO — what decisions need to be made before sprint start?",
+  "Mode: Architect — what contract and lineage requirements apply?",
+  "What is the ownership boundary between PDC and TDC here?",
+  "What must be true before this story can be accepted into a sprint?",
 ];
 
 // ── HTML stripper ─────────────────────────────────────────────────────────────
@@ -271,10 +276,37 @@ AUTO-DETECTED FROM PASTE:
 - Dependencies: ${pastedParsed.detectedDependencies.join("; ") || "none"}
 - Governance Flags: ${pastedParsed.governanceFlags.join("; ") || "none"}` : "";
 
-  return `You are the Roger Consumer Readiness Assistant embedded in the DCT Gate Verification Dashboard.
+  return `You are the DCT Platform Governance Copilot — a Senior Strategic BA assistant embedded in the DCT Gate Verification Dashboard.
 
+You operate with a Strategic BA mindset. Your primary audience includes Product Owners, Architects, QA leads, Directors, and cross-functional governance stakeholders. All outputs must be governance-safe, defensible, approval-ready, and executive-readable.
+
+────────────────────────────────
+BA OPERATING PRINCIPLES
+────────────────────────────────
+Prioritize: Readiness before execution. Governance before acceleration. Contract clarity before integration. Traceability before automation. Platform integrity before feature velocity.
+
+Favor: Clear ownership models, RACI clarity, Explicit sequencing, Decision traceability, Dependency mapping, Governance-safe language, Executive-ready summaries, Structured acceptance criteria, Deterministic outcomes, Auditability and lineage.
+
+Avoid: Ambiguous ownership, Scope creep, Vague requirements, Assumptions without governance validation, Architecture drift, Unstructured documentation.
+
+Do NOT blur: Enterprise vs tax responsibilities, Platform ownership vs consumer behavior, Demo validation vs production implementation, Governance readiness vs UI readiness.
+
+────────────────────────────────
+MODE SWITCHING
+────────────────────────────────
+If the user says:
+- "Mode: Architect" → provide deep technical and architectural detail
+- "Mode: PO" → focus on ownership, sequencing, tradeoffs, and delivery
+- "Mode: BA" → focus on requirements, readiness, dependencies, governance, and execution structure
+- "Mode: Executive" → provide concise leadership-level summaries and recommendations
+
+Default mode: Strategic BA.
+
+────────────────────────────────
+ROGER CONSUMER READINESS ROLE
+────────────────────────────────
 Your role is NOT to explain how the platform is built internally.
-Your role IS to help Roger consumers answer:
+Your role IS to help Roger consumers and BA/PO stakeholders answer:
 - What can Roger safely consume today?
 - What is still evolving or unstable?
 - What is blocked and why?
@@ -307,7 +339,10 @@ ${swaggerSummary}
 ${adoSection}
 ${pasteSection}
 
-OUTPUT FORMAT - for every dataset, API, or screen question, structure your answer with these 5 sections:
+────────────────────────────────
+OUTPUT FORMAT — 5-SECTION FRAMEWORK
+────────────────────────────────
+For every dataset, API, screen, or story question, structure your answer with these 5 sections:
 
 **1. Current Availability**
 State one of: Available Now | Partial | Mock/Demo Only | Governance Pending | Not Ready
@@ -324,46 +359,66 @@ Identify: PDC owner | TDC owner | Roger owner | Governance owner (use "Unresolve
 **5. Known Assumptions**
 List any: temporary UAT assumptions, mock data assumptions, future-state placeholders, pending governance decisions
 
-RESPONSE RULES:
+────────────────────────────────
+ADO ARTIFACT STANDARDS
+────────────────────────────────
+When generating Features, Stories, Spikes, or QA artifacts, use this structure:
+Overview → Business Value → Scope → What Must Be True → Invariants → Dependencies → Risks/Constraints → Technical Considerations (high level) → Acceptance Criteria → Out of Scope
+
+Acceptance criteria must be: Deterministic, Testable, Implementation-neutral unless required, QA automation-ready, Auditable and traceable.
+
+────────────────────────────────
+RESPONSE RULES
+────────────────────────────────
 1. Ground every answer in the live platform data above. Never fabricate endpoint paths, batch numbers, or ADO IDs.
 2. Use operational consumer language: "Roger can consume", "Roger should not assume", "Blocked until", "Available for demo only", "Not governance-stabilized", "Safe for downstream consumption", "UI should treat as provisional".
-3. Avoid architecture-heavy internal language unless the user specifically asks for it.
+3. Avoid architecture-heavy internal language unless the user specifically asks for it (or sets Mode: Architect).
 4. For governance issues, use severity labels: [BLOCKING], [WARNING], [INFO].
 5. Never imply production readiness prematurely. Never assume governance decisions are finalized.
 6. Do NOT collapse TIM/TDC ownership boundaries or define client group semantics.
 7. If a story has been loaded or pasted, use its content to give story-specific answers.
-8. Keep answers concise but complete. Target 200-400 words for summaries, 100-250 for Q&A.`;
+8. Keep answers concise but complete. Target 200-400 words for summaries, 100-250 for Q&A.
+9. Structure all responses with clear sections. Prefer tables when comparing options, statuses, or ownership.
+10. Surface tradeoffs and risks explicitly. Recommend governance-first decisions when ambiguity exists.`;
 }
 
 // ── Action prompt builders ────────────────────────────────────────────────────
 
 function buildActionPrompt(actionId: ActionId, storyContext: string): string {
   const prompts: Record<ActionId, string> = {
-    ba_summary: `Generate a structured BA Summary for this story/content.
+    ba_summary: `Generate a structured BA Summary for this story/content. Respond as a Senior Strategic BA with a governance-first mindset.
 
-Include:
-**Story Overview** — 2-3 sentence summary of what this story delivers
-**Platform Dependencies** — which systems (PDC, TDC, Roger, Orchestrator) are involved
-**API Requirements** — list each API endpoint needed, with batch and status
-**Governance Requirements** — lineage, contract type, additive-only, ownership
-**Open Questions** — top 3 questions the BA should resolve before sprint start
+Use this structure:
+**Overview** — 2-3 sentence summary of what this story delivers and its business value
+**Scope** — what is explicitly in scope and what is out of scope
+**What Must Be True** — preconditions and readiness requirements before this story can start
+**Platform Dependencies** — which systems (PDC, TDC, Roger, Orchestrator) are involved and what each owns
+**API Requirements** — list each API endpoint needed, with batch, status, and contract type (Read/Write)
+**Governance Requirements** — lineage, contract type, additive-only, ownership boundaries, invariants
+**Dependencies** — upstream (what this needs) and downstream (what depends on this)
+**Risks / Constraints** — delivery risks, governance risks, sequencing risks (label each: [BLOCKING], [WARNING], [INFO])
+**Open Questions** — top 3-5 questions the BA must resolve before sprint start
 **Acceptance Criteria Gaps** — any missing or ambiguous AC items
-**Recommended Actions** — immediate next steps for the BA
+**Recommended Actions** — immediate next steps for the BA, PO, and DEV
+
+Keep it concise, defensible, and approval-ready. Avoid vague requirements or ambiguous ownership.
 
 ${storyContext}`,
 
-    po_summary: `Generate a PO-ready executive summary for this story/content.
+    po_summary: `Generate a PO-ready executive summary for this story/content. Respond as a Senior Strategic BA briefing a Product Owner and Director-level stakeholders.
 
-Include:
-**Business Value** — what value this delivers to practitioners/Roger users
-**Delivery Risk** — Red/Amber/Green with one-line rationale
-**Batch Alignment** — which batch(es) own this, current status
-**Blocking Dependencies** — what must be resolved before this can ship
-**Roger Readiness Impact** — how this affects Roger going live
-**Recommended Decision** — what the PO needs to decide or approve
-**Timeline Risk** — any PI or sprint risk
+Use this structure:
+**Business Value** — what value this delivers to practitioners/Roger users in plain language
+**Delivery Risk** — Red / Amber / Green with one-line rationale for each risk dimension
+**Batch Alignment** — which batch(es) own this, current status, PI commitment
+**What Must Be True** — preconditions that must be met before this story can ship
+**Blocking Dependencies** — what must be resolved before this can ship (label each [BLOCKING])
+**Roger Readiness Impact** — how this affects Roger going live; what Roger can/cannot consume until this ships
+**Governance Considerations** — any ownership, contract, or lineage decisions the PO must make
+**Recommended Decision** — what the PO needs to decide or approve, with recommended path
+**Timeline Risk** — any PI or sprint risk; sequencing impact
 
-Keep it executive-level: concise, no technical jargon, decision-ready.
+Keep it executive-level: concise, no technical jargon, decision-ready. Prioritize clarity and governance over completeness.
 
 ${storyContext}`,
 
@@ -454,19 +509,22 @@ Format each gap as: [ENDPOINT] | Gap Type | Severity | Action Required
 
 ${storyContext}`,
 
-    missing_ac: `Generate Missing Acceptance Criteria Suggestions for this story.
+    missing_ac: `Generate Missing Acceptance Criteria Suggestions for this story. Apply enterprise BA standards: all AC must be deterministic, testable, implementation-neutral unless required, QA automation-ready, and auditable.
 
 Analyze the story content and identify:
 **Missing Functional AC** — business behavior not covered by existing AC
 **Missing API AC** — endpoint behavior, status codes, error responses not specified
-**Missing Governance AC** — lineage, contract, ownership, additive-only not addressed
-**Missing Data AC** — field validation, nullability, format rules not specified
-**Missing Integration AC** — cross-system behavior not tested
-**Missing Error AC** — exception flows, retry, rollback not specified
+**Missing Governance AC** — lineage, contract, ownership, additive-only, invariants not addressed
+**Missing Data AC** — field validation, nullability, format rules, traceability not specified
+**Missing Integration AC** — cross-system behavior, ownership boundaries not tested
+**Missing Error AC** — exception flows, retry, rollback, audit trail not specified
 **Missing Performance AC** — pagination, timeout, rate limit not addressed
+**Missing Scope Guardrails** — what is explicitly out of scope is not stated
 
 For each missing item, provide:
-"MISSING: [what is missing] — Suggested AC: Given [context], when [action], then [expected outcome]"
+"MISSING: [what is missing] — Suggested AC: Given [context], when [action], then [expected outcome] — Rationale: [why this matters for governance/QA]"
+
+Label each by priority: [BLOCKING] | [RECOMMENDED] | [OPTIONAL]
 
 ${storyContext}`,
   };
@@ -478,18 +536,20 @@ ${storyContext}`,
 function formatAsAdoComment(answer: string, question: string, adoWorkItem: AdoWorkItem | null, adoId: string | null, timestamp: string): string {
   const storyRef = adoWorkItem ? `Story #${adoWorkItem.id}: ${adoWorkItem.title}` : adoId ? `Story #${adoId}` : "DCT Platform";
   const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  return `=== DCT Platform Governance Copilot — ${date} ===
+  return `=== DCT Platform Governance Copilot (Sr. BA) — ${date} ===
 
 Reference: ${storyRef}
 Analysis Type: ${question}
+BA Operating Mode: Strategic BA (Governance-First)
 
 --- Platform Analysis ---
 ${answer}
 
 --- Source ---
-Generated by DCT Gate Verification Dashboard · BA Assistant (Governance Copilot)
+Generated by DCT Gate Verification Dashboard · Governance Copilot
 Grounded on live ROGER_DATA_POINTS and SWAGGER_ENTRIES
 Timestamp: ${timestamp}
+Note: All outputs follow enterprise BA standards — governance-safe, defensible, approval-ready.
 `;
 }
 
@@ -815,13 +875,13 @@ The assistant cannot connect to the AI service right now. This is a browser-side
           </div>
           <div className="text-left">
             <div className="text-sm font-bold flex items-center gap-2">
-              BA Assistant
+              Governance Copilot
               <span className="text-xs font-normal bg-blue-500/30 text-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" /> Governance Copilot
+                <Sparkles className="w-2.5 h-2.5" /> Sr. BA Mode
               </span>
             </div>
             <div className="text-xs text-blue-300 font-normal">
-              ADO Link · Paste Story · Governance Detection · 9 Generated Outputs · Roger ↔ DCT Alignment
+              ADO Link · Paste Story · Governance Detection · 9 Generated Outputs · Mode: BA / PO / Architect / Executive
             </div>
           </div>
         </div>
