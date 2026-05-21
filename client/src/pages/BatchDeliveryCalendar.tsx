@@ -116,9 +116,9 @@ const BASELINE_ROWS: BatchRow[] = [
   },
   {
     id: "pi2-b9-pdc", pi: "PI 2", batch: "B9", system: "PDC",
-    name: "IMS Integration & Prior Year Retrieval",
+    name: "Roger Gateway & Governed Consumer Access Layer",
     startDate: "2026-05-21", endDate: "2026-06-02", status: "Committed",
-    notes: "Batch 9 PDC. IMS integration and prior year retrieval.", dependsOn: "B8",
+    notes: "Batch 9 PDC. ARCHITECTURAL CHANGE: Repurposed from IMS Integration & Prior Year Retrieval to Roger Gateway & Governed Consumer Access Layer (surface-not-store). Ocelot gateway, IMS/CEM/TIM pass-through. eODS deferred. Source: Roadmap v4.", dependsOn: "B8",
   },
   // NOTE: B9 TDC is ON HOLD — absorbed into B31 TDC (Legacy Tool Prior Year Data Housing)
   {

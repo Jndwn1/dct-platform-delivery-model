@@ -333,7 +333,7 @@ function CopyNoteButton({ text }: { text: string }) {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type DeliveryStatus = "Delivered" | "Complete" | "In Progress" | "Ready for QA" | "Carried Forward" | "Backlogged" | "Not Started" | "Needs PO/Dev Confirmation";
+type DeliveryStatus = "Delivered" | "Complete" | "In Progress" | "Ready for QA" | "Carried Forward" | "Backlogged" | "Not Started" | "Needs PO/Dev Confirmation" | "On Hold" | "Parked";
 type ApiStatus = "Delivered" | "In Progress" | "Missing" | "Needs PO/Dev Confirmation";
 type RogerAvailability = "Available" | "Partially Available" | "Not Available" | "Carried Forward" | "Backlogged";
 
@@ -515,25 +515,43 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
   },
   {
     key: "9-pdc",
-    label: "Batch 9 | PDC — IMS Integration & Prior Year Retrieval",
+    label: "Batch 9 | PDC — Roger Gateway & Governed Consumer Access Layer",
     owner: "PDC",
-    status: "Ready for QA",
-    delivered: ["IMS integration contract (PDC side)", "Prior year retrieval API surface", "PDC-side rollforward trigger"],
-    validated: ["IMS integration endpoint structure"],
-    open: ["Consumer Guide entry missing", "Gate sign-off pending B8-PDC closure"],
-    readiness: "Review Ready — sequential after Batch 8 PDC closes",
-    poNote: "PDC track of Batch 9. IMS Integration and Prior Year Retrieval are the primary PDC deliverables. Sequential after Batch 8 PDC closes. Status: Review Ready per ADO Feature #12.",
+    status: "In Progress",
+    delivered: [
+      "Ocelot Gateway scaffolding with auth and routing",
+      "IMS pass-through surface (prior year + current year — not stored in PDC)",
+      "CEM pass-through surface (client auth + user mapping — not stored in PDC)",
+      "TIM pass-through surface (engagement metadata, deliverables, due dates — not stored in PDC)",
+    ],
+    validated: [
+      "Gateway scaffolding deployed as single consumer entry point",
+      "Surface-not-store principle enforced — no IMS/CEM/TIM data persisted in PDC",
+    ],
+    open: [
+      "Gateway Read Contract publication pending",
+      "Roger consumer surface versioning not yet confirmed",
+      "Consumer Guide entry missing",
+      "Gate sign-off pending B8-PDC closure",
+    ],
+    readiness: "In Progress — ARCHITECTURAL CHANGE: B9 repurposed from IMS Integration & Prior Year Retrieval to Roger Gateway & Governed Consumer Access Layer (surface-not-store). eODS deferred. Sequential after Batch 8 PDC closes.",
+    poNote: "PDC track of Batch 9. Ocelot gateway is the primary PDC deliverable. Roger and all consumers call the gateway — not underlying systems directly. IMS, CEM, and TIM data surfaced via pass-through without PDC storage. Gateway Read Contract published as versioned consumer surface. Source: Roadmap v4 — ARCHITECTURAL CHANGE noted.",
   },
   {
     key: "9-tdc",
-    label: "Batch 9 | TDC — Rollforward & Prior Year Intelligence",
+    label: "Batch 9 | TDC — Rollforward & Prior Year Intelligence (ON HOLD)",
     owner: "TDC",
-    status: "Ready for QA",
-    delivered: ["v_rollforward contract extending TDC Records API", "Prior year proposals with EXACT / APPROXIMATE / NO_MATCH confidence scoring", "Rollforward intelligence surface (read-only)"],
-    validated: ["v_rollforward read contract structure", "Confidence scoring bands"],
-    open: ["Consumer Guide entry missing", "Gate sign-off pending B8-TDC closure"],
-    readiness: "Review Ready — sequential after Batch 8 TDC closes",
-    poNote: "TDC track of Batch 9. v_rollforward contract and prior year intelligence are the primary TDC deliverables. EXACT / APPROXIMATE / NO_MATCH confidence scoring. Status: Review Ready per ADO Feature #13.",
+    status: "On Hold",
+    delivered: [],
+    validated: [],
+    open: [
+      "ON HOLD — original B9 TDC scope absorbed by other batches",
+      "Existing-client rollforward queries TDC records directly",
+      "Legacy-tool carry-forward data lands via Batch 31",
+      "Retained for traceability only — no active work",
+    ],
+    readiness: "ON HOLD — no active delivery. Retained for governance traceability only. Source: Roadmap v4 On Hold section.",
+    poNote: "TDC track of Batch 9 is ON HOLD per Roadmap v4. Original rollforward scope absorbed: existing-client rollforward queries TDC records directly; legacy-tool carry-forward data lands via Batch 31. This entry is preserved for traceability only.",
   },
 ];
 
@@ -822,6 +840,8 @@ const DELIVERY_STYLE: Record<DeliveryStatus, { bg: string; text: string; border:
   "Backlogged":                 { bg: "bg-slate-50",    text: "text-slate-600",   border: "border-slate-200" },
   "Not Started":                { bg: "bg-slate-50",    text: "text-slate-500",   border: "border-slate-200" },
   "Needs PO/Dev Confirmation":  { bg: "bg-red-50",      text: "text-red-700",     border: "border-red-200" },
+  "On Hold":                    { bg: "bg-orange-50",   text: "text-orange-800",  border: "border-orange-200" },
+  "Parked":                     { bg: "bg-slate-100",   text: "text-slate-500",   border: "border-slate-300" },
 };
 
 const API_STYLE: Record<ApiStatus, { bg: string; text: string }> = {
