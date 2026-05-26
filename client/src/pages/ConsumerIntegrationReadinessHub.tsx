@@ -607,7 +607,10 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "CurrencyCode, Description, SourceSystem",
                         conditional: "FiscalYearId (required if multi-year)",
                         validation: "Amount must be non-null and numeric. AccountCode must resolve to a known FirmTaxonomy entry.",
-                        source: "B1/B2 Feature, Swagger",
+                        links: [
+                          { label: "B1 — File Ingestion Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B1+File+Ingestion" },
+                          { label: "B2 — Normalization Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B2+Normalization" },
+                        ],
                       },
                       {
                         model: "TdcRecord",
@@ -615,7 +618,10 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "Metadata fields, Tags",
                         conditional: "ClassificationOverride (required if manual override applied)",
                         validation: "NormalizedRecordId must be issued by PDC. FirmTaxonomyId must resolve to an active taxonomy.",
-                        source: "B3/B4 Feature, Swagger",
+                        links: [
+                          { label: "B3 — Tax Domain Authority Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B3+Tax+Domain" },
+                          { label: "B4 — AI Mapping Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B4+AI+Mapping" },
+                        ],
                       },
                       {
                         model: "AIMappingProposal",
@@ -623,7 +629,10 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "ConfidenceBand (derived), Notes",
                         conditional: "ReviewTaskId (required once assigned)",
                         validation: "ProposalId is immutable once issued. ConfidenceScore must be between 0.0 and 1.0.",
-                        source: "B4/B5 Feature, Swagger",
+                        links: [
+                          { label: "B4 — AI Mapping & Taxonomy Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B4+AI+Mapping" },
+                          { label: "B5 — Entity Identity Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B5+Entity+Identity" },
+                        ],
                       },
                       {
                         model: "MappingDecision",
@@ -631,7 +640,9 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "SupersedeReason",
                         conditional: "SupersedeReason (required if superseding a prior decision)",
                         validation: "DecisionId is immutable. Decision must be ACCEPTED, REJECTED, or OVERRIDDEN. Supersede creates a new DecisionId.",
-                        source: "B6 Feature, Swagger",
+                        links: [
+                          { label: "B6 — Practitioner Review Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B6+Practitioner+Review" },
+                        ],
                       },
                       {
                         model: "TaxReadyRecord",
@@ -639,7 +650,9 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "Notes",
                         conditional: "— (no conditional fields; all required fields are always required)",
                         validation: "TaxReadyRecordId is the terminal lineage output. Status must be Tax Ready before downstream form line resolution.",
-                        source: "B7 Feature, Swagger",
+                        links: [
+                          { label: "B7 — Client Tax Profile Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B7+Client+Tax+Profile" },
+                        ],
                       },
                       {
                         model: "ReviewTask",
@@ -647,7 +660,9 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "DueDate, Notes",
                         conditional: "DueDate (required for SLA-governed engagements)",
                         validation: "ReviewTaskId links to ProposalId. AssignedUserId must resolve to an active CEM user.",
-                        source: "B6 Feature, Swagger",
+                        links: [
+                          { label: "B6 — Practitioner Review Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B6+Practitioner+Review" },
+                        ],
                       },
                       {
                         model: "EntityRecord",
@@ -655,7 +670,9 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "JurisdictionCode, TaxYear",
                         conditional: "JurisdictionCode (required for multi-jurisdiction entities)",
                         validation: "EntityId is the lineage anchor for all entity-scoped APIs. EntityType must be a governed enumeration value.",
-                        source: "B5 Feature, Swagger",
+                        links: [
+                          { label: "B5 — Entity Identity & Structure Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B5+Entity+Identity" },
+                        ],
                       },
                       {
                         model: "EligibilityDetermination",
@@ -663,7 +680,9 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "Notes, Flags",
                         conditional: "FlagReason (required if status is FLAG_AND_REVIEW)",
                         validation: "EligibilityStatus must be ELIGIBLE, INELIGIBLE, or FLAG_AND_REVIEW. Ineligible entities are gated from downstream APIs.",
-                        source: "B7 Feature, Swagger",
+                        links: [
+                          { label: "B7 — Client Tax Profile Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B7+Client+Tax+Profile" },
+                        ],
                       },
                       {
                         model: "ExceptionRecord",
@@ -671,7 +690,9 @@ export default function ConsumerIntegrationReadinessHub() {
                         optional: "ResolutionNotes, AssignedTo",
                         conditional: "ResolutionNotes (required when status transitions to RESOLVED)",
                         validation: "ExceptionId is immutable. ExceptionType must be a governed enumeration. Status transitions are unidirectional.",
-                        source: "B8 Feature, Swagger",
+                        links: [
+                          { label: "B8 — Exceptions & Remediation Feature", url: "https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/?workItemType=Feature&text=B8+Exceptions" },
+                        ],
                       },
                     ].map((row, i) => (
                       <tr key={row.model} style={{ background: i % 2 === 0 ? "#f8fafc" : "#fff" }}>
@@ -687,7 +708,20 @@ export default function ConsumerIntegrationReadinessHub() {
                         </td>
                         <td className="px-3 py-2 border border-slate-200 text-slate-600">{row.validation}</td>
                         <td className="px-3 py-2 border border-slate-200">
-                          <span className="text-xs font-mono text-[#003865]">{row.source}</span>
+                          <div className="flex flex-col gap-1">
+                            {row.links.map(link => (
+                              <a
+                                key={link.label}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-mono text-[#003865] underline hover:text-blue-700 leading-snug"
+                                title={`Open ADO Feature: ${link.label}`}
+                              >
+                                {link.label}
+                              </a>
+                            ))}
+                          </div>
                         </td>
                       </tr>
                     ))}
