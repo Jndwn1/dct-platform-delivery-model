@@ -18,8 +18,6 @@ import AgentHub from "./pages/AgentHub";
 import ArchitectureView from "./pages/ArchitectureView";
 import DeveloperArchitecturePage from "./pages/DeveloperArchitecturePage";
 import EnterpriseArchitecturePage from "./pages/EnterpriseArchitecturePage";
-import DemoRunner from "./pages/DemoRunner";
-import LineageExplorer from "./pages/LineageExplorer";
 
 // Platform pages
 import RogerApiEvolution from "./pages/RogerApiEvolution";
@@ -28,7 +26,6 @@ import BatchControlPanel from "./pages/BatchControlPanel";
 import TaxonomyPage from "./pages/TaxonomyPage";
 import DataModelPage from "./pages/DataModelPage";
 import DataGovernancePage from "./pages/DataGovernancePage";
-import GovernanceTimelinePage from "@/pages/GovernanceTimelinePage";
 import ClassificationWalkthroughPage from "@/pages/ClassificationWalkthroughPage";
 import TaxMappingPage from "./pages/TaxMappingPage";
 import AAPReviewPage from "./pages/AAPReviewPage";
@@ -37,7 +34,6 @@ import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
 import BatchDetailPage from "./pages/BatchDetailPage";
 import IntegrationSimulation from "./pages/IntegrationSimulation";
 import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadinessHub";
-import BATouchpointSummary from "./pages/BATouchpointSummary";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -75,8 +71,6 @@ function Router() {
         <Route path="/architecture/enterprise" component={EnterpriseArchitecturePage} />
         <Route path="/architecture/sync" component={ArchitectureView} />
         <Route path="/architecture/visio" component={ArchitectureView} />
-        <Route path="/demo" component={DemoRunner} />
-        <Route path="/lineage" component={LineageExplorer} />
 
         {/* Platform pages */}
         <Route path="/integration-hub" component={() => { window.location.replace("/consumer-integration-hub"); return null; }} />
@@ -86,7 +80,6 @@ function Router() {
         <Route path="/roger-api" component={RogerApiEvolution} />
         <Route path="/runtime-journey" component={RuntimeJourney} />
         <Route path="/control-panel" component={BatchControlPanel} />
-        <Route path="/ba-touchpoint" component={BATouchpointSummary} />
 
         {/* Batch detail routes */}
         <Route path="/batch/:id" component={BatchDetailPage} />
@@ -104,7 +97,6 @@ function Router() {
         <Route path="/roger-mapping" component={RogerMappingPage} />
         <Route path="/aap-review" component={AAPReviewPage} />
         <Route path="/tax-mapping" component={TaxMappingPage} />
-        <Route path="/governance-timeline" component={GovernanceTimelinePage} />
         <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
 
         <Route path="/404" component={NotFound} />

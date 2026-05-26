@@ -90,15 +90,23 @@ const AGENT_ITEMS: NavItem[] = [
   { label: "QA Agent",        path: "/agent/qa",        icon: "Q", status: "In Progress", statusColor: "#d97706" },
 ];
 
-// Tools — alphabetical
-const TOOL_ITEMS: NavItem[] = [
-  { label: "Classification Walkthrough", path: "/classification-walkthrough", icon: "⚑", badge: "Decision", badgeColor: "#dc2626" },
-  { label: "Control Panel",              path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
-  { label: "BA Touchpoint Summary",       path: "/ba-touchpoint",              icon: "📋", badge: "BA",       badgeColor: "#059669" },
-  { label: "Data Model & Gaps",          path: "/data-model",                 icon: "▦", badge: "Exec",     badgeColor: "#7c3aed" },
-  { label: "Roger UI Data Mapping",      path: "/roger-mapping",              icon: "≡" },
-  { label: "Run Agent Simulation",       path: "/demo",                       icon: "▶", badge: "Live",     badgeColor: "#dc2626" },
-  { label: "Taxonomy Explorer",          path: "/taxonomy",                   icon: "◎" },
+// BA & Requirements — primary BA workflow tools
+const BA_ITEMS: NavItem[] = [
+  { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
+  { label: "Artifacts Registry",          path: "/artifacts",                  icon: "◫", badge: "Ref",      badgeColor: "#64748b" },
+  { label: "Gate Status",                 path: "/gate-status",                icon: "◉", badge: "G4 Active",badgeColor: "#d97706" },
+  { label: "Touchpoints (T1–T11)",        path: "/touchpoints",                icon: "↝" },
+  { label: "Data Model & Gaps",           path: "/data-model",                 icon: "▦", badge: "Exec",     badgeColor: "#7c3aed" },
+  { label: "Classification Walkthrough",  path: "/classification-walkthrough", icon: "⚑", badge: "Decision", badgeColor: "#dc2626" },
+  { label: "Taxonomy Explorer",           path: "/taxonomy",                   icon: "◎" },
+  { label: "Tax Mapping Confidence",      path: "/tax-mapping",                icon: "◇" },
+];
+
+// Governance — platform governance and data integrity
+const GOVERNANCE_ITEMS: NavItem[] = [
+  { label: "AAP Review Model",       path: "/aap-review",          icon: "◈" },
+  { label: "Data Governance & SoT",  path: "/data-governance",     icon: "⚖", badge: "New", badgeColor: "#059669" },
+  { label: "Roger UI Data Mapping",  path: "/roger-mapping",       icon: "≡" },
 ];
 
 // PI Planning removed — PI2/PI3 pages removed per governance cleanup
@@ -108,15 +116,6 @@ const ROGER_UI_ITEMS: NavItem[] = [
   { label: "Consumer Integration Hub",  path: "/consumer-integration-hub",  icon: "🔗", badge: "v4.0",   badgeColor: "#7c3aed" },
   { label: "Integration Simulation",   path: "/integration-simulation",   icon: "🎮", badge: "LIVE",   badgeColor: "#059669" },
   { label: "Roger API Evolution",      path: "/roger-api",                icon: "⚡", badge: "Export", badgeColor: "#003865" },
-];
-
-// Governance — alphabetical
-const GOVERNANCE_ITEMS: NavItem[] = [
-  { label: "AAP Review Model",       path: "/aap-review",          icon: "◈" },
-  { label: "Data Governance & SoT",  path: "/data-governance",     icon: "⚖", badge: "New", badgeColor: "#059669" },
-  { label: "Data Lineage",           path: "/lineage",             icon: "⌥" },
-  { label: "Governance Timeline",    path: "/governance-timeline", icon: "▤" },
-  { label: "Tax Mapping Confidence", path: "/tax-mapping",         icon: "◇" },
 ];
 
 // Diagrams — alphabetical; Visio Architecture removed (duplicate of Architecture Sync); Agent Hub moved here
@@ -379,10 +378,10 @@ export default function Sidebar({ activeSection }: SidebarProps) {
 
         <NavSection title="Gates" items={GATE_ITEMS} />
         <NavSection title="Agents" items={AGENT_ITEMS} />
-        <NavSection title="Tools" items={TOOL_ITEMS} />
+        <NavSection title="BA & Requirements" items={BA_ITEMS} />
         <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
         <NavSection title="Governance" items={GOVERNANCE_ITEMS} />
-        <NavSection title="Diagrams" items={DIAGRAM_ITEMS} />
+        <NavSection title="Architecture & Diagrams" items={DIAGRAM_ITEMS} />
       </div>
 
       {/* Footer */}
