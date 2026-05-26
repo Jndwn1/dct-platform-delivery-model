@@ -581,6 +581,130 @@ export default function ConsumerIntegrationReadinessHub() {
                 ["Eligibility gate blocked", "403 Forbidden", "Entity in INELIGIBLE or FLAG_AND_REVIEW state", "Resolve eligibility before proceeding. TDC is the eligibility authority."],
               ]}
             />
+
+            {/* ── Per-Model Field Governance Table ──────────────────────── */}
+            <div className="mt-5">
+              <p className="text-sm font-bold text-[#003865] mb-1">Per-Model Field Governance Reference</p>
+              <p className="text-xs text-slate-500 mb-3">
+                The table below documents required, optional, conditional, and validation expectations for each
+                major DCT API model. Swagger schemas alone are not the complete governance contract — Batch
+                Features and ADO stories remain authoritative for conditional validation logic and lineage requirements.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr style={{ background: "#003865", color: "#fff" }}>
+                      {["API / Model", "Required Fields", "Optional Fields", "Conditional Fields", "Validation Notes", "Source Artifact"].map(h => (
+                        <th key={h} className="text-left px-3 py-2 font-semibold whitespace-nowrap border border-slate-300">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      {
+                        model: "FinancialFact",
+                        required: "EntityId, ReportingPeriodId, DocumentId, AccountCode, Amount",
+                        optional: "CurrencyCode, Description, SourceSystem",
+                        conditional: "FiscalYearId (required if multi-year)",
+                        validation: "Amount must be non-null and numeric. AccountCode must resolve to a known FirmTaxonomy entry.",
+                        source: "B1/B2 Feature, Swagger",
+                      },
+                      {
+                        model: "TdcRecord",
+                        required: "NormalizedRecordId, EntityId, ReportingPeriodId, FirmTaxonomyId",
+                        optional: "Metadata fields, Tags",
+                        conditional: "ClassificationOverride (required if manual override applied)",
+                        validation: "NormalizedRecordId must be issued by PDC. FirmTaxonomyId must resolve to an active taxonomy.",
+                        source: "B3/B4 Feature, Swagger",
+                      },
+                      {
+                        model: "AIMappingProposal",
+                        required: "ProposalId, NormalizedRecordId, FirmTaxonomyId, TaxTaxonomyAccountCode, ConfidenceScore",
+                        optional: "ConfidenceBand (derived), Notes",
+                        conditional: "ReviewTaskId (required once assigned)",
+                        validation: "ProposalId is immutable once issued. ConfidenceScore must be between 0.0 and 1.0.",
+                        source: "B4/B5 Feature, Swagger",
+                      },
+                      {
+                        model: "MappingDecision",
+                        required: "DecisionId, ProposalId, ReviewTaskId, Decision, DecidedBy, DecidedAt",
+                        optional: "SupersedeReason",
+                        conditional: "SupersedeReason (required if superseding a prior decision)",
+                        validation: "DecisionId is immutable. Decision must be ACCEPTED, REJECTED, or OVERRIDDEN. Supersede creates a new DecisionId.",
+                        source: "B6 Feature, Swagger",
+                      },
+                      {
+                        model: "TaxReadyRecord",
+                        required: "TaxReadyRecordId, EntityId, ReportingPeriodId, DecisionId, Status, TaxReadyDate",
+                        optional: "Notes",
+                        conditional: "— (no conditional fields; all required fields are always required)",
+                        validation: "TaxReadyRecordId is the terminal lineage output. Status must be Tax Ready before downstream form line resolution.",
+                        source: "B7 Feature, Swagger",
+                      },
+                      {
+                        model: "ReviewTask",
+                        required: "ReviewTaskId, ProposalId, EntityId, AssignedUserId",
+                        optional: "DueDate, Notes",
+                        conditional: "DueDate (required for SLA-governed engagements)",
+                        validation: "ReviewTaskId links to ProposalId. AssignedUserId must resolve to an active CEM user.",
+                        source: "B6 Feature, Swagger",
+                      },
+                      {
+                        model: "EntityRecord",
+                        required: "EntityId, ClientId, EntityName, EntityType",
+                        optional: "JurisdictionCode, TaxYear",
+                        conditional: "JurisdictionCode (required for multi-jurisdiction entities)",
+                        validation: "EntityId is the lineage anchor for all entity-scoped APIs. EntityType must be a governed enumeration value.",
+                        source: "B5 Feature, Swagger",
+                      },
+                      {
+                        model: "EligibilityDetermination",
+                        required: "EntityId, ReportingPeriodId, EligibilityStatus, DeterminedAt",
+                        optional: "Notes, Flags",
+                        conditional: "FlagReason (required if status is FLAG_AND_REVIEW)",
+                        validation: "EligibilityStatus must be ELIGIBLE, INELIGIBLE, or FLAG_AND_REVIEW. Ineligible entities are gated from downstream APIs.",
+                        source: "B7 Feature, Swagger",
+                      },
+                      {
+                        model: "ExceptionRecord",
+                        required: "ExceptionId, EntityId, ExceptionType, DetectedAt, Status",
+                        optional: "ResolutionNotes, AssignedTo",
+                        conditional: "ResolutionNotes (required when status transitions to RESOLVED)",
+                        validation: "ExceptionId is immutable. ExceptionType must be a governed enumeration. Status transitions are unidirectional.",
+                        source: "B8 Feature, Swagger",
+                      },
+                    ].map((row, i) => (
+                      <tr key={row.model} style={{ background: i % 2 === 0 ? "#f8fafc" : "#fff" }}>
+                        <td className="px-3 py-2 font-semibold text-[#003865] border border-slate-200 whitespace-nowrap">{row.model}</td>
+                        <td className="px-3 py-2 border border-slate-200">
+                          <span className="text-red-700">{row.required}</span>
+                        </td>
+                        <td className="px-3 py-2 border border-slate-200">
+                          <span className="text-emerald-700">{row.optional}</span>
+                        </td>
+                        <td className="px-3 py-2 border border-slate-200">
+                          <span className="text-amber-700">{row.conditional}</span>
+                        </td>
+                        <td className="px-3 py-2 border border-slate-200 text-slate-600">{row.validation}</td>
+                        <td className="px-3 py-2 border border-slate-200">
+                          <span className="text-xs font-mono text-[#003865]">{row.source}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="text-xs font-semibold text-amber-800 mb-1">Governance Clarification</p>
+                <p className="text-xs text-amber-700">
+                  Required, optional, conditional, and lineage-sensitive field expectations are currently governed within
+                  DCT Feature definitions, Batch governance documentation, and supporting ADO stories. The Consumer
+                  Integration Readiness initiative will consolidate these expectations into a more implementation-oriented
+                  consumer reference model. <strong>Swagger schemas alone are not the complete governance contract.</strong>
+                  Batch Features remain authoritative for conditional validation logic and lineage requirements.
+                </p>
+              </div>
+            </div>
           </Section>
         </div>
 
