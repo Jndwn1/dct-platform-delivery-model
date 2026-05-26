@@ -22,8 +22,14 @@ import { useState } from "react";
 import { Link } from "wouter";
 import {
   ChevronDown, ChevronUp, Shield, Link2, Database, AlertTriangle,
-  CheckCircle2, Clock, Circle, FileText, Zap, Eye, Lock, Users,
+  CheckCircle2, Clock, Circle, FileText, Zap, Eye, Lock, Users, Printer,
 } from "lucide-react";
+
+// ── Version metadata ─────────────────────────────────────────────────────────
+const HUB_VERSION = "v4.0";
+const HUB_SOURCE  = "DCT_Batch_Roadmap_v4.docx";
+const HUB_UPDATED = "May 26, 2026";
+const HUB_AUTHOR  = "CATT · Sr. BA · Jenniver";
 
 // ── Collapsible Section Wrapper ──────────────────────────────────────────────
 function Section({
@@ -147,11 +153,23 @@ export default function ConsumerIntegrationReadinessHub() {
               DCT Platform · Single integration enablement hub for Roger and future consumers
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className="px-2 py-1 rounded bg-blue-50 text-blue-800 font-medium border border-blue-200">API-First Architecture</span>
-            <span className="px-2 py-1 rounded bg-emerald-50 text-emerald-800 font-medium border border-emerald-200">Lineage Governed</span>
-            <span className="px-2 py-1 rounded bg-violet-50 text-violet-800 font-medium border border-violet-200">Roger Read-Only</span>
-            <span className="px-2 py-1 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">Contract Published</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="px-2 py-1 rounded bg-blue-50 text-blue-800 font-medium border border-blue-200">API-First Architecture</span>
+              <span className="px-2 py-1 rounded bg-emerald-50 text-emerald-800 font-medium border border-emerald-200">Lineage Governed</span>
+              <span className="px-2 py-1 rounded bg-violet-50 text-violet-800 font-medium border border-violet-200">Roger Read-Only</span>
+              <span className="px-2 py-1 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">Contract Published</span>
+            </div>
+            {/* Print / Export to PDF button */}
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+              style={{ background: "#003865", color: "#fff", border: "1px solid #003865" }}
+              title="Print or Save as PDF — use your browser's Print dialog and choose 'Save as PDF'"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              Export to PDF
+            </button>
           </div>
         </div>
 
@@ -861,18 +879,38 @@ export default function ConsumerIntegrationReadinessHub() {
             </p>
 
             <DataTable
-              headers={["#", "Question / Decision", "Category", "Owner", "Priority", "Status", "Target Resolution"]}
+              headers={["#", "ADO Feature", "Question / Decision", "Category", "Owner", "Priority", "Status", "Target Resolution"]}
               rows={[
-                ["1", "What is the IMS API contract readiness date? Does B10 gate need to be split into B10-core (proceed) and B10-IMS (hold)?", "Architecture Decision", "PO + IMS Team", "Critical", <Badge label="Open" color="#dc2626" />, "Before B10 gate sign-off"],
-                ["2", "B12 manual write surface was dropped per Roadmap v4. Was this a formal ADO scope change or an informal decision? Needs documented scope change record.", "Governance Record", "BA + PO", "High", <Badge label="Open" color="#dc2626" />, "Before B12 sprint start"],
-                ["3", "Which specific stories from B14 and B15 are absorbed into B28? Roadmap v4 names reconciliation formulas and depreciation rule definitions — are these the complete MVP slices?", "Scope Boundary", "PO + Architecture", "High", <Badge label="Open" color="#dc2626" />, "Before B28 sprint start"],
-                ["4", "B39 (Calculation Report) is promoted to MVP with a hard 9/16 date. Is TDC engineering capacity confirmed for this promotion given existing PI 3 load?", "Resourcing", "PO + Engineering", "Critical", <Badge label="Open" color="#dc2626" />, "PI 3 planning"],
-                ["5", "Reverse lookup endpoint (EntityId from TaxReadyRecordId) — is this a governance-safe operation or does it violate the forward-only lineage principle?", "Architecture Decision", "Architecture", "Medium", <Badge label="Under Review" color="#d97706" />, "PI 3 planning"],
-                ["6", "Pagination total count — does returning total count on list endpoints create unacceptable query cost at scale? What is the acceptable performance threshold?", "Performance", "Engineering", "Medium", <Badge label="Under Review" color="#d97706" />, "B10/B11 sprint"],
-                ["7", "Consumer convenience API (single-call entity summary) — is this a DCT responsibility or should Roger aggregate via multiple calls?", "Boundary Decision", "Architecture + Roger", "Low", <Badge label="Future PI" color="#6b7280" />, "Post-MVP PI planning"],
-                ["8", "eODS integration — what is the current IMS readiness date that gates eODS? Is there a provisional PI 4 slot for eODS if IMS readiness is confirmed?", "Dependency Risk", "Architecture + IMS", "Medium", <Badge label="Watching" color="#6b7280" />, "PI 4 planning"],
-                ["9", "B9 PDC Gateway Read Contract — what is the publication date for the versioned consumer surface? Roger cannot begin gateway integration without this contract.", "Contract Publication", "PDC + BA", "High", <Badge label="Open" color="#dc2626" />, "B9 gate sign-off"],
-                ["10", "Roger consumer surface versioning — how will the gateway version the IMS/CEM/TIM pass-through surfaces as underlying systems evolve?", "Architecture Decision", "Architecture", "Medium", <Badge label="Open" color="#dc2626" />, "B9 gate sign-off"],
+                ["1",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-IMS-Gate</a>,
+                  "What is the IMS API contract readiness date? Does B10 gate need to be split into B10-core (proceed) and B10-IMS (hold)?", "Architecture Decision", "PO + IMS Team", "Critical", <Badge label="Open" color="#dc2626" />, "Before B10 gate sign-off"],
+                ["2",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-B12-Scope</a>,
+                  "B12 manual write surface was dropped per Roadmap v4. Was this a formal ADO scope change or an informal decision? Needs documented scope change record.", "Governance Record", "BA + PO", "High", <Badge label="Open" color="#dc2626" />, "Before B12 sprint start"],
+                ["3",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-B28-MVP</a>,
+                  "Which specific stories from B14 and B15 are absorbed into B28? Roadmap v4 names reconciliation formulas and depreciation rule definitions — are these the complete MVP slices?", "Scope Boundary", "PO + Architecture", "High", <Badge label="Open" color="#dc2626" />, "Before B28 sprint start"],
+                ["4",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-B39-MVP</a>,
+                  "B39 (Calculation Report) is promoted to MVP with a hard 9/16 date. Is TDC engineering capacity confirmed for this promotion given existing PI 3 load?", "Resourcing", "PO + Engineering", "Critical", <Badge label="Open" color="#dc2626" />, "PI 3 planning"],
+                ["5",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-API-Rev</a>,
+                  "Reverse lookup endpoint (EntityId from TaxReadyRecordId) — is this a governance-safe operation or does it violate the forward-only lineage principle?", "Architecture Decision", "Architecture", "Medium", <Badge label="Under Review" color="#d97706" />, "PI 3 planning"],
+                ["6",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-Paging</a>,
+                  "Pagination total count — does returning total count on list endpoints create unacceptable query cost at scale? What is the acceptable performance threshold?", "Performance", "Engineering", "Medium", <Badge label="Under Review" color="#d97706" />, "B10/B11 sprint"],
+                ["7",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-ConvAPI</a>,
+                  "Consumer convenience API (single-call entity summary) — is this a DCT responsibility or should Roger aggregate via multiple calls?", "Boundary Decision", "Architecture + Roger", "Low", <Badge label="Future PI" color="#6b7280" />, "Post-MVP PI planning"],
+                ["8",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-eODS</a>,
+                  "eODS integration — what is the current IMS readiness date that gates eODS? Is there a provisional PI 4 slot for eODS if IMS readiness is confirmed?", "Dependency Risk", "Architecture + IMS", "Medium", <Badge label="Watching" color="#6b7280" />, "PI 4 planning"],
+                ["9",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-B9-Contract</a>,
+                  "B9 PDC Gateway Read Contract — what is the publication date for the versioned consumer surface? Roger cannot begin gateway integration without this contract.", "Contract Publication", "PDC + BA", "High", <Badge label="Open" color="#dc2626" />, "B9 gate sign-off"],
+                ["10",
+                  <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-GW-Ver</a>,
+                  "Roger consumer surface versioning — how will the gateway version the IMS/CEM/TIM pass-through surfaces as underlying systems evolve?", "Architecture Decision", "Architecture", "Medium", <Badge label="Open" color="#dc2626" />, "B9 gate sign-off"],
               ]}
             />
 
@@ -885,11 +923,47 @@ export default function ConsumerIntegrationReadinessHub() {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-xs text-slate-400 py-4 border-t border-slate-200 mt-2">
-          DCT Platform · Consumer Integration Readiness Hub · Authoritative as of{" "}
-          {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} ·
-          Source: DCT_Batch_Roadmap_v4 · <Link href="/control-panel" className="text-[#003865] hover:underline">Control Panel</Link> ·{" "}
-          <Link href="/roger-consumer-readiness" className="text-[#003865] hover:underline">Consumer Readiness Center</Link>
+        <div className="border-t border-slate-200 mt-4 pt-4 pb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Version + source metadata */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: "#003865", color: "#fff" }}>
+                  {HUB_VERSION}
+                </span>
+                <span className="text-xs text-slate-500">Consumer Integration Readiness Hub</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-slate-400">
+                <FileText className="w-3 h-3" />
+                <span>Source: <span className="font-semibold text-slate-600">{HUB_SOURCE}</span></span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-slate-400">
+                <Clock className="w-3 h-3" />
+                <span>Last updated: <span className="font-semibold text-slate-600">{HUB_UPDATED}</span></span>
+              </div>
+              <div className="text-xs text-slate-400">
+                Author: <span className="font-semibold text-slate-600">{HUB_AUTHOR}</span>
+              </div>
+            </div>
+            {/* Quick links */}
+            <div className="flex items-center gap-3 text-xs">
+              <Link href="/control-panel" className="text-[#003865] hover:underline">Control Panel</Link>
+              <span className="text-slate-300">·</span>
+              <Link href="/roger-consumer-readiness" className="text-[#003865] hover:underline">Consumer Readiness Center</Link>
+              <span className="text-slate-300">·</span>
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-1 text-[#003865] hover:underline"
+              >
+                <Printer className="w-3 h-3" />
+                Export PDF
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 mt-2">
+            DCT Platform · CATT · RSM US LLP · This document is authoritative as of {HUB_UPDATED} and reflects {HUB_SOURCE} as the governing source of truth.
+            ADO Feature IDs are placeholders — update with actual ADO work item numbers before distributing.
+          </p>
         </div>
 
       </div>
