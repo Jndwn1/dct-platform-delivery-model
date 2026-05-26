@@ -23,7 +23,6 @@ import LineageExplorer from "./pages/LineageExplorer";
 
 // Platform pages
 import RogerApiEvolution from "./pages/RogerApiEvolution";
-import IntegrationAlignmentHub from "./pages/IntegrationAlignmentHub";
 import RuntimeJourney from "./pages/RuntimeJourney";
 import BatchControlPanel from "./pages/BatchControlPanel";
 import TaxonomyPage from "./pages/TaxonomyPage";
@@ -37,7 +36,6 @@ import RogerMappingPage from "./pages/RogerMappingPage";
 import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
 import BatchDetailPage from "./pages/BatchDetailPage";
 import IntegrationSimulation from "./pages/IntegrationSimulation";
-import RogerConsumerReadinessCenter from "./pages/RogerConsumerReadinessCenter";
 import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadinessHub";
 import BATouchpointSummary from "./pages/BATouchpointSummary";
 
@@ -81,9 +79,9 @@ function Router() {
         <Route path="/lineage" component={LineageExplorer} />
 
         {/* Platform pages */}
-        <Route path="/integration-hub" component={IntegrationAlignmentHub} />
+        <Route path="/integration-hub" component={() => { window.location.replace("/consumer-integration-hub"); return null; }} />
         <Route path="/integration-simulation" component={IntegrationSimulation} />
-        <Route path="/roger-consumer-readiness" component={RogerConsumerReadinessCenter} />
+        <Route path="/roger-consumer-readiness" component={() => { window.location.replace("/consumer-integration-hub"); return null; }} />
         <Route path="/consumer-integration-hub" component={ConsumerIntegrationReadinessHub} />
         <Route path="/roger-api" component={RogerApiEvolution} />
         <Route path="/runtime-journey" component={RuntimeJourney} />

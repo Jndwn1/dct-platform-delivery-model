@@ -103,13 +103,11 @@ const TOOL_ITEMS: NavItem[] = [
 
 // PI Planning removed — PI2/PI3 pages removed per governance cleanup
 
-// Roger UI — Roger-specific pages
+// Roger UI — 3 authoritative pages (Consumer Readiness Center + Integration Alignment Hub consolidated into Consumer Integration Hub)
 const ROGER_UI_ITEMS: NavItem[] = [
-  { label: "Consumer Readiness Center",  path: "/roger-consumer-readiness", icon: "◎", badge: "NEW",    badgeColor: "#059669" },
-  { label: "Consumer Integration Hub",    path: "/consumer-integration-hub",  icon: "🔗", badge: "NEW",    badgeColor: "#7c3aed" },
-  { label: "Integration Alignment Hub",  path: "/integration-hub",          icon: "⊕", badge: "Live",   badgeColor: "#059669" },
-  { label: "Integration Simulation",     path: "/integration-simulation",   icon: "🎮", badge: "LIVE",   badgeColor: "#059669" },
-  { label: "Roger API Evolution",        path: "/roger-api",                icon: "⚡", badge: "Export", badgeColor: "#003865" },
+  { label: "Consumer Integration Hub",  path: "/consumer-integration-hub",  icon: "🔗", badge: "v4.0",   badgeColor: "#7c3aed" },
+  { label: "Integration Simulation",   path: "/integration-simulation",   icon: "🎮", badge: "LIVE",   badgeColor: "#059669" },
+  { label: "Roger API Evolution",      path: "/roger-api",                icon: "⚡", badge: "Export", badgeColor: "#003865" },
 ];
 
 // Governance — alphabetical

@@ -25,6 +25,85 @@ import {
   CheckCircle2, Clock, Circle, FileText, Zap, Eye, Lock, Users, Printer, Mail, Copy, X,
 } from "lucide-react";
 
+// ── Sections 12-17 data (migrated from Consumer Readiness Center) ──────────────
+type ReadinessStatus = "Consumer Ready" | "Partial Data" | "Governance Pending" | "Draft Contract" | "Future State" | "Blocked";
+type DataStatus = "Real Data" | "Partial" | "Mock Data" | "None";
+type RiskLevel = "Critical" | "High" | "Medium" | "Low";
+type AdrStatus = "Open" | "In Review" | "Resolved";
+
+const READINESS_STYLES: Record<ReadinessStatus, { bg: string; text: string }> = {
+  "Consumer Ready":    { bg: "#dcfce7", text: "#15803d" },
+  "Partial Data":      { bg: "#fef9c3", text: "#854d0e" },
+  "Governance Pending":{ bg: "#fef3c7", text: "#92400e" },
+  "Draft Contract":    { bg: "#fee2e2", text: "#991b1b" },
+  "Future State":      { bg: "#f1f5f9", text: "#475569" },
+  "Blocked":           { bg: "#fce7f3", text: "#9d174d" },
+};
+
+const ENDPOINT_MATRIX_DATA = [
+  { batch: "FC",  api: "File Ingestion Status",           path: "GET /api/v1/Ingestion/{runId}",                    purpose: "Track ingestion job state by run ID",                       status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "PDC" },
+  { batch: "B1",  api: "Lineage Anchor (Processing Run)", path: "GET /api/v1/processing-runs/{id}",                 purpose: "DocumentId → EntityId → PeriodStart/End lineage",           status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "PDC" },
+  { batch: "B2",  api: "Normalized Trial Balance",         path: "GET /api/v1/data-records",                        purpose: "vNormalizedTb financial data records",                      status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "PDC" },
+  { batch: "B2A", api: "FirmTaxonomyId on Data Records",   path: "GET /api/v1/data-records",                        purpose: "Enforce FirmTaxonomyId classification presence",           status: "Partial Data" as ReadinessStatus,   data: "Partial" as DataStatus,   govStatus: "Field pending Orchestrator", blockers: "Orchestrator not returning FirmTaxonomyId", owner: "PDC + Orchestrator" },
+  { batch: "B5",  api: "Client List",                      path: "GET /api/v1/clients",                             purpose: "Retrieve all active clients for current user",             status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "PDC" },
+  { batch: "B5",  api: "Legal Entity by Client",           path: "GET /api/v1/legal-entities",                      purpose: "All legal entities for a client",                          status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "PDC" },
+  { batch: "B5",  api: "Jurisdiction Assignments",         path: "GET /api/v1/jurisdiction-assignments",            purpose: "Jurisdiction assignments for an entity",                   status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "PDC" },
+  { batch: "B5",  api: "Ownership Relationships",          path: "GET /api/v1/ownership-relationships/by-parent/{parentEntityId}", purpose: "Entity ownership hierarchy", status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "PDC" },
+  { batch: "B5",  api: "Taxonomy Concepts",                path: "GET /api/v1/taxonomy/concepts",                   purpose: "All active taxonomy concepts",                             status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "PDC" },
+  { batch: "B3",  api: "Tax Forms",                        path: "GET /api/TaxForms",                               purpose: "Tax forms by return type, jurisdiction, tax year",         status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "TDC" },
+  { batch: "B3",  api: "Mapping Rules",                    path: "GET /api/MappingRules",                           purpose: "Mapping rules by rule type, jurisdiction, tax year",       status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "TDC" },
+  { batch: "B4",  api: "AI Mapping Proposals",             path: "GET /api/v1/ai-mapping-proposals",                purpose: "AI proposals by tax year, client, entity",                 status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "TDC" },
+  { batch: "B6",  api: "Adjustments by Entity Scope",      path: "GET /api/Adjustments",                            purpose: "All adjustments by entityId and taxYear",                  status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus, govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined", owner: "TDC" },
+  { batch: "B6",  api: "Review Tasks",                     path: "GET /api/v1/review-tasks",                        purpose: "Review tasks for entity and tax year scope",               status: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus, govStatus: "Role assignment unresolved", blockers: "Role assignment ownership not defined", owner: "TDC" },
+  { batch: "B7",  api: "Entity Finalization State",        path: "GET /api/v1/entity-finalization",                 purpose: "Finalization state for entity and tax year",               status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "TDC" },
+  { batch: "B7",  api: "Tax Profile Determinations",       path: "GET /api/v1/tax-profile-determinations",          purpose: "Tax profile determinations for entity scope",              status: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus, govStatus: "G3 Contract Published", blockers: "None", owner: "TDC" },
+  { batch: "B8",  api: "Exception Records (TDC Read)",     path: "GET /api/v1/TdcExceptionsRead",                   purpose: "Read exception records (TDC read contract)",               status: "Draft Contract" as ReadinessStatus, data: "None" as DataStatus, govStatus: "In Development", blockers: "Contract not yet published — B8 gate not passed", owner: "TDC" },
+  { batch: "B9",  api: "Roger Gateway (Ocelot)",           path: "GET /api/gateway/* (planned)",                    purpose: "Governed pass-through to IMS/CEM/TIM — surface-not-store", status: "Future State" as ReadinessStatus, data: "None" as DataStatus, govStatus: "Planned — PI 2", blockers: "B9 PDC gate required", owner: "PDC" },
+];
+
+const SCREEN_DEPS = [
+  { screen: "Dashboard",         apis: ["File Ingestion Status", "Entity Identity & Structure"],                                    readiness: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus,  risks: "None" },
+  { screen: "Client List",       apis: ["Entity Identity & Structure", "Client Tax Profile"],                                       readiness: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus,  risks: "None" },
+  { screen: "Work Queue",        apis: ["Practitioner Review Queue", "Entity Identity & Structure"],                                readiness: "Governance Pending" as ReadinessStatus, data: "Mock Data" as DataStatus, risks: "Role assignment ownership unresolved [BLOCKING]" },
+  { screen: "Filing Review",     apis: ["Normalized Trial Balance", "AI Mapping Proposals", "Client Tax Profile"],                  readiness: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus,  risks: "None" },
+  { screen: "Adjustments",       apis: ["Normalized Trial Balance", "FirmTaxonomyId Enforcement"],                                  readiness: "Partial Data" as ReadinessStatus,   data: "Partial" as DataStatus,    risks: "FirmTaxonomyId field missing from Orchestrator [WARNING]" },
+  { screen: "Upload Experience", apis: ["File Ingestion Status", "Lineage Anchor"],                                                 readiness: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus,  risks: "None" },
+  { screen: "Entity Review",     apis: ["Entity Identity & Structure", "FirmTaxonomyId Enforcement"],                               readiness: "Partial Data" as ReadinessStatus,   data: "Partial" as DataStatus,    risks: "FirmTaxonomyId not yet returned by Orchestrator [WARNING]" },
+  { screen: "Tax Mapping",       apis: ["Tax Form Templates", "AI Mapping Proposals", "Client Tax Profile"],                        readiness: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus,  risks: "Tax Form Templates are Orchestrator-facing only — Roger reads via TDC Read Contract" },
+  { screen: "Exception Mgmt",    apis: ["Exception Record", "Remedy Action", "Re-ingestion Trigger"],                               readiness: "Blocked" as ReadinessStatus,        data: "None" as DataStatus,       risks: "All B8 APIs in Draft Contract state. Roger cannot consume until G3 gate passed [BLOCKING]" },
+];
+
+const INTEGRATION_RISKS_DATA = [
+  { id: "IR-01", title: "FirmTaxonomyId Missing from Orchestrator",    level: "High" as RiskLevel,     category: "Payload Gap",          description: "Orchestrator is not returning FirmTaxonomyId in normalized records. Roger Adjustments and Entity Review screens depend on this field.", resolution: "Orchestrator team to add FirmTaxonomyId to payload. ADO #1370843." },
+  { id: "IR-02", title: "Role Assignment Ownership Unresolved",        level: "Critical" as RiskLevel, category: "Governance Gap",        description: "Work Queue API exists but no team has been assigned ownership of role assignment logic. Roger cannot consume without governance approval.", resolution: "Governance decision required: PDC vs TDC vs Roger ownership. Escalate to architecture." },
+  { id: "IR-03", title: "B8 Exception APIs Not Yet Published",         level: "High" as RiskLevel,     category: "Contract Gap",          description: "Exception Record, Remedy Action, and Re-ingestion Trigger are in draft. Roger Exception Management screen is fully blocked.", resolution: "B8 must pass G3 Contract Publication gate before Roger can consume." },
+  { id: "IR-04", title: "tax_year Field Naming Inconsistency",         level: "Medium" as RiskLevel,   category: "Contract Instability",  description: "tax_year uses camelCase in some endpoints and snake_case in others. Roger UI must not hardcode field names until contract is stabilized.", resolution: "Normalize to snake_case across all TDC contracts. ADO #1349152." },
+  { id: "IR-05", title: "PeriodStart/End Not Referenced in Swagger",   level: "Medium" as RiskLevel,   category: "Swagger Gap",           description: "PeriodStart and PeriodEnd fields are in the data model but not referenced in Swagger schema. Roger cannot rely on these fields.", resolution: "Add PeriodStart/PeriodEnd to Swagger schema for lineage endpoints." },
+  { id: "IR-06", title: "Read/Write Contract Distinction Missing",     level: "Medium" as RiskLevel,   category: "Governance Gap",        description: "Some endpoints do not clearly distinguish Read Contract from Write Contract. Roger must only consume Read Contracts.", resolution: "Architect to add Read/Write distinction to all published contracts." },
+  { id: "IR-07", title: "Gateway Routing Strategy Not Finalized",      level: "High" as RiskLevel,     category: "Architecture Gap",      description: "Roger Gateway routing strategy is not finalized. Roger UI may be calling PDC/TDC APIs directly without proper gateway mediation.", resolution: "ADR required: Gateway routing strategy. Escalate to architecture team." },
+  { id: "IR-08", title: "Authentication Provisioning for Roger",       level: "High" as RiskLevel,     category: "Auth Gap",              description: "Roger authentication against PDC/TDC APIs is not yet provisioned in UAT. Demo uses mock auth.", resolution: "Auth provisioning request to platform team. Required before UAT." },
+];
+
+const OPEN_ADRS_DATA = [
+  { id: "ADR-01", title: "Filing Signoff Ownership",           status: "Open" as AdrStatus,      impact: "High",     blocking: "Work Queue, Filing Review",  description: "Who owns the filing signoff decision — TDC or Roger? Unresolved." },
+  { id: "ADR-02", title: "Identity Reconciliation Strategy",   status: "In Review" as AdrStatus, impact: "High",     blocking: "Entity Review, Client List", description: "How are EntityId conflicts resolved across PDC and TDC? Strategy pending." },
+  { id: "ADR-03", title: "Gateway Routing Strategy",           status: "Open" as AdrStatus,      impact: "Critical", blocking: "All Roger screens",          description: "How does Roger route API calls — direct to PDC/TDC or via Ocelot gateway? ADR required." },
+  { id: "ADR-04", title: "Role Assignment Ownership",          status: "Open" as AdrStatus,      impact: "Critical", blocking: "Work Queue",                 description: "Which team owns role assignment logic for practitioner work queue?" },
+  { id: "ADR-05", title: "Event-Driven Synchronization",       status: "Open" as AdrStatus,      impact: "Medium",   blocking: "Dashboard, Work Queue",      description: "Should Roger UI use polling or event-driven updates for real-time data?" },
+  { id: "ADR-06", title: "Additive-Only Contract Enforcement", status: "In Review" as AdrStatus, impact: "Medium",   blocking: "All contracts",              description: "Process for enforcing additive-only constraint across all published contracts." },
+];
+
+const NEXT_ACTIONS_DATA = [
+  { action: "Request FirmTaxonomyId payload from Orchestrator",    owner: "Orchestrator Team", status: "In Progress", impact: "High",     adoRef: "#1370843" },
+  { action: "Resolve role assignment ownership for Work Queue",     owner: "Architecture",      status: "Open",        impact: "Critical", adoRef: "—" },
+  { action: "Publish B8 Exception Record Read Contract (G3)",       owner: "PDC BA",            status: "In Progress", impact: "High",     adoRef: "#B8" },
+  { action: "Finalize Gateway routing strategy (ADR-03)",           owner: "Architecture",      status: "Open",        impact: "Critical", adoRef: "—" },
+  { action: "Normalize tax_year field naming across TDC contracts", owner: "TDC BA",            status: "Open",        impact: "Medium",   adoRef: "#1349152" },
+  { action: "Add PeriodStart/PeriodEnd to Swagger schema",          owner: "PDC BA",            status: "Open",        impact: "Medium",   adoRef: "—" },
+  { action: "Provision Roger auth against PDC/TDC in UAT",          owner: "Platform Team",     status: "Open",        impact: "High",     adoRef: "—" },
+  { action: "Add Read/Write contract distinction to all contracts",  owner: "Architecture",      status: "Open",        impact: "Medium",   adoRef: "—" },
+];
+
 // ── Version metadata ─────────────────────────────────────────────────────────
 const HUB_VERSION = "v4.0";
 const HUB_SOURCE  = "DCT_Batch_Roadmap_v4.docx";
@@ -1285,6 +1364,163 @@ export default function ConsumerIntegrationReadinessHub() {
             ADO Feature IDs are placeholders — update with actual ADO work item numbers before distributing.
           </p>
         </div>
+
+      {/* ── Section 12: Endpoint Readiness Matrix ─────────────────────────────── */}
+      <Section id="s12" title="12. Roger Endpoint Readiness Matrix" badge={`${ENDPOINT_MATRIX_DATA.length} APIs`} badgeColor="#0369a1">
+        <div className="px-5 py-4">
+          <p className="text-xs text-slate-500 mb-3">Sourced from TDC Swagger v1.0.0 and PDC Swagger v1.0.0 (uploaded 2026-05-19). Status derived from DCT Control Panel batch gates.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-[#003865] text-white">
+                  {["Batch","API","Path","Purpose","Status","Data","Gov Status","Blockers","Owner"].map(h => (
+                    <th key={h} className="px-3 py-2 text-left font-semibold whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {ENDPOINT_MATRIX_DATA.map((row, i) => {
+                  const s = READINESS_STYLES[row.status];
+                  return (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                      <td className="px-3 py-2 font-mono font-bold text-[#003865]">{row.batch}</td>
+                      <td className="px-3 py-2 font-semibold text-slate-800 whitespace-nowrap">{row.api}</td>
+                      <td className="px-3 py-2 font-mono text-slate-500 text-[10px] whitespace-nowrap">{row.path}</td>
+                      <td className="px-3 py-2 text-slate-600 max-w-xs">{row.purpose}</td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: s.bg, color: s.text }}>{row.status}</span></td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: row.data === "Real Data" ? "#dcfce7" : row.data === "Partial" ? "#fef9c3" : "#fee2e2", color: row.data === "Real Data" ? "#15803d" : row.data === "Partial" ? "#854d0e" : "#991b1b" }}>{row.data}</span></td>
+                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{row.govStatus}</td>
+                      <td className="px-3 py-2 text-slate-600">{row.blockers}</td>
+                      <td className="px-3 py-2 font-semibold text-slate-700 whitespace-nowrap">{row.owner}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Section 13: Roger UI Screen Dependency Map ──────────────────────────── */}
+      <Section id="s13" title="13. Roger UI Screen Dependency Map" badge={`${SCREEN_DEPS.length} screens`} badgeColor="#7c3aed">
+        <div className="px-5 py-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-[#003865] text-white">
+                  {["Screen","APIs Required","Readiness","Data","Risks / Blockers"].map(h => (
+                    <th key={h} className="px-3 py-2 text-left font-semibold">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {SCREEN_DEPS.map((row, i) => {
+                  const s = READINESS_STYLES[row.readiness];
+                  return (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                      <td className="px-3 py-2 font-semibold text-slate-800 whitespace-nowrap">{row.screen}</td>
+                      <td className="px-3 py-2 text-slate-600">{row.apis.join(" · ")}</td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: s.bg, color: s.text }}>{row.readiness}</span></td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: row.data === "Real Data" ? "#dcfce7" : row.data === "Partial" ? "#fef9c3" : "#fee2e2", color: row.data === "Real Data" ? "#15803d" : row.data === "Partial" ? "#854d0e" : "#991b1b" }}>{row.data}</span></td>
+                      <td className="px-3 py-2 text-slate-600">{row.risks}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Section 14: Integration Risks ───────────────────────────────────────── */}
+      <Section id="s14" title="14. Integration Risks" badge={`${INTEGRATION_RISKS_DATA.length} risks`} badgeColor="#dc2626">
+        <div className="px-5 py-4 space-y-3">
+          {INTEGRATION_RISKS_DATA.map(risk => {
+            const lvlColor = risk.level === "Critical" ? "#dc2626" : risk.level === "High" ? "#ea580c" : risk.level === "Medium" ? "#d97706" : "#16a34a";
+            return (
+              <div key={risk.id} className="border border-slate-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5" style={{ background: lvlColor + "18", color: lvlColor, border: `1px solid ${lvlColor}44` }}>{risk.level}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-mono text-slate-400">{risk.id}</span>
+                      <span className="text-sm font-bold text-slate-800">{risk.title}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{risk.category}</span>
+                    </div>
+                    <p className="text-xs text-slate-600 mb-1">{risk.description}</p>
+                    <p className="text-xs text-emerald-700"><span className="font-semibold">Resolution:</span> {risk.resolution}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* ── Section 15: Open ADRs ────────────────────────────────────────────────── */}
+      <Section id="s15" title="15. Open Decisions & ADRs" badge={`${OPEN_ADRS_DATA.filter(a => a.status !== "Resolved").length} open`} badgeColor="#7c3aed">
+        <div className="px-5 py-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-[#003865] text-white">
+                  {["ID","Title","Status","Impact","Blocking","Description"].map(h => (
+                    <th key={h} className="px-3 py-2 text-left font-semibold whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {OPEN_ADRS_DATA.map((adr, i) => {
+                  const stColor = adr.status === "Open" ? { bg: "#fee2e2", text: "#991b1b" } : adr.status === "In Review" ? { bg: "#fef9c3", text: "#854d0e" } : { bg: "#dcfce7", text: "#15803d" };
+                  const impColor = adr.impact === "Critical" ? "#dc2626" : adr.impact === "High" ? "#ea580c" : adr.impact === "Medium" ? "#d97706" : "#16a34a";
+                  return (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                      <td className="px-3 py-2 font-mono font-bold text-[#003865]">{adr.id}</td>
+                      <td className="px-3 py-2 font-semibold text-slate-800 whitespace-nowrap">{adr.title}</td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: stColor.bg, color: stColor.text }}>{adr.status}</span></td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="text-xs font-bold" style={{ color: impColor }}>{adr.impact}</span></td>
+                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{adr.blocking}</td>
+                      <td className="px-3 py-2 text-slate-600">{adr.description}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Section 16: Next Actions ─────────────────────────────────────────────── */}
+      <Section id="s16" title="16. Next Actions" badge={`${NEXT_ACTIONS_DATA.length} actions`} badgeColor="#059669">
+        <div className="px-5 py-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-[#003865] text-white">
+                  {["Action","Owner","Status","Impact","ADO Ref"].map(h => (
+                    <th key={h} className="px-3 py-2 text-left font-semibold whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {NEXT_ACTIONS_DATA.map((row, i) => {
+                  const stColor = row.status === "In Progress" ? { bg: "#dbeafe", text: "#1d4ed8" } : row.status === "Open" ? { bg: "#fef9c3", text: "#854d0e" } : { bg: "#dcfce7", text: "#15803d" };
+                  const impColor = row.impact === "Critical" ? "#dc2626" : row.impact === "High" ? "#ea580c" : row.impact === "Medium" ? "#d97706" : "#16a34a";
+                  return (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                      <td className="px-3 py-2 text-slate-700">{row.action}</td>
+                      <td className="px-3 py-2 font-semibold text-slate-800 whitespace-nowrap">{row.owner}</td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: stColor.bg, color: stColor.text }}>{row.status}</span></td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="text-xs font-bold" style={{ color: impColor }}>{row.impact}</span></td>
+                      <td className="px-3 py-2 font-mono text-slate-500">{row.adoRef}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </Section>
 
       </div>
     </div>
