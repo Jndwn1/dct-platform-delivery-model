@@ -22,7 +22,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import {
   ChevronDown, ChevronUp, Shield, Link2, Database, AlertTriangle,
-  CheckCircle2, Clock, Circle, FileText, Zap, Eye, Lock, Users, Printer,
+  CheckCircle2, Clock, Circle, FileText, Zap, Eye, Lock, Users, Printer, Mail, Copy, X,
 } from "lucide-react";
 
 // ── Version metadata ─────────────────────────────────────────────────────────
@@ -132,12 +132,164 @@ function Badge({ label, color }: { label: string; color: string }) {
   );
 }
 
+// ── Email Summary Modal ─────────────────────────────────────────────────────
+const EMAIL_SUBJECT = "DCT Consumer Integration Readiness Hub — Strategy & Governance Alignment";
+
+const EMAIL_BODY = `To: Roger Team · DCT Team · Product Owners · Architects · Integration Leads · BAs · Governance Stakeholders
+From: CATT Sr. Business Analyst — DCT Platform Delivery
+Date: ${HUB_UPDATED}
+Subject: ${EMAIL_SUBJECT}
+
+──────────────────────────────────────────────────────────────────
+OPENING SUMMARY
+──────────────────────────────────────────────────────────────────
+Thank you to the Roger team for consolidating and surfacing the integration questions over the past several sprints. That effort helped the DCT team identify specific opportunities to improve how integration guidance is organized, surfaced, and consumed across teams.
+
+Much of the requested information already exists across current DCT governance artifacts — Swagger schemas, Consumer Guides, Batch documentation, ADO Features, Manus documentation, and Roger UI Data Availability artifacts. The current effort is focused on centralizing and operationalizing that existing information into a more implementation-oriented, consumer-ready experience.
+
+──────────────────────────────────────────────────────────────────
+NEW: CONSUMER INTEGRATION READINESS HUB
+──────────────────────────────────────────────────────────────────
+DCT has created a new centralized page within the DCT Platform Control Panel:
+
+  "Consumer Integration Readiness Hub"
+
+This hub is the authoritative onboarding and integration enablement location for Roger and all future consumers. It consolidates:
+  • API relationships and producer/consumer direction
+  • Payload sequencing (8-step authoritative chain)
+  • Lineage flows and canonical ID mapping
+  • Integration dependencies and gate-gated sequencing
+  • Consumer onboarding documentation and test datasets
+  • Known enhancement requests (tracked separately from contract gaps)
+  • Governance boundaries — DCT owns vs. Roger owns
+
+Hub Location: DCT Platform Dashboard → Roger UI → Consumer Integration Hub
+
+──────────────────────────────────────────────────────────────────
+10 KEY FOCUS AREAS
+──────────────────────────────────────────────────────────────────
+ 1. Consumer Integration Architecture Overview — single-page system relationship map
+ 2. Canonical ID & Relationship Mapping Matrix — all primary keys with immutable/lineage/derived/consumer-safe classifications
+ 3. API Relationship Sequencing — authoritative 8-step API chaining sequence
+ 4. Required vs Optional Field Governance — per-model field rules with ADO Feature links
+ 5. End-to-End Payload Walkthroughs — 5 complete request/response examples
+ 6. Consumer Integration Test Dataset — known validation dataset for integration QA
+ 7. API Maturity & Stability Matrix — 17 endpoints classified by maturity and consumer-safe status
+ 8. Consumer Enhancement Request Tracking — 8 tracked requests, separate from contract gaps
+ 9. Governance Boundary Clarification — formal DCT Owns / Roger Owns ownership matrix
+10. Open Questions & Pending Decisions — 10 tracked items with ADO Feature links and owners
+
+──────────────────────────────────────────────────────────────────
+GOVERNANCE BOUNDARY CLARIFICATION
+──────────────────────────────────────────────────────────────────
+DCT OWNS: governed contracts · lineage · taxonomy governance · authoritative tax-ready outputs · validation expectations · API governance
+
+ROGER OWNS: UI orchestration · workflow composition · presentation behavior · consumer-side paging · screen composition · UI rendering behavior
+
+NOTE: Consumer enhancement requests are evaluated separately from governance contract completeness.
+
+──────────────────────────────────────────────────────────────────
+IMMEDIATE NEXT STEPS
+──────────────────────────────────────────────────────────────────
+• Hub is live — access via DCT Platform Dashboard → Roger UI → Consumer Integration Hub
+• Consolidating API relationship mappings as B9 and B12 complete gate sign-off
+• Publishing additional payload walkthroughs for B8 exception and B9 gateway flows
+• Enhancement requests tracked in hub — submit new requests via the hub tracker
+• Swagger documentation will be aligned with governing ADO Feature definitions during B10/B11
+
+──────────────────────────────────────────────────────────────────
+CLOSING
+──────────────────────────────────────────────────────────────────
+Thank you for continued collaboration. The goal is to reduce fragmented integration discussions by creating a single, authoritative reference that any consumer team can navigate independently. We look forward to building a scalable consumer enablement model that supports Roger and all future consumers through PI 3, PI 4, and beyond.
+
+──────────────────────────────────────────────────────────────────
+Source: ${HUB_SOURCE} · Version: ${HUB_VERSION} · ${HUB_UPDATED}
+Author: ${HUB_AUTHOR}
+──────────────────────────────────────────────────────────────────`;
+
+function EmailSummaryModal({ onClose }: { onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(EMAIL_BODY).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  }
+
+  function handleMailto() {
+    const encoded = encodeURIComponent(EMAIL_BODY);
+    window.open(`mailto:?subject=${encodeURIComponent(EMAIL_SUBJECT)}&body=${encoded}`);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: "rgba(0,0,0,0.45)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-4 flex flex-col"
+        style={{ maxHeight: "85vh" }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <div className="flex items-center gap-2">
+            <Mail className="w-5 h-5 text-[#003865]" />
+            <span className="font-bold text-[#003865] text-base">BA Touchpoint Email Summary</span>
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: "#ede9fe", color: "#4c1d95" }}>Ready to Send</span>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Subject line */}
+        <div className="px-5 py-3 bg-slate-50 border-b border-slate-200">
+          <p className="text-xs text-slate-500 mb-0.5">Subject</p>
+          <p className="text-sm font-semibold text-slate-800">{EMAIL_SUBJECT}</p>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          <pre className="text-xs text-slate-700 whitespace-pre-wrap font-mono leading-relaxed">{EMAIL_BODY}</pre>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
+          <p className="text-xs text-slate-400">Copy to clipboard and paste into Outlook, or click Open in Mail App to launch your email client.</p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors"
+            >
+              <Copy className="w-4 h-4" />
+              {copied ? "Copied!" : "Copy to Clipboard"}
+            </button>
+            <button
+              onClick={handleMailto}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+              style={{ background: "#003865" }}
+            >
+              <Mail className="w-4 h-4" />
+              Open in Mail App
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // PAGE COMPONENT
 // ═════════════════════════════════════════════════════════════════════════════
 export default function ConsumerIntegrationReadinessHub() {
+  const [showEmailModal, setShowEmailModal] = useState(false);
   return (
     <div className="min-h-screen bg-slate-50">
+      {showEmailModal && <EmailSummaryModal onClose={() => setShowEmailModal(false)} />}
       {/* ── Page Header ──────────────────────────────────────────────────── */}
       <div className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -160,6 +312,16 @@ export default function ConsumerIntegrationReadinessHub() {
               <span className="px-2 py-1 rounded bg-violet-50 text-violet-800 font-medium border border-violet-200">Roger Read-Only</span>
               <span className="px-2 py-1 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">Contract Published</span>
             </div>
+            {/* Generate Email Summary button */}
+            <button
+              onClick={() => setShowEmailModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+              style={{ background: "#7c3aed", color: "#fff", border: "1px solid #7c3aed" }}
+              title="Generate a BA Touchpoint email summary ready to send to stakeholders"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              Generate Email Summary
+            </button>
             {/* Print / Export to PDF button */}
             <button
               onClick={() => window.print()}
