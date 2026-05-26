@@ -71,6 +71,23 @@ export interface BatchStatusMap {
   "9-tdc": BatchStatus;
   "10": BatchStatus;
   "11": BatchStatus;
+  // PI 2 Committed
+  "12": BatchStatus;
+  // PI 2 Stretch
+  "13": BatchStatus;
+  "16": BatchStatus;
+  // PI 3 MVP
+  "17": BatchStatus;
+  "20": BatchStatus;
+  "21": BatchStatus;
+  "22": BatchStatus;
+  "23": BatchStatus;
+  "26": BatchStatus;
+  "28": BatchStatus;
+  "29": BatchStatus;
+  "31": BatchStatus;
+  "33": BatchStatus;
+  "39": BatchStatus;
 }
 
 export type BatchKey = keyof BatchStatusMap;
@@ -95,6 +112,20 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "9-tdc": "Batch 9 | TDC — Rollforward & Prior Year Intelligence",
   "10": "Batch 10 — Return Assembly, Filing & Lineage Closure",
   "11": "Batch 11 — Learning Governance & Model Evolution",
+  "12": "Batch 12 — Engagement Identity, Reference Data & TIM Reconciliation",
+  "13": "Batch 13 — Platform Reference & Document Provenance",
+  "16": "Batch 16 — Audit Trail & Lineage Governance",
+  "17": "Batch 17 — Decision Support — Overrides, Evidence & Workpapers",
+  "20": "Batch 20 — Firm Governance & Professional Standards",
+  "21": "Batch 21 — Quality Control",
+  "22": "Batch 22 — Client Communication & Outstanding Items",
+  "23": "Batch 23 — Benchmark & Peer Analytics",
+  "26": "Batch 26 — Entity Constituents & Allocations (PDC — MVP)",
+  "28": "Batch 28 — Tax Workpaper & Provision Schedules",
+  "29": "Batch 29 — Consolidated Return Assembly",
+  "31": "Batch 31 — Legacy Tool Prior Year Ingestion & Data Housing",
+  "33": "Batch 33 — State Reference, Apportionment, Payments, NOL/Credit, Forms, TX Franchise",
+  "39": "Batch 39 — Calculation Report",
 };
 
 // ── Dependency map ────────────────────────────────────────────────────────────
@@ -115,8 +146,22 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "9": ["10"],
   "9-pdc": ["10"],
   "9-tdc": ["10"],
-  "10": ["11"],
+  "10": ["11", "12"],
   "11": [],
+  "12": ["13"],
+  "13": ["16"],
+  "16": ["17", "20", "28", "31", "33"],
+  "17": ["21"],
+  "20": ["21"],
+  "21": [],
+  "22": [],
+  "23": [],
+  "26": ["29"],
+  "28": ["17", "29"],
+  "29": ["33"],
+  "31": ["33"],
+  "33": ["39"],
+  "39": [],
 };
 
 // ── Cascade step definitions ──────────────────────────────────────────────────
@@ -198,6 +243,20 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "9-tdc": "Ready for QA",
   "10": "Not Started",
   "11": "Not Started",
+  "12": "Not Started",
+  "13": "Not Started",
+  "16": "Not Started",
+  "17": "Not Started",
+  "20": "Not Started",
+  "21": "Not Started",
+  "22": "Not Started",
+  "23": "Not Started",
+  "26": "Not Started",
+  "28": "Not Started",
+  "29": "Not Started",
+  "31": "Not Started",
+  "33": "Not Started",
+  "39": "Not Started",
 };
 
 const STORAGE_KEY     = "dct_batch_status_v5";
@@ -207,10 +266,10 @@ const MAX_LOG_ENTRIES = 50;
 // ── PI membership ─────────────────────────────────────────────────────────────
 
 const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
-  pi1: ["foundation-core", "1", "2", "2a"],
-  pi2: ["3", "4", "5", "6", "7"],
-  pi3: ["8", "8-pdc", "8-tdc", "9", "9-pdc", "9-tdc", "10"],
-  pi4: ["11"],
+  pi1: ["foundation-core", "1", "2", "2a", "3"],
+  pi2: ["4", "5", "6", "7", "8", "8-pdc", "8-tdc", "9", "9-pdc", "9-tdc", "10", "11", "12", "13", "16"],
+  pi3: ["17", "20", "21", "22", "23", "26", "28", "29", "31", "33", "39"],
+  pi4: [],
 };
 
 // ── Storage helpers ───────────────────────────────────────────────────────────

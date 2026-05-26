@@ -52,26 +52,30 @@ const PI2_BATCH_ITEMS: { label: string; path: string; batchKey: BatchKey; indent
   { label: "B11 — Learning Governance & Model Evolution",       path: "/batch/11",              batchKey: "11" },
 ];
 
-// PI 3 batch items (B12–B25) — Intelligence, Provision & Audit
-const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
-  { label: "B12 — TIM Integration & Engagement Ops",            path: "/batch/12",              batchKey: "12" },
+// PI 2 Stretch batch items (B12–B16) — per Roadmap v4_corrected
+const PI2_STRETCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
+  { label: "B12 — Engagement Identity & TIM Reconciliation",    path: "/batch/12",              batchKey: "12" },
   { label: "B13 — Platform Reference & Document Provenance",    path: "/batch/13",              batchKey: "13" },
-  { label: "B14 — Tax Computation Rules & Formula Gov.",        path: "/batch/14",              batchKey: "14" },
-  { label: "B15 — Tax Provision Reference & ASC 740",           path: "/batch/15",              batchKey: "15" },
   { label: "B16 — Audit Trail & Lineage Governance",            path: "/batch/16",              batchKey: "16" },
-  { label: "B17 — Decision Support — Overrides & Workpapers",   path: "/batch/17",              batchKey: "17" },
-  { label: "B18 — Provision Computation, DTA/DTL & ETR",        path: "/batch/18",              batchKey: "18" },
-  { label: "B19 — Provision Workflow, Sign-Off & Cross-LOB",    path: "/batch/19",              batchKey: "19" },
-  { label: "B24 — Multi-Entity Consolidation & Rollup",         path: "/batch/24",              batchKey: "24" },
-  { label: "B25 — Cross-LOB Reporting & Delivery",              path: "/batch/25",              batchKey: "25" },
 ];
 
-// PI 4 batch items (B20–B23) — Governance, QC & Analytics
-const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
+// PI 3 MVP batch items — per Roadmap v4_corrected
+const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
+  { label: "B17 — Decision Support — Overrides & Workpapers",   path: "/batch/17",              batchKey: "17" },
   { label: "B20 — Firm Governance & Professional Standards",    path: "/batch/20",              batchKey: "20" },
-  { label: "B21 — Quality Control",                             path: "/batch/21",              batchKey: "21" },
-  { label: "B22 — Client Communication & Outstanding Items",    path: "/batch/22",              batchKey: "22" },
-  { label: "B23 — Benchmark & Peer Analytics",                  path: "/batch/23",              batchKey: "23" },
+  { label: "B21 — Quality Control (PDC MVP)",                   path: "/batch/21",              batchKey: "21" },
+  { label: "B26 — Entity Constituents & Allocations (MVP)",     path: "/batch/26",              batchKey: "26" },
+  { label: "B28 — Tax Workpaper & Provision Schedules",         path: "/batch/28",              batchKey: "28" },
+  { label: "B29 — Consolidated Return Assembly",                path: "/batch/29",              batchKey: "29" },
+  { label: "B31 — Legacy Tool Prior Year Ingestion",            path: "/batch/31",              batchKey: "31" },
+  { label: "B33 — State Tax (Apportionment, NOL, Forms)",       path: "/batch/33",              batchKey: "33" },
+  { label: "B39 — Calculation Report (MVP Promoted)",           path: "/batch/39",              batchKey: "39" },
+];
+
+// Post-MVP / Parked batch items
+const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
+  { label: "B22 — Client Communication (Post-MVP)",             path: "/batch/22",              batchKey: "22" },
+  { label: "B23 — Benchmark & Peer Analytics (Post-MVP)",       path: "/batch/23",              batchKey: "23" },
 ];
 
 
@@ -360,16 +364,22 @@ export default function Sidebar({ activeSection }: SidebarProps) {
                 const isSubBatch = def.indent === true;
                 return <NavItem key={def.path} item={{ label: def.label.trim(), path: def.path, indent: !isSubBatch, subBatch: isSubBatch, status: badge?.label, statusColor: badge?.color }} />;
               })}
-              {/* PI 3 */}
-              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#8b5cf6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 3 — Intelligence, Provision &amp; Audit</div>
-              {PI3_BATCH_ITEMS.map((def) => {
-                const badge = contextToSidebarBadge("Planned" as BatchStatus);
+              {/* PI 2 Stretch */}
+              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#0ea5e9", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 Stretch — Engagement &amp; Audit</div>
+              {PI2_STRETCH_ITEMS.map((def) => {
+                const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
               })}
-              {/* PI 4 */}
-              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#f59e0b", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 4 — Governance, QC &amp; Analytics</div>
+              {/* PI 3 MVP */}
+              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#8b5cf6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 3 MVP — Workpapers, State &amp; Pilot</div>
+              {PI3_BATCH_ITEMS.map((def) => {
+                const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+              })}
+              {/* Post-MVP / Parked */}
+              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#64748b", letterSpacing: "0.08em", textTransform: "uppercase" }}>Post-MVP / Parked</div>
               {PI4_BATCH_ITEMS.map((def) => {
-                const badge = contextToSidebarBadge("Planned" as BatchStatus);
+                const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
               })}
             </>
