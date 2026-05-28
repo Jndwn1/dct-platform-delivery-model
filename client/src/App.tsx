@@ -7,6 +7,8 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import LoginPage from "./pages/LoginPage";
 
 // Core pages
 import Home from "./pages/Home";
@@ -55,56 +57,64 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (!user) return <LoginPage />;
+  return <>{children}</>;
+}
+
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        {/* Core platform */}
-        <Route path="/" component={Home} />
-        <Route path="/batch-roadmap" component={BatchRoadmap} />
-        <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
-        <Route path="/gate-status" component={GateStatus} />
-        <Route path="/touchpoints" component={TouchpointsPage} />
-        <Route path="/artifacts" component={ArtifactsPage} />
-        <Route path="/agent-hub" component={AgentHub} />
-        <Route path="/architecture" component={ArchitectureView} />
-        <Route path="/architecture/developer" component={DeveloperArchitecturePage} />
-        <Route path="/architecture/enterprise" component={EnterpriseArchitecturePage} />
-        <Route path="/architecture/sync" component={ArchitectureView} />
-        <Route path="/architecture/visio" component={ArchitectureView} />
+    <AuthGate>
+      <Layout>
+        <Switch>
+          {/* Core platform */}
+          <Route path="/" component={Home} />
+          <Route path="/batch-roadmap" component={BatchRoadmap} />
+          <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
+          <Route path="/gate-status" component={GateStatus} />
+          <Route path="/touchpoints" component={TouchpointsPage} />
+          <Route path="/artifacts" component={ArtifactsPage} />
+          <Route path="/agent-hub" component={AgentHub} />
+          <Route path="/architecture" component={ArchitectureView} />
+          <Route path="/architecture/developer" component={DeveloperArchitecturePage} />
+          <Route path="/architecture/enterprise" component={EnterpriseArchitecturePage} />
+          <Route path="/architecture/sync" component={ArchitectureView} />
+          <Route path="/architecture/visio" component={ArchitectureView} />
 
-        {/* Platform pages */}
-        <Route path="/integration-hub" component={() => { window.location.replace("/consumer-integration-hub"); return null; }} />
-        <Route path="/integration-simulation" component={IntegrationSimulation} />
-        <Route path="/roger-consumer-readiness" component={() => { window.location.replace("/consumer-integration-hub"); return null; }} />
-        <Route path="/consumer-integration-hub" component={ConsumerIntegrationReadinessHub} />
-        <Route path="/roger-api" component={RogerApiEvolution} />
-        <Route path="/runtime-journey" component={RuntimeJourney} />
-        <Route path="/control-panel" component={BatchControlPanel} />
+          {/* Platform pages */}
+          <Route path="/integration-hub" component={() => { window.location.replace("/consumer-integration-hub"); return null; }} />
+          <Route path="/integration-simulation" component={IntegrationSimulation} />
+          <Route path="/roger-consumer-readiness" component={() => { window.location.replace("/consumer-integration-hub"); return null; }} />
+          <Route path="/consumer-integration-hub" component={ConsumerIntegrationReadinessHub} />
+          <Route path="/roger-api" component={RogerApiEvolution} />
+          <Route path="/runtime-journey" component={RuntimeJourney} />
+          <Route path="/control-panel" component={BatchControlPanel} />
 
-        {/* Batch detail routes */}
-        <Route path="/batch/:id" component={BatchDetailPage} />
+          {/* Batch detail routes */}
+          <Route path="/batch/:id" component={BatchDetailPage} />
 
-        {/* Gate detail routes */}
-        <Route path="/gate/:id" component={GateStatus} />
+          {/* Gate detail routes */}
+          <Route path="/gate/:id" component={GateStatus} />
 
-        {/* Agent detail routes */}
-        <Route path="/agent/:id" component={AgentHub} />
+          {/* Agent detail routes */}
+          <Route path="/agent/:id" component={AgentHub} />
 
-        {/* Tool pages */}
-        <Route path="/taxonomy" component={TaxonomyPage} />
-        <Route path="/data-model" component={DataModelPage} />
-        <Route path="/data-governance" component={DataGovernancePage} />
-        <Route path="/roger-mapping" component={RogerMappingPage} />
-        <Route path="/aap-review" component={AAPReviewPage} />
-        <Route path="/tax-mapping" component={TaxMappingPage} />
-        <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
-        <Route path="/gap-analysis" component={GapAnalysisEngine} />
+          {/* Tool pages */}
+          <Route path="/taxonomy" component={TaxonomyPage} />
+          <Route path="/data-model" component={DataModelPage} />
+          <Route path="/data-governance" component={DataGovernancePage} />
+          <Route path="/roger-mapping" component={RogerMappingPage} />
+          <Route path="/aap-review" component={AAPReviewPage} />
+          <Route path="/tax-mapping" component={TaxMappingPage} />
+          <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
+          <Route path="/gap-analysis" component={GapAnalysisEngine} />
 
-        <Route path="/404" component={NotFound} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+          <Route path="/404" component={NotFound} />
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
+    </AuthGate>
   );
 }
 
@@ -112,12 +122,14 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <BatchStatusProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </BatchStatusProvider>
+        <AuthProvider>
+          <BatchStatusProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </BatchStatusProvider>
+        </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
