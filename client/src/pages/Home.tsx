@@ -1,10 +1,11 @@
 // DCT Delivery Model — Authoritative Platform Anchor Page
 // RSM | CATT | DCT + Roger
 // Design: RSM Deep Navy headers, RSM Green for success/insight, slate for neutral
-// 9-section structure: Purpose → Flow → Ownership → Batches → Invariants → Enables → NOT → Roger → Failure Modes
+// Governance realignment: Non-production workspace, architecture visualization only
 
 import { Link } from "wouter";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
+import GovernanceBanner from "@/components/GovernanceBanner";
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ title, subtitle, children, accent }: {
@@ -191,13 +192,14 @@ export default function Home() {
               DCT Delivery Model
             </h1>
             <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
-              RSM · CATT · Data Consolidation Team · Platform Source of Truth
+              RSM · CATT · Governance & Architecture Readiness Workspace · Non-Production
             </div>
           </div>
         </div>
         <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
           {[
             { label: `Batches Active: ${activeBatches}`, color: "#059669" },
+            { label: "Non-Production Workspace", color: "#d97706" },
             { label: "API-First Architecture", color: "#2563eb" },
             { label: "Governed AI Integration", color: "#7c3aed" },
             { label: "Roger Read-Only", color: "#0f1623" },
@@ -210,6 +212,9 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ── Governance Banner ── */}
+      <GovernanceBanner />
+
       {/* ── Live Platform Status Bar ── */}
       <div style={{
         backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
@@ -218,7 +223,7 @@ export default function Home() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "200px" }}>
           <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
-            ● Platform Status
+            ● Readiness Status
           </div>
           <div style={{ flex: 1, height: "8px", backgroundColor: "#d1fae5", borderRadius: "4px", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${overallPct}%`, backgroundColor: "#059669", borderRadius: "4px", transition: "width 0.4s ease" }} />
@@ -267,7 +272,7 @@ export default function Home() {
           borderRadius: "8px", padding: "16px 20px",
         }}>
           <p style={{ margin: "0 0 10px", fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
-            DCT is a <strong>governed, batch-driven delivery model</strong> that structures how financial data is ingested,
+            DCT is a <strong>governed, batch-driven architecture and readiness model</strong> that structures how financial data is ingested,
             normalized, classified, and made available for tax decision-making across RSM's enterprise platform.
           </p>
           <p style={{ margin: "0 0 10px", fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
@@ -276,8 +281,11 @@ export default function Home() {
             responsibilities outside its defined boundary.
           </p>
           <p style={{ margin: 0, fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
-            The result is <strong>deterministic, traceable, API-driven outcomes</strong> that can be audited, replayed,
-            and trusted at every layer of the platform.
+            The result is <strong>deterministic, traceable, API-driven architecture patterns</strong> that can be audited, replayed,
+            and validated at every layer of the platform.
+          </p>
+          <p style={{ margin: 0, fontSize: "13px", color: "#475569", lineHeight: "1.6", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: 6, padding: "8px 12px", marginTop: 8 }}>
+            <strong style={{ color: "#92400e" }}>Governance Note:</strong> This workspace visualizes architecture patterns, readiness status, and governance structures using mock and seed data. It is not a production system, system of record, or integrated operational platform. All outputs require formal enterprise implementation outside this workspace.
           </p>
         </div>
       </Section>
@@ -435,13 +443,13 @@ export default function Home() {
       </Section>
 
       {/* ── 7. What This Is NOT ── */}
-      <Section title="What This Is NOT" subtitle="Section 7 — Guardrails" accent="amber">
+      <Section title="What This Is NOT — Architecture Guardrails & Workspace Limitations" subtitle="Section 7 — Guardrails" accent="amber">
         <div style={{
           backgroundColor: "#fffbeb", border: "1px solid #fde68a",
           borderRadius: "8px", padding: "16px 20px",
         }}>
           <div style={{ marginBottom: "10px", fontSize: "13px", color: "#78350f", fontWeight: 600 }}>
-            The following responsibilities are explicitly outside the scope of the DCT Delivery Model:
+            The following are explicitly outside the scope of the DCT Delivery Model and this Manus workspace:
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
             {[
@@ -451,6 +459,10 @@ export default function Home() {
               "Not a workflow engine — Review and approval workflows are Batch 6 scope, not platform scope.",
               "Not responsible for tax calculations — TDC derives tax-ready records; it does not calculate tax liability.",
               "Not a reporting layer — Roger reads and presents; it does not aggregate or compute.",
+              "Not a production system — this Manus workspace is a governance visualization and readiness planning environment only.",
+              "Not a system of record — no authoritative operational data is stored in this workspace.",
+              "Not integrated with enterprise systems — no ADO connections, no live system synchronization.",
+              "Not approved for client data, PII, PHI, or confidential tax data — seed and mock data only.",
             ].map((text, i) => (
               <div key={i} style={{
                 display: "flex", alignItems: "flex-start", gap: "8px",

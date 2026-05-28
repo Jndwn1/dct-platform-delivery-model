@@ -1,10 +1,12 @@
 // Batch Calendar — DCT Platform Delivery
 // RSM | CATT | DCT Platform
-// Source of Truth: DCT Delivery Schedule / Epic Mapping (ADO Wiki)
+// Governance Readiness Reference: DCT Delivery Schedule / Epic Mapping (Architecture Reference)
 // Design: Executive-readable, PI-grouped, Feature-collapsed by default
 // Last refreshed: 2026-05-28 | Source: DCT_Batch_Roadmap_v4_corrected.docx
+// Non-production workspace — architecture visualization and readiness planning only
 import { useState } from "react";
 import { Link } from "wouter";
+import GovernanceBanner from "@/components/GovernanceBanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight, CheckCircle2, Clock, Circle, AlertTriangle, Play, ArrowRight, Info } from "lucide-react";
 
@@ -774,7 +776,10 @@ export default function BatchRoadmap() {
   return (
     <div style={{ padding: "24px 28px", maxWidth: "980px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
 
-      {/* ── Source-of-Truth Banner ── */}
+      {/* ── Governance Banner ── */}
+      <GovernanceBanner />
+
+      {/* ── Architecture Reference Banner ── */}
       <div style={{
         backgroundColor: "#1e3a5f", color: "white",
         borderRadius: "10px", padding: "14px 20px", marginBottom: "20px",
@@ -782,13 +787,13 @@ export default function BatchRoadmap() {
       }}>
         <div>
           <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#93c5fd", marginBottom: "4px" }}>
-            Source of Truth: DCT Delivery Schedule / Epic Mapping
+            Architecture Reference: DCT Delivery Schedule / Epic Mapping (Non-Production)
           </div>
           <div style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>
             Batch Calendar — DCT Platform Delivery
           </div>
           <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
-            Last updated: May 12, 2026 · Source: ADO Wiki (Batch-Calendar-DRAFT)
+            Last updated: May 12, 2026 · Reference: DCT Batch Roadmap (Architecture Visualization — Non-Production)
           </div>
         </div>
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
@@ -825,7 +830,7 @@ export default function BatchRoadmap() {
             { icon: "📋", text: "Features roll up to Epics (Batches) for context — see the Epic Index at the bottom." },
             { icon: "🗂️", text: "Features are grouped by PI and collapsed by default — click any row to expand the full governance summary." },
             { icon: "🔵", text: "PDC (Phoenix Data Consolidation) owns financial data consolidation. TDC (Tax Data Consolidation) owns tax decisions and filing authority." },
-            { icon: "📅", text: "Date ranges represent planned delivery windows from the authoritative ADO wiki schedule." },
+            { icon: "📅", text: "Date ranges represent planned delivery windows from the architecture reference schedule. Authoritative scheduling is maintained in ADO outside this workspace." },
             { icon: "🔗", text: "Cross-batch dependencies show where one Feature's output is required as input for another Feature." },
           ].map((item, i) => (
             <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>

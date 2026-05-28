@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Global Batch Control Panel — v2.1 Source of Truth
+// Global Batch Control Panel — v2.1 Governance Readiness Tracker
+// Non-production workspace — governance visualization and readiness planning only
 // Sections:
 //   1. Batch Status (existing — propagates to all screens)
 //   2. Delivered Work by Batch
@@ -10,6 +11,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "wouter";
+import GovernanceBanner from "@/components/GovernanceBanner";
 import {
   useBatchStatus, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
@@ -1537,12 +1539,15 @@ export default function BatchControlPanel() {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
 
+      {/* ── Governance Banner ── */}
+      <GovernanceBanner />
+
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-[#003865]">Global Control Panel</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            DCT Batch Roadmap v2.1 · Source of truth for all batch-related pages · RSM | CATT
+            DCT Batch Roadmap v2.1 · Governance Readiness Tracker · Non-Production Workspace · RSM | CATT
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1592,8 +1597,8 @@ export default function BatchControlPanel() {
         <Activity className={`w-3.5 h-3.5 shrink-0 ${syncFlash ? "text-emerald-500" : "text-slate-400"}`} />
         <span className="flex-1">
           {syncFlash
-            ? "✓ Status update propagated to all platform views — Roadmap, Calendar, Detail Pages, Executive Summary, Home"
-            : "Control Panel is the single source of truth. All platform views sync automatically on status change."}
+            ? "✓ Status update propagated to all workspace views — Roadmap, Calendar, Detail Pages, Executive Summary, Home"
+            : "Control Panel propagates readiness status across all workspace views. This is a non-production governance visualization environment."}
         </span>
         {lastUpdatedLabel && (
           <span className="shrink-0 text-slate-400 font-normal">

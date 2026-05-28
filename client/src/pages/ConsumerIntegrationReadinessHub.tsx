@@ -1,8 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Consumer Integration Readiness Hub
-// Purpose: Single authoritative integration enablement hub for Roger and future
-//          consumers. Centralizes API relationship guidance, payload sequencing,
+// Purpose: Governance readiness reference hub for Roger and future consumers.
+//          Centralizes API relationship guidance, payload sequencing,
 //          lineage mappings, integration dependencies, and consumer onboarding.
+// Non-production workspace — architecture visualization and readiness planning only
 //
 // Sections:
 //   1.  Executive Summary
@@ -20,6 +21,7 @@
 
 import { useState } from "react";
 import { Link } from "wouter";
+import GovernanceBanner from "@/components/GovernanceBanner";
 import {
   ChevronDown, ChevronUp, Shield, Link2, Database, AlertTriangle,
   CheckCircle2, Clock, Circle, FileText, Zap, Eye, Lock, Users, Printer, Mail, Copy, X,
@@ -368,16 +370,17 @@ export default function ConsumerIntegrationReadinessHub() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   return (
     <div className="min-h-screen bg-slate-50">
+      <div className="px-6 pt-4"><GovernanceBanner /></div>
       {showEmailModal && <EmailSummaryModal onClose={() => setShowEmailModal(false)} />}
-      {/* ── Page Header ──────────────────────────────────────────────────── */}
+      {/* ── Page Header ────────────────────────────────────────────────────────────────────────────── */}
       <div className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Link2 className="w-5 h-5 text-[#003865]" />
               <h1 className="text-xl font-bold text-[#003865]">Consumer Integration Readiness Hub</h1>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "#ede9fe", color: "#4c1d95" }}>
-                Authoritative
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "#fef3c7", color: "#92400e" }}>
+                Non-Production Reference
               </span>
             </div>
             <p className="text-sm text-slate-500">
@@ -1160,14 +1163,15 @@ export default function ConsumerIntegrationReadinessHub() {
             <p className="text-sm text-slate-600 mb-3">
               The following matrix classifies each API endpoint by maturity and stability status.
               Consumers should only integrate against <strong>Stable</strong> or <strong>MVP</strong> endpoints
-              for production-bound work. Experimental and Future PI endpoints are subject to breaking changes.
+              for enterprise implementation work. Experimental and Future PI endpoints are subject to breaking changes.
+              All data in this workspace is mock/seed data for readiness planning purposes only.
             </p>
 
             <div className="flex flex-wrap gap-2 mb-3">
               {[
-                { label: "Stable", color: "#059669", bg: "#d1fae5", desc: "Production-safe. No breaking changes without versioning." },
+                { label: "Stable", color: "#059669", bg: "#d1fae5", desc: "Enterprise-implementation-ready. No breaking changes without versioning." },
                 { label: "MVP", color: "#1e40af", bg: "#dbeafe", desc: "Approved for 9/16 pilot. Stable within MVP scope." },
-                { label: "Experimental", color: "#d97706", bg: "#fef3c7", desc: "Subject to change. Do not use for production integrations." },
+                { label: "Experimental", color: "#d97706", bg: "#fef3c7", desc: "Subject to change. Do not use for enterprise implementation integrations." },
                 { label: "Future PI", color: "#6b7280", bg: "#f3f4f6", desc: "Not yet available. Planned for post-MVP delivery." },
                 { label: "Internal Only", color: "#dc2626", bg: "#fee2e2", desc: "Not exposed to consumers. DCT internal use only." },
               ].map(({ label, color, bg, desc }) => (
@@ -1360,8 +1364,9 @@ export default function ConsumerIntegrationReadinessHub() {
             </div>
           </div>
           <p className="text-xs text-slate-400 mt-2">
-            DCT Platform · CATT · RSM US LLP · This document is authoritative as of {HUB_UPDATED} and reflects {HUB_SOURCE} as the governing source of truth.
-            ADO Feature IDs are placeholders — update with actual ADO work item numbers before distributing.
+            DCT Platform · CATT · RSM US LLP · This document is a governance readiness reference as of {HUB_UPDATED}, based on {HUB_SOURCE}.
+            This workspace is non-production. ADO Feature IDs are placeholders — update with actual ADO work item numbers before distributing.
+            Do not treat this document as an authoritative operational record. Formal implementation occurs outside this workspace.
           </p>
         </div>
 

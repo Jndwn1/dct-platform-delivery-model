@@ -1,11 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Gap Analysis Engine — Master Data Intake Readiness Assessment
 // Core question 1: Does the Master Data Intake align with what is in Manus?
-// Core question 2: What gaps need to be resolved before real data can load?
+// Core question 2: What gaps need to be resolved before reference data can be validated?
 // Source: DCT_Master_Data_Intake1.xlsx (8 intake entities)
+// Non-production workspace — governance planning and readiness assessment only
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import GovernanceBanner from "@/components/GovernanceBanner";
 
 type AlignStatus = "Aligned" | "Partial" | "Missing";
 type GapSeverity = "Critical" | "High" | "Medium" | "Low";
@@ -287,11 +289,16 @@ Dashboard Version: v4_corrected
 EXECUTIVE SUMMARY
 ═══════════════════════════════════════════════════════════════
 
-The Master Data Intake workbook defines 8 data entities required to move
-the DCT Platform from seed/sample data to real production data for the
-9/16 Pilot Start. This report assesses alignment between the intake
-instrument and the current Manus dashboard, and identifies gaps that
-must be resolved before SMEs and leadership can begin populating real data.
+The Master Data Intake workbook defines 8 data entities required to validate
+the DCT Platform architecture for the 9/16 Pilot Start. This report assesses
+alignment between the intake instrument and the current governance workspace,
+and identifies gaps that must be resolved before SMEs and leadership can begin
+populating reference data in the enterprise implementation outside this workspace.
+
+IMPORTANT: This workspace is a non-production governance visualization environment.
+It is not a production system, system of record, or integrated operational platform.
+All data in this workspace is mock or seed data. Formal data collection and loading
+must occur in the approved enterprise implementation environment, not in Manus.
 
 ALIGNMENT SCORECARD
   Fully Aligned:        ${aligned} of 8 entities
@@ -303,12 +310,14 @@ GAP SUMMARY
   Critical gaps (must resolve first):  ${criticalGaps}
   Fields with no platform destination: ${noDestCount}
 
-OVERALL READINESS: NOT READY FOR REAL DATA COLLECTION
-  — ${missing} entities have zero dashboard coverage and must be built
-    before the intake form can be used to load real data.
+OVERALL READINESS: ARCHITECTURE GAPS IDENTIFIED — REFERENCE DATA VALIDATION PENDING
+  — ${missing} entities have zero workspace coverage and must be built
+    before the architecture can be validated against the intake instrument.
   — ${noDestCount} fields in the intake have no corresponding destination
-    in the platform data model.
-  — All 8 entities currently contain seed/sample data only.
+    in the current architecture model.
+  — All 8 entities currently contain seed/sample data for governance visualization only.
+  — NOTE: This workspace is non-production. Formal data collection must occur
+    in the approved enterprise implementation environment outside Manus.
 
 ═══════════════════════════════════════════════════════════════
 ENTITY ALIGNMENT STATUS
@@ -317,7 +326,7 @@ ENTITY ALIGNMENT STATUS
 ${entitySummary}
 
 ═══════════════════════════════════════════════════════════════
-CRITICAL GAPS — MUST RESOLVE BEFORE DATA COLLECTION BEGINS
+CRITICAL GAPS — MUST RESOLVE BEFORE ENTERPRISE IMPLEMENTATION BEGINS
 ═══════════════════════════════════════════════════════════════
 
 ${critItems}
@@ -360,10 +369,13 @@ RECOMMENDED NEXT STEPS FOR PO
      resolution item (blocks 3 entities).
 
   5. Confirm pilot scope: which forms, which entity types, which jurisdictions,
-     which tax year — before any real data collection begins.
+     which tax year — before enterprise implementation and formal data collection begins
+     in the approved production environment outside this workspace.
 
 ═══════════════════════════════════════════════════════════════
-© 2026 RSM US LLP · CATT · DCT Platform · CONFIDENTIAL
+© 2026 RSM US LLP · CATT · DCT Platform · GOVERNANCE REFERENCE ONLY
+This report is generated from a non-production governance visualization workspace.
+Do not treat outputs as authoritative operational records.
 ═══════════════════════════════════════════════════════════════`;
 }
 
@@ -390,6 +402,7 @@ export default function GapAnalysisEngine() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ padding: "12px 32px 0" }}><GovernanceBanner /></div>
 
       {/* Header */}
       <div style={{ backgroundColor: "#0f2d5e", padding: "24px 32px" }}>
@@ -406,7 +419,7 @@ export default function GapAnalysisEngine() {
             </div>
             <p style={{ color: "#cbd5e1", fontSize: 13, margin: 0, maxWidth: 680 }}>
               <strong style={{ color: "#fff" }}>Question 1:</strong> Does the Master Data Intake align with what is in Manus?&nbsp;&nbsp;
-              <strong style={{ color: "#fff" }}>Question 2:</strong> What gaps must be resolved before real data can replace seed data?
+              <strong style={{ color: "#fff" }}>Question 2:</strong> What gaps must be resolved before enterprise implementation can begin?
             </p>
           </div>
           <button
@@ -436,7 +449,7 @@ export default function GapAnalysisEngine() {
         <span style={{ fontSize: 13, color: "#374151" }}><strong style={{ color: "#dc2626" }}>{criticalGaps}</strong> critical gaps</span>
         <span style={{ fontSize: 13, color: "#374151" }}><strong style={{ color: "#7c3aed" }}>{noDestCount}</strong> fields with no platform destination</span>
         <div style={{ marginLeft: "auto", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, padding: "4px 12px" }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#dc2626" }}>⚠ NOT READY FOR REAL DATA COLLECTION</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#dc2626" }}>⚠ ARCHITECTURE GAPS IDENTIFIED — ENTERPRISE IMPLEMENTATION PENDING</span>
         </div>
       </div>
 
@@ -493,7 +506,7 @@ export default function GapAnalysisEngine() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
                 <div>
                   <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: 0 }}>All Resolution Items</h2>
-                  <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>Complete list of gaps to resolve before real data collection can begin</p>
+                  <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>Complete list of gaps to resolve before enterprise implementation can begin</p>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {(["All", "Critical", "High", "Medium", "Low"] as const).map(s => (
