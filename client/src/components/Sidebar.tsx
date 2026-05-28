@@ -108,8 +108,9 @@ const BA_ITEMS: NavItem[] = [
 
 // Governance — platform governance and data integrity
 const GOVERNANCE_ITEMS: NavItem[] = [
+  { label: "Gap Analysis Engine",    path: "/gap-analysis",        icon: "🔍", badge: "NEW", badgeColor: "#dc2626" },
   { label: "AAP Review Model",       path: "/aap-review",          icon: "◈" },
-  { label: "Data Governance & SoT",  path: "/data-governance",     icon: "⚖", badge: "New", badgeColor: "#059669" },
+  { label: "Data Governance & SoT",  path: "/data-governance",     icon: "⚖" },
   { label: "Roger UI Data Mapping",  path: "/roger-mapping",       icon: "≡" },
 ];
 

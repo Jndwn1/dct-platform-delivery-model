@@ -34,6 +34,7 @@ import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
 import BatchDetailPage from "./pages/BatchDetailPage";
 import IntegrationSimulation from "./pages/IntegrationSimulation";
 import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadinessHub";
+import GapAnalysisEngine from "./pages/GapAnalysisEngine";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -98,6 +99,7 @@ function Router() {
         <Route path="/aap-review" component={AAPReviewPage} />
         <Route path="/tax-mapping" component={TaxMappingPage} />
         <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
+        <Route path="/gap-analysis" component={GapAnalysisEngine} />
 
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
