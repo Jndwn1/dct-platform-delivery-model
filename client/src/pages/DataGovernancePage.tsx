@@ -122,12 +122,12 @@ const DATA_DOMAINS: DataDomain[] = [
   },
   {
     id: "D08",
-    name: "Prior Year Data",
-    system: "PDC + TDC",
+    name: "Gateway Consumer Surface (IMS / CEM / TIM pass-through)",
+    system: "PDC",
     batch: "Batch 9",
     status: "Not Started",
-    sotOwner: "TDC — rollforward proposals (new records, not copies); PDC — IMS inbound integration",
-    notes: "PI 2 Stretch. Flow: IMS → PDC → Orchestrator → TDC. Prior year data is immutable, versioned, scoped by Entity + TaxYear + ReturnType.",
+    sotOwner: "PDC — Ocelot gateway (single entry point for Roger and all consumers). IMS, CEM, and TIM data surfaced via pass-through — not stored in PDC.",
+    notes: "PI 2 Stretch. ARCHITECTURAL CHANGE: B9 repurposed from IMS Integration & Prior Year Retrieval to Roger Gateway & Governed Consumer Access Layer (surface-not-store). Roger and all consumers call the gateway — not underlying systems directly. eODS deferred. TDC B9 rollforward scope ON HOLD — absorbed by other batches. Source: Roadmap v4.",
   },
   {
     id: "D09",

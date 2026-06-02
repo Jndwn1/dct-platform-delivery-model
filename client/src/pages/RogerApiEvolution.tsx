@@ -79,15 +79,15 @@ const API_BATCHES = [
     note: "Roger surfaces exception counts and severity in the home page dashboard. Practitioners can submit remediation actions. Critical exceptions block TAX_READY promotion until resolved.",
   },
   {
-    batch: "Batch 9", label: "PDC IMS Integration & Prior Year Retrieval",
+    batch: "Batch 9", label: "Roger Gateway & Governed Consumer Access Layer (PDC)",
     endpoints: [
-      { method: "GET",  path: "/api/v1/ims/prior-year/{clientId}/{taxYear}",              desc: "Prior year tax record retrieved from IMS for rollforward comparison" },
-      { method: "GET",  path: "/api/v1/ims/prior-year/{clientId}/{taxYear}/delta",        desc: "Delta analysis between prior year and current year TDC records" },
-      { method: "GET",  path: "/api/v1/ims/retrieval-status/{jobId}",                    desc: "IMS retrieval job status — PENDING | IN_PROGRESS | COMPLETE | FAILED" },
-      { method: "GET",  path: "/api/v1/tdc/records/{documentId}/rollforward-candidates", desc: "TDC records flagged as rollforward candidates based on prior year match" },
+      { method: "GET",  path: "/api/v1/gateway/ims/prior-year/{clientId}/{taxYear}",      desc: "IMS prior year tax return data via gateway pass-through — not stored in PDC" },
+      { method: "GET",  path: "/api/v1/gateway/ims/current-year/{clientId}/{taxYear}",    desc: "IMS current year tax return data via gateway pass-through — not stored in PDC" },
+      { method: "GET",  path: "/api/v1/gateway/cem/client-auth/{clientId}",              desc: "CEM client authorization and user mapping via gateway pass-through — not stored in PDC" },
+      { method: "GET",  path: "/api/v1/gateway/tim/engagement/{engagementId}",           desc: "TIM engagement metadata, deliverables, and due dates via gateway pass-through — not stored in PDC" },
     ],
-    models: ["ImsRecord", "PriorYearDelta", "RetrievalJob", "RetrievalStatus (enum: PENDING | IN_PROGRESS | COMPLETE | FAILED)", "RollforwardCandidate"],
-    note: "Roger displays prior year comparison panels using IMS data. Rollforward candidates are highlighted to accelerate practitioner review. IMS retrieval is asynchronous — Roger polls retrieval status before rendering.",
+    models: ["GatewayImsRecord", "GatewayCemRecord", "GatewayTimRecord", "GatewayReadContract (versioned — additive-only)"],
+    note: "ARCHITECTURAL CHANGE: B9 repurposed from IMS Integration & Prior Year Retrieval to Roger Gateway & Governed Consumer Access Layer (surface-not-store). Roger and all consumers call the Ocelot gateway — not underlying systems directly. IMS, CEM, and TIM data is surfaced via pass-through without PDC storage. Gateway Read Contract is the versioned consumer surface — additive-only once published. eODS deferred. TDC B9 rollforward scope ON HOLD. Source: Roadmap v4.",
   },
   {
     batch: "Batch 10", label: "Return Assembly, Filing & Lineage Closure",

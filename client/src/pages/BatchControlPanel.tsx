@@ -1069,14 +1069,21 @@ const ROGER_DATA_POINTS: RogerDataPoint[] = [
     notes: "In progress (PI 2). PDC parallel to Batch 7, TDC sequential after Batch 7. Exception state machine: OPEN → IN_PROGRESS → RESOLVED / CLOSED / SUPPRESSED.", owner: "PDC + TDC",
   },
   {
-    dataPoint: "Rollforward proposals & prior year intelligence",
-    source: "PDC + TDC", batch: "Batch 9", availability: "Not Available",
-    apiEndpoint: "GET /api/v1/rollforward-proposals",
-    fieldsDelivered: ["rollforwardId", "entityId", "priorYearRecordId", "currentYearEntityId", "matchConfidence (EXACT/APPROXIMATE/NO_MATCH)", "proposedTaxLineId", "priorYearAmount", "deltaAmount", "imsSourceRef", "createdAt", "contractVersion"],
-    adoStories: [
-      { title: "IMS Inbound Retrieval Contract", id: "1350260" },
+    dataPoint: "Gateway Read Contract (Roger consumer surface)",
+    source: "PDC", batch: "Batch 9", availability: "Not Available",
+    apiEndpoint: "GET /api/v1/gateway/* (Ocelot — IMS / CEM / TIM pass-through)",
+    fieldsDelivered: [
+      "gateway auth & routing layer",
+      "IMS pass-through: prior year + current year tax return data (not stored in PDC)",
+      "CEM pass-through: client auth + user mapping (not stored in PDC)",
+      "TIM pass-through: engagement metadata, deliverables, due dates (not stored in PDC)",
+      "Gateway Read Contract (versioned consumer surface — additive-only once published)",
     ],
-    notes: "Batch 9 not started. PDC free after Batch 5 closes, TDC sequential after Batch 6 closes. v_rollforward contract extends TDC Records API for Roger. Prior year proposals with EXACT / APPROXIMATE / NO_MATCH confidence scoring.", owner: "PDC + TDC",
+    adoStories: [
+      { title: "Ocelot Gateway Scaffolding & Governed Consumer Access Layer", id: "1350260" },
+      { title: "Gateway Read Contract Publication (Roger Consumer Surface)", id: "1350261" },
+    ],
+    notes: "Batch 9 PDC only. ARCHITECTURAL CHANGE: B9 repurposed from IMS Integration & Prior Year Retrieval to Roger Gateway & Governed Consumer Access Layer (surface-not-store). Roger and all consumers call the gateway — not underlying systems directly. IMS, CEM, and TIM data surfaced via pass-through without PDC storage. eODS deferred. TDC B9 rollforward scope is ON HOLD — absorbed by other batches. Source: Roadmap v4.", owner: "PDC",
   },
 ];
 

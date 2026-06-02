@@ -96,7 +96,7 @@ const API_CONTRACTS: ApiContract[] = [
   { name: "Client Group List", path: "GET /api/v1/client-groups", batch: "B5", system: "PDC", status: "Published", additiveOnly: true, consumerGuide: true, lineage: false },
   { name: "Practitioner Review", path: "POST /api/v1/practitioner-reviews", batch: "B6", system: "TDC", status: "In Progress", additiveOnly: false, consumerGuide: false, lineage: false },
   { name: "Exception Record", path: "POST /api/v1/exceptions", batch: "B8", system: "TDC", status: "In Progress", additiveOnly: true, consumerGuide: false, lineage: false },
-  { name: "Rollforward", path: "POST /api/v1/rollforward", batch: "B9", system: "TDC", status: "Missing", additiveOnly: false, consumerGuide: false, lineage: false },
+  { name: "Gateway Read Contract", path: "GET /api/v1/gateway/*", batch: "B9", system: "PDC", status: "Missing", additiveOnly: true, consumerGuide: false, lineage: false },
 ];
 
 const BATCH_DEPS = [

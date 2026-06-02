@@ -194,7 +194,7 @@ const BATCH_HEATMAP: { batch: string; focus: string; maturity: "high" | "medium"
   { batch: "B6",  focus: "Workflow / Practitioner",      maturity: "low"    },
   { batch: "B7",  focus: "Eligibility / Profile",        maturity: "low"    },
   { batch: "B8",  focus: "Exceptions / Remediation",     maturity: "none"   },
-  { batch: "B9",  focus: "Prior Year / Rollforward",     maturity: "none"   },
+  { batch: "B9",  focus: "Gateway / Consumer Access",    maturity: "none"   },
   { batch: "B10", focus: "Filing / Assembly",            maturity: "none"   },
 ];
 
