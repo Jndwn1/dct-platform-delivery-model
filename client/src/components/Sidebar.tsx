@@ -45,9 +45,9 @@ const PI2_BATCH_ITEMS: { label: string; path: string; batchKey: BatchKey; indent
   { label: "B8 — Exceptions & Remediation",                     path: "/batch/8",               batchKey: "8" },
   { label: "  B8 | PDC — Exception & Remediation",              path: "/batch/8-pdc",           batchKey: "8-pdc",  indent: true },
   { label: "  B8 | TDC — Exceptions & Remediation",             path: "/batch/8-tdc",           batchKey: "8-tdc",  indent: true },
-  { label: "B9 — Rollforward & Prior Year Intelligence",        path: "/batch/9",               batchKey: "9" },
-  { label: "  B9 | PDC — IMS Integration & Prior Year",         path: "/batch/9-pdc",           batchKey: "9-pdc",  indent: true },
-  { label: "  B9 | TDC — Rollforward & Prior Year Intel",       path: "/batch/9-tdc",           batchKey: "9-tdc",  indent: true },
+  { label: "B9 — Roger Gateway & Consumer Access Layer",         path: "/batch/9",               batchKey: "9" },
+  { label: "  B9 | PDC — Roger Gateway & Consumer Access",       path: "/batch/9-pdc",           batchKey: "9-pdc",  indent: true },
+  { label: "  B9 | TDC — Rollforward (ON HOLD — B31)",            path: "/batch/9-tdc",           batchKey: "9-tdc",  indent: true },
   { label: "B10 — Return Assembly & Lineage Closure",           path: "/batch/10",              batchKey: "10" },
   { label: "B11 — Learning Governance & Model Evolution",       path: "/batch/11",              batchKey: "11" },
 ];

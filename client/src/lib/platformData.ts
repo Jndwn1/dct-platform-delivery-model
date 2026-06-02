@@ -333,7 +333,7 @@ export const TOUCHPOINTS: EnrichedTouchpoint[] = [
     agentId: "demo_runner", agentName: "Demo Runner Agent",
     gate: "G4", status: "PLANNED", isAuthorityAction: false,
     inputs: ["Tax Decision Record from T10", "Canonical dataset from PDC", "TDC Records API Contract (Roger Read Surface — Batch 4)", "Entity eligibility status (Batch 7)", "Exception status (Batch 8)"],
-    outputs: ["Practitioner view (GREEN/YELLOW/RED distribution, pending vs decided)", "Audit trail display", "Lineage trace UI", "Exception status surface (Batch 8)", "Rollforward proposals (Batch 9)", "Return assembly & filing status (Batch 10)"],
+    outputs: ["Practitioner view (GREEN/YELLOW/RED distribution, pending vs decided)", "Audit trail display", "Lineage trace UI", "Exception status surface (Batch 8)", "Gateway consumer surface (Batch 9)", "Return assembly & filing status (Batch 10)"],
     responsibility: "Surface verified tax results and full audit trail to practitioners (read-only). Roger is activated as a practitioner tool at Batch 4. Full practitioner workflow at Batch 6. Eligibility gating visible at Batch 7. Exception surface at Batch 8.",
   },
 ];
@@ -717,7 +717,7 @@ export const BATCH_ROADMAP: BatchDefinition[] = [
       { id: 3, title: "PDC — Root Cause Tracking & Resolution Records", wmbt: "Root cause captured and visible for each exception." },
       { id: 4, title: "PDC — Exceptions Read Contract", wmbt: "Exception data exposed via API for Roger consumption." },
       { id: 5, title: "TDC — Exception Record Structure & Failure Tracking (ID: 1355902)", wmbt: "TDC captures mapping, decision, and workflow exceptions. Invariant violation exceptions have a restricted path to SUPPRESSED requiring an authorized override record." },
-      { id: 6, title: "TDC — Flag Management & Remediation Actions", wmbt: "Batch 9 rollforward failures use this framework — PROPOSAL_RECEIPT_FAILURE covers rollforward proposal generation failures." },
+      { id: 6, title: "TDC — Flag Management & Remediation Actions", wmbt: "Gateway pass-through failures use this framework — GATEWAY_SURFACE_FAILURE covers pass-through surface errors. B9 TDC Rollforward scope ON HOLD." },
       { id: 7, title: "TDC — Root Cause Tracking & Resolution Records", wmbt: "End-to-end traceability: Source data → Exception → Resolution → Final outcome." },
       { id: 8, title: "TDC — Exceptions Read Contract", wmbt: "TDC exception data exposed via API for Roger consumption." },
     ],
@@ -725,23 +725,23 @@ export const BATCH_ROADMAP: BatchDefinition[] = [
   {
     id: "Batch 9",
     name: "Batch 9",
-    title: "Rollforward & Prior Year Intelligence",
+    title: "Roger Gateway & Governed Consumer Access Layer",
     pi: "PI 2",
-    status: "NOT_STARTED",
-    sequencing: "PDC free after Batch 5 closes · TDC sequential after Batch 6 closes",
-    overview: "Prior year decisions carry forward as high-confidence proposals. Year two is dramatically faster than year one — practitioners review carry-forwards instead of re-mapping from scratch. Flow: IMS → PDC → Orchestrator → TDC.",
+    status: "IN_PROGRESS",
+    sequencing: "PDC only — sequential after Batch 8 PDC closes. TDC B9 Rollforward ON HOLD — absorbed by B31.",
+    overview: "ARCHITECTURAL CHANGE: B9 repurposed from IMS Integration & Prior Year Retrieval to Roger Gateway & Governed Consumer Access Layer (surface-not-store). PDC delivers the Ocelot gateway scaffolding plus IMS, CEM, and TIM pass-through surfaces. Roger and all future consumers access enterprise data through the gateway rather than calling underlying systems directly. eODS deferred. TDC B9 Rollforward scope absorbed by B31.",
     keyOutcomes: [
-      "Trigger an IMS sync for an entity / year / return type",
-      "Rollforward proposals with EXACT / APPROXIMATE / NO_MATCH confidence scoring",
-      "Roger consuming: rollforward proposals and prior year context",
-      "Contract-first enforcement demonstrated (schema mismatch rejection)",
+      "Ocelot gateway deployed as single consumer entry point for Roger and all consumers",
+      "IMS, CEM, and TIM data surfaced via pass-through — not stored in PDC",
+      "Gateway Read Contract published as versioned, additive-only consumer surface",
+      "No consumer calls underlying systems directly — all access routed through gateway",
     ],
     stories: [
-      { id: 1, title: "IMS Sync Mechanism & Schema Registry", wmbt: "PDC calls IMS with scoping keys (ClientId, EntityId, TaxYear, ReturnType). Invalid payloads rejected with structured errors." },
-      { id: 2, title: "IMS Inbound Retrieval Contract (ID: 1350260)", wmbt: "IMS inbound retrieval contract published as a versioned OpenAPI specification. PDC owns the contract — IMS builds to it." },
-      { id: 3, title: "Prior Year Reference Data", wmbt: "TDC receives normalized prior year decision data and persists as immutable versioned reference data with ACTIVE/SUPERSEDED lifecycle." },
-      { id: 4, title: "Rollforward Proposals", wmbt: "Rollforward proposals generated with confidence scoring using Batch 4 Confidence Band Thresholds. source_type flag (ORCHESTRATOR / ROLLFORWARD) distinguishes proposal origin." },
-      { id: 5, title: "v_rollforward Read Contract (Roger Read Surface)", wmbt: "v_rollforward contract extends the existing TDC Records API for Roger. Roger surfaces rollforward proposals in the review queue with prior year context visible." },
+      { id: 1, title: "Ocelot Gateway Scaffolding & Governed Consumer Access Layer", wmbt: "Gateway deployed with authentication, routing, and governed consumer access controls. Published as the single consumer entry point." },
+      { id: 2, title: "IMS Pass-Through Surface", wmbt: "Current-year and prior-year tax return data available via gateway pass-through. Data is surfaced only — no storage inside PDC." },
+      { id: 3, title: "CEM Pass-Through Surface", wmbt: "Client authorization and client-to-user mappings available through gateway pass-through. No storage in PDC." },
+      { id: 4, title: "TIM Pass-Through Surface", wmbt: "Engagement metadata, deliverables, due dates, acceptance records, and continuance information available via gateway pass-through." },
+      { id: 5, title: "Gateway Read Contract Publication (Roger Consumer Surface)", wmbt: "Versioned consumer contract published for Roger. Contract is additive-only. Published contract becomes the authoritative consumer surface." },
     ],
   },
   {
@@ -892,7 +892,7 @@ export const SYSTEM_OWNERSHIP: SystemOwnership[] = [
   { system: "AI Orchestrator",  owner: "Roger team",           role: "Stateless compute performing recognition, normalization, and mapping (once per file)", sor: false, layer: "orchestration", colorHex: "#2563EB" },
   { system: "Roger Web App",    owner: "Roger team",           role: "User interface for practitioner review — read-only consumer",                          sor: false, layer: "experience",    colorHex: "#DB2777" },
   { system: "Taxonomy Service", owner: "DCT / TDC",            role: "Owns firm taxonomy hierarchy, versioning, and FirmTaxonomyId assignment",              sor: true,  layer: "tdc",           colorHex: "#7C3AED" },
-  { system: "IMS",              owner: "Platform / External",  role: "Prior year data source (Batch 9) and filing delivery target (Batch 10)",               sor: false, layer: "ingestion",     colorHex: "#64748B" },
+  { system: "IMS",              owner: "Platform / External",  role: "Pass-through data surface via B9 Gateway (not stored in PDC) and filing delivery target (Batch 10)",               sor: false, layer: "ingestion",     colorHex: "#64748B" },
   { system: "CEM",              owner: "Platform",             role: "Client and legal entity identity source for PDC sync (Batch 5)",                       sor: false, layer: "ingestion",     colorHex: "#0891B2" },
 ];
 
@@ -1002,8 +1002,8 @@ export const OPEN_ITEMS: OpenItem[] = [
     priority: "High", owner: "DCT Architecture + Roger Team", status: "OPEN",
   },
   {
-    id: "OI-05", title: "IMS readiness for Batch 9 and Batch 10",
-    description: "IMS outbound contract (Batch 10) is gated on IMS readiness. Manual admin API load path available for Batch 9 prior year data if IMS is not ready. IMS integration timeline must be confirmed before Batch 9/10 PI planning.",
+    id: "OI-05", title: "IMS readiness for Batch 9 Gateway and Batch 10",
+    description: "IMS outbound contract (Batch 10) is gated on IMS readiness. B9 Gateway surfaces IMS data via pass-through — not stored in PDC. IMS pass-through readiness must be confirmed before B9 Gateway Read Contract can be published.",
     priority: "High", owner: "Platform Architecture + IMS Team", status: "OPEN",
   },
 ];
@@ -1048,8 +1048,8 @@ export const DEPENDENCIES: Dependency[] = [
     owner: "Platform team", status: "PLANNED", blocking: false,
   },
   {
-    id: "DEP-06", name: "IMS integration (Batch 9 + Batch 10)",
-    description: "IMS inbound retrieval contract (Batch 9) and IMS outbound delivery contract (Batch 10) must be published. Batch 10 IMS outbound is gated on IMS readiness — manual admin API load path available as interim.",
+    id: "DEP-06", name: "IMS Gateway pass-through (Batch 9) + IMS outbound (Batch 10)",
+    description: "B9 Gateway surfaces IMS data via pass-through (surface-not-store). IMS outbound delivery contract (Batch 10) must be published. Batch 10 IMS outbound is gated on IMS readiness — manual admin API load path available as interim.",
     owner: "IMS Team + Platform", status: "PLANNED", blocking: false,
   },
 ];

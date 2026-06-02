@@ -75,7 +75,7 @@ const INTEGRATION_RISKS: IntegrationRisk[] = [
   { id: "r3", title: "Lineage reference missing from B8 Exception API", system: "TDC", batch: "B8", level: "warning", description: "ExceptionRecord API does not include lineageRef in the response payload. Audit trail will be incomplete for exception-driven decisions." },
   { id: "r4", title: "Mapping Proposal API not yet Swagger-published", system: "TDC", batch: "B4", level: "warning", description: "GET /api/v1/mapping-proposals exists in code but has no Swagger entry. Roger BA cannot validate the contract before sprint start." },
   { id: "r5", title: "PeriodStart/End not defined in B5 Entity API", system: "PDC", batch: "B5", level: "warning", description: "Entity Identity API response does not include periodStart or periodEnd. Tax year scoping will be ambiguous for multi-year entities." },
-  { id: "r6", title: "B9 Rollforward API has no consumer guide entry", system: "TDC", batch: "B9", level: "info", description: "Rollforward API is In Progress but no consumer guide entry exists. Roger BA has no reference for integration." },
+  { id: "r6", title: "B9 Gateway Read Contract not yet published", system: "PDC", batch: "B9", level: "info", description: "Gateway Read Contract (Ocelot) is In Progress. Consumer guide entry pending. Roger BA should not call underlying systems directly until contract is published." },
   { id: "r7", title: "Orchestrator contract gap — workflow state transitions", system: "Orchestrator", batch: "B6", level: "info", description: "Practitioner Review workflow states (PENDING_REVIEW, REVIEWED, ESCALATED) are not documented in the Orchestrator contract." },
 ];
 
@@ -844,7 +844,7 @@ Answer governance, integration, dependency, and risk questions grounded in the d
                     { screen: "Client Group List", batch: "B5", status: "ready", note: "Client Groups API published and consumer guide available." },
                     { screen: "Practitioner Review Workflow", batch: "B6", status: "warning", note: "Workflow states documented. API In Progress." },
                     { screen: "Exception Management", batch: "B8", status: "blocking", note: "Exception API In Progress. Lineage missing." },
-                    { screen: "Rollforward Screen", batch: "B9", status: "blocking", note: "Rollforward API Missing. No Swagger entry." },
+                    { screen: "Gateway Consumer Screen", batch: "B9", status: "warning", note: "Gateway Read Contract In Progress. Roger should consume via gateway — not direct system calls." },
                   ].map((r, i) => (
                     <div key={i} className={`flex items-center gap-3 rounded-lg px-4 py-3 border ${r.status === "blocking" ? "bg-red-50 border-red-200" : r.status === "warning" ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
                       <PulseIndicator level={r.status === "blocking" ? "blocking" : r.status === "warning" ? "warning" : "ok"} />
@@ -867,7 +867,7 @@ Answer governance, integration, dependency, and risk questions grounded in the d
                     { item: "tax_year field contract amendment (B3)", pi: "PI 1 → PI 2", risk: "blocking", note: "PDC contract amendment required. Affects all downstream consumers including Roger and Orchestrator." },
                     { item: "Practitioner Review API (B6)", pi: "PI 1 → PI 2", risk: "warning", note: "API In Progress. Consumer guide and Swagger entry pending. Roger cannot build review screen." },
                     { item: "Exception API Lineage (B8)", pi: "PI 2 → PI 3", risk: "warning", note: "lineageRef missing from Exception API response. Audit trail incomplete." },
-                    { item: "Rollforward API (B9)", pi: "PI 2 → PI 3", risk: "blocking", note: "API Missing. No Swagger entry. Roger Rollforward screen fully blocked." },
+                    { item: "Gateway Read Contract (B9)", pi: "PI 2 Committed", risk: "warning", note: "Gateway Read Contract In Progress. Roger and all consumers must route through Ocelot gateway — no direct IMS/CEM/TIM calls permitted." },
                     { item: "Consumer Guide entries (B4, B6, B8)", pi: "PI 1 → PI 2", risk: "warning", note: "3 APIs missing consumer guide entries. Roger BA cannot validate integration before sprint start." },
                   ].map((r, i) => (
                     <div key={i} className={`rounded-xl border p-4 ${r.risk === "blocking" ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}>
