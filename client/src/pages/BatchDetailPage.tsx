@@ -477,6 +477,107 @@ const BATCH_CONTENT: Record<string, BatchContent> = {
       { title: "Immutable Advisory Lineage", wmbt: "All advisory workflow events — detection, surfacing, decision, suppression, close-out — published as immutable lineage events. Additive-only contract behavior enforced." },
     ],
   },
+  B26: {
+    gate: "G3 — Contract Publication",
+    systems: ["PDC", "Roger UI"],
+    lead: "PDC Workstream Lead",
+    entryCondition: "Batch 5 complete; pilot C-corp clients with divisions/branches/disregarded entities confirmed",
+    exitCondition: "Entity constituent records live; inter-entity allocation records versioned; extended Entity Identity Read Contract published; Roger surfacing constituent records",
+    executiveNote: "PROMOTED TO MVP: PDC portion pulled from PI 4 to PI 3 MVP (8/4–8/14). Required for pilot CPAs handling divisions, branches, and disregarded entities at start. B26 TDC (tax workflow layer) remains PI 4.",
+    governanceTags: ["PDC", "Read Contract", "MVP Promoted"],
+    stories: [
+      { title: "Entity Constituent Records (Divisions, Branches, Disregarded Entities)", wmbt: "Entity constituents modeled as first-class records below the legal entity. Every constituent must be mapped to a legal entity — orphan constituent records are not permitted." },
+      { title: "Inter-Entity Allocation Records", wmbt: "Inter-entity allocation records versioned — changes are additive, not overwrites." },
+      { title: "Constituent-to-Legal-Entity Mapping", wmbt: "Every constituent traces to a legal entity. Mapping is governed and version-tracked." },
+      { title: "Extended Entity Identity Read Contract", wmbt: "Entity Identity Read Contract extended additively. No existing field removed or re-typed. Roger retrieves constituent records alongside the legal entity." },
+    ],
+  },
+  B28: {
+    gate: "G4 — Lineage Closure",
+    systems: ["TDC", "Roger UI"],
+    lead: "TDC Workstream Lead",
+    entryCondition: "Batch 17 complete; workpaper definitions established; B14 and B15 MVP slices scoped",
+    exitCondition: "M-1/M-3, Schedule J/L, depreciation rollforward, and provision workpapers live; BTP Provision Outbound Contract published; Tax Workpaper read contract live; Roger surfacing workpapers inline with practitioner review",
+    executiveNote: "SCOPE ABSORPTION: Absorbs MVP slices of B14 (reconciliation formulas, depreciation rule definitions) and B15 (provision reference data). Full B14 and B15 computation engines remain Post-MVP.",
+    governanceTags: ["TDC", "Read Contract", "Lineage Critical"],
+    stories: [
+      { title: "M-1 and M-3 Reconciliation Workpaper Templates", wmbt: "Workpaper templates versioned reference data. A workpaper record must store the template version it was generated from." },
+      { title: "Schedule J and Schedule L Workpaper Templates", wmbt: "Schedule J and L templates governed and versioned." },
+      { title: "Depreciation Rollforward Schedule (MACRS, Straight-Line, Bonus)", wmbt: "Depreciation rule definitions are reference data — practitioners may not alter rules outside the MDM surface." },
+      { title: "Reconciliation Formula Definitions (MVP Slice from B14)", wmbt: "Reconciliation formulas governing the M-1/M-3 workpaper. Formula version recorded on every workpaper record." },
+      { title: "DTA/DTL Classification Workpaper + ETR Reconciliation Workpaper", wmbt: "DTA/DTL and ETR workpapers governed under the same versioning and lineage rules as all other workpapers." },
+      { title: "Return-to-Provision Reconciliation Workpaper + Federal Payments Schedule", wmbt: "Return-to-provision reconciliation and federal payments schedule workpapers. Source traceability required for all lines." },
+      { title: "Provision Reference Data (MVP Slice from B15) + BTP Outbound", wmbt: "Provision reference data (MVP slice) governed. BTP Provision Outbound Contract is a governed output — field removals or re-types require a versioned contract change." },
+      { title: "BFA Fixed Assets Export", wmbt: "BFA Fixed Assets Export governed output. Field definitions versioned." },
+      { title: "Tax Workpaper Read Contract", wmbt: "Tax Workpaper read contract published for Roger." },
+    ],
+  },
+  B29: {
+    gate: "G4 — Lineage Closure",
+    systems: ["TDC", "Roger UI"],
+    lead: "TDC Workstream Lead",
+    entryCondition: "Batch 28 complete; workpaper definitions established; consolidated group structure agreed",
+    exitCondition: "Consolidated C-corp return assembly live; elimination entities modeled; intercompany eliminations balanced; Consolidated Return read contract published",
+    stories: [
+      { title: "Elimination Entity Records (Create, Modify)", wmbt: "Elimination entity records are distinct from legal entity records — no elimination entity may be created without a parent consolidated group." },
+      { title: "Group-Level Adjustment Lifecycle (Extends B6)", wmbt: "Group-level adjustments are distinct from entity-level adjustments in the data model. They may not be conflated." },
+      { title: "Intercompany Elimination Workflow", wmbt: "Intercompany elimination records must be balanced — debit and credit sides must net to zero before assembly proceeds." },
+      { title: "Consolidated Return Assembly", wmbt: "Consolidated return assembly may only proceed when all constituent entity returns are in FINALIZED state." },
+      { title: "Consolidated Return Read Contract", wmbt: "Consolidated Return read contract published for Roger." },
+    ],
+  },
+  B31: {
+    gate: "G3 — Contract Publication",
+    systems: ["PDC", "TDC", "Roger UI"],
+    lead: "PDC Workstream Lead + TDC Workstream Lead",
+    entryCondition: "Batch 9 PDC complete; legacy tool (TWB, PartnerSight, CSTE) source files available; schema registry extensible",
+    exitCondition: "Legacy tool prior year data ingested via schema registry extensions; source-priority reconciliation enforced; v_rollforward extended and source-agnostic; carryforward attribute balances versioned",
+    executiveNote: "Absorbs the B9 TDC Rollforward scope that was placed On Hold. Prior year data from legacy tools ingested through the existing platform pipeline — same governance, lineage, and reconciliation rules apply regardless of source.",
+    governanceTags: ["PDC", "TDC", "Read Contract"],
+    stories: [
+      { title: "Legacy Tool Schema Registry Extensions (TWB, PartnerSight, CSTE)", wmbt: "PDC extends the schema registry with entries for TWB, PartnerSight, and CSTE formats. Schema validation applies to all legacy tool data." },
+      { title: "Manual Upload Path for Legacy Tool Files", wmbt: "Manual upload path delivered for legacy tool files. All inbound data flows through PDC ingestion — no bypass." },
+      { title: "Source-Priority Reconciliation (IMS vs Legacy)", wmbt: "IMS takes priority over legacy tool data when both sources exist for the same entity. Source-priority rule is enforced, not advisory." },
+      { title: "PDC Legacy Tool Ingestion Read Contract Extension", wmbt: "Legacy Tool Ingestion Read Contract extended. Additive — no existing contract field removed or re-typed." },
+      { title: "Prior Year Trial Balance & Return Data Storage (TDC)", wmbt: "TDC houses full prior year trial balance, return data and filed amounts. All data lineaged and version-tracked." },
+      { title: "Carryforward Attribute Balance Tracking (NOL, §179, §163(j), Charitable)", wmbt: "Carryforward attribute balances versioned — prior year values are preserved." },
+      { title: "Year-Over-Year Comparison Metrics + Extended v_rollforward", wmbt: "Year-over-year comparison metrics and extended v_rollforward read contract. Roger reads prior year data source-agnostically — source attribution not visible to the consumer." },
+    ],
+  },
+  B33: {
+    gate: "G4 — Lineage Closure",
+    systems: ["TDC", "PDC", "Roger UI"],
+    lead: "TDC Workstream Lead",
+    entryCondition: "Batch 28 complete; state jurisdiction reference data available; federal return finalized for tie-out",
+    exitCondition: "State tax workflow live end-to-end; state nexus assignments governed; tie-out validation against federal return enforced; Texas franchise workpaper live; State Tax read contract published",
+    executiveNote: "FINAL MVP TDC BATCH: Lands at MVP cutoff 9/15. Single batch covers the full state foundation needed for pilot start.",
+    governanceTags: ["TDC", "Read Contract", "MVP Final"],
+    stories: [
+      { title: "State Jurisdiction Reference Data + State Form Templates & Taxonomy", wmbt: "State form templates are versioned reference data. A state form record must store the template version it was generated from." },
+      { title: "State Mapping Rules + Apportionment Rules", wmbt: "State apportionment rules are reference data — practitioners may not alter apportionment factors outside the MDM surface." },
+      { title: "Entity-to-State Nexus Assignments", wmbt: "Entity-to-state nexus assignments are governed records — nexus determinations may not be deleted, only superseded." },
+      { title: "State Payments Schedule & Reconciliation", wmbt: "State payments schedule and reconciliation tracked and versioned per entity per jurisdiction." },
+      { title: "State NOL & Credit Rollforward (C-corp)", wmbt: "State NOL and credit rollforward governed under same versioning and lineage rules as federal carryforward attributes." },
+      { title: "State Form Data Entry, Review & Tie-Out", wmbt: "Tie-out validation against the federal return is a hard gate — a state form may not be finalized without passing tie-out." },
+      { title: "Texas Franchise Tax Workpaper", wmbt: "Texas franchise tax workpaper governed under same template versioning and lineage rules as all other workpapers." },
+      { title: "State Tax Read Contract", wmbt: "State Tax read contract published for Roger." },
+    ],
+  },
+  B39: {
+    gate: "G4 — Lineage Closure",
+    systems: ["TDC", "Roger UI"],
+    lead: "TDC Workstream Lead",
+    entryCondition: "Batch 28 complete; entity-period in FINALIZED state; sign-off records and adjustment records available",
+    exitCondition: "Packaged sign-off reports, adjustment reports, and derivation lineage reports live; Calculation Report read contract published; reports immutable and reproducible",
+    executiveNote: "PROMOTED TO MVP: Promoted from PI 4 per leadership direction. Governance-grade derivation report required at 9/16 pilot start.",
+    governanceTags: ["TDC", "Read Contract", "MVP Promoted"],
+    stories: [
+      { title: "Packaged Sign-Off Report", wmbt: "Calculation reports are point-in-time snapshots — a generated report must be immutable and reproducible from the same data state." },
+      { title: "Adjustment Report (Standard & Non-Standard)", wmbt: "Standard and non-standard adjustment reports produced with full derivation lineage." },
+      { title: "Derivation Lineage Report", wmbt: "The Derivation Lineage Report must trace every reported amount back to its source SourceFile record without gaps." },
+      { title: "Calculation Report Read Contract", wmbt: "Calculation Report read contract published. Reports may not be generated for an entity-period that has not reached FINALIZED state." },
+    ],
+  },
   MT: {
     gate: "None (parallel track)",
     systems: ["PDC", "TDC", "Platform Engineering"],
@@ -517,7 +618,7 @@ const AREA_HEX: Record<string, { bg: string; text: string }> = {
 };
 
 // ── All batch IDs in order (for prev/next) ────────────────────────────────────
-const ALL_IDS = ["FC", "B1", "B2", "B2A", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "B24", "B25", "MT"];
+const ALL_IDS = ["FC", "B1", "B2", "B2A", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "B24", "B25", "B26", "B28", "B29", "B31", "B33", "B39", "MT"];
 
 function batchNavLabel(id: string): string {
   const b = getBatchById(id);
