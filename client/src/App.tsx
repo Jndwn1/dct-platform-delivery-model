@@ -31,6 +31,7 @@ import DataGovernancePage from "./pages/DataGovernancePage";
 import ClassificationWalkthroughPage from "@/pages/ClassificationWalkthroughPage";
 import TaxMappingPage from "./pages/TaxMappingPage";
 import AAPReviewPage from "./pages/AAPReviewPage";
+import BatchDeliveryReviewModel from "./pages/BatchDeliveryReviewModel";
 import RogerMappingPage from "./pages/RogerMappingPage";
 import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
 import BatchDetailPage from "./pages/BatchDetailPage";
@@ -106,6 +107,7 @@ function Router() {
           <Route path="/data-governance" component={DataGovernancePage} />
           <Route path="/roger-mapping" component={RogerMappingPage} />
           <Route path="/aap-review" component={AAPReviewPage} />
+          <Route path="/batch-delivery-review" component={BatchDeliveryReviewModel} />
           <Route path="/tax-mapping" component={TaxMappingPage} />
           <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
           <Route path="/gap-analysis" component={GapAnalysisEngine} />
