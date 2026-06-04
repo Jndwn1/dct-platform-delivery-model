@@ -123,18 +123,6 @@ const ROGER_UI_ITEMS: NavItem[] = [
   { label: "Roger API Evolution",      path: "/roger-api",                icon: "⚡", badge: "Export", badgeColor: "#003865" },
 ];
 
-// Tax Logic Repository Readiness — Architecture & Readiness workstream
-const TAX_LOGIC_ITEMS: NavItem[] = [
-  { label: "Executive Summary",          path: "/tax-logic/exec-summary",      icon: "◉", badge: "NEW", badgeColor: "#7c3aed" },
-  { label: "Ownership & Governance",     path: "/tax-logic/ownership",         icon: "⚖" },
-  { label: "Rule Intake Assessment",     path: "/tax-logic/rule-intake",       icon: "▦" },
-  { label: "Rule Repository Design",     path: "/tax-logic/repo-design",       icon: "◫" },
-  { label: "AI Translation Pilot",       path: "/tax-logic/ai-pilot",          icon: "⚡", badge: "Pilot", badgeColor: "#059669" },
-  { label: "Gateway & API Readiness",    path: "/tax-logic/gateway",           icon: "🔗" },
-  { label: "Open Architecture Decisions",path: "/tax-logic/arch-decisions",    icon: "⚑", badge: "4 Open", badgeColor: "#d97706" },
-  { label: "Action Tracker",             path: "/tax-logic/actions",           icon: "◇", badge: "18 Actions", badgeColor: "#64748b" },
-];
-
 // Diagrams — alphabetical; Visio Architecture removed (duplicate of Architecture Sync); Agent Hub moved here
 const DIAGRAM_ITEMS: NavItem[] = [
   { label: "Agent Hub",              path: "/agent-hub",               icon: "◈" },
@@ -405,7 +393,6 @@ export default function Sidebar({ activeSection }: SidebarProps) {
         <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
         <NavSection title="Governance" items={GOVERNANCE_ITEMS} />
         <NavSection title="Architecture & Diagrams" items={DIAGRAM_ITEMS} />
-        <NavSection title="Tax Logic Repository Readiness" items={TAX_LOGIC_ITEMS} />
       </div>
 
       {/* Footer */}
