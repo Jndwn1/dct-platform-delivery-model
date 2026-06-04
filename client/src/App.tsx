@@ -37,6 +37,14 @@ import BatchDetailPage from "./pages/BatchDetailPage";
 import IntegrationSimulation from "./pages/IntegrationSimulation";
 import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadinessHub";
 import GapAnalysisEngine from "./pages/GapAnalysisEngine";
+import TaxLogicExecSummary from "./pages/taxlogic/TaxLogicExecSummary";
+import TaxLogicOwnership from "./pages/taxlogic/TaxLogicOwnership";
+import TaxLogicRuleIntake from "./pages/taxlogic/TaxLogicRuleIntake";
+import TaxLogicRepoDesign from "./pages/taxlogic/TaxLogicRepoDesign";
+import TaxLogicAIPilot from "./pages/taxlogic/TaxLogicAIPilot";
+import TaxLogicGatewayReadiness from "./pages/taxlogic/TaxLogicGatewayReadiness";
+import TaxLogicArchDecisions from "./pages/taxlogic/TaxLogicArchDecisions";
+import TaxLogicActionTracker from "./pages/taxlogic/TaxLogicActionTracker";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -109,6 +117,16 @@ function Router() {
           <Route path="/tax-mapping" component={TaxMappingPage} />
           <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
           <Route path="/gap-analysis" component={GapAnalysisEngine} />
+
+          {/* Tax Logic Repository Readiness */}
+          <Route path="/tax-logic/exec-summary" component={TaxLogicExecSummary} />
+          <Route path="/tax-logic/ownership" component={TaxLogicOwnership} />
+          <Route path="/tax-logic/rule-intake" component={TaxLogicRuleIntake} />
+          <Route path="/tax-logic/repo-design" component={TaxLogicRepoDesign} />
+          <Route path="/tax-logic/ai-pilot" component={TaxLogicAIPilot} />
+          <Route path="/tax-logic/gateway" component={TaxLogicGatewayReadiness} />
+          <Route path="/tax-logic/arch-decisions" component={TaxLogicArchDecisions} />
+          <Route path="/tax-logic/actions" component={TaxLogicActionTracker} />
 
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
