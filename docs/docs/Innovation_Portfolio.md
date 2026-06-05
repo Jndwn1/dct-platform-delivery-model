@@ -11,35 +11,49 @@ Transform DCT delivery knowledge, governance, and operational processes into reu
 
 ## Ownership
 
-Portfolio Owner: Jenniver Stafford
-Role: Senior Business Analyst, DCT
-Organization: Center for Advanced Tax Technology (CATT)
+**Portfolio Owner:** Jenniver Stafford
 
-Status: Active
-Last Updated: June 2026
+**Role:** Senior Business Analyst, DCT
+
+**Organization:** Center for Advanced Tax Technology (CATT)
+
+**Status:** Active
+
+**Last Updated:** June 2026
 
 ### DCT AI Innovation Portfolio
 
-| Agent | Purpose | Status |
-|---------|---------|---------|
-| Ask Buddy | Business Analysis & Knowledge Assistant | Operational |
-| QA Buddy | QA Readiness & Test Strategy Assistant | Planned |
-| Release Buddy | Release Readiness & Sprint Analytics Assistant | Planned |
-| Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned |
+| Agent | Purpose | Status | Maturity |
+|---------|---------|---------|---------|
+| Ask Buddy | Business Analysis & Knowledge Assistant | Operational | Production |
+| QA Buddy | QA Readiness & Test Strategy Assistant | Planned | Concept |
+| Release Buddy | Release Readiness & Sprint Analytics Assistant | Planned | Concept |
+| Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned | Concept |
 
 ## Portfolio Roadmap
 
-Current Focus:
-- Ask Buddy (Operational)
+### Phase 1 – Operational
+- Ask Buddy
 
-Next Planned Agents:
+### Phase 2 – Planned
 - QA Buddy
 - Release Buddy
+
+### Phase 3 – Future Vision
 - Executive Buddy
+- Enterprise Delivery Intelligence Platform
 
-Long-Term Vision:
-Create an integrated ecosystem of AI assistants supporting business analysis, quality engineering, release management, governance, onboarding, and executive reporting across the DCT platform.
+## Portfolio Value
 
+The DCT AI Innovation Portfolio transforms delivery knowledge into reusable AI-powered capabilities that:
+
+- Accelerate onboarding
+- Improve delivery consistency
+- Reduce dependency on tribal knowledge
+- Increase team productivity
+- Improve governance compliance
+- Support scalable delivery operations
+- 
 ## Ask Buddy
 <img src="./images/ask-buddy-mascot.png" width="350"/>
 
