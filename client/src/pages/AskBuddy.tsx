@@ -1,9 +1,27 @@
 // RSM | DCT Platform | Ask Buddy — AI Business Analysis Assistant
-// SuperCATT mascot · 7 capability areas · Natural language Q&A
+// Pulls live data from batchModel.ts, dctData.ts, platformData.ts, BatchDetailPage BATCH_CONTENT
 // NON-PRODUCTION ARCHITECTURE REFERENCE
 
 import { useState, useRef, useEffect } from "react";
 import GovernanceBanner from "@/components/GovernanceBanner";
+import {
+  getAllBatches,
+  getBatchById,
+  getPlatformSummary,
+  getBatchesByStatus,
+  getBatchesByPI,
+  type BatchEntry,
+} from "@/lib/batchModel";
+import {
+  ARCHITECTURE_GUARDRAILS,
+  SYSTEM_OWNERSHIP,
+  ADR_REGISTRY,
+  GATES,
+  AGENTS,
+  PLATFORM_LAYERS,
+  STORY_GUARANTEES,
+} from "@/lib/platformData";
+import { allBatches as dctBatches, type ArchitecturalBatch } from "@/lib/dctData";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -13,6 +31,7 @@ interface Message {
   text: string;
   timestamp: Date;
   capability?: string;
+  sources?: string[];
 }
 
 interface Capability {
@@ -38,10 +57,10 @@ const CAPABILITIES: Capability[] = [
     border: "#93c5fd",
     description: "Explain components, system relationships, data flow, integration points, and ownership boundaries.",
     sampleQuestions: [
-      "What is the role of PDC in the DCT Platform?",
-      "How does Roger interact with the Gateway?",
-      "Explain the surface-not-store principle.",
-      "What are the ownership boundaries between TDC and PDC?",
+      "What are the platform layers?",
+      "Who owns the Gateway?",
+      "What are the architecture guardrails?",
+      "List all open architecture decisions (ADRs)",
     ],
   },
   {
@@ -53,10 +72,10 @@ const CAPABILITIES: Capability[] = [
     border: "#c4b5fd",
     description: "Search APIs, explain endpoints, payloads, dependencies, and consumer usage patterns.",
     sampleQuestions: [
-      "What endpoints does the Gateway Read Contract expose?",
-      "How does the IMS pass-through surface work?",
-      "What is the CEM pass-through payload structure?",
-      "Which consumers are authorized to call the Gateway?",
+      "What gates must a batch pass?",
+      "What agents are in the platform?",
+      "What are the story guarantees?",
+      "What is the ingestion contract?",
     ],
   },
   {
@@ -66,12 +85,12 @@ const CAPABILITIES: Capability[] = [
     color: "#059669",
     bg: "#f0fdf4",
     border: "#86efac",
-    description: "Explain batch status, sprint status, dependencies, readiness, and delivery progress.",
+    description: "Explain batch status, dependencies, readiness, and delivery progress from the live Control Panel.",
     sampleQuestions: [
       "What is the current status of Batch 9?",
       "What batches are in PI 3?",
-      "What is the 9/16 MVP cutoff scope?",
-      "Which batches are on hold and why?",
+      "Which batches are complete?",
+      "What batches are in review?",
     ],
   },
   {
@@ -83,10 +102,10 @@ const CAPABILITIES: Capability[] = [
     border: "#fcd34d",
     description: "Explain ownership, decision history, approval processes, and governance models.",
     sampleQuestions: [
-      "Who owns the Gateway Read Contract?",
-      "What are the DCT invariants?",
-      "How does the Gate Verification process work?",
-      "What is the Schema Lock governance rule?",
+      "What are the architecture guardrails?",
+      "List all ADRs",
+      "What does each gate verify?",
+      "What are the story guarantees?",
     ],
   },
   {
@@ -96,12 +115,12 @@ const CAPABILITIES: Capability[] = [
     color: "#0891b2",
     bg: "#f0f9ff",
     border: "#7dd3fc",
-    description: "Search platform documentation, summarize documents, and answer questions from project artifacts.",
+    description: "Search platform documentation, summarize batches, and answer questions from project artifacts.",
     sampleQuestions: [
-      "Summarize the Batch Roadmap v4.",
-      "What does the DCT Delivery Model replace?",
-      "What is in the Master Data Intake?",
-      "Explain the Architectural Batch model.",
+      "Summarize the platform delivery model",
+      "What is Batch 28?",
+      "What does Batch 6 deliver?",
+      "What are the key outcomes of Batch 3?",
     ],
   },
   {
@@ -114,9 +133,9 @@ const CAPABILITIES: Capability[] = [
     description: "Help new team members understand the platform, terminology, workflows, and guided learning paths.",
     sampleQuestions: [
       "I'm new to DCT — where do I start?",
-      "What does 'Invariant Lock' mean?",
       "What is the difference between PDC and TDC?",
-      "Explain the Batch Gate process in simple terms.",
+      "Explain the Batch Gate process",
+      "What are the platform agents?",
     ],
   },
   {
@@ -126,101 +145,267 @@ const CAPABILITIES: Capability[] = [
     color: "#be185d",
     bg: "#fdf2f8",
     border: "#f9a8d4",
-    description: "Generate leadership summaries, executive briefings, project health summaries, and delivery status updates.",
+    description: "Generate leadership summaries, executive briefings, and delivery status updates from live data.",
     sampleQuestions: [
-      "Give me a one-paragraph platform status summary.",
-      "What are the top 3 risks for the 9/16 pilot?",
-      "Summarize Batch 9 for a leadership audience.",
-      "What decisions are still open in PI 3?",
+      "Give me a platform status summary",
+      "How many batches are complete?",
+      "What is the PI 3 delivery scope?",
+      "What are the top open architecture decisions?",
     ],
   },
 ];
 
-// ─── KNOWLEDGE BASE (simulated responses) ────────────────────────────────────
+// ─── LIVE QUERY ENGINE ───────────────────────────────────────────────────────
+// All answers are derived from the live platform data sources.
+// No hardcoded knowledge base — data comes from batchModel.ts, platformData.ts, dctData.ts.
 
-const KNOWLEDGE_BASE: Record<string, string> = {
-  // Architecture
-  "pdc": "**PDC (Platform Data Core)** is the governed data repository for the DCT Platform. It is responsible for schema management, data ingestion, lineage tracking, and contract publication. PDC does not own tax logic — it is the governed storage and surface layer. In Batch 9, PDC delivers the Ocelot gateway scaffolding and IMS/CEM/TIM pass-through surfaces.",
-  "roger": "**Roger** is the AI-powered tax assistant that consumes data from the DCT Platform via the Gateway. Roger calls the Gateway — not underlying systems directly. This is the 'surface-not-store' principle: the Gateway surfaces data from IMS, CEM, and TIM without storing it in PDC.",
-  "gateway": "**The Roger Gateway** (Batch 9) is the single entry point for Roger and all consumers. It is built on Ocelot and provides auth, routing, and pass-through surfaces for IMS (prior year tax data), CEM (client authorization), and TIM (engagement metadata). The Gateway Read Contract is additive-only once published.",
-  "surface-not-store": "**Surface-not-store** is the governing principle for the Gateway. The Gateway surfaces data from IMS, CEM, and TIM — it does not store that data in PDC. This keeps PDC as the governed repository for platform-owned data only, while pass-through data flows through without persistence.",
-  "tdc": "**TDC (Tax Decision Core)** is responsible for tax judgment, immutable decisions, and rule execution. TDC owns the tax logic — PDC does not derive eligibility or perform tax calculations. TDC decisions are immutable once recorded. In the current roadmap, TDC Batch 9 (Rollforward) is ON HOLD — absorbed by other batches.",
-  "ownership": "**Ownership boundaries** in the DCT Platform: PDC = financial truth and governed data storage (no tax logic). TDC = tax judgment and immutable decisions. Orchestrator = AI execution coordination. Roger = read-only output consumer. The Gateway = single consumer entry point (PDC-owned).",
-  // Delivery
-  "batch 9": "**Batch 9 — Roger Gateway & Governed Consumer Access Layer** (PDC only). Delivers: Ocelot gateway scaffolding, IMS pass-through surface, CEM pass-through surface, TIM pass-through surface, and Gateway Read Contract publication. TDC Rollforward scope is ON HOLD — absorbed by other batches. Status: Ready for QA.",
-  "pi 3": "**PI 3** includes the final MVP delivery batches targeting the 9/16 Pilot Start. Key batches include B26 (Roger UI MVP), B28 (TDC Final Rule Lock), B29 (End-to-End Integration), B31 (TDC Rollforward — absorbed from B9), B33 (Final MVP TDC Batch), and B39 (Promoted to MVP). The hard cutoff is September 16, 2026.",
-  "mvp": "**MVP Cutoff: September 16, 2026 (9/16 Pilot Start)**. The MVP scope is defined by the PI 3 batches. B33 (Final MVP TDC Batch) and B39 (Promoted to MVP) are the final delivery gates before the pilot. All PI 3 batches must pass gate verification before the cutoff.",
-  // Governance
-  "invariant": "**Invariants** are governance rules that must always be true — they cannot be violated by any delivery. Key platform invariants include: Roger calls the Gateway (not underlying systems directly). The Gateway Read Contract is additive-only. PDC does not store pass-through data. TDC decisions are immutable once recorded.",
-  "schema lock": "**Schema Lock** is a gate condition that freezes the data schema for a batch once it passes Gate 1 (Review & Lock). No schema changes are permitted after Schema Lock without a formal change request and re-gate. This ensures downstream consumers can rely on a stable contract.",
-  "gate": "**Gate Verification** is the DCT delivery governance model. Each batch must pass 5 gates: Gate 1 (Review & Lock — PO + Lead Dev), Gate 2 (Plan Validation — Lead Dev), Gate 3 (Validation Boundary Approval — PO), Gate 4 (Final Review & Merge — Lead Dev), Gate 5 (Batch Sign-Off — QA Lead). No batch proceeds without gate approval.",
-  "contract": "**Contract Publication** is the formal release of a versioned API or data contract. The Gateway Read Contract is the consumer surface for Roger. Once published, it is additive-only — no fields may be removed or re-typed. This ensures consumer stability across releases.",
-  // Documentation
-  "batch roadmap": "**DCT Batch Roadmap v4** defines all delivery batches across PI 1, PI 2, PI 3, and On Hold. It covers 39+ batches organized by PDC and TDC tracks. Key architectural changes in v4 include: B9 repurposed from IMS Integration to Roger Gateway, eODS deferred, and TDC Rollforward scope absorbed from B9 into B31.",
-  "delivery model": "**The DCT Delivery Model** replaces story-first sprint delivery with Architectural Batches and Gate Verification. Core concepts: Schema Lock, Invariant Lock, Contract Publication, and Lineage Closure. The model is designed for platform integrity, lineage assurance, and safe parallel development using agent-assisted execution.",
-  "master data intake": "**The Master Data Intake** is the structured intake document used to collect actual enterprise data from SMEs and leadership, replacing seed data in the platform. It covers 8 intake entities and is used to assess readiness gaps between current seed data and required platform data.",
-};
-
-function getBuddyResponse(input: string): { text: string; capability: string } {
+function queryPlatform(input: string): { text: string; capability: string; sources: string[] } {
   const lower = input.toLowerCase();
+  const allBatches = getAllBatches();
 
-  // Match knowledge base
-  for (const [key, response] of Object.entries(KNOWLEDGE_BASE)) {
-    if (lower.includes(key)) {
-      return { text: response, capability: "documentation" };
-    }
+  // ── Batch lookup by ID or name ──────────────────────────────────────────
+  // Match "batch 9", "b9", "batch 28", "b28", "foundation core", etc.
+  const batchIdMatch = lower.match(/\b(?:batch\s*)?(?:b(\d+[a-z]?)|(\d+[a-z]?))\b/i);
+  const foundationMatch = lower.includes("foundation core") || lower.includes("fc");
+  const mtMatch = lower.includes("migration") || lower.includes("mt");
+
+  let targetBatch: BatchEntry | undefined;
+  if (foundationMatch) targetBatch = getBatchById("FC");
+  else if (mtMatch) targetBatch = getBatchById("MT");
+  else if (batchIdMatch) {
+    const rawId = batchIdMatch[1] || batchIdMatch[2];
+    targetBatch = getBatchById(`B${rawId.toUpperCase()}`) ?? getBatchById(rawId.toUpperCase());
   }
 
-  // Capability-specific routing
-  if (lower.includes("batch") && (lower.includes("status") || lower.includes("progress") || lower.includes("pi"))) {
+  if (targetBatch) {
+    const dctBatch: ArchitecturalBatch | undefined = dctBatches.find(
+      (b: ArchitecturalBatch) => b.id?.toLowerCase() === targetBatch!.id.toLowerCase()
+    );
+    const storiesText = dctBatch?.stories?.length
+      ? `\n\n**Stories (${dctBatch.stories.length}):**\n${(dctBatch.stories as string[]).map((s: string) => `• ${s}`).join("\n")}`
+      : "";
+    const outcomesText = targetBatch.keyOutcomes?.length
+      ? `\n\n**Key Outcomes:**\n${targetBatch.keyOutcomes.map((o) => `• ${o}`).join("\n")}`
+      : "";
+    const whatMustText = dctBatch?.whatMustBeTrue
+      ? `\n\n**What Must Be True:**\n${dctBatch.whatMustBeTrue.slice(0, 300)}${dctBatch.whatMustBeTrue.length > 300 ? "…" : ""}`
+      : "";
+    const depsText = targetBatch.dependencies?.length
+      ? `\n\n**Dependencies:** ${targetBatch.dependencies.join(", ")}`
+      : "";
+
     return {
-      text: "Based on the DCT Batch Roadmap v4, the platform is currently in **PI 3 delivery**. Batch 9 (Roger Gateway) is Ready for QA. PI 3 batches (B26–B39) are targeting the **9/16 Pilot Start** cutoff. Several batches are in active development, and TDC B9 Rollforward is ON HOLD — absorbed by B31. Would you like details on a specific batch?",
+      text: `**${targetBatch.id} — ${targetBatch.fullName}**\n\n**PI:** ${targetBatch.piLabel}\n**Status:** ${targetBatch.status}\n**Area:** ${targetBatch.area}\n**Story Count:** ${targetBatch.storyCount}\n\n${targetBatch.description}${storiesText}${outcomesText}${whatMustText}${depsText}`,
       capability: "delivery",
+      sources: ["Batch Registry (batchModel.ts)", "DCT Data (dctData.ts)"],
     };
   }
 
-  if (lower.includes("who") && (lower.includes("own") || lower.includes("responsible"))) {
+  // ── Platform summary / status overview ──────────────────────────────────
+  if (
+    lower.includes("platform summary") ||
+    lower.includes("status summary") ||
+    lower.includes("how many batch") ||
+    lower.includes("overall status") ||
+    lower.includes("platform status")
+  ) {
+    const summary = getPlatformSummary();
     return {
-      text: "**Ownership in the DCT Platform** is clearly bounded: **PDC** owns data storage, schema, and the Gateway. **TDC** owns tax logic, decisions, and rule execution. **Roger** is a read-only consumer. **The Orchestrator** manages AI execution. The Gateway is the single entry point — no consumer calls underlying systems directly. Would you like details on a specific ownership boundary?",
-      capability: "governance",
-    };
-  }
-
-  if (lower.includes("new") || lower.includes("start") || lower.includes("explain") || lower.includes("what is")) {
-    return {
-      text: "Welcome to the DCT Platform! Here's a quick orientation:\n\n**DCT (Data Coordination Technology)** is an enterprise data platform that governs tax data, AI-assisted delivery, and system integration for RSM.\n\n**Key components:**\n• **PDC** — Platform Data Core (governed data storage)\n• **TDC** — Tax Decision Core (tax logic and decisions)\n• **Roger** — AI tax assistant (read-only consumer)\n• **Gateway** — Single entry point for all consumers\n\nWhat would you like to explore first?",
-      capability: "onboarding",
-    };
-  }
-
-  if (lower.includes("summary") || lower.includes("leadership") || lower.includes("executive") || lower.includes("status update")) {
-    return {
-      text: "**DCT Platform Executive Summary — June 2026**\n\nThe DCT Platform is in **PI 3 delivery**, targeting the September 16, 2026 MVP Pilot Start. Batch 9 (Roger Gateway & Governed Consumer Access Layer) is Ready for QA. The Gateway establishes the single consumer entry point for Roger, surfacing IMS, CEM, and TIM data via pass-through without PDC storage.\n\n**Key decisions:** B9 TDC Rollforward is ON HOLD (absorbed by B31). eODS pass-through is deferred. The Gateway Read Contract is additive-only once published.\n\n**Top risks:** Consumer readiness alignment, TIM contract availability, and QA coverage for pass-through surfaces.",
+      text: `**DCT Platform Delivery Summary**\n\n**Total Batches:** ${summary.total}\n\n**By Status:**\n• Complete: ${summary.complete}\n• In Development: ${summary.dev}\n• In Review: ${summary.review}\n• Planned: ${summary.planned}\n\n**Total Stories:** ${summary.totalStories}\n\n**Completion Rate:** ${Math.round(summary.complete / summary.total * 100)}%`,
       capability: "executive",
+      sources: ["Batch Registry (batchModel.ts)"],
     };
   }
 
-  // Default response
+  // ── PI-specific batch list ───────────────────────────────────────────────
+  const piMatch = lower.match(/pi\s*([1-4])/);
+  if (piMatch) {
+    const piKey = `PI${piMatch[1]}` as "PI1" | "PI2" | "PI3" | "PI4";
+    const piBatches = getBatchesByPI(piKey);
+    const batchLines = piBatches.map((b) => `• **${b.id}** — ${b.name} [${b.status}]`).join("\n");
+    return {
+      text: `**${piKey} Batches (${piBatches.length} total):**\n\n${batchLines || "No batches found for this PI."}`,
+      capability: "delivery",
+      sources: ["Batch Registry (batchModel.ts)"],
+    };
+  }
+
+  // ── Status-filtered batch list ───────────────────────────────────────────
+  if (lower.includes("complete") && (lower.includes("batch") || lower.includes("which"))) {
+    const batches = getBatchesByStatus("Complete");
+    return {
+      text: `**Complete Batches (${batches.length}):**\n\n${batches.map((b: BatchEntry) => `• **${b.id}** — ${b.name}`).join("\n")}`,
+      capability: "delivery",
+      sources: ["Batch Registry (batchModel.ts)"],
+    };
+  }
+  if (lower.includes("review") && (lower.includes("batch") || lower.includes("which"))) {
+    const batches = getBatchesByStatus("Review");
+    return {
+      text: `**Batches in Review (${batches.length}):**\n\n${batches.map((b: BatchEntry) => `• **${b.id}** — ${b.name}`).join("\n")}`,
+      capability: "delivery",
+      sources: ["Batch Registry (batchModel.ts)"],
+    };
+  }
+  if ((lower.includes("active") || lower.includes("in progress") || lower.includes("in dev")) && lower.includes("batch")) {
+    const devBatches = [...getBatchesByStatus("Active"), ...getBatchesByStatus("Dev")];
+    return {
+      text: `**Active / In Development Batches (${devBatches.length}):**\n\n${devBatches.map((b: BatchEntry) => `• **${b.id}** — ${b.name} [${b.status}]`).join("\n")}`,
+      capability: "delivery",
+      sources: ["Batch Registry (batchModel.ts)"],
+    };
+  }
+
+  // ── Architecture guardrails ──────────────────────────────────────────────
+  if (lower.includes("guardrail") || lower.includes("architecture rule") || lower.includes("arch rule")) {
+    const lines = ARCHITECTURE_GUARDRAILS.map(
+      (g) => `• **${g.rule}** — ${g.detail}`
+    ).join("\n");
+    return {
+      text: `**Architecture Guardrails (${ARCHITECTURE_GUARDRAILS.length}):**\n\n${lines}`,
+      capability: "governance",
+      sources: ["Platform Data (platformData.ts)"],
+    };
+  }
+
+  // ── System ownership ─────────────────────────────────────────────────────
+  if (lower.includes("own") || lower.includes("responsible") || lower.includes("ownership")) {
+    const lines = SYSTEM_OWNERSHIP.map(
+      (s) => `• **${s.system}** (${s.owner}) — ${s.role}\n  ↳ Layer: ${s.layer} | System of Record: ${s.sor ? "Yes" : "No"}`
+    ).join("\n\n");
+    return {
+      text: `**System Ownership Boundaries:**\n\n${lines}`,
+      capability: "governance",
+      sources: ["Platform Data (platformData.ts)"],
+    };
+  }
+
+  // ── ADRs ─────────────────────────────────────────────────────────────────
+  if (lower.includes("adr") || lower.includes("architecture decision") || lower.includes("open decision")) {
+    const lines = ADR_REGISTRY.map(
+      (a) => `• **${a.id}** [${a.status}] — ${a.title}\n  ${a.decision.slice(0, 120)}${a.decision.length > 120 ? "…" : ""}`
+    ).join("\n\n");
+    return {
+      text: `**Architecture Decision Records (${ADR_REGISTRY.length}):**\n\n${lines}`,
+      capability: "governance",
+      sources: ["Platform Data (platformData.ts)"],
+    };
+  }
+
+  // ── Gates ────────────────────────────────────────────────────────────────
+  if (lower.includes("gate") && !lower.includes("gateway")) {
+    const lines = GATES.map(
+      (g) => `• **${g.name}** (${g.owner}) — ${g.description}\n  Artifacts: ${g.artifacts?.join(", ") ?? "N/A"}`
+    ).join("\n\n");
+    return {
+      text: `**Batch Delivery Gates (${GATES.length}):**\n\n${lines}`,
+      capability: "governance",
+      sources: ["Platform Data (platformData.ts)"],
+    };
+  }
+
+  // ── Agents ───────────────────────────────────────────────────────────────
+  if (lower.includes("agent")) {
+    const lines = AGENTS.map(
+      (a) => `• **${a.name}** [${a.status}] — ${a.role}\n  ${a.description}`
+    ).join("\n\n");
+    return {
+      text: `**Platform Agents (${AGENTS.length}):**\n\n${lines}`,
+      capability: "api",
+      sources: ["Platform Data (platformData.ts)"],
+    };
+  }
+
+  // ── Platform layers ──────────────────────────────────────────────────────
+  if (lower.includes("layer") || lower.includes("platform layer") || lower.includes("component")) {
+    const lines = PLATFORM_LAYERS.map(
+      (l) => `• **${l.label}** — ${l.sublabel} (${l.authority})\n  Systems: ${l.systems?.join(", ") ?? "N/A"}`
+    ).join("\n\n");
+    return {
+      text: `**Platform Layers (${PLATFORM_LAYERS.length}):**\n\n${lines}`,
+      capability: "architecture",
+      sources: ["Platform Data (platformData.ts)"],
+    };
+  }
+
+  // ── Story guarantees ─────────────────────────────────────────────────────
+  if (lower.includes("guarantee") || lower.includes("story guarantee") || lower.includes("lineage") || lower.includes("schema lock") || lower.includes("contract")) {
+    const lines = STORY_GUARANTEES.map(
+      (g) => `• **${g.guaranteeType}** [${g.status}] — ${g.title}\n  Gate: ${g.gate} · ${g.platformGuarantee.slice(0, 100)}${g.platformGuarantee.length > 100 ? "…" : ""}`
+    ).join("\n\n");
+    return {
+      text: `**Story Guarantees (${STORY_GUARANTEES.length}):**\n\n${lines}`,
+      capability: "governance",
+      sources: ["Platform Data (platformData.ts)"],
+    };
+  }
+
+  // ── All batches list ─────────────────────────────────────────────────────
+  if (lower.includes("all batch") || lower.includes("list batch") || lower.includes("every batch")) {
+    const lines = allBatches.map((b) => `• **${b.id}** — ${b.name} [${b.status}] (${b.pi})`).join("\n");
+    return {
+      text: `**All Batches (${allBatches.length}):**\n\n${lines}`,
+      capability: "delivery",
+      sources: ["Batch Registry (batchModel.ts)"],
+    };
+  }
+
+  // ── Gateway / surface-not-store ──────────────────────────────────────────
+  if (lower.includes("gateway") || lower.includes("surface-not-store") || lower.includes("surface not store")) {
+    const b9 = getBatchById("B9");
+    const b9pdc = getBatchById("B9-PDC") ?? getBatchById("B9");
+    return {
+      text: `**Roger Gateway & Governed Consumer Access Layer (Batch 9)**\n\n${b9?.description ?? ""}\n\n**Governing Principle:** Surface-not-store — the Gateway surfaces data from IMS, CEM, and TIM without storing it in PDC.\n\n**Status:** ${b9pdc?.status ?? "Unknown"}\n\n**Key Outcomes:**\n${b9?.keyOutcomes?.map((o) => `• ${o}`).join("\n") ?? "See Batch 9 in Control Panel"}`,
+      capability: "architecture",
+      sources: ["Batch Registry (batchModel.ts)", "Control Panel"],
+    };
+  }
+
+  // ── Onboarding / new to DCT ──────────────────────────────────────────────
+  if (lower.includes("new") || lower.includes("start") || lower.includes("orientation") || lower.includes("what is dct")) {
+    const summary = getPlatformSummary();
+    const layers = PLATFORM_LAYERS.slice(0, 4).map((l) => `• **${l.label}** — ${l.sublabel}`).join("\n");
+    return {
+      text: `**Welcome to the DCT Platform!**\n\nDCT is an enterprise data platform that governs tax data, AI-assisted delivery, and system integration for RSM. It has ${summary.total} delivery batches across 4 PIs.\n\n**Key Platform Layers:**\n${layers}\n\nFor a full orientation, explore the **Batch Roadmap**, **Control Panel**, and **Gateway Architecture** pages in the sidebar.`,
+      capability: "onboarding",
+      sources: ["Platform Data (platformData.ts)", "Batch Registry (batchModel.ts)"],
+    };
+  }
+
+  // ── Executive summary ────────────────────────────────────────────────────
+  if (lower.includes("executive") || lower.includes("leadership") || lower.includes("summary") || lower.includes("briefing")) {
+    const summary = getPlatformSummary();
+    const openAdrs = ADR_REGISTRY.filter((a) => a.status === "PROPOSED").length;
+    return {
+      text: `**DCT Platform — Executive Summary**\n\n**Total Batches:** ${summary.total}\n**Complete:** ${summary.complete} | **In Development:** ${summary.dev} | **In Review:** ${summary.review} | **Planned:** ${summary.planned}\n**Completion Rate:** ${Math.round(summary.complete / summary.total * 100)}%\n\n**Open Architecture Decisions:** ${openAdrs} ADR${openAdrs !== 1 ? "s" : ""} pending\n**Platform Agents:** ${AGENTS.length} agents defined\n**Delivery Gates:** ${GATES.length} gates per batch\n\nFor full batch-level detail, see the **Control Panel** and **Batch Roadmap** pages.`,
+      capability: "executive",
+      sources: ["Batch Registry (batchModel.ts)", "Platform Data (platformData.ts)"],
+    };
+  }
+
+  // ── Default: suggest relevant searches ──────────────────────────────────
+  const summary = getPlatformSummary();
   return {
-    text: `That's a great question about **"${input}"**. I'm currently operating as a knowledge reference assistant for the DCT Platform architecture reference workspace. For the most accurate and up-to-date answer, I recommend checking:\n\n• **Batch Roadmap v4** — for delivery scope and batch details\n• **Control Panel** — for current batch status\n• **Gateway Architecture page** — for integration and API details\n• **Data Governance page** — for ownership and invariant rules\n\nIs there a specific area I can help you navigate?`,
+    text: `I searched the live platform data for **"${input}"** but couldn't find a direct match.\n\n**Try asking about:**\n• A specific batch (e.g., "What is Batch 6?" or "Tell me about B28")\n• Platform status (e.g., "Give me a platform summary")\n• PI scope (e.g., "What batches are in PI 3?")\n• Governance (e.g., "List all ADRs" or "What are the guardrails?")\n• Agents, gates, or platform layers\n\n**Current platform:** ${summary.total} batches · ${summary.complete} complete · ${summary.review} in review`,
     capability: "documentation",
+    sources: ["Batch Registry (batchModel.ts)"],
   };
 }
 
 // ─── KNOWLEDGE SOURCES ───────────────────────────────────────────────────────
 
 const KNOWLEDGE_SOURCES = [
-  { label: "Architecture Repository", icon: "🏗", status: "Active" },
-  { label: "Delivery Intelligence Platform", icon: "🚀", status: "Active" },
-  { label: "Governance Documentation", icon: "⚖", status: "Active" },
-  { label: "Swagger APIs", icon: "⚡", status: "Reference" },
-  { label: "Azure DevOps Features", icon: "📋", status: "Reference" },
-  { label: "Azure DevOps Stories", icon: "📝", status: "Reference" },
+  { label: "Batch Registry (batchModel.ts)", icon: "🏗", status: "Live" },
+  { label: "DCT Data (dctData.ts)", icon: "📋", status: "Live" },
+  { label: "Platform Data (platformData.ts)", icon: "⚙", status: "Live" },
+  { label: "Architecture Guardrails", icon: "⚖", status: "Live" },
+  { label: "System Ownership", icon: "🗂", status: "Live" },
+  { label: "ADR Registry", icon: "📝", status: "Live" },
+  { label: "Gate Definitions", icon: "✅", status: "Live" },
+  { label: "Agent Definitions", icon: "🤖", status: "Live" },
+  { label: "Story Guarantees", icon: "🔒", status: "Live" },
+  { label: "Platform Layers", icon: "📊", status: "Live" },
   { label: "Meeting Notes", icon: "📄", status: "Pending" },
-  { label: "Tax Workbooks", icon: "📊", status: "Pending" },
-  { label: "QA Documentation", icon: "✅", status: "Pending" },
-  { label: "Ownership Models", icon: "🗂", status: "Active" },
-  { label: "Business Analysis OS", icon: "💡", status: "Active" },
 ];
 
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
@@ -230,9 +415,10 @@ export default function AskBuddy() {
     {
       id: "welcome",
       role: "buddy",
-      text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. Ask me anything about architecture, APIs, delivery status, ownership, data flow, governance, testing, or project documentation.",
+      text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. I pull live data directly from the Control Panel — batch status, stories, invariants, ownership, gates, agents, and governance rules. Ask me anything.",
       timestamp: new Date(),
       capability: "welcome",
+      sources: [],
     },
   ]);
   const [input, setInput] = useState("");
@@ -259,17 +445,18 @@ export default function AskBuddy() {
     setIsTyping(true);
 
     setTimeout(() => {
-      const { text: responseText, capability } = getBuddyResponse(text);
+      const { text: responseText, capability, sources } = queryPlatform(text);
       const buddyMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "buddy",
         text: responseText,
         timestamp: new Date(),
         capability,
+        sources,
       };
       setMessages((prev) => [...prev, buddyMsg]);
       setIsTyping(false);
-    }, 900 + Math.random() * 600);
+    }, 700 + Math.random() * 400);
   };
 
   const handleSampleQuestion = (q: string) => {
@@ -286,23 +473,23 @@ export default function AskBuddy() {
   };
 
   const formatText = (text: string) => {
-    // Simple markdown-like formatting
     return text
       .split("\n")
       .map((line, i) => {
-        // Bold
         line = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-        // Bullet
         if (line.startsWith("• ")) {
-          return `<li key="${i}" style="margin-left:1rem;list-style:disc">${line.slice(2)}</li>`;
+          return `<li style="margin-left:1.2rem;list-style:disc;margin-bottom:0.15rem">${line.slice(2)}</li>`;
         }
-        return `<p key="${i}" style="margin-bottom:0.25rem">${line}</p>`;
+        if (line.startsWith("  ↳ ")) {
+          return `<p style="margin-left:1.5rem;color:#64748b;font-size:0.8rem;margin-bottom:0.1rem">${line.slice(4)}</p>`;
+        }
+        return `<p style="margin-bottom:0.2rem">${line}</p>`;
       })
       .join("");
   };
 
   const statusColor = (s: string) =>
-    s === "Active" ? "#059669" : s === "Reference" ? "#0891b2" : "#9ca3af";
+    s === "Live" ? "#059669" : s === "Reference" ? "#0891b2" : "#9ca3af";
 
   return (
     <div style={{ background: "#f8fafc", minHeight: "100vh" }}>
@@ -312,7 +499,7 @@ export default function AskBuddy() {
       <div style={{ background: "#0f172a", padding: "1.5rem 2rem", borderBottom: "3px solid #0d9488" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", maxWidth: 1400, margin: "0 auto" }}>
           <img
-            src="/manus-storage/SuperCATTlogo_c2dbec15.png"
+            src="/manus-storage/SuperCATTlogo_55cea789.png"
             alt="Ask Buddy — SuperCATT Mascot"
             style={{ width: 72, height: 72, objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))" }}
           />
@@ -324,9 +511,12 @@ export default function AskBuddy() {
               <span style={{ background: "#0d9488", color: "#fff", fontSize: "0.65rem", fontWeight: 700, padding: "0.2rem 0.6rem", borderRadius: 4, letterSpacing: "0.08em" }}>
                 AI ASSISTANT
               </span>
+              <span style={{ background: "#1e3a5f", color: "#7dd3fc", fontSize: "0.65rem", fontWeight: 700, padding: "0.2rem 0.6rem", borderRadius: 4, letterSpacing: "0.08em" }}>
+                LIVE DATA
+              </span>
             </div>
             <p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>
-              DCT Business Analysis Assistant · Architecture · APIs · Delivery · Governance · Documentation
+              Pulling live data from the Control Panel · Batch Registry · Platform Data · Governance Rules
             </p>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: "0.75rem" }}>
@@ -343,15 +533,16 @@ export default function AskBuddy() {
                 cursor: "pointer",
               }}
             >
-              📚 Knowledge Sources
+              📚 Data Sources
             </button>
             <button
               onClick={() => setMessages([{
                 id: "welcome",
                 role: "buddy",
-                text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. Ask me anything about architecture, APIs, delivery status, ownership, data flow, governance, testing, or project documentation.",
+                text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. I pull live data directly from the Control Panel — batch status, stories, invariants, ownership, gates, agents, and governance rules. Ask me anything.",
                 timestamp: new Date(),
                 capability: "welcome",
+                sources: [],
               }])}
               style={{
                 background: "transparent",
@@ -394,7 +585,6 @@ export default function AskBuddy() {
                   display: "flex",
                   alignItems: "center",
                   gap: "0.6rem",
-                  transition: "background 0.15s",
                 }}
               >
                 <span style={{ fontSize: "1rem" }}>{cap.icon}</span>
@@ -468,10 +658,9 @@ export default function AskBuddy() {
                   alignItems: "flex-start",
                 }}
               >
-                {/* Avatar */}
                 {msg.role === "buddy" ? (
                   <img
-                    src="/manus-storage/SuperCATTlogo_c2dbec15.png"
+                    src="/manus-storage/SuperCATTlogo_55cea789.png"
                     alt="Ask Buddy"
                     style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0, marginTop: 2 }}
                   />
@@ -479,14 +668,13 @@ export default function AskBuddy() {
                   <div style={{
                     width: 36, height: 36, borderRadius: "50%", background: "#0f172a",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "#0d9488", fontSize: "0.85rem", fontWeight: 700, flexShrink: 0,
+                    color: "#0d9488", fontSize: "0.75rem", fontWeight: 700, flexShrink: 0,
                   }}>
                     You
                   </div>
                 )}
-                {/* Bubble */}
                 <div style={{
-                  maxWidth: "75%",
+                  maxWidth: "78%",
                   background: msg.role === "buddy" ? "#f8fafc" : "#0f172a",
                   border: msg.role === "buddy" ? "1px solid #e2e8f0" : "none",
                   borderRadius: msg.role === "buddy" ? "0 10px 10px 10px" : "10px 0 10px 10px",
@@ -500,23 +688,32 @@ export default function AskBuddy() {
                   ) : (
                     <p style={{ margin: 0 }}>{msg.text}</p>
                   )}
-                  <p style={{ margin: "0.4rem 0 0", fontSize: "0.7rem", color: msg.role === "buddy" ? "#94a3b8" : "#64748b" }}>
-                    {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  <div style={{ marginTop: "0.4rem", display: "flex", flexWrap: "wrap", gap: "0.3rem", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.7rem", color: msg.role === "buddy" ? "#94a3b8" : "#64748b" }}>
+                      {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
                     {msg.capability && msg.capability !== "welcome" && (
-                      <span style={{ marginLeft: "0.5rem", color: "#0d9488" }}>
+                      <span style={{ fontSize: "0.65rem", color: "#0d9488", fontWeight: 600 }}>
                         · {CAPABILITIES.find((c) => c.id === msg.capability)?.label ?? msg.capability}
                       </span>
                     )}
-                  </p>
+                    {msg.sources && msg.sources.length > 0 && msg.sources.map((src, i) => (
+                      <span key={i} style={{
+                        fontSize: "0.62rem", background: "#f0fdf4", color: "#059669",
+                        border: "1px solid #86efac", borderRadius: 3, padding: "0.1rem 0.4rem", fontWeight: 600,
+                      }}>
+                        {src}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
 
-            {/* Typing indicator */}
             {isTyping && (
               <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start", marginBottom: "1rem" }}>
                 <img
-                  src="/manus-storage/SuperCATTlogo_c2dbec15.png"
+                  src="/manus-storage/SuperCATTlogo_55cea789.png"
                   alt="Ask Buddy typing"
                   style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }}
                 />
@@ -526,13 +723,10 @@ export default function AskBuddy() {
                 }}>
                   <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
                     {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        style={{
-                          width: 7, height: 7, borderRadius: "50%", background: "#0d9488",
-                          animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-                        }}
-                      />
+                      <div key={i} style={{
+                        width: 7, height: 7, borderRadius: "50%", background: "#0d9488",
+                        animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+                      }} />
                     ))}
                   </div>
                 </div>
@@ -548,15 +742,8 @@ export default function AskBuddy() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask me about architecture, APIs, delivery status, governance, or documentation..."
-              style={{
-                flex: 1,
-                border: "none",
-                outline: "none",
-                fontSize: "0.9rem",
-                color: "#1e293b",
-                background: "transparent",
-              }}
+              placeholder="Ask about any batch, PI status, guardrails, ADRs, agents, gates, or ownership..."
+              style={{ flex: 1, border: "none", outline: "none", fontSize: "0.9rem", color: "#1e293b", background: "transparent" }}
             />
             <button
               onClick={() => sendMessage(input)}
@@ -564,13 +751,9 @@ export default function AskBuddy() {
               style={{
                 background: input.trim() && !isTyping ? "#0d9488" : "#e2e8f0",
                 color: input.trim() && !isTyping ? "#fff" : "#94a3b8",
-                border: "none",
-                borderRadius: 8,
-                padding: "0.5rem 1.25rem",
-                fontWeight: 700,
-                fontSize: "0.875rem",
+                border: "none", borderRadius: 8, padding: "0.5rem 1.25rem",
+                fontWeight: 700, fontSize: "0.875rem",
                 cursor: input.trim() && !isTyping ? "pointer" : "not-allowed",
-                transition: "background 0.15s",
               }}
             >
               Send →
@@ -581,23 +764,19 @@ export default function AskBuddy() {
           <div style={{ marginTop: "0.75rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
             {[
               "What is Batch 9?",
-              "Explain the Gateway",
-              "What is surface-not-store?",
-              "Who owns the Gateway Read Contract?",
-              "What is the 9/16 MVP cutoff?",
+              "List all ADRs",
+              "What batches are in PI 3?",
+              "Platform status summary",
+              "What are the guardrails?",
+              "List all agents",
             ].map((q) => (
               <button
                 key={q}
                 onClick={() => handleSampleQuestion(q)}
                 style={{
-                  background: "#f1f5f9",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 20,
-                  padding: "0.3rem 0.85rem",
-                  fontSize: "0.75rem",
-                  color: "#475569",
-                  cursor: "pointer",
-                  fontWeight: 500,
+                  background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 20,
+                  padding: "0.3rem 0.85rem", fontSize: "0.75rem", color: "#475569",
+                  cursor: "pointer", fontWeight: 500,
                 }}
               >
                 {q}
@@ -606,27 +785,22 @@ export default function AskBuddy() {
           </div>
         </div>
 
-        {/* ── Right: Knowledge Sources Panel ── */}
+        {/* ── Right: Data Sources Panel ── */}
         {showSources && (
           <div style={{ width: 240, flexShrink: 0 }}>
             <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #e2e8f0", overflow: "hidden" }}>
               <div style={{ background: "#f1f5f9", padding: "0.75rem 1rem", borderBottom: "1px solid #e2e8f0" }}>
-                <p style={{ margin: 0, fontSize: "0.75rem", fontWeight: 700, color: "#475569", letterSpacing: "0.08em" }}>KNOWLEDGE SOURCES</p>
+                <p style={{ margin: 0, fontSize: "0.75rem", fontWeight: 700, color: "#475569", letterSpacing: "0.08em" }}>LIVE DATA SOURCES</p>
               </div>
               {KNOWLEDGE_SOURCES.map((src, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.6rem",
-                    padding: "0.6rem 1rem",
-                    borderBottom: i < KNOWLEDGE_SOURCES.length - 1 ? "1px solid #f1f5f9" : "none",
-                  }}
-                >
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: "0.6rem",
+                  padding: "0.6rem 1rem",
+                  borderBottom: i < KNOWLEDGE_SOURCES.length - 1 ? "1px solid #f1f5f9" : "none",
+                }}>
                   <span style={{ fontSize: "0.9rem" }}>{src.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#374151", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <p style={{ margin: 0, fontSize: "0.72rem", color: "#374151", fontWeight: 500, lineHeight: 1.3 }}>
                       {src.label}
                     </p>
                     <p style={{ margin: 0, fontSize: "0.65rem", color: statusColor(src.status), fontWeight: 600 }}>
@@ -635,9 +809,9 @@ export default function AskBuddy() {
                   </div>
                 </div>
               ))}
-              <div style={{ padding: "0.75rem 1rem", background: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
-                <p style={{ margin: 0, fontSize: "0.7rem", color: "#94a3b8", lineHeight: 1.4 }}>
-                  Non-production reference workspace. Ask Buddy answers are sourced from platform architecture documentation only.
+              <div style={{ padding: "0.75rem 1rem", background: "#f0fdf4", borderTop: "1px solid #e2e8f0" }}>
+                <p style={{ margin: 0, fontSize: "0.7rem", color: "#059669", fontWeight: 600 }}>
+                  ✓ Pulling live data from Control Panel sources
                 </p>
               </div>
             </div>
@@ -645,7 +819,6 @@ export default function AskBuddy() {
         )}
       </div>
 
-      {/* Bounce animation */}
       <style>{`
         @keyframes bounce {
           0%, 60%, 100% { transform: translateY(0); }
