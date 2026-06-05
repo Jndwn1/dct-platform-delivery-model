@@ -9,7 +9,8 @@ This portfolio documents the operational platforms, AI agents, automation framew
 # AI Agents
 
 ## Ask Buddy
-
+<img src="./images/ask-buddy-mascot.png" width="350"/>
+No 
 Description:
 AI-powered Business Analysis assistant.
 
