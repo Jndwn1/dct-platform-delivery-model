@@ -2,7 +2,7 @@
 
 ## Overview
 
-This portfolio documents the operational platforms, AI agents, automation frameworks, and governance models created by Jenniver Stafford.
+This portfolio documents the operational platforms, AI agents, automation frameworks, and governance models created and maintained by Jenniver Stafford in support of DCT delivery excellence, onboarding, governance, and innovation.
 
 ---
 
