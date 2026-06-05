@@ -8,6 +8,18 @@ This portfolio documents the operational platforms, AI agents, automation framew
 
 # AI Agents
 
+1. Ask Buddy
+   Status: Operational
+
+2. QA Buddy
+   Status: Planned
+
+3. Release Buddy
+   Status: Planned
+
+4. Executive Buddy
+   Status: Planned
+
 ## Ask Buddy
 <img src="./images/ask-buddy-mascot.png" width="350"/>
 
@@ -45,6 +57,8 @@ Ask Buddy transforms static documentation into an intelligent knowledge platform
 - Architecture impact analysis
 - Sprint planning support
 - Automated meeting recap generation
+- Sprint health and delivery analytics
+
 ## QA Test Plan Review Agent
 
 Description:
