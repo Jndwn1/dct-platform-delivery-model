@@ -11,15 +11,12 @@ Transform DCT delivery knowledge, governance, and operational processes into reu
 
 ## Ownership
 
-**Portfolio Owner:** Jenniver Stafford
+Portfolio Owner: Jenniver Stafford
+Role: Senior Business Analyst, DCT
+Organization: Center for Advanced Tax Technology (CATT)
 
-**Role:** Senior Business Analyst, DCT
-
-**Organization:** Center for Advanced Tax Technology (CATT)
-
-**Status:** Active
-
-**Last Updated:** June 2026
+Status: Active
+Last Updated: June 2026
 
 ### DCT AI Innovation Portfolio
 
