@@ -2,12 +2,21 @@
 
 ## Overview
 
-This portfolio documents the operational platforms, AI agents, automation frameworks, and governance models created and maintained by Jenniver Stafford in support of DCT delivery excellence, onboarding, governance, and innovation.
+This portfolio documents the AI-powered platforms, automation frameworks, governance models, and delivery enablement solutions developed to support DCT delivery excellence, onboarding, quality, and innovation.
 
 ---
 ## Mission
 
 Transform DCT delivery knowledge, governance, and operational processes into reusable AI-powered capabilities that accelerate onboarding, improve delivery consistency, reduce dependency on tribal knowledge, and improve delivery quality.
+
+## Ownership
+
+Portfolio Owner: Jenniver Stafford
+Role: Senior Business Analyst, DCT
+Organization: Center for Advanced Tax Technology (CATT)
+
+Status: Active
+Last Updated: June 2026
 
 ### DCT AI Innovation Portfolio
 
