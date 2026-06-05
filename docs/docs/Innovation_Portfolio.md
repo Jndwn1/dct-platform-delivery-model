@@ -11,9 +11,6 @@ This portfolio documents the operational platforms, AI agents, automation framew
 ## Ask Buddy
 <img src="./images/ask-buddy-mascot.png" width="350"/>
 
-**Description:** AI-powered Business Analysis assistant.
-AI-powered Business Analysis assistant.
-
 ### Description
 
 Ask Buddy is an AI-powered Business Analysis assistant designed to transform DCT documentation into conversational knowledge. It provides guidance on architecture, APIs, governance models, onboarding, delivery status, and platform ownership.
