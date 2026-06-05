@@ -5,6 +5,9 @@
 This portfolio documents the operational platforms, AI agents, automation frameworks, and governance models created and maintained by Jenniver Stafford in support of DCT delivery excellence, onboarding, governance, and innovation.
 
 ---
+## Mission
+
+Transform DCT delivery knowledge, governance, and operational processes into reusable AI-powered capabilities that accelerate onboarding, improve delivery consistency, reduce dependency on tribal knowledge, and improve delivery quality.
 
 ### AI Agent Portfolio
 
@@ -14,6 +17,19 @@ This portfolio documents the operational platforms, AI agents, automation framew
 | QA Buddy | QA Readiness & Test Strategy Assistant | Planned |
 | Release Buddy | Release Readiness & Sprint Analytics Assistant | Planned |
 | Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned |
+
+## Portfolio Roadmap
+
+Current Focus:
+- Ask Buddy (Operational)
+
+Next Planned Agents:
+- QA Buddy
+- Release Buddy
+- Executive Buddy
+
+Long-Term Vision:
+Create an integrated ecosystem of AI assistants supporting business analysis, quality engineering, release management, governance, onboarding, and executive reporting across the DCT platform.
 
 ## Ask Buddy
 <img src="./images/ask-buddy-mascot.png" width="350"/>
