@@ -4,24 +4,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import GovernanceBanner from "@/components/GovernanceBanner";
-import {
-  getAllBatches,
-  getBatchById,
-  getPlatformSummary,
-  getBatchesByStatus,
-  getBatchesByPI,
-  type BatchEntry,
-} from "@/lib/batchModel";
-import {
-  ARCHITECTURE_GUARDRAILS,
-  SYSTEM_OWNERSHIP,
-  ADR_REGISTRY,
-  GATES,
-  AGENTS,
-  PLATFORM_LAYERS,
-  STORY_GUARANTEES,
-} from "@/lib/platformData";
-import { allBatches as dctBatches, type ArchitecturalBatch } from "@/lib/dctData";
+import { trpc } from "@/lib/trpc";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -156,241 +139,10 @@ const CAPABILITIES: Capability[] = [
 ];
 
 // ─── LIVE QUERY ENGINE ───────────────────────────────────────────────────────
-// All answers are derived from the live platform data sources.
-// No hardcoded knowledge base — data comes from batchModel.ts, platformData.ts, dctData.ts.
+// Replaced by LLM backend (tRPC askBuddy.chat). queryPlatform is no longer used.
+// The server-side platformContext.ts builds the full system prompt from live data.
 
-function queryPlatform(input: string): { text: string; capability: string; sources: string[] } {
-  const lower = input.toLowerCase();
-  const allBatches = getAllBatches();
-
-  // ── Batch lookup by ID or name ──────────────────────────────────────────
-  // Match "batch 9", "b9", "batch 28", "b28", "foundation core", etc.
-  const batchIdMatch = lower.match(/\b(?:batch\s*)?(?:b(\d+[a-z]?)|(\d+[a-z]?))\b/i);
-  const foundationMatch = lower.includes("foundation core") || lower.includes("fc");
-  const mtMatch = lower.includes("migration") || lower.includes("mt");
-
-  let targetBatch: BatchEntry | undefined;
-  if (foundationMatch) targetBatch = getBatchById("FC");
-  else if (mtMatch) targetBatch = getBatchById("MT");
-  else if (batchIdMatch) {
-    const rawId = batchIdMatch[1] || batchIdMatch[2];
-    targetBatch = getBatchById(`B${rawId.toUpperCase()}`) ?? getBatchById(rawId.toUpperCase());
-  }
-
-  if (targetBatch) {
-    const dctBatch: ArchitecturalBatch | undefined = dctBatches.find(
-      (b: ArchitecturalBatch) => b.id?.toLowerCase() === targetBatch!.id.toLowerCase()
-    );
-    const storiesText = dctBatch?.stories?.length
-      ? `\n\n**Stories (${dctBatch.stories.length}):**\n${(dctBatch.stories as string[]).map((s: string) => `• ${s}`).join("\n")}`
-      : "";
-    const outcomesText = targetBatch.keyOutcomes?.length
-      ? `\n\n**Key Outcomes:**\n${targetBatch.keyOutcomes.map((o) => `• ${o}`).join("\n")}`
-      : "";
-    const whatMustText = dctBatch?.whatMustBeTrue
-      ? `\n\n**What Must Be True:**\n${dctBatch.whatMustBeTrue.slice(0, 300)}${dctBatch.whatMustBeTrue.length > 300 ? "…" : ""}`
-      : "";
-    const depsText = targetBatch.dependencies?.length
-      ? `\n\n**Dependencies:** ${targetBatch.dependencies.join(", ")}`
-      : "";
-
-    return {
-      text: `**${targetBatch.id} — ${targetBatch.fullName}**\n\n**PI:** ${targetBatch.piLabel}\n**Status:** ${targetBatch.status}\n**Area:** ${targetBatch.area}\n**Story Count:** ${targetBatch.storyCount}\n\n${targetBatch.description}${storiesText}${outcomesText}${whatMustText}${depsText}`,
-      capability: "delivery",
-      sources: ["Batch Registry (batchModel.ts)", "DCT Data (dctData.ts)"],
-    };
-  }
-
-  // ── Platform summary / status overview ──────────────────────────────────
-  if (
-    lower.includes("platform summary") ||
-    lower.includes("status summary") ||
-    lower.includes("how many batch") ||
-    lower.includes("overall status") ||
-    lower.includes("platform status")
-  ) {
-    const summary = getPlatformSummary();
-    return {
-      text: `**DCT Platform Delivery Summary**\n\n**Total Batches:** ${summary.total}\n\n**By Status:**\n• Complete: ${summary.complete}\n• In Development: ${summary.dev}\n• In Review: ${summary.review}\n• Planned: ${summary.planned}\n\n**Total Stories:** ${summary.totalStories}\n\n**Completion Rate:** ${Math.round(summary.complete / summary.total * 100)}%`,
-      capability: "executive",
-      sources: ["Batch Registry (batchModel.ts)"],
-    };
-  }
-
-  // ── PI-specific batch list ───────────────────────────────────────────────
-  const piMatch = lower.match(/pi\s*([1-4])/);
-  if (piMatch) {
-    const piKey = `PI${piMatch[1]}` as "PI1" | "PI2" | "PI3" | "PI4";
-    const piBatches = getBatchesByPI(piKey);
-    const batchLines = piBatches.map((b) => `• **${b.id}** — ${b.name} [${b.status}]`).join("\n");
-    return {
-      text: `**${piKey} Batches (${piBatches.length} total):**\n\n${batchLines || "No batches found for this PI."}`,
-      capability: "delivery",
-      sources: ["Batch Registry (batchModel.ts)"],
-    };
-  }
-
-  // ── Status-filtered batch list ───────────────────────────────────────────
-  if (lower.includes("complete") && (lower.includes("batch") || lower.includes("which"))) {
-    const batches = getBatchesByStatus("Complete");
-    return {
-      text: `**Complete Batches (${batches.length}):**\n\n${batches.map((b: BatchEntry) => `• **${b.id}** — ${b.name}`).join("\n")}`,
-      capability: "delivery",
-      sources: ["Batch Registry (batchModel.ts)"],
-    };
-  }
-  if (lower.includes("review") && (lower.includes("batch") || lower.includes("which"))) {
-    const batches = getBatchesByStatus("Review");
-    return {
-      text: `**Batches in Review (${batches.length}):**\n\n${batches.map((b: BatchEntry) => `• **${b.id}** — ${b.name}`).join("\n")}`,
-      capability: "delivery",
-      sources: ["Batch Registry (batchModel.ts)"],
-    };
-  }
-  if ((lower.includes("active") || lower.includes("in progress") || lower.includes("in dev")) && lower.includes("batch")) {
-    const devBatches = [...getBatchesByStatus("Active"), ...getBatchesByStatus("Dev")];
-    return {
-      text: `**Active / In Development Batches (${devBatches.length}):**\n\n${devBatches.map((b: BatchEntry) => `• **${b.id}** — ${b.name} [${b.status}]`).join("\n")}`,
-      capability: "delivery",
-      sources: ["Batch Registry (batchModel.ts)"],
-    };
-  }
-
-  // ── Architecture guardrails ──────────────────────────────────────────────
-  if (lower.includes("guardrail") || lower.includes("architecture rule") || lower.includes("arch rule")) {
-    const lines = ARCHITECTURE_GUARDRAILS.map(
-      (g) => `• **${g.rule}** — ${g.detail}`
-    ).join("\n");
-    return {
-      text: `**Architecture Guardrails (${ARCHITECTURE_GUARDRAILS.length}):**\n\n${lines}`,
-      capability: "governance",
-      sources: ["Platform Data (platformData.ts)"],
-    };
-  }
-
-  // ── System ownership ─────────────────────────────────────────────────────
-  if (lower.includes("own") || lower.includes("responsible") || lower.includes("ownership")) {
-    const lines = SYSTEM_OWNERSHIP.map(
-      (s) => `• **${s.system}** (${s.owner}) — ${s.role}\n  ↳ Layer: ${s.layer} | System of Record: ${s.sor ? "Yes" : "No"}`
-    ).join("\n\n");
-    return {
-      text: `**System Ownership Boundaries:**\n\n${lines}`,
-      capability: "governance",
-      sources: ["Platform Data (platformData.ts)"],
-    };
-  }
-
-  // ── ADRs ─────────────────────────────────────────────────────────────────
-  if (lower.includes("adr") || lower.includes("architecture decision") || lower.includes("open decision")) {
-    const lines = ADR_REGISTRY.map(
-      (a) => `• **${a.id}** [${a.status}] — ${a.title}\n  ${a.decision.slice(0, 120)}${a.decision.length > 120 ? "…" : ""}`
-    ).join("\n\n");
-    return {
-      text: `**Architecture Decision Records (${ADR_REGISTRY.length}):**\n\n${lines}`,
-      capability: "governance",
-      sources: ["Platform Data (platformData.ts)"],
-    };
-  }
-
-  // ── Gates ────────────────────────────────────────────────────────────────
-  if (lower.includes("gate") && !lower.includes("gateway")) {
-    const lines = GATES.map(
-      (g) => `• **${g.name}** (${g.owner}) — ${g.description}\n  Artifacts: ${g.artifacts?.join(", ") ?? "N/A"}`
-    ).join("\n\n");
-    return {
-      text: `**Batch Delivery Gates (${GATES.length}):**\n\n${lines}`,
-      capability: "governance",
-      sources: ["Platform Data (platformData.ts)"],
-    };
-  }
-
-  // ── Agents ───────────────────────────────────────────────────────────────
-  if (lower.includes("agent")) {
-    const lines = AGENTS.map(
-      (a) => `• **${a.name}** [${a.status}] — ${a.role}\n  ${a.description}`
-    ).join("\n\n");
-    return {
-      text: `**Platform Agents (${AGENTS.length}):**\n\n${lines}`,
-      capability: "api",
-      sources: ["Platform Data (platformData.ts)"],
-    };
-  }
-
-  // ── Platform layers ──────────────────────────────────────────────────────
-  if (lower.includes("layer") || lower.includes("platform layer") || lower.includes("component")) {
-    const lines = PLATFORM_LAYERS.map(
-      (l) => `• **${l.label}** — ${l.sublabel} (${l.authority})\n  Systems: ${l.systems?.join(", ") ?? "N/A"}`
-    ).join("\n\n");
-    return {
-      text: `**Platform Layers (${PLATFORM_LAYERS.length}):**\n\n${lines}`,
-      capability: "architecture",
-      sources: ["Platform Data (platformData.ts)"],
-    };
-  }
-
-  // ── Story guarantees ─────────────────────────────────────────────────────
-  if (lower.includes("guarantee") || lower.includes("story guarantee") || lower.includes("lineage") || lower.includes("schema lock") || lower.includes("contract")) {
-    const lines = STORY_GUARANTEES.map(
-      (g) => `• **${g.guaranteeType}** [${g.status}] — ${g.title}\n  Gate: ${g.gate} · ${g.platformGuarantee.slice(0, 100)}${g.platformGuarantee.length > 100 ? "…" : ""}`
-    ).join("\n\n");
-    return {
-      text: `**Story Guarantees (${STORY_GUARANTEES.length}):**\n\n${lines}`,
-      capability: "governance",
-      sources: ["Platform Data (platformData.ts)"],
-    };
-  }
-
-  // ── All batches list ─────────────────────────────────────────────────────
-  if (lower.includes("all batch") || lower.includes("list batch") || lower.includes("every batch")) {
-    const lines = allBatches.map((b) => `• **${b.id}** — ${b.name} [${b.status}] (${b.pi})`).join("\n");
-    return {
-      text: `**All Batches (${allBatches.length}):**\n\n${lines}`,
-      capability: "delivery",
-      sources: ["Batch Registry (batchModel.ts)"],
-    };
-  }
-
-  // ── Gateway / surface-not-store ──────────────────────────────────────────
-  if (lower.includes("gateway") || lower.includes("surface-not-store") || lower.includes("surface not store")) {
-    const b9 = getBatchById("B9");
-    const b9pdc = getBatchById("B9-PDC") ?? getBatchById("B9");
-    return {
-      text: `**Roger Gateway & Governed Consumer Access Layer (Batch 9)**\n\n${b9?.description ?? ""}\n\n**Governing Principle:** Surface-not-store — the Gateway surfaces data from IMS, CEM, and TIM without storing it in PDC.\n\n**Status:** ${b9pdc?.status ?? "Unknown"}\n\n**Key Outcomes:**\n${b9?.keyOutcomes?.map((o) => `• ${o}`).join("\n") ?? "See Batch 9 in Control Panel"}`,
-      capability: "architecture",
-      sources: ["Batch Registry (batchModel.ts)", "Control Panel"],
-    };
-  }
-
-  // ── Onboarding / new to DCT ──────────────────────────────────────────────
-  if (lower.includes("new") || lower.includes("start") || lower.includes("orientation") || lower.includes("what is dct")) {
-    const summary = getPlatformSummary();
-    const layers = PLATFORM_LAYERS.slice(0, 4).map((l) => `• **${l.label}** — ${l.sublabel}`).join("\n");
-    return {
-      text: `**Welcome to the DCT Platform!**\n\nDCT is an enterprise data platform that governs tax data, AI-assisted delivery, and system integration for RSM. It has ${summary.total} delivery batches across 4 PIs.\n\n**Key Platform Layers:**\n${layers}\n\nFor a full orientation, explore the **Batch Roadmap**, **Control Panel**, and **Gateway Architecture** pages in the sidebar.`,
-      capability: "onboarding",
-      sources: ["Platform Data (platformData.ts)", "Batch Registry (batchModel.ts)"],
-    };
-  }
-
-  // ── Executive summary ────────────────────────────────────────────────────
-  if (lower.includes("executive") || lower.includes("leadership") || lower.includes("summary") || lower.includes("briefing")) {
-    const summary = getPlatformSummary();
-    const openAdrs = ADR_REGISTRY.filter((a) => a.status === "PROPOSED").length;
-    return {
-      text: `**DCT Platform — Executive Summary**\n\n**Total Batches:** ${summary.total}\n**Complete:** ${summary.complete} | **In Development:** ${summary.dev} | **In Review:** ${summary.review} | **Planned:** ${summary.planned}\n**Completion Rate:** ${Math.round(summary.complete / summary.total * 100)}%\n\n**Open Architecture Decisions:** ${openAdrs} ADR${openAdrs !== 1 ? "s" : ""} pending\n**Platform Agents:** ${AGENTS.length} agents defined\n**Delivery Gates:** ${GATES.length} gates per batch\n\nFor full batch-level detail, see the **Control Panel** and **Batch Roadmap** pages.`,
-      capability: "executive",
-      sources: ["Batch Registry (batchModel.ts)", "Platform Data (platformData.ts)"],
-    };
-  }
-
-  // ── Default: suggest relevant searches ──────────────────────────────────
-  const summary = getPlatformSummary();
-  return {
-    text: `I searched the live platform data for **"${input}"** but couldn't find a direct match.\n\n**Try asking about:**\n• A specific batch (e.g., "What is Batch 6?" or "Tell me about B28")\n• Platform status (e.g., "Give me a platform summary")\n• PI scope (e.g., "What batches are in PI 3?")\n• Governance (e.g., "List all ADRs" or "What are the guardrails?")\n• Agents, gates, or platform layers\n\n**Current platform:** ${summary.total} batches · ${summary.complete} complete · ${summary.review} in review`,
-    capability: "documentation",
-    sources: ["Batch Registry (batchModel.ts)"],
-  };
-}
+// (queryPlatform removed — all queries now handled by LLM backend via tRPC askBuddy.chat)
 
 // ─── KNOWLEDGE SOURCES ───────────────────────────────────────────────────────
 
@@ -432,6 +184,33 @@ export default function AskBuddy() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  const chatMutation = trpc.askBuddy.chat.useMutation({
+    onSuccess: (data) => {
+      const buddyMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "buddy",
+        text: data.text,
+        timestamp: new Date(),
+        capability: "ai",
+        sources: ["LLM (Full Platform Knowledge Base)"],
+      };
+      setMessages((prev) => [...prev, buddyMsg]);
+      setIsTyping(false);
+    },
+    onError: (err) => {
+      const errMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "buddy",
+        text: `Sorry, I encountered an error: ${err.message}. Please try again.`,
+        timestamp: new Date(),
+        capability: "error",
+        sources: [],
+      };
+      setMessages((prev) => [...prev, errMsg]);
+      setIsTyping(false);
+    },
+  });
+
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
     const userMsg: Message = {
@@ -444,19 +223,20 @@ export default function AskBuddy() {
     setInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      const { text: responseText, capability, sources } = queryPlatform(text);
-      const buddyMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "buddy",
-        text: responseText,
-        timestamp: new Date(),
-        capability,
-        sources,
-      };
-      setMessages((prev) => [...prev, buddyMsg]);
-      setIsTyping(false);
-    }, 700 + Math.random() * 400);
+    // Build conversation history for the LLM (exclude welcome message)
+    const history = messages
+      .filter((m) => m.id !== "welcome")
+      .map((m) => ({
+        role: m.role === "user" ? "user" as const : "assistant" as const,
+        content: m.text,
+      }));
+
+    chatMutation.mutate({
+      messages: [
+        ...history,
+        { role: "user" as const, content: text.trim() },
+      ],
+    });
   };
 
   const handleSampleQuestion = (q: string) => {

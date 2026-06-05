@@ -64,8 +64,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   if (!user) return <LoginPage />;
   return <>{children}</>;
 }
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <AuthGate>
       <Layout>
