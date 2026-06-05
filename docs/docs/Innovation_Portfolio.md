@@ -27,11 +27,23 @@ Ask Buddy is an AI-powered Business Analysis assistant designed to transform DCT
 
 ### Business Value
 
-Transforms static documentation into an intelligent knowledge platform that accelerates onboarding, reduces dependency on tribal knowledge, and improves delivery consistency across DCT.
+Ask Buddy transforms static documentation into an intelligent knowledge platform that accelerates onboarding, reduces dependency on tribal knowledge, improves delivery consistency, and provides instant access to DCT architecture and governance guidance.
 
+### Current Status
 
+- Operational in Manus
+- Integrated with DCT documentation
+- Supports architecture, governance, onboarding, and delivery guidance
+- Continuously updated through GitHub documentation
 ---
+### Future Enhancements
 
+- Story generation assistance
+- Acceptance criteria recommendations
+- QA readiness reviews
+- Architecture impact analysis
+- Sprint planning support
+- Automated meeting recap generation
 ## QA Test Plan Review Agent
 
 Description:
