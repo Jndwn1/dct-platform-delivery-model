@@ -14,15 +14,24 @@ This portfolio documents the operational platforms, AI agents, automation framew
 **Description:** AI-powered Business Analysis assistant.
 AI-powered Business Analysis assistant.
 
-Capabilities:
+### Description
+
+Ask Buddy is an AI-powered Business Analysis assistant designed to transform DCT documentation into conversational knowledge. It provides guidance on architecture, APIs, governance models, onboarding, delivery status, and platform ownership.
+
+### Capabilities
+
 - Architecture Q&A
 - API Guidance
 - Delivery Status
 - Governance Questions
 - Onboarding Support
+- Batch Delivery Insights
+- Roger / PDC / TDC Integration Guidance
 
-Business Value:
-Transforms documentation into conversational knowledge.
+### Business Value
+
+Transforms static documentation into an intelligent knowledge platform that accelerates onboarding, reduces dependency on tribal knowledge, and improves delivery consistency across DCT.
+
 
 ---
 
