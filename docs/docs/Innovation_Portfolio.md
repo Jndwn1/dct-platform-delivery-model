@@ -9,7 +9,7 @@ This portfolio documents the operational platforms, AI agents, automation framew
 
 Transform DCT delivery knowledge, governance, and operational processes into reusable AI-powered capabilities that accelerate onboarding, improve delivery consistency, reduce dependency on tribal knowledge, and improve delivery quality.
 
-### AI Agent Portfolio
+### DCT AI Innovation Portfolio
 
 | Agent | Purpose | Status |
 |---------|---------|---------|
