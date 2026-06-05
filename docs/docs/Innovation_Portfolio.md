@@ -31,10 +31,11 @@ Ask Buddy transforms static documentation into an intelligent knowledge platform
 
 ### Current Status
 
-- Operational in Manus
-- Integrated with DCT documentation
-- Supports architecture, governance, onboarding, and delivery guidance
-- Continuously updated through GitHub documentation
+- Operational within the DCT Delivery Model platform
+- Integrated with GitHub knowledge repositories
+- Supports architecture, governance, onboarding, API guidance, and delivery insights
+- Continuously updated through repository-based documentation management
+
 ---
 ### Future Enhancements
 
