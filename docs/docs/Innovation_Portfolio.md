@@ -1,22 +1,58 @@
 # Innovation Portfolio
 
-## DCT Platform Delivery Model
-Interactive governance, architecture, readiness, and batch delivery platform.
+## Overview
 
-## DCT Consumer Wiki Updater
-Automated Wiki generation and updates from Swagger/OpenAPI definitions.
+This portfolio documents the operational platforms, AI agents, automation frameworks, and governance models created by Jenniver Stafford.
 
-## Roger Integration Hub
-Interactive API consumer documentation and integration visualization.
+---
 
-## TIM Discovery Hub
-Discovery platform for IMS, TIM, EODS, and filing structure readiness.
+# AI Agents
 
-## Demo Simulator
-Automated generation of realistic demo scenarios and stakeholder walkthroughs.
+## Ask Buddy
 
-## Executive PPT Generator
-Automated creation of executive-ready presentations from platform metadata and delivery status.
+Description:
+AI-powered Business Analysis assistant.
 
-## AI Agent Collaboration Framework
-Agent-assisted business analysis, documentation, governance, and delivery acceleration.
+Capabilities:
+- Architecture Q&A
+- API Guidance
+- Delivery Status
+- Governance Questions
+- Onboarding Support
+
+Business Value:
+Transforms documentation into conversational knowledge.
+
+---
+
+## QA Test Plan Review Agent
+
+Description:
+AI-powered QA governance review platform.
+
+Capabilities:
+- Test Plan Reviews
+- Test Case Analysis
+- Coverage Assessment
+- Gap Detection
+
+Business Value:
+Accelerates QA readiness and improves governance compliance.
+
+---
+
+# Simulators
+
+## Interactive Delivery Simulator
+
+Description:
+Users upload Trial Balances, Workbooks, or source files.
+
+Capabilities:
+- Data Flow Visualization
+- Architecture Walkthrough
+- End-to-End Process Education
+- Real-Time Guidance
+
+Business Value:
+Converts architecture into an interactive learning experience.
