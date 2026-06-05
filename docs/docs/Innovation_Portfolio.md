@@ -6,19 +6,14 @@ This portfolio documents the operational platforms, AI agents, automation framew
 
 ---
 
-# AI Agents
+### AI Agent Portfolio
 
-1. Ask Buddy
-   Status: Operational
-
-2. QA Buddy
-   Status: Planned
-
-3. Release Buddy
-   Status: Planned
-
-4. Executive Buddy
-   Status: Planned
+| Agent | Purpose | Status |
+|---------|---------|---------|
+| Ask Buddy | Business Analysis & Knowledge Assistant | Operational |
+| QA Buddy | QA Readiness & Test Strategy Assistant | Planned |
+| Release Buddy | Release Readiness & Sprint Analytics Assistant | Planned |
+| Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned |
 
 ## Ask Buddy
 <img src="./images/ask-buddy-mascot.png" width="350"/>
