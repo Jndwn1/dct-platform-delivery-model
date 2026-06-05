@@ -381,7 +381,6 @@ The following technologies were used as implementation accelerators:
 
 * Manus
 * Claude
-* ChatGPT
 * GitHub Copilot
 * GitHub
 
