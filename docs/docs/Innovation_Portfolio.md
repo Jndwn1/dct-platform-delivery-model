@@ -28,6 +28,16 @@ Last Updated: June 2026
 | Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned | Concept | Available |
 
 ## Portfolio Navigation
+## Portfolio Metrics
+
+| Metric | Value |
+|----------|----------|
+| Operational Agents | 1 |
+| Planned Agents | 3 |
+| Production Agents | 1 |
+| Concept Agents | 3 |
+| Documentation Coverage | 100% |
+[View](QA_Buddy.md)
 
 ### Active Agents
 
