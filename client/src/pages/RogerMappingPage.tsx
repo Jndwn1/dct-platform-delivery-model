@@ -9,6 +9,8 @@ import {
   HEATMAP_DATA, ADR_CARDS, computeSummaryTiles,
   type FieldMapping, type GovStatus, type Owner, type HeatmapValue,
 } from "../lib/rogerGovernanceData";
+import { GovernanceStatusBar } from "../components/GovernanceStatusBar";
+import GovernanceWorkflowSimulator from "../components/GovernanceWorkflowSimulator";
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
 const RSM_BLUE = "#003087";
@@ -297,7 +299,17 @@ export default function RogerMappingPage() {
   }, [discoveredBatches]);
 
   return (
-    <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto", fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ fontFamily: "'Inter', sans-serif" }}>
+      <GovernanceStatusBar
+        blocking={1}
+        warnings={2}
+        openQuestions={5}
+        contractsActive={7}
+        contractsTotal={12}
+        governanceStatus="Degraded"
+        context="Roger UI Data Point Mapping"
+      />
+      <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto" }}>
 
       {/* Page Header */}
       <div style={{ background: `linear-gradient(135deg, ${RSM_BLUE} 0%, #1a4a8a 100%)`, borderRadius: "12px", padding: "24px 28px", marginBottom: "24px", color: "white" }}>
@@ -763,6 +775,9 @@ export default function RogerMappingPage() {
         </div>
       </div>
 
+      {/* Governance Workflow Simulator */}
+      <GovernanceWorkflowSimulator />
+
       {/* Section 11 — Executive Footer */}
       <div style={{ background: RSM_BLUE, borderRadius: "10px", padding: "20px 24px", color: "white", textAlign: "center" }}>
         <div style={{ fontWeight: 800, fontSize: "16px", marginBottom: "6px" }}>Roger UI Mapping & Governance Alignment</div>
@@ -782,6 +797,7 @@ export default function RogerMappingPage() {
         </div>
       </div>
 
+      </div>
     </div>
   );
 }

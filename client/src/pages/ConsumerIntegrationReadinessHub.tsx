@@ -22,6 +22,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
+import { GovernanceStatusBar } from "@/components/GovernanceStatusBar";
 import {
   ChevronDown, ChevronUp, Shield, Link2, Database, AlertTriangle,
   CheckCircle2, Clock, Circle, FileText, Zap, Eye, Lock, Users, Printer, Mail, Copy, X,
@@ -366,10 +367,347 @@ function EmailSummaryModal({ onClose }: { onClose: () => void }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // PAGE COMPONENT
 // ═════════════════════════════════════════════════════════════════════════════
+// ─── Command Center Tab Data ──────────────────────────────────────────────────
+const COMMAND_TABS = [
+  "Integration Risks",
+  "Open Questions",
+  "API Contract Health",
+  "Batch Dependency Tracker",
+  "Governance Decision Feed",
+  "Source System Readiness",
+  "QA Readiness",
+  "Roger UI Readiness",
+  "PI Carry Forward Risks",
+] as const;
+type CommandTab = typeof COMMAND_TABS[number];
+
+const GOVERNANCE_FEED_ITEMS = [
+  { date: "Jun 5, 2026",  action: "Known Mapping Strategy Approved",          owner: "Architecture",  type: "decision" },
+  { date: "Jun 5, 2026",  action: "Client-Level Mapping Reuse Approved",       owner: "TDC BA",        type: "decision" },
+  { date: "Jun 5, 2026",  action: "Book/Reclass API Story Created (Batch 6)",  owner: "Jenniver",      type: "story" },
+  { date: "Jun 4, 2026",  action: "Gateway Validation Rule Added (ARB-7)",     owner: "Nasar",         type: "rule" },
+  { date: "Jun 3, 2026",  action: "TIM Deliverables Integration Scoped",       owner: "Nasar",         type: "scope" },
+  { date: "May 30, 2026", action: "FirmTaxonomyId ADR Escalated to Architecture", owner: "Architecture", type: "adr" },
+  { date: "May 28, 2026", action: "Roger Read-Only Boundary Confirmed",        owner: "Architecture",  type: "decision" },
+];
+
+const SOURCE_READINESS = [
+  { system: "PDC",          status: "Ready",    note: "Contracts published through B7. B8 in draft.",                color: "#059669" },
+  { system: "TDC",          status: "Partial",  note: "B6 adjustments governance pending. Book/Reclass gap open.",   color: "#d97706" },
+  { system: "Orchestrator", status: "Warning",  note: "FirmTaxonomyId not returned in payload. ADO #1370843.",       color: "#d97706" },
+  { system: "Gateway (B9)", status: "Planned",  note: "ARB-7 active. TIM deliverables integration in flight.",       color: "#7c3aed" },
+  { system: "TIM",          status: "Active",   note: "Deliverables integration scoped by Nasar. In flight.",        color: "#0ea5e9" },
+  { system: "CEM",          status: "Active",   note: "Client setup in CEM active. Login integration in progress.",  color: "#0ea5e9" },
+  { system: "IMS",          status: "Deferred", note: "Not in current MVP scope. Gated on IMS readiness.",           color: "#6b7280" },
+];
+
+const BATCH_DEPS = [
+  { batch: "B2A", name: "FirmTaxonomyId Enforcement",         status: "Blocked",    blocker: "Orchestrator not returning FirmTaxonomyId",           owner: "PDC + Orchestrator" },
+  { batch: "B6",  name: "Practitioner Review, Adjustments",   status: "Warning",    blocker: "Book/Reclass update endpoint gap — story being created", owner: "TDC" },
+  { batch: "B8",  name: "Exception Management",               status: "Blocked",    blocker: "G3 Contract not yet published",                       owner: "PDC" },
+  { batch: "B9",  name: "Roger Gateway (Ocelot)",             status: "In Flight",  blocker: "ARB-7 active. TIM deliverables integration ongoing.",   owner: "PDC + Nasar" },
+  { batch: "B12", name: "Known Mappings Reuse",               status: "Defect",     blocker: "Gary's Known Mappings API bug — fix expected post-sprint", owner: "TDC + Gary" },
+];
+
+const PI_CARRY_FORWARD = [
+  { item: "Known Mappings API Defect",            pi: "PI 2 → PI 3", severity: "Blocking",  owner: "Gary / TDC",    note: "API only queries newest TaxReadyRecord — misses LOCKED records with approved decisions." },
+  { item: "Book/Reclass Update Endpoint Gap",     pi: "PI 2 → PI 3", severity: "Blocking",  owner: "Nasar / TDC",   note: "Roger UI can retrieve but not persist adjustment updates. Story being created." },
+  { item: "Role Assignment Ownership (ADR-04)",   pi: "PI 2 → PI 3", severity: "Blocking",  owner: "Architecture",  note: "Work Queue API exists but no team owns role assignment logic." },
+  { item: "FirmTaxonomyId Payload Gap",           pi: "PI 2 → PI 3", severity: "Warning",   owner: "Orchestrator",  note: "Field missing from Orchestrator response. ADO #1370843." },
+  { item: "Gateway Routing Strategy (ADR-03)",    pi: "PI 2 → PI 3", severity: "Warning",   owner: "Architecture",  note: "ADR required before Roger routes calls through Ocelot." },
+];
+
+const QA_READINESS = [
+  { area: "Known Mappings Reuse Flow",     status: "Blocked",   note: "Gary's API defect blocks second-run validation. Fix expected after current sprint.",    owner: "Gary" },
+  { area: "Book/Reclass Save Capability",  status: "Gap",       note: "Roger UI save triggers no TDC persist. TDC update endpoint missing.",                  owner: "Nasar" },
+  { area: "Gateway TIM Deliverables",      status: "In Flight", note: "Nasar actively integrating. Target: next sprint.",                                      owner: "Nasar" },
+  { area: "Client Setup in CEM",           status: "In Flight", note: "Client provisioning required before Gateway flow can execute.",                         owner: "Nasar" },
+  { area: "FirmTaxonomyId Enforcement",    status: "Warning",   note: "Orchestrator payload fix needed before B2A QA can pass.",                              owner: "Orchestrator" },
+  { area: "B8 Exception Management",       status: "Blocked",   note: "All B8 APIs in Draft Contract state. Cannot QA until G3 gate passed.",                 owner: "PDC BA" },
+];
+
+const ROGER_UI_READINESS = [
+  { screen: "Dashboard",          status: "Ready",   apis: "Ingestion Status, Entity Identity",         risk: "None" },
+  { screen: "Client List",        status: "Ready",   apis: "Entity Identity, Client Tax Profile",        risk: "None" },
+  { screen: "Work Queue",         status: "Blocked", apis: "Practitioner Review Queue",                  risk: "Role assignment ownership unresolved [BLOCKING]" },
+  { screen: "Filing Review",      status: "Ready",   apis: "Normalized TB, AI Proposals, Tax Profile",   risk: "None" },
+  { screen: "Adjustments",        status: "Warning", apis: "Normalized TB, FirmTaxonomyId",              risk: "FirmTaxonomyId missing from Orchestrator [WARNING]" },
+  { screen: "Book/Reclass Edit",  status: "Gap",     apis: "TDC Update Endpoint (missing)",              risk: "No TDC API to persist save. Story being created." },
+  { screen: "Exception Mgmt",     status: "Blocked", apis: "Exception Record, Remedy Action",            risk: "All B8 APIs in Draft Contract state [BLOCKING]" },
+  { screen: "Tax Mapping",        status: "Ready",   apis: "Tax Forms, AI Proposals, Tax Profile",       risk: "None" },
+];
+
+// ─── Executive Summary KPI Panel ─────────────────────────────────────────────
+function ExecSummaryPanel() {
+  const kpis = [
+    { label: "Governance Health",    value: "72%",   sub: "6 open issues",           color: "#d97706", bg: "#fffbeb" },
+    { label: "Blocking Items",       value: "3",     sub: "Known Mappings, B8, Roles", color: "#dc2626", bg: "#fef2f2" },
+    { label: "Critical Dependencies",value: "5",     sub: "Cross-batch dependencies", color: "#7c3aed", bg: "#f5f3ff" },
+    { label: "Batch Readiness",      value: "PI 2",  sub: "B9/B12 in flight",        color: "#003865", bg: "#eff6ff" },
+    { label: "Release Readiness",    value: "Partial",sub: "B6 gap open",            color: "#d97706", bg: "#fffbeb" },
+    { label: "Tax Return Readiness", value: "Pending",sub: "Known Mappings blocked",  color: "#dc2626", bg: "#fef2f2" },
+  ];
+  return (
+    <div style={{ background: "#0f1623", borderBottom: "1px solid #1e3a5f", padding: "12px 20px" }}>
+      <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Executive Summary — Integration Command Center</div>
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        {kpis.map(k => (
+          <div key={k.label} style={{ background: k.bg, borderRadius: "6px", padding: "8px 12px", minWidth: "110px" }}>
+            <div style={{ fontSize: "18px", fontWeight: 800, color: k.color, lineHeight: 1 }}>{k.value}</div>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#374151", marginTop: "2px" }}>{k.label}</div>
+            <div style={{ fontSize: "9px", color: "#6b7280", marginTop: "1px" }}>{k.sub}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Command Center Panel ─────────────────────────────────────────────────────
+function CommandCenterPanel() {
+  const [activeTab, setActiveTab] = useState<CommandTab>("Integration Risks");
+
+  const RISK_COLOR: Record<string, { bg: string; text: string }> = {
+    Critical: { bg: "#fef2f2", text: "#991b1b" },
+    High:     { bg: "#fff7ed", text: "#9a3412" },
+    Medium:   { bg: "#fefce8", text: "#854d0e" },
+    Low:      { bg: "#f0fdf4", text: "#166534" },
+  };
+  const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
+    Ready:     { bg: "#dcfce7", text: "#15803d" },
+    Partial:   { bg: "#fef9c3", text: "#854d0e" },
+    Warning:   { bg: "#fff7ed", text: "#9a3412" },
+    Planned:   { bg: "#eff6ff", text: "#1d4ed8" },
+    Active:    { bg: "#e0f2fe", text: "#0369a1" },
+    Deferred:  { bg: "#f3f4f6", text: "#6b7280" },
+    Blocked:   { bg: "#fef2f2", text: "#991b1b" },
+    "In Flight":{ bg: "#f0fdf4", text: "#15803d" },
+    Defect:    { bg: "#fef2f2", text: "#991b1b" },
+    Gap:       { bg: "#fff7ed", text: "#9a3412" },
+    Blocking:  { bg: "#fef2f2", text: "#991b1b" },
+    decision:  { bg: "#eff6ff", text: "#1d4ed8" },
+    story:     { bg: "#f0fdf4", text: "#15803d" },
+    rule:      { bg: "#f5f3ff", text: "#5b21b6" },
+    scope:     { bg: "#fef9c3", text: "#854d0e" },
+    adr:       { bg: "#fff7ed", text: "#9a3412" },
+  };
+  function Chip({ label, type }: { label: string; type: string }) {
+    const s = STATUS_COLOR[type] ?? { bg: "#f3f4f6", text: "#374151" };
+    return (
+      <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", background: s.bg, color: s.text, whiteSpace: "nowrap" }}>{label}</span>
+    );
+  }
+
+  return (
+    <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "10px", marginBottom: "20px", overflow: "hidden" }}>
+      {/* Tab bar */}
+      <div style={{ background: "#003865", padding: "0 16px", display: "flex", gap: "2px", overflowX: "auto" }}>
+        <div style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", alignSelf: "center", marginRight: "8px", whiteSpace: "nowrap" }}>Control Tower</div>
+        {COMMAND_TABS.map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: "10px 14px",
+              fontSize: "11px",
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              background: activeTab === tab ? "white" : "transparent",
+              color: activeTab === tab ? "#003865" : "rgba(255,255,255,0.75)",
+              borderRadius: activeTab === tab ? "6px 6px 0 0" : "0",
+              marginTop: "4px",
+            }}
+          >{tab}</button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <div style={{ padding: "16px 20px" }}>
+
+        {activeTab === "Integration Risks" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Active integration risks grounded in live platform data and meeting context (Jun 5, 2026).</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {INTEGRATION_RISKS_DATA.map(r => (
+                <div key={r.id} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 14px", background: r.level === "Critical" ? "#fff5f5" : r.level === "High" ? "#fffbeb" : "#f8fafc" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", fontFamily: "monospace" }}>{r.id}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", flex: 1 }}>{r.title}</span>
+                    <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", background: RISK_COLOR[r.level]?.bg, color: RISK_COLOR[r.level]?.text }}>{r.level}</span>
+                    <span style={{ fontSize: "10px", color: "#64748b", background: "#f1f5f9", padding: "2px 6px", borderRadius: "4px" }}>{r.category}</span>
+                  </div>
+                  <p style={{ fontSize: "12px", color: "#475569", margin: "0 0 4px" }}>{r.description}</p>
+                  <p style={{ fontSize: "11px", color: "#059669", margin: 0 }}>↳ Resolution: {r.resolution}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "Open Questions" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Open architecture decisions and pending governance questions requiring resolution.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {OPEN_ADRS_DATA.map(a => (
+                <div key={a.id} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 14px", background: a.impact === "Critical" ? "#fff5f5" : "#f8fafc" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", fontFamily: "monospace" }}>{a.id}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", flex: 1 }}>{a.title}</span>
+                    <Chip label={a.status} type={a.status === "Open" ? "Blocked" : "Warning"} />
+                    <Chip label={a.impact} type={a.impact === "Critical" ? "Blocking" : a.impact === "High" ? "Warning" : "Partial"} />
+                  </div>
+                  <p style={{ fontSize: "12px", color: "#475569", margin: "0 0 4px" }}>{a.description}</p>
+                  <p style={{ fontSize: "11px", color: "#dc2626", margin: 0 }}>Blocking: {a.blocking}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "API Contract Health" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Contract health by system. Color indicates readiness for Roger consumption.</p>
+            {[
+              { system: "PDC Contracts",     passed: 8, warning: 1, blocking: 1, note: "B8 Exception APIs in Draft Contract state — blocking Roger Exception Management." },
+              { system: "TDC Contracts",     passed: 6, warning: 2, blocking: 1, note: "B6 Adjustments governance pending. Book/Reclass update endpoint gap identified." },
+              { system: "Gateway Contracts", passed: 0, warning: 1, blocking: 0, note: "ARB-7 active. TIM deliverables integration in flight. B9 planned PI 2." },
+              { system: "Roger Contracts",   passed: 5, warning: 2, blocking: 0, note: "FirmTaxonomyId field missing from Orchestrator. Work Queue role assignment open." },
+            ].map(c => (
+              <div key={c.system} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 14px", marginBottom: "8px", background: "#f8fafc" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#003865", flex: 1 }}>{c.system}</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#15803d", background: "#dcfce7", padding: "2px 8px", borderRadius: "4px" }}>✓ {c.passed} Passed</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", background: "#fef9c3", padding: "2px 8px", borderRadius: "4px" }}>⚠ {c.warning} Warning</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", background: "#fef2f2", padding: "2px 8px", borderRadius: "4px" }}>✕ {c.blocking} Blocking</span>
+                </div>
+                <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>{c.note}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === "Batch Dependency Tracker" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Cross-batch dependencies and current blockers.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {BATCH_DEPS.map(b => (
+                <div key={b.batch} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 14px", background: b.status === "Blocked" || b.status === "Defect" ? "#fff5f5" : "#f8fafc" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, background: "#e2e8f0", color: "#0f1623", padding: "2px 6px", borderRadius: "4px", fontFamily: "monospace" }}>{b.batch}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", flex: 1 }}>{b.name}</span>
+                    <Chip label={b.status} type={b.status} />
+                    <span style={{ fontSize: "10px", color: "#64748b" }}>{b.owner}</span>
+                  </div>
+                  <p style={{ fontSize: "12px", color: "#dc2626", margin: 0 }}>⚠ {b.blocker}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "Governance Decision Feed" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Recent governance decisions, approved strategies, and new story creation events.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {GOVERNANCE_FEED_ITEMS.map((item, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: "6px", background: "#f8fafc" }}>
+                  <Chip label={item.type.toUpperCase()} type={item.type} />
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f1623", flex: 1 }}>{item.action}</span>
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>{item.owner}</span>
+                  <span style={{ fontSize: "10px", color: "#94a3b8" }}>{item.date}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "Source System Readiness" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Current readiness status for each source system feeding the DCT platform.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {SOURCE_READINESS.map(s => (
+                <div key={s.system} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "10px 14px", border: "1px solid #e2e8f0", borderRadius: "8px", background: "#f8fafc" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: s.color, minWidth: "90px" }}>{s.system}</span>
+                  <Chip label={s.status} type={s.status} />
+                  <span style={{ fontSize: "12px", color: "#475569" }}>{s.note}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "QA Readiness" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>QA readiness by integration area. Grounded in Jun 5 meeting context.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {QA_READINESS.map(q => (
+                <div key={q.area} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "10px 14px", border: "1px solid #e2e8f0", borderRadius: "8px", background: q.status === "Blocked" || q.status === "Gap" ? "#fff5f5" : "#f8fafc" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#003865", minWidth: "180px" }}>{q.area}</span>
+                  <Chip label={q.status} type={q.status} />
+                  <span style={{ fontSize: "12px", color: "#475569", flex: 1 }}>{q.note}</span>
+                  <span style={{ fontSize: "10px", color: "#64748b" }}>{q.owner}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "Roger UI Readiness" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Roger UI screen-by-screen readiness based on current API contract status.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {ROGER_UI_READINESS.map(r => (
+                <div key={r.screen} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "10px 14px", border: "1px solid #e2e8f0", borderRadius: "8px", background: r.status === "Blocked" || r.status === "Gap" ? "#fff5f5" : "#f8fafc" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#003865", minWidth: "140px" }}>{r.screen}</span>
+                  <Chip label={r.status} type={r.status} />
+                  <span style={{ fontSize: "11px", color: "#64748b", flex: 1 }}>APIs: {r.apis}</span>
+                  <span style={{ fontSize: "11px", color: r.risk === "None" ? "#15803d" : "#dc2626" }}>{r.risk}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "PI Carry Forward Risks" && (
+          <div>
+            <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Items carrying forward from PI 2 into PI 3. Requires resolution before PI 3 planning.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {PI_CARRY_FORWARD.map((p, i) => (
+                <div key={i} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 14px", background: p.severity === "Blocking" ? "#fff5f5" : "#fffbeb" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", flex: 1 }}>{p.item}</span>
+                    <Chip label={p.severity} type={p.severity} />
+                    <span style={{ fontSize: "10px", color: "#64748b", background: "#f1f5f9", padding: "2px 6px", borderRadius: "4px" }}>{p.pi}</span>
+                    <span style={{ fontSize: "10px", color: "#64748b" }}>{p.owner}</span>
+                  </div>
+                  <p style={{ fontSize: "12px", color: "#475569", margin: 0 }}>{p.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
 export default function ConsumerIntegrationReadinessHub() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   return (
     <div className="min-h-screen bg-slate-50">
+      <ExecSummaryPanel />
+      <GovernanceStatusBar
+        blocking={3}
+        warnings={3}
+        openQuestions={6}
+        contractsActive={2}
+        contractsTotal={8}
+        governanceStatus="Degraded"
+        context="Consumer Integration Hub"
+      />
       <div className="px-6 pt-4"><GovernanceBanner /></div>
       {showEmailModal && <EmailSummaryModal onClose={() => setShowEmailModal(false)} />}
       {/* ── Page Header ────────────────────────────────────────────────────────────────────────────── */}
