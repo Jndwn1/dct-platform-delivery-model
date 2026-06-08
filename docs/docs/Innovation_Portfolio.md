@@ -38,12 +38,12 @@ Last Updated: June 2026
 
 ### Supporting Documentation
 
-- Architecture.md
-- Ownership.md
-- Purpose.md
-- Prompt_History.md
-- Executive_Summary.md
-- Jenniver_Stafford_BA_Operating_System.md
+- [Architecture](Architecture.md)
+- [Ownership](Ownership.md)
+- [Purpose](Purpose.md)
+- [Prompt History](Prompt_History.md)
+- [Executive Summary](Executive_Summary.md)
+- [BA Operating System](Jenniver_Stafford_BA_Operating_System.md)
 
 
 ## Portfolio Roadmap
