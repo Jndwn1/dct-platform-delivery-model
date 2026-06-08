@@ -1,104 +1,43 @@
-# DCT Platform Delivery Model Architecture
+# DCT AI Innovation Architecture
 
 ## Overview
 
-The DCT Platform Delivery Model is an interactive governance and architecture platform that transforms static project documentation into a navigable operational model.
+The DCT AI Innovation Portfolio consists of multiple AI-powered assistants designed to support delivery excellence, governance, onboarding, quality assurance, and executive reporting.
 
-The platform visualizes:
+## Architecture Layers
 
-- Delivery batches
-- Architecture ownership boundaries
-- Readiness gates
-- Governance controls
-- API integration patterns
-- Roger consumption models
-- QA readiness
-- Delivery status
+### Knowledge Layer
 
----
+- DCT Documentation
+- Governance Standards
+- Architecture Decisions
+- Delivery Artifacts
+- Sprint Metrics
 
-## Core Components
+### Intelligence Layer
 
-### PDC
-Financial system of truth.
+- Ask Buddy
+- QA Buddy
+- Release Buddy
+- Executive Buddy
 
-Responsibilities:
-- Ingestion
-- Normalization
-- Entity identity
-- Lineage
+### Delivery Layer
 
-### TDC
+- Product Owners
+- Business Analysts
+- Developers
+- QA Teams
+- Leadership
 
-Tax system of truth.
+## Current Architecture
 
-Responsibilities:
-- Taxonomy mapping
-- Practitioner decisions
-- Review and lock
-- Return assembly
+Ask Buddy is currently operational and connected to the DCT documentation repository.
 
-### Roger
+## Future Architecture
 
-Practitioner experience layer.
+Future releases will integrate:
 
-Responsibilities:
-- Read-only consumption
-- Workflow guidance
-- Data visualization
-
-### Gateway
-
-Integration layer.
-
-Responsibilities:
-- Validation
-- Routing
-- Audit controls
-
----
-
-## Visual Models
-
-### Batch Roadmap
-
-Tracks platform delivery across PI planning cycles.
-
-### Delivery Calendar
-
-Tracks sprint readiness and execution.
-
-### Governance Dashboard
-
-Tracks readiness gates and delivery status.
-
-### Roger Integration Model
-
-Documents consumption patterns and ownership boundaries.
-
----
-
-## Automation Components
-
-### Wiki Updater
-
-Pulls Swagger metadata and updates documentation automatically.
-
-### Demo Simulator
-
-Creates demo-ready datasets for sprint reviews and stakeholder presentations.
-
-### Executive PPT Generator
-
-Generates executive-level presentations from platform status and roadmap data.
-
----
-
-## Benefits
-
-- Single source of delivery truth
-- Faster onboarding
-- Improved governance visibility
-- Automated documentation
-- Executive-ready reporting
-- Reusable architecture framework
+- QA automation insights
+- Sprint analytics
+- Executive dashboards
+- Portfolio reporting
