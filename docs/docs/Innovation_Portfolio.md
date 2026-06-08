@@ -59,6 +59,22 @@ Last Updated: June 2026
 ## Portfolio Roadmap
 
 ### Phase 1 – Operational
+
+- Ask Buddy
+
+### Phase 2 – Planned
+
+- QA Buddy
+- Release Buddy
+- Executive Buddy
+
+### Phase 3 – Future Vision
+
+- Architecture Buddy
+- Product Owner Buddy
+- Sprint Planning Buddy
+
+### Phase 1 – Operational
 - Ask Buddy
 
 ### Phase 2 – Planned
