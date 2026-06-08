@@ -27,6 +27,86 @@ Last Updated: June 2026
 | Release Buddy | Release Readiness & Sprint Analytics Assistant | Planned | Concept | Available |
 | Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned | Concept | Available |
 
+## Portfolio Navigation
+
+### Active Agents
+
+- Ask Buddy
+- QA Buddy
+- Release Buddy
+- Executive Buddy
+
+### Supporting Documentation
+
+- Architecture.md
+- Ownership.md
+- Purpose.md
+- Prompt_History.md
+- Executive_Summary.md
+- Jenniver_Stafford_BA_Operating_System.md
+
+### Active Agents
+
+- Ask Buddy
+- QA Buddy
+- Release Buddy
+- Executive Buddy
+
+### Supporting Documentation
+
+- Architecture.md
+- Ownership.md
+- Purpose.md
+- Prompt_History.md
+- Executive_Summary.md
+- Jenniver_Stafford_BA_Operating_System.md
+
+### Active Agents
+
+- Ask Buddy
+- QA Buddy
+- Release Buddy
+- Executive Buddy
+
+### Supporting Documentation
+
+- Architecture.md
+- Ownership.md
+- Purpose.md
+- Prompt_History.md
+- Executive_Summary.md
+- Jenniver_Stafford_BA_Operating_System.md
+
+### Active Agents
+
+- Ask Buddy
+- QA Buddy
+- Release Buddy
+- Executive Buddy
+
+### Supporting Documentation
+
+- Architecture.md
+- Ownership.md
+- Purpose.md
+- Prompt_History.md
+- Executive_Summary.md
+- Jenniver_Stafford_BA_Operating_System.md
+### Active Agents
+
+- Ask Buddy
+- QA Buddy
+- Release Buddy
+- Executive Buddy
+
+### Supporting Documentation
+
+- Architecture.md
+- Ownership.md
+- Purpose.md
+- Prompt_History.md
+- Executive_Summary.md
+- Jenniver_Stafford_BA_Operating_System.md
 
 ## Portfolio Roadmap
 
