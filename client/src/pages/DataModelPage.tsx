@@ -361,6 +361,10 @@ export default function DataModelPage() {
         </div>
         <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>Data Model &amp; Gaps</h1>
         <p style={{ fontSize: "13px", color: "#6b7280", margin: 0 }}>Executive reference · Platform data relationships, availability, UI mapping, and open gaps</p>
+        <p style={{ fontSize: "11px", color: "#9ca3af", fontStyle: "italic", marginTop: "4px" }}>
+          Authoritative scope: Data model relationships, field governance &amp; gap analysis ·{" "}
+          <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>← Platform Home</a>
+        </p>
       </div>
 
       {/* Section 1 — Data Model Relationships */}

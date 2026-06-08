@@ -724,6 +724,10 @@ export default function ConsumerIntegrationReadinessHub() {
             <p className="text-sm text-slate-500">
               DCT Platform · Single integration enablement hub for Roger and future consumers
             </p>
+            <p className="text-xs mt-1" style={{ color: "#9ca3af", fontStyle: "italic" }}>
+              Authoritative scope: Consumer integration readiness, API contracts &amp; touchpoint governance ·{" "}
+              <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>← Platform Home</a>
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex flex-wrap gap-2 text-xs">

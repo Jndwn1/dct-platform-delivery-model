@@ -272,6 +272,10 @@ export default function GateStatus() {
           <p className="text-xs text-muted-foreground mt-0.5">
             AB-01 · Foundation &amp; Source Onboarding · G1–G4 verification status
           </p>
+          <p className="text-xs mt-1" style={{ color: "#9ca3af", fontStyle: "italic" }}>
+            Authoritative scope: Gate verification records &amp; batch readiness status ·{" "}
+            <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>← Platform Home</a>
+          </p>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-full font-medium">

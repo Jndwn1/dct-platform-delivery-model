@@ -796,7 +796,6 @@ export default function RogerMappingPage() {
           ))}
         </div>
       </div>
-
       </div>
     </div>
   );

@@ -795,6 +795,10 @@ export default function BatchRoadmap() {
           <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
             Last updated: May 12, 2026 · Reference: DCT Batch Roadmap (Architecture Visualization — Non-Production)
           </div>
+          <div style={{ fontSize: "10px", color: "#64748b", fontStyle: "italic", marginTop: "4px" }}>
+            Authoritative scope: Batch delivery schedule, epic mapping &amp; PI planning ·{" "}
+            <a href="/" style={{ color: "#93c5fd", textDecoration: "underline" }}>← Platform Home</a>
+          </div>
         </div>
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
           <div style={{ textAlign: "center" }}>

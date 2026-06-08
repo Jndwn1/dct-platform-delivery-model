@@ -547,34 +547,88 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Footer navigation ── */}
+      {/* ── Platform Navigation Guide ── */}
       <div style={{
-        borderTop: "2px solid #e2e8f0", paddingTop: "20px", marginTop: "8px",
-        display: "flex", gap: "10px", flexWrap: "wrap",
+        backgroundColor: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        padding: "18px 20px",
+        marginTop: "8px",
+        marginBottom: "20px",
       }}>
-        <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 600, marginRight: "4px", alignSelf: "center" }}>
-          Continue to:
+        <div style={{ marginBottom: "14px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>Platform Navigation Guide</div>
+          <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6" }}>
+            This platform is organized into three tiers. <strong>Authoritative sources</strong> own their topic and are the single source of truth.
+            <strong> Derived summaries</strong> condense authoritative content for specific audiences.
+            <strong> Supporting artifacts</strong> are leaf-level specifications and tools.
+          </div>
         </div>
-        {[
-          { label: "Batch Roadmap", path: "/batch-roadmap" },
-          { label: "Gate Status", path: "/gate-status" },
-          { label: "Control Panel", path: "/control-panel" },
-          { label: "Data Model & Gaps", path: "/data-model" },
-          { label: "Classification Walkthrough", path: "/classification-walkthrough" },
-          { label: "Taxonomy Explorer", path: "/taxonomy" },
-        ].map(l => (
-          <Link key={l.path} href={l.path}>
-            <span style={{
-              fontSize: "12px", fontWeight: 600, color: "#2563eb",
-              border: "1px solid #bfdbfe", borderRadius: "6px",
-              padding: "4px 10px", cursor: "pointer",
-              backgroundColor: "#eff6ff",
-              display: "inline-block",
-            }}>
-              {l.label} →
-            </span>
-          </Link>
-        ))}
+        {/* Tier 1 — Authoritative Sources */}
+        <div style={{ marginBottom: "14px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1e3a5f", marginBottom: "6px", borderBottom: "1px solid #bfdbfe", paddingBottom: "3px" }}>Tier 1 — Authoritative Sources</div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {[
+              { label: "BA Operating System", path: "/ask-buddy", desc: "Operating system vision & innovation catalog" },
+              { label: "Batch Roadmap", path: "/batch-roadmap", desc: "Batch delivery scope & sequencing" },
+              { label: "Gate Status", path: "/gate-status", desc: "Gate verification & readiness" },
+              { label: "Architecture", path: "/architecture", desc: "Architecture layers & system model" },
+              { label: "Data Governance", path: "/data-governance", desc: "Ownership boundaries & SoT" },
+            ].map(l => (
+              <Link key={l.path} href={l.path}>
+                <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", padding: "6px 10px", cursor: "pointer" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#1e3a5f" }}>{l.label} →</div>
+                  <div style={{ fontSize: "10px", color: "#475569", marginTop: "1px" }}>{l.desc}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+        {/* Tier 2 — Delivery Intelligence */}
+        <div style={{ marginBottom: "14px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#065f46", marginBottom: "6px", borderBottom: "1px solid #bbf7d0", paddingBottom: "3px" }}>Tier 2 — Delivery Intelligence</div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {[
+              { label: "Control Panel", path: "/control-panel", desc: "Batch & gate admin" },
+              { label: "Data Model & Gaps", path: "/data-model", desc: "Field governance workbench" },
+              { label: "Gap Analysis Engine", path: "/gap-analysis", desc: "Delivery gap identification" },
+              { label: "Batch Calendar", path: "/batch-calendar", desc: "Sprint & PI planning view" },
+              { label: "Governance Timeline", path: "/data-governance", desc: "Governance milestone tracking" },
+            ].map(l => (
+              <Link key={l.path} href={l.path}>
+                <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px", padding: "6px 10px", cursor: "pointer" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#065f46" }}>{l.label} →</div>
+                  <div style={{ fontSize: "10px", color: "#475569", marginTop: "1px" }}>{l.desc}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+        {/* Tier 3 — Specialized Tools */}
+        <div>
+          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6b21a8", marginBottom: "6px", borderBottom: "1px solid #e9d5ff", paddingBottom: "3px" }}>Tier 3 — Specialized Tools & Roger UI</div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {[
+              { label: "Ask Buddy", path: "/ask-buddy", desc: "AI knowledge agent" },
+              { label: "Consumer Integration Hub", path: "/consumer-integration-hub", desc: "Roger integration governance" },
+              { label: "Integration Simulation", path: "/integration-simulation", desc: "Workflow simulator" },
+              { label: "Roger Data Mapping", path: "/roger-mapping", desc: "Field mapping lifecycle" },
+              { label: "Classification Walkthrough", path: "/classification-walkthrough", desc: "Decision walkthrough" },
+              { label: "Taxonomy Explorer", path: "/taxonomy", desc: "Taxonomy reference" },
+              { label: "Touchpoints (T1–T11)", path: "/touchpoints", desc: "Runtime touchpoint map" },
+              { label: "Runtime Journey", path: "/runtime-journey", desc: "End-to-end flow visualization" },
+              { label: "Enterprise Architecture", path: "/architecture/enterprise", desc: "Executive architecture view" },
+              { label: "Developer Architecture", path: "/architecture/developer", desc: "Technical architecture view" },
+            ].map(l => (
+              <Link key={l.path} href={l.path}>
+                <div style={{ backgroundColor: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "6px", padding: "6px 10px", cursor: "pointer" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#6b21a8" }}>{l.label} →</div>
+                  <div style={{ fontSize: "10px", color: "#475569", marginTop: "1px" }}>{l.desc}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
