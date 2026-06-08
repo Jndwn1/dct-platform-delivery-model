@@ -19,13 +19,13 @@ Status: Active
 Last Updated: June 2026
 
 ### DCT AI Innovation Portfolio
+| Agent | Purpose | Status | Maturity | Documentation |
+|--------|---------|---------|---------|---------|
+| Ask Buddy | Business Analysis & Knowledge Assistant | Operational | Production | Available |
+| QA Buddy | QA Readiness & Test Strategy Assistant | Planned | Concept | Available |
+| Release Buddy | Release Readiness & Sprint Analytics Assistant | Planned | Concept | Planned |
+| Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned | Concept | Planned |
 
-| Agent | Purpose | Status | Maturity |
-|---------|---------|---------|---------|
-| Ask Buddy | Business Analysis & Knowledge Assistant | Operational | Production |
-| QA Buddy | QA Readiness & Test Strategy Assistant | Planned | Concept |
-| Release Buddy | Release Readiness & Sprint Analytics Assistant | Planned | Concept |
-| Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned | Concept |
 
 ## Portfolio Roadmap
 
