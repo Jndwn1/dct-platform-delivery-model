@@ -25,7 +25,7 @@ Last Updated: June 2026
 | Ask Buddy | Business Analysis & Knowledge Assistant | Operational | Production | Available |
 | QA Buddy | QA Readiness & Test Strategy Assistant | Planned | Concept | Available |
 | Release Buddy | Release Readiness & Sprint Analytics Assistant | Planned | Concept | Available |
-| Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned | Concept | Planned |
+| Executive Buddy | Executive Reporting & Portfolio Insights Assistant | Planned | Concept | Available |
 
 
 ## Portfolio Roadmap
