@@ -37,7 +37,6 @@ Last Updated: June 2026
 | Production Agents | 1 |
 | Concept Agents | 3 |
 | Documentation Coverage | 100% |
-[View](QA_Buddy.md)
 
 ### Active Agents
 
