@@ -8,6 +8,8 @@ This portfolio documents the AI-powered platforms, automation frameworks, govern
 ## Mission
 
 Transform DCT delivery knowledge, governance, and operational processes into reusable AI-powered capabilities that accelerate onboarding, improve delivery consistency, reduce dependency on tribal knowledge, and improve delivery quality.
+- Roadmap
+- Architecture Diagrams
 
 ## Ownership
 
