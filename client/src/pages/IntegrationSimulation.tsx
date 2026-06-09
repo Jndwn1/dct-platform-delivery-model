@@ -1,17 +1,21 @@
 // Roger ↔ DCT Integration Hub
-// BA-led integration command center for all Roger ↔ DCT interactions.
-import { useState } from "react";
+// BA-led integration command center with multi-topic tabs, ADO copy, and live decision log.
+import { useState, useCallback } from "react";
+import { trpc } from "@/lib/trpc";
 import {
   ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Clock,
-  Users, FileText, Zap, GitBranch, Shield, ClipboardList, MessageSquare,
+  Users, FileText, Zap, GitBranch, Shield, ClipboardList,
+  MessageSquare, Copy, Check, Plus, UserCheck, XCircle, Trash2,
 } from "lucide-react";
 
+// ── Palette ──────────────────────────────────────────────────────────────────
 const C = {
   navy: "#003865", navyLt: "#1e3a5f", green: "#059669",
-  amber: "#d97706", slate: "#475569",
-  slateXl: "#1e293b", bg: "#f8fafc", border: "#e2e8f0", white: "#ffffff",
+  amber: "#d97706", slate: "#475569", slateXl: "#1e293b",
+  bg: "#f8fafc", border: "#e2e8f0", white: "#ffffff",
 };
 
+// ── Chip ─────────────────────────────────────────────────────────────────────
 function Chip({ label }: { label: string }) {
   const map: Record<string, { bg: string; text: string }> = {
     "Confirmed":                        { bg: "#dcfce7", text: "#15803d" },
@@ -19,8 +23,10 @@ function Chip({ label }: { label: string }) {
     "DCT Assessment In Progress":       { bg: "#fef9c3", text: "#854d0e" },
     "Design recommendation identified": { bg: "#f5f3ff", text: "#5b21b6" },
     "Business requirement clarified":   { bg: "#dbeafe", text: "#1d4ed8" },
-    "Open":                             { bg: "#fef2f2", text: "#991b1b" },
-    "Required":                         { bg: "#fff7ed", text: "#9a3412" },
+    "Open":    { bg: "#fef2f2", text: "#991b1b" },
+    "Required":{ bg: "#fff7ed", text: "#9a3412" },
+    "Resolved":{ bg: "#dcfce7", text: "#15803d" },
+    "Deferred":{ bg: "#f3f4f6", text: "#374151" },
   };
   const s = map[label] ?? { bg: "#f3f4f6", text: "#374151" };
   return (
@@ -30,6 +36,7 @@ function Chip({ label }: { label: string }) {
   );
 }
 
+// ── Collapsible Section ───────────────────────────────────────────────────────
 function Section({ icon, title, badge, defaultOpen = false, children }: {
   icon: React.ReactNode; title: string; badge?: string; defaultOpen?: boolean; children: React.ReactNode;
 }) {
@@ -54,6 +61,7 @@ function Section({ icon, title, badge, defaultOpen = false, children }: {
   );
 }
 
+// ── Table styles ──────────────────────────────────────────────────────────────
 const TH: React.CSSProperties = {
   padding: "8px 12px", textAlign: "left", fontSize: "10px", fontWeight: 700,
   color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em",
@@ -64,6 +72,240 @@ const TD: React.CSSProperties = {
   borderBottom: "1px solid #f1f5f9", verticalAlign: "top",
 };
 
+// ── ADO Copy Button ───────────────────────────────────────────────────────────
+function AdoCopyButton({ action, owner, status, index }: { action: string; owner: string; status: string; index: number }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    const adoText = [
+      `## User Story`,
+      `**As a** DCT/Roger integration team member,`,
+      `**I want to** ${action.toLowerCase()},`,
+      `**So that** the Roger ↔ DCT integration is properly assessed and implemented.`,
+      ``,
+      `## Acceptance Criteria`,
+      `- [ ] ${action} has been completed and verified`,
+      `- [ ] Outcome documented in the Roger ↔ DCT Integration Hub`,
+      `- [ ] Relevant stakeholders notified of completion`,
+      ``,
+      `## Details`,
+      `**Owner:** ${owner}`,
+      `**Status:** ${status}`,
+      `**Action Item #:** ${index + 1}`,
+      `**Source:** Roger ↔ DCT Integration Hub — Edit Reclass Adjustment Discovery`,
+    ].join("\n");
+
+    navigator.clipboard.writeText(adoText).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [action, owner, status, index]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      title="Copy as ADO Story"
+      style={{
+        display: "flex", alignItems: "center", gap: "4px",
+        padding: "4px 8px", borderRadius: "4px", border: "1px solid #d1d5db",
+        background: copied ? "#dcfce7" : C.white, cursor: "pointer",
+        fontSize: "10px", fontWeight: 600, color: copied ? "#15803d" : C.slate,
+        transition: "all 0.15s",
+      }}
+    >
+      {copied ? <Check size={11} /> : <Copy size={11} />}
+      {copied ? "Copied!" : "ADO"}
+    </button>
+  );
+}
+
+// ── Live Decision Log (Open Questions) ────────────────────────────────────────
+const OWNERS = [
+  "Jenniver Stafford", "Cass Alvarado", "Divya Gaderaju", "Neha Sethi",
+  "Stephane Lacombe", "Santosh Gokhale", "Nasar Abbas", "Gary Luca",
+];
+
+function DecisionLog({ topic }: { topic: string }) {
+  const utils = trpc.useUtils();
+  const { data: questions = [], isLoading } = trpc.integrationHub.getQuestions.useQuery({ topic });
+  const addMutation    = trpc.integrationHub.addQuestion.useMutation({ onSuccess: () => utils.integrationHub.getQuestions.invalidate() });
+  const resolveMutation= trpc.integrationHub.resolveQuestion.useMutation({ onSuccess: () => utils.integrationHub.getQuestions.invalidate() });
+  const deferMutation  = trpc.integrationHub.deferQuestion.useMutation({ onSuccess: () => utils.integrationHub.getQuestions.invalidate() });
+  const assignMutation = trpc.integrationHub.assignQuestion.useMutation({ onSuccess: () => utils.integrationHub.getQuestions.invalidate() });
+  const deleteMutation = trpc.integrationHub.deleteQuestion.useMutation({ onSuccess: () => utils.integrationHub.getQuestions.invalidate() });
+
+  const [newQ, setNewQ] = useState("");
+  const [newOwner, setNewOwner] = useState("");
+  const [resolveId, setResolveId] = useState<number | null>(null);
+  const [resolveNotes, setResolveNotes] = useState("");
+
+  const openCount = questions.filter(q => q.status === "open").length;
+  const resolvedCount = questions.filter(q => q.status === "resolved").length;
+
+  return (
+    <div>
+      {/* Stats bar */}
+      <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
+        {[
+          { label: "Open",     value: openCount,     color: "#991b1b", bg: "#fef2f2" },
+          { label: "Resolved", value: resolvedCount, color: "#15803d", bg: "#dcfce7" },
+          { label: "Deferred", value: questions.filter(q => q.status === "deferred").length, color: "#374151", bg: "#f3f4f6" },
+        ].map(s => (
+          <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: "8px", padding: "8px 14px", textAlign: "center" }}>
+            <div style={{ fontSize: "18px", fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: "10px", fontWeight: 600, color: C.slate }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Questions list */}
+      {isLoading ? (
+        <div style={{ fontSize: "13px", color: C.slate, padding: "12px" }}>Loading decision log…</div>
+      ) : questions.length === 0 ? (
+        <div style={{ fontSize: "13px", color: C.slate, padding: "12px", background: C.bg, borderRadius: "8px", textAlign: "center" }}>
+          No questions logged yet. Add the first one below.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+          {questions.map((q, i) => (
+            <div key={q.id} style={{
+              background: q.status === "resolved" ? "#f0fdf4" : q.status === "deferred" ? "#f9fafb" : "#fffbeb",
+              border: `1px solid ${q.status === "resolved" ? "#bbf7d0" : q.status === "deferred" ? "#e5e7eb" : "#fde68a"}`,
+              borderRadius: "8px", padding: "12px 14px",
+            }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: C.amber, color: "white", fontSize: "11px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {i + 1}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "13px", color: C.slateXl, lineHeight: "1.5", marginBottom: "6px" }}>{q.question}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <Chip label={q.status === "open" ? "Open" : q.status === "resolved" ? "Resolved" : "Deferred"} />
+                    {q.owner && (
+                      <span style={{ fontSize: "11px", color: C.slate, fontWeight: 600 }}>Owner: {q.owner}</span>
+                    )}
+                    {q.resolvedAt && (
+                      <span style={{ fontSize: "10px", color: "#6b7280" }}>
+                        Resolved: {new Date(q.resolvedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                    )}
+                    {q.notes && (
+                      <span style={{ fontSize: "11px", color: "#065f46", fontStyle: "italic" }}>"{q.notes}"</span>
+                    )}
+                  </div>
+                </div>
+                {/* Action buttons */}
+                <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+                  {q.status === "open" && (
+                    <>
+                      <button
+                        onClick={() => setResolveId(q.id)}
+                        title="Mark Resolved"
+                        style={{ padding: "4px 6px", borderRadius: "4px", border: "1px solid #bbf7d0", background: "#f0fdf4", cursor: "pointer", display: "flex", alignItems: "center" }}
+                      >
+                        <CheckCircle2 size={13} color="#15803d" />
+                      </button>
+                      <button
+                        onClick={() => deferMutation.mutate({ id: q.id })}
+                        title="Defer"
+                        style={{ padding: "4px 6px", borderRadius: "4px", border: "1px solid #e5e7eb", background: "#f9fafb", cursor: "pointer", display: "flex", alignItems: "center" }}
+                      >
+                        <Clock size={13} color="#6b7280" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => deleteMutation.mutate({ id: q.id })}
+                    title="Delete"
+                    style={{ padding: "4px 6px", borderRadius: "4px", border: "1px solid #fecaca", background: "#fef2f2", cursor: "pointer", display: "flex", alignItems: "center" }}
+                  >
+                    <Trash2 size={13} color="#dc2626" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Assign owner inline */}
+              {q.status === "open" && !q.owner && (
+                <div style={{ marginTop: "8px", display: "flex", gap: "6px", alignItems: "center" }}>
+                  <UserCheck size={12} color={C.slate} />
+                  <select
+                    defaultValue=""
+                    onChange={(e) => { if (e.target.value) assignMutation.mutate({ id: q.id, owner: e.target.value }); }}
+                    style={{ fontSize: "11px", padding: "3px 6px", borderRadius: "4px", border: "1px solid #d1d5db", color: C.slate, background: C.white }}
+                  >
+                    <option value="" disabled>Assign owner…</option>
+                    {OWNERS.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              )}
+
+              {/* Resolve modal inline */}
+              {resolveId === q.id && (
+                <div style={{ marginTop: "10px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px", padding: "10px 12px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#15803d", marginBottom: "6px" }}>Resolution notes (optional)</div>
+                  <textarea
+                    value={resolveNotes}
+                    onChange={e => setResolveNotes(e.target.value)}
+                    placeholder="Describe how this was resolved…"
+                    rows={2}
+                    style={{ width: "100%", fontSize: "12px", padding: "6px 8px", borderRadius: "4px", border: "1px solid #bbf7d0", resize: "vertical", fontFamily: "inherit" }}
+                  />
+                  <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
+                    <button
+                      onClick={() => { resolveMutation.mutate({ id: q.id, notes: resolveNotes || undefined }); setResolveId(null); setResolveNotes(""); }}
+                      style={{ fontSize: "11px", fontWeight: 700, padding: "4px 12px", borderRadius: "4px", border: "none", background: "#15803d", color: "white", cursor: "pointer" }}
+                    >
+                      Confirm Resolved
+                    </button>
+                    <button
+                      onClick={() => { setResolveId(null); setResolveNotes(""); }}
+                      style={{ fontSize: "11px", padding: "4px 10px", borderRadius: "4px", border: "1px solid #d1d5db", background: C.white, cursor: "pointer" }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add new question */}
+      <div style={{ background: C.bg, border: "1px solid #e2e8f0", borderRadius: "8px", padding: "14px 16px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: C.slate, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
+          <Plus size={12} /> Add New Question
+        </div>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <input
+            value={newQ}
+            onChange={e => setNewQ(e.target.value)}
+            placeholder="Enter an open question…"
+            style={{ flex: "1 1 300px", fontSize: "12px", padding: "7px 10px", borderRadius: "4px", border: "1px solid #d1d5db", fontFamily: "inherit" }}
+            onKeyDown={e => { if (e.key === "Enter" && newQ.trim()) { addMutation.mutate({ topic, question: newQ.trim(), owner: newOwner || undefined }); setNewQ(""); setNewOwner(""); } }}
+          />
+          <select
+            value={newOwner}
+            onChange={e => setNewOwner(e.target.value)}
+            style={{ fontSize: "12px", padding: "7px 10px", borderRadius: "4px", border: "1px solid #d1d5db", color: C.slate, background: C.white, minWidth: "160px" }}
+          >
+            <option value="">Assign owner (optional)</option>
+            {OWNERS.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <button
+            onClick={() => { if (newQ.trim()) { addMutation.mutate({ topic, question: newQ.trim(), owner: newOwner || undefined }); setNewQ(""); setNewOwner(""); } }}
+            disabled={!newQ.trim() || addMutation.isPending}
+            style={{ fontSize: "12px", fontWeight: 700, padding: "7px 16px", borderRadius: "4px", border: "none", background: newQ.trim() ? C.navy : "#d1d5db", color: "white", cursor: newQ.trim() ? "pointer" : "not-allowed" }}
+          >
+            {addMutation.isPending ? "Adding…" : "Add"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Topic data ────────────────────────────────────────────────────────────────
 const PARTICIPANTS = [
   "Cass Alvarado", "Divya Gaderaju", "Neha Sethi", "Jenniver Stafford",
   "Stephane Lacombe", "Santosh Gokhale", "Nasar Abbas", "Gary Luca",
@@ -100,41 +342,13 @@ const PERSISTENCE_REQUIREMENTS = [
 ];
 
 const GAPS = [
-  {
-    requirement: "Return-Level Retrieval",
-    rogerPosition: "Preferred over entity-level retrieval",
-    status: "Requirements Clarified",
-    dctAssessment: "Determine whether existing APIs support return/client-level retrieval or require enhancement",
-    mvpDecision: "Required", owner: "DCT Team",
-  },
-  {
-    requirement: "Unique Adjustment Group ID",
-    rogerPosition: "Good practice not to rely solely on description text",
-    status: "Design recommendation identified",
-    dctAssessment: "Determine whether current grouping approach is sufficient for MVP",
-    mvpDecision: "Required", owner: "DCT Team",
-  },
-  {
-    requirement: "Memo Persistence",
-    rogerPosition: "Tax user comments should be saved and retrievable",
-    status: "Business requirement clarified",
-    dctAssessment: "Determine persistence and API support",
-    mvpDecision: "Required", owner: "DCT Team",
-  },
-  {
-    requirement: "Update Adjustment Persistence",
-    rogerPosition: "Update existing adjustment rather than recreate",
-    status: "Business requirement clarified",
-    dctAssessment: "Determine whether existing APIs support update operations",
-    mvpDecision: "Required", owner: "DCT Team",
-  },
+  { requirement: "Return-Level Retrieval", rogerPosition: "Preferred over entity-level retrieval", status: "Requirements Clarified", dctAssessment: "Determine whether existing APIs support return/client-level retrieval or require enhancement", mvpDecision: "Required", owner: "DCT Team" },
+  { requirement: "Unique Adjustment Group ID", rogerPosition: "Good practice not to rely solely on description text", status: "Design recommendation identified", dctAssessment: "Determine whether current grouping approach is sufficient for MVP", mvpDecision: "Required", owner: "DCT Team" },
+  { requirement: "Memo Persistence", rogerPosition: "Tax user comments should be saved and retrievable", status: "Business requirement clarified", dctAssessment: "Determine persistence and API support", mvpDecision: "Required", owner: "DCT Team" },
+  { requirement: "Update Adjustment Persistence", rogerPosition: "Update existing adjustment rather than recreate", status: "Business requirement clarified", dctAssessment: "Determine whether existing APIs support update operations", mvpDecision: "Required", owner: "DCT Team" },
 ];
 
-const ROGER_DEPS  = ["Adjustment UI", "Book Adjustment Story", "Reclass Adjustment Story", "API Consumer Contracts"];
-const DCT_DEPS    = ["Adjustments API", "TDC Records API", "Tax Form Line API", "Gateway Integration", "Adjustment Persistence"];
-const CROSS_DEPS  = ["Requirements Documentation", "API Contract Alignment", "MVP Prioritization", "Architecture Review"];
-
-const RISKS = [
+const RISKS_RECLASS = [
   { risk: "Requirements not reflected in stories", impact: "Rework and inconsistent implementation", mitigation: "Update requirements artifacts" },
   { risk: "Update API not available",              impact: "Edit functionality cannot be completed",  mitigation: "Technical assessment" },
   { risk: "Memo persistence unsupported",          impact: "Loss of practitioner context",            mitigation: "API enhancement review" },
@@ -142,15 +356,7 @@ const RISKS = [
   { risk: "MVP scope unclear",                     impact: "Delivery risk",                           mitigation: "Leadership prioritization" },
 ];
 
-const OPEN_QUESTIONS = [
-  "Does existing TDC functionality already support update persistence?",
-  "Is return-level retrieval required for MVP?",
-  "Is unique adjustment grouping required for MVP?",
-  "Should memo persistence be included in MVP?",
-  "What technical approach should be used for adjustment grouping?",
-];
-
-const ACTION_ITEMS = [
+const ACTION_ITEMS_RECLASS = [
   { action: "Update requirements artifacts with clarified business requirements",  owner: "Roger BA Team",             status: "Open" },
   { action: "Assess existing TDC API capabilities against clarified requirements", owner: "DCT Team",                  status: "Open" },
   { action: "Identify required API enhancements",                                  owner: "DCT Team",                  status: "Open" },
@@ -158,7 +364,271 @@ const ACTION_ITEMS = [
   { action: "Review architecture impacts",                                         owner: "DCT Leads",                 status: "Open" },
 ];
 
+// Known Mappings topic data
+const KM_DISCOVERY = [
+  { finding: "Known Mappings API returns entity-level data only",         status: "Confirmed" },
+  { finding: "Roger expects return-level aggregation from Known Mappings",status: "Confirmed" },
+  { finding: "Gary Luca owns the Known Mappings API endpoint",            status: "Confirmed" },
+  { finding: "Current API response schema does not match Roger contract", status: "Confirmed" },
+  { finding: "Defect logged in ADO backlog",                              status: "Confirmed" },
+];
+
+const KM_GAPS = [
+  { requirement: "Return-Level Aggregation", rogerPosition: "Roger consumes return-level mapping data", status: "DCT Assessment In Progress", dctAssessment: "Determine whether API can be enhanced to support return-level aggregation", mvpDecision: "Required", owner: "Gary Luca" },
+  { requirement: "Response Schema Alignment", rogerPosition: "Roger contract expects specific field names", status: "DCT Assessment In Progress", dctAssessment: "Map current API response fields to Roger contract fields and identify gaps", mvpDecision: "Required", owner: "Nasar Abbas" },
+];
+
+const RISKS_KM = [
+  { risk: "API schema mismatch blocks Roger integration",      impact: "Roger cannot consume Known Mappings data",       mitigation: "Schema alignment sprint" },
+  { risk: "Return-level aggregation requires new API version", impact: "Delivery delay for Known Mappings feature",      mitigation: "API versioning assessment" },
+  { risk: "Defect resolution timeline unknown",                impact: "Roger PI planning dependency not resolved",      mitigation: "Escalate to Stephane / Santosh" },
+];
+
+const ACTION_ITEMS_KM = [
+  { action: "Gary Luca to provide updated API schema with return-level support", owner: "Gary Luca",    status: "Open" },
+  { action: "Nasar Abbas to validate Roger contract against updated schema",     owner: "Nasar Abbas",  status: "Open" },
+  { action: "Jenniver to update ADO defect with resolution timeline",            owner: "Jenniver Stafford", status: "Open" },
+  { action: "Architecture review of Known Mappings API enhancement options",     owner: "DCT Leads",    status: "Open" },
+];
+
+// ── Topic tab content ─────────────────────────────────────────────────────────
+function ReclassContent() {
+  return (
+    <>
+      <Section icon={<CheckCircle2 size={16} />} title="3 · Discovery Findings" badge={`${DISCOVERY_FINDINGS.length} Confirmed`}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr><th style={TH}>Finding</th><th style={{ ...TH, width: "140px" }}>Status</th></tr></thead>
+            <tbody>
+              {DISCOVERY_FINDINGS.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
+                  <td style={TD}>{row.finding}</td>
+                  <td style={TD}><Chip label={row.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section icon={<ClipboardList size={16} />} title="4 · Clarified Requirements">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
+          {[
+            { title: "Functional Requirements", items: FUNCTIONAL_REQUIREMENTS, accent: C.navy },
+            { title: "Business Rules",           items: BUSINESS_RULES,           accent: "#7c3aed" },
+            { title: "Persistence Requirements", items: PERSISTENCE_REQUIREMENTS, accent: C.green },
+          ].map(group => (
+            <div key={group.title} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+              <div style={{ background: group.accent, padding: "10px 14px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>{group.title}</div>
+              </div>
+              <div style={{ padding: "12px 14px" }}>
+                {group.items.map(item => (
+                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "7px", fontSize: "12px", color: C.slateXl, lineHeight: "1.5" }}>
+                    <span style={{ color: group.accent, flexShrink: 0, marginTop: "2px" }}>✓</span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section icon={<AlertTriangle size={16} />} title="5 · Outstanding Gaps" badge={`${GAPS.length} Open`}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={TH}>Requirement</th>
+                <th style={TH}>Roger Position</th>
+                <th style={TH}>Status</th>
+                <th style={TH}>DCT Assessment Required</th>
+                <th style={{ ...TH, width: "90px" }}>MVP</th>
+                <th style={{ ...TH, width: "90px" }}>Owner</th>
+              </tr>
+            </thead>
+            <tbody>
+              {GAPS.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
+                  <td style={{ ...TD, fontWeight: 700, color: C.navy }}>{row.requirement}</td>
+                  <td style={TD}>{row.rogerPosition}</td>
+                  <td style={TD}><Chip label={row.status} /></td>
+                  <td style={{ ...TD, color: C.slate }}>{row.dctAssessment}</td>
+                  <td style={TD}><Chip label={row.mvpDecision} /></td>
+                  <td style={{ ...TD, fontWeight: 600 }}>{row.owner}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section icon={<Shield size={16} />} title="6 · Risk Register" badge={`${RISKS_RECLASS.length} Risks`}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr><th style={TH}>Risk</th><th style={TH}>Impact</th><th style={TH}>Mitigation</th></tr></thead>
+            <tbody>
+              {RISKS_RECLASS.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
+                  <td style={{ ...TD, fontWeight: 600, color: "#991b1b" }}>{row.risk}</td>
+                  <td style={TD}>{row.impact}</td>
+                  <td style={{ ...TD, color: C.green, fontWeight: 600 }}>{row.mitigation}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section icon={<MessageSquare size={16} />} title="7 · Open Questions — Decision Log" defaultOpen>
+        <DecisionLog topic="reclass" />
+      </Section>
+
+      <Section icon={<Clock size={16} />} title="8 · Action Items" badge={`${ACTION_ITEMS_RECLASS.length} Open`}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={{ ...TH, width: "36px" }}>#</th>
+                <th style={TH}>Action</th>
+                <th style={TH}>Owner</th>
+                <th style={{ ...TH, width: "80px" }}>Status</th>
+                <th style={{ ...TH, width: "70px" }}>ADO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ACTION_ITEMS_RECLASS.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
+                  <td style={{ ...TD, fontFamily: "monospace", fontWeight: 700, color: C.navy }}>{i + 1}</td>
+                  <td style={TD}>{row.action}</td>
+                  <td style={{ ...TD, fontWeight: 600 }}>{row.owner}</td>
+                  <td style={TD}><Chip label={row.status} /></td>
+                  <td style={TD}><AdoCopyButton action={row.action} owner={row.owner} status={row.status} index={i} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+    </>
+  );
+}
+
+function KnownMappingsContent() {
+  return (
+    <>
+      <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "14px 18px", marginBottom: "16px" }}>
+        <div style={{ fontSize: "12px", fontWeight: 700, color: "#991b1b", marginBottom: "6px" }}>Active Defect</div>
+        <p style={{ fontSize: "13px", color: C.slateXl, lineHeight: "1.7", margin: 0 }}>
+          The Known Mappings API (owned by Gary Luca) returns entity-level data only. Roger expects return-level aggregation. The response schema does not match the Roger consumer contract. This defect is logged in ADO and is blocking the Known Mappings integration milestone.
+        </p>
+      </div>
+
+      <Section icon={<CheckCircle2 size={16} />} title="3 · Discovery Findings" badge={`${KM_DISCOVERY.length} Confirmed`} defaultOpen>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr><th style={TH}>Finding</th><th style={{ ...TH, width: "140px" }}>Status</th></tr></thead>
+            <tbody>
+              {KM_DISCOVERY.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
+                  <td style={TD}>{row.finding}</td>
+                  <td style={TD}><Chip label={row.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section icon={<AlertTriangle size={16} />} title="4 · Outstanding Gaps" badge={`${KM_GAPS.length} Open`} defaultOpen>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={TH}>Requirement</th>
+                <th style={TH}>Roger Position</th>
+                <th style={TH}>Status</th>
+                <th style={TH}>DCT Assessment Required</th>
+                <th style={{ ...TH, width: "90px" }}>MVP</th>
+                <th style={{ ...TH, width: "90px" }}>Owner</th>
+              </tr>
+            </thead>
+            <tbody>
+              {KM_GAPS.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
+                  <td style={{ ...TD, fontWeight: 700, color: C.navy }}>{row.requirement}</td>
+                  <td style={TD}>{row.rogerPosition}</td>
+                  <td style={TD}><Chip label={row.status} /></td>
+                  <td style={{ ...TD, color: C.slate }}>{row.dctAssessment}</td>
+                  <td style={TD}><Chip label={row.mvpDecision} /></td>
+                  <td style={{ ...TD, fontWeight: 600 }}>{row.owner}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section icon={<Shield size={16} />} title="5 · Risk Register" badge={`${RISKS_KM.length} Risks`}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr><th style={TH}>Risk</th><th style={TH}>Impact</th><th style={TH}>Mitigation</th></tr></thead>
+            <tbody>
+              {RISKS_KM.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
+                  <td style={{ ...TD, fontWeight: 600, color: "#991b1b" }}>{row.risk}</td>
+                  <td style={TD}>{row.impact}</td>
+                  <td style={{ ...TD, color: C.green, fontWeight: 600 }}>{row.mitigation}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section icon={<MessageSquare size={16} />} title="6 · Open Questions — Decision Log" defaultOpen>
+        <DecisionLog topic="known-mappings" />
+      </Section>
+
+      <Section icon={<Clock size={16} />} title="7 · Action Items" badge={`${ACTION_ITEMS_KM.length} Open`}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={{ ...TH, width: "36px" }}>#</th>
+                <th style={TH}>Action</th>
+                <th style={TH}>Owner</th>
+                <th style={{ ...TH, width: "80px" }}>Status</th>
+                <th style={{ ...TH, width: "70px" }}>ADO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ACTION_ITEMS_KM.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
+                  <td style={{ ...TD, fontFamily: "monospace", fontWeight: 700, color: C.navy }}>{i + 1}</td>
+                  <td style={TD}>{row.action}</td>
+                  <td style={{ ...TD, fontWeight: 600 }}>{row.owner}</td>
+                  <td style={TD}><Chip label={row.status} /></td>
+                  <td style={TD}><AdoCopyButton action={row.action} owner={row.owner} status={row.status} index={i} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+    </>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+const TOPICS = [
+  { id: "reclass",        label: "Edit Reclass Adjustment",  badge: "Requirements Clarified" },
+  { id: "known-mappings", label: "Known Mappings API Defect", badge: "Active Defect" },
+];
+
 export default function IntegrationSimulation() {
+  const [activeTopic, setActiveTopic] = useState("reclass");
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
   return (
@@ -166,7 +636,7 @@ export default function IntegrationSimulation() {
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "28px 24px" }}>
 
         {/* ── Page header ── */}
-        <div style={{ marginBottom: "28px", borderBottom: "2px solid #e2e8f0", paddingBottom: "20px" }}>
+        <div style={{ marginBottom: "24px", borderBottom: "2px solid #e2e8f0", paddingBottom: "20px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
             <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: C.navy, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <GitBranch size={18} color="#059669" />
@@ -176,17 +646,17 @@ export default function IntegrationSimulation() {
                 Roger ↔ DCT Integration Hub
               </h1>
               <p style={{ fontSize: "11px", color: C.slate, margin: "3px 0 0", fontStyle: "italic" }}>
-                Authoritative scope: Integration discovery, dependencies, risks &amp; action tracking ·{" "}
+                Authoritative scope: Integration discovery, dependencies, risks &amp; decision tracking ·{" "}
                 <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>← Platform Home</a>
               </p>
             </div>
           </div>
           <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
             {[
-              { label: "BA-Led Command Center",         color: C.navy },
-              { label: "Roger Edit Reclass Adjustment", color: "#7c3aed" },
-              { label: "DCT Assessment In Progress",    color: C.amber },
-              { label: "Non-Production Reference",      color: "#92400e" },
+              { label: "BA-Led Command Center",      color: C.navy },
+              { label: "Live Decision Log",          color: C.green },
+              { label: "ADO Story Export",           color: "#7c3aed" },
+              { label: "Non-Production Reference",   color: "#92400e" },
             ].map(b => (
               <span key={b.label} style={{ fontSize: "11px", fontWeight: 600, color: "white", background: b.color, borderRadius: "4px", padding: "3px 8px" }}>
                 {b.label}
@@ -195,26 +665,23 @@ export default function IntegrationSimulation() {
           </div>
         </div>
 
-        {/* ── Executive Summary (pinned) ── */}
+        {/* ── Executive Summary ── */}
         <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "10px", padding: "16px 20px", marginBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
             <Zap size={16} color="#1d4ed8" />
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "#1d4ed8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Executive Summary
-            </span>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#1d4ed8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Executive Summary</span>
           </div>
           <p style={{ fontSize: "13px", color: C.slateXl, lineHeight: "1.7", margin: 0 }}>
-            The Roger Edit Reclass Adjustment discussion has moved from requirements clarification into DCT assessment and release planning. Roger business requirements have largely been clarified. Remaining work focuses on determining API support, required enhancements, architecture impacts, and MVP prioritization.
+            This hub tracks all active Roger ↔ DCT integration threads. The <strong>Edit Reclass Adjustment</strong> thread has moved from requirements clarification into DCT API assessment and MVP prioritization. The <strong>Known Mappings API Defect</strong> thread is active — the existing API returns entity-level data only and does not match the Roger consumer contract. Both threads require DCT assessment and architecture review before implementation can proceed.
           </p>
         </div>
 
-        {/* ── Section 1: Integration Overview ── */}
-        <Section icon={<FileText size={16} />} title="1 · Integration Overview" defaultOpen={true}>
+        {/* ── Shared: Integration Overview ── */}
+        <Section icon={<FileText size={16} />} title="1 · Integration Overview" defaultOpen>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
             {[
               { label: "Objective",     value: "Track all Roger ↔ DCT integration discussions, requirements clarifications, API assessments, dependency analysis, and implementation decisions." },
-              { label: "Current Focus", value: "Roger Edit Reclass Adjustment Screen" },
-              { label: "Status",        value: "Requirements Clarified · DCT Assessment In Progress" },
+              { label: "Active Threads",value: `${TOPICS.length} integration topics` },
               { label: "Last Updated",  value: today },
             ].map(item => (
               <div key={item.label} style={{ background: C.bg, border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 14px" }}>
@@ -235,192 +702,44 @@ export default function IntegrationSimulation() {
           </div>
         </Section>
 
-        {/* ── Section 2: Problem Statement ── */}
-        <Section icon={<AlertTriangle size={16} />} title="2 · Problem Statement" badge="Roger Edit Reclass Adjustment Screen" defaultOpen={true}>
-          <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "14px 18px", marginBottom: "14px" }}>
-            <div style={{ fontSize: "12px", fontWeight: 700, color: "#991b1b", marginBottom: "8px" }}>Root Cause</div>
-            <p style={{ fontSize: "13px", color: C.slateXl, lineHeight: "1.7", margin: 0 }}>
-              During DCT review of the Roger Edit Reclass Adjustment screen, the team identified uncertainty regarding how Roger persisted and retrieved Book/Reclass Adjustments. The Roger story primarily contained UI-focused acceptance criteria and did not document the underlying functional requirements, business rules, persistence requirements, API consumer expectations, or data contract requirements.
-            </p>
+        {/* ── Topic Tabs ── */}
+        <div style={{ marginBottom: "20px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: C.slate, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+            2 · Integration Thread
           </div>
-          <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "14px 18px" }}>
-            <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400e", marginBottom: "8px" }}>Impact</div>
-            <p style={{ fontSize: "13px", color: C.slateXl, lineHeight: "1.7", margin: 0 }}>
-              As a result, DCT could not determine whether existing APIs fully supported the expected Roger workflow or whether additional API enhancements were required. This triggered a requirements clarification effort involving Roger, DCT, and Architecture stakeholders.
-            </p>
-          </div>
-        </Section>
-
-        {/* ── Section 3: Discovery Findings ── */}
-        <Section icon={<CheckCircle2 size={16} />} title="3 · Discovery Findings" badge={`${DISCOVERY_FINDINGS.length} Confirmed`}>
-          <p style={{ fontSize: "12px", color: C.slate, marginBottom: "12px" }}>All findings confirmed through Roger ↔ DCT requirements clarification sessions.</p>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={TH}>Finding</th>
-                  <th style={{ ...TH, width: "120px" }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {DISCOVERY_FINDINGS.map((row, i) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
-                    <td style={TD}>{row.finding}</td>
-                    <td style={TD}><Chip label={row.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-
-        {/* ── Section 4: Clarified Requirements ── */}
-        <Section icon={<ClipboardList size={16} />} title="4 · Clarified Requirements">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
-            {[
-              { title: "Functional Requirements", items: FUNCTIONAL_REQUIREMENTS, accent: C.navy },
-              { title: "Business Rules",           items: BUSINESS_RULES,           accent: "#7c3aed" },
-              { title: "Persistence Requirements", items: PERSISTENCE_REQUIREMENTS, accent: C.green },
-            ].map(group => (
-              <div key={group.title} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
-                <div style={{ background: group.accent, padding: "10px 14px" }}>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>{group.title}</div>
-                </div>
-                <div style={{ padding: "12px 14px" }}>
-                  {group.items.map(item => (
-                    <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "7px", fontSize: "12px", color: C.slateXl, lineHeight: "1.5" }}>
-                      <span style={{ color: group.accent, flexShrink: 0, marginTop: "2px" }}>✓</span>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {TOPICS.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTopic(t.id)}
+                style={{
+                  padding: "10px 18px", borderRadius: "8px", border: "none", cursor: "pointer",
+                  background: activeTopic === t.id ? C.navy : C.white,
+                  color: activeTopic === t.id ? "white" : C.slateXl,
+                  fontWeight: 700, fontSize: "13px",
+                  boxShadow: activeTopic === t.id ? "0 2px 8px rgba(0,56,101,0.3)" : "0 1px 3px rgba(0,0,0,0.08)",
+                  display: "flex", alignItems: "center", gap: "8px",
+                }}
+              >
+                {t.label}
+                <span style={{
+                  fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px",
+                  background: activeTopic === t.id ? "rgba(255,255,255,0.2)" : "#fee2e2",
+                  color: activeTopic === t.id ? "white" : "#991b1b",
+                }}>
+                  {t.badge}
+                </span>
+              </button>
             ))}
           </div>
-        </Section>
+        </div>
 
-        {/* ── Section 5: Outstanding Gaps ── */}
-        <Section icon={<AlertTriangle size={16} />} title="5 · Outstanding Gaps Requiring Resolution" badge={`${GAPS.length} Open`}>
-          <p style={{ fontSize: "12px", color: C.slate, marginBottom: "12px" }}>All gaps require DCT assessment and MVP disposition decision before implementation can proceed.</p>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={TH}>Requirement</th>
-                  <th style={TH}>Roger Position</th>
-                  <th style={TH}>Current Status</th>
-                  <th style={TH}>DCT Assessment Required</th>
-                  <th style={{ ...TH, width: "100px" }}>MVP Decision</th>
-                  <th style={{ ...TH, width: "100px" }}>Owner</th>
-                </tr>
-              </thead>
-              <tbody>
-                {GAPS.map((row, i) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
-                    <td style={{ ...TD, fontWeight: 700, color: C.navy }}>{row.requirement}</td>
-                    <td style={TD}>{row.rogerPosition}</td>
-                    <td style={TD}><Chip label={row.status} /></td>
-                    <td style={{ ...TD, color: C.slate }}>{row.dctAssessment}</td>
-                    <td style={TD}><Chip label={row.mvpDecision} /></td>
-                    <td style={{ ...TD, fontWeight: 600 }}>{row.owner}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-
-        {/* ── Section 6: Dependency Analysis ── */}
-        <Section icon={<GitBranch size={16} />} title="6 · Dependency Analysis">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px" }}>
-            {[
-              { title: "Roger Dependencies",      items: ROGER_DEPS, accent: "#1d4ed8", bg: "#eff6ff" },
-              { title: "DCT Dependencies",        items: DCT_DEPS,   accent: C.navy,    bg: "#f0f4ff" },
-              { title: "Cross-Team Dependencies", items: CROSS_DEPS, accent: "#7c3aed", bg: "#f5f3ff" },
-            ].map(group => (
-              <div key={group.title} style={{ background: group.bg, border: `1px solid ${group.accent}30`, borderRadius: "8px", padding: "14px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 700, color: group.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>{group.title}</div>
-                {group.items.map(item => (
-                  <div key={item} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", fontSize: "12px", color: C.slateXl }}>
-                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: group.accent, flexShrink: 0 }} />
-                    {item}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* ── Section 7: Risk Register ── */}
-        <Section icon={<Shield size={16} />} title="7 · Risk Register" badge={`${RISKS.length} Risks`}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={TH}>Risk</th>
-                  <th style={TH}>Impact</th>
-                  <th style={TH}>Mitigation</th>
-                </tr>
-              </thead>
-              <tbody>
-                {RISKS.map((row, i) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
-                    <td style={{ ...TD, fontWeight: 600, color: "#991b1b" }}>{row.risk}</td>
-                    <td style={TD}>{row.impact}</td>
-                    <td style={{ ...TD, color: C.green, fontWeight: 600 }}>{row.mitigation}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-
-        {/* ── Section 8: Open Questions ── */}
-        <Section icon={<MessageSquare size={16} />} title="8 · Open Questions" badge={`${OPEN_QUESTIONS.length} Unresolved`}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {OPEN_QUESTIONS.map((q, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "12px 14px" }}>
-                <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: C.amber, color: "white", fontSize: "11px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {i + 1}
-                </div>
-                <div style={{ flex: 1, fontSize: "13px", color: C.slateXl, lineHeight: "1.5" }}>{q}</div>
-                <Chip label="Open" />
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* ── Section 9: Action Items ── */}
-        <Section icon={<Clock size={16} />} title="9 · Action Items" badge={`${ACTION_ITEMS.length} Open`}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={{ ...TH, width: "36px" }}>#</th>
-                  <th style={TH}>Action</th>
-                  <th style={TH}>Owner</th>
-                  <th style={{ ...TH, width: "80px" }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ACTION_ITEMS.map((row, i) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? C.white : C.bg }}>
-                    <td style={{ ...TD, fontFamily: "monospace", fontWeight: 700, color: C.navy }}>{i + 1}</td>
-                    <td style={TD}>{row.action}</td>
-                    <td style={{ ...TD, fontWeight: 600 }}>{row.owner}</td>
-                    <td style={TD}><Chip label={row.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
+        {/* ── Active topic content ── */}
+        {activeTopic === "reclass" ? <ReclassContent /> : <KnownMappingsContent />}
 
         {/* ── Footer ── */}
         <div style={{ marginTop: "32px", paddingTop: "16px", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-          <div style={{ fontSize: "11px", color: C.slate }}>
-            Roger ↔ DCT Integration Hub · DCT Platform · Non-Production Reference Workspace
-          </div>
+          <div style={{ fontSize: "11px", color: C.slate }}>Roger ↔ DCT Integration Hub · DCT Platform · Non-Production Reference Workspace</div>
           <div style={{ fontSize: "11px", color: C.slate }}>Last updated: {today}</div>
         </div>
 

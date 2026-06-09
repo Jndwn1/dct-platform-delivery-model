@@ -5,6 +5,9 @@ import { buildPlatformSystemPrompt } from "./platformContext";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import { getDb } from "./db";
+import { integrationQuestions } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -63,6 +66,103 @@ export const appRouter = router({
         return { text: responseText };
       }),
   }),
+
+  integrationHub: router({
+    // Get all questions for a given topic
+    getQuestions: publicProcedure
+      .input(z.object({ topic: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        return db
+          .select()
+          .from(integrationQuestions)
+          .where(eq(integrationQuestions.topic, input.topic))
+          .orderBy(integrationQuestions.createdAt);
+      }),
+
+    // Add a new question
+    addQuestion: publicProcedure
+      .input(
+        z.object({
+          topic: z.string(),
+          question: z.string().min(1),
+          owner: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.insert(integrationQuestions).values({
+          topic: input.topic,
+          question: input.question,
+          owner: input.owner ?? null,
+          status: "open",
+        });
+        return { success: true };
+      }),
+
+    // Resolve a question
+    resolveQuestion: publicProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          notes: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db
+          .update(integrationQuestions)
+          .set({
+            status: "resolved",
+            notes: input.notes ?? null,
+            resolvedAt: new Date(),
+          })
+          .where(eq(integrationQuestions.id, input.id));
+        return { success: true };
+      }),
+
+    // Defer a question
+    deferQuestion: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db
+          .update(integrationQuestions)
+          .set({ status: "deferred" })
+          .where(eq(integrationQuestions.id, input.id));
+        return { success: true };
+      }),
+
+    // Assign owner to a question
+    assignQuestion: publicProcedure
+      .input(z.object({ id: z.number(), owner: z.string() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db
+          .update(integrationQuestions)
+          .set({ owner: input.owner })
+          .where(eq(integrationQuestions.id, input.id));
+        return { success: true };
+      }),
+
+    // Delete a question
+    deleteQuestion: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db
+          .delete(integrationQuestions)
+          .where(eq(integrationQuestions.id, input.id));
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
+

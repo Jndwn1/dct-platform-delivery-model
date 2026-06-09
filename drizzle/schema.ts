@@ -26,3 +26,23 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // TODO: Add your tables here
+
+/**
+ * Integration questions / decision log for the Roger ↔ DCT Integration Hub.
+ * Tracks open questions across integration topics with owner assignment and resolution.
+ */
+export const integrationQuestions = mysqlTable("integration_questions", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Which integration topic this question belongs to, e.g. 'reclass' or 'known-mappings' */
+  topic: varchar("topic", { length: 64 }).notNull(),
+  question: text("question").notNull(),
+  status: mysqlEnum("status", ["open", "resolved", "deferred"]).default("open").notNull(),
+  owner: varchar("owner", { length: 128 }),
+  notes: text("notes"),
+  resolvedAt: timestamp("resolvedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type IntegrationQuestion = typeof integrationQuestions.$inferSelect;
+export type InsertIntegrationQuestion = typeof integrationQuestions.$inferInsert;
