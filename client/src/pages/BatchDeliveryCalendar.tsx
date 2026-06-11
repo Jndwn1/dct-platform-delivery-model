@@ -12,7 +12,7 @@ import { useBatchStatus, contextToCalendarStatus } from "@/contexts/BatchStatusC
 import {
   AlertTriangle, Calendar, Download, RotateCcw, Plus, Trash2,
   CheckCircle2, Clock, AlertCircle, Printer, ChevronDown, ChevronRight,
-  Info, Eye, EyeOff, Copy, Upload, X as XIcon,
+  Info, Eye, EyeOff, Copy, Upload, X as XIcon, Mail, FileSpreadsheet,
 } from "lucide-react";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -1385,6 +1385,9 @@ export default function BatchDeliveryCalendar() {
   const [showExec, setShowExec] = useState(false);
   const [showRoadmap, setShowRoadmap] = useState(false);
   const [copiedExec, setCopiedExec] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [poEmail, setPoEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
 
 
 
@@ -1741,8 +1744,44 @@ export default function BatchDeliveryCalendar() {
     setRows(prev => prev.filter(r => r.id !== id));
   }, []);
 
-  // ── Export CSV ───────────────────────────────────────────────────────────────
+  // ── Export Excel ─────────────────────────────────────────────────────────────
 
+  const exportExcel = useCallback(() => {
+    const wb = XLSX.utils.book_new();
+
+    // ── Sheet 1: Batch Calendar ──
+    const wsData: (string | number)[][] = [
+      ["DCT Batch Delivery Calendar — PLANNING VIEW ONLY — NOT SOURCE OF TRUTH"],
+      [`Generated: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}`],
+      [],
+      ["PI", "Batch", "System", "Feature Name", "Start Date", "End Date", "Status", "Depends On", "Notes"],
+      ...validatedRows.map(r => [r.pi, r.batch, r.system, r.name, r.startDate, r.endDate, r.status, r.dependsOn, r.notes]),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws["!cols"] = [{ wch: 8 }, { wch: 8 }, { wch: 14 }, { wch: 50 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 20 }, { wch: 50 }];
+    XLSX.utils.book_append_sheet(wb, ws, "Batch Calendar");
+
+    // ── Sheet 2: Status Summary ──
+    const statusCounts: Record<string, number> = {};
+    for (const r of validatedRows) statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
+    const summaryData: (string | number)[][] = [
+      ["DCT Batch Delivery Calendar — Status Summary"],
+      [],
+      ["Status", "Count"],
+      ...Object.entries(statusCounts).map(([s, c]) => [s, c]),
+      [],
+      ["Total Batches", validatedRows.length],
+      ["Risk Flags", summary.risks.length],
+      ["PIs Covered", summary.piGroups.size],
+    ];
+    const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+    ws2["!cols"] = [{ wch: 20 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws2, "Summary");
+
+    XLSX.writeFile(wb, `DCT-Batch-Calendar-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  }, [validatedRows, summary]);
+
+  // ── Legacy CSV export (kept for compatibility) ────────────────────────────────
   const exportCSV = useCallback(() => {
     const header = "PI,Batch,System,Name,Start Date,End Date,Status,Depends On,Notes";
     const lines = validatedRows.map(r =>
@@ -1752,6 +1791,55 @@ export default function BatchDeliveryCalendar() {
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `dct-batch-calendar.csv`; a.click();
   }, [validatedRows]);
+
+  // ── Email to PO ───────────────────────────────────────────────────────────────
+  const buildEmailBody = useCallback(() => {
+    const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const statusCounts: Record<string, number> = {};
+    for (const r of validatedRows) statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
+    const statusSummary = Object.entries(statusCounts).map(([s, c]) => `  • ${s}: ${c}`).join("\n");
+    const riskLines = summary.risks.length > 0
+      ? summary.risks.slice(0, 5).map(r => `  ⚠ ${r.batch} (${r.system}) — ${r.status}${r._dateError ? " [Date Error]" : ""}${r._depConflict ? " [Dep Conflict]" : ""}`).join("\n")
+      : "  No risk flags identified.";
+    const piList = Array.from(summary.piGroups).sort().join(", ");
+    return `Hi,
+
+Please find below the current DCT Batch Delivery Calendar summary as of ${today}.
+
+This is a planning view only and does not represent the system of record.
+
+────────────────────────────────────────
+BATCH STATUS SUMMARY
+────────────────────────────────────────
+Total Batches: ${validatedRows.length}
+PIs Covered: ${piList}
+
+Status Breakdown:
+${statusSummary}
+
+────────────────────────────────────────
+RISK FLAGS (${summary.risks.length})
+────────────────────────────────────────
+${riskLines}
+
+────────────────────────────────────────
+NOTES
+────────────────────────────────────────
+• The full batch calendar export (Excel) is available from the DCT Platform Gate Verification Dashboard.
+• This summary was generated from the Batch Delivery Calendar planning view.
+• For questions, contact the CATT Sr. Business Analyst.
+
+Thank you,
+CATT Sr. Business Analyst — DCT Platform Delivery`;
+  }, [validatedRows, summary]);
+
+  const openEmailClient = useCallback((toAddress: string) => {
+    const subject = encodeURIComponent(`DCT Batch Delivery Calendar — Status Update ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`);
+    const body = encodeURIComponent(buildEmailBody());
+    window.location.href = `mailto:${encodeURIComponent(toAddress)}?subject=${subject}&body=${body}`;
+    setEmailSent(true);
+    setTimeout(() => setEmailSent(false), 3000);
+  }, [buildEmailBody]);
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1826,13 +1914,21 @@ export default function BatchDeliveryCalendar() {
               </>
             )}
 
-            <button onClick={exportCSV} style={{
-              fontSize: "11px", fontWeight: 500, color: "#374151",
-              border: "1px solid #e2e8f0", borderRadius: "7px",
-              padding: "6px 10px", backgroundColor: "white", cursor: "pointer",
+            <button onClick={exportExcel} style={{
+              fontSize: "11px", fontWeight: 600, color: "#166534",
+              border: "1px solid #bbf7d0", borderRadius: "7px",
+              padding: "6px 10px", backgroundColor: "#f0fdf4", cursor: "pointer",
               display: "flex", alignItems: "center", gap: "5px",
             }}>
-              <Download size={12} /> Export
+              <FileSpreadsheet size={12} /> Export Excel
+            </button>
+            <button onClick={() => setShowEmailModal(true)} style={{
+              fontSize: "11px", fontWeight: 600, color: "#1e40af",
+              border: "1px solid #bfdbfe", borderRadius: "7px",
+              padding: "6px 10px", backgroundColor: "#eff6ff", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "5px",
+            }}>
+              <Mail size={12} /> Email to PO
             </button>
             <button
               id="copy-page-btn"
@@ -2962,12 +3058,126 @@ export default function BatchDeliveryCalendar() {
         </div>
       )}
 
-        {/* ── UPLOAD & ANALYZE MODAL ──────────────────────────────────────────── */}
+        {/* ── UPLOAD & ANALYZE MODAL ────────────────────────────────────────────────── */}
         {showUpload && (
           <UploadAnalyzeModal
             baselineRows={BASELINE_ROWS}
             onClose={() => setShowUpload(false)}
           />
+        )}
+
+        {/* ── EMAIL TO PO MODAL ────────────────────────────────────────────────────────── */}
+        {showEmailModal && (
+          <div className="no-print" style={{
+            position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.5)",
+            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100,
+          }}>
+            <div style={{
+              backgroundColor: "white", borderRadius: "14px", padding: "28px 32px",
+              maxWidth: "520px", width: "92%", boxShadow: "0 20px 60px rgba(0,0,0,0.22)",
+            }}>
+              {/* Modal header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Mail size={16} color="#1e40af" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a" }}>Email to PO</div>
+                    <div style={{ fontSize: "11px", color: "#64748b" }}>Send batch calendar summary to Product Owner</div>
+                  </div>
+                </div>
+                <button onClick={() => { setShowEmailModal(false); setPoEmail(""); setEmailSent(false); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: "4px" }}>
+                  <XIcon size={18} />
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div style={{ height: "1px", backgroundColor: "#f1f5f9", marginBottom: "18px" }} />
+
+              {/* Email preview */}
+              <div style={{ marginBottom: "16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>Email Preview</div>
+                <div style={{
+                  backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px",
+                  padding: "12px 14px", fontSize: "11px", color: "#374151", lineHeight: "1.6",
+                  maxHeight: "160px", overflowY: "auto", whiteSpace: "pre-wrap", fontFamily: "monospace",
+                }}>
+                  {buildEmailBody()}
+                </div>
+              </div>
+
+              {/* PO email input */}
+              <div style={{ marginBottom: "18px" }}>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "6px" }}>
+                  PO Email Address
+                </label>
+                <input
+                  type="email"
+                  value={poEmail}
+                  onChange={e => setPoEmail(e.target.value)}
+                  placeholder="e.g. productowner@rsmus.com"
+                  style={{
+                    width: "100%", fontSize: "13px", padding: "9px 12px",
+                    border: "1px solid #e2e8f0", borderRadius: "8px",
+                    outline: "none", color: "#0f172a", backgroundColor: "white",
+                    boxSizing: "border-box",
+                  }}
+                />
+                <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "4px" }}>
+                  This will open your default email client with the summary pre-filled.
+                </div>
+              </div>
+
+              {/* Tip: export first */}
+              <div style={{
+                backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px",
+                padding: "10px 12px", marginBottom: "18px", fontSize: "11px", color: "#78350f",
+                display: "flex", gap: "8px", alignItems: "flex-start",
+              }}>
+                <span style={{ fontSize: "13px", flexShrink: 0 }}>⚡</span>
+                <span><strong>Tip:</strong> Click <strong>Export Excel</strong> first to generate the attachment, then send this email with the file attached from your downloads folder.</span>
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={() => openEmailClient(poEmail)}
+                  disabled={!poEmail.trim()}
+                  style={{
+                    flex: 1, fontSize: "13px", fontWeight: 600, color: "white",
+                    backgroundColor: poEmail.trim() ? "#1e40af" : "#94a3b8",
+                    border: "none", borderRadius: "8px", padding: "10px", cursor: poEmail.trim() ? "pointer" : "not-allowed",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                  }}
+                >
+                  <Mail size={13} />
+                  {emailSent ? "Opening Email Client…" : "Open in Email Client"}
+                </button>
+                <button
+                  onClick={() => { exportExcel(); }}
+                  style={{
+                    fontSize: "13px", fontWeight: 600, color: "#166534",
+                    backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+                    borderRadius: "8px", padding: "10px 16px", cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: "6px",
+                  }}
+                >
+                  <FileSpreadsheet size={13} /> Export Excel
+                </button>
+                <button
+                  onClick={() => { setShowEmailModal(false); setPoEmail(""); setEmailSent(false); }}
+                  style={{
+                    fontSize: "13px", fontWeight: 500, color: "#64748b",
+                    backgroundColor: "transparent", border: "1px solid #e2e8f0",
+                    borderRadius: "8px", padding: "10px 16px", cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         )}
     </div>
   );
