@@ -1421,8 +1421,8 @@ export default function BatchDeliveryCalendar() {
   const criticalPathResult = useMemo(() => computeCriticalPath(validatedRows), [validatedRows]);
   const criticalPath = useMemo(() => computeCriticalPathLabels(validatedRows), [validatedRows]);
 
-  // ── Print-optimized Gantt export ─────────────────────────────────────────────
-  const printGantt = useCallback(() => {
+  // ── Shared HTML builder (used by Print and Email to PO) ─────────────────────
+  const buildGanttHtml = useCallback((forEmail = false) => {
     const piLabel = piFilter === "All" ? "All PIs" : piFilter;
     const rows = piFilter === "All" ? validatedRows : validatedRows.filter(r => r.pi === piFilter);
 
@@ -1650,9 +1650,15 @@ export default function BatchDeliveryCalendar() {
 </body>
 </html>`;
 
+    return html;
+  }, [validatedRows, piFilter, criticalPath]);
+
+  // ── Print-optimized Gantt export ─────────────────────────────────────────────
+  const printGantt = useCallback(() => {
+    const html = buildGanttHtml(false);
     const win = window.open("", "_blank");
     if (win) { win.document.write(html); win.document.close(); }
-  }, [validatedRows, piFilter, criticalPath]);
+  }, [buildGanttHtml]);
 
   // ── Executive summary metrics ────────────────────────────────────────────────
 
@@ -1877,12 +1883,29 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
   }, [validatedRows, summary, piFilter]);
 
   const openEmailClient = useCallback((toAddress: string) => {
-    const subject = encodeURIComponent(`DCT Batch Delivery Calendar — Status Update ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`);
-    const body = encodeURIComponent(buildEmailBody());
-    window.location.href = `mailto:${encodeURIComponent(toAddress)}?subject=${subject}&body=${body}`;
+    // Open the styled HTML view in a new window — user can copy-paste into email or print to PDF
+    const html = buildGanttHtml(true);
+    // Inject an email-ready banner at the top of the HTML view
+    const dateStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const subjectText = `DCT Batch Delivery Calendar — Status Update ${dateStr}`;
+    const bannerHtml = `
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;
+        margin-bottom:16px;font-family:Calibri,Arial,sans-serif;font-size:12px;color:#1e40af;">
+        <strong>To:</strong> ${toAddress || "(enter PO email)"} &nbsp;&nbsp;
+        <strong>Subject:</strong> ${subjectText}<br/>
+        <span style="font-size:11px;color:#64748b;">
+          ✔ Copy this view into your email body, or use Print / Save as PDF to attach as a file.
+        </span>
+      </div>`;
+    const htmlWithBanner = html.replace("<body", `<body`).replace(
+      "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:800px;margin:0 auto;\">",
+      `${bannerHtml}<table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:800px;margin:0 auto;">`
+    );
+    const win = window.open("", "_blank");
+    if (win) { win.document.write(htmlWithBanner); win.document.close(); }
     setEmailSent(true);
     setTimeout(() => setEmailSent(false), 3000);
-  }, [buildEmailBody]);
+  }, [buildGanttHtml]);
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -3140,13 +3163,22 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
 
               {/* Email preview */}
               <div style={{ marginBottom: "16px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>Email Preview</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.06em" }}>Copy View Preview</div>
+                  <div style={{ fontSize: "10px", color: "#64748b" }}>Same view as Print / Save as PDF</div>
+                </div>
                 <div style={{
                   backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px",
-                  padding: "12px 14px", fontSize: "11px", color: "#374151", lineHeight: "1.6",
-                  maxHeight: "160px", overflowY: "auto", whiteSpace: "pre-wrap", fontFamily: "monospace",
+                  padding: "0", overflow: "hidden", maxHeight: "200px", overflowY: "auto",
                 }}>
-                  {buildEmailBody()}
+                  <iframe
+                    srcDoc={buildGanttHtml(true)}
+                    style={{ width: "100%", height: "200px", border: "none", transform: "scale(0.55)", transformOrigin: "top left", width: "182%", pointerEvents: "none" }}
+                    title="Email Preview"
+                  />
+                </div>
+                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "4px" }}>
+                  Clicking <strong>Open Copy View</strong> opens this in a new window. Copy it into your email or save as PDF to attach.
                 </div>
               </div>
 
@@ -3195,7 +3227,7 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
                   }}
                 >
                   <Mail size={13} />
-                  {emailSent ? "Opening Email Client…" : "Open in Email Client"}
+                  {emailSent ? "Opening Copy View…" : "Open Copy View"}
                 </button>
                 <button
                   onClick={() => { exportExcel(); }}
