@@ -1883,28 +1883,22 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
   }, [validatedRows, summary, piFilter]);
 
   const openEmailClient = useCallback((toAddress: string) => {
-    // Open the styled HTML view in a new window — user can copy-paste into email or print to PDF
-    const html = buildGanttHtml(true);
-    // Inject an email-ready banner at the top of the HTML view
+    // 1. Open mailto: so the user's email client launches with subject pre-filled
     const dateStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    const subjectText = `DCT Batch Delivery Calendar — Status Update ${dateStr}`;
-    const bannerHtml = `
-      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;
-        margin-bottom:16px;font-family:Calibri,Arial,sans-serif;font-size:12px;color:#1e40af;">
-        <strong>To:</strong> ${toAddress || "(enter PO email)"} &nbsp;&nbsp;
-        <strong>Subject:</strong> ${subjectText}<br/>
-        <span style="font-size:11px;color:#64748b;">
-          ✔ Copy this view into your email body, or use Print / Save as PDF to attach as a file.
-        </span>
-      </div>`;
-    const htmlWithBanner = html.replace("<body", `<body`).replace(
-      "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:800px;margin:0 auto;\">",
-      `${bannerHtml}<table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:800px;margin:0 auto;">`
+    const subject = encodeURIComponent(`DCT Batch Delivery Calendar — Status Update ${dateStr}`);
+    const bodyText = encodeURIComponent(
+      `Hi,\n\nPlease find the DCT Batch Delivery Calendar summary attached.\n\nGenerated: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}\n\nThis is a planning view only and does not represent the system of record.\n\nThank you,\nCATT Sr. Business Analyst — DCT Platform Delivery`
     );
-    const win = window.open("", "_blank");
-    if (win) { win.document.write(htmlWithBanner); win.document.close(); }
+    window.location.href = `mailto:${encodeURIComponent(toAddress)}?subject=${subject}&body=${bodyText}`;
     setEmailSent(true);
     setTimeout(() => setEmailSent(false), 3000);
+  }, []);
+
+  const openCopyView = useCallback(() => {
+    // Open the styled HTML view in a new window — user can copy-paste into email or print to PDF
+    const html = buildGanttHtml(true);
+    const win = window.open("", "_blank");
+    if (win) { win.document.write(html); win.document.close(); }
   }, [buildGanttHtml]);
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -3215,41 +3209,58 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
               </div>
 
               {/* Action buttons */}
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  onClick={() => openEmailClient(poEmail)}
-                  disabled={!poEmail.trim()}
-                  style={{
-                    flex: 1, fontSize: "13px", fontWeight: 600, color: "white",
-                    backgroundColor: poEmail.trim() ? "#1e40af" : "#94a3b8",
-                    border: "none", borderRadius: "8px", padding: "10px", cursor: poEmail.trim() ? "pointer" : "not-allowed",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-                  }}
-                >
-                  <Mail size={13} />
-                  {emailSent ? "Opening Copy View…" : "Open Copy View"}
-                </button>
-                <button
-                  onClick={() => { exportExcel(); }}
-                  style={{
-                    fontSize: "13px", fontWeight: 600, color: "#166534",
-                    backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
-                    borderRadius: "8px", padding: "10px 16px", cursor: "pointer",
-                    display: "flex", alignItems: "center", gap: "6px",
-                  }}
-                >
-                  <FileSpreadsheet size={13} /> Export Excel
-                </button>
-                <button
-                  onClick={() => { setShowEmailModal(false); setPoEmail(""); setEmailSent(false); }}
-                  style={{
-                    fontSize: "13px", fontWeight: 500, color: "#64748b",
-                    backgroundColor: "transparent", border: "1px solid #e2e8f0",
-                    borderRadius: "8px", padding: "10px 16px", cursor: "pointer",
-                  }}
-                >
-                  Cancel
-                </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {/* Row 1: Primary send action */}
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => openEmailClient(poEmail)}
+                    disabled={!poEmail.trim()}
+                    style={{
+                      flex: 1, fontSize: "13px", fontWeight: 600, color: "white",
+                      backgroundColor: poEmail.trim() ? "#1e40af" : "#94a3b8",
+                      border: "none", borderRadius: "8px", padding: "11px", cursor: poEmail.trim() ? "pointer" : "not-allowed",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                    }}
+                  >
+                    <Mail size={14} />
+                    {emailSent ? "Opening Email Client…" : "Send Email"}
+                  </button>
+                  <button
+                    onClick={() => { setShowEmailModal(false); setPoEmail(""); setEmailSent(false); }}
+                    style={{
+                      fontSize: "13px", fontWeight: 500, color: "#64748b",
+                      backgroundColor: "transparent", border: "1px solid #e2e8f0",
+                      borderRadius: "8px", padding: "11px 18px", cursor: "pointer",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {/* Row 2: Secondary actions */}
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => openCopyView()}
+                    style={{
+                      flex: 1, fontSize: "12px", fontWeight: 600, color: "#1e40af",
+                      backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+                      borderRadius: "8px", padding: "8px", cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "5px",
+                    }}
+                  >
+                    <FileSpreadsheet size={12} /> Open Copy View
+                  </button>
+                  <button
+                    onClick={() => { exportExcel(); }}
+                    style={{
+                      flex: 1, fontSize: "12px", fontWeight: 600, color: "#166534",
+                      backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+                      borderRadius: "8px", padding: "8px", cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: "5px", justifyContent: "center",
+                    }}
+                  >
+                    <FileSpreadsheet size={12} /> Export Excel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
