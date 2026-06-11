@@ -1795,43 +1795,86 @@ export default function BatchDeliveryCalendar() {
   // ── Email to PO ───────────────────────────────────────────────────────────────
   const buildEmailBody = useCallback(() => {
     const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const scopedRows = piFilter === "All" ? validatedRows : validatedRows.filter(r => r.pi === piFilter);
+
+    // Status counts — only count statuses that actually appear
+    const STATUS_ORDER = ["Done", "Committed", "MVP", "Stretch", "New", "On Hold", "Post-MVP"];
     const statusCounts: Record<string, number> = {};
-    for (const r of validatedRows) statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
-    const statusSummary = Object.entries(statusCounts).map(([s, c]) => `  • ${s}: ${c}`).join("\n");
-    const riskLines = summary.risks.length > 0
-      ? summary.risks.slice(0, 5).map(r => `  ⚠ ${r.batch} (${r.system}) — ${r.status}${r._dateError ? " [Date Error]" : ""}${r._depConflict ? " [Dep Conflict]" : ""}`).join("\n")
-      : "  No risk flags identified.";
-    const piList = Array.from(summary.piGroups).sort().join(", ");
+    for (const r of scopedRows) statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
+    const statusSummary = STATUS_ORDER
+      .filter(s => statusCounts[s] > 0)
+      .map(s => `  ${s}: ${statusCounts[s]}`)
+      .join("\n");
+
+    // Risk flags — only flag active/planned batches with real issues (not Done)
+    const realRisks = scopedRows.filter(r =>
+      r.status !== "Done" && (r._dateError || r._depConflict)
+    );
+    const stretchItems = scopedRows.filter(r => r.status === "Stretch");
+    const riskLines = realRisks.length > 0
+      ? realRisks.slice(0, 8).map(r =>
+          `  ${r.batch} (${r.system}) — ${r.status}${r._dateError ? " [Date Error]" : ""}${r._depConflict ? " [Dep Conflict]" : ""}`
+        ).join("\n")
+      : "  No blocking risk flags identified.";
+
+    const piLabel = piFilter === "All" ? "All PIs" : piFilter;
+    const piList = Array.from(new Set(scopedRows.map(r => r.pi))).sort().join(", ");
+
+    // Batch table — grouped by PI
+    const piGroups: Record<string, typeof scopedRows> = {};
+    for (const r of scopedRows) {
+      if (!piGroups[r.pi]) piGroups[r.pi] = [];
+      piGroups[r.pi].push(r);
+    }
+    const batchTableLines: string[] = [];
+    for (const pi of Object.keys(piGroups).sort()) {
+      batchTableLines.push(`\n${pi}`);
+      batchTableLines.push(`${"-".repeat(60)}`);
+      batchTableLines.push(`  Batch   System   Status        Start        End          Feature`);
+      for (const r of piGroups[pi]) {
+        const batch = r.batch.padEnd(8);
+        const sys   = r.system.padEnd(8);
+        const stat  = r.status.padEnd(13);
+        const start = (r.startDate || "TBD").padEnd(12);
+        const end   = (r.endDate   || "TBD").padEnd(12);
+        batchTableLines.push(`  ${batch} ${sys} ${stat} ${start} ${end} ${r.name}`);
+      }
+    }
+    const batchTable = batchTableLines.join("\n");
+
     return `Hi,
 
 Please find below the current DCT Batch Delivery Calendar summary as of ${today}.
+Filter: ${piLabel} | Total Batches: ${scopedRows.length}
 
 This is a planning view only and does not represent the system of record.
 
-────────────────────────────────────────
-BATCH STATUS SUMMARY
-────────────────────────────────────────
-Total Batches: ${validatedRows.length}
-PIs Covered: ${piList}
-
-Status Breakdown:
+${"-".repeat(60)}
+STATUS SUMMARY
+${"-".repeat(60)}
 ${statusSummary}
 
-────────────────────────────────────────
-RISK FLAGS (${summary.risks.length})
-────────────────────────────────────────
+${"-".repeat(60)}
+RISK FLAGS — Active Batches Only (${realRisks.length} blocking, ${stretchItems.length} stretch)
+${"-".repeat(60)}
 ${riskLines}
+${stretchItems.length > 0 ? `\n  Stretch goals (${stretchItems.length}): ${stretchItems.map(r => r.batch).join(", ")}` : ""}
 
-────────────────────────────────────────
+${"-".repeat(60)}
+BATCH DELIVERY SCHEDULE
+${"-".repeat(60)}
+${batchTable}
+
+${"-".repeat(60)}
 NOTES
-────────────────────────────────────────
-• The full batch calendar export (Excel) is available from the DCT Platform Gate Verification Dashboard.
-• This summary was generated from the Batch Delivery Calendar planning view.
-• For questions, contact the CATT Sr. Business Analyst.
+${"-".repeat(60)}
+- The full batch calendar export (Excel) is available from the DCT Platform Gate Verification Dashboard.
+- This summary was generated from the Batch Delivery Calendar planning view.
+- For questions, contact the CATT Sr. Business Analyst.
 
 Thank you,
 CATT Sr. Business Analyst — DCT Platform Delivery`;
-  }, [validatedRows, summary]);
+  }, [validatedRows, summary, piFilter]);
 
   const openEmailClient = useCallback((toAddress: string) => {
     const subject = encodeURIComponent(`DCT Batch Delivery Calendar — Status Update ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`);

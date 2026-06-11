@@ -57,8 +57,8 @@ const PI2_BATCH_ITEMS: { label: string; path: string; batchKey: BatchKey; indent
 // PI 2 Committed/Stretch batch items (B11–B16)
 const PI2_STRETCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B13 — Platform Reference & Document Provenance",    path: "/batch/13",              batchKey: "13" },
-  { label: "B16 | PDC — Audit Trail & Lineage Governance",      path: "/batch/16",              batchKey: "16" },
-  { label: "B16 | TDC — Audit Trail & Lineage Governance",      path: "/batch/16",              batchKey: "16" },
+  { label: "B16 | PDC — Audit Trail & Lineage Governance",      path: "/batch/16-pdc",          batchKey: "16" },
+  { label: "B16 | TDC — Audit Trail & Lineage Governance",      path: "/batch/16-tdc",          batchKey: "16" },
 ];
 
 // PI 3 MVP batch items — per updated calendar
@@ -72,7 +72,7 @@ const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B26 — Entity Constituents & Allocations",           path: "/batch/26",              batchKey: "26" },
   { label: "B29 — Consolidated Return Assembly",                path: "/batch/29",              batchKey: "29" },
   { label: "B9A — Data Gateway (IMS, CDS, DUO)",                path: "/batch/9a",              batchKey: "9a" },
-  { label: "B31 — Legacy Tool Prior Year Data Housing",         path: "/batch/31",              batchKey: "31" },
+  { label: "B31 — Legacy Tool Prior Year Data Housing",         path: "/batch/31-housing",      batchKey: "31" },
   { label: "B39 — Calculation Report",                          path: "/batch/39",              batchKey: "39" },
   { label: "B33 — State Tax (Apportionment, NOL, Forms)",       path: "/batch/33",              batchKey: "33" },
 ];
@@ -80,14 +80,14 @@ const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
 // Post-MVP / PI 4 batch items
 const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B19 — Audit Tax-Expense Cross-LOB Outbound",        path: "/batch/19",              batchKey: "22" },
-  { label: "B21 — Quality Control Review Records",              path: "/batch/21",              batchKey: "21" },
+  { label: "B21 — Quality Control Review Records",              path: "/batch/21-qc",           batchKey: "21" },
   { label: "B22 — Client Communication (Post-MVP)",             path: "/batch/22",              batchKey: "22" },
   { label: "B23 — Benchmark & Peer Analytics (Post-MVP)",       path: "/batch/23",              batchKey: "23" },
 ];
 
 // On Hold batch items
 const ON_HOLD_ITEMS: { label: string; path: string; batchKey: string }[] = [
-  { label: "B9 | TDC — Rollforward & Prior Year Intelligence",  path: "/batch/9-tdc",           batchKey: "9-tdc" },
+  { label: "B9 | TDC — Rollforward & Prior Year Intelligence",  path: "/batch/9-tdc-hold",      batchKey: "9-tdc" },
   { label: "B12 — Engagement Identity & TIM Reconciliation",    path: "/batch/12",              batchKey: "12" },
 ];
 
