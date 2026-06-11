@@ -17,7 +17,7 @@ import {
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
-type BatchStatus = "Done" | "Committed" | "Stretch" | "MVP";
+type BatchStatus = "Done" | "Committed" | "Stretch" | "MVP" | "New" | "On Hold" | "Post-MVP";
 type SystemType = "PDC" | "TDC" | "Orchestrator" | "Roger" | "Platform";
 
 interface BatchRow {
@@ -105,144 +105,174 @@ const BASELINE_ROWS: BatchRow[] = [
   {
     id: "pi2-b8-pdc", pi: "PI 2", batch: "B8", system: "PDC",
     name: "Exceptions & Remediation",
-    startDate: "2026-05-12", endDate: "2026-05-20", status: "Committed",
-    notes: "Batch 8 PDC. Exceptions and remediation — PDC side.", dependsOn: "B5,B2A",
+    startDate: "2026-05-12", endDate: "2026-05-20", status: "Done",
+    notes: "Batch 8 PDC. Done. Exceptions and remediation — PDC side.", dependsOn: "B5,B2A",
   },
   {
     id: "pi2-b8-tdc", pi: "PI 2", batch: "B8", system: "TDC",
     name: "Exceptions & Remediation",
-    startDate: "2026-05-12", endDate: "2026-05-20", status: "Committed",
-    notes: "Batch 8 TDC. Exceptions and remediation — TDC side. Parallel with B8 PDC.", dependsOn: "B7",
+    startDate: "2026-05-12", endDate: "2026-05-20", status: "Done",
+    notes: "Batch 8 TDC. Done. Exceptions and remediation — TDC side. Parallel with B8 PDC.", dependsOn: "B7",
   },
   {
     id: "pi2-b9-pdc", pi: "PI 2", batch: "B9", system: "PDC",
     name: "Roger Gateway & Governed Consumer Access Layer",
-    startDate: "2026-05-21", endDate: "2026-06-02", status: "Committed",
-    notes: "Batch 9 PDC. ARCHITECTURAL CHANGE: Repurposed from IMS Integration & Prior Year Retrieval to Roger Gateway & Governed Consumer Access Layer (surface-not-store). Ocelot gateway, IMS/CEM/TIM pass-through. eODS deferred. Source: Roadmap v4.", dependsOn: "B8",
+    startDate: "2026-05-21", endDate: "2026-06-02", status: "Done",
+    notes: "Batch 9 PDC. Done. Roger Gateway & Governed Consumer Access Layer. Ocelot gateway, IMS/CEM/TIM pass-through.", dependsOn: "B8",
   },
   // NOTE: B9 TDC is ON HOLD — absorbed into B31 TDC (Legacy Tool Prior Year Data Housing)
   {
     id: "pi2-b10-tdc", pi: "PI 2", batch: "B10", system: "TDC",
     name: "Return Assembly, Filing & Lineage",
-    startDate: "2026-06-03", endDate: "2026-06-11", status: "Committed",
-    notes: "Batch 10 TDC. Return assembly, filing, and lineage closure. Requires B6 and B9 PDC.", dependsOn: "B6,B9",
+    startDate: "2026-06-03", endDate: "2026-06-05", status: "Done",
+    notes: "Batch 10 TDC. Done. Return assembly, filing, and lineage closure.", dependsOn: "B6,B9",
+  },
+  {
+    id: "pi2-b43-tdc", pi: "PI 2", batch: "B43", system: "TDC",
+    name: "Practitioner Book & Reclass Adjustments",
+    startDate: "2026-06-10", endDate: "2026-06-16", status: "New",
+    notes: "Batch 43 TDC. New. Practitioner book and reclass adjustments. Duration: 5 BD. Added Jun 2026.", dependsOn: "B10",
+  },
+  {
+    id: "pi2-b16-pdc-stretch", pi: "PI 2", batch: "B16", system: "PDC",
+    name: "Audit Trail & Lineage Governance",
+    startDate: "2026-06-17", endDate: "2026-06-25", status: "Stretch",
+    notes: "Batch 16 PDC. PI 2 Stretch. Audit trail and lineage governance — PDC side. Duration: 7 BD.", dependsOn: "B43",
   },
   {
     id: "pi2-b11-tdc", pi: "PI 2", batch: "B11", system: "TDC",
     name: "Learning Governance & Model Evolution",
-    startDate: "2026-06-12", endDate: "2026-06-22", status: "Committed",
-    notes: "Batch 11 TDC. Learning governance and model evolution.", dependsOn: "B10",
-  },
-  // ── PI 2 — Stretch ───────────────────────────────────────────────────────────
-  {
-    id: "pi2s-b16-pdc", pi: "PI 2", batch: "B16", system: "PDC",
-    name: "Audit Trail & Lineage Governance",
-    startDate: "2026-06-12", endDate: "2026-06-22", status: "Stretch",
-    notes: "Batch 16 PDC. PI 2 Stretch. Audit trail and lineage governance — PDC side.", dependsOn: "B11",
-  },
-  {
-    id: "pi2s-b16-tdc", pi: "PI 2", batch: "B16", system: "TDC",
-    name: "Audit Trail & Lineage Governance",
-    startDate: "2026-06-23", endDate: "2026-07-03", status: "Stretch",
-    notes: "Batch 16 TDC. PI 2 Stretch. Audit trail and lineage governance — TDC side. Follows B16 PDC.", dependsOn: "B16",
+    startDate: "2026-06-17", endDate: "2026-06-25", status: "Committed",
+    notes: "Batch 11 TDC. Learning governance and model evolution. Duration: 7 BD.", dependsOn: "B43",
   },
   {
     id: "pi2s-b13-pdc", pi: "PI 2", batch: "B13", system: "PDC",
     name: "Platform Reference & Document Provenance",
-    startDate: "2026-06-23", endDate: "2026-07-03", status: "Stretch",
-    notes: "Batch 13 PDC. PI 2 Stretch. Platform reference and document provenance.", dependsOn: "B11",
+    startDate: "2026-06-26", endDate: "2026-07-08", status: "Stretch",
+    notes: "Batch 13 PDC. PI 2 Stretch. Platform reference and document provenance. Duration: 7 BD.", dependsOn: "B11",
+  },
+  {
+    id: "pi2s-b16-tdc", pi: "PI 2", batch: "B16", system: "TDC",
+    name: "Audit Trail & Lineage Governance",
+    startDate: "2026-06-26", endDate: "2026-07-08", status: "Stretch",
+    notes: "Batch 16 TDC. PI 2 Stretch. Audit trail and lineage governance — TDC side. Duration: 7 BD.", dependsOn: "B16",
   },
   // ── PI 3 — MVP ───────────────────────────────────────────────────────────────
   {
     id: "pi3-b20-pdc", pi: "PI 3", batch: "B20", system: "PDC",
     name: "Firm Governance & Professional Standards",
-    startDate: "2026-07-06", endDate: "2026-07-14", status: "MVP",
-    notes: "Batch 20 PDC. Firm governance and professional standards.", dependsOn: "B13",
+    startDate: "2026-07-13", endDate: "2026-07-21", status: "MVP",
+    notes: "Batch 20 PDC. MVP. Firm governance and professional standards. Duration: 7 BD.", dependsOn: "B13",
   },
   {
-    id: "pi3-b28-tdc", pi: "PI 3", batch: "B28", system: "TDC",
-    name: "Tax Workpaper & Provision Schedules",
-    startDate: "2026-07-06", endDate: "2026-07-14", status: "MVP",
-    notes: "Batch 28 TDC. Tax workpaper and provision schedules.", dependsOn: "B11",
-  },
-  {
-    id: "pi3-b17-tdc", pi: "PI 3", batch: "B17", system: "TDC",
-    name: "Decision Support, Overrides, Evidence & Workpapers",
-    startDate: "2026-07-15", endDate: "2026-07-24", status: "MVP",
-    notes: "Batch 17 TDC. Decision support, overrides, evidence, and workpapers.", dependsOn: "B28",
+    id: "pi3-b42-tdc", pi: "PI 3", batch: "B42", system: "TDC",
+    name: "Tax Rules Framework & Book-to-Tax Adjustment Rules",
+    startDate: "2026-07-13", endDate: "2026-07-21", status: "MVP",
+    notes: "Batch 42 TDC. MVP. Tax rules framework and book-to-tax adjustment rules. New batch added Jun 2026. Duration: 7 BD.", dependsOn: "B11",
   },
   {
     id: "pi3-b21-pdc", pi: "PI 3", batch: "B21", system: "PDC",
     name: "Quality Control Standards",
-    startDate: "2026-07-15", endDate: "2026-07-23", status: "MVP",
-    notes: "Batch 21 PDC. Quality control standards.", dependsOn: "B20",
+    startDate: "2026-07-22", endDate: "2026-07-30", status: "MVP",
+    notes: "Batch 21 PDC. MVP. Quality control standards. Duration: 7 BD.", dependsOn: "B20",
+  },
+  {
+    id: "pi3-b28-tdc", pi: "PI 3", batch: "B28", system: "TDC",
+    name: "Tax Workpaper & Provision Schedules",
+    startDate: "2026-07-22", endDate: "2026-07-30", status: "MVP",
+    notes: "Batch 28 TDC. MVP. Tax workpaper and provision schedules. Duration: 7 BD.", dependsOn: "B42",
+  },
+  {
+    id: "pi3-b9a-gateway", pi: "PI 3", batch: "B9a", system: "PDC",
+    name: "Data Gateway (IMS, CDS, DUO)",
+    startDate: "2026-07-31", endDate: "2026-08-10", status: "MVP",
+    notes: "Batch 9a PDC. MVP. Data Gateway — IMS, CDS, DUO integration. Duration: 7 BD.", dependsOn: "B21",
   },
   {
     id: "pi3-b31-pdc", pi: "PI 3", batch: "B31", system: "PDC",
     name: "Legacy Tool Prior Year Ingestion",
-    startDate: "2026-07-24", endDate: "2026-08-03", status: "MVP",
-    notes: "Batch 31 PDC. Legacy tool prior year ingestion.", dependsOn: "B21",
+    startDate: "2026-07-31", endDate: "2026-08-10", status: "MVP",
+    notes: "Batch 31 PDC. MVP. Legacy tool prior year ingestion. Duration: 7 BD.", dependsOn: "B21",
   },
   {
-    id: "pi3-b29-tdc", pi: "PI 3", batch: "B29", system: "TDC",
-    name: "Consolidated Return Assembly",
-    startDate: "2026-07-27", endDate: "2026-08-04", status: "MVP",
-    notes: "Batch 29 TDC. Consolidated return assembly.", dependsOn: "B17",
+    id: "pi3-b17-tdc", pi: "PI 3", batch: "B17", system: "TDC",
+    name: "Decision Support, Overrides, Evidence & Workpapers",
+    startDate: "2026-07-31", endDate: "2026-08-10", status: "MVP",
+    notes: "Batch 17 TDC. MVP. Decision support, overrides, evidence, and workpapers. Duration: 7 BD.", dependsOn: "B28",
   },
   {
     id: "pi3-b26-pdc", pi: "PI 3", batch: "B26", system: "PDC",
     name: "Entity Constituents & Allocations",
-    startDate: "2026-08-04", endDate: "2026-08-14", status: "MVP",
-    notes: "Batch 26 PDC. Entity constituents and allocations.", dependsOn: "B31",
+    startDate: "2026-08-11", endDate: "2026-08-19", status: "MVP",
+    notes: "Batch 26 PDC. MVP. Entity constituents and allocations. Duration: 7 BD.", dependsOn: "B9a",
+  },
+  {
+    id: "pi3-b29-tdc", pi: "PI 3", batch: "B29", system: "TDC",
+    name: "Consolidated Return Assembly",
+    startDate: "2026-08-11", endDate: "2026-08-19", status: "MVP",
+    notes: "Batch 29 TDC. MVP. Consolidated return assembly. Duration: 7 BD.", dependsOn: "B17",
   },
   {
     id: "pi3-b31-tdc", pi: "PI 3", batch: "B31", system: "TDC",
     name: "Legacy Tool Prior Year Data Housing",
-    startDate: "2026-08-05", endDate: "2026-08-13", status: "MVP",
-    notes: "Batch 31 TDC. Legacy tool prior year data housing. Absorbs B9 TDC (On Hold).", dependsOn: "B29",
+    startDate: "2026-08-20", endDate: "2026-08-28", status: "MVP",
+    notes: "Batch 31 TDC. MVP. Legacy tool prior year data housing. Absorbs B9 TDC (On Hold). Duration: 7 BD.", dependsOn: "B29",
   },
   {
     id: "pi3-b39-tdc", pi: "PI 3", batch: "B39", system: "TDC",
     name: "Calculation Report",
-    startDate: "2026-08-14", endDate: "2026-08-25", status: "MVP",
-    notes: "Batch 39 TDC. Calculation report.", dependsOn: "B31",
+    startDate: "2026-08-31", endDate: "2026-09-09", status: "MVP",
+    notes: "Batch 39 TDC. MVP. Calculation report. Duration: 7 BD.", dependsOn: "B31",
   },
   {
     id: "pi3-b33-tdc", pi: "PI 3", batch: "B33", system: "TDC",
     name: "State Reference, Apportionment, Payments, NOL/Credit, Forms & TX Franchise",
-    startDate: "2026-08-26", endDate: "2026-09-15", status: "MVP",
-    notes: "Batch 33 TDC. State reference, apportionment, payments, NOL/credit, forms, TX franchise.", dependsOn: "B39",
+    startDate: "2026-09-10", endDate: "2026-09-18", status: "Stretch",
+    notes: "Batch 33 TDC. PI 3 Stretch. State reference, apportionment, payments, NOL/credit, forms, TX franchise. Duration: 7 BD.", dependsOn: "B39",
+  },
+  // ── On Hold ───────────────────────────────────────────────────────────────────
+  {
+    id: "onhold-b9-tdc", pi: "On Hold", batch: "B9", system: "TDC",
+    name: "Rollforward & Prior Year Intelligence",
+    startDate: "", endDate: "", status: "On Hold",
+    notes: "Batch 9 TDC. On Hold. Absorbed: existing clients via TDC query, legacy via B31. No active dates.", dependsOn: "",
+  },
+  {
+    id: "onhold-b12-pdc", pi: "On Hold", batch: "B12", system: "PDC",
+    name: "Engagement Identity, Reference Data & TIM Reconciliation",
+    startDate: "", endDate: "", status: "On Hold",
+    notes: "Batch 12 PDC. On Hold. Engagement identity, reference data, and TIM reconciliation. No active dates.", dependsOn: "",
   },
   // ── PI 4 — Post-MVP ───────────────────────────────────────────────────────────
   {
     id: "pi4-b19-tdc", pi: "PI 4", batch: "B19", system: "TDC",
     name: "Audit Tax-Expense Cross-LOB Outbound",
-    startDate: "2026-09-16", endDate: "2026-09-28", status: "MVP",
-    notes: "Batch 19 TDC. PI 4 Post-MVP. Audit tax-expense cross-LOB outbound. Follows 9/16 Pilot Start.", dependsOn: "B33",
+    startDate: "2026-09-16", endDate: "2026-09-28", status: "Post-MVP",
+    notes: "Batch 19 TDC. Post-MVP. Audit tax-expense cross-LOB outbound. Follows 9/16 Pilot Start.", dependsOn: "B33",
   },
   {
     id: "pi4-b21-tdc", pi: "PI 4", batch: "B21", system: "TDC",
     name: "Quality Control Review Records",
-    startDate: "2026-09-29", endDate: "2026-10-08", status: "MVP",
-    notes: "Batch 21 TDC. PI 4 Post-MVP. Quality control review records.", dependsOn: "B19",
+    startDate: "2026-09-29", endDate: "2026-10-08", status: "Post-MVP",
+    notes: "Batch 21 TDC. Post-MVP. Quality control review records.", dependsOn: "B19",
   },
   {
     id: "pi4-b40-tdc", pi: "PI 4", batch: "B40", system: "TDC",
     name: "Client-Level Line Mapping Reuse",
-    startDate: "2026-10-09", endDate: "2026-10-20", status: "MVP",
-    notes: "Batch 40 TDC. Client-level line mapping reuse.", dependsOn: "B21",
+    startDate: "2026-10-09", endDate: "2026-10-20", status: "Post-MVP",
+    notes: "Batch 40 TDC. Post-MVP. Client-level line mapping reuse.", dependsOn: "B21",
   },
   {
     id: "pi4-b26-tdc", pi: "PI 4", batch: "B26", system: "TDC",
     name: "Entity Constituents & Allocations",
-    startDate: "2026-10-21", endDate: "2026-11-02", status: "MVP",
-    notes: "Batch 26 TDC. Entity constituents and allocations — TDC side.", dependsOn: "B40",
+    startDate: "2026-10-21", endDate: "2026-11-02", status: "Post-MVP",
+    notes: "Batch 26 TDC. Post-MVP. Entity constituents and allocations — TDC side.", dependsOn: "B40",
   },
   {
     id: "pi4-b35-tdc", pi: "PI 4", batch: "B35", system: "TDC",
     name: "S-Corp Specialization",
-    startDate: "2026-11-03", endDate: "2026-11-16", status: "MVP",
-    notes: "Batch 35 TDC. S-Corp specialization.", dependsOn: "B26",
+    startDate: "2026-11-03", endDate: "2026-11-16", status: "Post-MVP",
+    notes: "Batch 35 TDC. Post-MVP. S-Corp specialization.", dependsOn: "B26",
   },
 ];
 // ─── COLORS ───────────────────────────────────────────────────────────────────
@@ -261,6 +291,9 @@ const STATUS_BADGE: Record<BatchStatus, { color: string; bg: string; bar: string
   "Committed": { color: "#1e40af", bg: "#dbeafe", bar: "#2563eb" },
   "Stretch":   { color: "#9a3412", bg: "#ffedd5", bar: "#ea580c" },
   "MVP":       { color: "#581c87", bg: "#f3e8ff", bar: "#7c3aed" },
+  "New":       { color: "#1e40af", bg: "#eff6ff", bar: "#3b82f6" },
+  "On Hold":   { color: "#78350f", bg: "#fef3c7", bar: "#d97706" },
+  "Post-MVP":  { color: "#374151", bg: "#f1f5f9", bar: "#6b7280" },
 };
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -2687,7 +2720,7 @@ export default function BatchDeliveryCalendar() {
                                   onChange={e => setEditDraft(d => d ? { ...d, status: e.target.value as BatchStatus } : d)}
                                   style={{ fontSize: "11px", border: "1px solid #bfdbfe", borderRadius: "5px", padding: "3px 6px", width: "100%" }}
                                 >
-                                  {(["Done", "Committed", "Stretch", "MVP"] as BatchStatus[]).map(s => (
+                                  {(["Done", "Committed", "Stretch", "MVP", "New", "On Hold", "Post-MVP"] as BatchStatus[]).map(s => (
                                     <option key={s} value={s}>{s}</option>
                                   ))}
                                 </select>
