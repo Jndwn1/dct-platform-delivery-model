@@ -18,18 +18,30 @@ const TIMELINE_EVENTS = [
   { date: "2026-Q1", label: "Batch 7 — Client Tax Profile & Eligibility", type: "batch", status: "planned", description: "TDC system of record for tax profile and eligibility. Three-tier model (Must Have / Must Not Have / Flag & Review). Eligibility gate enforced. Sequential after Batch 6. PI 2 — Committed.", gate: null },
   { date: "2026-Q2", label: "Batch 8 — Exceptions & Remediation", type: "batch", status: "planned", description: "Structured exception tracking across ingestion, normalization, mapping, and workflow. PDC parallel to Batch 7; TDC sequential after Batch 7. PI 2 — Committed.", gate: null },
   { date: "2026-Q3", label: "Batch 9 — Roger Gateway & Governed Consumer Access Layer (PDC)", type: "batch", status: "planned", description: "PDC delivers the Ocelot gateway. Roger and all consumers call the gateway — not underlying systems directly. IMS, CEM, and TIM data surfaced via pass-through without PDC storage (surface-not-store). TDC B9 rollforward scope ON HOLD — absorbed by other batches. PI 2 — Stretch.", gate: null },
-  { date: "2026-Q3", label: "Batch 10 — Return Assembly, Filing & Lineage Closure", type: "batch", status: "planned", description: "TDC assembles returns from locked tax-ready records. Immutable filing record. IMS outbound contract. End-to-end lineage queryable. PI 2 — Stretch.", gate: null },
-  { date: "2026-Q4", label: "Batch 11 — Learning Governance & Model Evolution", type: "batch", status: "planned", description: "AI feedback loop closed. Learning signals captured. Model registry with versioned approval workflow. Confidence trend analytics. PI 2 — Stretch.", gate: null },
+  { date: "2026-Q3", label: "Batch 10 — Return Assembly, Filing & Lineage Closure", type: "batch", status: "done", description: "TDC assembles returns from locked tax-ready records. Immutable filing record. IMS outbound contract. End-to-end lineage queryable. PI 2 — Done.", gate: null },
+  { date: "2026-Q3", label: "Batch 43 — Practitioner Book & Reclass Adjustments (TDC)", type: "batch", status: "new", description: "TDC practitioner-facing book-to-tax adjustments and reclassification workflow. Closes the Edit Reclass Adjustment gap identified in the Jun 5 2026 integration meeting. PI 2 — New (Jun 10–16).", gate: null },
+  { date: "2026-Q4", label: "Batch 11 — Learning Governance & Model Evolution", type: "batch", status: "committed", description: "AI feedback loop closed. Learning signals captured. Model registry with versioned approval workflow. Confidence trend analytics. PI 2 — Committed.", gate: null },
+  { date: "2026-Q4", label: "Batch 9 TDC — Rollforward & Prior Year Intelligence (ON HOLD)", type: "batch", status: "on-hold", description: "TDC rollforward and prior year intelligence scope. ON HOLD — absorbed by B31 and other batches. Will not proceed in current PI cycle.", gate: null },
+  { date: "2026-Q4", label: "Batch 12 PDC — (ON HOLD)", type: "batch", status: "on-hold", description: "PDC Batch 12 scope placed ON HOLD pending architectural decision. Will not proceed in current PI cycle.", gate: null },
+  { date: "2026-Q4", label: "Batch 42 — Tax Rules Framework (TDC)", type: "batch", status: "mvp", description: "TDC tax rules framework and rule repository. Enables structured rule intake, AI translation pilot, and gateway readiness for tax logic. PI 3 — MVP (Jul 13–21).", gate: null },
+  { date: "2026-Q4", label: "Batch 9A — Data Gateway (IMS, CDS, DUO)", type: "batch", status: "mvp", description: "Gateway extension delivering IMS, CDS, and DUO data surfaces via the Ocelot gateway pass-through. Roger and all consumers access via gateway contract. PI 3 — MVP (Aug 20–28).", gate: null },
 ];
 
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string }> = {
   complete:    { bg: "#dcfce7", text: "#166534", dot: "#16a34a", label: "Complete" },
+  done:        { bg: "#dcfce7", text: "#166534", dot: "#16a34a", label: "Done" },
   active:      { bg: "#dbeafe", text: "#1e40af", dot: "#2563eb", label: "Active" },
   "in-progress": { bg: "#fef9c3", text: "#854d0e", dot: "#ca8a04", label: "In Progress" },
   locked:      { bg: "#d1fae5", text: "#065f46", dot: "#059669", label: "Locked" },
   pending:     { bg: "#f3f4f6", text: "#374151", dot: "#9ca3af", label: "Pending" },
   planned:     { bg: "#f3f4f6", text: "#374151", dot: "#d1d5db", label: "Planned" },
+  new:         { bg: "#ede9fe", text: "#5b21b6", dot: "#7c3aed", label: "New" },
+  committed:   { bg: "#dbeafe", text: "#1e40af", dot: "#2563eb", label: "Committed" },
+  mvp:         { bg: "#fff7ed", text: "#9a3412", dot: "#ea580c", label: "MVP" },
+  stretch:     { bg: "#fef9c3", text: "#854d0e", dot: "#ca8a04", label: "Stretch" },
+  "on-hold":   { bg: "#fef2f2", text: "#991b1b", dot: "#ef4444", label: "On Hold" },
+  "post-mvp":  { bg: "#f3f4f6", text: "#6b7280", dot: "#9ca3af", label: "Post-MVP" },
 };
 
 export default function GovernanceTimelinePage() {

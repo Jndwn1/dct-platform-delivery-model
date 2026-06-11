@@ -235,6 +235,18 @@ const FEATURES: FeatureRow[] = [
     downstreamImpact: "B12, B14, B16 PDC, B24 PDC.",
     governance: ["Contract Published", "Lineage Enabled", "Immutable"],
   },
+  // ── PI 2 — New ─────────────────────────────────────────────────────────────
+  {
+    id: "pi2-b43", batch: "B43", name: "Practitioner Book & Reclass Adjustments", owner: "TDC", pi: "PI 2",
+    startDate: "6/10", endDate: "6/16", status: "New",
+    batchSummary: "Practitioner-initiated book and reclass adjustment workflows. TDC governs all adjustment records, immutable audit trail, and Roger-facing adjustment contracts.",
+    governanceFocus: "Adjustment immutability. AdjustmentRecord contracts. Roger read-only access to adjustment outcomes.",
+    majorDependency: "B9 PDC — Roger Gateway complete. B6 — Practitioner Review Workflow.",
+    readContractImpact: "Roger reads B43 adjustment contracts via Gateway. B10 Return Assembly reads adjustment lineage.",
+    downstreamImpact: "B10 TDC, Roger UI, Gateway integration.",
+    governance: ["Schema Published", "Contract Published", "Lineage Enabled"],
+    chainNote: "B43 TDC (PI 2 New) → B10 TDC: Adjustment records feed Return Assembly",
+  },
   // ── PI 2 — Stretch ───────────────────────────────────────────────────────────
   {
     id: "pi2s-b24-pdc", batch: "B24", name: "Advisory Opportunity Reference Data", owner: "PDC", pi: "PI 2 Stretch",
@@ -473,8 +485,31 @@ const FEATURES: FeatureRow[] = [
     downstreamImpact: "Roger MVP pilot (9/16 start).",
     governance: ["Contract Published", "Lineage Enabled", "Immutable"],
   },
-  // ── Post-MVP / Parked ─────────────────────────────────────────────────────────
-  // ── PI 4 — Program Close ─────────────────────────────────────────────────────
+  // ── PI 3 — New MVP Batches ───────────────────────────────────────────────────────────
+  {
+    id: "pi3-b42", batch: "B42", name: "Tax Rules Framework & Book-to-Tax Adjustment Rules", owner: "TDC", pi: "PI 3",
+    startDate: "7/13", endDate: "7/21", status: "MVP",
+    batchSummary: "Tax rules framework and book-to-tax adjustment rules. TDC governs all rule definitions, adjustment classifications, and rule-set contracts. Enables Roger to surface applicable rules per engagement.",
+    governanceFocus: "Rule immutability. AdjustmentRuleSet contracts. No tax logic in PDC or Roger.",
+    majorDependency: "B43 TDC (PI 2) — Practitioner Book & Reclass Adjustments.",
+    readContractImpact: "Roger reads B42 rule contracts via Gateway. B28 TDC workpaper reads B42 rule definitions.",
+    downstreamImpact: "B28 TDC, Roger UI, Gateway.",
+    governance: ["Schema Published", "Contract Published", "Lineage Enabled"],
+    chainNote: "B43 TDC (PI 2) → B42 TDC (PI 3): Adjustment records feed rule framework",
+  },
+  {
+    id: "pi3-b9a", batch: "B9A", name: "Data Gateway (IMS, CDS, DUO)", owner: "Gateway", pi: "PI 3",
+    startDate: "8/20", endDate: "8/28", status: "MVP",
+    batchSummary: "Data Gateway integration for IMS, CDS, and DUO systems. Governs all external data ingestion contracts, system boundary enforcement, and read-only access patterns for Roger consumers.",
+    governanceFocus: "Gateway boundary enforcement. External system contracts. Read-only access patterns.",
+    majorDependency: "B9 PDC — Roger Gateway. B20 PDC — Firm Governance.",
+    readContractImpact: "Roger reads IMS/CDS/DUO data via B9A gateway contracts.",
+    downstreamImpact: "Roger MVP pilot (9/16 start).",
+    governance: ["Contract Published", "Schema Published", "Read Contract"],
+    chainNote: "B9 PDC (PI 2) → B9A Gateway (PI 3): Gateway expands to IMS/CDS/DUO",
+  },
+  // ── Post-MVP / Parked ─────────────────────────────────────────────────────────────
+  // ── PI 4 — Program Close─────────────────────────────────────────────────────
   {
     id: "pi4-b21-tdc", batch: "B21", name: "Quality Control Review Records", owner: "TDC", pi: "PI 4",
     startDate: "9/14", endDate: "9/22", status: "Program Close",
@@ -504,7 +539,7 @@ const PI_GROUPS: { label: string; pi: string; color: string; bg: string; border:
     color: "#2563eb",
     bg: "#eff6ff",
     border: "#bfdbfe",
-    summary: "AI mapping, entity identity, practitioner review, eligibility, exceptions, IMS integration, return assembly, and learning governance.",
+    summary: "AI mapping, entity identity, practitioner review, eligibility, exceptions, IMS integration, return assembly, learning governance, and Practitioner Book & Reclass Adjustments (B43 New).",
   },
   {
     label: "PI 2 — Stretch",
@@ -515,7 +550,7 @@ const PI_GROUPS: { label: string; pi: string; color: string; bg: string; border:
     summary: "Engagement Identity & TIM Reconciliation (B12 PDC), Audit Trail & Lineage Governance (B16 PDC), Entity Constituents & Allocations (B26 PDC), Legacy Tool Prior Year Ingestion (B31 TDC). Opportunistic — non-blocking.",
   },
   {
-    label: "PI 3",
+    label: "PI 3 — MVP",
     pi: "PI 3",
     color: "#7c3aed",
     bg: "#f5f3ff",

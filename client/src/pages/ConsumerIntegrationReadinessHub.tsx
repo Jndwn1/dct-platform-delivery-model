@@ -225,7 +225,7 @@ Subject: ${EMAIL_SUBJECT}
 ──────────────────────────────────────────────────────────────────
 OPENING SUMMARY
 ──────────────────────────────────────────────────────────────────
-Thank you to the Roger team for consolidating and surfacing the integration questions over the past several sprints. That effort helped the DCT team identify specific opportunities to improve how integration guidance is organized, surfaced, and consumed across teams.
+Thank you to the Roger team for consolidating and surfacing the integration questions over the past several batches. That effort helped the DCT team identify specific opportunities to improve how integration guidance is organized, surfaced, and consumed across teams.
 
 Much of the requested information already exists across current DCT governance artifacts — Swagger schemas, Consumer Guides, Batch documentation, ADO Features, Manus documentation, and Roger UI Data Availability artifacts. The current effort is focused on centralizing and operationalizing that existing information into a more implementation-oriented, consumer-ready experience.
 
@@ -406,7 +406,7 @@ const BATCH_DEPS = [
   { batch: "B6",  name: "Practitioner Review, Adjustments",   status: "Warning",    blocker: "Book/Reclass update endpoint gap — story being created", owner: "TDC" },
   { batch: "B8",  name: "Exception Management",               status: "Blocked",    blocker: "G3 Contract not yet published",                       owner: "PDC" },
   { batch: "B9",  name: "Roger Gateway (Ocelot)",             status: "In Flight",  blocker: "ARB-7 active. TIM deliverables integration ongoing.",   owner: "PDC + Nasar" },
-  { batch: "B12", name: "Known Mappings Reuse",               status: "Defect",     blocker: "Gary's Known Mappings API bug — fix expected post-sprint", owner: "TDC + Gary" },
+  { batch: "B12", name: "Known Mappings Reuse",               status: "Defect",     blocker: "Gary's Known Mappings API bug — fix expected post-batch", owner: "TDC + Gary" },
 ];
 
 const PI_CARRY_FORWARD = [
@@ -418,9 +418,9 @@ const PI_CARRY_FORWARD = [
 ];
 
 const QA_READINESS = [
-  { area: "Known Mappings Reuse Flow",     status: "Blocked",   note: "Gary's API defect blocks second-run validation. Fix expected after current sprint.",    owner: "Gary" },
+  { area: "Known Mappings Reuse Flow",     status: "Blocked",   note: "Gary's API defect blocks second-run validation. Fix expected after current batch.",    owner: "Gary" },
   { area: "Book/Reclass Save Capability",  status: "Gap",       note: "Roger UI save triggers no TDC persist. TDC update endpoint missing.",                  owner: "Nasar" },
-  { area: "Gateway TIM Deliverables",      status: "In Flight", note: "Nasar actively integrating. Target: next sprint.",                                      owner: "Nasar" },
+  { area: "Gateway TIM Deliverables",      status: "In Flight", note: "Nasar actively integrating. Target: next batch.",                                      owner: "Nasar" },
   { area: "Client Setup in CEM",           status: "In Flight", note: "Client provisioning required before Gateway flow can execute.",                         owner: "Nasar" },
   { area: "FirmTaxonomyId Enforcement",    status: "Warning",   note: "Orchestrator payload fix needed before B2A QA can pass.",                              owner: "Orchestrator" },
   { area: "B8 Exception Management",       status: "Blocked",   note: "All B8 APIs in Draft Contract state. Cannot QA until G3 gate passed.",                 owner: "PDC BA" },
@@ -1631,10 +1631,10 @@ export default function ConsumerIntegrationReadinessHub() {
                   "What is the IMS API contract readiness date? Does B10 gate need to be split into B10-core (proceed) and B10-IMS (hold)?", "Architecture Decision", "PO + IMS Team", "Critical", <Badge label="Open" color="#dc2626" />, "Before B10 gate sign-off"],
                 ["2",
                   <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-B12-Scope</a>,
-                  "B12 manual write surface was dropped per Roadmap v4. Was this a formal ADO scope change or an informal decision? Needs documented scope change record.", "Governance Record", "BA + PO", "High", <Badge label="Open" color="#dc2626" />, "Before B12 sprint start"],
+                  "B12 manual write surface was dropped per Roadmap v4. Was this a formal ADO scope change or an informal decision? Needs documented scope change record.", "Governance Record", "BA + PO", "High", <Badge label="Open" color="#dc2626" />, "Before B12 batch start"],
                 ["3",
                   <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-B28-MVP</a>,
-                  "Which specific stories from B14 and B15 are absorbed into B28? Roadmap v4 names reconciliation formulas and depreciation rule definitions — are these the complete MVP slices?", "Scope Boundary", "PO + Architecture", "High", <Badge label="Open" color="#dc2626" />, "Before B28 sprint start"],
+                  "Which specific stories from B14 and B15 are absorbed into B28? Roadmap v4 names reconciliation formulas and depreciation rule definitions — are these the complete MVP slices?", "Scope Boundary", "PO + Architecture", "High", <Badge label="Open" color="#dc2626" />, "Before B28 batch start"],
                 ["4",
                   <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-B39-MVP</a>,
                   "B39 (Calculation Report) is promoted to MVP with a hard 9/16 date. Is TDC engineering capacity confirmed for this promotion given existing PI 3 load?", "Resourcing", "PO + Engineering", "Critical", <Badge label="Open" color="#dc2626" />, "PI 3 planning"],
@@ -1643,7 +1643,7 @@ export default function ConsumerIntegrationReadinessHub() {
                   "Reverse lookup endpoint (EntityId from TaxReadyRecordId) — is this a governance-safe operation or does it violate the forward-only lineage principle?", "Architecture Decision", "Architecture", "Medium", <Badge label="Under Review" color="#d97706" />, "PI 3 planning"],
                 ["6",
                   <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-Paging</a>,
-                  "Pagination total count — does returning total count on list endpoints create unacceptable query cost at scale? What is the acceptable performance threshold?", "Performance", "Engineering", "Medium", <Badge label="Under Review" color="#d97706" />, "B10/B11 sprint"],
+                  "Pagination total count — does returning total count on list endpoints create unacceptable query cost at scale? What is the acceptable performance threshold?", "Performance", "Engineering", "Medium", <Badge label="Under Review" color="#d97706" />, "B10/B11 batch"],
                 ["7",
                   <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-ConvAPI</a>,
                   "Consumer convenience API (single-call entity summary) — is this a DCT responsibility or should Roger aggregate via multiple calls?", "Boundary Decision", "Architecture + Roger", "Low", <Badge label="Future PI" color="#6b7280" />, "Post-MVP PI planning"],

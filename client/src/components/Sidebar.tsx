@@ -51,32 +51,44 @@ const PI2_BATCH_ITEMS: { label: string; path: string; batchKey: BatchKey; indent
   { label: "  B9 | TDC — Rollforward (ON HOLD — B31)",            path: "/batch/9-tdc",           batchKey: "9-tdc",  indent: true },
   { label: "B10 — Return Assembly & Lineage Closure",           path: "/batch/10",              batchKey: "10" },
   { label: "B11 — Learning Governance & Model Evolution",       path: "/batch/11",              batchKey: "11" },
+  { label: "B43 — Practitioner Book & Reclass Adjustments",    path: "/batch/43",              batchKey: "43" },
 ];
 
-// PI 2 Stretch batch items (B12–B16) — per Roadmap v4_corrected
+// PI 2 Committed/Stretch batch items (B11–B16)
 const PI2_STRETCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
-  { label: "B12 — Engagement Identity & TIM Reconciliation",    path: "/batch/12",              batchKey: "12" },
   { label: "B13 — Platform Reference & Document Provenance",    path: "/batch/13",              batchKey: "13" },
-  { label: "B16 — Audit Trail & Lineage Governance",            path: "/batch/16",              batchKey: "16" },
+  { label: "B16 | PDC — Audit Trail & Lineage Governance",      path: "/batch/16",              batchKey: "16" },
+  { label: "B16 | TDC — Audit Trail & Lineage Governance",      path: "/batch/16",              batchKey: "16" },
 ];
 
-// PI 3 MVP batch items — per Roadmap v4_corrected
+// PI 3 MVP batch items — per updated calendar
 const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
-  { label: "B17 — Decision Support — Overrides & Workpapers",   path: "/batch/17",              batchKey: "17" },
   { label: "B20 — Firm Governance & Professional Standards",    path: "/batch/20",              batchKey: "20" },
-  { label: "B21 — Quality Control (PDC MVP)",                   path: "/batch/21",              batchKey: "21" },
-  { label: "B26 — Entity Constituents & Allocations (MVP)",     path: "/batch/26",              batchKey: "26" },
+  { label: "B42 — Tax Rules Framework & Book-to-Tax Rules",     path: "/batch/42",              batchKey: "42" },
+  { label: "B21 — Quality Control Standards (PDC)",             path: "/batch/21",              batchKey: "21" },
   { label: "B28 — Tax Workpaper & Provision Schedules",         path: "/batch/28",              batchKey: "28" },
-  { label: "B29 — Consolidated Return Assembly",                path: "/batch/29",              batchKey: "29" },
   { label: "B31 — Legacy Tool Prior Year Ingestion",            path: "/batch/31",              batchKey: "31" },
+  { label: "B17 — Decision Support — Overrides & Workpapers",   path: "/batch/17",              batchKey: "17" },
+  { label: "B26 — Entity Constituents & Allocations",           path: "/batch/26",              batchKey: "26" },
+  { label: "B29 — Consolidated Return Assembly",                path: "/batch/29",              batchKey: "29" },
+  { label: "B9A — Data Gateway (IMS, CDS, DUO)",                path: "/batch/9a",              batchKey: "9a" },
+  { label: "B31 — Legacy Tool Prior Year Data Housing",         path: "/batch/31",              batchKey: "31" },
+  { label: "B39 — Calculation Report",                          path: "/batch/39",              batchKey: "39" },
   { label: "B33 — State Tax (Apportionment, NOL, Forms)",       path: "/batch/33",              batchKey: "33" },
-  { label: "B39 — Calculation Report (MVP Promoted)",           path: "/batch/39",              batchKey: "39" },
 ];
 
-// Post-MVP / Parked batch items
+// Post-MVP / PI 4 batch items
 const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
+  { label: "B19 — Audit Tax-Expense Cross-LOB Outbound",        path: "/batch/19",              batchKey: "22" },
+  { label: "B21 — Quality Control Review Records",              path: "/batch/21",              batchKey: "21" },
   { label: "B22 — Client Communication (Post-MVP)",             path: "/batch/22",              batchKey: "22" },
   { label: "B23 — Benchmark & Peer Analytics (Post-MVP)",       path: "/batch/23",              batchKey: "23" },
+];
+
+// On Hold batch items
+const ON_HOLD_ITEMS: { label: string; path: string; batchKey: string }[] = [
+  { label: "B9 | TDC — Rollforward & Prior Year Intelligence",  path: "/batch/9-tdc",           batchKey: "9-tdc" },
+  { label: "B12 — Engagement Identity & TIM Reconciliation",    path: "/batch/12",              batchKey: "12" },
 ];
 
 
@@ -379,11 +391,17 @@ export default function Sidebar({ activeSection }: SidebarProps) {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
               })}
-              {/* Post-MVP / Parked */}
-              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#64748b", letterSpacing: "0.08em", textTransform: "uppercase" }}>Post-MVP / Parked</div>
+              {/* Post-MVP / PI 4 */}
+              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#64748b", letterSpacing: "0.08em", textTransform: "uppercase" }}>Post-MVP / PI 4</div>
               {PI4_BATCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+              })}
+              {/* On Hold */}
+              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#b45309", letterSpacing: "0.08em", textTransform: "uppercase" }}>⏸ On Hold</div>
+              {ON_HOLD_ITEMS.map((def) => {
+                const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "On Hold");
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label ?? "On Hold", statusColor: badge?.color ?? "#b45309" }} />;
               })}
             </>
           )}
@@ -401,7 +419,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
       <div style={{ borderTopWidth: "1px", borderTopColor: "#1e2a3a", padding: "10px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
           <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#10b981", flexShrink: 0 }} />
-          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Platform Active · FC–B7 Complete · B8 Active</span>
+          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Platform Active · FC–B10 Done · B11/B43 Active</span>
         </div>
         <div style={{ fontSize: "10px", color: "#475569", marginBottom: "6px" }}>DCT — Data Consolidation Team</div>
         <button

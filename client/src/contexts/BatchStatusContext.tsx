@@ -29,19 +29,29 @@ export type BatchStatus =
   | "Demo Ready"
   | "MVP"
   | "Stretch"
-  | "Complete";
+  | "Complete"
+  | "New"
+  | "Committed"
+  | "Done"
+  | "On Hold"
+  | "Post-MVP";
 
 // Status ordering for rollback detection (higher index = more advanced)
 const STATUS_ORDER: BatchStatus[] = [
   "Not Started",
+  "New",
+  "On Hold",
   "In Progress",
   "Blocked",
   "Ready for QA",
   "QA In Progress",
   "Demo Ready",
+  "Committed",
   "MVP",
   "Stretch",
+  "Post-MVP",
   "Delivered",
+  "Done",
   "Complete",
 ];
 
@@ -88,6 +98,10 @@ export interface BatchStatusMap {
   "31": BatchStatus;
   "33": BatchStatus;
   "39": BatchStatus;
+  // New batches from updated calendar
+  "42": BatchStatus;
+  "43": BatchStatus;
+  "9a": BatchStatus;
 }
 
 export type BatchKey = keyof BatchStatusMap;
@@ -126,6 +140,9 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "31": "Batch 31 — Legacy Tool Prior Year Ingestion & Data Housing",
   "33": "Batch 33 — State Reference, Apportionment, Payments, NOL/Credit, Forms, TX Franchise",
   "39": "Batch 39 — Calculation Report",
+  "42": "Batch 42 — Tax Rules Framework & Book-to-Tax Adjustment Rules",
+  "43": "Batch 43 — Practitioner Book & Reclass Adjustments",
+  "9a": "Batch 9A — Data Gateway (IMS, CDS, DUO)",
 };
 
 // ── Dependency map ────────────────────────────────────────────────────────────
@@ -162,6 +179,9 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "31": ["33"],
   "33": ["39"],
   "39": [],
+  "42": ["17", "28"],
+  "43": ["11"],
+  "9a": ["31"],
 };
 
 // ── Cascade step definitions ──────────────────────────────────────────────────
@@ -235,17 +255,17 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "5": "Complete",
   "6": "Complete",
   "7": "Complete",
-  "8": "In Progress",
-  "8-pdc": "Ready for QA",
-  "8-tdc": "In Progress",
+  "8": "Done",
+  "8-pdc": "Done",
+  "8-tdc": "Done",
   "9": "Not Started",
-  "9-pdc": "Ready for QA",
-  "9-tdc": "Ready for QA",
-  "10": "Not Started",
-  "11": "Not Started",
-  "12": "Not Started",
-  "13": "Not Started",
-  "16": "Not Started",
+  "9-pdc": "Done",
+  "9-tdc": "On Hold",
+  "10": "Done",
+  "11": "Committed",
+  "12": "On Hold",
+  "13": "Stretch",
+  "16": "Stretch",
   "17": "Not Started",
   "20": "Not Started",
   "21": "Not Started",
@@ -257,6 +277,9 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "31": "Not Started",
   "33": "Not Started",
   "39": "Not Started",
+  "42": "MVP",
+  "43": "New",
+  "9a": "MVP",
 };
 
 const STORAGE_KEY     = "dct_batch_status_v5";
@@ -268,8 +291,9 @@ const MAX_LOG_ENTRIES = 50;
 const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1: ["foundation-core", "1", "2", "2a", "3"],
   pi2: ["4", "5", "6", "7", "8", "8-pdc", "8-tdc", "9", "9-pdc", "9-tdc", "10", "11", "12", "13", "16"],
-  pi3: ["17", "20", "21", "22", "23", "26", "28", "29", "31", "33", "39"],
+  pi3: ["17", "20", "21", "22", "23", "26", "28", "29", "9a", "31", "33", "39", "42"],
   pi4: [],
+  pi2_new: ["43"],
 };
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
@@ -312,11 +336,12 @@ function saveAuditLog(log: AuditLogEntry[]) {
 
 // "Active" means the batch is being worked on (not yet delivered/complete)
 function isActive(s: BatchStatus): boolean {
-  return s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready";
+  return s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready"
+    || s === "MVP" || s === "Stretch" || s === "Committed" || s === "New";
 }
 
 function isDelivered(s: BatchStatus): boolean {
-  return s === "Delivered" || s === "Complete";
+  return s === "Delivered" || s === "Complete" || s === "Done";
 }
 
 export function deriveGateStatus(statuses: BatchStatusMap): DerivedGates {

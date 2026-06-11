@@ -592,7 +592,7 @@ export default function Home() {
               { label: "Control Panel", path: "/control-panel", desc: "Batch & gate admin" },
               { label: "Data Model & Gaps", path: "/data-model", desc: "Field governance workbench" },
               { label: "Gap Analysis Engine", path: "/gap-analysis", desc: "Delivery gap identification" },
-              { label: "Batch Calendar", path: "/batch-calendar", desc: "Sprint & PI planning view" },
+              { label: "Batch Calendar", path: "/batch-calendar", desc: "Batch & PI planning view" },
               { label: "Governance Timeline", path: "/data-governance", desc: "Governance milestone tracking" },
             ].map(l => (
               <Link key={l.path} href={l.path}>

@@ -2327,7 +2327,7 @@ export default function BatchDeliveryCalendar() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                       {[
                         { label: "PI 3 risk inheritance", detail: "PI 3 carries no risk from PI 2 stretch batches. B16/B24/B25 PDC are isolated and non-blocking.", ok: true },
-                        { label: "Tightest PI 3 handoff", detail: "B9 TDC → B10 TDC (Jun 2 → Jun 3). Zero buffer. Flag as watch item in sprint review.", ok: false },
+                        { label: "Tightest PI 3 handoff", detail: "B9 TDC → B10 TDC (Jun 2 → Jun 3). Zero buffer. Flag as watch item in batch review.", ok: false },
                         { label: "PI 3 close-out gate", detail: "B16 TDC (Audit Trail & Lineage Governance) closes Sep 11 — this is the PI 3 exit gate and PI 4 entry dependency.", ok: true },
                         { label: "Committed PDC track", detail: "B12, B13, B20, B21, B22, B23 PDC run parallel to TDC MVP track. No PDC batch is on the TDC critical path.", ok: true },
                       ].map((item, i) => (
@@ -2442,7 +2442,7 @@ export default function BatchDeliveryCalendar() {
                       letter: "E", title: "Recommended Adjustments (dates unchanged)", color: "#dc2626",
                       items: [
                         "Buffer needed: B2A → B7 handoff. Add a 1-day classification contract review gate before B7 TDC advances past schema lock.",
-                        "Fragile handoff: B9 TDC → B10 TDC (Jun 2 → Jun 3). Flag this as a watch item in sprint review. Any B9 TDC slip pushes B10 and delays PI 3 entry.",
+                        "Fragile handoff: B9 TDC → B10 TDC (Jun 2 → Jun 3). Flag this as a watch item in batch review. Any B9 TDC slip pushes B10 and delays PI 3 entry.",
                         "Fragile handoff: B11 TDC → B14 TDC (Jun 22 → Jun 23). Recommend a PI 2 close-out checkpoint on Jun 22 before PI 3 kickoff.",
                         "Stretch ladder: Confirm B16 PDC (May 27–Jun 4) owner is not shared with B9 TDC (May 21–Jun 2) team to avoid bandwidth conflict.",
                       ],

@@ -15,8 +15,11 @@ const BATCH_OPTIONS = [
   { id: "7", label: "Batch 7 — Client Tax Profile & Eligibility", status: "Planned" },
   { id: "8", label: "Batch 8 — Exceptions & Remediation", status: "Planned" },
   { id: "9", label: "Batch 9 — Roger Gateway & Governed Consumer Access Layer (PDC)", status: "Planned" },
-  { id: "10", label: "Batch 10 — Return Assembly, Filing & Lineage Closure", status: "Planned" },
-  { id: "11", label: "Batch 11 — Learning Governance & Model Evolution", status: "Planned" },
+  { id: "10", label: "Batch 10 — Return Assembly, Filing & Lineage Closure", status: "Done" },
+  { id: "43", label: "Batch 43 — Practitioner Book & Reclass Adjustments (TDC)", status: "New" },
+  { id: "11", label: "Batch 11 — Learning Governance & Model Evolution", status: "Committed" },
+  { id: "42", label: "Batch 42 — Tax Rules Framework (TDC)", status: "MVP" },
+  { id: "9a", label: "Batch 9A — Data Gateway (IMS, CDS, DUO)", status: "MVP" },
 ];
 
 

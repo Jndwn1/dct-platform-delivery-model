@@ -1155,12 +1155,14 @@ const GATE_LABELS = {
 const BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete
   "foundation-core","1","2","2a","3",
-  // PI 2 — Committed
+  // PI 2 — Done
   "4","5","6","7","8","8-pdc","8-tdc","9","9-pdc","9-tdc","10","11","12",
-  // PI 2 — Stretch
+  // PI 2 — Stretch/Committed
   "13","16",
+  // PI 2 New
+  "43",
   // PI 3 — MVP
-  "17","20","21","22","23","26","28","29","31","33","39",
+  "17","20","21","22","23","26","28","29","9a","31","33","39","42",
 ];
 
 function Badge({ label, bg, text }: { label: string; bg: string; text: string }) {
@@ -1393,10 +1395,10 @@ export default function BatchControlPanel() {
     }
   };
 
-  const complete   = BATCH_KEYS.filter(k => statuses[k] === "Complete" || statuses[k] === "Delivered").length;
-  const dev        = BATCH_KEYS.filter(k => statuses[k] === "In Progress" || statuses[k] === "Blocked" || statuses[k] === "MVP" || statuses[k] === "Stretch").length;
+  const complete   = BATCH_KEYS.filter(k => statuses[k] === "Complete" || statuses[k] === "Delivered" || statuses[k] === "Done").length;
+  const dev        = BATCH_KEYS.filter(k => statuses[k] === "In Progress" || statuses[k] === "Blocked" || statuses[k] === "MVP" || statuses[k] === "Stretch" || statuses[k] === "Committed" || statuses[k] === "New").length;
   const inReview   = BATCH_KEYS.filter(k => statuses[k] === "Ready for QA" || statuses[k] === "QA In Progress" || statuses[k] === "Demo Ready").length;
-  const planned    = BATCH_KEYS.filter(k => statuses[k] === "Not Started").length;
+  const planned    = BATCH_KEYS.filter(k => statuses[k] === "Not Started" || statuses[k] === "On Hold" || statuses[k] === "Post-MVP").length;
 
   const advanceAll = () => {
     BATCH_KEYS.forEach(k => {
