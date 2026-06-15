@@ -1770,7 +1770,7 @@ export default function BatchControlPanel() {
         <div className="divide-y divide-slate-100">
           {BATCH_KEYS.map((key) => {
             const status = statuses[key];
-            const style = STATUS_STYLES[status];
+            const style = STATUS_STYLES[status] ?? STATUS_STYLES["Not Started"];
             return (
               <div key={key} className="flex items-center gap-4 px-5 py-3 hover:bg-slate-50 transition-colors">
                 <div
@@ -1799,6 +1799,11 @@ export default function BatchControlPanel() {
                   <option value="Stretch">Stretch</option>
                   <option value="Delivered">Delivered</option>
                   <option value="Complete">Complete</option>
+                  <option value="New">New</option>
+                  <option value="Committed">Committed</option>
+                  <option value="Done">Done</option>
+                  <option value="On Hold">On Hold</option>
+                  <option value="Post-MVP">Post-MVP</option>
                 </select>
               </div>
             );

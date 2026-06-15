@@ -726,6 +726,11 @@ export const STATUS_STYLES: Record<BatchStatus, {
   "MVP":           { bg: "#fff7ed", text: "#9a3412", border: "#fed7aa", dot: "#f97316", label: "MVP" },
   "Stretch":       { bg: "#fffbeb", text: "#92400e", border: "#fde68a", dot: "#f59e0b", label: "Stretch" },
   "Complete":      { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", dot: "#22c55e", label: "Complete" },
+  "New":           { bg: "#f0f9ff", text: "#0369a1", border: "#bae6fd", dot: "#0ea5e9", label: "New" },
+  "Committed":     { bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe", dot: "#2563eb", label: "Committed" },
+  "Done":          { bg: "#f0fdf4", text: "#14532d", border: "#86efac", dot: "#16a34a", label: "Done" },
+  "On Hold":       { bg: "#f8fafc", text: "#475569", border: "#cbd5e1", dot: "#94a3b8", label: "On Hold" },
+  "Post-MVP":      { bg: "#fdf4ff", text: "#7e22ce", border: "#e9d5ff", dot: "#a855f7", label: "Post-MVP" },
 };
 
 // ── Readiness style helpers ───────────────────────────────────────────────────
