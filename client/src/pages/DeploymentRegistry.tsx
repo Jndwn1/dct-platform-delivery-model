@@ -977,33 +977,63 @@ export default function DeploymentRegistry() {
 
       {/* ── Generate All Wiki Entries modal ── */}
       {showAllWiki && (() => {
-        const TABLE_HEADER = `| Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |\n| --------------- | ------------ | ---- | -------- | ---------------- | ------------- | ------ | ------- | ------------- |`;
-        const tableRows = rows.map(r => {
-          const anchor = r.releaseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        // ADO wiki anchors: lowercase, spaces become hyphens, special chars stripped, leading/trailing hyphens removed
+        const adoAnchor = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").replace(/(^-|-$)/g, "");
+
+        // SECTION 1: New table rows only (paste into existing wiki table)
+        const tableRowsOnly = rows.map(r => {
+          const anchor = adoAnchor(r.releaseName);
           const shortSummary = r.summary ? r.summary.split(".")[0].trim() + "." : "Deployment details to be documented.";
           return `| ${r.deploymentDate} | ${r.releaseName} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${shortSummary} | [View Details](#${anchor}) |`;
         });
+
+        // SECTION 2: Detail sections only (paste below the table)
         const detailSections = rows.map(r => {
-          const entry = buildWikiEntry(r as any);
-          // Extract just the detail section markdown block
-          const match = entry.match(/## Deployment Details Section\n\n```markdown\n([\s\S]+?)\n```/);
-          return match ? match[1] : "";
+          const adoIds = r.adoWorkItemId ? r.adoWorkItemId.split(/[,\s]+/).filter(Boolean) : [];
+          const summaryText = r.summary ?? "Deployment details to be documented.";
+          const lines: string[] = [];
+          lines.push(`### ${r.releaseName}`);
+          lines.push("");
+          lines.push(`**Summary**`);
+          lines.push("");
+          lines.push(summaryText);
+          lines.push("");
+          if (adoIds.length > 0) {
+            lines.push(`**Related Work Items**`);
+            adoIds.forEach(id => lines.push(`- ${id.trim()}`));
+            lines.push("");
+          }
+          lines.push(`**Release Notes**`);
+          if (r.relatedFeature) lines.push(`- ${r.relatedFeature}`);
+          if (r.relatedBatch) lines.push(`- Related to ${r.relatedBatch}`);
+          if (r.relatedStory) lines.push(`- ${r.relatedStory}`);
+          if (!r.relatedFeature && !r.relatedBatch && !r.relatedStory) lines.push(`- TBD`);
+          lines.push("");
+          lines.push(`**Reference Links**`);
+          lines.push(`- ADO Feature: ${r.releaseNotesUrl ?? "TBD"}`);
+          lines.push(`- ADO Deployment Story: ${adoIds.length > 0 ? adoIds.map(id => `#${id.trim()}`).join(", ") : "TBD"}`);
+          lines.push(`- Swagger/API Documentation: ${r.swaggerUrl ?? "TBD"}`);
+          lines.push("");
+          lines.push(`| Attribute | Value |`);
+          lines.push(`|-----------|-------|`);
+          lines.push(`| Platform | ${r.platform} |`);
+          lines.push(`| Type | ${r.type} |`);
+          lines.push(`| Deployment Owner | ${r.deploymentOwner} |`);
+          lines.push(`| Product Owner | ${r.productOwner} |`);
+          lines.push(`| Status | ${r.status} |`);
+          lines.push("");
+          lines.push(`---`);
+          return lines.join("\n");
         });
+
         const fullWiki = [
-          `# DCT Platform Deployment Registry`,
+          `## PART 1 — Paste these rows into your existing Deployment Registry table`,
           ``,
-          `> **Governance Notice:** This registry documents deployments from the DCT Platform non-production governance workspace. All records are for architecture visualization and delivery tracking purposes only.`,
-          ``,
-          `---`,
-          ``,
-          `## Deployment Registry`,
-          ``,
-          TABLE_HEADER,
-          ...tableRows,
+          ...tableRowsOnly,
           ``,
           `---`,
           ``,
-          `## Deployment Details`,
+          `## PART 2 — Paste these detail sections below your table`,
           ``,
           ...detailSections,
         ].join("\n");
