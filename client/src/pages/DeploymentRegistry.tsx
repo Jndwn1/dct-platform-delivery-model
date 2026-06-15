@@ -9,7 +9,7 @@ import GovernanceBanner from "@/components/GovernanceBanner";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
-  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail, Copy, BookOpen,
+  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail, Copy, BookOpen, Pencil,
 } from "lucide-react";
 
 // ─── Wiki entry helper ───────────────────────────────────────────────────────
@@ -226,8 +226,8 @@ function SummaryCard({ label, value, color, icon }: { label: string; value: numb
   );
 }
 
-// ─── Detail drawer ────────────────────────────────────────────────────────────
-function DetailDrawer({ dep, onClose }: { dep: DeploymentRow; onClose: () => void }) {
+// ─── Detail drawer ────────────────────────────────────────────────────────────────
+function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: () => void; onEdit: (dep: DeploymentRow) => void }) {
   const [showWiki, setShowWiki] = useState(false);
   const [copied, setCopied] = useState(false);
   const wikiText = buildWikiEntry(dep);
@@ -252,9 +252,22 @@ function DetailDrawer({ dep, onClose }: { dep: DeploymentRow; onClose: () => voi
             <div style={{ fontSize: "15px", fontWeight: 700, color: "#ffffff", lineHeight: "1.4" }}>{dep.releaseName}</div>
             <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>{dep.deploymentId}</div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: "2px", flexShrink: 0 }}>
-            <X size={18} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+            <button
+              onClick={() => onEdit(dep)}
+              style={{
+                display: "flex", alignItems: "center", gap: "5px",
+                padding: "5px 10px", backgroundColor: "#1e3a5f", color: "#ffffff",
+                border: "1px solid #2563eb", borderRadius: "5px",
+                fontSize: "11px", fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              <Pencil size={11} /> Edit
+            </button>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: "2px" }}>
+              <X size={18} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -669,6 +682,217 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
   );
 }
 
+// ─── Edit form ───────────────────────────────────────────────────────────────
+function EditDeploymentForm({ dep, onClose, onSaved }: { dep: DeploymentRow; onClose: () => void; onSaved: () => void }) {
+  const updateMutation = trpc.deploymentRegistry.update.useMutation({
+    onSuccess: () => { onSaved(); onClose(); },
+  });
+
+  const [form, setForm] = useState({
+    releaseName: dep.releaseName,
+    deploymentDate: dep.deploymentDate,
+    deploymentOwner: dep.deploymentOwner,
+    productOwner: dep.productOwner,
+    platform: dep.platform as PlatformValue,
+    type: dep.type as TypeValue,
+    status: dep.status as DeploymentStatus,
+    summary: dep.summary ?? "",
+    releaseNotesUrl: dep.releaseNotesUrl ?? "",
+    swaggerUrl: dep.swaggerUrl ?? "",
+    relatedBatch: dep.relatedBatch ?? "",
+    relatedFeature: dep.relatedFeature ?? "",
+    relatedStory: dep.relatedStory ?? "",
+    environment: dep.environment,
+    adoWorkItemId: dep.adoWorkItemId ?? "",
+    adoFeatureUrl: dep.adoFeatureUrl ?? "",
+    adoStoryUrl: dep.adoStoryUrl ?? "",
+    releaseNotesBullets: dep.releaseNotesBullets ?? "",
+    githubReleaseTag: dep.githubReleaseTag ?? "",
+  });
+
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateMutation.mutate({
+      id: dep.id,
+      releaseName: form.releaseName,
+      deploymentDate: form.deploymentDate,
+      deploymentOwner: form.deploymentOwner,
+      productOwner: form.productOwner,
+      platform: form.platform,
+      type: form.type,
+      status: form.status,
+      summary: form.summary || undefined,
+      releaseNotesUrl: form.releaseNotesUrl || undefined,
+      swaggerUrl: form.swaggerUrl || undefined,
+      relatedBatch: form.relatedBatch || undefined,
+      relatedFeature: form.relatedFeature || undefined,
+      relatedStory: form.relatedStory || undefined,
+      environment: form.environment || "Production",
+      adoWorkItemId: form.adoWorkItemId || undefined,
+      adoFeatureUrl: form.adoFeatureUrl || undefined,
+      adoStoryUrl: form.adoStoryUrl || undefined,
+      releaseNotesBullets: form.releaseNotesBullets || undefined,
+      githubReleaseTag: form.githubReleaseTag || undefined,
+    });
+  };
+
+  const fieldStyle: React.CSSProperties = {
+    width: "100%", padding: "7px 10px", fontSize: "12px",
+    border: "1px solid #e2e8f0", borderRadius: "5px",
+    backgroundColor: "#f8fafc", color: "#0f1623",
+    boxSizing: "border-box",
+  };
+  const labelStyle: React.CSSProperties = {
+    fontSize: "10px", fontWeight: 700, color: "#64748b",
+    textTransform: "uppercase", letterSpacing: "0.06em",
+    display: "block", marginBottom: "4px",
+  };
+
+  return (
+    <div style={{
+      position: "fixed", top: 0, right: 0, bottom: 0, width: "520px",
+      backgroundColor: "#ffffff", borderLeft: "1px solid #e2e8f0",
+      boxShadow: "-4px 0 24px rgba(0,0,0,0.12)", zIndex: 60,
+      overflowY: "auto", display: "flex", flexDirection: "column",
+    }}>
+      <div style={{ backgroundColor: "#1e3a5f", padding: "20px 24px", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Pencil size={14} color="#60a5fa" />
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "#ffffff" }}>Edit Deployment</div>
+            </div>
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{dep.deploymentId}</div>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b" }}>
+            <X size={18} />
+          </button>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} style={{ padding: "24px", flex: 1, display: "flex", flexDirection: "column", gap: "14px" }}>
+        <div>
+          <label style={labelStyle}>Release Name *</label>
+          <input required style={fieldStyle} value={form.releaseName} onChange={e => set("releaseName", e.target.value)} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={labelStyle}>Deployment Date *</label>
+            <input required type="date" style={fieldStyle} value={form.deploymentDate} onChange={e => set("deploymentDate", e.target.value)} />
+          </div>
+          <div>
+            <label style={labelStyle}>Status</label>
+            <select style={fieldStyle} value={form.status} onChange={e => set("status", e.target.value)}>
+              {["Planned","Scheduled","In Progress","Deployed","Rolled Back"].map(s => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={labelStyle}>Deployment Owner *</label>
+            <input required style={fieldStyle} value={form.deploymentOwner} onChange={e => set("deploymentOwner", e.target.value)} />
+          </div>
+          <div>
+            <label style={labelStyle}>Product Owner *</label>
+            <input required style={fieldStyle} value={form.productOwner} onChange={e => set("productOwner", e.target.value)} />
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={labelStyle}>Platform *</label>
+            <select style={fieldStyle} value={form.platform} onChange={e => set("platform", e.target.value)}>
+              {["PDC","TDC","Platform","Both"].map(p => <option key={p}>{p}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Type *</label>
+            <select style={fieldStyle} value={form.type} onChange={e => set("type", e.target.value)}>
+              {["Batch","Feature","Bug","Technical Story","Hotfix"].map(t => <option key={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>Summary</label>
+          <textarea style={{ ...fieldStyle, minHeight: "80px", resize: "vertical" }} value={form.summary} onChange={e => set("summary", e.target.value)} />
+        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>Relationships</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={labelStyle}>Related Batch</label>
+            <input style={fieldStyle} value={form.relatedBatch} onChange={e => set("relatedBatch", e.target.value)} placeholder="e.g. B10" />
+          </div>
+          <div>
+            <label style={labelStyle}>Related Feature</label>
+            <input style={fieldStyle} value={form.relatedFeature} onChange={e => set("relatedFeature", e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>Related Story / Bug</label>
+          <input style={fieldStyle} value={form.relatedStory} onChange={e => set("relatedStory", e.target.value)} />
+        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>Release Notes</div>
+        <div>
+          <label style={labelStyle}>Release Notes Bullets</label>
+          <textarea
+            style={{ ...fieldStyle, minHeight: "100px", resize: "vertical" }}
+            value={form.releaseNotesBullets}
+            onChange={e => set("releaseNotesBullets", e.target.value)}
+            placeholder={"One item per line, e.g.:\nKnown Mappings Lookup now returns stable identifiers\nBug 1401152 resolved"}
+          />
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>One item per line. Used in the wiki entry Release Notes section.</div>
+        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>ADO Links & Integration</div>
+        <div>
+          <label style={labelStyle}>ADO Feature URL</label>
+          <input style={fieldStyle} value={form.adoFeatureUrl} onChange={e => set("adoFeatureUrl", e.target.value)} placeholder="https://dev.azure.com/.../workitems/edit/..." />
+        </div>
+        <div>
+          <label style={labelStyle}>ADO Story / Deployment Story URL</label>
+          <input style={fieldStyle} value={form.adoStoryUrl} onChange={e => set("adoStoryUrl", e.target.value)} placeholder="https://dev.azure.com/.../workitems/edit/..." />
+        </div>
+        <div>
+          <label style={labelStyle}>Swagger / API Docs URL</label>
+          <input style={fieldStyle} value={form.swaggerUrl} onChange={e => set("swaggerUrl", e.target.value)} placeholder="https://..." />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={labelStyle}>ADO Work Item ID</label>
+            <input style={fieldStyle} value={form.adoWorkItemId} onChange={e => set("adoWorkItemId", e.target.value)} placeholder="e.g. 1401152" />
+          </div>
+          <div>
+            <label style={labelStyle}>GitHub Release Tag</label>
+            <input style={fieldStyle} value={form.githubReleaseTag} onChange={e => set("githubReleaseTag", e.target.value)} placeholder="e.g. v2.4.1" />
+          </div>
+        </div>
+        {updateMutation.isError && (
+          <div style={{ fontSize: "12px", color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", padding: "8px 12px" }}>
+            Save failed. Please try again.
+          </div>
+        )}
+        <div style={{ display: "flex", gap: "10px", paddingTop: "8px", borderTop: "1px solid #e2e8f0", marginTop: "auto" }}>
+          <button
+            type="submit"
+            disabled={updateMutation.isPending}
+            style={{
+              flex: 1, padding: "9px 16px", backgroundColor: "#1e3a5f", color: "#ffffff",
+              border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 700,
+              cursor: updateMutation.isPending ? "not-allowed" : "pointer",
+              opacity: updateMutation.isPending ? 0.7 : 1,
+            }}
+          >
+            {updateMutation.isPending ? "Saving..." : "Save Changes"}
+          </button>
+          <button type="button" onClick={onClose} style={{ padding: "9px 16px", backgroundColor: "#f1f5f9", color: "#475569", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function DeploymentRegistry() {
   const [search, setSearch] = useState("");
@@ -676,6 +900,7 @@ export default function DeploymentRegistry() {
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("All");
   const [sortBy, setSortBy] = useState<SortBy>("deploymentDate");
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
+  const [editDep, setEditDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showAllWiki, setShowAllWiki] = useState(false);
@@ -695,6 +920,13 @@ export default function DeploymentRegistry() {
   const handleCreated = () => {
     utils.deploymentRegistry.list.invalidate();
     utils.deploymentRegistry.summary.invalidate();
+  };
+
+  const handleSaved = () => {
+    utils.deploymentRegistry.list.invalidate();
+    utils.deploymentRegistry.summary.invalidate();
+    // Refresh selectedDep if it was the one being edited
+    setSelectedDep(null);
   };
 
   const summary = summaryData ?? { total: 0, production: 0, pdc: 0, tdc: 0, rollbackCandidates: 0 };
@@ -1212,7 +1444,18 @@ export default function DeploymentRegistry() {
             onClick={() => setSelectedDep(null)}
             style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 40 }}
           />
-          <DetailDrawer dep={selectedDep} onClose={() => setSelectedDep(null)} />
+          <DetailDrawer dep={selectedDep} onClose={() => setSelectedDep(null)} onEdit={(dep) => { setSelectedDep(null); setEditDep(dep); }} />
+        </>
+      )}
+
+      {/* ── Edit form drawer ── */}
+      {editDep && (
+        <>
+          <div
+            onClick={() => setEditDep(null)}
+            style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 50 }}
+          />
+          <EditDeploymentForm dep={editDep} onClose={() => setEditDep(null)} onSaved={handleSaved} />
         </>
       )}
 

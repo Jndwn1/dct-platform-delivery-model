@@ -215,6 +215,60 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Update all fields of a deployment
+    update: publicProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          releaseName: z.string().min(1),
+          deploymentDate: z.string().min(1),
+          deploymentOwner: z.string().min(1),
+          productOwner: z.string().min(1),
+          platform: z.enum(["PDC", "TDC", "Platform", "Both"]),
+          type: z.enum(["Batch", "Feature", "Bug", "Technical Story", "Hotfix"]),
+          status: z.enum(["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).optional(),
+          summary: z.string().optional(),
+          releaseNotesUrl: z.string().optional(),
+          swaggerUrl: z.string().optional(),
+          relatedBatch: z.string().optional(),
+          relatedFeature: z.string().optional(),
+          relatedStory: z.string().optional(),
+          environment: z.string().optional(),
+          adoWorkItemId: z.string().optional(),
+          adoFeatureUrl: z.string().optional(),
+          adoStoryUrl: z.string().optional(),
+          releaseNotesBullets: z.string().optional(),
+          githubReleaseTag: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        const { id, ...fields } = input;
+        await db.update(deployments).set({
+          releaseName: fields.releaseName,
+          deploymentDate: fields.deploymentDate,
+          deploymentOwner: fields.deploymentOwner,
+          productOwner: fields.productOwner,
+          platform: fields.platform,
+          type: fields.type,
+          status: fields.status ?? "Planned",
+          summary: fields.summary ?? null,
+          releaseNotesUrl: fields.releaseNotesUrl ?? null,
+          swaggerUrl: fields.swaggerUrl ?? null,
+          relatedBatch: fields.relatedBatch ?? null,
+          relatedFeature: fields.relatedFeature ?? null,
+          relatedStory: fields.relatedStory ?? null,
+          environment: fields.environment ?? "Production",
+          adoWorkItemId: fields.adoWorkItemId ?? null,
+          adoFeatureUrl: fields.adoFeatureUrl ?? null,
+          adoStoryUrl: fields.adoStoryUrl ?? null,
+          releaseNotesBullets: fields.releaseNotesBullets ?? null,
+          githubReleaseTag: fields.githubReleaseTag ?? null,
+        }).where(eq(deployments.id, id));
+        return { success: true };
+      }),
+
     // Delete a deployment
     delete: publicProcedure
       .input(z.object({ id: z.number() }))
