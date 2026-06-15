@@ -39,6 +39,7 @@ import BatchDetailPage from "./pages/BatchDetailPage";
 import IntegrationSimulation from "./pages/IntegrationSimulation";
 import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadinessHub";
 import GapAnalysisEngine from "./pages/GapAnalysisEngine";
+import DeploymentRegistry from "./pages/DeploymentRegistry";
 
 // Layout
 import Sidebar from "./components/Sidebar";
@@ -113,6 +114,7 @@ function Router() {
           <Route path="/tax-mapping" component={TaxMappingPage} />
           <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
           <Route path="/gap-analysis" component={GapAnalysisEngine} />
+          <Route path="/deployment-registry" component={DeploymentRegistry} />
 
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />

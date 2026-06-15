@@ -110,6 +110,7 @@ const AGENT_ITEMS: NavItem[] = [
 
 // BA & Requirements — primary BA workflow tools
 const BA_ITEMS: NavItem[] = [
+  { label: "Deployment Registry",          path: "/deployment-registry",        icon: "🚀", badge: "New",     badgeColor: "#059669" },
   { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
   { label: "Artifacts Registry",          path: "/artifacts",                  icon: "◫", badge: "Ref",      badgeColor: "#64748b" },
   { label: "Gate Status",                 path: "/gate-status",                icon: "◉", badge: "G4 Active",badgeColor: "#d97706" },

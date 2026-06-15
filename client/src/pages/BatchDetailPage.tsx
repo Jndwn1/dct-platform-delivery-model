@@ -12,6 +12,66 @@ import {
   type BatchStatus,
 } from "@/lib/batchModel";
 import { useBatchStatus, type BatchKey } from "@/contexts/BatchStatusContext";
+import { trpc } from "@/lib/trpc";
+
+// ── Deployment History sub-component ─────────────────────────────────────────
+function DeploymentHistorySection({ batchId }: { batchId: string }) {
+  const { data, isLoading } = trpc.deploymentRegistry.getByBatch.useQuery({ batchId });
+
+  const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = {
+    "Planned":     { bg: "#f1f5f9", text: "#475569", dot: "#94a3b8" },
+    "Scheduled":   { bg: "#eff6ff", text: "#1e40af", dot: "#3b82f6" },
+    "In Progress": { bg: "#fff7ed", text: "#9a3412", dot: "#ea580c" },
+    "Deployed":    { bg: "#f0fdf4", text: "#166534", dot: "#059669" },
+    "Rolled Back": { bg: "#fef2f2", text: "#991b1b", dot: "#ef4444" },
+  };
+
+  if (isLoading) return null;
+  if (!data || data.length === 0) return null;
+
+  return (
+    <div style={{
+      backgroundColor: "white", borderRadius: "10px", border: "1px solid #e2e8f0",
+      padding: "18px 22px", marginBottom: "14px",
+    }}>
+      <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#64748b", marginBottom: "12px" }}>
+        🚀 Deployment History
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {data.map((dep) => {
+          const sc = STATUS_COLOR[dep.status] ?? STATUS_COLOR.Planned;
+          return (
+            <div key={dep.id} style={{
+              display: "grid", gridTemplateColumns: "1fr auto auto",
+              gap: "12px", alignItems: "center",
+              padding: "10px 14px", borderRadius: "8px",
+              backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
+            }}>
+              <div>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a" }}>{dep.releaseName}</div>
+                <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
+                  {dep.deploymentOwner} · {dep.environment}
+                  {dep.summary ? ` · ${dep.summary}` : ""}
+                </div>
+              </div>
+              <div style={{ fontSize: "11px", color: "#94a3b8", whiteSpace: "nowrap" }}>
+                {dep.deploymentDate}
+              </div>
+              <div style={{
+                fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "10px",
+                backgroundColor: sc.bg, color: sc.text,
+                display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap",
+              }}>
+                <span style={{ width: "5px", height: "5px", borderRadius: "50%", backgroundColor: sc.dot, display: "inline-block" }} />
+                {dep.status}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 // Map batchModel ID → context BatchKey (e.g. "B1" → "1", "FC" → "foundation-core")
 function batchModelIdToContextKey(id: string): BatchKey | null {
@@ -1004,6 +1064,9 @@ export default function BatchDetailPage() {
           </p>
         </div>
       )}
+
+      {/* Deployment History */}
+      <DeploymentHistorySection batchId={batchId} />
 
       {/* Prev / Next navigation */}
       <div style={{

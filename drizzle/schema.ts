@@ -46,3 +46,40 @@ export const integrationQuestions = mysqlTable("integration_questions", {
 
 export type IntegrationQuestion = typeof integrationQuestions.$inferSelect;
 export type InsertIntegrationQuestion = typeof integrationQuestions.$inferInsert;
+
+/**
+ * Deployment Registry — authoritative release history for DCT deployments.
+ * Provides traceability between batches, features, stories, bugs, technical stories, and deployments.
+ * Schema designed to support future ingestion from Azure DevOps, GitHub Releases, and Release Notes.
+ */
+export const deployments = mysqlTable("deployments", {
+  id: int("id").autoincrement().primaryKey(),
+  /** DEP-YYYY-MMDD-NNN format identifier */
+  deploymentId: varchar("deploymentId", { length: 32 }).notNull().unique(),
+  releaseName: varchar("releaseName", { length: 512 }).notNull(),
+  deploymentDate: varchar("deploymentDate", { length: 16 }).notNull(),
+  deploymentOwner: varchar("deploymentOwner", { length: 128 }).notNull(),
+  productOwner: varchar("productOwner", { length: 128 }).notNull(),
+  platform: mysqlEnum("platform", ["PDC", "TDC", "Platform", "Both"]).notNull(),
+  type: mysqlEnum("type", ["Batch", "Feature", "Bug", "Technical Story", "Hotfix"]).notNull(),
+  status: mysqlEnum("status", ["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).default("Planned").notNull(),
+  summary: text("summary"),
+  releaseNotesUrl: varchar("releaseNotesUrl", { length: 1024 }),
+  swaggerUrl: varchar("swaggerUrl", { length: 1024 }),
+  /** Batch identifier e.g. B10, B43 */
+  relatedBatch: varchar("relatedBatch", { length: 32 }),
+  /** Feature or epic name */
+  relatedFeature: varchar("relatedFeature", { length: 256 }),
+  /** Story or bug ID/title */
+  relatedStory: varchar("relatedStory", { length: 256 }),
+  environment: varchar("environment", { length: 64 }).default("Production").notNull(),
+  /** Reserved for future Azure DevOps integration */
+  adoWorkItemId: varchar("adoWorkItemId", { length: 32 }),
+  /** Reserved for future GitHub Releases integration */
+  githubReleaseTag: varchar("githubReleaseTag", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Deployment = typeof deployments.$inferSelect;
+export type InsertDeployment = typeof deployments.$inferInsert;
