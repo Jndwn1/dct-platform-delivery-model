@@ -699,6 +699,11 @@ export function contextToSidebarBadge(s: BatchStatus): { label: string; color: s
   if (s === "Blocked") return { label: "Blocked", color: "#dc2626" };
   if (s === "MVP") return { label: "MVP", color: "#ea580c" };
   if (s === "Stretch") return { label: "Stretch", color: "#d97706" };
+  if (s === "New") return { label: "New", color: "#0ea5e9" };
+  if (s === "Committed") return { label: "Committed", color: "#2563eb" };
+  if (s === "Done") return { label: "Done", color: "#16a34a" };
+  if (s === "On Hold") return { label: "On Hold", color: "#94a3b8" };
+  if (s === "Post-MVP") return { label: "Post-MVP", color: "#a855f7" };
   return null;
 }
 
