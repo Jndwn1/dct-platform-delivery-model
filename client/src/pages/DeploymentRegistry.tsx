@@ -9,8 +9,64 @@ import GovernanceBanner from "@/components/GovernanceBanner";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
-  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail,
+  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail, Copy, BookOpen,
 } from "lucide-react";
+
+// ─── Wiki entry helper ───────────────────────────────────────────────────────
+function buildWikiEntry(dep: DeploymentRowLike): string {
+  const anchor = dep.releaseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const adoIds = dep.adoWorkItemId ? dep.adoWorkItemId.split(/[,\s]+/).filter(Boolean) : [];
+  const summaryText = dep.summary ?? "Deployment details to be documented.";
+
+  // Table row
+  const tableRow = `| ${dep.deploymentDate} | ${dep.releaseName} | ${dep.type} | ${dep.platform} | ${dep.deploymentOwner} | ${dep.productOwner} | ${dep.status} | ${summaryText.split(".")[0].trim()}. | [View Details](#${anchor}) |`;
+
+  // Detail section
+  const lines: string[] = [];
+  lines.push(`### ${dep.releaseName}`);
+  lines.push("");
+  lines.push(`**Summary**`);
+  lines.push("");
+  lines.push(summaryText);
+  lines.push("");
+  if (adoIds.length > 0) {
+    lines.push(`**Related Work Items**`);
+    adoIds.forEach(id => lines.push(`- ${id.trim()}`));
+    lines.push("");
+  }
+  lines.push(`**Release Notes**`);
+  if (dep.relatedFeature) lines.push(`- ${dep.relatedFeature}`);
+  if (dep.relatedBatch) lines.push(`- Related to ${dep.relatedBatch}`);
+  if (dep.relatedStory) lines.push(`- ${dep.relatedStory}`);
+  if (!dep.relatedFeature && !dep.relatedBatch && !dep.relatedStory) lines.push(`- TBD`);
+  lines.push("");
+  lines.push(`**Reference Links**`);
+  lines.push(`- ADO Feature: ${dep.releaseNotesUrl ?? "TBD"}`);
+  lines.push(`- ADO Deployment Story: ${adoIds.length > 0 ? adoIds.map(id => `#${id.trim()}`).join(", ") : "TBD"}`);
+  lines.push(`- Swagger/API Documentation: ${dep.swaggerUrl ?? "TBD"}`);
+  lines.push("");
+  lines.push(`| Attribute | Value |`);
+  lines.push(`|-----------|-------|`);
+  lines.push(`| Platform | ${dep.platform} |`);
+  lines.push(`| Type | ${dep.type} |`);
+  lines.push(`| Deployment Owner | ${dep.deploymentOwner} |`);
+  lines.push(`| Product Owner | ${dep.productOwner} |`);
+  lines.push(`| Status | ${dep.status} |`);
+  lines.push("");
+  lines.push(`---`);
+
+  return `## Deployment Registry Table Row\n\n\`\`\`markdown\n${tableRow}\n\`\`\`\n\n---\n\n## Deployment Details Section\n\n\`\`\`markdown\n${lines.join("\n")}\n\`\`\``;
+}
+
+interface DeploymentRowLike {
+  releaseName: string; deploymentId: string; deploymentDate: string;
+  deploymentOwner: string; productOwner: string; platform: string;
+  type: string; status: string; environment: string;
+  summary?: string | null; relatedBatch?: string | null;
+  relatedFeature?: string | null; relatedStory?: string | null;
+  adoWorkItemId?: string | null; releaseNotesUrl?: string | null;
+  swaggerUrl?: string | null; githubReleaseTag?: string | null;
+}
 
 // ─── Email helper ────────────────────────────────────────────────────────────
 const PO_EMAIL_KEY = "dct_deploy_po_email";
@@ -162,6 +218,12 @@ function SummaryCard({ label, value, color, icon }: { label: string; value: numb
 
 // ─── Detail drawer ────────────────────────────────────────────────────────────
 function DetailDrawer({ dep, onClose }: { dep: DeploymentRow; onClose: () => void }) {
+  const [showWiki, setShowWiki] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const wikiText = buildWikiEntry(dep);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(wikiText).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  };
   return (
     <div style={{
       position: "fixed", top: 0, right: 0, bottom: 0, width: "480px",
@@ -303,6 +365,52 @@ function DetailDrawer({ dep, onClose }: { dep: DeploymentRow; onClose: () => voi
           <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "5px", paddingLeft: "2px" }}>
             Opens your email client with deployment details pre-filled. Enter the PO email address in the To field if not auto-populated.
           </div>
+        </div>
+
+        {/* Generate Wiki Entry */}
+        <div style={{ marginBottom: "20px" }}>
+          <button
+            onClick={() => setShowWiki(v => !v)}
+            style={{
+              display: "flex", alignItems: "center", gap: "8px", width: "100%",
+              padding: "10px 14px", backgroundColor: showWiki ? "#1e3a5f" : "#f8fafc",
+              color: showWiki ? "#ffffff" : "#1e3a5f",
+              border: `1px solid ${showWiki ? "#1e3a5f" : "#cbd5e1"}`,
+              borderRadius: "6px", fontSize: "12px", fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            <BookOpen size={14} />
+            {showWiki ? "Hide Wiki Entry" : "Generate Wiki Entry"}
+          </button>
+          {showWiki && (
+            <div style={{ marginTop: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em" }}>Wiki Markdown - Ready to Paste</div>
+                <button
+                  onClick={handleCopy}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "5px",
+                    padding: "4px 10px", backgroundColor: copied ? "#059669" : "#0f1623",
+                    color: "#ffffff", border: "none", borderRadius: "4px",
+                    fontSize: "10px", fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  <Copy size={10} />{copied ? "Copied!" : "Copy All"}
+                </button>
+              </div>
+              <pre style={{
+                backgroundColor: "#0f1623", color: "#e2e8f0",
+                borderRadius: "6px", padding: "14px", fontSize: "10px",
+                lineHeight: "1.6", overflowX: "auto", whiteSpace: "pre-wrap",
+                wordBreak: "break-word", maxHeight: "320px", overflowY: "auto",
+                margin: 0,
+              }}>{wikiText}</pre>
+              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "5px" }}>
+                Copy and paste the two sections into your Deployment Registry wiki page. Insert the table row at the top of the registry table and the detail section at the top of the details list.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Governance note */}
