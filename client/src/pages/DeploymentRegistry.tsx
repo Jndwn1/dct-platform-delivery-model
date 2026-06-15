@@ -1242,71 +1242,18 @@ export default function DeploymentRegistry() {
 
       {/* ── Generate All Wiki Entries modal ── */}
       {showAllWiki && (() => {
-        // ADO wiki anchors: lowercase, spaces become hyphens, special chars stripped, leading/trailing hyphens removed
-        const adoAnchor = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").replace(/(^-|-$)/g, "");
-
-        // SECTION 1: New table rows only (paste into existing wiki table)
-        const tableRowsOnly = rows.map(r => {
-          const anchor = adoAnchor(r.releaseName);
-          const shortSummary = r.summary ? r.summary.split(".")[0].trim() + "." : "Deployment details to be documented.";
-          return `| ${r.deploymentDate} | ${r.releaseName} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${shortSummary} | [View Details](#${anchor}) |`;
+        // Build a single table only: header + separator + one row per deployment
+        const tableLines: string[] = [];
+        tableLines.push(`| Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |`);
+        tableLines.push(`| --------------- | ------------ | ---- | -------- | ---------------- | ------------- | ------ | ------- | ------------- |`);
+        rows.forEach(r => {
+          const summary = (r.summary ?? "TBD").replace(/\|/g, "-");
+          const releaseNotes = r.releaseNotesBullets
+            ? r.releaseNotesBullets.split("\n").map((b: string) => b.trim()).filter(Boolean).join("; ")
+            : "TBD";
+          tableLines.push(`| ${r.deploymentDate} | ${r.releaseName} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summary} | ${releaseNotes} |`);
         });
-
-        // SECTION 2: Detail sections only (paste below the table)
-        const detailSections = rows.map(r => {
-          const adoIds = r.adoWorkItemId ? r.adoWorkItemId.split(/[,\s]+/).filter(Boolean) : [];
-          const summaryText = r.summary ?? "Deployment details to be documented.";
-          const lines: string[] = [];
-          lines.push(`### ${r.releaseName}`);
-          lines.push("");
-          lines.push(`**Summary**`);
-          lines.push("");
-          lines.push(summaryText);
-          lines.push("");
-          if (adoIds.length > 0) {
-            lines.push(`**Related Work Items**`);
-            adoIds.forEach(id => lines.push(`- ${id.trim()}`));
-            lines.push("");
-          }
-          lines.push(`**Release Notes**`);
-          if (r.releaseNotesBullets && r.releaseNotesBullets.trim()) {
-            r.releaseNotesBullets.split("\n").map((b: string) => b.trim()).filter(Boolean).forEach((b: string) => lines.push(`- ${b}`));
-          } else if (r.relatedFeature) {
-            lines.push(`- ${r.relatedFeature}`);
-            if (r.relatedBatch) lines.push(`- Related to ${r.relatedBatch}`);
-            if (r.relatedStory) lines.push(`- ${r.relatedStory}`);
-          } else {
-            lines.push(`- TBD`);
-          }
-          lines.push("");
-          lines.push(`**Reference Links**`);
-          lines.push(`- ADO Feature: ${r.adoFeatureUrl ?? "TBD"}`);
-          lines.push(`- ADO Deployment Story: ${r.adoStoryUrl ?? (adoIds.length > 0 ? adoIds.map((id: string) => `#${id.trim()}`).join(", ") : "TBD")}`);
-          lines.push(`- Swagger/API Documentation: ${r.swaggerUrl ?? "TBD"}`);
-          lines.push("");
-          lines.push(`| Attribute | Value |`);
-          lines.push(`|-----------|-------|`);
-          lines.push(`| Platform | ${r.platform} |`);
-          lines.push(`| Type | ${r.type} |`);
-          lines.push(`| Deployment Owner | ${r.deploymentOwner} |`);
-          lines.push(`| Product Owner | ${r.productOwner} |`);
-          lines.push(`| Status | ${r.status} |`);
-          lines.push("");
-          lines.push(`---`);
-          return lines.join("\n");
-        });
-
-        const fullWiki = [
-          `## PART 1 — Paste these rows into your existing Deployment Registry table`,
-          ``,
-          ...tableRowsOnly,
-          ``,
-          `---`,
-          ``,
-          `## PART 2 — Paste these detail sections below your table`,
-          ``,
-          ...detailSections,
-        ].join("\n");
+        const fullWiki = tableLines.join("\n");
         const handleCopyAll = () => {
           navigator.clipboard.writeText(fullWiki).then(() => { setAllWikiCopied(true); setTimeout(() => setAllWikiCopied(false), 2500); });
         };
@@ -1315,7 +1262,7 @@ export default function DeploymentRegistry() {
             <div onClick={() => setShowAllWiki(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 40 }} />
             <div style={{
               position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-              width: "680px", maxWidth: "95vw", backgroundColor: "#ffffff", borderRadius: "12px",
+              width: "720px", maxWidth: "95vw", backgroundColor: "#ffffff", borderRadius: "12px",
               boxShadow: "0 20px 60px rgba(0,0,0,0.25)", zIndex: 50, overflow: "hidden",
               display: "flex", flexDirection: "column", maxHeight: "85vh",
             }}>
@@ -1326,20 +1273,16 @@ export default function DeploymentRegistry() {
                     <BookOpen size={16} color="white" />
                   </div>
                   <div>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Generate Full Wiki - All Deployments</div>
-                    <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} deployment{rows.length !== 1 ? "s" : ""} - complete registry table + all detail sections</div>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Generate Wiki Table</div>
+                    <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} row{rows.length !== 1 ? "s" : ""} - paste directly into your Deployment Registry wiki table</div>
                   </div>
                   <button onClick={() => setShowAllWiki(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#a7f3d0" }}><X size={18} /></button>
                 </div>
               </div>
               {/* Instructions */}
-              <div style={{ padding: "16px 24px", backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", flexShrink: 0 }}>
+              <div style={{ padding: "12px 24px", backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", flexShrink: 0 }}>
                 <div style={{ fontSize: "12px", color: "#065f46", lineHeight: "1.6" }}>
-                  <strong>How to use:</strong> Click <strong>Copy All Markdown</strong> below, then paste into your wiki page. The output includes:
-                  <span style={{ display: "block", marginTop: "4px", color: "#047857" }}>
-                    1. Full registry table with all {rows.length} rows and anchor links &nbsp;|&nbsp;
-                    2. Complete detail section for every deployment
-                  </span>
+                  Copy the markdown below and paste it into your ADO wiki page. Includes the table header and all {rows.length} deployment rows with Summary and Release Notes columns.
                 </div>
               </div>
               {/* Markdown preview */}
@@ -1348,7 +1291,7 @@ export default function DeploymentRegistry() {
                   backgroundColor: "#0f1623", color: "#e2e8f0",
                   borderRadius: "8px", padding: "16px", fontSize: "10px",
                   lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word",
-                  margin: 0, minHeight: "200px",
+                  margin: 0, minHeight: "120px",
                 }}>{fullWiki}</pre>
               </div>
               {/* Footer actions */}
@@ -1362,7 +1305,7 @@ export default function DeploymentRegistry() {
                     fontSize: "13px", fontWeight: 700, cursor: "pointer",
                   }}
                 >
-                  <Copy size={14} />{allWikiCopied ? "Copied to Clipboard!" : "Copy All Markdown"}
+                  <Copy size={14} />{allWikiCopied ? "Copied to Clipboard!" : "Copy Markdown"}
                 </button>
                 <button
                   onClick={() => setShowAllWiki(false)}
