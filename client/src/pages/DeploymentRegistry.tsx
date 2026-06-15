@@ -645,6 +645,8 @@ export default function DeploymentRegistry() {
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showAllWiki, setShowAllWiki] = useState(false);
+  const [allWikiCopied, setAllWikiCopied] = useState(false);
   const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; ccEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
 
   const utils = trpc.useUtils();
@@ -770,6 +772,18 @@ export default function DeploymentRegistry() {
           </select>
         </div>
 
+        {/* Generate All Wiki button */}
+        <button
+          onClick={() => setShowAllWiki(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            padding: "6px 14px", backgroundColor: "#065f46", color: "#ffffff",
+            border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
+            cursor: "pointer", whiteSpace: "nowrap", marginLeft: "auto",
+          }}
+        >
+          <BookOpen size={12} />Generate Wiki
+        </button>
         {/* Email to PO button */}
         <button
           onClick={() => setShowEmailModal(true)}
@@ -777,7 +791,7 @@ export default function DeploymentRegistry() {
             display: "flex", alignItems: "center", gap: "6px",
             padding: "6px 14px", backgroundColor: "#1e3a5f", color: "#ffffff",
             border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
-            cursor: "pointer", whiteSpace: "nowrap", marginLeft: "auto",
+            cursor: "pointer", whiteSpace: "nowrap",
           }}
         >
           <Mail size={12} />Email to PO
@@ -955,6 +969,107 @@ export default function DeploymentRegistry() {
                 <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "8px", textAlign: "center" }}>
                   Opens your email client (Outlook) with all fields pre-filled. To/CC addresses are saved from your last Create Deployment form.
                 </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
+
+      {/* ── Generate All Wiki Entries modal ── */}
+      {showAllWiki && (() => {
+        const TABLE_HEADER = `| Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |\n| --------------- | ------------ | ---- | -------- | ---------------- | ------------- | ------ | ------- | ------------- |`;
+        const tableRows = rows.map(r => {
+          const anchor = r.releaseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+          const shortSummary = r.summary ? r.summary.split(".")[0].trim() + "." : "Deployment details to be documented.";
+          return `| ${r.deploymentDate} | ${r.releaseName} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${shortSummary} | [View Details](#${anchor}) |`;
+        });
+        const detailSections = rows.map(r => {
+          const entry = buildWikiEntry(r as any);
+          // Extract just the detail section markdown block
+          const match = entry.match(/## Deployment Details Section\n\n```markdown\n([\s\S]+?)\n```/);
+          return match ? match[1] : "";
+        });
+        const fullWiki = [
+          `# DCT Platform Deployment Registry`,
+          ``,
+          `> **Governance Notice:** This registry documents deployments from the DCT Platform non-production governance workspace. All records are for architecture visualization and delivery tracking purposes only.`,
+          ``,
+          `---`,
+          ``,
+          `## Deployment Registry`,
+          ``,
+          TABLE_HEADER,
+          ...tableRows,
+          ``,
+          `---`,
+          ``,
+          `## Deployment Details`,
+          ``,
+          ...detailSections,
+        ].join("\n");
+        const handleCopyAll = () => {
+          navigator.clipboard.writeText(fullWiki).then(() => { setAllWikiCopied(true); setTimeout(() => setAllWikiCopied(false), 2500); });
+        };
+        return (
+          <>
+            <div onClick={() => setShowAllWiki(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 40 }} />
+            <div style={{
+              position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+              width: "680px", maxWidth: "95vw", backgroundColor: "#ffffff", borderRadius: "12px",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)", zIndex: 50, overflow: "hidden",
+              display: "flex", flexDirection: "column", maxHeight: "85vh",
+            }}>
+              {/* Header */}
+              <div style={{ backgroundColor: "#065f46", padding: "20px 24px", flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#059669", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <BookOpen size={16} color="white" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Generate Full Wiki - All Deployments</div>
+                    <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} deployment{rows.length !== 1 ? "s" : ""} - complete registry table + all detail sections</div>
+                  </div>
+                  <button onClick={() => setShowAllWiki(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#a7f3d0" }}><X size={18} /></button>
+                </div>
+              </div>
+              {/* Instructions */}
+              <div style={{ padding: "16px 24px", backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", flexShrink: 0 }}>
+                <div style={{ fontSize: "12px", color: "#065f46", lineHeight: "1.6" }}>
+                  <strong>How to use:</strong> Click <strong>Copy All Markdown</strong> below, then paste into your wiki page. The output includes:
+                  <span style={{ display: "block", marginTop: "4px", color: "#047857" }}>
+                    1. Full registry table with all {rows.length} rows and anchor links &nbsp;|&nbsp;
+                    2. Complete detail section for every deployment
+                  </span>
+                </div>
+              </div>
+              {/* Markdown preview */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
+                <pre style={{
+                  backgroundColor: "#0f1623", color: "#e2e8f0",
+                  borderRadius: "8px", padding: "16px", fontSize: "10px",
+                  lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word",
+                  margin: 0, minHeight: "200px",
+                }}>{fullWiki}</pre>
+              </div>
+              {/* Footer actions */}
+              <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e8f0", flexShrink: 0, display: "flex", gap: "10px", alignItems: "center" }}>
+                <button
+                  onClick={handleCopyAll}
+                  style={{
+                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                    padding: "11px 20px", backgroundColor: allWikiCopied ? "#059669" : "#065f46",
+                    color: "#ffffff", border: "none", borderRadius: "6px",
+                    fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  <Copy size={14} />{allWikiCopied ? "Copied to Clipboard!" : "Copy All Markdown"}
+                </button>
+                <button
+                  onClick={() => setShowAllWiki(false)}
+                  style={{ padding: "11px 20px", backgroundColor: "#f1f5f9", color: "#475569", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Close
+                </button>
               </div>
             </div>
           </>
