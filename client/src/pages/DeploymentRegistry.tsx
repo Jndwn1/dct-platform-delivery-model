@@ -309,16 +309,18 @@ function DetailDrawer({ dep, onClose }: { dep: DeploymentRow; onClose: () => voi
   );
 }
 // ─── Create form ───────────────────────────────────────────────────────────────
-function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void }) {
+function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void }) {
   const createMutation = trpc.deploymentRegistry.create.useMutation({
-    onSuccess: (result) => { onCreated(result as any); },
+    onSuccess: (result) => { onCreated({ ...(result as any), poEmail: formRef.current?.poEmail }); },
   });
+  const formRef = { current: null as null | { poEmail: string } };
 
   const [form, setForm] = useState({
     releaseName: "",
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
     productOwner: "",
+    poEmail: "Stephane.Lacombe@rsmus.com",
     platform: "TDC" as PlatformValue,
     type: "Feature" as TypeValue,
     status: "Planned" as DeploymentStatus,
@@ -335,10 +337,19 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
+  // Keep formRef in sync so onSuccess can read poEmail after mutation
+  formRef.current = { poEmail: form.poEmail };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createMutation.mutate({
-      ...form,
+      releaseName: form.releaseName,
+      deploymentDate: form.deploymentDate,
+      deploymentOwner: form.deploymentOwner,
+      productOwner: form.productOwner,
+      platform: form.platform,
+      type: form.type,
+      status: form.status,
       summary: form.summary || undefined,
       releaseNotesUrl: form.releaseNotesUrl || undefined,
       swaggerUrl: form.swaggerUrl || undefined,
@@ -407,6 +418,17 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
             <label style={labelStyle}>Product Owner *</label>
             <input required style={fieldStyle} value={form.productOwner} onChange={e => set("productOwner", e.target.value)} placeholder="e.g. Stephane Lacombe" />
           </div>
+        </div>
+        <div>
+          <label style={labelStyle}>PO Email Address</label>
+          <input
+            type="email"
+            style={fieldStyle}
+            value={form.poEmail}
+            onChange={e => set("poEmail", e.target.value)}
+            placeholder="e.g. Stephane.Lacombe@rsmus.com"
+          />
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Used to pre-fill the Email to PO notification after creation.</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div>
@@ -491,7 +513,7 @@ export default function DeploymentRegistry() {
   const [sortBy, setSortBy] = useState<SortBy>("deploymentDate");
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
+  const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
 
   const utils = trpc.useUtils();
 
@@ -726,7 +748,7 @@ export default function DeploymentRegistry() {
               </div>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button
-                  onClick={() => { window.location.href = buildDeploymentEmail(justCreated, ""); setJustCreated(null); }}
+                  onClick={() => { window.location.href = buildDeploymentEmail(justCreated, justCreated.poEmail ?? ""); setJustCreated(null); }}
                   style={{
                     flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                     padding: "10px 16px", backgroundColor: "#0f1623", color: "#ffffff",
