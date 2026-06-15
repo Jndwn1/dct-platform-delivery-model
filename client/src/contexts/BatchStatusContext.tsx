@@ -689,21 +689,21 @@ export function contextToCompletionPct(s: BatchStatus): number {
 }
 
 /** Map context BatchStatus → sidebar badge label and color */
-export function contextToSidebarBadge(s: BatchStatus): { label: string; color: string } | null {
-  if (s === "Complete") return { label: "Done", color: "#059669" };
-  if (s === "Delivered") return { label: "Delivered", color: "#0d9488" };
-  if (s === "Demo Ready") return { label: "Demo", color: "#7c3aed" };
-  if (s === "QA In Progress") return { label: "QA", color: "#9333ea" };
-  if (s === "Ready for QA") return { label: "QA Ready", color: "#8b5cf6" };
-  if (s === "In Progress") return { label: "Active", color: "#2563eb" };
-  if (s === "Blocked") return { label: "Blocked", color: "#dc2626" };
-  if (s === "MVP") return { label: "MVP", color: "#ea580c" };
-  if (s === "Stretch") return { label: "Stretch", color: "#d97706" };
-  if (s === "New") return { label: "New", color: "#0ea5e9" };
-  if (s === "Committed") return { label: "Committed", color: "#2563eb" };
-  if (s === "Done") return { label: "Done", color: "#16a34a" };
-  if (s === "On Hold") return { label: "On Hold", color: "#94a3b8" };
-  if (s === "Post-MVP") return { label: "Post-MVP", color: "#a855f7" };
+export function contextToSidebarBadge(s: BatchStatus): { label: string; color: string; tooltip: string } | null {
+  if (s === "Complete") return { label: "Done", color: "#059669", tooltip: "Complete — all gate criteria met and batch delivered" };
+  if (s === "Delivered") return { label: "Delivered", color: "#0d9488", tooltip: "Delivered — batch accepted and in production" };
+  if (s === "Demo Ready") return { label: "Demo", color: "#7c3aed", tooltip: "Demo Ready — validated and ready for stakeholder demo" };
+  if (s === "QA In Progress") return { label: "QA", color: "#9333ea", tooltip: "QA In Progress — gate verification underway" };
+  if (s === "Ready for QA") return { label: "QA Ready", color: "#8b5cf6", tooltip: "Ready for QA — development complete, awaiting gate review" };
+  if (s === "In Progress") return { label: "Active", color: "#2563eb", tooltip: "In Progress — actively in development" };
+  if (s === "Blocked") return { label: "Blocked", color: "#dc2626", tooltip: "Blocked — dependency or issue preventing progress" };
+  if (s === "MVP") return { label: "MVP", color: "#ea580c", tooltip: "MVP — minimum viable scope committed for this PI" };
+  if (s === "Stretch") return { label: "Stretch", color: "#d97706", tooltip: "Stretch — targeted but not committed; delivered if capacity allows" };
+  if (s === "New") return { label: "New", color: "#0ea5e9", tooltip: "New — recently added to the batch model, not yet started" };
+  if (s === "Committed") return { label: "Committed", color: "#2563eb", tooltip: "Committed — scope locked, delivery in progress" };
+  if (s === "Done") return { label: "Done", color: "#16a34a", tooltip: "Done — batch work complete and accepted" };
+  if (s === "On Hold") return { label: "On Hold", color: "#94a3b8", tooltip: "On Hold — paused pending dependency resolution or PI reprioritization" };
+  if (s === "Post-MVP") return { label: "Post-MVP", color: "#a855f7", tooltip: "Post-MVP — deferred beyond current PI MVP scope" };
   return null;
 }
 

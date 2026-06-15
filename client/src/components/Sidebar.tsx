@@ -17,6 +17,7 @@ interface NavItem {
   subBatch?: boolean;
   status?: string;
   statusColor?: string;
+  statusTooltip?: string;
   isArchSync?: boolean;
   demoLink?: string;
 }
@@ -258,10 +259,14 @@ function NavItem({ item }: { item: NavItem }) {
           {item.label}
         </span>
         {item.status && (
-          <span style={{
-            fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
-            flexShrink: 0, color: "white", backgroundColor: item.statusColor
-          }}>
+          <span
+            title={item.statusTooltip}
+            style={{
+              fontSize: "9px", padding: "1px 5px", borderRadius: "3px", fontWeight: 600,
+              flexShrink: 0, color: "white", backgroundColor: item.statusColor,
+              cursor: item.statusTooltip ? "help" : "default",
+            }}
+          >
             {item.status}
           </span>
         )}
@@ -370,38 +375,38 @@ export default function Sidebar({ activeSection }: SidebarProps) {
               <div style={{ padding: "4px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#3b82f6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 1 — Foundation &amp; AI Mapping</div>
               {BATCH_ITEM_DEFS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey]);
-                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* PI 2 */}
               <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#10b981", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 — Entity, Workflow &amp; Tax Ready</div>
               {PI2_BATCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey]);
                 const isSubBatch = def.indent === true;
-                return <NavItem key={def.path} item={{ label: def.label.trim(), path: def.path, indent: !isSubBatch, subBatch: isSubBatch, status: badge?.label, statusColor: badge?.color }} />;
+                return <NavItem key={def.path} item={{ label: def.label.trim(), path: def.path, indent: !isSubBatch, subBatch: isSubBatch, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* PI 2 Stretch */}
               <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#0ea5e9", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 Stretch — Engagement &amp; Audit</div>
               {PI2_STRETCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
-                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* PI 3 MVP */}
               <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#8b5cf6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 3 MVP — Workpapers, State &amp; Pilot</div>
               {PI3_BATCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
-                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* Post-MVP / PI 4 */}
               <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#64748b", letterSpacing: "0.08em", textTransform: "uppercase" }}>Post-MVP / PI 4</div>
               {PI4_BATCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
-                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color }} />;
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* On Hold */}
               <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#b45309", letterSpacing: "0.08em", textTransform: "uppercase" }}>⏸ On Hold</div>
               {ON_HOLD_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "On Hold");
-                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label ?? "On Hold", statusColor: badge?.color ?? "#b45309" }} />;
+                return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label ?? "On Hold", statusColor: badge?.color ?? "#b45309", statusTooltip: badge?.tooltip ?? "On Hold — paused pending dependency resolution or PI reprioritization" }} />;
               })}
             </>
           )}

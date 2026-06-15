@@ -19,7 +19,7 @@ function batchModelIdToContextKey(id: string): BatchKey | null {
   const m = id.match(/^B(\d+[A-Za-z]?)$/);
   if (!m) return null;
   const num = m[1].toLowerCase();
-  const validKeys = ["1","2","2a","3","4","5","6","7","8","9","10","11"];
+  const validKeys = ["1","2","2a","3","4","5","6","7","8","9","10","11","43","42","9a"];
   return validKeys.includes(num) ? num as BatchKey : null;
 }
 
@@ -576,6 +576,52 @@ const BATCH_CONTENT: Record<string, BatchContent> = {
       { title: "Adjustment Report (Standard & Non-Standard)", wmbt: "Standard and non-standard adjustment reports produced with full derivation lineage." },
       { title: "Derivation Lineage Report", wmbt: "The Derivation Lineage Report must trace every reported amount back to its source SourceFile record without gaps." },
       { title: "Calculation Report Read Contract", wmbt: "Calculation Report read contract published. Reports may not be generated for an entity-period that has not reached FINALIZED state." },
+    ],
+  },
+  B43: {
+    gate: "G4 — Lineage Closure",
+    systems: ["TDC", "Roger UI"],
+    lead: "TDC Workstream Lead",
+    entryCondition: "Batch 6 complete; Batch 10 complete; practitioner adjustment workflow agreed",
+    exitCondition: "Practitioner book-to-tax adjustments captured as immutable records; reclassification decisions published as governed lineage events; adjustment lock enforced; Roger surfaces adjustment summary",
+    executiveNote: "Batch 43 (PI 2 New): Governs practitioner book-to-tax adjustments and reclassification decisions. Adjustments are immutable once locked — no modification after the adjustment lock gate.",
+    governanceTags: ["TDC", "Lineage Critical", "New — PI 2"],
+    stories: [
+      { title: "Practitioner Book-to-Tax Adjustment Capture", wmbt: "Practitioner book-to-tax adjustments captured as immutable records. Adjustments locked after gate — no modification permitted post-lock." },
+      { title: "Reclassification Decision Governance", wmbt: "Reclassification decisions published as governed TDC lineage events. Decision record is immutable and auditable." },
+      { title: "Adjustment Lock Gate", wmbt: "Adjustment lock enforced at gate. No modification of adjustment records after lock. Lock event published as lineage event." },
+      { title: "Roger Adjustment Summary Read Contract", wmbt: "Roger surfaces adjustment summary and reclassification decisions via governed TDC read contract only." },
+    ],
+  },
+  B42: {
+    gate: "G3 — Contract Publication",
+    systems: ["TDC", "Orchestrator", "Roger UI"],
+    lead: "TDC Workstream Lead",
+    entryCondition: "Batch 3 complete; Batch 6 complete; tax rules framework scope agreed with CATT",
+    exitCondition: "Tax rules versioned and auditable; book-to-tax treatment decisions enforced at classification gate; rules conflict detection live; Roger surfaces applicable rules context",
+    executiveNote: "Batch 42 (PI 3 MVP): Establishes the TDC tax rules framework. All book-to-tax treatment decisions are governed by versioned, auditable rules — no silent rule changes permitted.",
+    governanceTags: ["TDC", "Contract Publication", "PI 3 MVP"],
+    stories: [
+      { title: "Tax Rules Registry & Versioning", wmbt: "Tax rules versioned and auditable. No silent rule changes — every rule change requires a new version with change log." },
+      { title: "Book-to-Tax Treatment Enforcement", wmbt: "Book-to-tax treatment decisions enforced at classification gate using versioned rule set. Non-compliant classifications blocked." },
+      { title: "Rules Conflict Detection & Resolution", wmbt: "Rules conflict detection identifies overlapping or contradictory rules. Resolution workflow requires explicit human approval before rule activation." },
+      { title: "Rules Read Contract (Roger)", wmbt: "Roger surfaces applicable rules context on mapping proposals via governed TDC read contract. Roger never modifies rules." },
+      { title: "Rules Contract Publication", wmbt: "Tax rules framework contract published. Downstream systems consume rules via contract — no direct rule store access permitted." },
+    ],
+  },
+  B9A: {
+    gate: "G3 — Contract Publication",
+    systems: ["PDC", "IMS", "CDS", "DUO", "Roger UI"],
+    lead: "PDC Workstream Lead",
+    entryCondition: "Batch 9 complete; IMS, CDS, and DUO integration scope agreed; outbound contract schemas confirmed",
+    exitCondition: "IMS, CDS, and DUO outbound contracts published and enforced; idempotent delivery via delivery_id; gateway lineage events published; Roger surfaces gateway delivery status",
+    executiveNote: "Batch 9A (PI 3 MVP): PDC data gateway for IMS, CDS, and DUO. All outbound flows are contract-governed — no direct system-to-system data exchange outside the gateway contract.",
+    governanceTags: ["PDC", "Contract Publication", "PI 3 MVP", "Gateway"],
+    stories: [
+      { title: "IMS Outbound Contract", wmbt: "IMS outbound contract published and enforced. Synchronous HTTP 200 acknowledgment required. Idempotent delivery via delivery_id." },
+      { title: "CDS Outbound Contract", wmbt: "CDS outbound contract published and enforced. Idempotent delivery via delivery_id. Contract schema versioned and auditable." },
+      { title: "DUO Outbound Contract", wmbt: "DUO outbound contract published and enforced. Idempotent delivery via delivery_id. Contract schema versioned and auditable." },
+      { title: "Gateway Lineage Events", wmbt: "All outbound gateway flows published as PDC lineage events. Delivery failures logged with root cause classification." },
     ],
   },
   MT: {
