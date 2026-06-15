@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Deployment Registry — DCT Platform Release History
+// Deployment Registry - DCT Platform Release History
 // Authoritative release history: Batches · Features · Stories · Bugs · Tech Stories
 // Design: matches existing RSM dark-theme administrative dashboard styling
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ const PO_EMAIL_KEY = "dct_deploy_po_email";
 const CC_EMAIL_KEY = "dct_deploy_cc_email";
 
 function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null; }, poEmail: string, ccEmail?: string) {
-  const subject = encodeURIComponent(`[DCT Platform] Deployment Notification — ${dep.releaseName} (${dep.deploymentId})`);
+  const subject = encodeURIComponent(`[DCT Platform] Deployment Notification - ${dep.releaseName} (${dep.deploymentId})`);
   const lines: string[] = [];
   lines.push(`Hi ${dep.productOwner},`);
   lines.push("");
@@ -50,7 +50,7 @@ function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; 
   lines.push(`For questions, contact the CATT Sr. Business Analyst.`);
   lines.push("");
   lines.push(`Thank you,`);
-  lines.push(`CATT Sr. Business Analyst — DCT Platform Delivery`);
+  lines.push(`CATT Sr. Business Analyst - DCT Platform Delivery`);
   const body = encodeURIComponent(lines.join("\n"));
   let mailto = `mailto:${poEmail}?subject=${subject}&body=${body}`;
   if (ccEmail) mailto += `&cc=${encodeURIComponent(ccEmail)}`;
@@ -536,6 +536,7 @@ export default function DeploymentRegistry() {
   const [sortBy, setSortBy] = useState<SortBy>("deploymentDate");
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; ccEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
 
   const utils = trpc.useUtils();
@@ -661,6 +662,18 @@ export default function DeploymentRegistry() {
           </select>
         </div>
 
+        {/* Email to PO button */}
+        <button
+          onClick={() => setShowEmailModal(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            padding: "6px 14px", backgroundColor: "#1e3a5f", color: "#ffffff",
+            border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
+            cursor: "pointer", whiteSpace: "nowrap", marginLeft: "auto",
+          }}
+        >
+          <Mail size={12} />Email to PO
+        </button>
         {/* Create button */}
         <button
           onClick={() => setShowCreate(true)}
@@ -668,7 +681,7 @@ export default function DeploymentRegistry() {
             display: "flex", alignItems: "center", gap: "6px",
             padding: "6px 14px", backgroundColor: "#0f1623", color: "#ffffff",
             border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
-            cursor: "pointer", whiteSpace: "nowrap", marginLeft: "auto",
+            cursor: "pointer", whiteSpace: "nowrap",
           }}
         >
           <Plus size={12} />Create Deployment
@@ -736,6 +749,109 @@ export default function DeploymentRegistry() {
           Showing {rows.length} deployment{rows.length !== 1 ? "s" : ""}
         </div>
       )}
+
+      {/* ── Standalone Email to PO modal ── */}
+      {showEmailModal && (() => {
+        const poEmail = (typeof window !== "undefined" && localStorage.getItem(PO_EMAIL_KEY)) || "Stephane.Lacombe@rsmus.com";
+        const ccEmail = (typeof window !== "undefined" && localStorage.getItem(CC_EMAIL_KEY)) || "Jenniver.Stafford@rsmus.com";
+        const subject = encodeURIComponent(`[DCT Platform] Deployment Registry Summary - ${rows.length} Deployment${rows.length !== 1 ? "s" : ""} on Record`);
+        const lines: string[] = [];
+        lines.push(`Hi ${rows[0]?.productOwner ?? "Stephane"},`);
+        lines.push("");
+        lines.push(`This is a summary of the current DCT Platform Deployment Registry.`);
+        lines.push("");
+        lines.push(`─────────────────────────────────────────`);
+        lines.push(`DEPLOYMENT REGISTRY SUMMARY`);
+        lines.push(`─────────────────────────────────────────`);
+        lines.push(`Total Deployments:    ${rows.length}`);
+        lines.push(`PDC Deployments:      ${rows.filter(r => r.platform === "PDC").length}`);
+        lines.push(`TDC Deployments:      ${rows.filter(r => r.platform === "TDC").length}`);
+        lines.push(`Deployed:             ${rows.filter(r => r.status === "Deployed").length}`);
+        lines.push("");
+        lines.push(`─────────────────────────────────────────`);
+        lines.push(`DEPLOYMENT RECORDS`);
+        lines.push(`─────────────────────────────────────────`);
+        rows.forEach((r, i) => {
+          lines.push(`${i + 1}. ${r.releaseName}`);
+          lines.push(`   Date: ${r.deploymentDate} | Platform: ${r.platform} | Type: ${r.type} | Status: ${r.status}`);
+          lines.push(`   Owner: ${r.deploymentOwner} | PO: ${r.productOwner}`);
+          lines.push("");
+        });
+        lines.push(`─────────────────────────────────────────`);
+        lines.push(`This summary was generated from the DCT Platform Gate Verification Dashboard.`);
+        lines.push(`For questions, contact the CATT Sr. Business Analyst.`);
+        lines.push("");
+        lines.push(`Thank you,`);
+        lines.push(`CATT Sr. Business Analyst - DCT Platform Delivery`);
+        const body = encodeURIComponent(lines.join("\n"));
+        let mailto = `mailto:${poEmail}?subject=${subject}&body=${body}`;
+        if (ccEmail) mailto += `&cc=${encodeURIComponent(ccEmail)}`;
+        return (
+          <>
+            <div onClick={() => setShowEmailModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", zIndex: 40 }} />
+            <div style={{
+              position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+              width: "480px", backgroundColor: "#ffffff", borderRadius: "12px",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.2)", zIndex: 50, overflow: "hidden",
+            }}>
+              <div style={{ backgroundColor: "#1e3a5f", padding: "20px 24px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Mail size={16} color="white" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Email Deployment Registry to PO</div>
+                    <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>Opens Outlook with {rows.length} deployment{rows.length !== 1 ? "s" : ""} pre-filled</div>
+                  </div>
+                  <button onClick={() => setShowEmailModal(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}><X size={16} /></button>
+                </div>
+              </div>
+              <div style={{ padding: "24px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+                  <div style={{ backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>To (Product Owner)</div>
+                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f1623" }}>{poEmail}</div>
+                  </div>
+                  <div style={{ backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>CC (BA)</div>
+                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f1623" }}>{ccEmail}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: "12px", color: "#475569", marginBottom: "16px", lineHeight: "1.6", backgroundColor: "#f0f9ff", borderRadius: "6px", padding: "10px 12px", border: "1px solid #bae6fd" }}>
+                  <strong>Subject:</strong> [DCT Platform] Deployment Registry Summary - {rows.length} Deployment{rows.length !== 1 ? "s" : ""} on Record
+                </div>
+                <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "16px", backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px", maxHeight: "120px", overflowY: "auto", fontFamily: "monospace", lineHeight: "1.6", whiteSpace: "pre-wrap" }}>
+                  {lines.slice(0, 12).join("\n")}{lines.length > 12 ? "\n..." : ""}
+                </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={() => { window.location.href = mailto; setShowEmailModal(false); }}
+                    style={{
+                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                      padding: "10px 16px", backgroundColor: "#1e3a5f", color: "#ffffff",
+                      border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 700, cursor: "pointer",
+                    }}
+                  >
+                    <Mail size={14} /> Send Email
+                  </button>
+                  <button
+                    onClick={() => setShowEmailModal(false)}
+                    style={{
+                      padding: "10px 16px", backgroundColor: "#f1f5f9", color: "#475569",
+                      border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "8px", textAlign: "center" }}>
+                  Opens your email client (Outlook) with all fields pre-filled. To/CC addresses are saved from your last Create Deployment form.
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
 
       {/* ── Post-create email prompt ── */}
       {justCreated && (
