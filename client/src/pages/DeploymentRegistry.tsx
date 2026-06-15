@@ -9,8 +9,48 @@ import GovernanceBanner from "@/components/GovernanceBanner";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
-  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity,
+  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail,
 } from "lucide-react";
+
+// ─── Email helper ────────────────────────────────────────────────────────────
+function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null; }, poEmail: string) {
+  const subject = encodeURIComponent(`[DCT Platform] Deployment Notification — ${dep.releaseName} (${dep.deploymentId})`);
+  const lines: string[] = [];
+  lines.push(`Hi ${dep.productOwner},`);
+  lines.push("");
+  lines.push(`A new deployment has been recorded in the DCT Platform Deployment Registry.`);
+  lines.push("");
+  lines.push(`─────────────────────────────────────────`);
+  lines.push(`DEPLOYMENT SUMMARY`);
+  lines.push(`─────────────────────────────────────────`);
+  lines.push(`Release Name:       ${dep.releaseName}`);
+  lines.push(`Deployment ID:      ${dep.deploymentId}`);
+  lines.push(`Date:               ${dep.deploymentDate}`);
+  lines.push(`Platform:           ${dep.platform}`);
+  lines.push(`Type:               ${dep.type}`);
+  lines.push(`Status:             ${dep.status}`);
+  lines.push(`Environment:        ${dep.environment}`);
+  lines.push(`Deployment Owner:   ${dep.deploymentOwner}`);
+  if (dep.relatedBatch) lines.push(`Related Batch:      ${dep.relatedBatch}`);
+  if (dep.relatedFeature) lines.push(`Related Feature:    ${dep.relatedFeature}`);
+  if (dep.adoWorkItemId) lines.push(`ADO Work Item:      ${dep.adoWorkItemId}`);
+  if (dep.summary) {
+    lines.push("");
+    lines.push(`─────────────────────────────────────────`);
+    lines.push(`NOTES`);
+    lines.push(`─────────────────────────────────────────`);
+    lines.push(dep.summary);
+  }
+  lines.push("");
+  lines.push(`─────────────────────────────────────────`);
+  lines.push(`This notification was generated from the DCT Platform Gate Verification Dashboard.`);
+  lines.push(`For questions, contact the CATT Sr. Business Analyst.`);
+  lines.push("");
+  lines.push(`Thank you,`);
+  lines.push(`CATT Sr. Business Analyst — DCT Platform Delivery`);
+  const body = encodeURIComponent(lines.join("\n"));
+  return `mailto:${poEmail}?subject=${subject}&body=${body}`;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type DeploymentType = "All" | "Batch" | "Bug" | "Technical Story" | "Feature" | "Hotfix";
@@ -241,6 +281,25 @@ function DetailDrawer({ dep, onClose }: { dep: DeploymentRow; onClose: () => voi
           </div>
         )}
 
+        {/* Email to PO */}
+        <div style={{ marginBottom: "20px" }}>
+          <button
+            onClick={() => { window.location.href = buildDeploymentEmail(dep, dep.productOwner.includes("@") ? dep.productOwner : ""); }}
+            style={{
+              display: "flex", alignItems: "center", gap: "8px", width: "100%",
+              padding: "10px 14px", backgroundColor: "#0f1623", color: "#ffffff",
+              border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            <Mail size={14} />
+            Email Deployment Notification to PO
+          </button>
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "5px", paddingLeft: "2px" }}>
+            Opens your email client with deployment details pre-filled. Enter the PO email address in the To field if not auto-populated.
+          </div>
+        </div>
+
         {/* Governance note */}
         <div style={{ fontSize: "11px", color: "#92400e", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "6px", padding: "8px 12px" }}>
           <strong>Governance Note:</strong> This record is part of the DCT Platform non-production governance workspace. All deployment records require formal enterprise implementation outside this workspace.
@@ -249,11 +308,10 @@ function DetailDrawer({ dep, onClose }: { dep: DeploymentRow; onClose: () => voi
     </div>
   );
 }
-
-// ─── Create form ──────────────────────────────────────────────────────────────
-function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+// ─── Create form ───────────────────────────────────────────────────────────────
+function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void }) {
   const createMutation = trpc.deploymentRegistry.create.useMutation({
-    onSuccess: () => { onCreated(); onClose(); },
+    onSuccess: (result) => { onCreated(result as any); },
   });
 
   const [form, setForm] = useState({
@@ -433,6 +491,7 @@ export default function DeploymentRegistry() {
   const [sortBy, setSortBy] = useState<SortBy>("deploymentDate");
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
 
   const utils = trpc.useUtils();
 
@@ -633,6 +692,67 @@ export default function DeploymentRegistry() {
         </div>
       )}
 
+      {/* ── Post-create email prompt ── */}
+      {justCreated && (
+        <>
+          <div
+            onClick={() => setJustCreated(null)}
+            style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", zIndex: 40 }}
+          />
+          <div style={{
+            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            width: "460px", backgroundColor: "#ffffff", borderRadius: "12px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.2)", zIndex: 50, overflow: "hidden",
+          }}>
+            <div style={{ backgroundColor: "#0f1623", padding: "20px 24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#059669", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <CheckCircle2 size={18} color="white" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Deployment Created</div>
+                  <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{justCreated.deploymentId}</div>
+                </div>
+                <button onClick={() => setJustCreated(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#64748b" }}><X size={16} /></button>
+              </div>
+            </div>
+            <div style={{ padding: "24px" }}>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "#0f1623", marginBottom: "4px" }}>{justCreated.releaseName}</div>
+              <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "20px" }}>
+                {justCreated.platform} · {justCreated.type} · {justCreated.deploymentDate}
+              </div>
+              <div style={{ fontSize: "12px", color: "#475569", marginBottom: "16px", lineHeight: "1.6", backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px" }}>
+                Would you like to notify <strong>{justCreated.productOwner}</strong> (Product Owner) about this deployment?
+              </div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={() => { window.location.href = buildDeploymentEmail(justCreated, ""); setJustCreated(null); }}
+                  style={{
+                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                    padding: "10px 16px", backgroundColor: "#0f1623", color: "#ffffff",
+                    border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  <Mail size={14} /> Email to PO
+                </button>
+                <button
+                  onClick={() => setJustCreated(null)}
+                  style={{
+                    padding: "10px 16px", backgroundColor: "#f1f5f9", color: "#475569",
+                    border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer",
+                  }}
+                >
+                  Skip
+                </button>
+              </div>
+              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "8px", textAlign: "center" }}>
+                Opens your email client with deployment details pre-filled.
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* ── Detail drawer ── */}
       {selectedDep && (
         <>
@@ -651,7 +771,7 @@ export default function DeploymentRegistry() {
             onClick={() => setShowCreate(false)}
             style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 40 }}
           />
-          <CreateDeploymentForm onClose={() => setShowCreate(false)} onCreated={handleCreated} />
+          <CreateDeploymentForm onClose={() => setShowCreate(false)} onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); }} />
         </>
       )}
     </div>
