@@ -13,7 +13,10 @@ import {
 } from "lucide-react";
 
 // ─── Email helper ────────────────────────────────────────────────────────────
-function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null; }, poEmail: string) {
+const PO_EMAIL_KEY = "dct_deploy_po_email";
+const CC_EMAIL_KEY = "dct_deploy_cc_email";
+
+function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null; }, poEmail: string, ccEmail?: string) {
   const subject = encodeURIComponent(`[DCT Platform] Deployment Notification — ${dep.releaseName} (${dep.deploymentId})`);
   const lines: string[] = [];
   lines.push(`Hi ${dep.productOwner},`);
@@ -49,7 +52,9 @@ function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; 
   lines.push(`Thank you,`);
   lines.push(`CATT Sr. Business Analyst — DCT Platform Delivery`);
   const body = encodeURIComponent(lines.join("\n"));
-  return `mailto:${poEmail}?subject=${subject}&body=${body}`;
+  let mailto = `mailto:${poEmail}?subject=${subject}&body=${body}`;
+  if (ccEmail) mailto += `&cc=${encodeURIComponent(ccEmail)}`;
+  return mailto;
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -311,16 +316,17 @@ function DetailDrawer({ dep, onClose }: { dep: DeploymentRow; onClose: () => voi
 // ─── Create form ───────────────────────────────────────────────────────────────
 function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void }) {
   const createMutation = trpc.deploymentRegistry.create.useMutation({
-    onSuccess: (result) => { onCreated({ ...(result as any), poEmail: formRef.current?.poEmail }); },
+    onSuccess: (result) => { onCreated({ ...(result as any), poEmail: formRef.current?.poEmail, ccEmail: formRef.current?.ccEmail }); },
   });
-  const formRef = { current: null as null | { poEmail: string } };
+  const formRef = { current: null as null | { poEmail: string; ccEmail: string } };
 
   const [form, setForm] = useState({
     releaseName: "",
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
     productOwner: "",
-    poEmail: "Stephane.Lacombe@rsmus.com",
+    poEmail: (typeof window !== "undefined" && localStorage.getItem(PO_EMAIL_KEY)) || "Stephane.Lacombe@rsmus.com",
+    ccEmail: (typeof window !== "undefined" && localStorage.getItem(CC_EMAIL_KEY)) || "Jenniver.Stafford@rsmus.com",
     platform: "TDC" as PlatformValue,
     type: "Feature" as TypeValue,
     status: "Planned" as DeploymentStatus,
@@ -335,10 +341,14 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
     githubReleaseTag: "",
   });
 
-  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k: string, v: string) => {
+    setForm(f => ({ ...f, [k]: v }));
+    if (k === "poEmail") localStorage.setItem(PO_EMAIL_KEY, v);
+    if (k === "ccEmail") localStorage.setItem(CC_EMAIL_KEY, v);
+  };
 
-  // Keep formRef in sync so onSuccess can read poEmail after mutation
-  formRef.current = { poEmail: form.poEmail };
+  // Keep formRef in sync so onSuccess can read email fields after mutation
+  formRef.current = { poEmail: form.poEmail, ccEmail: form.ccEmail };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -419,16 +429,29 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
             <input required style={fieldStyle} value={form.productOwner} onChange={e => set("productOwner", e.target.value)} placeholder="e.g. Stephane Lacombe" />
           </div>
         </div>
-        <div>
-          <label style={labelStyle}>PO Email Address</label>
-          <input
-            type="email"
-            style={fieldStyle}
-            value={form.poEmail}
-            onChange={e => set("poEmail", e.target.value)}
-            placeholder="e.g. Stephane.Lacombe@rsmus.com"
-          />
-          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Used to pre-fill the Email to PO notification after creation.</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={labelStyle}>PO Email Address</label>
+            <input
+              type="email"
+              style={fieldStyle}
+              value={form.poEmail}
+              onChange={e => set("poEmail", e.target.value)}
+              placeholder="e.g. Stephane.Lacombe@rsmus.com"
+            />
+            <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Saved automatically for future deployments.</div>
+          </div>
+          <div>
+            <label style={labelStyle}>CC Email Address</label>
+            <input
+              type="email"
+              style={fieldStyle}
+              value={form.ccEmail}
+              onChange={e => set("ccEmail", e.target.value)}
+              placeholder="e.g. Jenniver.Stafford@rsmus.com"
+            />
+            <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Saved automatically for future deployments.</div>
+          </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div>
@@ -513,7 +536,7 @@ export default function DeploymentRegistry() {
   const [sortBy, setSortBy] = useState<SortBy>("deploymentDate");
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
+  const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; ccEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
 
   const utils = trpc.useUtils();
 
@@ -748,7 +771,7 @@ export default function DeploymentRegistry() {
               </div>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button
-                  onClick={() => { window.location.href = buildDeploymentEmail(justCreated, justCreated.poEmail ?? ""); setJustCreated(null); }}
+                  onClick={() => { window.location.href = buildDeploymentEmail(justCreated, justCreated.poEmail ?? "", justCreated.ccEmail); setJustCreated(null); }}
                   style={{
                     flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                     padding: "10px 16px", backgroundColor: "#0f1623", color: "#ffffff",
