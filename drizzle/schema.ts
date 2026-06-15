@@ -75,6 +75,12 @@ export const deployments = mysqlTable("deployments", {
   environment: varchar("environment", { length: 64 }).default("Production").notNull(),
   /** Reserved for future Azure DevOps integration */
   adoWorkItemId: varchar("adoWorkItemId", { length: 32 }),
+  /** ADO Feature work item URL */
+  adoFeatureUrl: varchar("adoFeatureUrl", { length: 1024 }),
+  /** ADO Deployment Story work item URL */
+  adoStoryUrl: varchar("adoStoryUrl", { length: 1024 }),
+  /** Release notes bullet points — one per line, used in wiki entry generation */
+  releaseNotesBullets: text("releaseNotesBullets"),
   /** Reserved for future GitHub Releases integration */
   githubReleaseTag: varchar("githubReleaseTag", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

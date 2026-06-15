@@ -35,14 +35,19 @@ function buildWikiEntry(dep: DeploymentRowLike): string {
     lines.push("");
   }
   lines.push(`**Release Notes**`);
-  if (dep.relatedFeature) lines.push(`- ${dep.relatedFeature}`);
-  if (dep.relatedBatch) lines.push(`- Related to ${dep.relatedBatch}`);
-  if (dep.relatedStory) lines.push(`- ${dep.relatedStory}`);
-  if (!dep.relatedFeature && !dep.relatedBatch && !dep.relatedStory) lines.push(`- TBD`);
+  if (dep.releaseNotesBullets && dep.releaseNotesBullets.trim()) {
+    dep.releaseNotesBullets.split("\n").map(b => b.trim()).filter(Boolean).forEach(b => lines.push(`- ${b}`));
+  } else if (dep.relatedFeature) {
+    lines.push(`- ${dep.relatedFeature}`);
+    if (dep.relatedBatch) lines.push(`- Related to ${dep.relatedBatch}`);
+    if (dep.relatedStory) lines.push(`- ${dep.relatedStory}`);
+  } else {
+    lines.push(`- TBD`);
+  }
   lines.push("");
   lines.push(`**Reference Links**`);
-  lines.push(`- ADO Feature: ${dep.releaseNotesUrl ?? "TBD"}`);
-  lines.push(`- ADO Deployment Story: ${adoIds.length > 0 ? adoIds.map(id => `#${id.trim()}`).join(", ") : "TBD"}`);
+  lines.push(`- ADO Feature: ${dep.adoFeatureUrl ?? "TBD"}`);
+  lines.push(`- ADO Deployment Story: ${dep.adoStoryUrl ?? (adoIds.length > 0 ? adoIds.map(id => `#${id.trim()}`).join(", ") : "TBD")}`);
   lines.push(`- Swagger/API Documentation: ${dep.swaggerUrl ?? "TBD"}`);
   lines.push("");
   lines.push(`| Attribute | Value |`);
@@ -64,7 +69,9 @@ interface DeploymentRowLike {
   type: string; status: string; environment: string;
   summary?: string | null; relatedBatch?: string | null;
   relatedFeature?: string | null; relatedStory?: string | null;
-  adoWorkItemId?: string | null; releaseNotesUrl?: string | null;
+  adoWorkItemId?: string | null; adoFeatureUrl?: string | null;
+  adoStoryUrl?: string | null; releaseNotesBullets?: string | null;
+  releaseNotesUrl?: string | null;
   swaggerUrl?: string | null; githubReleaseTag?: string | null;
 }
 
@@ -139,6 +146,9 @@ interface DeploymentRow {
   relatedStory: string | null;
   environment: string;
   adoWorkItemId: string | null;
+  adoFeatureUrl: string | null;
+  adoStoryUrl: string | null;
+  releaseNotesBullets: string | null;
   githubReleaseTag: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -446,6 +456,9 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
     relatedStory: "",
     environment: "Production",
     adoWorkItemId: "",
+    adoFeatureUrl: "",
+    adoStoryUrl: "",
+    releaseNotesBullets: "",
     githubReleaseTag: "",
   });
 
@@ -475,6 +488,9 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
       relatedFeature: form.relatedFeature || undefined,
       relatedStory: form.relatedStory || undefined,
       adoWorkItemId: form.adoWorkItemId || undefined,
+      adoFeatureUrl: form.adoFeatureUrl || undefined,
+      adoStoryUrl: form.adoStoryUrl || undefined,
+      releaseNotesBullets: form.releaseNotesBullets || undefined,
       githubReleaseTag: form.githubReleaseTag || undefined,
     });
   };
@@ -594,10 +610,27 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
           <label style={labelStyle}>Related Story / Bug</label>
           <input style={fieldStyle} value={form.relatedStory} onChange={e => set("relatedStory", e.target.value)} placeholder="e.g. Bug 1401152 or Story #12345" />
         </div>
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>Links & Integration (Optional)</div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>Release Notes</div>
         <div>
-          <label style={labelStyle}>Release Notes URL</label>
-          <input style={fieldStyle} value={form.releaseNotesUrl} onChange={e => set("releaseNotesUrl", e.target.value)} placeholder="https://..." />
+          <label style={labelStyle}>Release Notes Bullets</label>
+          <textarea
+            style={{ ...fieldStyle, minHeight: "100px", resize: "vertical" }}
+            value={form.releaseNotesBullets}
+            onChange={e => set("releaseNotesBullets", e.target.value)}
+            placeholder={"Enter one bullet per line, e.g.:\nKnown Mappings Lookup now returns stable identifiers\nJurisdiction-aware derivation logic added\nBug 1401152 resolved"}
+          />
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>One item per line. Used in the wiki entry Release Notes section.</div>
+        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>ADO Links & Integration (Optional)</div>
+        <div>
+          <label style={labelStyle}>ADO Feature URL</label>
+          <input style={fieldStyle} value={form.adoFeatureUrl} onChange={e => set("adoFeatureUrl", e.target.value)} placeholder="https://dev.azure.com/.../workitems/edit/..." />
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Populates the ADO Feature link in the wiki entry.</div>
+        </div>
+        <div>
+          <label style={labelStyle}>ADO Story / Deployment Story URL</label>
+          <input style={fieldStyle} value={form.adoStoryUrl} onChange={e => set("adoStoryUrl", e.target.value)} placeholder="https://dev.azure.com/.../workitems/edit/..." />
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Populates the ADO Deployment Story link in the wiki entry.</div>
         </div>
         <div>
           <label style={labelStyle}>Swagger / API Docs URL</label>
@@ -1004,14 +1037,19 @@ export default function DeploymentRegistry() {
             lines.push("");
           }
           lines.push(`**Release Notes**`);
-          if (r.relatedFeature) lines.push(`- ${r.relatedFeature}`);
-          if (r.relatedBatch) lines.push(`- Related to ${r.relatedBatch}`);
-          if (r.relatedStory) lines.push(`- ${r.relatedStory}`);
-          if (!r.relatedFeature && !r.relatedBatch && !r.relatedStory) lines.push(`- TBD`);
+          if (r.releaseNotesBullets && r.releaseNotesBullets.trim()) {
+            r.releaseNotesBullets.split("\n").map((b: string) => b.trim()).filter(Boolean).forEach((b: string) => lines.push(`- ${b}`));
+          } else if (r.relatedFeature) {
+            lines.push(`- ${r.relatedFeature}`);
+            if (r.relatedBatch) lines.push(`- Related to ${r.relatedBatch}`);
+            if (r.relatedStory) lines.push(`- ${r.relatedStory}`);
+          } else {
+            lines.push(`- TBD`);
+          }
           lines.push("");
           lines.push(`**Reference Links**`);
-          lines.push(`- ADO Feature: ${r.releaseNotesUrl ?? "TBD"}`);
-          lines.push(`- ADO Deployment Story: ${adoIds.length > 0 ? adoIds.map(id => `#${id.trim()}`).join(", ") : "TBD"}`);
+          lines.push(`- ADO Feature: ${r.adoFeatureUrl ?? "TBD"}`);
+          lines.push(`- ADO Deployment Story: ${r.adoStoryUrl ?? (adoIds.length > 0 ? adoIds.map((id: string) => `#${id.trim()}`).join(", ") : "TBD")}`);
           lines.push(`- Swagger/API Documentation: ${r.swaggerUrl ?? "TBD"}`);
           lines.push("");
           lines.push(`| Attribute | Value |`);

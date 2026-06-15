@@ -166,6 +166,9 @@ export const appRouter = router({
           relatedStory: z.string().optional(),
           environment: z.string().optional(),
           adoWorkItemId: z.string().optional(),
+          adoFeatureUrl: z.string().optional(),
+          adoStoryUrl: z.string().optional(),
+          releaseNotesBullets: z.string().optional(),
           githubReleaseTag: z.string().optional(),
         })
       )
@@ -194,6 +197,9 @@ export const appRouter = router({
           relatedStory: input.relatedStory ?? null,
           environment: input.environment ?? "Production",
           adoWorkItemId: input.adoWorkItemId ?? null,
+          adoFeatureUrl: input.adoFeatureUrl ?? null,
+          adoStoryUrl: input.adoStoryUrl ?? null,
+          releaseNotesBullets: input.releaseNotesBullets ?? null,
           githubReleaseTag: input.githubReleaseTag ?? null,
         });
         return { success: true, deploymentId };
