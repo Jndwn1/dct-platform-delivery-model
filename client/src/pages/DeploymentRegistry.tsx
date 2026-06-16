@@ -1,8 +1,8 @@
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // Deployment Registry - DCT Platform Release History
 // Authoritative release history: Batches · Features · Stories · Bugs · Tech Stories
 // Design: matches existing RSM dark-theme administrative dashboard styling
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import GovernanceBanner from "@/components/GovernanceBanner";
@@ -12,7 +12,7 @@ import {
   Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail, Copy, BookOpen, Pencil,
 } from "lucide-react";
 
-// ─── Wiki entry helper ───────────────────────────────────────────────────────
+// --- Wiki entry helper -------------------------------------------------------
 function buildWikiEntry(dep: DeploymentRowLike): string {
   const anchor = dep.releaseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   const adoIds = dep.adoWorkItemId ? dep.adoWorkItemId.split(/[,\s]+/).filter(Boolean) : [];
@@ -75,7 +75,7 @@ interface DeploymentRowLike {
   swaggerUrl?: string | null; githubReleaseTag?: string | null;
 }
 
-// ─── Email helper ────────────────────────────────────────────────────────────
+// --- Email helper ------------------------------------------------------------
 const PO_EMAIL_KEY = "dct_deploy_po_email";
 const CC_EMAIL_KEY = "dct_deploy_cc_email";
 
@@ -86,9 +86,9 @@ function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; 
   lines.push("");
   lines.push(`A new deployment has been recorded in the DCT Platform Deployment Registry.`);
   lines.push("");
-  lines.push(`─────────────────────────────────────────`);
+  lines.push(`-----------------------------------------`);
   lines.push(`DEPLOYMENT SUMMARY`);
-  lines.push(`─────────────────────────────────────────`);
+  lines.push(`-----------------------------------------`);
   lines.push(`Release Name:       ${dep.releaseName}`);
   lines.push(`Deployment ID:      ${dep.deploymentId}`);
   lines.push(`Date:               ${dep.deploymentDate}`);
@@ -102,13 +102,13 @@ function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; 
   if (dep.adoWorkItemId) lines.push(`ADO Work Item:      ${dep.adoWorkItemId}`);
   if (dep.summary) {
     lines.push("");
-    lines.push(`─────────────────────────────────────────`);
+    lines.push(`-----------------------------------------`);
     lines.push(`NOTES`);
-    lines.push(`─────────────────────────────────────────`);
+    lines.push(`-----------------------------------------`);
     lines.push(dep.summary);
   }
   lines.push("");
-  lines.push(`─────────────────────────────────────────`);
+  lines.push(`-----------------------------------------`);
   lines.push(`This notification was generated from the DCT Platform Gate Verification Dashboard.`);
   lines.push(`For questions, contact the CATT Sr. Business Analyst.`);
   lines.push("");
@@ -120,7 +120,7 @@ function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; 
   return mailto;
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// --- Types --------------------------------------------------------------------
 type DeploymentType = "All" | "Batch" | "Bug" | "Technical Story" | "Feature" | "Hotfix";
 type PlatformFilter = "All" | "PDC" | "TDC" | "Platform" | "Both";
 type SortBy = "deploymentDate" | "releaseName" | "deploymentOwner";
@@ -154,7 +154,7 @@ interface DeploymentRow {
   updatedAt: Date;
 }
 
-// ─── Style helpers ────────────────────────────────────────────────────────────
+// --- Style helpers ------------------------------------------------------------
 const STATUS_STYLE: Record<DeploymentStatus, { bg: string; color: string; dot: string }> = {
   "Deployed":    { bg: "#f0fdf4", color: "#166534", dot: "#059669" },
   "In Progress": { bg: "#eff6ff", color: "#1e40af", dot: "#3b82f6" },
@@ -178,7 +178,7 @@ const PLATFORM_COLOR: Record<PlatformValue, string> = {
   Both: "#d97706",
 };
 
-// ─── Status badge ─────────────────────────────────────────────────────────────
+// --- Status badge -------------------------------------------------------------
 function StatusBadge({ status }: { status: DeploymentStatus }) {
   const s = STATUS_STYLE[status] ?? STATUS_STYLE["Planned"];
   return (
@@ -193,7 +193,7 @@ function StatusBadge({ status }: { status: DeploymentStatus }) {
   );
 }
 
-// ─── Type badge ───────────────────────────────────────────────────────────────
+// --- Type badge ---------------------------------------------------------------
 function TypeBadge({ type }: { type: TypeValue }) {
   const t = TYPE_STYLE[type] ?? TYPE_STYLE["Feature"];
   return (
@@ -208,7 +208,7 @@ function TypeBadge({ type }: { type: TypeValue }) {
   );
 }
 
-// ─── Summary card ─────────────────────────────────────────────────────────────
+// --- Summary card -------------------------------------------------------------
 function SummaryCard({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
   return (
     <div style={{
@@ -226,7 +226,7 @@ function SummaryCard({ label, value, color, icon }: { label: string; value: numb
   );
 }
 
-// ─── Detail drawer ────────────────────────────────────────────────────────────────
+// --- Detail drawer ----------------------------------------------------------------
 function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: () => void; onEdit: (dep: DeploymentRow) => void }) {
   const [showWiki, setShowWiki] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -444,7 +444,7 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
     </div>
   );
 }
-// ─── Create form ───────────────────────────────────────────────────────────────
+// --- Create form ---------------------------------------------------------------
 function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void }) {
   const createMutation = trpc.deploymentRegistry.create.useMutation({
     onSuccess: (result) => { onCreated({ ...(result as any), poEmail: formRef.current?.poEmail, ccEmail: formRef.current?.ccEmail }); },
@@ -682,7 +682,7 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
   );
 }
 
-// ─── Edit form ───────────────────────────────────────────────────────────────
+// --- Edit form ---------------------------------------------------------------
 function EditDeploymentForm({ dep, onClose, onSaved }: { dep: DeploymentRow; onClose: () => void; onSaved: () => void }) {
   const updateMutation = trpc.deploymentRegistry.update.useMutation({
     onSuccess: () => { onSaved(); onClose(); },
@@ -893,7 +893,7 @@ function EditDeploymentForm({ dep, onClose, onSaved }: { dep: DeploymentRow; onC
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// --- Main page ----------------------------------------------------------------
 export default function DeploymentRegistry() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<DeploymentType>("All");
@@ -933,7 +933,7 @@ export default function DeploymentRegistry() {
 
   return (
     <div style={{ padding: "28px 32px", maxWidth: "1200px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
-      {/* ── Page header ── */}
+      {/* -- Page header -- */}
       <div style={{ marginBottom: "24px", borderBottom: "2px solid #e2e8f0", paddingBottom: "18px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -970,7 +970,7 @@ export default function DeploymentRegistry() {
 
       <GovernanceBanner />
 
-      {/* ── Summary cards ── */}
+      {/* -- Summary cards -- */}
       <div style={{ display: "flex", gap: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
         <SummaryCard label="Total Deployments"     value={summary.total}              color="#0f1623" icon={<Rocket size={14} />} />
         <SummaryCard label="Production Releases"   value={summary.production}         color="#059669" icon={<CheckCircle2 size={14} />} />
@@ -979,7 +979,7 @@ export default function DeploymentRegistry() {
         <SummaryCard label="Open Rollback Candidates" value={summary.rollbackCandidates} color="#dc2626" icon={<RotateCcw size={14} />} />
       </div>
 
-      {/* ── Search, filters, create ── */}
+      {/* -- Search, filters, create -- */}
       <div style={{
         display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap", alignItems: "center",
         backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px",
@@ -1075,7 +1075,7 @@ export default function DeploymentRegistry() {
         </button>
       </div>
 
-      {/* ── Table ── */}
+      {/* -- Table -- */}
       <div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
         {/* Table header */}
         <div style={{
@@ -1137,7 +1137,7 @@ export default function DeploymentRegistry() {
         </div>
       )}
 
-      {/* ── Standalone Email to PO modal ── */}
+      {/* -- Standalone Email to PO modal -- */}
       {showEmailModal && (() => {
         const poEmail = (typeof window !== "undefined" && localStorage.getItem(PO_EMAIL_KEY)) || "Stephane.Lacombe@rsmus.com";
         const ccEmail = (typeof window !== "undefined" && localStorage.getItem(CC_EMAIL_KEY)) || "Jenniver.Stafford@rsmus.com";
@@ -1147,24 +1147,24 @@ export default function DeploymentRegistry() {
         lines.push("");
         lines.push(`This is a summary of the current DCT Platform Deployment Registry.`);
         lines.push("");
-        lines.push(`─────────────────────────────────────────`);
+        lines.push(`-----------------------------------------`);
         lines.push(`DEPLOYMENT REGISTRY SUMMARY`);
-        lines.push(`─────────────────────────────────────────`);
+        lines.push(`-----------------------------------------`);
         lines.push(`Total Deployments:    ${rows.length}`);
         lines.push(`PDC Deployments:      ${rows.filter(r => r.platform === "PDC").length}`);
         lines.push(`TDC Deployments:      ${rows.filter(r => r.platform === "TDC").length}`);
         lines.push(`Deployed:             ${rows.filter(r => r.status === "Deployed").length}`);
         lines.push("");
-        lines.push(`─────────────────────────────────────────`);
+        lines.push(`-----------------------------------------`);
         lines.push(`DEPLOYMENT RECORDS`);
-        lines.push(`─────────────────────────────────────────`);
+        lines.push(`-----------------------------------------`);
         rows.forEach((r, i) => {
           lines.push(`${i + 1}. ${r.releaseName}`);
           lines.push(`   Date: ${r.deploymentDate} | Platform: ${r.platform} | Type: ${r.type} | Status: ${r.status}`);
           lines.push(`   Owner: ${r.deploymentOwner} | PO: ${r.productOwner}`);
           lines.push("");
         });
-        lines.push(`─────────────────────────────────────────`);
+        lines.push(`-----------------------------------------`);
         lines.push(`This summary was generated from the DCT Platform Gate Verification Dashboard.`);
         lines.push(`For questions, contact the CATT Sr. Business Analyst.`);
         lines.push("");
@@ -1240,7 +1240,7 @@ export default function DeploymentRegistry() {
         );
       })()}
 
-      {/* ── Generate All Wiki Entries modal ── */}
+      {/* -- Generate All Wiki Entries modal -- */}
       {showAllWiki && (() => {
         // Build a single table only: header + separator + one row per deployment
         const tableLines: string[] = [];
@@ -1319,7 +1319,7 @@ export default function DeploymentRegistry() {
         );
       })()}
 
-      {/* ── Post-create email prompt ── */}
+      {/* -- Post-create email prompt -- */}
       {justCreated && (
         <>
           <div
@@ -1380,7 +1380,7 @@ export default function DeploymentRegistry() {
         </>
       )}
 
-      {/* ── Detail drawer ── */}
+      {/* -- Detail drawer -- */}
       {selectedDep && (
         <>
           <div
@@ -1391,7 +1391,7 @@ export default function DeploymentRegistry() {
         </>
       )}
 
-      {/* ── Edit form drawer ── */}
+      {/* -- Edit form drawer -- */}
       {editDep && (
         <>
           <div
@@ -1402,7 +1402,7 @@ export default function DeploymentRegistry() {
         </>
       )}
 
-      {/* ── Create form drawer ── */}
+      {/* -- Create form drawer -- */}
       {showCreate && (
         <>
           <div

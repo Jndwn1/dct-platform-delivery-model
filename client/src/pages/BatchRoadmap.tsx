@@ -4,11 +4,61 @@
 // Design: Executive-readable, PI-grouped, Feature-collapsed by default
 // Last refreshed: 2026-05-28 | Source: DCT_Batch_Roadmap_v4_corrected.docx
 // Non-production workspace — architecture visualization and readiness planning only
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight, CheckCircle2, Clock, Circle, AlertTriangle, Play, ArrowRight, Info } from "lucide-react";
+import { useBatchStatus, type BatchStatus } from "@/contexts/BatchStatusContext";
+
+// Maps BatchStatusContext BatchStatus values to the BatchRoadmap StatusType
+function contextToRoadmapStatus(s: BatchStatus): StatusType {
+  if (s === "Complete" || s === "Done" || s === "Delivered") return "Complete";
+  if (s === "Committed" || s === "In Progress" || s === "Demo Ready" || s === "Ready for QA" || s === "QA In Progress") return "Committed";
+  if (s === "New") return "Active";
+  if (s === "Stretch" || s === "MVP" || s === "Post-MVP") return "Stretch";
+  // Not Started, On Hold, Blocked -> Planned
+  return "Planned";
+}
+
+// Maps a FEATURES batch label (e.g. "B10", "FC") to a BatchStatusContext key
+function batchLabelToContextKey(batch: string, id: string): string | null {
+  const b = batch.toUpperCase();
+  if (b === "FC") return "foundation-core";
+  if (b === "B1")  return "1";
+  if (b === "B2")  return id.includes("b2a") ? "2a" : "2";
+  if (b === "B2A") return "2a";
+  if (b === "B3")  return "3";
+  if (b === "B4")  return "4";
+  if (b === "B5")  return "5";
+  if (b === "B6")  return "6";
+  if (b === "B7")  return "7";
+  if (b === "B8")  return id.includes("pdc") ? "8-pdc" : id.includes("tdc") ? "8-tdc" : "8";
+  if (b === "B9")  return id.includes("pdc") ? "9-pdc" : id.includes("tdc") ? "9-tdc" : "9";
+  if (b === "B9A" || b === "B9-A") return "9a";
+  if (b === "B10") return "10";
+  if (b === "B11") return "11";
+  if (b === "B12") return "12";
+  if (b === "B13") return "13";
+  if (b === "B16") return "16";
+  if (b === "B17") return "17";
+  if (b === "B19") return "19";
+  if (b === "B20") return "20";
+  if (b === "B21") return "21";
+  if (b === "B22") return "22";
+  if (b === "B23") return "23";
+  if (b === "B26") return "26";
+  if (b === "B28") return "28";
+  if (b === "B29") return "29";
+  if (b === "B31") return "31";
+  if (b === "B33") return "33";
+  if (b === "B35") return "35";
+  if (b === "B39") return "39";
+  if (b === "B40") return "40";
+  if (b === "B42") return "42";
+  if (b === "B43") return "43";
+  return null;
+}
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 type OwnerType = "PDC" | "TDC" | "Platform" | "PDC+TDC";
@@ -801,12 +851,26 @@ export default function BatchRoadmap() {
   const [showEpicIndex, setShowEpicIndex] = useState(false);
   const [showDeps, setShowDeps] = useState(false);
 
+  // Live sync from BatchStatusContext
+  const { statuses } = useBatchStatus();
+
+  // Derive live features by overriding status from context where a key mapping exists
+  const liveFeatures = useMemo(() => {
+    return FEATURES.map(f => {
+      const ctxKey = batchLabelToContextKey(f.batch, f.id);
+      if (!ctxKey) return f;
+      const ctxStatus = statuses[ctxKey as keyof typeof statuses];
+      if (!ctxStatus) return f;
+      return { ...f, status: contextToRoadmapStatus(ctxStatus) };
+    });
+  }, [statuses]);
+
   const toggle = (id: string) => setExpanded(prev => prev === id ? "" : id);
 
-  // Stats
-  const totalFeatures = FEATURES.length;
-  const completedFeatures = FEATURES.filter(f => f.status === "Complete").length;
-  const activeFeatures = FEATURES.filter(f => f.status === "Active" || f.status === "Committed").length;
+  // Stats — derived from live context-synced features
+  const totalFeatures = liveFeatures.length;
+  const completedFeatures = liveFeatures.filter(f => f.status === "Complete").length;
+  const activeFeatures = liveFeatures.filter(f => f.status === "Active" || f.status === "Committed").length;
 
   return (
     <div style={{ padding: "24px 28px", maxWidth: "980px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
@@ -941,7 +1005,7 @@ export default function BatchRoadmap() {
 
       {/* ── PI Sections ── */}
       {PI_GROUPS.map(group => {
-        const groupFeatures = FEATURES.filter(f => f.pi === group.pi);
+        const groupFeatures = liveFeatures.filter(f => f.pi === group.pi);
         return (
           <div key={group.pi} style={{ marginBottom: "20px" }}>
             {/* PI header */}
