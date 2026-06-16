@@ -28,6 +28,196 @@ interface Capability {
   sampleQuestions: string[];
 }
 
+// ─── PLATFORM TOUR STEPS ─────────────────────────────────────────────────────
+
+interface TourStep {
+  id: string;
+  section: string;
+  navLabel: string;
+  icon: string;
+  accentColor: string;
+  buddyMessage: string;
+  highlights: string[];
+  examplePrompt?: string;
+}
+
+const TOUR_STEPS: TourStep[] = [
+  {
+    id: "welcome",
+    section: "Welcome",
+    navLabel: "Welcome",
+    icon: "👋",
+    accentColor: "#0d9488",
+    buddyMessage: `Welcome to the DCT Platform.
+
+I'm Buddy, your DCT Business Analysis Assistant.
+
+Think of me as your guide to everything in this workspace.
+
+I can explain batches, stories, APIs, architecture, governance rules, deployments, Roger integrations, gates, agents, and platform data.
+
+Let's take a quick tour.`,
+    highlights: ["Ask Buddy", "Platform Tour", "Data Sources", "Clear Chat"],
+  },
+  {
+    id: "delivery",
+    section: "Delivery Model",
+    navLabel: "Delivery Model",
+    icon: "🚀",
+    accentColor: "#059669",
+    buddyMessage: `The Delivery Model is where all DCT Features are organized by Program Increment (PI).
+
+Here you can view:
+
+• Current batches
+• Delivery status
+• PI planning
+• Feature progression
+• Platform ownership
+
+If you want to know:
+- What is being delivered?
+- What batch are we on?
+- What is in scope?
+
+Start here.`,
+    highlights: ["PI 2", "PI 3", "Batches", "Done", "Committed", "Stretch", "MVP"],
+    examplePrompt: "What batches are in PI 3?",
+  },
+  {
+    id: "gates",
+    section: "Gates",
+    navLabel: "Gates",
+    icon: "✅",
+    accentColor: "#2563eb",
+    buddyMessage: `Gates represent delivery readiness checkpoints.
+
+Each gate validates a different aspect of platform quality and governance.
+
+• Gate 1 — Schema Lock: All data contracts are finalized and locked.
+• Gate 2 — Invariant Lock: Business rules and constraints are verified.
+• Gate 3 — Contract Publishing: APIs and interfaces are published and stable.
+• Gate 4 — Lineage Certification: Full data lineage is traceable and certified.
+
+A batch cannot advance until its gates are passed.`,
+    highlights: ["Gate 1 — Schema Lock", "Gate 2 — Invariant Lock", "Gate 3 — Contract Publishing", "Gate 4 — Lineage Certification"],
+    examplePrompt: "Buddy, why is Gate 4 still in progress?",
+  },
+  {
+    id: "agents",
+    section: "Agents",
+    navLabel: "Agents",
+    icon: "🤖",
+    accentColor: "#7c3aed",
+    buddyMessage: `Agents are specialized AI assistants that support delivery activities.
+
+• Analyst Agent — Requirements and discovery support. Helps BAs define scope, write stories, and identify gaps.
+
+• Architect Agent — Architecture and technical design guidance. Explains system relationships, ADRs, and guardrails.
+
+• Developer Agent — Implementation and API assistance. Supports engineers with contracts, endpoints, and integration patterns.
+
+• QA Agent — Testing and validation support. Assists with test coverage, invariant verification, and gate readiness.
+
+Each agent operates within defined ownership boundaries.`,
+    highlights: ["Analyst Agent", "Architect Agent", "Developer Agent", "QA Agent"],
+    examplePrompt: "What agents are available on the platform?",
+  },
+  {
+    id: "ba",
+    section: "BA & Requirements",
+    navLabel: "BA & Requirements",
+    icon: "📋",
+    accentColor: "#0891b2",
+    buddyMessage: `This section contains the primary Business Analysis tools used by DCT.
+
+• Deployment Registry — Tracks all platform deployments and release history. Use when reviewing release notes or understanding production changes.
+
+• Batch Control Panel — Central command center for batch management. Use when reviewing scope, managing delivery, or tracking status.
+
+• Gate Status — Real-time gate progression. Use when determining readiness or tracking approvals.
+
+• Touchpoints (T1–T11) — Cross-team integration map. Shows where DCT interacts with Roger, IMS, TIM, EODS, and other platforms.
+
+• Data Model & Gaps — Platform source of truth for data architecture.
+
+• Classification Wall — Review taxonomy classifications and mapping decisions.`,
+    highlights: ["Deployment Registry", "Batch Control Panel", "Gate Status", "Touchpoints T1–T11", "Data Model & Gaps", "Classification Wall"],
+    examplePrompt: "Show me the latest deployment.",
+  },
+  {
+    id: "roger",
+    section: "Roger UI",
+    navLabel: "Roger UI",
+    icon: "🔗",
+    accentColor: "#be185d",
+    buddyMessage: `Roger is the consumer-facing experience for reviewing and managing tax decisions.
+
+• Consumer Integration — View DCT → Roger integration points and how data flows from the platform to practitioners.
+
+• Integration Simulation — Simulate end-to-end workflow behavior. Use when training users, testing scenarios, or demonstrating flows.
+
+• Roger API Evolution — Track Roger API versions and changes over time.
+
+Roger is read-only from DCT's perspective. DCT produces the data; Roger consumes it.`,
+    highlights: ["Consumer Integration", "Integration Simulation", "Roger API Evolution", "Read-Only Output"],
+    examplePrompt: "How does DCT send data to Roger?",
+  },
+  {
+    id: "governance",
+    section: "Governance",
+    navLabel: "Governance",
+    icon: "⚖",
+    accentColor: "#b45309",
+    buddyMessage: `Governance ensures platform decisions remain controlled, traceable, and compliant.
+
+• Gap Analysis Engine — Identify process, architecture, and data gaps across the platform.
+
+• AAP Review Model — Governance review workflow for architecture and delivery decisions.
+
+• Batch Delivery Review — Delivery readiness and governance validation before promotion.
+
+• Data Governance & Source of Truth — Defines authoritative ownership of data. Use when determining system ownership or resolving conflicts.
+
+• Roger UI Data Mapping — Maps Roger UI fields to DCT data structures.
+
+Every major decision should have a governance artifact.`,
+    highlights: ["Gap Analysis Engine", "AAP Review Model", "Batch Delivery Review", "Data Governance", "Roger UI Data Mapping"],
+    examplePrompt: "What are the architecture guardrails?",
+  },
+  {
+    id: "architecture",
+    section: "Architecture & Diagrams",
+    navLabel: "Architecture",
+    icon: "🏗",
+    accentColor: "#1e40af",
+    buddyMessage: `This section contains the technical blueprints of the platform.
+
+• Agent Hub — Central view of AI agents and their interactions across the platform.
+
+• Architecture Diagram — High-level platform architecture. Best starting point for new users and stakeholder presentations.
+
+• Architecture Sync — Shows latest synchronization status between platform components.
+
+• Developer Architecture — Detailed implementation design. Used by developers and architects for deep technical reference.
+
+You're now ready to explore the DCT Platform.
+
+Remember: If you're ever unsure where to go, simply ask me.
+
+Examples:
+• Where can I find Batch 42?
+• What does this gate mean?
+• Which API supports this feature?
+• Show me the architecture.
+• What changed in the latest deployment?
+
+I can guide you directly to the correct area.`,
+    highlights: ["Agent Hub", "Architecture Diagram", "Architecture Sync", "Developer Architecture"],
+    examplePrompt: "Show me the platform architecture.",
+  },
+];
+
 // ─── CAPABILITIES ────────────────────────────────────────────────────────────
 
 const CAPABILITIES: Capability[] = [
@@ -138,12 +328,6 @@ const CAPABILITIES: Capability[] = [
   },
 ];
 
-// ─── LIVE QUERY ENGINE ───────────────────────────────────────────────────────
-// Replaced by LLM backend (tRPC askBuddy.chat). queryPlatform is no longer used.
-// The server-side platformContext.ts builds the full system prompt from live data.
-
-// (queryPlatform removed — all queries now handled by LLM backend via tRPC askBuddy.chat)
-
 // ─── KNOWLEDGE SOURCES ───────────────────────────────────────────────────────
 
 const KNOWLEDGE_SOURCES = [
@@ -160,10 +344,11 @@ const KNOWLEDGE_SOURCES = [
   { label: "Meeting Notes", icon: "📄", status: "Pending" },
 ];
 
+const TOUR_STORAGE_KEY = "dct_platform_tour_completed";
+
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
 
 export default function AskBuddy() {
-  // Pre-fill input from ?prompt= URL query parameter (used by AboutSectionPanel Ask Buddy button)
   const initialPrompt = typeof window !== "undefined"
     ? decodeURIComponent(new URLSearchParams(window.location.search).get("prompt") ?? "")
     : "";
@@ -182,12 +367,137 @@ export default function AskBuddy() {
   const [activeCapability, setActiveCapability] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [showSources, setShowSources] = useState(false);
+
+  // Tour state
+  const [tourActive, setTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [showTourPrompt, setShowTourPrompt] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // First-time user popup
+  useEffect(() => {
+    const completed = localStorage.getItem(TOUR_STORAGE_KEY);
+    if (!completed) {
+      const timer = setTimeout(() => setShowTourPrompt(true), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Keyboard shortcuts for tour navigation
+  useEffect(() => {
+    if (!tourActive) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        handleTourNext();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleTourPrev();
+      } else if (e.key === "Escape") {
+        handleTourSkip();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [tourActive, tourStep]);
+
+  const startTour = () => {
+    setTourActive(true);
+    setTourStep(0);
+    setShowTourPrompt(false);
+    // Inject the welcome tour message into chat
+    const step = TOUR_STEPS[0];
+    const tourMsg: Message = {
+      id: `tour-${Date.now()}`,
+      role: "buddy",
+      text: step.buddyMessage,
+      timestamp: new Date(),
+      capability: "onboarding",
+      sources: ["Platform Tour"],
+    };
+    setMessages([
+      {
+        id: "welcome",
+        role: "buddy",
+        text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. I pull live data directly from the Control Panel — batch status, stories, invariants, ownership, gates, agents, and governance rules. Ask me anything.",
+        timestamp: new Date(),
+        capability: "welcome",
+        sources: [],
+      },
+      tourMsg,
+    ]);
+  };
+
+  const handleTourNext = () => {
+    const nextStep = tourStep + 1;
+    if (nextStep >= TOUR_STEPS.length) {
+      // Tour complete
+      setTourActive(false);
+      localStorage.setItem(TOUR_STORAGE_KEY, "true");
+      const doneMsg: Message = {
+        id: `tour-done-${Date.now()}`,
+        role: "buddy",
+        text: "🎉 Tour complete! You now know your way around the DCT Platform.\n\nFeel free to ask me anything — I'm always here to help.",
+        timestamp: new Date(),
+        capability: "onboarding",
+        sources: ["Platform Tour"],
+      };
+      setMessages((prev) => [...prev, doneMsg]);
+      return;
+    }
+    setTourStep(nextStep);
+    const step = TOUR_STEPS[nextStep];
+    const tourMsg: Message = {
+      id: `tour-${Date.now()}`,
+      role: "buddy",
+      text: step.buddyMessage,
+      timestamp: new Date(),
+      capability: "onboarding",
+      sources: ["Platform Tour"],
+    };
+    setMessages((prev) => [...prev, tourMsg]);
+  };
+
+  const handleTourPrev = () => {
+    if (tourStep === 0) return;
+    const prevStep = tourStep - 1;
+    setTourStep(prevStep);
+    const step = TOUR_STEPS[prevStep];
+    const tourMsg: Message = {
+      id: `tour-${Date.now()}`,
+      role: "buddy",
+      text: `↩ Going back to: ${step.section}\n\n${step.buddyMessage}`,
+      timestamp: new Date(),
+      capability: "onboarding",
+      sources: ["Platform Tour"],
+    };
+    setMessages((prev) => [...prev, tourMsg]);
+  };
+
+  const handleTourSkip = () => {
+    setTourActive(false);
+    localStorage.setItem(TOUR_STORAGE_KEY, "true");
+    const skipMsg: Message = {
+      id: `tour-skip-${Date.now()}`,
+      role: "buddy",
+      text: "Tour skipped. You can restart it anytime using the 🎓 Platform Tour button.\n\nAsk me anything about the DCT Platform!",
+      timestamp: new Date(),
+      capability: "onboarding",
+      sources: [],
+    };
+    setMessages((prev) => [...prev, skipMsg]);
+  };
+
+  const handleTourRestart = () => {
+    localStorage.removeItem(TOUR_STORAGE_KEY);
+    startTour();
+  };
 
   const chatMutation = trpc.askBuddy.chat.useMutation({
     onSuccess: (data) => {
@@ -218,6 +528,8 @@ export default function AskBuddy() {
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
+    // If tour is active, pause it when user types
+    if (tourActive) setTourActive(false);
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -228,7 +540,6 @@ export default function AskBuddy() {
     setInput("");
     setIsTyping(true);
 
-    // Build conversation history for the LLM (exclude welcome message)
     const history = messages
       .filter((m) => m.id !== "welcome")
       .map((m) => ({
@@ -260,7 +571,7 @@ export default function AskBuddy() {
   const formatText = (text: string) => {
     return text
       .split("\n")
-      .map((line, i) => {
+      .map((line) => {
         line = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
         if (line.startsWith("• ")) {
           return `<li style="margin-left:1.2rem;list-style:disc;margin-bottom:0.15rem">${line.slice(2)}</li>`;
@@ -276,9 +587,64 @@ export default function AskBuddy() {
   const statusColor = (s: string) =>
     s === "Live" ? "#059669" : s === "Reference" ? "#0891b2" : "#9ca3af";
 
+  const currentTourStep = TOUR_STEPS[tourStep];
+
   return (
     <div style={{ background: "#f8fafc", minHeight: "100vh" }}>
       <GovernanceBanner />
+
+      {/* ── First-time Tour Prompt ── */}
+      {showTourPrompt && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.55)", zIndex: 1000,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: 14, padding: "2rem 2.5rem",
+            maxWidth: 460, width: "90%", textAlign: "center",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          }}>
+            <img
+              src="/manus-storage/SuperCATTlogo_55cea789.png"
+              alt="Buddy"
+              style={{ width: 72, height: 72, objectFit: "contain", marginBottom: "1rem" }}
+            />
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.5rem" }}>
+              Welcome to the DCT Platform!
+            </h2>
+            <p style={{ color: "#475569", fontSize: "0.9rem", lineHeight: 1.6, margin: "0 0 1.5rem" }}>
+              Would you like Buddy to give you a quick platform tour? It covers all major sections and takes about 5 minutes.
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+              <button
+                onClick={startTour}
+                style={{
+                  background: "#0d9488", color: "#fff", border: "none",
+                  borderRadius: 8, padding: "0.6rem 1.5rem",
+                  fontWeight: 700, fontSize: "0.9rem", cursor: "pointer",
+                }}
+              >
+                🎓 Yes, Start Tour
+              </button>
+              <button
+                onClick={() => {
+                  setShowTourPrompt(false);
+                  localStorage.setItem(TOUR_STORAGE_KEY, "true");
+                }}
+                style={{
+                  background: "transparent", color: "#64748b",
+                  border: "1px solid #e2e8f0", borderRadius: 8,
+                  padding: "0.6rem 1.5rem", fontWeight: 600,
+                  fontSize: "0.9rem", cursor: "pointer",
+                }}
+              >
+                Skip for Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Page Header ── */}
       <div style={{ background: "#0f172a", padding: "1.5rem 2rem", borderBottom: "3px solid #0d9488" }}>
@@ -297,14 +663,33 @@ export default function AskBuddy() {
                 AI ASSISTANT
               </span>
               <span style={{ background: "#1e3a5f", color: "#7dd3fc", fontSize: "0.65rem", fontWeight: 700, padding: "0.2rem 0.6rem", borderRadius: 4, letterSpacing: "0.08em" }}>
-                LIVE DATA
+                NON-PRODUCTION
               </span>
             </div>
             <p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>
               Pulling live data from the Control Panel · Batch Registry · Platform Data · Governance Rules
             </p>
           </div>
-          <div style={{ marginLeft: "auto", display: "flex", gap: "0.75rem" }}>
+          <div style={{ marginLeft: "auto", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            {/* Platform Tour Button */}
+            <button
+              onClick={tourActive ? handleTourRestart : startTour}
+              style={{
+                background: tourActive ? "#0d9488" : "#1e3a5f",
+                color: "#fff",
+                border: `1px solid ${tourActive ? "#0d9488" : "#334155"}`,
+                borderRadius: 6,
+                padding: "0.4rem 0.9rem",
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4rem",
+              }}
+            >
+              🎓 {tourActive ? "Restart Tour" : "Platform Tour"}
+            </button>
             <button
               onClick={() => setShowSources(!showSources)}
               style={{
@@ -321,14 +706,17 @@ export default function AskBuddy() {
               📚 Data Sources
             </button>
             <button
-              onClick={() => setMessages([{
-                id: "welcome",
-                role: "buddy",
-                text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. I pull live data directly from the Control Panel — batch status, stories, invariants, ownership, gates, agents, and governance rules. Ask me anything.",
-                timestamp: new Date(),
-                capability: "welcome",
-                sources: [],
-              }])}
+              onClick={() => {
+                setTourActive(false);
+                setMessages([{
+                  id: "welcome",
+                  role: "buddy",
+                  text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. I pull live data directly from the Control Panel — batch status, stories, invariants, ownership, gates, agents, and governance rules. Ask me anything.",
+                  timestamp: new Date(),
+                  capability: "welcome",
+                  sources: [],
+                }]);
+              }}
               style={{
                 background: "transparent",
                 color: "#94a3b8",
@@ -345,6 +733,124 @@ export default function AskBuddy() {
           </div>
         </div>
       </div>
+
+      {/* ── Tour Progress Bar ── */}
+      {tourActive && (
+        <div style={{ background: "#0f172a", borderBottom: "1px solid #1e293b", padding: "0.6rem 2rem" }}>
+          <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", gap: "1rem" }}>
+            <span style={{ color: "#94a3b8", fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+              PLATFORM TOUR
+            </span>
+            {/* Step dots */}
+            <div style={{ display: "flex", gap: "0.4rem", flex: 1, alignItems: "center" }}>
+              {TOUR_STEPS.map((step, i) => (
+                <div
+                  key={step.id}
+                  title={step.navLabel}
+                  style={{
+                    height: 6,
+                    flex: 1,
+                    borderRadius: 3,
+                    background: i <= tourStep ? "#0d9488" : "#1e293b",
+                    transition: "background 0.3s ease",
+                    cursor: "default",
+                  }}
+                />
+              ))}
+            </div>
+            <span style={{ color: "#94a3b8", fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+              Step {tourStep + 1} of {TOUR_STEPS.length} — {currentTourStep.icon} {currentTourStep.navLabel}
+            </span>
+            {/* Nav buttons */}
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              <button
+                onClick={handleTourPrev}
+                disabled={tourStep === 0}
+                style={{
+                  background: tourStep === 0 ? "#1e293b" : "#334155",
+                  color: tourStep === 0 ? "#475569" : "#e2e8f0",
+                  border: "none", borderRadius: 5,
+                  padding: "0.3rem 0.7rem", fontSize: "0.75rem",
+                  fontWeight: 600, cursor: tourStep === 0 ? "not-allowed" : "pointer",
+                }}
+              >
+                ← Prev
+              </button>
+              <button
+                onClick={handleTourNext}
+                style={{
+                  background: "#0d9488", color: "#fff",
+                  border: "none", borderRadius: 5,
+                  padding: "0.3rem 0.7rem", fontSize: "0.75rem",
+                  fontWeight: 700, cursor: "pointer",
+                }}
+              >
+                {tourStep === TOUR_STEPS.length - 1 ? "Finish ✓" : "Next →"}
+              </button>
+              <button
+                onClick={handleTourSkip}
+                style={{
+                  background: "transparent", color: "#64748b",
+                  border: "1px solid #334155", borderRadius: 5,
+                  padding: "0.3rem 0.7rem", fontSize: "0.75rem",
+                  fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                Skip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Tour Section Highlight Card ── */}
+      {tourActive && (
+        <div style={{ background: "#f0fdf4", borderBottom: `3px solid ${currentTourStep.accentColor}`, padding: "0.75rem 2rem" }}>
+          <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <span style={{ fontSize: "1.4rem" }}>{currentTourStep.icon}</span>
+              <div>
+                <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, color: currentTourStep.accentColor, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  Now Exploring
+                </p>
+                <p style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#0f172a" }}>
+                  {currentTourStep.section}
+                </p>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+              {currentTourStep.highlights.map((h, i) => (
+                <span key={i} style={{
+                  background: "#fff",
+                  border: `1px solid ${currentTourStep.accentColor}40`,
+                  color: currentTourStep.accentColor,
+                  borderRadius: 4, padding: "0.2rem 0.6rem",
+                  fontSize: "0.72rem", fontWeight: 600,
+                }}>
+                  {h}
+                </span>
+              ))}
+            </div>
+            {currentTourStep.examplePrompt && (
+              <button
+                onClick={() => handleSampleQuestion(currentTourStep.examplePrompt!)}
+                style={{
+                  marginLeft: "auto",
+                  background: currentTourStep.accentColor,
+                  color: "#fff", border: "none",
+                  borderRadius: 6, padding: "0.35rem 0.9rem",
+                  fontSize: "0.75rem", fontWeight: 700, cursor: "pointer",
+                }}
+              >
+                Try: "{currentTourStep.examplePrompt}"
+              </button>
+            )}
+            <span style={{ color: "#64748b", fontSize: "0.68rem" }}>
+              ← → arrow keys to navigate · Esc to skip
+            </span>
+          </div>
+        </div>
+      )}
 
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "1.5rem 2rem", display: "flex", gap: "1.5rem" }}>
 
@@ -414,6 +920,33 @@ export default function AskBuddy() {
               </div>
             );
           })()}
+
+          {/* Tour Navigation Panel (when tour active) */}
+          {tourActive && (
+            <div style={{ background: "#f0fdf4", borderRadius: 10, border: "1px solid #86efac", padding: "1rem", marginTop: "1rem" }}>
+              <p style={{ margin: "0 0 0.6rem", fontSize: "0.7rem", fontWeight: 700, color: "#059669", letterSpacing: "0.08em" }}>
+                TOUR SECTIONS
+              </p>
+              {TOUR_STEPS.map((step, i) => (
+                <div key={step.id} style={{
+                  display: "flex", alignItems: "center", gap: "0.5rem",
+                  padding: "0.35rem 0.5rem",
+                  borderRadius: 5,
+                  background: i === tourStep ? "#dcfce7" : "transparent",
+                  marginBottom: "0.2rem",
+                }}>
+                  <span style={{ fontSize: "0.85rem" }}>{step.icon}</span>
+                  <span style={{
+                    fontSize: "0.72rem",
+                    fontWeight: i === tourStep ? 700 : 500,
+                    color: i < tourStep ? "#059669" : i === tourStep ? "#065f46" : "#94a3b8",
+                  }}>
+                    {i < tourStep ? "✓ " : ""}{step.navLabel}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Center: Chat Panel ── */}
@@ -519,6 +1052,50 @@ export default function AskBuddy() {
             )}
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Tour inline nav (when tour active) */}
+          {tourActive && (
+            <div style={{
+              background: "#f0fdf4", border: "1px solid #86efac",
+              borderRadius: 10, padding: "0.75rem 1rem",
+              marginBottom: "0.75rem",
+              display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap",
+            }}>
+              <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#065f46" }}>
+                {currentTourStep.icon} {currentTourStep.section} — Step {tourStep + 1} of {TOUR_STEPS.length}
+              </span>
+              <div style={{ display: "flex", gap: "0.5rem", marginLeft: "auto" }}>
+                <button onClick={handleTourPrev} disabled={tourStep === 0}
+                  style={{
+                    background: tourStep === 0 ? "#e2e8f0" : "#fff",
+                    color: tourStep === 0 ? "#94a3b8" : "#374151",
+                    border: "1px solid #d1fae5", borderRadius: 6,
+                    padding: "0.35rem 0.85rem", fontSize: "0.8rem",
+                    fontWeight: 600, cursor: tourStep === 0 ? "not-allowed" : "pointer",
+                  }}>
+                  ← Previous
+                </button>
+                <button onClick={handleTourNext}
+                  style={{
+                    background: "#059669", color: "#fff",
+                    border: "none", borderRadius: 6,
+                    padding: "0.35rem 0.85rem", fontSize: "0.8rem",
+                    fontWeight: 700, cursor: "pointer",
+                  }}>
+                  {tourStep === TOUR_STEPS.length - 1 ? "Finish Tour ✓" : `Next — ${TOUR_STEPS[tourStep + 1]?.navLabel} →`}
+                </button>
+                <button onClick={handleTourSkip}
+                  style={{
+                    background: "transparent", color: "#6b7280",
+                    border: "1px solid #d1d5db", borderRadius: 6,
+                    padding: "0.35rem 0.85rem", fontSize: "0.8rem",
+                    fontWeight: 600, cursor: "pointer",
+                  }}>
+                  Skip Tour
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Input */}
           <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #e2e8f0", padding: "0.75rem 1rem", display: "flex", gap: "0.75rem", alignItems: "center" }}>
