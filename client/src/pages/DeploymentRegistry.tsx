@@ -6,6 +6,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import GovernanceBanner from "@/components/GovernanceBanner";
+import AboutSectionPanel from "@/components/AboutSectionPanel";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
@@ -933,6 +934,21 @@ export default function DeploymentRegistry() {
 
   return (
     <div style={{ padding: "28px 32px", maxWidth: "1200px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
+      {/* -- About This Section panel -- */}
+      <AboutSectionPanel
+        section="BA & Requirements"
+        purpose="The BA & Requirements section contains the business requirements, feature definitions, user stories, acceptance criteria, scope decisions, backlog planning, and delivery documentation used to guide DCT development. This area serves as the source of truth for what the platform is expected to deliver and how business needs are translated into technical solutions."
+        whenToUse={[
+          "Understanding feature scope",
+          "Reviewing requirements",
+          "Researching business decisions",
+          "Reviewing acceptance criteria",
+          "Understanding delivery plans",
+          "Investigating backlog items",
+        ]}
+        whoUsesIt={["Business Analysts", "Product Owners", "Developers", "QA Engineers", "Architects"]}
+        askBuddyPrompt="I am currently viewing the BA & Requirements section of the DCT Platform. Please explain what this section contains, the key artifacts available, the most important features and requirements currently in scope, and where I should go next based on my role."
+      />
       {/* -- Page header -- */}
       <div style={{ marginBottom: "24px", borderBottom: "2px solid #e2e8f0", paddingBottom: "18px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>

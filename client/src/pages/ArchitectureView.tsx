@@ -10,6 +10,7 @@ import {
   Image, Layers, Download, Maximize2, Move, Zap
 } from "lucide-react";
 import SimulationPanel from "@/components/SimulationPanel";
+import AboutSectionPanel from "@/components/AboutSectionPanel";
 import {
   PLATFORM_LAYERS, TOUCHPOINTS, AGENTS, getAgent, getLayer,
   ADR_REGISTRY, OPEN_ITEMS, DEPENDENCIES, ARCHITECTURE_GUARDRAILS,
@@ -1324,6 +1325,20 @@ export default function ArchitectureView() {
 
   return (
     <div className="p-6 space-y-5">
+      <AboutSectionPanel
+        section="Architecture & Diagrams"
+        purpose="The Architecture & Diagrams section contains the system architecture views, component interaction diagrams, data flow maps, developer architecture references, enterprise overview diagrams, and runtime journey documentation for the DCT platform. This area provides the visual and structural foundation for understanding how all platform components connect and interact."
+        whenToUse={[
+          "Understanding system component relationships",
+          "Reviewing data flow between systems",
+          "Researching integration patterns",
+          "Validating architecture decisions",
+          "Understanding runtime behavior",
+          "Reviewing enterprise platform structure",
+        ]}
+        whoUsesIt={["Architects", "Developers", "Business Analysts", "Product Owners", "Leadership"]}
+        askBuddyPrompt="I am currently viewing the Architecture & Diagrams section of the DCT Platform. Please explain the purpose of this area, the key architecture views and diagrams available, the most important system interactions and data flows, and where I should go next based on what I am trying to understand."
+      />
       {/* Source of Truth Governance Notice */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
         <div className="w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center shrink-0 mt-0.5">

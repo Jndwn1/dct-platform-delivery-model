@@ -163,6 +163,11 @@ const KNOWLEDGE_SOURCES = [
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
 
 export default function AskBuddy() {
+  // Pre-fill input from ?prompt= URL query parameter (used by AboutSectionPanel Ask Buddy button)
+  const initialPrompt = typeof window !== "undefined"
+    ? decodeURIComponent(new URLSearchParams(window.location.search).get("prompt") ?? "")
+    : "";
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -173,7 +178,7 @@ export default function AskBuddy() {
       sources: [],
     },
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialPrompt);
   const [activeCapability, setActiveCapability] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [showSources, setShowSources] = useState(false);

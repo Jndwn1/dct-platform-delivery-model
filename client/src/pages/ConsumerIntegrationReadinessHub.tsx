@@ -22,6 +22,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
+import AboutSectionPanel from "@/components/AboutSectionPanel";
 import { GovernanceStatusBar } from "@/components/GovernanceStatusBar";
 import {
   ChevronDown, ChevronUp, Shield, Link2, Database, AlertTriangle,
@@ -698,6 +699,21 @@ export default function ConsumerIntegrationReadinessHub() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   return (
     <div className="min-h-screen bg-slate-50">
+      <div className="px-6 pt-5">
+        <AboutSectionPanel
+          section="Roger UI"
+          purpose="The Roger UI section contains the user-facing experiences that consume DCT platform services. This area documents screens, workflows, integrations, user interactions, and presentation-layer behavior used throughout Roger. Roger acts as a consumer of DCT APIs and governed data products."
+          whenToUse={[
+            "Understanding screen behavior",
+            "Reviewing UI workflows",
+            "Researching integrations",
+            "Understanding user journeys",
+            "Validating front-end requirements",
+          ]}
+          whoUsesIt={["Product Owners", "Business Analysts", "UX Designers", "Developers", "QA Engineers"]}
+          askBuddyPrompt="I am currently viewing the Roger UI section of the DCT Platform. Please explain the purpose of this area, the key workflows and screens documented here, the integrations that support Roger, and where I should go next based on what I am trying to accomplish."
+        />
+      </div>
       <ExecSummaryPanel />
       <GovernanceStatusBar
         blocking={3}

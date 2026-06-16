@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import GovernanceBanner from "@/components/GovernanceBanner";
+import AboutSectionPanel from "@/components/AboutSectionPanel";
 
 type AlignStatus = "Aligned" | "Partial" | "Missing";
 type GapSeverity = "Critical" | "High" | "Medium" | "Low";
@@ -403,6 +404,22 @@ export default function GapAnalysisEngine() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
       <div style={{ padding: "12px 32px 0" }}><GovernanceBanner /></div>
+      <div style={{ padding: "16px 32px 0" }}>
+        <AboutSectionPanel
+          section="Governance"
+          purpose="The Governance section contains the platform's data integrity controls, audit trail structures, source-of-truth definitions, compliance frameworks, and delivery review models. This area ensures that all data flowing through the DCT platform meets quality, traceability, and accountability standards required for enterprise tax operations."
+          whenToUse={[
+            "Reviewing data quality controls",
+            "Understanding audit trail requirements",
+            "Researching source-of-truth definitions",
+            "Reviewing compliance frameworks",
+            "Validating delivery review models",
+            "Investigating gap analysis findings",
+          ]}
+          whoUsesIt={["Business Analysts", "Data Stewards", "Architects", "Product Owners", "Compliance Teams"]}
+          askBuddyPrompt="I am currently viewing the Governance section of the DCT Platform. Please explain the purpose of this area, the key governance frameworks and controls documented here, the most important data integrity requirements, and where I should go next based on what I am trying to accomplish."
+        />
+      </div>
 
       {/* Header */}
       <div style={{ backgroundColor: "#0f2d5e", padding: "24px 32px" }}>
