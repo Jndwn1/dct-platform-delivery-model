@@ -852,6 +852,7 @@ export default function DeploymentRegistry() {
   const [editDep, setEditDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showWikiModal, setShowWikiModal] = useState(false);
   const [wikiCopied, setWikiCopied] = useState(false);
   const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; ccEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
 
@@ -1025,21 +1026,18 @@ export default function DeploymentRegistry() {
           </select>
         </div>
 
-        {/* Copy Wiki button - auto-generated from current rows */}
+        {/* Generate Wiki button */}
         <button
-          onClick={handleCopyWiki}
+          onClick={() => setShowWikiModal(true)}
           style={{
             display: "flex", alignItems: "center", gap: "6px",
-            padding: "6px 14px",
-            backgroundColor: wikiCopied ? "#059669" : "#065f46",
-            color: "#ffffff",
+            padding: "6px 14px", backgroundColor: "#065f46", color: "#ffffff",
             border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
             cursor: "pointer", whiteSpace: "nowrap", marginLeft: "auto",
-            transition: "background-color 0.2s",
           }}
-          title="Copy the full wiki table markdown to clipboard"
+          title="Generate wiki markdown table for all deployments"
         >
-          <Copy size={12} />{wikiCopied ? "Copied!" : "Copy Wiki"}
+          <FileText size={12} />Generate Wiki
         </button>
         {/* Email to PO button */}
         <button
@@ -1231,6 +1229,70 @@ export default function DeploymentRegistry() {
           </>
         );
       })()}
+
+      {/* -- Generate Wiki Modal -- */}
+      {showWikiModal && (
+        <>
+          <div onClick={() => setShowWikiModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 40 }} />
+          <div style={{
+            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            width: "760px", maxWidth: "95vw", backgroundColor: "#ffffff", borderRadius: "12px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.25)", zIndex: 50, overflow: "hidden",
+            display: "flex", flexDirection: "column", maxHeight: "85vh",
+          }}>
+            {/* Header */}
+            <div style={{ backgroundColor: "#065f46", padding: "20px 24px", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#059669", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <FileText size={16} color="white" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Generate Wiki Table</div>
+                  <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} deployment{rows.length !== 1 ? "s" : ""} — copy and paste into your ADO wiki page to replace the full table</div>
+                </div>
+                <button onClick={() => setShowWikiModal(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#a7f3d0" }}><X size={18} /></button>
+              </div>
+            </div>
+            {/* Instructions */}
+            <div style={{ padding: "10px 24px", backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", flexShrink: 0 }}>
+              <div style={{ fontSize: "12px", color: "#065f46", lineHeight: "1.6" }}>
+                <strong>How to use:</strong> Click <em>Copy All Markdown</em> below, then open your ADO wiki page, click Edit, select and delete the existing table, and paste. The table includes all {rows.length} deployments sorted newest first.
+              </div>
+            </div>
+            {/* Markdown preview */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
+              <pre style={{
+                backgroundColor: "#0f1623", color: "#e2e8f0",
+                borderRadius: "8px", padding: "16px", fontSize: "10px",
+                lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word",
+                margin: 0, minHeight: "120px",
+              }}>{wikiMarkdown}</pre>
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e8f0", flexShrink: 0, display: "flex", gap: "10px", alignItems: "center" }}>
+              <button
+                onClick={handleCopyWiki}
+                style={{
+                  flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                  padding: "11px 20px",
+                  backgroundColor: wikiCopied ? "#059669" : "#065f46",
+                  color: "#ffffff", border: "none", borderRadius: "6px",
+                  fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                  transition: "background-color 0.2s",
+                }}
+              >
+                <Copy size={14} />{wikiCopied ? "Copied to Clipboard!" : "Copy All Markdown"}
+              </button>
+              <button
+                onClick={() => setShowWikiModal(false)}
+                style={{ padding: "11px 20px", backgroundColor: "#f1f5f9", color: "#475569", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* -- Post-create email prompt -- */}
       {justCreated && (
