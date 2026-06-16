@@ -3,14 +3,14 @@
 // Authoritative release history: Batches · Features · Stories · Bugs · Tech Stories
 // Design: matches existing RSM dark-theme administrative dashboard styling
 // -----------------------------------------------------------------------------
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import AboutSectionPanel from "@/components/AboutSectionPanel";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
-  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail, Copy, BookOpen, Pencil,
+  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail, Copy, Pencil,
 } from "lucide-react";
 
 // --- Wiki entry helper -------------------------------------------------------
@@ -229,12 +229,6 @@ function SummaryCard({ label, value, color, icon }: { label: string; value: numb
 
 // --- Detail drawer ----------------------------------------------------------------
 function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: () => void; onEdit: (dep: DeploymentRow) => void }) {
-  const [showWiki, setShowWiki] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const wikiText = buildWikiEntry(dep);
-  const handleCopy = () => {
-    navigator.clipboard.writeText(wikiText).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
-  };
   return (
     <div style={{
       position: "fixed", top: 0, right: 0, bottom: 0, width: "480px",
@@ -389,52 +383,6 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
           <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "5px", paddingLeft: "2px" }}>
             Opens your email client with deployment details pre-filled. Enter the PO email address in the To field if not auto-populated.
           </div>
-        </div>
-
-        {/* Generate Wiki Entry */}
-        <div style={{ marginBottom: "20px" }}>
-          <button
-            onClick={() => setShowWiki(v => !v)}
-            style={{
-              display: "flex", alignItems: "center", gap: "8px", width: "100%",
-              padding: "10px 14px", backgroundColor: showWiki ? "#1e3a5f" : "#f8fafc",
-              color: showWiki ? "#ffffff" : "#1e3a5f",
-              border: `1px solid ${showWiki ? "#1e3a5f" : "#cbd5e1"}`,
-              borderRadius: "6px", fontSize: "12px", fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            <BookOpen size={14} />
-            {showWiki ? "Hide Wiki Entry" : "Generate Wiki Entry"}
-          </button>
-          {showWiki && (
-            <div style={{ marginTop: "10px" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-                <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em" }}>Wiki Markdown - Ready to Paste</div>
-                <button
-                  onClick={handleCopy}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "5px",
-                    padding: "4px 10px", backgroundColor: copied ? "#059669" : "#0f1623",
-                    color: "#ffffff", border: "none", borderRadius: "4px",
-                    fontSize: "10px", fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  <Copy size={10} />{copied ? "Copied!" : "Copy All"}
-                </button>
-              </div>
-              <pre style={{
-                backgroundColor: "#0f1623", color: "#e2e8f0",
-                borderRadius: "6px", padding: "14px", fontSize: "10px",
-                lineHeight: "1.6", overflowX: "auto", whiteSpace: "pre-wrap",
-                wordBreak: "break-word", maxHeight: "320px", overflowY: "auto",
-                margin: 0,
-              }}>{wikiText}</pre>
-              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "5px" }}>
-                Copy and paste the two sections into your Deployment Registry wiki page. Insert the table row at the top of the registry table and the detail section at the top of the details list.
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Governance note */}
@@ -904,8 +852,7 @@ export default function DeploymentRegistry() {
   const [editDep, setEditDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [showAllWiki, setShowAllWiki] = useState(false);
-  const [allWikiCopied, setAllWikiCopied] = useState(false);
+  const [wikiCopied, setWikiCopied] = useState(false);
   const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; ccEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
 
   const utils = trpc.useUtils();
@@ -917,6 +864,31 @@ export default function DeploymentRegistry() {
     platform: platformFilter === "All" ? undefined : platformFilter,
     sortBy,
   });
+
+  // Auto-generate wiki markdown whenever rows data changes
+  const wikiMarkdown = useMemo(() => {
+    const lines: string[] = [];
+    lines.push(`| Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |`);
+    lines.push(`| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`);
+    const sorted = [...rows].sort((a, b) => b.deploymentDate.localeCompare(a.deploymentDate));
+    sorted.forEach(r => {
+      const summaryCell = (r.summary ?? "TBD").replace(/\|/g, "-");
+      const notesCell = r.releaseNotesUrl
+        ? `[View Notes](${r.releaseNotesUrl})`
+        : r.releaseNotesBullets
+          ? r.releaseNotesBullets.split("\n").map((b: string) => b.trim()).filter(Boolean).slice(0, 1)[0] ?? "TBD"
+          : "TBD";
+      lines.push(`| ${r.deploymentDate} | ${r.releaseName.replace(/\|/g, "-")} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summaryCell} | ${notesCell} |`);
+    });
+    return lines.join("\n");
+  }, [rows]);
+
+  const handleCopyWiki = () => {
+    navigator.clipboard.writeText(wikiMarkdown).then(() => {
+      setWikiCopied(true);
+      setTimeout(() => setWikiCopied(false), 2500);
+    });
+  };
 
   const handleCreated = () => {
     utils.deploymentRegistry.list.invalidate();
@@ -1053,17 +1025,21 @@ export default function DeploymentRegistry() {
           </select>
         </div>
 
-        {/* Generate All Wiki button */}
+        {/* Copy Wiki button - auto-generated from current rows */}
         <button
-          onClick={() => setShowAllWiki(true)}
+          onClick={handleCopyWiki}
           style={{
             display: "flex", alignItems: "center", gap: "6px",
-            padding: "6px 14px", backgroundColor: "#065f46", color: "#ffffff",
+            padding: "6px 14px",
+            backgroundColor: wikiCopied ? "#059669" : "#065f46",
+            color: "#ffffff",
             border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
             cursor: "pointer", whiteSpace: "nowrap", marginLeft: "auto",
+            transition: "background-color 0.2s",
           }}
+          title="Copy the full wiki table markdown to clipboard"
         >
-          <BookOpen size={12} />Generate Wiki
+          <Copy size={12} />{wikiCopied ? "Copied!" : "Copy Wiki"}
         </button>
         {/* Email to PO button */}
         <button
@@ -1250,85 +1226,6 @@ export default function DeploymentRegistry() {
                 <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "8px", textAlign: "center" }}>
                   Opens your email client (Outlook) with all fields pre-filled. To/CC addresses are saved from your last Create Deployment form.
                 </div>
-              </div>
-            </div>
-          </>
-        );
-      })()}
-
-      {/* -- Generate All Wiki Entries modal -- */}
-      {showAllWiki && (() => {
-        // Build a single table only: header + separator + one row per deployment
-        const tableLines: string[] = [];
-        tableLines.push(`| Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |`);
-        tableLines.push(`| --------------- | ------------ | ---- | -------- | ---------------- | ------------- | ------ | ------- | ------------- |`);
-        rows.forEach(r => {
-          const summary = (r.summary ?? "TBD").replace(/\|/g, "-");
-          const releaseNotes = r.releaseNotesBullets
-            ? r.releaseNotesBullets.split("\n").map((b: string) => b.trim()).filter(Boolean).join("; ")
-            : "TBD";
-          tableLines.push(`| ${r.deploymentDate} | ${r.releaseName} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summary} | ${releaseNotes} |`);
-        });
-        const fullWiki = tableLines.join("\n");
-        const handleCopyAll = () => {
-          navigator.clipboard.writeText(fullWiki).then(() => { setAllWikiCopied(true); setTimeout(() => setAllWikiCopied(false), 2500); });
-        };
-        return (
-          <>
-            <div onClick={() => setShowAllWiki(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 40 }} />
-            <div style={{
-              position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-              width: "720px", maxWidth: "95vw", backgroundColor: "#ffffff", borderRadius: "12px",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.25)", zIndex: 50, overflow: "hidden",
-              display: "flex", flexDirection: "column", maxHeight: "85vh",
-            }}>
-              {/* Header */}
-              <div style={{ backgroundColor: "#065f46", padding: "20px 24px", flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#059669", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <BookOpen size={16} color="white" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Generate Wiki Table</div>
-                    <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} row{rows.length !== 1 ? "s" : ""} - paste directly into your Deployment Registry wiki table</div>
-                  </div>
-                  <button onClick={() => setShowAllWiki(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#a7f3d0" }}><X size={18} /></button>
-                </div>
-              </div>
-              {/* Instructions */}
-              <div style={{ padding: "12px 24px", backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", flexShrink: 0 }}>
-                <div style={{ fontSize: "12px", color: "#065f46", lineHeight: "1.6" }}>
-                  Copy the markdown below and paste it into your ADO wiki page. Includes the table header and all {rows.length} deployment rows with Summary and Release Notes columns.
-                </div>
-              </div>
-              {/* Markdown preview */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
-                <pre style={{
-                  backgroundColor: "#0f1623", color: "#e2e8f0",
-                  borderRadius: "8px", padding: "16px", fontSize: "10px",
-                  lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word",
-                  margin: 0, minHeight: "120px",
-                }}>{fullWiki}</pre>
-              </div>
-              {/* Footer actions */}
-              <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e8f0", flexShrink: 0, display: "flex", gap: "10px", alignItems: "center" }}>
-                <button
-                  onClick={handleCopyAll}
-                  style={{
-                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                    padding: "11px 20px", backgroundColor: allWikiCopied ? "#059669" : "#065f46",
-                    color: "#ffffff", border: "none", borderRadius: "6px",
-                    fontSize: "13px", fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  <Copy size={14} />{allWikiCopied ? "Copied to Clipboard!" : "Copy Markdown"}
-                </button>
-                <button
-                  onClick={() => setShowAllWiki(false)}
-                  style={{ padding: "11px 20px", backgroundColor: "#f1f5f9", color: "#475569", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}
-                >
-                  Close
-                </button>
               </div>
             </div>
           </>
