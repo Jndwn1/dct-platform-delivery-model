@@ -103,13 +103,16 @@ const GOV_INDICATORS: Record<string, GovernanceIndicator> = {
 };
 
 // ─── STATUS CONFIG ────────────────────────────────────────────────────────────
-const STATUS_CFG: Record<StatusType, { dot: string; badge: string; label: string; icon: React.ElementType }> = {
+const STATUS_CFG: Record<string, { dot: string; badge: string; label: string; icon: React.ElementType }> = {
   "Complete":      { dot: "#059669", badge: "bg-emerald-100 text-emerald-800", label: "Complete",      icon: CheckCircle2 },
   "Active":        { dot: "#2563eb", badge: "bg-blue-100 text-blue-800",       label: "Active",        icon: Play },
   "Committed":     { dot: "#2563eb", badge: "bg-blue-100 text-blue-800",       label: "Committed",     icon: Clock },
   "Stretch":       { dot: "#ea580c", badge: "bg-orange-100 text-orange-800",   label: "Stretch",       icon: AlertTriangle },
   "Planned":       { dot: "#94a3b8", badge: "bg-slate-100 text-slate-500",     label: "Planned",       icon: Circle },
   "Program Close": { dot: "#7c3aed", badge: "bg-purple-100 text-purple-800",   label: "Program Close", icon: CheckCircle2 },
+  // Additional values that may appear from static FEATURES rows or context overrides
+  "MVP":           { dot: "#ea580c", badge: "bg-orange-100 text-orange-800",   label: "MVP",           icon: AlertTriangle },
+  "New":           { dot: "#2563eb", badge: "bg-blue-100 text-blue-800",       label: "New",           icon: Play },
 };
 
 const OWNER_CFG: Record<OwnerType, { color: string; bg: string; border: string }> = {
@@ -661,8 +664,8 @@ function FeatureCard({ feature, isExpanded, onToggle }: {
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const statusCfg = STATUS_CFG[feature.status];
-  const ownerCfg = OWNER_CFG[feature.owner];
+  const statusCfg = STATUS_CFG[feature.status] ?? STATUS_CFG["Planned"];
+  const ownerCfg = OWNER_CFG[feature.owner] ?? OWNER_CFG["Platform"];
 
   return (
     <div style={{
