@@ -877,8 +877,8 @@ export default function DeploymentRegistry() {
       const summaryCell = r.releaseNotesBullets
         ? r.releaseNotesBullets.replace(/\|/g, "-").replace(/\n/g, " ").trim()
         : (r.summary ?? "TBD").replace(/\|/g, "-");
-      // Release Notes column = raw URL (adoFeatureUrl first, then adoStoryUrl)
-      const notesCell = r.adoFeatureUrl ?? r.adoStoryUrl ?? "TBD";
+      // Release Notes column = raw URL (adoFeatureUrl first, then adoStoryUrl); blank if neither is set
+      const notesCell = r.adoFeatureUrl ?? r.adoStoryUrl ?? "";
       lines.push(`| ${r.deploymentDate} | ${r.releaseName.replace(/\|/g, "-")} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summaryCell} | ${notesCell} |`);
     });
     return lines.join("\n");
