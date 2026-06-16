@@ -1,0 +1,24 @@
+{
+  "query": "SELECT id, releaseName, deploymentDate, adoFeatureUrl, adoStoryUrl FROM deployments WHERE releaseName LIKE '%Known%' OR releaseName LIKE '%known%' ORDER BY deploymentDate ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 92nDA2ruv9UoBBE.f6890ee11c30 --database 6z8sjWGC7ihkVcDSZGqeBn --execute SELECT id, releaseName, deploymentDate, adoFeatureUrl, adoStoryUrl FROM deployments WHERE releaseName LIKE '%Known%' OR releaseName LIKE '%known%' ORDER BY deploymentDate ASC;",
+  "rows": [
+    {
+      "id": "30001",
+      "releaseName": "Known Mappings Lookup Fix (Bug 1401152)",
+      "deploymentDate": "2026-06-11",
+      "adoFeatureUrl": "NULL",
+      "adoStoryUrl": "NULL"
+    },
+    {
+      "id": "30005",
+      "releaseName": "PDC Known Mappings: Confirmed Classification Retrieval, Reviewer Override/Manual Classify, Stable Record Identifier",
+      "deploymentDate": "2026-06-11",
+      "adoFeatureUrl": "NULL",
+      "adoStoryUrl": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\treleaseName\tdeploymentDate\tadoFeatureUrl\tadoStoryUrl\n30001\tKnown Mappings Lookup Fix (Bug 1401152)\t2026-06-11\tNULL\tNULL\n30005\tPDC Known Mappings: Confirmed Classification Retrieval, Reviewer Override/Manual Classify, Stable Record Identifier\t2026-06-11\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1225
+}

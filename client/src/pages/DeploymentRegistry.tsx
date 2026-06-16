@@ -869,17 +869,17 @@ export default function DeploymentRegistry() {
   // Auto-generate wiki markdown whenever rows data changes
   const wikiMarkdown = useMemo(() => {
     const lines: string[] = [];
-    lines.push(`| Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |`);
-    lines.push(`| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`);
+    lines.push(`| # | Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |`);
+    lines.push(`| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`);
     const sorted = [...rows].sort((a, b) => b.deploymentDate.localeCompare(a.deploymentDate));
-    sorted.forEach(r => {
+    sorted.forEach((r, idx) => {
       // Summary column = full release notes bullets text (the detailed description)
       const summaryCell = r.releaseNotesBullets
         ? r.releaseNotesBullets.replace(/\|/g, "-").replace(/\n/g, " ").trim()
-        : (r.summary ?? "TBD").replace(/\|/g, "-");
+        : (r.summary ?? "").replace(/\|/g, "-");
       // Release Notes column = raw URL (adoFeatureUrl first, then adoStoryUrl); blank if neither is set
       const notesCell = r.adoFeatureUrl ?? r.adoStoryUrl ?? "";
-      lines.push(`| ${r.deploymentDate} | ${r.releaseName.replace(/\|/g, "-")} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summaryCell} | ${notesCell} |`);
+      lines.push(`| ${idx + 1} | ${r.deploymentDate} | ${r.releaseName.replace(/\|/g, "-")} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summaryCell} | ${notesCell} |`);
     });
     return lines.join("\n");
   }, [rows]);

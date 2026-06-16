@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE deployments SET adoFeatureUrl = 'https://rsmnet-my.sharepoint.com/:t:/g/personal/e067626_mcgladrey_rsm_net/IQBB1gA0Y7eQQ6_aQ2Y10BynAQ8nJxWdgYeiTwkDx6HIzVE?e=3gb1QQ&xsdata=MDV8MDJ8SmVubml2ZXIuU3RhZmZvcmRAcnNtdXMuY29tfGU3ZTM4MWI4Zjg4ZTQ5ZmE2M2FhMDhkZWM3ZjA5ZjhmfDFlM2U3MWJlZmNjYTQyODQ5MDMxNjg4Y2M4ZjM3YjZifDB8MHw2MzkxNjgwMzM0NDc4MTk1NzN8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpGYlhCMGVVMWhjR2tpT25SeWRXVXNJbFlpT2lJd0xqQXVNREF3TUNJc0lsQWlPaUpYYVc0ek1pSXNJa0ZPSWpvaVRXRnBiQ0lzSWxkVUlqb3lmUT09fDB8fHw%3d&sdata=OGRoRFVLZmZaNVIyL0h1QnE0TUFTVG5VdElRaFJyaXpRZC9EVzdEbjczZz0%3d' WHERE id = 30002;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 92nDA2ruv9UoBBE.f6890ee11c30 --database 6z8sjWGC7ihkVcDSZGqeBn --execute UPDATE deployments SET adoFeatureUrl = 'https://rsmnet-my.sharepoint.com/:t:/g/personal/e067626_mcgladrey_rsm_net/IQBB1gA0Y7eQQ6_aQ2Y10BynAQ8nJxWdgYeiTwkDx6HIzVE?e=3gb1QQ&xsdata=MDV8MDJ8SmVubml2ZXIuU3RhZmZvcmRAcnNtdXMuY29tfGU3ZTM4MWI4Zjg4ZTQ5ZmE2M2FhMDhkZWM3ZjA5ZjhmfDFlM2U3MWJlZmNjYTQyODQ5MDMxNjg4Y2M4ZjM3YjZifDB8MHw2MzkxNjgwMzM0NDc4MTk1NzN8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpGYlhCMGVVMWhjR2tpT25SeWRXVXNJbFlpT2lJd0xqQXVNREF3TUNJc0lsQWlPaUpYYVc0ek1pSXNJa0ZPSWpvaVRXRnBiQ0lzSWxkVUlqb3lmUT09fDB8fHw%3d&sdata=OGRoRFVLZmZaNVIyL0h1QnE0TUFTVG5VdElRaFJyaXpRZC9EVzdEbjczZz0%3d' WHERE id = 30002;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 582
+}

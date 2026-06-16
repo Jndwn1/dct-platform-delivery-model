@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, releaseName, deploymentDate FROM deployments ORDER BY deploymentDate DESC, id ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 92nDA2ruv9UoBBE.f6890ee11c30 --database 6z8sjWGC7ihkVcDSZGqeBn --execute SELECT id, releaseName, deploymentDate FROM deployments ORDER BY deploymentDate DESC, id ASC;",
+  "rows": [
+    {
+      "id": "60001",
+      "releaseName": "Batch 43: Practitioner Book & Reclass Adjustments (Line Model)",
+      "deploymentDate": "2026-06-16"
+    },
+    {
+      "id": "30001",
+      "releaseName": "Known Mappings Lookup Fix (Bug 1401152)",
+      "deploymentDate": "2026-06-11"
+    },
+    {
+      "id": "30002",
+      "releaseName": "TDC API Route Standardization",
+      "deploymentDate": "2026-06-11"
+    },
+    {
+      "id": "30003",
+      "releaseName": "Many-to-Many Form Line Mapping & Jurisdiction-Aware Derivation",
+      "deploymentDate": "2026-06-11"
+    },
+    {
+      "id": "30004",
+      "releaseName": "Batch 10 Return Assembly, Filing & Lineage Closure",
+      "deploymentDate": "2026-06-11"
+    },
+    {
+      "id": "30005",
+      "releaseName": "PDC Known Mappings: Confirmed Classification Retrieval, Reviewer Override/Manual Classify, Stable Record Identifier",
+      "deploymentDate": "2026-06-11"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\treleaseName\tdeploymentDate\n60001\tBatch 43: Practitioner Book & Reclass Adjustments (Line Model)\t2026-06-16\n30001\tKnown Mappings Lookup Fix (Bug 1401152)\t2026-06-11\n30002\tTDC API Route Standardization\t2026-06-11\n30003\tMany-to-Many Form Line Mapping & Jurisdiction-Aware Derivation\t2026-06-11\n30004\tBatch 10 Return Assembly, Filing & Lineage Closure\t2026-06-11\n30005\tPDC Known Mappings: Confirmed Classification Retrieval, Reviewer Override/Manual Classify, Stable Record Identifier\t2026-06-11\n",
+  "stderr": "",
+  "execution_time_ms": 608
+}
