@@ -3,6 +3,7 @@
 // NON-PRODUCTION ARCHITECTURE REFERENCE
 
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import { trpc } from "@/lib/trpc";
 
@@ -39,6 +40,8 @@ interface TourStep {
   buddyMessage: string;
   highlights: string[];
   examplePrompt?: string;
+  navPath?: string;
+  navButtonLabel?: string;
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -83,6 +86,8 @@ If you want to know:
 Start here.`,
     highlights: ["PI 2", "PI 3", "Batches", "Done", "Committed", "Stretch", "MVP"],
     examplePrompt: "What batches are in PI 3?",
+    navPath: "/batch-roadmap",
+    navButtonLabel: "Go to Delivery Model →",
   },
   {
     id: "gates",
@@ -102,6 +107,8 @@ Each gate validates a different aspect of platform quality and governance.
 A batch cannot advance until its gates are passed.`,
     highlights: ["Gate 1 — Schema Lock", "Gate 2 — Invariant Lock", "Gate 3 — Contract Publishing", "Gate 4 — Lineage Certification"],
     examplePrompt: "Buddy, why is Gate 4 still in progress?",
+    navPath: "/gate-status",
+    navButtonLabel: "Go to Gate Status →",
   },
   {
     id: "agents",
@@ -122,6 +129,8 @@ A batch cannot advance until its gates are passed.`,
 Each agent operates within defined ownership boundaries.`,
     highlights: ["Analyst Agent", "Architect Agent", "Developer Agent", "QA Agent"],
     examplePrompt: "What agents are available on the platform?",
+    navPath: "/agent-hub",
+    navButtonLabel: "Go to Agent Hub →",
   },
   {
     id: "ba",
@@ -144,6 +153,8 @@ Each agent operates within defined ownership boundaries.`,
 • Classification Wall — Review taxonomy classifications and mapping decisions.`,
     highlights: ["Deployment Registry", "Batch Control Panel", "Gate Status", "Touchpoints T1–T11", "Data Model & Gaps", "Classification Wall"],
     examplePrompt: "Show me the latest deployment.",
+    navPath: "/deployment-registry",
+    navButtonLabel: "Go to Deployment Registry →",
   },
   {
     id: "roger",
@@ -162,6 +173,8 @@ Each agent operates within defined ownership boundaries.`,
 Roger is read-only from DCT's perspective. DCT produces the data; Roger consumes it.`,
     highlights: ["Consumer Integration", "Integration Simulation", "Roger API Evolution", "Read-Only Output"],
     examplePrompt: "How does DCT send data to Roger?",
+    navPath: "/consumer-integration-hub",
+    navButtonLabel: "Go to Roger Consumer Hub →",
   },
   {
     id: "governance",
@@ -184,6 +197,8 @@ Roger is read-only from DCT's perspective. DCT produces the data; Roger consumes
 Every major decision should have a governance artifact.`,
     highlights: ["Gap Analysis Engine", "AAP Review Model", "Batch Delivery Review", "Data Governance", "Roger UI Data Mapping"],
     examplePrompt: "What are the architecture guardrails?",
+    navPath: "/gap-analysis",
+    navButtonLabel: "Go to Gap Analysis →",
   },
   {
     id: "architecture",
@@ -215,6 +230,8 @@ Examples:
 I can guide you directly to the correct area.`,
     highlights: ["Agent Hub", "Architecture Diagram", "Architecture Sync", "Developer Architecture"],
     examplePrompt: "Show me the platform architecture.",
+    navPath: "/architecture",
+    navButtonLabel: "Go to Architecture →",
   },
 ];
 
@@ -587,6 +604,8 @@ export default function AskBuddy() {
   const statusColor = (s: string) =>
     s === "Live" ? "#059669" : s === "Reference" ? "#0891b2" : "#9ca3af";
 
+  const [, navigate] = useLocation();
+
   const currentTourStep = TOUR_STEPS[tourStep];
 
   return (
@@ -831,20 +850,36 @@ export default function AskBuddy() {
                 </span>
               ))}
             </div>
-            {currentTourStep.examplePrompt && (
-              <button
-                onClick={() => handleSampleQuestion(currentTourStep.examplePrompt!)}
-                style={{
-                  marginLeft: "auto",
-                  background: currentTourStep.accentColor,
-                  color: "#fff", border: "none",
-                  borderRadius: 6, padding: "0.35rem 0.9rem",
-                  fontSize: "0.75rem", fontWeight: 700, cursor: "pointer",
-                }}
-              >
-                Try: "{currentTourStep.examplePrompt}"
-              </button>
-            )}
+            <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              {currentTourStep.examplePrompt && (
+                <button
+                  onClick={() => handleSampleQuestion(currentTourStep.examplePrompt!)}
+                  style={{
+                    background: currentTourStep.accentColor,
+                    color: "#fff", border: "none",
+                    borderRadius: 6, padding: "0.35rem 0.9rem",
+                    fontSize: "0.75rem", fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  Try: "{currentTourStep.examplePrompt}"
+                </button>
+              )}
+              {currentTourStep.navPath && (
+                <button
+                  onClick={() => navigate(currentTourStep.navPath!)}
+                  style={{
+                    background: "#fff",
+                    color: currentTourStep.accentColor,
+                    border: `2px solid ${currentTourStep.accentColor}`,
+                    borderRadius: 6, padding: "0.35rem 0.9rem",
+                    fontSize: "0.75rem", fontWeight: 700, cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {currentTourStep.navButtonLabel}
+                </button>
+              )}
+            </div>
             <span style={{ color: "#64748b", fontSize: "0.68rem" }}>
               ← → arrow keys to navigate · Esc to skip
             </span>
