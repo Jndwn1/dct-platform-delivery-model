@@ -112,7 +112,6 @@ const AGENT_ITEMS: NavItem[] = [
 const BA_ITEMS: NavItem[] = [
   { label: "Deployment Registry",          path: "/deployment-registry",        icon: "🚀", badge: "New",     badgeColor: "#059669" },
   { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
-  { label: "Artifacts Registry",          path: "/artifacts",                  icon: "◫", badge: "Ref",      badgeColor: "#64748b" },
   { label: "Gate Status",                 path: "/gate-status",                icon: "◉", badge: "G4 Active",badgeColor: "#d97706" },
   { label: "Touchpoints (T1–T11)",        path: "/touchpoints",                icon: "↝" },
   { label: "Data Model & Gaps",           path: "/data-model",                 icon: "▦", badge: "Exec",     badgeColor: "#7c3aed" },

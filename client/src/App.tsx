@@ -15,7 +15,6 @@ import Home from "./pages/Home";
 import BatchRoadmap from "./pages/BatchRoadmap";
 import GateStatus from "./pages/GateStatus";
 import TouchpointsPage from "./pages/TouchpointsPage";
-import ArtifactsPage from "./pages/ArtifactsPage";
 import AgentHub from "./pages/AgentHub";
 import ArchitectureView from "./pages/ArchitectureView";
 import DeveloperArchitecturePage from "./pages/DeveloperArchitecturePage";
@@ -77,7 +76,6 @@ function Router() {
           <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
           <Route path="/gate-status" component={GateStatus} />
           <Route path="/touchpoints" component={TouchpointsPage} />
-          <Route path="/artifacts" component={ArtifactsPage} />
           <Route path="/agent-hub" component={AgentHub} />
           <Route path="/architecture" component={ArchitectureView} />
           <Route path="/architecture/developer" component={DeveloperArchitecturePage} />
