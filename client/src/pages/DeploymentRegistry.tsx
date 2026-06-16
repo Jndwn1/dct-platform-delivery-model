@@ -873,12 +873,12 @@ export default function DeploymentRegistry() {
     lines.push(`| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`);
     const sorted = [...rows].sort((a, b) => b.deploymentDate.localeCompare(a.deploymentDate));
     sorted.forEach(r => {
-      const summaryCell = (r.summary ?? "TBD").replace(/\|/g, "-");
-      const notesCell = r.releaseNotesUrl
-        ? `[View Notes](${r.releaseNotesUrl})`
-        : r.releaseNotesBullets
-          ? r.releaseNotesBullets.split("\n").map((b: string) => b.trim()).filter(Boolean).slice(0, 1)[0] ?? "TBD"
-          : "TBD";
+      // Summary column = full release notes bullets text (the detailed description)
+      const summaryCell = r.releaseNotesBullets
+        ? r.releaseNotesBullets.replace(/\|/g, "-").replace(/\n/g, " ").trim()
+        : (r.summary ?? "TBD").replace(/\|/g, "-");
+      // Release Notes column = raw URL (adoFeatureUrl first, then adoStoryUrl)
+      const notesCell = r.adoFeatureUrl ?? r.adoStoryUrl ?? "TBD";
       lines.push(`| ${r.deploymentDate} | ${r.releaseName.replace(/\|/g, "-")} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summaryCell} | ${notesCell} |`);
     });
     return lines.join("\n");
