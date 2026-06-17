@@ -1556,7 +1556,7 @@ export default function BatchControlPanel() {
         <div>
           <h1 className="text-2xl font-bold text-[#003865]">Global Control Panel</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            DCT Batch Roadmap v2.1 · Governance Readiness Tracker · Non-Production Workspace · RSM | CATT
+            DCT Batch Roadmap v7 · Governance Readiness Tracker · Non-Production Workspace · RSM | CATT
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -2890,7 +2890,7 @@ export default function BatchControlPanel() {
       </div>
 
       <footer className="pt-2 pb-1 border-t border-slate-100">
-        <div className="text-xs text-slate-400">DCT Platform Global Control Panel · RSM | CATT · Batch Roadmap v2.1 · April 28, 2026</div>
+        <div className="text-xs text-slate-400">DCT Platform Global Control Panel · RSM | CATT · Batch Roadmap v7 · June 2026</div>
       </footer>
     </div>
   );

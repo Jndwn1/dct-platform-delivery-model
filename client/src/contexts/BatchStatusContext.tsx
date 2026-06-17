@@ -102,10 +102,11 @@ export interface BatchStatusMap {
   "42": BatchStatus;
   "43": BatchStatus;
   "9a": BatchStatus;
-  // PI 4 batches (Roadmap v6)
+  // PI 4 batches (Roadmap v7)
   "19": BatchStatus;
   "40": BatchStatus;
   "35": BatchStatus;
+  "26-tdc": BatchStatus;
 }
 
 export type BatchKey = keyof BatchStatusMap;
@@ -147,10 +148,11 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "42": "Batch 42 — Tax Rules Framework & Book-to-Tax Adjustment Rules",
   "43": "Batch 43 — Practitioner Book & Reclass Adjustments",
   "9a": "Batch 9A — Data Gateway (IMS, CDS, DUO)",
-  // PI 4 batches (Roadmap v6)
+  // PI 4 batches (Roadmap v7)
   "19": "Batch 19 — Audit Tax-Expense Cross-LOB Outbound",
   "40": "Batch 40 — Client-Level Line Mapping Reuse",
   "35": "Batch 35 — S-Corp Specialization",
+  "26-tdc": "Batch 26 | TDC — Entity Constituents & Allocations (TDC — PI 4)",
 };
 
 // ── Dependency map ────────────────────────────────────────────────────────────
@@ -190,10 +192,11 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "42": ["17", "28"],
   "43": ["11"],
   "9a": ["31"],
-  // PI 4 batches (Roadmap v6)
+  // PI 4 batches (Roadmap v7)
   "19": [],
   "40": [],
   "35": [],
+  "26-tdc": [],
 };
 
 // ── Cascade step definitions ──────────────────────────────────────────────────
@@ -257,8 +260,8 @@ export type SyncLogEntry = AuditLogEntry;
 
 // ── Default initial state ─────────────────────────────────────────────────────
 
-// DEFAULT_STATUS reflects Roadmap v6 (updated 2026-06-16)
-// PI 1 — Complete | PI 2 — Committed (5/21–6/22) | PI 3 — Committed (7/13–9/15) | PI 4 — Post-Pilot
+// DEFAULT_STATUS reflects Roadmap v7 (updated June 2026)
+// PI 1 — Complete | PI 2 — Committed (5/21–6/22) | PI 3 — Committed (7/13–9/15) | PI 4 — Future
 const DEFAULT_STATUS: BatchStatusMap = {
   // ── PI 1 — Complete ──────────────────────────────────────────────────────
   "foundation-core": "Complete",
@@ -279,30 +282,31 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "9-tdc": "On Hold",  // B9 TDC — Rollforward ON HOLD, absorbed by B31
   "10": "Done",         // B10 — Return Assembly delivered 6/11
   "11": "Committed",   // B11 — Learning Governance, 6/12–6/22
-  "43": "Committed",   // B43 — Practitioner Book & Reclass, PI 2 Committed
+  "43": "In Progress", // B43 — Practitioner Book & Reclass, currently in flight
   // ── PI 2 Stretch ──────────────────────────────────────────────────────────
-  "16": "Committed",   // B16 PDC — Audit Trail & Lineage Governance, 6/25–7/3
-  "12": "On Hold",     // B12 — Engagement Identity (ON HOLD per v6)
+  "13": "Committed",   // B13 — Platform Reference & Document Provenance (PI 2 Stretch)
+  "16": "Committed",   // B16 PDC+TDC — Audit Trail & Lineage Governance (PI 2 Stretch)
+  "12": "On Hold",     // B12 — Engagement Identity (ON HOLD per v7)
   // ── PI 3 — Committed (7/13–9/15) ─────────────────────────────────────────
-  "13": "Committed",   // B13 — Platform Reference & Document Provenance, 7/8–7/16
   "20": "Committed",   // B20 — Firm Governance & Professional Standards
-  "42": "Committed",   // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules
+  "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (6/17–6/25)
   "21": "Committed",   // B21 — Quality Control (PDC MVP)
   "28": "Committed",   // B28 — Tax Workpaper & Provision Schedules
   "9a": "Committed",   // B9A — Data Gateway (IMS, CDS, DUO)
-  "31": "Committed",   // B31 — Legacy Tool Prior Year Ingestion
+  "31": "Committed",   // B31 — Legacy Tool Prior Year Ingestion (PDC + TDC)
   "17": "Committed",   // B17 — Decision Support — Overrides, Evidence & Workpapers
   "26": "Committed",   // B26 — Entity Constituents & Allocations (PDC MVP)
   "29": "Committed",   // B29 — Consolidated Return Assembly
   "39": "Committed",   // B39 — Calculation Report
-  "33": "Committed",   // B33 — State Reference, Apportionment, Payments, NOL/Credit
-  // ── PI 4 — Governance, QC & Analytics (Post-Pilot) ───────────────────────
-  "19": "Not Started",  // B19 — Audit Tax-Expense Cross-LOB Outbound
+  "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
+  // ── PI 4 — Future (Post-Pilot) ───────────────────────────────────────────
+  "19": "Not Started",  // B19 — Audit Tax-Expense Cross-LOB Outbound (9/16–9/28)
   "40": "Not Started",  // B40 — Client-Level Line Mapping Reuse
   "35": "Not Started",  // B35 — S-Corp Specialization
-  // ── Remaining (no PI assignment change) ──────────────────────────────────
-  "22": "Not Started",
-  "23": "Not Started",
+  "26-tdc": "Not Started", // B26 TDC — Entity Constituents & Allocations (TDC)
+  // ── Post-MVP / Removed from MVP scope ────────────────────────────────────
+  "22": "Not Started",  // B22 — Client Communication (Post-MVP, future PI)
+  "23": "Not Started",  // B23 — Benchmark & Peer Analytics (Post-MVP, future PI)
 };
 
 const STORAGE_KEY     = "dct_batch_status_v5";
@@ -311,12 +315,12 @@ const MAX_LOG_ENTRIES = 50;
 
 // ── PI membership ─────────────────────────────────────────────────────────────
 
-// PI_MEMBERSHIP reflects Roadmap v6 (updated 2026-06-16)
+// PI_MEMBERSHIP reflects Roadmap v7 (updated June 2026)
 const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
-  pi2:  ["4", "5", "6", "7", "8", "8-pdc", "8-tdc", "9", "9-pdc", "9-tdc", "10", "11", "43", "16", "12"],
-  pi3:  ["13", "20", "42", "21", "28", "9a", "31", "17", "26", "29", "39", "33"],
-  pi4:  ["19", "40", "35"],
+  pi2:  ["4", "5", "6", "7", "8", "8-pdc", "8-tdc", "9", "9-pdc", "9-tdc", "10", "11", "43", "13", "16", "12"],
+  pi3:  ["20", "42", "21", "28", "9a", "31", "17", "26", "29", "39", "33"],
+  pi4:  ["19", "40", "35", "26-tdc"],
 };
 
 // ── Storage helpers ───────────────────────────────────────────────────────────

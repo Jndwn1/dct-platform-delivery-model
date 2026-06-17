@@ -701,6 +701,7 @@ export interface PIGroup {
   borderColor: string;  // Tailwind border token
 }
 
+// PI_GROUPS reflects Roadmap v7 (updated June 2026)
 export const PI_GROUPS: PIGroup[] = [
   {
     id: "PI1",
@@ -715,7 +716,8 @@ export const PI_GROUPS: PIGroup[] = [
     id: "PI2",
     label: "PI 2",
     subtitle: "Entity, Workflow & Tax Ready",
-    batchIds: ["B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B43"],
+    // Committed: B4–B11, B43 | Stretch: B13, B16 | On Hold: B12
+    batchIds: ["B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B43", "B13", "B16", "B12"],
     color: "text-emerald-700",
     bgColor: "bg-emerald-50",
     borderColor: "border-emerald-300",
@@ -724,7 +726,8 @@ export const PI_GROUPS: PIGroup[] = [
     id: "PI3",
     label: "PI 3",
     subtitle: "Intelligence, Provision & Audit",
-    batchIds: ["B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B24", "B25", "B26", "B28", "B29", "B31", "B33", "B39", "B42", "B9A"],
+    // MVP: B42, B17, B20, B21, B26 PDC, B28, B29, B31, B9A, B39 | Stretch: B33
+    batchIds: ["B42", "B17", "B20", "B21", "B26", "B28", "B29", "B31", "B9A", "B39", "B33"],
     color: "text-violet-700",
     bgColor: "bg-violet-50",
     borderColor: "border-violet-300",
@@ -732,8 +735,9 @@ export const PI_GROUPS: PIGroup[] = [
   {
     id: "PI4",
     label: "PI 4",
-    subtitle: "Governance, QC & Analytics",
-    batchIds: ["B20", "B21", "B22", "B23"],
+    subtitle: "Governance, QC & Analytics (Post-Pilot)",
+    // Post-Pilot: B19, B21 TDC, B26 TDC, B35, B40, B22, B23
+    batchIds: ["B19", "B35", "B40", "B22", "B23"],
     color: "text-amber-700",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-300",
