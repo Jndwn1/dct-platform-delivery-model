@@ -6,6 +6,7 @@
 import { Link } from "wouter";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
+import ExecDashboard from "@/components/ExecDashboard";
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ title, subtitle, children, accent }: {
@@ -211,6 +212,9 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      {/* ── Executive Delivery Dashboard ── */}
+      <ExecDashboard />
 
       {/* ── Governance Banner ── */}
       <GovernanceBanner />
