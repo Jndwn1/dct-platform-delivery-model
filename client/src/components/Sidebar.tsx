@@ -97,10 +97,6 @@ const ON_HOLD_ITEMS: { label: string; path: string; batchKey: string }[] = [
 // No status badges, no completion indicators — anchors to page sections
 const GATE_NAV_ITEMS = [
   { id: "gate-flow",  label: "Gate Progression Lifecycle", icon: "→",  anchor: "gate-flow-section" },
-  { id: "gate-g1",   label: "G1  Schema Lock",             icon: "🔒", anchor: "gate-g1-section" },
-  { id: "gate-g2",   label: "G2  Invariant Lock",          icon: "🛡",  anchor: "gate-g2-section" },
-  { id: "gate-g3",   label: "G3  Contract Publication",    icon: "📄", anchor: "gate-g3-section" },
-  { id: "gate-g4",   label: "G4  Lineage Closure",         icon: "🔗", anchor: "gate-g4-section" },
 ];
 
 // Agents section removed — individual agent nav items consolidated into Agent Hub (Architecture & Diagrams)
