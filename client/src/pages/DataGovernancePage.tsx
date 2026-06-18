@@ -150,7 +150,7 @@ const DATA_DOMAINS: DataDomain[] = [
 ];
 
 const SOT_MATRIX: SoTRule[] = [
-  { dataType: "Batch sequencing & definitions", authoritative: "Batch Roadmap page", label: "Source of Truth", page: "/" },
+  { dataType: "Batch sequencing & definitions", authoritative: "DCT Delivery Model", label: "Source of Truth", page: "/" },
   { dataType: "Batch delivery status", authoritative: "Control Panel", label: "Source of Truth", page: "/control-panel" },
   { dataType: "API contracts", authoritative: "Swagger (external — dev-pdc / dev-tdc)", label: "External Authority", page: "—" },
   { dataType: "API documentation", authoritative: "Consumer Guide", label: "Derived View", derivedFrom: "Swagger", page: "—" },
@@ -161,7 +161,7 @@ const SOT_MATRIX: SoTRule[] = [
   { dataType: "Runtime touchpoints", authoritative: "Touchpoints page", label: "Source of Truth", page: "/touchpoints" },
   { dataType: "Architecture visuals", authoritative: "Architecture View page", label: "Derived View", derivedFrom: "Touchpoints page", page: "/architecture" },
   { dataType: "Gate status & invariants", authoritative: "Gate Status page", label: "Source of Truth", page: "/gate-status" },
-  { dataType: "Governance timeline", authoritative: "Governance Timeline page", label: "Derived View", derivedFrom: "Batch Roadmap + Gate Status", page: "/governance-timeline" },
+  { dataType: "Governance timeline", authoritative: "Governance Timeline page", label: "Derived View", derivedFrom: "DCT Delivery Model + Gate Status", page: "/governance-timeline" },
 ];
 
 const VIOLATIONS: Violation[] = [
@@ -205,7 +205,7 @@ const GOVERNANCE_RULES: GovernanceRule[] = [
     id: "GR-02",
     rule: "All batch outputs must align to Master Data Plan domains.",
     enforcement: "Each batch's entry/exit conditions must map to at least one domain in the Master Data Plan. Batch definitions that introduce new domain concepts must be reviewed against the Master Data Plan before being added to the prototype.",
-    scope: "Batch Roadmap, Control Panel, dctData.ts",
+    scope: "DCT Delivery Model, Control Panel, dctData.ts",
   },
   {
     id: "GR-03",
@@ -251,7 +251,7 @@ const CLEANUP_ACTIONS = [
   { id: "CA-03", action: "Update Batch 3 Swagger Coverage note to clarify TaxYear is display-only, not a query parameter (V03)", priority: "Low", linkedViolation: "V03" },
   { id: "CA-04", action: "Add 'External Authority' badge to all domain references that originate from the Master Data Plan", priority: "Medium", linkedViolation: "—" },
   { id: "CA-05", action: "Add 'Derived View' label to Architecture View, Runtime Journey, and Governance Timeline pages", priority: "Low", linkedViolation: "—" },
-  { id: "CA-06", action: "Add 'Source of Truth' badge to Batch Roadmap, Control Panel, Taxonomy Explorer, Data Model, and Gate Status pages", priority: "Medium", linkedViolation: "—" },
+  { id: "CA-06", action: "Add 'Source of Truth' badge to DCT Delivery Model, Control Panel, Taxonomy Explorer, Data Model, and Gate Status pages", priority: "Medium", linkedViolation: "—" },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -620,7 +620,7 @@ export default function DataGovernancePage() {
                     {[
                       {
                         source: "Batch Delivery Model",
-                        pages: ["Batch Roadmap", "Control Panel", "Data Model & Gaps", "Governance Timeline", "Weekly Demo Simulator", "Roger API Evolution", "Architecture View", "Runtime Journey"],
+                        pages: ["DCT Delivery Model", "Control Panel", "Data Model & Gaps", "Governance Timeline", "Weekly Demo Simulator", "Roger API Evolution", "Architecture View", "Runtime Journey"],
                         scope: "Batch names, stories, outcomes, PI labels, story counts",
                         conflict: "Flag Needs Review",
                       },
@@ -670,7 +670,7 @@ export default function DataGovernancePage() {
                     const entry = {
                       ts: new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }),
                       source: "Batch Delivery Model v2.1",
-                      pages: ["Batch Roadmap", "Control Panel", "Governance Timeline", "Weekly Demo Simulator"],
+                      pages: ["DCT Delivery Model", "Control Panel", "Governance Timeline", "Weekly Demo Simulator"],
                       changes: "Batch 2A added; Batch 3 status corrected to In Progress; PI labels updated for Batches 4–8",
                       status: "Updated" as const,
                     };

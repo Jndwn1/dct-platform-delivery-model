@@ -821,7 +821,7 @@ export default function Home() {
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             {[
               { label: "BA Operating System", path: "/ask-buddy", desc: "Operating system vision & innovation catalog" },
-              { label: "Batch Roadmap", path: "/", desc: "Batch delivery scope & sequencing" },
+              { label: "DCT Delivery Model", path: "/", desc: "Batch delivery scope & sequencing" },
               { label: "Gate Status", path: "/gate-status", desc: "Gate verification & readiness" },
               { label: "Architecture", path: "/architecture", desc: "Architecture layers & system model" },
               { label: "Data Governance", path: "/data-governance", desc: "Ownership boundaries & SoT" },

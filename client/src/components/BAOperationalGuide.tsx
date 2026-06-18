@@ -28,7 +28,7 @@ const GUIDE_CARDS: GuideCard[] = [
     metricKey: "batchesComplete",
     healthColor: "green",
     explanation:
-      "A batch is considered Complete when all four gate conditions have been verified: Schema Lock (data structure is finalized and immutable), Invariant Lock (business rules are enforced), Contract Publication (the Read Contract is published and versioned), and Lineage Closure (the full data lineage chain is traceable end-to-end). Completion is recorded in the DCT Control Panel and reflected in the Batch Roadmap.",
+      "A batch is considered Complete when all four gate conditions have been verified: Schema Lock (data structure is finalized and immutable), Invariant Lock (business rules are enforced), Contract Publication (the Read Contract is published and versioned), and Lineage Closure (the full data lineage chain is traceable end-to-end). Completion is recorded in the DCT Control Panel and reflected in the DCT Delivery Model.",
     whyItMatters:
       "Batch completion is the foundation of PI demo readiness and production eligibility. A batch that is 'done' in ADO stories is not the same as a batch that has passed all four gates. Leadership and Roger consumers depend on gate-verified completion — not story closure — to make downstream delivery decisions.",
     baInterpretation:
@@ -41,14 +41,14 @@ const GUIDE_CARDS: GuideCard[] = [
     ],
     recommendedActions: [
       "Validate all four gates in the Gate Status page before marking a batch complete in PI planning artifacts",
-      "Cross-reference the Batch Roadmap completion % against the Control Panel gate status",
+      "Cross-reference the DCT Delivery Model completion % against the Control Panel gate status",
       "Confirm the Read Contract is published and versioned — not just drafted",
       "Ensure lineage closure is documented in the Batch Detail page before closing the batch",
     ],
     sourceDependencies: [
       { label: "DCT Control Panel", path: "/control-panel" },
       { label: "Gate Status", path: "/gate-status" },
-      { label: "Batch Roadmap", path: "/" },
+      { label: "DCT Delivery Model", path: "/" },
     ],
     escalationGuidance:
       "If a batch appears Complete in ADO but gates are not verified, escalate to the PO and Architecture team immediately. Do not count the batch as complete in PI reporting until all four gates are confirmed in the Control Panel.",
@@ -56,13 +56,13 @@ const GUIDE_CARDS: GuideCard[] = [
       "Have all four gates been verified in the Gate Status page?",
       "Is the Read Contract published and versioned — not just drafted?",
       "Is lineage closure documented in the Batch Detail page?",
-      "Does the Batch Roadmap reflect the same completion status as the Control Panel?",
+      "Does the DCT Delivery Model reflect the same completion status as the Control Panel?",
     ],
     redFlags: [
       "Batch shows Complete in ADO but Gate Status shows In Progress",
       "Read Contract is 'Partial' or 'Pending'",
       "Lineage Closure is deferred to a future batch",
-      "Completion % in Batch Roadmap does not match Control Panel",
+      "Completion % in DCT Delivery Model does not match Control Panel",
     ],
     baCallout:
       "A batch is only complete when all four gates are verified in the DCT Control Panel. Story closure in ADO is a necessary but not sufficient condition for batch completion.",
@@ -140,7 +140,7 @@ const GUIDE_CARDS: GuideCard[] = [
     sourceDependencies: [
       { label: "Integration Alignment Hub — Carry-Forward Panel", path: "/integration-hub" },
       { label: "DCT Control Panel", path: "/control-panel" },
-      { label: "Batch Roadmap", path: "/" },
+      { label: "DCT Delivery Model", path: "/" },
     ],
     escalationGuidance:
       "Governance and Architecture blockers must be escalated to the PO and Architecture team within the same sprint they are identified. DEV blockers should be tracked in ADO and reviewed in the daily standup. API Contract blockers require coordination between the DCT BA and Roger BA teams.",
@@ -368,7 +368,7 @@ const GUIDE_CARDS: GuideCard[] = [
       "Include gate completion status in all PI planning and leadership review artifacts",
     ],
     sourceDependencies: [
-      { label: "Batch Roadmap", path: "/" },
+      { label: "DCT Delivery Model", path: "/" },
       { label: "Gate Status", path: "/gate-status" },
       { label: "Batch Delivery Calendar", path: "/batch-calendar" },
     ],

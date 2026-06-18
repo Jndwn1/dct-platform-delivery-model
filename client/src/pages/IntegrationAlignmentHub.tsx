@@ -52,7 +52,7 @@ const GOVERNANCE_RULE = `The DCT Control Panel ecosystem remains the authoritati
 
 const SOURCE_LABELS: Record<string, { label: string; href: string; color: string }> = {
   BatchStatusContext:   { label: "DCT Control Panel",           href: "/control-panel",    color: "#1e40af" },
-  BatchRoadmap:         { label: "Batch Roadmap",               href: "/",    color: "#0e7490" },
+  BatchRoadmap:         { label: "Batch Delivery Calendar",       href: "/batch-calendar",    color: "#0e7490" },
   RogerUIMapping:       { label: "Roger UI Data Point Mapping", href: "/roger-mapping",    color: "#7c3aed" },
   RogerAPIEvolution:    { label: "Roger API Evolution",         href: "/roger-api",        color: "#065f46" },
   DataModelGaps:        { label: "Data Model & Gaps",           href: "/data-model",       color: "#92400e" },
@@ -263,7 +263,7 @@ export default function IntegrationAlignmentHub() {
   const syncTime = lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : new Date().toLocaleTimeString();
   const syncSources = [
     { source: "BatchStatusContext",   label: "DCT Control Panel",           status: "live" as const,    items: batchRows.length },
-    { source: "BatchRoadmap",         label: "Batch Roadmap",               status: "derived" as const, items: batchRows.length },
+    { source: "BatchRoadmap",         label: "Batch Delivery Calendar",       status: "derived" as const, items: batchRows.length },
     { source: "RogerUIMapping",       label: "Roger UI Data Point Mapping", status: "derived" as const, items: blockingGaps.length },
     { source: "DataModelGaps",        label: "Data Model & Gaps",           status: "derived" as const, items: fieldGaps.total },
     { source: "GateStatus",           label: "Gate Status",                 status: "derived" as const, items: 4 },
@@ -437,7 +437,7 @@ export default function IntegrationAlignmentHub() {
             <div className="flex items-center gap-2">
               <Database className="w-4 h-4 text-blue-300" />
               <span className="text-sm font-bold">Panel 1 — Batch Integration Status</span>
-              <span className="text-xs text-blue-300 font-normal">· Derived from DCT Control Panel + Batch Roadmap</span>
+              <span className="text-xs text-blue-300 font-normal">· Derived from DCT Control Panel + Batch Delivery Calendar</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-blue-200">{batchRows.length} batches · {completed} complete · {active} active</span>
@@ -738,7 +738,7 @@ export default function IntegrationAlignmentHub() {
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-cyan-300" />
               <span className="text-sm font-bold">Panel 5 — PI Sequencing & Delivery Tracker</span>
-              <span className="text-xs text-cyan-300 font-normal">· Derived from Batch Roadmap + Batch Delivery Tracker</span>
+              <span className="text-xs text-cyan-300 font-normal">· Derived from Batch Delivery Calendar + Batch Delivery Tracker</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-cyan-200">PI 1: {Math.round(pi1Pct)}% · PI 2: {Math.round(pi2Pct)}%</span>
@@ -839,7 +839,7 @@ export default function IntegrationAlignmentHub() {
                       ⚪ Low Risk: {carryForwardItems.filter(i => i.riskLevel === "low").length}
                     </span>
                     <span className="ml-auto text-slate-400 self-center text-xs">
-                      Source: BatchStatusContext · Batch Roadmap · ADR Cards
+                      Source: BatchStatusContext · Batch Delivery Calendar · ADR Cards
                     </span>
                   </div>
 

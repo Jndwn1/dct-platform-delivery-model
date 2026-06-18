@@ -3007,7 +3007,7 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
           borderTop: "1px solid #f1f5f9", paddingTop: "16px",
         }}>
           <strong style={{ color: "#64748b" }}>Planning View Only — Not Source of Truth.</strong>{" "}
-          Official batch status, sequencing, and delivery tracking are maintained in the Batch Roadmap and Control Panel.
+          Official batch status, sequencing, and delivery tracking are maintained in the DCT Delivery Model and Control Panel.
         </div>
       </div>
 

@@ -401,7 +401,7 @@ export function useIntegrationHub(): IntegrationHubState {
     const ts = now.toLocaleTimeString();
     return [
       { source: "BatchStatusContext",   label: "DCT Control Panel",         status: "live",    lastSynced: ts, itemCount: batchRows.length },
-      { source: "BatchRoadmap",         label: "Batch Roadmap",             status: "derived", lastSynced: ts, itemCount: batchRows.length },
+      { source: "BatchRoadmap",         label: "Batch Delivery Calendar",       status: "derived", lastSynced: ts, itemCount: batchRows.length },
       { source: "RogerUIMapping",       label: "Roger UI Data Point Mapping", status: "derived", lastSynced: ts, itemCount: blockingGaps.length },
       { source: "DataModelGaps",        label: "Data Model & Gaps",         status: "derived", lastSynced: ts, itemCount: dataAvailability.length },
       { source: "GateStatus",           label: "Gate Status",               status: "derived", lastSynced: ts, itemCount: 4 },
