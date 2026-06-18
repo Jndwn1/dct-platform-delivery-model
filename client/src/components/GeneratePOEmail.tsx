@@ -302,17 +302,54 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
   }, [emailHTML]);
 
   const handleDownloadPDF = useCallback(async () => {
-    if (!previewRef.current) return;
+    if (!emailHTML) return;
     try {
-      const canvas = await html2canvas(previewRef.current, { scale: 1.2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+      // Render full email HTML in a hidden off-screen container at full height
+      const container = document.createElement("div");
+      container.style.cssText = "position:fixed;top:-99999px;left:-99999px;width:980px;background:#ffffff;z-index:-1;";
+      container.innerHTML = emailHTML;
+      document.body.appendChild(container);
+
+      // Wait for images/fonts to settle
+      await new Promise(r => setTimeout(r, 400));
+
+      const canvas = await html2canvas(container, {
+        scale: 1.5,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        width: 980,
+        height: container.scrollHeight,
+        windowWidth: 980,
+        windowHeight: container.scrollHeight,
+      });
+      document.body.removeChild(container);
+
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width / 1.2, canvas.height / 1.2] });
-      pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 1.2, canvas.height / 1.2);
+      // A4 portrait: 595 x 842 pt
+      const pageW = 595;
+      const pageH = 842;
+      const imgW = pageW;
+      const imgH = (canvas.height * pageW) / canvas.width;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+
+      let yOffset = 0;
+      let remaining = imgH;
+      let page = 0;
+      while (remaining > 0) {
+        if (page > 0) pdf.addPage();
+        const sliceH = Math.min(pageH, remaining);
+        pdf.addImage(imgData, "PNG", 0, -yOffset, imgW, imgH);
+        yOffset += pageH;
+        remaining -= sliceH;
+        page++;
+      }
+
       pdf.save(`DCT-Delivery-Dashboard-${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (e) {
       console.error("PDF generation failed:", e);
     }
-  }, []);
+  }, [emailHTML]);
 
   const handleOutlook = useCallback(() => {
     const subject = encodeURIComponent("DCT Platform Delivery Dashboard");
