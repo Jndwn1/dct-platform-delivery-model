@@ -702,49 +702,85 @@ export default function Home() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-           QUICK NAVIGATION (redesigned — larger buttons with icons)
+           EXECUTIVE NAVIGATION TOOLBAR
       ═══════════════════════════════════════════════════════════════════════ */}
       <div id="quick-nav" style={{
-        backgroundColor: "#f8fafc",
-        border: "1px solid #e2e8f0",
-        borderRadius: "10px",
-        padding: "16px 24px",
-        marginBottom: "20px",
+        backgroundColor: "#1e293b",
+        borderRadius: "8px",
+        padding: "0 16px",
+        marginBottom: "16px",
+        display: "flex",
+        alignItems: "stretch",
+        height: "40px",
+        overflow: "hidden",
+        position: "relative",
       }}>
-        <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "12px" }}>
-          Quick Navigation
+        {/* Label */}
+        <div style={{
+          fontSize: "9px", fontWeight: 800, letterSpacing: "0.12em",
+          textTransform: "uppercase", color: "#64748b",
+          display: "flex", alignItems: "center",
+          paddingRight: "12px",
+          borderRight: "1px solid #334155",
+          marginRight: "4px",
+          whiteSpace: "nowrap",
+          flexShrink: 0,
+        }}>
+          Navigate
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-          {quickNavItems.map(item => (
-            item.internal ? (
-              <button
-                key={item.label}
-                onClick={() => scrollToSection(item.id)}
-                style={{
-                  fontSize: "13px", fontWeight: 600, color: "#1e3a5f",
-                  backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
-                  borderRadius: "8px", padding: "8px 16px",
-                  cursor: "pointer", whiteSpace: "nowrap",
-                  display: "flex", alignItems: "center", gap: "6px",
-                }}
-              >
-                {item.label}
-              </button>
-            ) : (
-              <Link key={item.label} href={item.href ?? "/"}>
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: "6px",
-                  fontSize: "13px", fontWeight: 600, color: "#065f46",
-                  backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
-                  borderRadius: "8px", padding: "8px 16px",
-                  cursor: "pointer", whiteSpace: "nowrap",
-                }}>
-                  {item.label} ↗
-                </span>
-              </Link>
-            )
-          ))}
-        </div>
+
+        {/* Internal section buttons */}
+        {quickNavItems.filter(i => i.internal).map((item, idx, arr) => (
+          <>
+            <button
+              key={item.label}
+              onClick={() => scrollToSection(item.id)}
+              style={{
+                fontSize: "11px", fontWeight: 600, color: "#cbd5e1",
+                backgroundColor: "transparent", border: "none",
+                padding: "0 12px",
+                cursor: "pointer", whiteSpace: "nowrap",
+                display: "flex", alignItems: "center",
+                height: "100%",
+                transition: "color 0.15s, background-color 0.15s",
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#ffffff"; (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#334155"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#cbd5e1"; (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
+            >
+              {item.label}
+            </button>
+            {idx < arr.length - 1 && (
+              <div key={`sep-${idx}`} style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
+            )}
+          </>
+        ))}
+
+        {/* Divider before external links */}
+        <div style={{ flex: 1 }} />
+        <div style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
+
+        {/* External links */}
+        {quickNavItems.filter(i => !i.internal).map((item, idx, arr) => (
+          <>
+            <Link key={item.label} href={item.href ?? "/"}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: "4px",
+                fontSize: "11px", fontWeight: 700, color: "#34d399",
+                backgroundColor: "transparent",
+                padding: "0 12px",
+                cursor: "pointer", whiteSpace: "nowrap",
+                height: "40px",
+                lineHeight: "40px",
+              }}>
+                {item.label} ↗
+              </span>
+            </Link>
+            {idx < arr.length - 1 && (
+              <div key={`esep-${idx}`} style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
+            )}
+          </>
+        ))}
       </div>
 
       {/* ── Executive Delivery Dashboard (always visible) ── */}
