@@ -7,7 +7,6 @@ import React from "react";
 import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
-import GovernanceBanner from "@/components/GovernanceBanner";
 import ExecDashboard from "@/components/ExecDashboard";
 
 // ─── Batch Calendar PI 2 + PI 3 (source of truth for Section 2) ─────────────
@@ -1175,8 +1174,6 @@ export default function Home() {
         </div>
       </Accordion>
 
-      {/* ── Governance Banner (bottom) ── */}
-      <GovernanceBanner />
     </div>
   );
 }

@@ -11,7 +11,6 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import GovernanceBanner from "@/components/GovernanceBanner";
 import {
   useBatchStatus, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
@@ -1547,9 +1546,6 @@ export default function BatchControlPanel() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
-
-      {/* ── Governance Banner ── */}
-      <GovernanceBanner />
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">

@@ -42,6 +42,7 @@ import DeploymentRegistry from "./pages/DeploymentRegistry";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
+import GovernanceBanner from "./components/GovernanceBanner";
 import { BatchStatusProvider } from "./contexts/BatchStatusContext";
 
 function Layout({ children }: { children: React.ReactNode }) {
@@ -50,9 +51,17 @@ function Layout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto" style={{ paddingBottom: "80px" }}>
           {children}
         </main>
+      </div>
+      {/* Global governance banner — fixed bottom, visible on all screens */}
+      <div style={{
+        position: "fixed", bottom: 0, left: 0, right: 0,
+        zIndex: 1000,
+        boxShadow: "0 -2px 8px rgba(0,0,0,0.08)",
+      }}>
+        <GovernanceBanner />
       </div>
     </div>
   );

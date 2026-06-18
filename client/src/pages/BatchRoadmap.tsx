@@ -6,7 +6,6 @@
 // Non-production workspace — architecture visualization and readiness planning only
 import { useState, useMemo } from "react";
 import { Link } from "wouter";
-import GovernanceBanner from "@/components/GovernanceBanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight, CheckCircle2, Clock, Circle, AlertTriangle, Play, ArrowRight, Info } from "lucide-react";
 import { useBatchStatus, type BatchStatus } from "@/contexts/BatchStatusContext";
@@ -877,9 +876,6 @@ export default function BatchRoadmap() {
 
   return (
     <div style={{ padding: "24px 28px", maxWidth: "980px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
-
-      {/* ── Governance Banner ── */}
-      <GovernanceBanner />
 
       {/* ── Architecture Reference Banner ── */}
       <div style={{
