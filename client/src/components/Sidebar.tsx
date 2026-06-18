@@ -103,13 +103,7 @@ const GATE_NAV_ITEMS = [
   { id: "gate-g4",   label: "G4  Lineage Closure",         icon: "🔗", anchor: "gate-g4-section" },
 ];
 
-// Agents — alphabetical
-const AGENT_ITEMS: NavItem[] = [
-  { label: "Analyst Agent",   path: "/agent/analyst",   icon: "A", status: "Complete",    statusColor: "#059669" },
-  { label: "Architect Agent", path: "/agent/architect", icon: "A", status: "Complete",    statusColor: "#059669" },
-  { label: "Developer Agent", path: "/agent/developer", icon: "D", status: "In Progress", statusColor: "#d97706" },
-  { label: "QA Agent",        path: "/agent/qa",        icon: "Q", status: "In Progress", statusColor: "#d97706" },
-];
+// Agents section removed — individual agent nav items consolidated into Agent Hub (Architecture & Diagrams)
 
 // BA & Requirements — primary BA workflow tools
 const BA_ITEMS: NavItem[] = [
@@ -143,7 +137,7 @@ const ROGER_UI_ITEMS: NavItem[] = [
 
 // Diagrams — alphabetical; Visio Architecture removed (duplicate of Architecture Sync); Agent Hub moved here
 const DIAGRAM_ITEMS: NavItem[] = [
-  { label: "Agent Hub",              path: "/agent-hub",               icon: "◈" },
+  { label: "Agent Hub — AI Execution Layer", path: "/agent-hub", icon: "◈" },
   { label: "Architecture Diagram",   path: "/architecture",            icon: "⬡" },
   { label: "Architecture Sync",      path: "/architecture?tab=visio",  icon: "⟳", isArchSync: true },
   { label: "Developer Architecture", path: "/architecture/developer",  icon: "▤" },
@@ -492,7 +486,6 @@ export default function Sidebar({ activeSection }: SidebarProps) {
         </div>
 
         <GatesNavSection />
-        <NavSection title="Agents" items={AGENT_ITEMS} />
         <NavSection title="BA & Requirements" items={BA_ITEMS} />
         <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
         <NavSection title="Governance" items={GOVERNANCE_ITEMS} />
