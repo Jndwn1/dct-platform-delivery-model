@@ -511,14 +511,15 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function Home() {
-  const { statuses, piCompletion, gates, lastUpdated } = useBatchStatus();
-  const totalBatches = Object.keys(statuses).length;
-  const completedBatches = Object.values(statuses).filter(s => s === "Complete").length;
-  const activeBatches = Object.values(statuses).filter(s => s === "Dev" || s === "In Review" || s === "In Progress").length;
-  const overallPct = Math.round((completedBatches / totalBatches) * 100);
-  const lastUpdatedLabel = lastUpdated
-    ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
-    : null;
+  const { gates } = useBatchStatus();
+
+  // Readiness Status — current PI (PI 2) metrics derived from Batch Calendar
+  const pi2Batches = BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 2");
+  const pi2Total = pi2Batches.length;
+  const pi2Done = pi2Batches.filter(b => b.status === "Done").length;
+  const pi2Active = pi2Batches.filter(b => b.status === "In Progress").length;
+  const pi2Planned = pi2Batches.filter(b => b.status !== "Done" && b.status !== "In Progress").length;
+  const overallPct = pi2Total > 0 ? Math.round((pi2Done / pi2Total) * 100) : 0;
 
   // Lifted accordion open state — keyed by accordion id
   const ACCORDION_IDS = [
@@ -581,23 +582,36 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
-          {[
-            { label: `Batches Active: ${activeBatches}`, color: "#059669" },
-            { label: "Non-Production Workspace", color: "#d97706" },
-            { label: "API-First Architecture", color: "#2563eb" },
-            { label: "Governed AI Integration", color: "#7c3aed" },
-            { label: "Roger Read-Only", color: "#0f1623" },
-          ].map(b => (
-            <span key={b.label} style={{
-              fontSize: "11px", fontWeight: 600, color: "white",
-              backgroundColor: b.color, borderRadius: "4px", padding: "3px 8px",
-            }}>{b.label}</span>
-          ))}
-        </div>
       </div>
 
-      {/* ── Live Platform Status Bar ── */}
+      {/* ── 1. Purpose (always visible) ── */}
+      <div id="section-purpose" style={{ marginBottom: "24px" }}>
+      <Section title="Purpose" subtitle="Section 1" accent="blue">
+        <div style={{
+          backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
+          borderRadius: "8px", padding: "16px 20px",
+        }}>
+          <p style={{ margin: "0 0 10px", fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
+            DCT is a <strong>governed, batch-driven architecture and readiness model</strong> that structures how financial data is ingested,
+            normalized, classified, and made available for tax decision-making across RSM's enterprise platform.
+          </p>
+          <p style={{ margin: "0 0 10px", fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
+            It enforces a <strong>strict separation of concerns</strong> between financial data (PDC), tax decisions (TDC),
+            AI orchestration (Orchestrator), and practitioner consumption (Roger) — ensuring no system owns
+            responsibilities outside its defined boundary.
+          </p>
+          <p style={{ margin: 0, fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
+            The result is <strong>deterministic, traceable, API-driven architecture patterns</strong> that can be audited, replayed,
+            and validated at every layer of the platform.
+          </p>
+          <p style={{ margin: 0, fontSize: "13px", color: "#475569", lineHeight: "1.6", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: 6, padding: "8px 12px", marginTop: 8 }}>
+            <strong style={{ color: "#92400e" }}>Governance Note:</strong> This workspace visualizes architecture patterns, readiness status, and governance structures using mock and seed data. It is not a production system, system of record, or integrated operational platform. All outputs require formal enterprise implementation outside this workspace.
+          </p>
+        </div>
+      </Section>
+      </div>
+
+      {/* ── Live Platform Status Bar (PI 2 — Current PI) ── */}
       <div style={{
         backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
         borderRadius: "10px", padding: "14px 20px", marginBottom: "28px",
@@ -605,7 +619,7 @@ export default function Home() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "200px" }}>
           <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
-            ● Readiness Status
+            ● PI 2 Readiness
           </div>
           <div style={{ flex: 1, height: "8px", backgroundColor: "#d1fae5", borderRadius: "4px", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${overallPct}%`, backgroundColor: "#059669", borderRadius: "4px", transition: "width 0.4s ease" }} />
@@ -614,9 +628,9 @@ export default function Home() {
         </div>
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
           {[
-            { label: "Complete", value: completedBatches, color: "#059669" },
-            { label: "Active", value: activeBatches, color: "#2563eb" },
-            { label: "Planned", value: totalBatches - completedBatches - activeBatches, color: "#94a3b8" },
+            { label: "Done", value: pi2Done, color: "#059669" },
+            { label: "Active", value: pi2Active, color: "#2563eb" },
+            { label: "Remaining", value: pi2Planned, color: "#94a3b8" },
           ].map(s => (
             <div key={s.label} style={{ textAlign: "center" }}>
               <div style={{ fontSize: "16px", fontWeight: 800, color: s.color }}>{s.value}</div>
@@ -640,11 +654,9 @@ export default function Home() {
             </div>
           ))}
         </div>
-        {lastUpdatedLabel && (
-          <div style={{ fontSize: "10px", color: "#6b7280", whiteSpace: "nowrap" }}>
-            ↻ Last updated: {lastUpdatedLabel}
-          </div>
-        )}
+        <div style={{ fontSize: "10px", color: "#6b7280", whiteSpace: "nowrap" }}>
+          Data as of: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+        </div>
       </div>
 
       {/* ── Quick Navigation ── */}
@@ -689,34 +701,6 @@ export default function Home() {
           ))}
         </div>
       </div>
-
-      {/* ── 1. Purpose (always visible) ── */}
-      <div id="section-purpose">
-      <Section title="Purpose" subtitle="Section 1" accent="blue">
-        <div style={{
-          backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
-          borderRadius: "8px", padding: "16px 20px",
-        }}>
-          <p style={{ margin: "0 0 10px", fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
-            DCT is a <strong>governed, batch-driven architecture and readiness model</strong> that structures how financial data is ingested,
-            normalized, classified, and made available for tax decision-making across RSM's enterprise platform.
-          </p>
-          <p style={{ margin: "0 0 10px", fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
-            It enforces a <strong>strict separation of concerns</strong> between financial data (PDC), tax decisions (TDC),
-            AI orchestration (Orchestrator), and practitioner consumption (Roger) — ensuring no system owns
-            responsibilities outside its defined boundary.
-          </p>
-          <p style={{ margin: 0, fontSize: "14px", color: "#1e293b", lineHeight: "1.7" }}>
-            The result is <strong>deterministic, traceable, API-driven architecture patterns</strong> that can be audited, replayed,
-            and validated at every layer of the platform.
-          </p>
-          <p style={{ margin: 0, fontSize: "13px", color: "#475569", lineHeight: "1.6", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: 6, padding: "8px 12px", marginTop: 8 }}>
-            <strong style={{ color: "#92400e" }}>Governance Note:</strong> This workspace visualizes architecture patterns, readiness status, and governance structures using mock and seed data. It is not a production system, system of record, or integrated operational platform. All outputs require formal enterprise implementation outside this workspace.
-          </p>
-        </div>
-      </Section>
-
-      </div>{/* end section-purpose */}
 
       {/* ── Executive Delivery Dashboard (always visible) ── */}
       <div id="exec-dashboard-anchor">
