@@ -4,7 +4,7 @@
 // Governance realignment: Non-production workspace, architecture visualization only
 
 import { Link } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import ExecDashboard from "@/components/ExecDashboard";
@@ -453,6 +453,59 @@ function BatchReferenceGuide() {
 }
 
 
+// ─── Collapsible accordion wrapper ──────────────────────────────────────────
+function Accordion({ id, title, subtitle, accent, children, defaultOpen = false }: {
+  id: string; title: string; subtitle?: string; children: React.ReactNode;
+  accent?: "blue" | "green" | "red" | "amber" | "slate"; defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const accentMap: Record<string, string> = {
+    blue: "#1e3a5f", green: "#065f46", red: "#7f1d1d", amber: "#78350f", slate: "#1e293b",
+  };
+  const borderColor = accentMap[accent ?? "slate"];
+  return (
+    <div
+      id={id}
+      style={{
+        marginBottom: "12px",
+        border: "1px solid #e2e8f0",
+        borderRadius: "8px",
+        overflow: "hidden",
+        backgroundColor: "#ffffff",
+      }}
+    >
+      {/* Header */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "12px 16px", background: "none", border: "none", cursor: "pointer",
+          borderLeft: `4px solid ${borderColor}`,
+          textAlign: "left",
+        }}
+      >
+        <div>
+          {subtitle && (
+            <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "1px" }}>
+              {subtitle}
+            </div>
+          )}
+          <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f1623" }}>{title}</div>
+        </div>
+        <div style={{ fontSize: "18px", color: "#94a3b8", fontWeight: 400, flexShrink: 0, marginLeft: "12px", transition: "transform 0.25s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>⌄</div>
+      </button>
+      {/* Body */}
+      <div style={{
+        maxHeight: open ? "9999px" : "0",
+        overflow: "hidden",
+        transition: "max-height 0.35s ease",
+      }}>
+        <div style={{ padding: "0 16px 16px 20px" }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function Home() {
   const { statuses, piCompletion, gates, lastUpdated } = useBatchStatus();
@@ -463,6 +516,31 @@ export default function Home() {
   const lastUpdatedLabel = lastUpdated
     ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
     : null;
+
+  const scrollToSection = useCallback((id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Trigger highlight flash
+      el.style.backgroundColor = "#f0fdf4";
+      el.style.transition = "background-color 0.4s ease";
+      setTimeout(() => { el.style.backgroundColor = ""; }, 1400);
+    }
+  }, []);
+
+  // Quick Navigation items
+  const quickNavItems = [
+    { label: "Purpose",            id: "section-purpose",       internal: true },
+    { label: "Work Status",        id: "section-work-status",   internal: true },
+    { label: "Batch Calendar",     id: "",                      internal: false, href: "/batch-calendar" },
+    { label: "Roadmap",            id: "section-work-status",   internal: true },
+    { label: "Governance Status",  id: "section-governance",    internal: true },
+    { label: "Architecture",       id: "section-architecture",  internal: true },
+    { label: "Dependencies",       id: "section-dependencies",  internal: true },
+    { label: "Release Readiness",  id: "exec-dashboard-anchor", internal: true },
+    { label: "Deployment Registry",id: "",                      internal: false, href: "/deployment-registry" },
+    { label: "Ask Buddy",          id: "",                      internal: false, href: "/ask-buddy" },
+  ];
 
   return (
     <div style={{ padding: "28px 32px", maxWidth: "1100px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
@@ -550,7 +628,51 @@ export default function Home() {
         )}
       </div>
 
-      {/* ── 1. Purpose ── */}
+      {/* ── Quick Navigation ── */}
+      <div id="quick-nav" style={{
+        backgroundColor: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        padding: "14px 20px",
+        marginBottom: "24px",
+      }}>
+        <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "10px" }}>
+          Quick Navigation
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          {quickNavItems.map(item => (
+            item.internal ? (
+              <button
+                key={item.label}
+                onClick={() => scrollToSection(item.id)}
+                style={{
+                  fontSize: "12px", fontWeight: 600, color: "#1e3a5f",
+                  backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+                  borderRadius: "6px", padding: "5px 12px",
+                  cursor: "pointer", whiteSpace: "nowrap",
+                }}
+              >
+                {item.label}
+              </button>
+            ) : (
+              <Link key={item.label} href={item.href ?? "/"}>
+                <span style={{
+                  display: "inline-block",
+                  fontSize: "12px", fontWeight: 600, color: "#065f46",
+                  backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+                  borderRadius: "6px", padding: "5px 12px",
+                  cursor: "pointer", whiteSpace: "nowrap",
+                }}>
+                  {item.label} ↗
+                </span>
+              </Link>
+            )
+          ))}
+        </div>
+      </div>
+
+      {/* ── 1. Purpose (always visible) ── */}
+      <div id="section-purpose">
       <Section title="Purpose" subtitle="Section 1" accent="blue">
         <div style={{
           backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
@@ -575,14 +697,20 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Executive Delivery Dashboard ── */}
-      <ExecDashboard batches={BATCH_REFERENCE} />
+      </div>{/* end section-purpose */}
 
-      {/* ── 2. Batch Reference & Consumer Impact Guide ── */}
-      <BatchReferenceGuide />
+      {/* ── Executive Delivery Dashboard (always visible) ── */}
+      <div id="exec-dashboard-anchor">
+        <ExecDashboard batches={BATCH_REFERENCE} />
+      </div>
 
-      {/* ── 3. End-to-End Flow ── */}
-      <Section title="End-to-End Delivery Model" subtitle="Section 3 — Critical Visual" accent="blue">
+      {/* ── Accordion: Batch Portfolio Overview ── */}
+      <Accordion id="section-work-status" title="Batch Portfolio Overview" subtitle="Section 2 — PI 2 & PI 3 Delivery Units" accent="blue">
+        <BatchReferenceGuide />
+      </Accordion>
+
+      {/* ── Accordion: End-to-End Delivery Model ── */}
+      <Accordion id="section-architecture" title="End-to-End Delivery Model" subtitle="Section 3 — Critical Visual" accent="blue">
         <div style={{
           backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
           borderRadius: "10px", padding: "20px 24px",
@@ -617,10 +745,10 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </Section>
+      </Accordion>
 
-      {/* ── 4. System Ownership ── */}
-      <Section title="System Ownership Model" subtitle="Section 4 — No Overlapping Ownership" accent="blue">
+      {/* ── Accordion: System Ownership Model ── */}
+      <Accordion id="section-ownership" title="System Ownership Model" subtitle="Section 4 — No Overlapping Ownership" accent="blue">
         <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
           <div style={{
             display: "grid", gridTemplateColumns: "1fr 1fr 2fr",
@@ -631,11 +759,11 @@ export default function Home() {
             ))}
           </div>
           {[
-            { layer: "Ingestion",      system: "Tax Portal",      resp: "File intake, event trigger via Service Bus. Assigns DocumentId at boundary." },
-            { layer: "Data Foundation",system: "PDC",             resp: "Financial data storage, lineage anchor (DocumentId), normalization, classification storage. System of record for financial truth." },
-            { layer: "Orchestration",  system: "AI Orchestrator", resp: "Stateless processing only. Applies taxonomy rules and returns FirmTaxonomyId. No persistence, no ownership of data." },
-            { layer: "Tax Decision",   system: "TDC",             resp: "Tax mapping, adjustments, tax-ready record derivation, eligibility. System of record for all tax decisions. Immutable audit trail." },
-            { layer: "Consumption",    system: "Roger",           resp: "Read-only practitioner UI. Reads from TDC primary contract only. No writes, no transformations." },
+            { layer: "Ingestion",       system: "Tax Portal",      resp: "File intake, event trigger via Service Bus. Assigns DocumentId at boundary." },
+            { layer: "Data Foundation", system: "PDC",             resp: "Financial data storage, lineage anchor (DocumentId), normalization, classification storage. System of record for financial truth." },
+            { layer: "Orchestration",   system: "AI Orchestrator", resp: "Stateless processing only. Applies taxonomy rules and returns FirmTaxonomyId. No persistence, no ownership of data." },
+            { layer: "Tax Decision",    system: "TDC",             resp: "Tax mapping, adjustments, tax-ready record derivation, eligibility. System of record for all tax decisions. Immutable audit trail." },
+            { layer: "Consumption",     system: "Roger",           resp: "Read-only practitioner UI. Reads from TDC primary contract only. No writes, no transformations." },
           ].map((row, i) => (
             <div key={row.layer} style={{
               display: "grid", gridTemplateColumns: "1fr 1fr 2fr",
@@ -650,10 +778,10 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </Section>
+      </Accordion>
 
-      {/* ── 5. Foundation Invariants ── */}
-      <Section title="What Must Be True — Foundation Invariants" subtitle="Section 5 — Non-Negotiable Rules" accent="green">
+      {/* ── Accordion: Foundation Invariants ── */}
+      <Accordion id="section-governance" title="What Must Be True — Foundation Invariants" subtitle="Section 5 — Non-Negotiable Rules" accent="green">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
           {[
             "All data must enter through a governed ingestion boundary — no direct system writes.",
@@ -668,10 +796,10 @@ export default function Home() {
             <InvariantCard key={i} index={i + 1} text={text} />
           ))}
         </div>
-      </Section>
+      </Accordion>
 
-      {/* ── 6. What This Enables ── */}
-      <Section title="What This Enables" subtitle="Section 6 — Platform Capabilities" accent="green">
+      {/* ── Accordion: Platform Capabilities ── */}
+      <Accordion id="section-capabilities" title="What This Enables" subtitle="Section 6 — Platform Capabilities" accent="green">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
           {[
             { icon: "⟳", title: "Deterministic Processing", desc: "Same input always produces the same output. Results are reproducible and auditable." },
@@ -691,10 +819,10 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </Section>
+      </Accordion>
 
-      {/* ── 7. What This Is NOT ── */}
-      <Section title="What This Is NOT — Architecture Guardrails & Workspace Limitations" subtitle="Section 7 — Guardrails" accent="amber">
+      {/* ── Accordion: Architecture Guardrails ── */}
+      <Accordion id="section-guardrails" title="What This Is NOT — Architecture Guardrails & Workspace Limitations" subtitle="Section 7 — Guardrails" accent="amber">
         <div style={{
           backgroundColor: "#fffbeb", border: "1px solid #fde68a",
           borderRadius: "8px", padding: "16px 20px",
@@ -725,16 +853,16 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </Section>
+      </Accordion>
 
-      {/* ── 8. Roger Connection ── */}
-      <Section title="How This Connects to Roger" subtitle="Section 8 — Consumption Layer" accent="slate">
+      {/* ── Accordion: Roger Connection ── */}
+      <Accordion id="section-dependencies" title="How This Connects to Roger" subtitle="Section 8 — Consumption Layer" accent="slate">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           <div style={{
             backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
             borderRadius: "8px", padding: "16px 18px",
           }}>
-            <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "10px" }}>Roger's Contract Rules</div>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "10px" }}>Roger’s Contract Rules</div>
             {[
               "Roger reads exclusively from TDC — the primary contract. No direct PDC reads.",
               "Roger does not write, transform, or persist data. It is read-only at all times.",
@@ -777,10 +905,10 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </Section>
+      </Accordion>
 
-      {/* ── 9. Failure Modes ── */}
-      <Section title="Failure Modes" subtitle="Section 9 — If This Model Is Not Enforced" accent="red">
+      {/* ── Accordion: Failure Modes ── */}
+      <Accordion id="section-failure-modes" title="Failure Modes" subtitle="Section 9 — If This Model Is Not Enforced" accent="red">
         <div style={{ marginBottom: "10px", fontSize: "13px", color: "#7f1d1d", fontWeight: 600 }}>
           The following failures occur when DCT governance rules are bypassed or not enforced:
         </div>
@@ -796,8 +924,7 @@ export default function Home() {
             <FailureCard key={i} text={text} />
           ))}
         </div>
-      </Section>
-
+      </Accordion>
 
       {/* ── Governance Banner (bottom) ── */}
       <GovernanceBanner />
