@@ -6,7 +6,7 @@
 // Data: Dynamically derived from BATCH_CALENDAR_PI23 (Batch Calendar source of truth)
 // 
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import GeneratePOEmail from "@/components/GeneratePOEmail";
@@ -175,6 +175,7 @@ interface ExecDashboardProps {
 export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const { data: recentDeployments } = trpc.deploymentRegistry.recent.useQuery();
+  const [deployPlatformFilter, setDeployPlatformFilter] = useState<"All" | "PDC" | "TDC" | "Both">("All");
 
   // Pilot countdown
   const PILOT_DATE = new Date("2026-09-16T00:00:00");
