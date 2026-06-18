@@ -1,14 +1,14 @@
 // -
-// ExecDashboard — Executive Delivery Dashboard
+// ExecDashboard  Executive Delivery Dashboard
 // RSM | CATT | DCT Platform
-// Placement: Home.tsx — below page title, above GovernanceBanner
+// Placement: Home.tsx  below page title, above GovernanceBanner
 // Design: RSM Deep Navy headers, RSM Green for success, slate neutral
 // Data: Dynamically derived from BatchStatusContext (no mock values)
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+//  Helpers 
 
 function isCompleted(s: string) {
   return s === "Complete" || s === "Done" || s === "Delivered";
@@ -21,7 +21,7 @@ function isPlanned(s: string) {
   return s === "Not Started" || s === "Planned" || s === "On Hold" || s === "Post-MVP";
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+//  Sub-components 
 
 /** Row 1 — KPI card */
 function KPICard({
@@ -139,19 +139,19 @@ function PICard({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+//  Main component 
 
 export default function ExecDashboard() {
   const { statuses, piCompletion } = useBatchStatus();
 
-  // ── Row 1: KPI counts derived from live context ───────────────────────────
+  //  Row 1: KPI counts derived from live context 
   const allStatuses = Object.values(statuses);
   const totalBatches  = allStatuses.length;
   const completedCount = allStatuses.filter(s => isCompleted(s)).length;
   const activeCount    = allStatuses.filter(s => isActive(s)).length;
   const plannedCount   = allStatuses.filter(s => isPlanned(s)).length;
 
-  // ── Row 3: PI progress data ───────────────────────────────────────────────
+  //  Row 3: PI progress data 
   const piCards = [
     {
       pi: "PI 1",
