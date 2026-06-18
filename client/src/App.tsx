@@ -12,7 +12,6 @@ import LoginPage from "./pages/LoginPage";
 
 // Core pages
 import Home from "./pages/Home";
-import BatchRoadmap from "./pages/BatchRoadmap";
 import GateStatus from "./pages/GateStatus";
 import TouchpointsPage from "./pages/TouchpointsPage";
 import AgentHub from "./pages/AgentHub";
@@ -72,7 +71,6 @@ function Router() {
         <Switch>
           {/* Core platform */}
           <Route path="/" component={Home} />
-          <Route path="/batch-roadmap" component={BatchRoadmap} />
           <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
           <Route path="/gate-status" component={GateStatus} />
           <Route path="/touchpoints" component={TouchpointsPage} />

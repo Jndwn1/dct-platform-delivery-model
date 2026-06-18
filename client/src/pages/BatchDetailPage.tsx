@@ -749,8 +749,8 @@ export default function BatchDetailPage() {
             {rawId}
           </code>
         </p>
-        <Link href="/batch-roadmap">
-          <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563eb", cursor: "pointer" }}>← Back to Batch Roadmap</span>
+        <Link href="/">
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563eb", cursor: "pointer" }}>← Back to DCT Delivery Model</span>
         </Link>
       </div>
     );
@@ -779,8 +779,8 @@ export default function BatchDetailPage() {
 
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "16px", fontSize: "12px", color: "#64748b" }}>
-        <Link href="/batch-roadmap">
-          <span style={{ color: "#2563eb", cursor: "pointer", fontWeight: 600 }}>Batch Roadmap</span>
+        <Link href="/">
+          <span style={{ color: "#2563eb", cursor: "pointer", fontWeight: 600 }}>DCT Delivery Model</span>
         </Link>
         <span>›</span>
         {piGroup && (
@@ -1080,8 +1080,8 @@ export default function BatchDetailPage() {
             </span>
           </Link>
         ) : <span />}
-        <Link href="/batch-roadmap">
-          <span style={{ fontSize: "11px", color: "#94a3b8", cursor: "pointer" }}>Batch Roadmap</span>
+        <Link href="/">
+          <span style={{ fontSize: "11px", color: "#94a3b8", cursor: "pointer" }}>DCT Delivery Model</span>
         </Link>
         {nextId ? (
           <Link href={`/batch/${nextId.replace("B", "").replace("FC", "foundation-core").replace("MT", "mt")}`}>

@@ -48,7 +48,7 @@ const GUIDE_CARDS: GuideCard[] = [
     sourceDependencies: [
       { label: "DCT Control Panel", path: "/control-panel" },
       { label: "Gate Status", path: "/gate-status" },
-      { label: "Batch Roadmap", path: "/batch-roadmap" },
+      { label: "Batch Roadmap", path: "/" },
     ],
     escalationGuidance:
       "If a batch appears Complete in ADO but gates are not verified, escalate to the PO and Architecture team immediately. Do not count the batch as complete in PI reporting until all four gates are confirmed in the Control Panel.",
@@ -140,7 +140,7 @@ const GUIDE_CARDS: GuideCard[] = [
     sourceDependencies: [
       { label: "Integration Alignment Hub — Carry-Forward Panel", path: "/integration-hub" },
       { label: "DCT Control Panel", path: "/control-panel" },
-      { label: "Batch Roadmap", path: "/batch-roadmap" },
+      { label: "Batch Roadmap", path: "/" },
     ],
     escalationGuidance:
       "Governance and Architecture blockers must be escalated to the PO and Architecture team within the same sprint they are identified. DEV blockers should be tracked in ADO and reviewed in the daily standup. API Contract blockers require coordination between the DCT BA and Roger BA teams.",
@@ -368,7 +368,7 @@ const GUIDE_CARDS: GuideCard[] = [
       "Include gate completion status in all PI planning and leadership review artifacts",
     ],
     sourceDependencies: [
-      { label: "Batch Roadmap", path: "/batch-roadmap" },
+      { label: "Batch Roadmap", path: "/" },
       { label: "Gate Status", path: "/gate-status" },
       { label: "Batch Delivery Calendar", path: "/batch-calendar" },
     ],

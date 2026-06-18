@@ -379,7 +379,7 @@ const SUBSECTIONS: SubSection[] = [
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
             { source: "DCT Control Panel", role: "Operational System of Record", path: "/control-panel", color: "blue" },
-            { source: "Batch Roadmap", role: "Delivery System of Record", path: "/batch-roadmap", color: "blue" },
+            { source: "Batch Roadmap", role: "Delivery System of Record", path: "/", color: "blue" },
             { source: "Roger UI Mapping", role: "Consumer Mapping SoR", path: "/roger-mapping", color: "emerald" },
             { source: "Roger API Evolution", role: "Roger Consumption SoR", path: "/roger-api", color: "emerald" },
             { source: "Governance ADRs", role: "Governance System of Record", path: "/data-model", color: "purple" },

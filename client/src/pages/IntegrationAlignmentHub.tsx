@@ -52,7 +52,7 @@ const GOVERNANCE_RULE = `The DCT Control Panel ecosystem remains the authoritati
 
 const SOURCE_LABELS: Record<string, { label: string; href: string; color: string }> = {
   BatchStatusContext:   { label: "DCT Control Panel",           href: "/control-panel",    color: "#1e40af" },
-  BatchRoadmap:         { label: "Batch Roadmap",               href: "/batch-roadmap",    color: "#0e7490" },
+  BatchRoadmap:         { label: "Batch Roadmap",               href: "/",    color: "#0e7490" },
   RogerUIMapping:       { label: "Roger UI Data Point Mapping", href: "/roger-mapping",    color: "#7c3aed" },
   RogerAPIEvolution:    { label: "Roger API Evolution",         href: "/roger-api",        color: "#065f46" },
   DataModelGaps:        { label: "Data Model & Gaps",           href: "/data-model",       color: "#92400e" },

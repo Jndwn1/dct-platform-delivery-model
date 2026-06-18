@@ -86,7 +86,7 @@ If you want to know:
 Start here.`,
     highlights: ["PI 2", "PI 3", "Batches", "Done", "Committed", "Stretch", "MVP"],
     examplePrompt: "What batches are in PI 3?",
-    navPath: "/batch-roadmap",
+    navPath: "/",
     navButtonLabel: "Go to Delivery Model →",
   },
   {

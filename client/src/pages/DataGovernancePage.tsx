@@ -150,7 +150,7 @@ const DATA_DOMAINS: DataDomain[] = [
 ];
 
 const SOT_MATRIX: SoTRule[] = [
-  { dataType: "Batch sequencing & definitions", authoritative: "Batch Roadmap page", label: "Source of Truth", page: "/batch-roadmap" },
+  { dataType: "Batch sequencing & definitions", authoritative: "Batch Roadmap page", label: "Source of Truth", page: "/" },
   { dataType: "Batch delivery status", authoritative: "Control Panel", label: "Source of Truth", page: "/control-panel" },
   { dataType: "API contracts", authoritative: "Swagger (external — dev-pdc / dev-tdc)", label: "External Authority", page: "—" },
   { dataType: "API documentation", authoritative: "Consumer Guide", label: "Derived View", derivedFrom: "Swagger", page: "—" },
