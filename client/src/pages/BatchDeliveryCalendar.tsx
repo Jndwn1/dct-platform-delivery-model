@@ -243,37 +243,7 @@ const BASELINE_ROWS: BatchRow[] = [
     startDate: "", endDate: "", status: "On Hold",
     notes: "Batch 12 PDC. On Hold. Engagement identity, reference data, and TIM reconciliation. No active dates.", dependsOn: "",
   },
-  // ── PI 4 — Post-MVP ───────────────────────────────────────────────────────────
-  {
-    id: "pi4-b19-tdc", pi: "PI 4", batch: "B19", system: "TDC",
-    name: "Audit Tax-Expense Cross-LOB Outbound",
-    startDate: "2026-09-16", endDate: "2026-09-28", status: "Post-MVP",
-    notes: "Batch 19 TDC. Post-MVP. Audit tax-expense cross-LOB outbound. Follows 9/16 Pilot Start.", dependsOn: "B33",
-  },
-  {
-    id: "pi4-b21-tdc", pi: "PI 4", batch: "B21", system: "TDC",
-    name: "Quality Control Review Records",
-    startDate: "2026-09-29", endDate: "2026-10-08", status: "Post-MVP",
-    notes: "Batch 21 TDC. Post-MVP. Quality control review records.", dependsOn: "B19",
-  },
-  {
-    id: "pi4-b40-tdc", pi: "PI 4", batch: "B40", system: "TDC",
-    name: "Client-Level Line Mapping Reuse",
-    startDate: "2026-10-09", endDate: "2026-10-20", status: "Post-MVP",
-    notes: "Batch 40 TDC. Post-MVP. Client-level line mapping reuse.", dependsOn: "B21",
-  },
-  {
-    id: "pi4-b26-tdc", pi: "PI 4", batch: "B26", system: "TDC",
-    name: "Entity Constituents & Allocations",
-    startDate: "2026-10-21", endDate: "2026-11-02", status: "Post-MVP",
-    notes: "Batch 26 TDC. Post-MVP. Entity constituents and allocations — TDC side.", dependsOn: "B40",
-  },
-  {
-    id: "pi4-b35-tdc", pi: "PI 4", batch: "B35", system: "TDC",
-    name: "S-Corp Specialization",
-    startDate: "2026-11-03", endDate: "2026-11-16", status: "Post-MVP",
-    notes: "Batch 35 TDC. Post-MVP. S-Corp specialization.", dependsOn: "B26",
-  },
+  // PI 4 rows removed — active pilot scope is PI 2 and PI 3 only (per governance decision Jun 2026)
 ];
 // ─── COLORS ───────────────────────────────────────────────────────────────────
 // RSM palette: Blue = PDC, Green = TDC, Gray = completed/platform, Amber = risk
@@ -2037,10 +2007,13 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
         </div>
 
         {/* ── SUMMARY TILES (4 KPI cards) ─────────────────────────────────────── */}
+        {/* KPI counts derived from BATCH_CALENDAR_PI23 (PI 2 + PI 3 only, PI 4 excluded) */}
         {(() => {
-          const pi2Rows = validatedRows.filter(r => r.pi === "PI 2");
-          const pi2Done = pi2Rows.filter(r => r.status === "Done").length;
-          const pi2Pct = pi2Rows.length > 0 ? Math.round((pi2Done / pi2Rows.length) * 100) : 0;
+          // Use BASELINE_ROWS scoped to PI 2 only for the PI 2 Complete card
+          const pi2BaseRows = BASELINE_ROWS.filter(r => r.pi === "PI 2");
+          const pi2Done = pi2BaseRows.filter(r => r.status === "Done").length;
+          const pi2Total = pi2BaseRows.length;
+          const pi2Pct = pi2Total > 0 ? Math.round((pi2Done / pi2Total) * 100) : 0;
           const cpCount = summary.cpOrdered.length;
           const parallelTracks = (() => {
             // Count rows that overlap in time with at least one other row
@@ -2065,7 +2038,7 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
             {
               label: "PI 2 Complete",
               value: `${pi2Pct}%`,
-              sub: `${pi2Done} of ${pi2Rows.length} batches done`,
+              sub: `${pi2Done} of ${pi2Total} batches done`,
               accent: "#059669",
             },
             {
@@ -2218,10 +2191,10 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
                 Status Counts
               </div>
               {[
-                { status: "Done", count: "1", detail: "Batch 4", color: "#059669", bg: "#dcfce7" },
-                { status: "Committed", count: "18", detail: "PI 2 + PI 3 + PI 4 non-MVP-gating work", color: "#1e40af", bg: "#dbeafe" },
-                { status: "Stretch", count: "3", detail: "PI 2 PDC ladder (B16 PDC committed; B24/B25 PDC opportunistic)", color: "#ea580c", bg: "#ffedd5" },
-                { status: "MVP", count: "8", detail: "TDC critical path through cross-LOB Audit deliverable", color: "#7c3aed", bg: "#ede9fe" },
+                { status: "Done", count: "10", detail: "B4, B5, B6, B2A, B7, B8 PDC, B8 TDC, B9 PDC, B10, B43", color: "#059669", bg: "#dcfce7" },
+                { status: "In Progress", count: "3", detail: "B9 Gateway, B11 TDC, B42 TDC — active this week", color: "#1e40af", bg: "#dbeafe" },
+                { status: "MVP", count: "11", detail: "PI 3 planned scope — B16, B31 PDC, B28, B9a, B39, B20, B29, B21, B17, B26, B31 TDC", color: "#7c3aed", bg: "#ede9fe" },
+                { status: "Stretch", count: "2", detail: "B16 PDC (PI 2), B33 TDC (PI 3) — opportunistic, non-blocking", color: "#ea580c", bg: "#ffedd5" },
               ].map((c, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "5px 0", borderBottom: "1px solid #f1f5f9" }}>
                   <span style={{ fontSize: "10px", fontWeight: 700, color: c.color, backgroundColor: c.bg, padding: "2px 8px", borderRadius: "4px", minWidth: "72px", textAlign: "center" }}>{c.status}</span>
