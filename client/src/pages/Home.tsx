@@ -3,6 +3,7 @@
 // Design: RSM Deep Navy headers, RSM Green for success/insight, slate for neutral
 // Governance realignment: Non-production workspace, architecture visualization only
 
+import React from "react";
 import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
@@ -731,9 +732,8 @@ export default function Home() {
 
         {/* Internal section buttons */}
         {quickNavItems.filter(i => i.internal).map((item, idx, arr) => (
-          <>
+          <React.Fragment key={item.label}>
             <button
-              key={item.label}
               onClick={() => scrollToSection(item.id)}
               style={{
                 fontSize: "11px", fontWeight: 600, color: "#cbd5e1",
@@ -751,9 +751,9 @@ export default function Home() {
               {item.label}
             </button>
             {idx < arr.length - 1 && (
-              <div key={`sep-${idx}`} style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
+              <div style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
             )}
-          </>
+          </React.Fragment>
         ))}
 
         {/* Divider before external links */}
@@ -762,8 +762,8 @@ export default function Home() {
 
         {/* External links */}
         {quickNavItems.filter(i => !i.internal).map((item, idx, arr) => (
-          <>
-            <Link key={item.label} href={item.href ?? "/"}>
+          <React.Fragment key={item.label}>
+            <Link href={item.href ?? "/"}>
               <span style={{
                 display: "inline-flex", alignItems: "center", gap: "4px",
                 fontSize: "11px", fontWeight: 700, color: "#34d399",
@@ -777,9 +777,9 @@ export default function Home() {
               </span>
             </Link>
             {idx < arr.length - 1 && (
-              <div key={`esep-${idx}`} style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
+              <div style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
             )}
-          </>
+          </React.Fragment>
         ))}
       </div>
 
