@@ -94,6 +94,7 @@ function Router() {
           <Route path="/batch/:id" component={BatchDetailPage} />
 
           {/* Gate detail routes */}
+          <Route path="/gate/overview" component={GateStatus} />
           <Route path="/gate/:id" component={GateStatus} />
 
           {/* Agent detail routes */}

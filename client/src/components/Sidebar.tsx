@@ -93,11 +93,14 @@ const ON_HOLD_ITEMS: { label: string; path: string; batchKey: string }[] = [
 ];
 
 
-const GATE_ITEMS: NavItem[] = [
-  { label: "Gate 1 — Schema Lock", path: "/gate/1", status: "Passed", statusColor: "#059669" },
-  { label: "Gate 2 — Invariant Lock", path: "/gate/2", status: "Passed", statusColor: "#059669" },
-  { label: "Gate 3 — Contract Publication", path: "/gate/3", status: "Passed", statusColor: "#059669" },
-  { label: "Gate 4 — Lineage Closure", path: "/gate/4", status: "In Progress", statusColor: "#d97706" },
+// Governance Gates — informational table-of-contents navigation
+// No status badges, no completion indicators — anchors to page sections
+const GATE_NAV_ITEMS = [
+  { id: "gate-flow",  label: "Gate Progression Lifecycle", icon: "→",  anchor: "gate-flow-section" },
+  { id: "gate-g1",   label: "G1  Schema Lock",             icon: "🔒", anchor: "gate-g1-section" },
+  { id: "gate-g2",   label: "G2  Invariant Lock",          icon: "🛡",  anchor: "gate-g2-section" },
+  { id: "gate-g3",   label: "G3  Contract Publication",    icon: "📄", anchor: "gate-g3-section" },
+  { id: "gate-g4",   label: "G4  Lineage Closure",         icon: "🔗", anchor: "gate-g4-section" },
 ];
 
 // Agents — alphabetical
@@ -112,7 +115,7 @@ const AGENT_ITEMS: NavItem[] = [
 const BA_ITEMS: NavItem[] = [
   { label: "Deployment Registry",          path: "/deployment-registry",        icon: "🚀", badge: "New",     badgeColor: "#059669" },
   { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
-  { label: "Gate Status",                 path: "/gate-status",                icon: "◉", badge: "G4 Active",badgeColor: "#d97706" },
+  { label: "Governance Gates",            path: "/gate/overview",              icon: "◉" },
   { label: "Touchpoints (T1–T11)",        path: "/touchpoints",                icon: "↝" },
   { label: "Data Model & Gaps",           path: "/data-model",                 icon: "▦", badge: "Exec",     badgeColor: "#7c3aed" },
   { label: "Classification Walkthrough",  path: "/classification-walkthrough", icon: "⚑", badge: "Decision", badgeColor: "#dc2626" },
@@ -299,6 +302,82 @@ function NavItem({ item }: { item: NavItem }) {
   );
 }
 
+// ─── Governance Gates TOC section ────────────────────────────────────────────
+function GatesNavSection() {
+  const [location, navigate] = useLocation();
+  const isOnGatePage = location.startsWith("/gate");
+
+  const scrollToAnchor = (anchor: string) => {
+    // Navigate to the gate page first if not already there
+    if (!isOnGatePage) {
+      navigate("/gate/overview");
+      // Delay scroll to allow page render
+      setTimeout(() => {
+        const el = document.getElementById(anchor);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    } else {
+      const el = document.getElementById(anchor);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: "4px" }}>
+      {/* Section header */}
+      <div style={{ padding: "10px 12px 4px" }}>
+        <div style={{
+          fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em",
+          textTransform: "uppercase", color: "#475569", marginBottom: "4px",
+        }}>Governance Gates</div>
+        <div style={{ fontSize: "9px", color: "#374151", lineHeight: "1.4", paddingLeft: "0" }}>
+          Governance readiness gates used throughout the DCT batch delivery lifecycle.
+        </div>
+      </div>
+
+      {/* Gate TOC items */}
+      {GATE_NAV_ITEMS.map(item => {
+        const isActive = isOnGatePage;
+        return (
+          <button
+            key={item.id}
+            onClick={() => scrollToAnchor(item.anchor)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "7px",
+              width: "100%",
+              textAlign: "left",
+              padding: "5px 12px 5px 16px",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              borderRadius: "4px",
+              color: isActive ? "#e2e8f0" : "#94a3b8",
+              fontSize: "11px",
+              fontWeight: item.id === "gate-flow" ? 500 : 600,
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.06)";
+              (e.currentTarget as HTMLElement).style.color = "#e2e8f0";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+              (e.currentTarget as HTMLElement).style.color = isActive ? "#e2e8f0" : "#94a3b8";
+            }}
+          >
+            <span style={{ fontSize: "12px", flexShrink: 0, width: "16px", textAlign: "center" }}>
+              {item.icon}
+            </span>
+            <span style={{ lineHeight: "1.3" }}>{item.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function NavSection({ title, items }: { title: string; items: NavItem[] }) {
   return (
     <div style={{ marginBottom: "4px" }}>
@@ -412,7 +491,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
           )}
         </div>
 
-        <NavSection title="Gates" items={GATE_ITEMS} />
+        <GatesNavSection />
         <NavSection title="Agents" items={AGENT_ITEMS} />
         <NavSection title="BA & Requirements" items={BA_ITEMS} />
         <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />

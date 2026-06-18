@@ -250,12 +250,16 @@ export default function GateStatus() {
       </div>
 
       {/* ── Gate flow visual ── */}
-      <GateFlow />
+      <div id="gate-flow-section">
+        <GateFlow />
+      </div>
 
       {/* ── Gate cards ── */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
         {GATES.map(gate => (
-          <GateCard key={gate.id} gate={gate} />
+          <div key={gate.id} id={`gate-${gate.id.toLowerCase()}-section`}>
+            <GateCard gate={gate} />
+          </div>
         ))}
       </div>
 
