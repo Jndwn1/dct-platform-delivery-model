@@ -478,7 +478,6 @@ export default function Sidebar({ activeSection }: SidebarProps) {
           )}
         </div>
 
-        <GatesNavSection />
         <NavSection title="BA & Requirements" items={BA_ITEMS} />
         <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
         <NavSection title="Governance" items={GOVERNANCE_ITEMS} />
