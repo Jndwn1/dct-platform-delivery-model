@@ -310,6 +310,32 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
       container.innerHTML = emailHTML;
       document.body.appendChild(container);
 
+      // html2canvas does not support oklch() (Tailwind 4 default).
+      // Inject a style tag that resets all elements to safe hex colors.
+      const safeStyle = document.createElement("style");
+      safeStyle.textContent = `
+        * { color: inherit !important; }
+        body, div, table, td, th, tr, span, p, h1, h2, h3, h4, h5, h6 {
+          background-color: transparent;
+        }
+      `;
+      container.appendChild(safeStyle);
+
+      // Walk all elements and replace any computed oklch background-color with a safe fallback
+      const allEls = container.querySelectorAll("*");
+      allEls.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        const computed = window.getComputedStyle(htmlEl);
+        const bg = computed.backgroundColor;
+        if (bg && bg.includes("oklch")) {
+          htmlEl.style.backgroundColor = "#ffffff";
+        }
+        const color = computed.color;
+        if (color && color.includes("oklch")) {
+          htmlEl.style.color = "#0f172a";
+        }
+      });
+
       // Wait for images/fonts to settle
       await new Promise(r => setTimeout(r, 400));
 
@@ -322,6 +348,28 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
         height: container.scrollHeight,
         windowWidth: 980,
         windowHeight: container.scrollHeight,
+        onclone: (_doc: Document, el: HTMLElement) => {
+          // Strip any oklch colors from the cloned element tree before html2canvas renders
+          const cloneEls = el.querySelectorAll("*");
+          cloneEls.forEach((node) => {
+            const n = node as HTMLElement;
+            const style = n.getAttribute("style") || "";
+            if (style.includes("oklch")) {
+              n.setAttribute("style", style.replace(/oklch\([^)]*\)/g, "#ffffff"));
+            }
+            // Also reset inline background/color that may be oklch
+            if (n.style.backgroundColor && n.style.backgroundColor.includes("oklch")) {
+              n.style.backgroundColor = "#ffffff";
+            }
+            if (n.style.color && n.style.color.includes("oklch")) {
+              n.style.color = "#0f172a";
+            }
+          });
+          // Inject a safe CSS override to prevent Tailwind oklch vars from leaking
+          const override = _doc.createElement("style");
+          override.textContent = `:root { --background: #ffffff; --foreground: #0f172a; } * { background-color: revert; color: revert; }`;
+          el.appendChild(override);
+        },
       });
       document.body.removeChild(container);
 
