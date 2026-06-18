@@ -261,6 +261,9 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
             <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#059669" }} />
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#059669" }}>Live · Derived from Batch Calendar</span>
           </div>
+          <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap" }}>
+            Data as of: Jun 18, 2026
+          </div>
           <GeneratePOEmail dashboardRef={dashboardRef} batches={batches} />
         </div>
       </div>
