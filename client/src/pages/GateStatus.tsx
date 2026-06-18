@@ -1,325 +1,282 @@
-// Gate Status — G1–G4 Full Artifact Checklist and Verification Status
-// RSM | CATT | DCT Platform Executive Demo Environment v3.1
+// Gate Status — DCT Governance Reference Guide
+// RSM | CATT | DCT Platform
+// Informational / educational overview of the four readiness gates.
+// All artifact-level operational detail has been intentionally removed.
 
-import { useState, useEffect } from "react";
-import { useRoute } from "wouter";
-import { useBatchStatus, deriveGateStatus } from "@/contexts/BatchStatusContext";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Lock, Shield, Link2, FileText, CheckCircle2, Clock, Circle,
-  AlertTriangle, ChevronDown, ChevronRight, User, Calendar
-} from "lucide-react";
-import { activeBatch } from "@/lib/dctData";
-import type { Gate, GateArtifact } from "@/lib/dctData";
+import { Lock, Shield, Link2, FileText } from "lucide-react";
 
-// ─── GATE CONFIG ──────────────────────────────────────────────────────────────
+// ─── GATE DEFINITIONS ─────────────────────────────────────────────────────────
 
-const GATE_CONFIG: Record<string, {
-  icon: React.ElementType;
-  color: string;
-  bg: string;
-  border: string;
-  description: string;
-}> = {
-  G1: {
-    icon: Lock,
-    color: "text-violet-700",
-    bg: "bg-violet-50",
-    border: "border-violet-200",
-    description: "Certifies that the data entity schema in PDC is validated, stable, and approved for downstream use.",
+const GATES = [
+  {
+    id: "G1",
+    name: "Schema Lock",
+    Icon: Lock,
+    accentColor: "#7c3aed",        // violet
+    accentBg: "#f5f3ff",
+    accentBorder: "#ddd6fe",
+    accentLight: "#ede9fe",
+    purpose:
+      "Ensure the canonical data structure is stable, approved, and ready for downstream consumption.",
+    whyItMatters:
+      "Prevents schema drift and ensures all consumers operate from the same governed structure.",
   },
-  G2: {
-    icon: Shield,
-    color: "text-blue-700",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    description: "Certifies that all tax domain business rules and constraints are validated and versioned.",
+  {
+    id: "G2",
+    name: "Invariant Lock",
+    Icon: Shield,
+    accentColor: "#1d4ed8",        // blue
+    accentBg: "#eff6ff",
+    accentBorder: "#bfdbfe",
+    accentLight: "#dbeafe",
+    purpose:
+      "Ensure business rules, validation logic, and tax domain constraints are reviewed and approved.",
+    whyItMatters:
+      "Provides consistency and prevents conflicting interpretations of governed data.",
   },
-  G3: {
-    icon: Link2,
-    color: "text-emerald-700",
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    description: "Certifies that the full data provenance graph is complete and traceable from client source through PDC.",
+  {
+    id: "G3",
+    name: "Contract Publication",
+    Icon: Link2,
+    accentColor: "#065f46",        // emerald
+    accentBg: "#f0fdf4",
+    accentBorder: "#bbf7d0",
+    accentLight: "#d1fae5",
+    purpose:
+      "Ensure the published API and data contract are formally approved and available to consumers.",
+    whyItMatters:
+      "Allows downstream applications to integrate confidently using a governed contract.",
   },
-  G4: {
-    icon: FileText,
-    color: "text-amber-700",
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    description: "Certifies that the published data contract conforms to platform standards and is ready for consumer access.",
+  {
+    id: "G4",
+    name: "Lineage Closure",
+    Icon: FileText,
+    accentColor: "#92400e",        // amber
+    accentBg: "#fffbeb",
+    accentBorder: "#fde68a",
+    accentLight: "#fef3c7",
+    purpose:
+      "Ensure complete end-to-end traceability exists from source ingestion through tax-ready output.",
+    whyItMatters:
+      "Supports auditability, governance, and regulatory compliance.",
   },
-};
+];
 
-const STATUS_CONFIG = {
-  PASSED: { badge: "bg-emerald-100 text-emerald-800 border-emerald-200", icon: CheckCircle2, dot: "bg-emerald-500" },
-  PENDING: { badge: "bg-amber-100 text-amber-800 border-amber-200", icon: Clock, dot: "bg-amber-500" },
-  BLOCKED: { badge: "bg-red-100 text-red-800 border-red-200", icon: AlertTriangle, dot: "bg-red-500" },
-  PLANNED: { badge: "bg-slate-100 text-slate-600 border-slate-200", icon: Circle, dot: "bg-slate-400" },
-};
+// ─── GATE CARD ────────────────────────────────────────────────────────────────
 
-const ARTIFACT_STATUS = {
-  ISSUED: { icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", label: "Issued" },
-  PENDING: { icon: Clock, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", label: "Pending" },
-  MISSING: { icon: Circle, color: "text-slate-400", bg: "bg-slate-50", border: "border-slate-200", label: "Missing" },
-};
-
-// ─── ARTIFACT ROW ─────────────────────────────────────────────────────────────
-
-function ArtifactRow({ artifact }: { artifact: GateArtifact }) {
-  const cfg = ARTIFACT_STATUS[artifact.status];
-  const Icon = cfg.icon;
+function GateCard({ gate }: { gate: typeof GATES[0] }) {
+  const { Icon } = gate;
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-lg border ${cfg.bg} ${cfg.border}`}>
-      <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${cfg.color}`} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-bold text-foreground">{artifact.name}</span>
-          <span className="text-xs font-mono text-muted-foreground">{artifact.id}</span>
-          <span className={`text-xs px-1.5 py-0.5 rounded border font-medium ml-auto ${cfg.bg} ${cfg.color} ${cfg.border}`}>
-            {cfg.label}
-          </span>
+    <div style={{
+      backgroundColor: "#ffffff",
+      border: `1px solid ${gate.accentBorder}`,
+      borderLeft: `5px solid ${gate.accentColor}`,
+      borderRadius: "12px",
+      padding: "24px 28px",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+    }}>
+      {/* Gate header */}
+      <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
+        <div style={{
+          width: "44px", height: "44px", borderRadius: "10px",
+          backgroundColor: gate.accentBg,
+          border: `1px solid ${gate.accentBorder}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
+        }}>
+          <Icon style={{ width: "22px", height: "22px", color: gate.accentColor }} />
         </div>
-        {artifact.issuedDate && (
-          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />{artifact.issuedDate}
-            </span>
-            {artifact.issuedBy && (
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3" />{artifact.issuedBy}
-              </span>
-            )}
+        <div>
+          <div style={{
+            fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em",
+            textTransform: "uppercase", color: gate.accentColor, marginBottom: "2px",
+          }}>{gate.id}</div>
+          <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f1623", lineHeight: 1.2 }}>
+            {gate.name}
           </div>
-        )}
-        {!artifact.issuedDate && artifact.issuedBy && (
-          <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-            <User className="w-3 h-3" />
-            <span>Pending from: {artifact.issuedBy}</span>
-          </div>
-        )}
+        </div>
+      </div>
+
+      {/* Purpose */}
+      <div style={{
+        backgroundColor: gate.accentBg,
+        border: `1px solid ${gate.accentBorder}`,
+        borderRadius: "8px",
+        padding: "14px 16px",
+        marginBottom: "12px",
+      }}>
+        <div style={{
+          fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
+          letterSpacing: "0.08em", color: gate.accentColor, marginBottom: "6px",
+        }}>Purpose</div>
+        <p style={{ fontSize: "14px", color: "#1e293b", lineHeight: "1.65", margin: 0 }}>
+          {gate.purpose}
+        </p>
+      </div>
+
+      {/* Why It Matters */}
+      <div style={{
+        backgroundColor: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "8px",
+        padding: "14px 16px",
+      }}>
+        <div style={{
+          fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
+          letterSpacing: "0.08em", color: "#475569", marginBottom: "6px",
+        }}>Why It Matters</div>
+        <p style={{ fontSize: "14px", color: "#334155", lineHeight: "1.65", margin: 0 }}>
+          {gate.whyItMatters}
+        </p>
       </div>
     </div>
   );
 }
 
-// ─── GATE CARD ────────────────────────────────────────────────────────────────
+// ─── FLOW DIAGRAM ─────────────────────────────────────────────────────────────
 
-function GateCard({ gate, isExpanded, onToggle }: {
-  gate: Gate;
-  isExpanded: boolean;
-  onToggle: () => void;
-}) {
-  const cfg = GATE_CONFIG[gate.id] || GATE_CONFIG.G1;
-  const statusCfg = STATUS_CONFIG[gate.status] || STATUS_CONFIG.PLANNED;
-  const StatusIcon = statusCfg.icon;
-  const GateIcon = cfg.icon;
-
-  const issuedCount = gate.artifacts.filter(a => a.status === "ISSUED").length;
-  const totalCount = gate.artifacts.length;
-  const pct = totalCount > 0 ? Math.round((issuedCount / totalCount) * 100) : 0;
+function GateFlow() {
+  const steps = [
+    { id: "G1", label: "Schema Lock",          color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
+    { id: "G2", label: "Invariant Lock",        color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe" },
+    { id: "G3", label: "Contract Publication",  color: "#065f46", bg: "#f0fdf4", border: "#bbf7d0" },
+    { id: "G4", label: "Lineage Closure",       color: "#92400e", bg: "#fffbeb", border: "#fde68a" },
+  ];
 
   return (
-    <div className={`bg-white border border-border rounded-xl shadow-sm overflow-hidden`}>
-      {/* Color accent bar */}
-      <div className={`h-1 ${
-        gate.id === "G1" ? "bg-violet-500" :
-        gate.id === "G2" ? "bg-blue-500" :
-        gate.id === "G3" ? "bg-emerald-500" : "bg-amber-500"
-      }`} />
+    <div style={{
+      backgroundColor: "#ffffff",
+      border: "1px solid #e2e8f0",
+      borderRadius: "12px",
+      padding: "20px 28px",
+      marginBottom: "24px",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+    }}>
+      <div style={{
+        fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em",
+        textTransform: "uppercase", color: "#64748b", marginBottom: "16px",
+      }}>Gate Progression — Batch Readiness Lifecycle</div>
 
-      <button
-        onClick={onToggle}
-        className="w-full flex items-start gap-4 p-5 hover:bg-slate-50 transition-colors text-left"
-      >
-        {/* Gate icon */}
-        <div className={`w-10 h-10 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center shrink-0`}>
-          <GateIcon className={`w-5 h-5 ${cfg.color}`} />
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-xs font-bold text-muted-foreground">{gate.id}</span>
-            <span className="text-sm font-bold text-foreground">{gate.name}</span>
-            <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border font-medium ml-auto ${statusCfg.badge}`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
-              {gate.status}
-            </span>
-          </div>
-
-          {/* Progress bar */}
-          <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
-            <div
-              className={`h-1.5 rounded-full transition-all ${
-                gate.id === "G1" ? "bg-violet-500" :
-                gate.id === "G2" ? "bg-blue-500" :
-                gate.id === "G3" ? "bg-emerald-500" : "bg-amber-500"
-              }`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-
-          {/* Meta row */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-            <span>{issuedCount}/{totalCount} artifacts issued</span>
-            <span className="flex items-center gap-1">
-              <User className="w-3 h-3" />{gate.approvingAuthority}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />Updated: {gate.lastUpdated}
-            </span>
-            {gate.openIssues > 0 && (
-              <span className="flex items-center gap-1 text-red-600">
-                <AlertTriangle className="w-3 h-3" />{gate.openIssues} open issue{gate.openIssues > 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Expand */}
-        <div className="shrink-0 mt-1">
-          {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-        </div>
-      </button>
-
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="px-5 pb-5 pt-0 border-t border-border">
-              <div className="mt-4 space-y-4">
-                {/* Purpose */}
-                <div className={`${cfg.bg} ${cfg.border} border rounded-lg p-3`}>
-                  <div className={`text-xs font-semibold ${cfg.color} mb-1`}>Gate Purpose</div>
-                  <p className="text-xs text-foreground leading-relaxed">{gate.purpose}</p>
-                </div>
-
-                {/* Artifacts */}
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                    Required Artifacts ({issuedCount}/{totalCount} issued)
-                  </div>
-                  <div className="space-y-2">
-                    {gate.artifacts.map(artifact => (
-                      <ArtifactRow key={artifact.id} artifact={artifact} />
-                    ))}
-                  </div>
-                </div>
+      <div style={{
+        display: "flex", alignItems: "center", gap: "0",
+        overflowX: "auto", paddingBottom: "4px",
+      }}>
+        {steps.map((step, i) => (
+          <div key={step.id} style={{ display: "flex", alignItems: "center", flex: 1, minWidth: "120px" }}>
+            {/* Gate pill */}
+            <div style={{
+              flex: 1,
+              backgroundColor: step.bg,
+              border: `2px solid ${step.border}`,
+              borderRadius: "10px",
+              padding: "12px 14px",
+              textAlign: "center",
+            }}>
+              <div style={{
+                fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em",
+                textTransform: "uppercase", color: step.color, marginBottom: "4px",
+              }}>{step.id}</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623", lineHeight: 1.3 }}>
+                {step.label}
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {/* Arrow connector */}
+            {i < steps.length - 1 && (
+              <div style={{
+                flexShrink: 0, width: "32px", textAlign: "center",
+                fontSize: "18px", color: "#94a3b8", lineHeight: 1,
+              }}>→</div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        marginTop: "14px", fontSize: "11px", color: "#64748b",
+        borderTop: "1px solid #f1f5f9", paddingTop: "10px",
+      }}>
+        Each gate must be satisfied in sequence before a batch progresses to the next readiness stage.
+        Gates are not optional — all four must pass before a batch is considered delivery-ready.
+      </div>
     </div>
   );
 }
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
-// Map URL param to gate ID
-const GATE_PARAM_MAP: Record<string, string> = {
-  "1": "G1", "2": "G2", "3": "G3", "4": "G4",
-  "g1": "G1", "g2": "G2", "g3": "G3", "g4": "G4",
-  "schema-lock": "G1", "invariant-lock": "G2",
-  "contract-publication": "G3", "lineage-closure": "G4",
-};
-
 export default function GateStatus() {
-  const [, params] = useRoute("/gate/:id");
-  const initialGate = params?.id ? (GATE_PARAM_MAP[params.id] ?? "G1") : "G1";
-  const [expanded, setExpanded] = useState<string>(initialGate);
-
-  useEffect(() => {
-    if (params?.id) {
-      const mapped = GATE_PARAM_MAP[params.id];
-      if (mapped) setExpanded(mapped);
-    }
-  }, [params?.id]);
-  const { statuses } = useBatchStatus();
-  const liveGates = deriveGateStatus(statuses);
-
-  // Map derived context gate status to dctData GateStatus strings
-  const ctxToGateStatus = (s: "Complete" | "In Progress" | "Locked"): "PASSED" | "PENDING" | "PLANNED" => {
-    if (s === "Complete") return "PASSED";
-    if (s === "In Progress") return "PENDING";
-    return "PLANNED";
-  };
-
-  // Override gate statuses from context while keeping all other gate data (artifacts, etc.)
-  const gates = activeBatch.gates.map(g => ({
-    ...g,
-    status: ctxToGateStatus(liveGates[g.id.toLowerCase() as "g1" | "g2" | "g3" | "g4"]) as "PASSED" | "PENDING" | "BLOCKED" | "PLANNED",
-  }));
-
-  const passed = gates.filter(g => g.status === "PASSED").length;
-  const pending = gates.filter(g => g.status === "PENDING").length;
-  const planned = gates.filter(g => g.status === "PLANNED").length;
-
-  const totalArtifacts = gates.reduce((sum, g) => sum + g.artifacts.length, 0);
-  const issuedArtifacts = gates.reduce((sum, g) => sum + g.artifacts.filter(a => a.status === "ISSUED").length, 0);
-
   return (
-    <div className="p-6 space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-foreground">Gate Status</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            AB-01 · Foundation &amp; Source Onboarding · G1–G4 verification status
-          </p>
-          <p className="text-xs mt-1" style={{ color: "#9ca3af", fontStyle: "italic" }}>
-            Authoritative scope: Gate verification records &amp; batch readiness status ·{" "}
-            <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>← Platform Home</a>
-          </p>
+    <div style={{
+      padding: "28px 32px",
+      maxWidth: "1100px",
+      margin: "0 auto",
+      fontFamily: "system-ui, sans-serif",
+      paddingBottom: "48px",
+    }}>
+
+      {/* ── Page header ── */}
+      <div style={{
+        borderBottom: "2px solid #e2e8f0",
+        paddingBottom: "20px",
+        marginBottom: "28px",
+      }}>
+        <div style={{
+          fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em",
+          textTransform: "uppercase", color: "#64748b", marginBottom: "4px",
+        }}>
+          DCT Platform · Governance Framework
         </div>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-full font-medium">
-            <div className="w-2 h-2 rounded-full bg-amber-500" />{pending} Pending
-          </span>
-          <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full font-medium">
-            <div className="w-2 h-2 rounded-full bg-slate-400" />{planned} Planned
-          </span>
+        <h1 style={{
+          fontSize: "26px", fontWeight: 900, color: "#0f1623",
+          margin: "0 0 8px", letterSpacing: "-0.02em",
+        }}>
+          Gate Status — Governance Reference
+        </h1>
+        <p style={{
+          fontSize: "14px", color: "#475569", lineHeight: "1.7",
+          maxWidth: "780px", margin: 0,
+        }}>
+          The DCT governance framework uses four readiness gates to ensure that data, rules, contracts,
+          and lineage are governed before a batch progresses through the delivery lifecycle.
+        </p>
+        <div style={{ marginTop: "10px" }}>
+          <a
+            href="/"
+            style={{ fontSize: "12px", color: "#2563eb", textDecoration: "none", fontWeight: 600 }}
+          >
+            ← Platform Home
+          </a>
         </div>
       </div>
 
-      {/* Summary strip */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label: "Gates Passed", value: passed, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
-          { label: "Gates Pending", value: pending, color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
-          { label: "Gates Planned", value: planned, color: "text-slate-600", bg: "bg-slate-50 border-slate-200" },
-          { label: "Artifacts Issued", value: `${issuedArtifacts}/${totalArtifacts}`, color: "text-[#003A8F]", bg: "bg-blue-50 border-blue-200" },
-        ].map(kpi => (
-          <div key={kpi.label} className={`border rounded-xl p-4 ${kpi.bg}`}>
-            <div className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">{kpi.label}</div>
-          </div>
+      {/* ── Gate flow visual ── */}
+      <GateFlow />
+
+      {/* ── Gate cards ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+        {GATES.map(gate => (
+          <GateCard key={gate.id} gate={gate} />
         ))}
       </div>
 
-      {/* Gate cards */}
-      <div className="space-y-3">
-        {gates.map(gate => (
-          <GateCard
-            key={gate.id}
-            gate={gate}
-            isExpanded={expanded === gate.id}
-            onToggle={() => setExpanded(prev => prev === gate.id ? "" : gate.id)}
-          />
-        ))}
+      {/* ── Footer ── */}
+      <div style={{
+        marginTop: "36px",
+        paddingTop: "16px",
+        borderTop: "1px solid #e2e8f0",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "8px",
+      }}>
+        <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+          DCT Platform · Governance Reference · RSM | CATT
+        </span>
+        <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+          All four gates are required for batch delivery readiness
+        </span>
       </div>
-
-      <footer className="pt-4 pb-2 border-t border-border">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>DCT Platform Gate Status · RSM | CATT · v3.1</span>
-          <span>All gates require artifact issuance before promotion to next batch</span>
-        </div>
-      </footer>
     </div>
   );
 }
