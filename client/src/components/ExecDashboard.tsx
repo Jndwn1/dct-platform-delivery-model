@@ -237,24 +237,28 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
 
   return (
     <div ref={dashboardRef} style={{
-      backgroundColor: "#f8fafc",
+      backgroundColor: "#ffffff",
       border: "1px solid #e2e8f0",
-      borderLeft: "4px solid #1e3a5f",
+      borderLeft: "5px solid #1e3a5f",
       borderRadius: "10px",
-      padding: "20px 24px",
-      marginBottom: "24px",
+      padding: "24px 28px",
+      marginBottom: "0",
       fontFamily: "system-ui, sans-serif",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
     }}>
 
       {/* ── Section header ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
-          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "2px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
             Platform Intelligence · Roadmap v7
           </div>
-          <h2 style={{ fontSize: "17px", fontWeight: 800, color: "#0f1623", margin: 0 }}>
+          <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
           </h2>
+          <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px", fontWeight: 500 }}>
+            Real-time delivery status, roadmap alignment, readiness, and governance health.
+          </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>

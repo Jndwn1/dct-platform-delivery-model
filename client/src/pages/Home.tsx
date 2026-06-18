@@ -529,11 +529,20 @@ export default function Home() {
     "section-governance", "section-capabilities", "section-guardrails",
     "section-dependencies", "section-failure-modes",
   ];
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
-    Object.fromEntries(ACCORDION_IDS.map(id => [id, false]))
-  );
+  const SESSION_KEY = "dct-accordion-state";
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      if (saved) return JSON.parse(saved) as Record<string, boolean>;
+    } catch { /* ignore */ }
+    return Object.fromEntries(ACCORDION_IDS.map(id => [id, false]));
+  });
   const toggleSection = useCallback((id: string) => {
-    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
+    setOpenSections(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
   }, []);
 
   const scrollToSection = useCallback((id: string) => {
@@ -618,17 +627,17 @@ export default function Home() {
                 borderRadius: "20px", padding: "3px 10px",
               }}>● ACTIVE — PI 2</span>
               <span style={{ fontSize: "11px", color: "#94a3b8" }}>Entity, Workflow &amp; Tax Ready · Apr–Jun 2026</span>
-              <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+              <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · Last refresh: {new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
             </div>
           </div>
           {/* Release Candidate Status */}
           <div style={{
-            backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "10px", padding: "14px 20px", textAlign: "center", minWidth: "160px",
+            backgroundColor: "rgba(5,150,105,0.15)", border: "2px solid rgba(52,211,153,0.5)",
+            borderRadius: "10px", padding: "14px 20px", textAlign: "center", minWidth: "180px",
           }}>
-            <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
-            <div style={{ fontSize: "22px", fontWeight: 900, color: "#34d399" }}>RC-2</div>
-            <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Target: Sep 16, 2026</div>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
+            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>RC-2</div>
+            <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: Sep 16, 2026</div>
           </div>
         </div>
 
@@ -638,8 +647,8 @@ export default function Home() {
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>PI 2 Readiness</span>
             <span style={{ fontSize: "13px", fontWeight: 800, color: "#34d399" }}>{overallPct}% Complete</span>
           </div>
-          <div style={{ height: "10px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "5px", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${overallPct}%`, background: "linear-gradient(90deg, #059669, #34d399)", borderRadius: "5px", transition: "width 0.5s ease" }} />
+          <div style={{ height: "12px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "6px", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${overallPct}%`, background: "linear-gradient(90deg, #059669, #34d399)", borderRadius: "6px", transition: "width 0.5s ease", boxShadow: "0 0 8px rgba(52,211,153,0.5)" }} />
           </div>
         </div>
 
@@ -666,6 +675,94 @@ export default function Home() {
         </div>
       </div>
 
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+           EXECUTIVE STATUS SUMMARY
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <div style={{
+        backgroundColor: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        padding: "16px 28px",
+        marginTop: "16px",
+        marginBottom: "12px",
+      }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "2px" }}>Program Status · As of Today</div>
+            <div style={{ fontSize: "15px", fontWeight: 800, color: "#0f1623" }}>📋 Executive Status Summary</div>
+          </div>
+          {/* Overall Status badge */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+            borderRadius: "8px", padding: "8px 16px",
+          }}>
+            <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#059669", flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>Overall Program Status</div>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "#059669" }}>🟢 On Track</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Three-column summary grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+
+          {/* PI Status */}
+          <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Program Increment Status</div>
+            {[
+              { label: "PI 1", status: "Complete", color: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
+              { label: "PI 2", status: "Active",   color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
+              { label: "PI 3", status: "Planned",  color: "#94a3b8", bg: "#f8fafc", border: "#e2e8f0" },
+            ].map(pi => (
+              <div key={pi.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>{pi.label}</span>
+                <span style={{
+                  fontSize: "10px", fontWeight: 700, color: pi.color,
+                  backgroundColor: pi.bg, border: `1px solid ${pi.border}`,
+                  borderRadius: "4px", padding: "2px 8px",
+                }}>{pi.status}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Batch Counts */}
+          <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Batch Portfolio</div>
+            {[
+              { label: "Total Batches",  value: BATCH_CALENDAR_PI23.length, color: "#0f1623" },
+              { label: "Complete",       value: pi2Done,                     color: "#059669" },
+              { label: "In Progress",    value: pi2Active,                   color: "#2563eb" },
+              { label: "Remaining",      value: pi2Planned,                  color: "#94a3b8" },
+            ].map(row => (
+              <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
+                <span style={{ fontSize: "12px", color: "#475569" }}>{row.label}</span>
+                <span style={{ fontSize: "14px", fontWeight: 800, color: row.color }}>{row.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Release Info */}
+          <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Release Targets</div>
+            {[
+              { label: "Release Candidate", value: "RC-2",         color: "#059669" },
+              { label: "Target MVP Date",   value: "Sep 16, 2026", color: "#0f1623" },
+              { label: "PI 2 Readiness",    value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
+              { label: "PI 3 Queued",       value: `${pi3MvpCount} batches`, color: "#7c3aed" },
+            ].map(row => (
+              <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
+                <span style={{ fontSize: "12px", color: "#475569" }}>{row.label}</span>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: row.color }}>{row.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════
            QUICK NAVIGATION CARD
@@ -764,7 +861,7 @@ export default function Home() {
       </div>
 
       {/* ── Executive Delivery Dashboard (always visible) ── */}
-      <div id="exec-dashboard-anchor">
+      <div id="exec-dashboard-anchor" style={{ marginBottom: "20px" }}>
         <ExecDashboard batches={BATCH_REFERENCE} />
       </div>
 
@@ -779,8 +876,11 @@ export default function Home() {
         marginBottom: "20px",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-          <div style={{ fontSize: "14px", fontWeight: 800, color: "#0f1623" }}>Delivery Highlights</div>
-          <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600 }}>Week of Jun 18, 2026</div>
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "2px" }}>This Week</div>
+            <div style={{ fontSize: "16px", fontWeight: 800, color: "#0f1623" }}>Delivery Highlights</div>
+          </div>
+          <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600 }}>Week of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
 
