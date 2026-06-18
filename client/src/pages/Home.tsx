@@ -4,9 +4,66 @@
 // Governance realignment: Non-production workspace, architecture visualization only
 
 import { Link } from "wouter";
+import { useState, useMemo } from "react";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import ExecDashboard from "@/components/ExecDashboard";
+
+// ─── Batch Reference Data (from DCT Calendar v7) ─────────────────────────────
+const BATCH_REFERENCE = [
+  { pi: "PI 2", status: "Done",      batchNum: "4",   platform: "TDC",      name: "AI Mapping Proposals & Decisions",                                    whatItDoes: "Generates AI tax-mapping proposals with confidence and evidence per account.",                                                                  rogerImpact: "Line Mappings (Stage 2)" },
+  { pi: "PI 2", status: "Done",      batchNum: "5",   platform: "PDC",      name: "Entity Identity & Structure",                                        whatItDoes: "Gives every client and entity a permanent identity and access scope.",                                                                          rogerImpact: "Client / entity selection" },
+  { pi: "PI 2", status: "Done",      batchNum: "6",   platform: "TDC",      name: "Practitioner Review & Lock",                                         whatItDoes: "Practitioners review, decide, and lock mappings; decisions are immutable.",                                                                     rogerImpact: "Review & lock" },
+  { pi: "PI 2", status: "Done",      batchNum: "2A",  platform: "PDC",      name: "Orchestrator Classification Result & Contract Enforcement",           whatItDoes: "Enforces the orchestrator's classification result and contract at intake.",                                                                      rogerImpact: "None (behind the scenes)" },
+  { pi: "PI 2", status: "Done",      batchNum: "7",   platform: "TDC",      name: "Client Tax Profile & Eligibility",                                   whatItDoes: "Holds the client tax profile and determines which rules apply.",                                                                               rogerImpact: "Eligibility" },
+  { pi: "PI 2", status: "Done",      batchNum: "8",   platform: "PDC",      name: "Exceptions & Remediation",                                           whatItDoes: "Surfaces cross-LOB ingestion and data exceptions for remediation.",                                                                             rogerImpact: "Exceptions surfacing" },
+  { pi: "PI 2", status: "Done",      batchNum: "8",   platform: "TDC",      name: "Exceptions & Remediation",                                           whatItDoes: "Surfaces tax-side exceptions for remediation.",                                                                                               rogerImpact: "Exceptions surfacing" },
+  { pi: "PI 2", status: "Done",      batchNum: "9",   platform: "Gateway",  name: "Roger Gateway & Governed Consumer Access Layer",                     whatItDoes: "Governed gateway exposing approved upstream data to consumers.",                                                                               rogerImpact: "None (Gateway)" },
+  { pi: "PI 2", status: "Done",      batchNum: "1",   platform: "PDC",      name: "File Ingestion & Initial Storage",                                   whatItDoes: "Ingests files, assigns DocumentId, and anchors lineage.",                                                                                    rogerImpact: "None (infrastructure)" },
+  { pi: "PI 2", status: "Done",      batchNum: "2",   platform: "PDC",      name: "Normalization & Cross-LOB Taxonomy",                                 whatItDoes: "Normalizes financial data and applies cross-LOB taxonomy.",                                                                                   rogerImpact: "None (infrastructure)" },
+  { pi: "PI 2", status: "Done",      batchNum: "3",   platform: "TDC",      name: "Tax Domain Authority & Tax Taxonomy",                                whatItDoes: "Establishes TDC reference data, tax form templates, and mapping rules.",                                                                      rogerImpact: "None (infrastructure)" },
+  { pi: "PI 2", status: "Done",      batchNum: "43",  platform: "PDC",      name: "Practitioner Book & Reclass Adjustments",                            whatItDoes: "Persists practitioner book and reclass adjustments using a multi-line model.",                                                                 rogerImpact: "Book Adjustment & Reclass Adjustment (Stages 4-5)" },
+  { pi: "PI 2", status: "Done",      batchNum: "42",  platform: "TDC",      name: "Tax Rules Framework & Book-to-Tax Adjustment Rules",                 whatItDoes: "Computes book-to-tax adjustments using governed rules.",                                                                                      rogerImpact: "Tax Adjustment (Stage 7) + Rule Administration" },
+  { pi: "PI 2", status: "Done",      batchNum: "10",  platform: "TDC",      name: "Return Assembly, Filing & Lineage",                                  whatItDoes: "Assembles return and filing records and anchors lineage.",                                                                                    rogerImpact: "Form 1120 / Filing (Stage 10)" },
+  { pi: "PI 2", status: "Done",      batchNum: "16",  platform: "PDC",      name: "Known Mappings Lookup",                                              whatItDoes: "Provides a lookup layer for previously confirmed tax mappings.",                                                                               rogerImpact: "Line Mappings (Stage 2)" },
+  { pi: "PI 2", status: "Done",      batchNum: "16",  platform: "TDC",      name: "Known Mappings Lookup",                                              whatItDoes: "TDC-side lookup for confirmed mapping decisions.",                                                                                            rogerImpact: "Line Mappings (Stage 2)" },
+  { pi: "PI 2", status: "Done",      batchNum: "13",  platform: "TDC",      name: "API Route Standardization",                                          whatItDoes: "Standardizes TDC API routes for governed consumer access.",                                                                                   rogerImpact: "None (infrastructure)" },
+  { pi: "PI 3", status: "In Progress", batchNum: "42", platform: "TDC",     name: "Tax Rules Framework (PI 3 continuation)",                            whatItDoes: "Extends book-to-tax adjustment rules for additional scenarios.",                                                                               rogerImpact: "Tax Adjustment (Stage 7)" },
+  { pi: "PI 3", status: "In Progress", batchNum: "17", platform: "PDC",     name: "Many-to-Many Form Line Mapping & Jurisdiction-Aware Derivation",     whatItDoes: "Supports many-to-many form line mappings with jurisdiction-aware tax derivation.",                                                              rogerImpact: "Line Mappings (Stage 2) + Jurisdiction" },
+  { pi: "PI 3", status: "Planned",   batchNum: "20",  platform: "TDC",      name: "Apportionment & State Allocation",                                   whatItDoes: "Handles state apportionment and income allocation across jurisdictions.",                                                                     rogerImpact: "State Apportionment" },
+  { pi: "PI 3", status: "Planned",   batchNum: "21",  platform: "PDC",      name: "Multi-Entity Consolidation",                                         whatItDoes: "Consolidates financial data across multiple entities for group-level reporting.",                                                              rogerImpact: "Consolidation View" },
+  { pi: "PI 3", status: "Planned",   batchNum: "26",  platform: "PDC",      name: "Known Mappings — Confirmed Classification Retrieval",                whatItDoes: "Retrieves and surfaces confirmed classification decisions for practitioner review.",                                                             rogerImpact: "Line Mappings (Stage 2)" },
+  { pi: "PI 3", status: "Planned",   batchNum: "28",  platform: "TDC",      name: "Deferred Tax & Temporary Differences",                               whatItDoes: "Computes deferred tax assets/liabilities and temporary differences.",                                                                         rogerImpact: "Deferred Tax" },
+  { pi: "PI 3", status: "Planned",   batchNum: "29",  platform: "TDC",      name: "Credits & Incentives",                                               whatItDoes: "Identifies and applies eligible tax credits and incentives.",                                                                                 rogerImpact: "Credits & Incentives" },
+  { pi: "PI 3", status: "Planned",   batchNum: "31",  platform: "TDC",      name: "Partnership K-1 & Pass-Through Allocation",                          whatItDoes: "Handles K-1 income allocation and pass-through entity tax treatment.",                                                                         rogerImpact: "K-1 / Pass-Through" },
+  { pi: "PI 3", status: "Planned",   batchNum: "9A",  platform: "Gateway",  name: "Roger Gateway — Extended Consumer Contracts",                        whatItDoes: "Extends the Roger Gateway with additional governed consumer contracts.",                                                                       rogerImpact: "Gateway Expansion" },
+  { pi: "PI 3", status: "Planned",   batchNum: "39",  platform: "TDC",      name: "International Tax — GILTI, FDII, BEAT",                              whatItDoes: "Computes international tax provisions including GILTI, FDII, and BEAT.",                                                                      rogerImpact: "International Tax" },
+  { pi: "PI 3", status: "Stretch",   batchNum: "33",  platform: "TDC",      name: "S-Corp & Flow-Through Specialization",                               whatItDoes: "S-Corp and flow-through entity tax specialization.",                                                                                         rogerImpact: "S-Corp / Flow-Through" },
+  { pi: "PI 4", status: "Planned",   batchNum: "19",  platform: "TDC",      name: "Estimated Tax & Safe Harbor",                                        whatItDoes: "Manages estimated tax payments and safe harbor calculations.",                                                                                rogerImpact: "Estimated Tax" },
+  { pi: "PI 4", status: "Planned",   batchNum: "21",  platform: "TDC",      name: "Multi-Entity Consolidation (TDC)",                                   whatItDoes: "TDC-side consolidation for group-level tax reporting.",                                                                                      rogerImpact: "Consolidation View" },
+  { pi: "PI 4", status: "Planned",   batchNum: "26",  platform: "TDC",      name: "Known Mappings — TDC Contract Publication",                          whatItDoes: "Publishes confirmed TDC mapping contracts for downstream consumers.",                                                                          rogerImpact: "Line Mappings (Stage 2)" },
+  { pi: "PI 4", status: "Planned",   batchNum: "35",  platform: "TDC",      name: "Corporate AMT & Book Income Adjustment",                             whatItDoes: "Computes corporate alternative minimum tax and book income adjustments.",                                                                     rogerImpact: "AMT / Book Income" },
+  { pi: "PI 4", status: "Planned",   batchNum: "40",  platform: "TDC",      name: "Interest Expense Limitation (163j)",                                 whatItDoes: "Applies Section 163(j) interest expense limitation rules.",                                                                                  rogerImpact: "163(j) Limitation" },
+  { pi: "PI 4", status: "Planned",   batchNum: "22",  platform: "PDC",      name: "Client Communication & Outstanding Items",                           whatItDoes: "Client communication and outstanding items management.",                                                                                     rogerImpact: "Post-MVP" },
+  { pi: "PI 4", status: "Planned",   batchNum: "23",  platform: "PDC",      name: "Benchmark & Peer Analytics",                                         whatItDoes: "Benchmark and peer analytics for practitioner insight.",                                                                                     rogerImpact: "Post-MVP" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "11",  platform: "TDC",      name: "NOL & Capital Loss Carryforward",                                    whatItDoes: "Tracks and applies NOL and capital loss carryforward balances.",                                                                              rogerImpact: "NOL / Capital Loss" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "12",  platform: "TDC",      name: "Tax Attribute Preservation & Limitation (382)",                      whatItDoes: "Manages tax attribute preservation and Section 382 limitations.",                                                                             rogerImpact: "Tax Attributes" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "27",  platform: "TDC",      name: "Foreign Tax Credit & Sourcing",                                      whatItDoes: "Computes foreign tax credits and income sourcing.",                                                                                           rogerImpact: "Foreign Tax Credit" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "30",  platform: "TDC",      name: "Qualified Business Income (QBI) Deduction",                          whatItDoes: "Computes the Section 199A QBI deduction.",                                                                                                   rogerImpact: "QBI Deduction" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "32",  platform: "TDC",      name: "R&D Tax Credit",                                                     whatItDoes: "Identifies and computes R&D tax credits.",                                                                                                   rogerImpact: "R&D Credit" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "36",  platform: "TDC",      name: "Partnership Specialization",                                         whatItDoes: "Partnership specialization (1065).",                                                                                                         rogerImpact: "Post-MVP" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "14",  platform: "TDC",      name: "Tax Computation Rules (in-Roger engine)",                            whatItDoes: "In-Roger tax computation engine (limitation rules, rate/threshold tables).",                                                                  rogerImpact: "Post-MVP" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "15",  platform: "TDC",      name: "Tax Provision Reference & ASC 740 (in-Roger engine)",               whatItDoes: "Tax provision reference & ASC 740.",                                                                                                         rogerImpact: "Post-MVP" },
+  { pi: "PI 5", status: "Post-MVP",  batchNum: "18",  platform: "TDC",      name: "Provision Computation, DTA/DTL & ETR",                               whatItDoes: "Provision computation, DTA/DTL & ETR.",                                                                                                      rogerImpact: "Post-MVP" },
+  { pi: "",     status: "Future",    batchNum: "37",  platform: "TDC",      name: "Trust Specialization (1041)",                                        whatItDoes: "Trust specialization (1041).",                                                                                                               rogerImpact: "Future" },
+  { pi: "",     status: "Future",    batchNum: "38",  platform: "TDC",      name: "Individual Specialization (1040)",                                   whatItDoes: "Individual specialization (1040).",                                                                                                          rogerImpact: "Future" },
+  { pi: "",     status: "Future",    batchNum: "TBD", platform: "",         name: "Exempt Org Returns (990, 990-PF)",                                   whatItDoes: "Exempt org returns (990, 990-PF).",                                                                                                          rogerImpact: "Future" },
+  { pi: "",     status: "Future",    batchNum: "TBD", platform: "",         name: "International Beyond K-2/K-3 (5471, GILTI, FDI, FTC)",              whatItDoes: "International beyond K-2/K-3 (5471, GILTI, FDI, FTC).",                                                                                     rogerImpact: "Future" },
+  { pi: "",     status: "Parked",    batchNum: "24",  platform: "PDC",      name: "Advisory Opportunity Reference (superseded by Blue J)",              whatItDoes: "Advisory opportunity reference (superseded by Blue J).",                                                                                     rogerImpact: "Parked" },
+  { pi: "",     status: "Parked",    batchNum: "24",  platform: "TDC",      name: "Advisory Opportunity Reference (superseded by Blue J)",              whatItDoes: "Advisory opportunity reference (superseded by Blue J).",                                                                                     rogerImpact: "Parked" },
+  { pi: "",     status: "Parked",    batchNum: "25",  platform: "PDC",      name: "Advisory Opportunity Detection (superseded by Blue J)",              whatItDoes: "Advisory opportunity detection (superseded by Blue J).",                                                                                     rogerImpact: "Parked" },
+  { pi: "",     status: "Parked",    batchNum: "25",  platform: "TDC",      name: "Advisory Opportunity Detection (superseded by Blue J)",              whatItDoes: "Advisory opportunity detection (superseded by Blue J).",                                                                                     rogerImpact: "Parked" },
+];
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ title, subtitle, children, accent }: {
@@ -163,6 +220,196 @@ function BatchRow({ id, name, scope }: { id: string; name: string; scope: string
         {badgeLabel}
       </div>
     </div>
+  );
+}
+
+// ─── Batch Reference & Consumer Impact Guide ─────────────────────────────────
+function BatchReferenceGuide() {
+  const [search, setSearch] = useState("");
+  const [piFilter, setPiFilter] = useState("All");
+  const [platformFilter, setPlatformFilter] = useState("All");
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
+  const piOptions = ["All", "PI 2", "PI 3", "PI 4", "PI 5", "Future", "Parked"];
+  const platformOptions = ["All", "PDC", "TDC", "Gateway"];
+
+  const filtered = useMemo(() => {
+    return BATCH_REFERENCE.filter(b => {
+      const matchSearch = !search ||
+        b.batchNum.toLowerCase().includes(search.toLowerCase()) ||
+        b.name.toLowerCase().includes(search.toLowerCase()) ||
+        b.whatItDoes.toLowerCase().includes(search.toLowerCase()) ||
+        b.rogerImpact.toLowerCase().includes(search.toLowerCase());
+      const matchPi = piFilter === "All" ||
+        (piFilter === "Future" && (b.status === "Future" || b.status === "Long-Term" || b.status === "Research")) ||
+        (piFilter === "Parked" && b.status === "Parked") ||
+        b.pi === piFilter;
+      const matchPlatform = platformFilter === "All" || b.platform === platformFilter;
+      return matchSearch && matchPi && matchPlatform;
+    });
+  }, [search, piFilter, platformFilter]);
+
+  const statusColors: Record<string, { bg: string; text: string; border: string }> = {
+    Done:         { bg: "#f0fdf4", text: "#059669", border: "#bbf7d0" },
+    "In Progress": { bg: "#eff6ff", text: "#2563eb", border: "#bfdbfe" },
+    Planned:      { bg: "#f8fafc", text: "#475569", border: "#e2e8f0" },
+    Stretch:      { bg: "#faf5ff", text: "#7c3aed", border: "#e9d5ff" },
+    "Post-MVP":   { bg: "#fff7ed", text: "#9a3412", border: "#fed7aa" },
+    Future:       { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
+    Parked:       { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
+    "Long-Term":  { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
+    Research:     { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
+  };
+  const platformColors: Record<string, string> = {
+    PDC: "#1e3a5f", TDC: "#065f46", Gateway: "#7c3aed",
+  };
+
+  return (
+    <Section title="Batch Reference & Consumer Impact Guide" subtitle="Section 4 — Delivery Units & Roger Impact" accent="blue">
+      <div style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6", marginBottom: "16px" }}>
+        Understand what each batch delivers and how it affects the Roger practitioner experience.
+        Source: DCT Calendar v7 · Columns J (What the Batch Does) and K (Roger UI Impact).
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "14px", alignItems: "center" }}>
+        <input
+          type="text"
+          placeholder="Search batch number, name, or description..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            flex: "1 1 260px", padding: "7px 12px", fontSize: "13px",
+            border: "1px solid #cbd5e1", borderRadius: "6px",
+            outline: "none", color: "#1e293b", backgroundColor: "#ffffff",
+          }}
+        />
+        <select
+          value={piFilter}
+          onChange={e => setPiFilter(e.target.value)}
+          style={{
+            padding: "7px 10px", fontSize: "12px", border: "1px solid #cbd5e1",
+            borderRadius: "6px", color: "#1e293b", backgroundColor: "#ffffff", cursor: "pointer",
+          }}
+        >
+          {piOptions.map(p => <option key={p} value={p}>{p === "All" ? "All PIs" : p}</option>)}
+        </select>
+        <select
+          value={platformFilter}
+          onChange={e => setPlatformFilter(e.target.value)}
+          style={{
+            padding: "7px 10px", fontSize: "12px", border: "1px solid #cbd5e1",
+            borderRadius: "6px", color: "#1e293b", backgroundColor: "#ffffff", cursor: "pointer",
+          }}
+        >
+          {platformOptions.map(p => <option key={p} value={p}>{p === "All" ? "All Platforms" : p}</option>)}
+        </select>
+        <div style={{ fontSize: "11px", color: "#94a3b8", whiteSpace: "nowrap" }}>
+          {filtered.length} of {BATCH_REFERENCE.length} batches
+        </div>
+      </div>
+
+      {/* Table */}
+      <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+        {/* Header */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "70px 90px 1fr 1fr 90px",
+          gap: "10px",
+          backgroundColor: "#0f1623",
+          padding: "10px 14px",
+        }}>
+          {["Batch #", "Platform", "Batch Title", "What the Batch Does", "Roger UI Impact"].map(h => (
+            <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase" }}>{h}</div>
+          ))}
+        </div>
+
+        {/* Rows */}
+        {filtered.length === 0 && (
+          <div style={{ padding: "20px", textAlign: "center", fontSize: "13px", color: "#94a3b8" }}>No batches match your filters.</div>
+        )}
+        {filtered.map((b, idx) => {
+          const sc = statusColors[b.status] ?? statusColors["Planned"];
+          const isExpanded = expandedIdx === idx;
+          return (
+            <div key={idx}
+              style={{
+                borderBottom: idx < filtered.length - 1 ? "1px solid #f1f5f9" : undefined,
+                backgroundColor: isExpanded ? "#f8fafc" : idx % 2 === 0 ? "#ffffff" : "#fafafa",
+                cursor: "pointer",
+              }}
+              onClick={() => setExpandedIdx(isExpanded ? null : idx)}
+            >
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "70px 90px 1fr 1fr 90px",
+                gap: "10px",
+                padding: "10px 14px",
+                alignItems: "start",
+              }}>
+                {/* Batch # */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <div style={{
+                    fontWeight: 800, fontSize: "13px", color: "#0f1623",
+                    backgroundColor: "#e2e8f0", borderRadius: "4px",
+                    padding: "2px 6px", textAlign: "center", display: "inline-block",
+                  }}>{b.batchNum}</div>
+                  <div style={{
+                    fontSize: "9px", fontWeight: 700,
+                    backgroundColor: sc.bg, color: sc.text,
+                    border: `1px solid ${sc.border}`,
+                    borderRadius: "3px", padding: "1px 5px", textAlign: "center",
+                  }}>{b.status}</div>
+                </div>
+                {/* Platform */}
+                <div style={{
+                  fontSize: "11px", fontWeight: 700,
+                  color: platformColors[b.platform] ?? "#475569",
+                  paddingTop: "2px",
+                }}>{b.platform || "—"}</div>
+                {/* Batch Title */}
+                <div style={{ fontSize: "13px", fontWeight: 600, color: "#1e293b", lineHeight: "1.4", paddingTop: "1px" }}>
+                  {b.name}
+                  <span style={{ marginLeft: "6px", fontSize: "10px", color: "#94a3b8" }}>{isExpanded ? "▲" : "▼"}</span>
+                </div>
+                {/* What it Does */}
+                <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5", paddingTop: "1px" }}>{b.whatItDoes}</div>
+                {/* Roger Impact */}
+                <div style={{
+                  fontSize: "11px", fontWeight: 600,
+                  color: b.rogerImpact.startsWith("None") || b.rogerImpact === "Post-MVP" || b.rogerImpact === "Future" || b.rogerImpact === "Parked"
+                    ? "#94a3b8" : "#059669",
+                  lineHeight: "1.4",
+                }}>{b.rogerImpact}</div>
+              </div>
+              {/* Expanded detail row */}
+              {isExpanded && (
+                <div style={{
+                  padding: "0 14px 12px 14px",
+                  borderTop: "1px solid #e2e8f0",
+                  backgroundColor: "#f0f9ff",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}>
+                  <div style={{ paddingTop: "10px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Full Description</div>
+                    <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6" }}>{b.whatItDoes}</div>
+                  </div>
+                  <div style={{ paddingTop: "10px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Roger UI Impact</div>
+                    <div style={{ fontSize: "13px", color: "#059669", fontWeight: 600, lineHeight: "1.6" }}>{b.rogerImpact}</div>
+                    {b.pi && (
+                      <div style={{ marginTop: "6px", fontSize: "11px", color: "#64748b" }}>PI: {b.pi} &nbsp;·&nbsp; Platform: {b.platform || "—"} &nbsp;·&nbsp; Status: {b.status}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Section>
   );
 }
 
@@ -365,45 +612,8 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── 4. Batch Model Overview ── */}
-      <Section title="Batch Model Overview" subtitle="Section 4 — Delivery Units" accent="blue">
-        <div style={{ marginBottom: "12px", fontSize: "13px", color: "#475569", lineHeight: "1.6" }}>
-          The platform is delivered through <strong>architectural batches</strong> — each batch is both a delivery unit
-          and a demo unit. Batches may run in parallel within a PI but must satisfy gate conditions before the next
-          dependent batch begins. Sequential batches enforce lineage and contract integrity.
-        </div>
-        <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
-          <div style={{
-            display: "grid", gridTemplateColumns: "60px 1fr 1fr auto",
-            gap: "12px", backgroundColor: "#0f1623", padding: "10px 14px",
-          }}>
-            {["ID", "Batch Name", "Scope", "Status"].map(h => (
-              <div key={h} style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase" }}>{h}</div>
-            ))}
-          </div>
-          <BatchRow id="FC"  name="Foundation Core"                                  scope="Infrastructure, repo, templates, agent config" />
-          <BatchRow id="1"   name="File Ingestion & Initial Storage"                 scope="IngestionJob, DocumentId, lineage anchor, audit_log" />
-          <BatchRow id="2"   name="Normalization & Cross-LOB Taxonomy"               scope="vNormalizedTb, EntityId, PeriodStart/PeriodEnd, XLOB taxonomy" />
-          <BatchRow id="2A"  name="Orchestrator Contract Enforcement & Classification" scope="FirmTaxonomyId required, ClassificationStatus, rejection on missing classification" />
-          <BatchRow id="3"   name="Tax Domain Authority & Tax Taxonomy"              scope="TDC reference data, tax form templates, mapping rules" />
-          <BatchRow id="4"   name="AI Tax Mapping & Explainability"                  scope="MappingProposal, ConfidenceBand, MappingDecision (immutable)" />
-          <BatchRow id="5"   name="Entity Identity & Structure"                      scope="ClientGroupId, EntityId hierarchy, RBAC context, DataSourceType" />
-          <BatchRow id="6"   name="Practitioner Review, Adjustments & Lock"          scope="AdjustmentRecord, TaxReadyRecord (locked), ReviewTask, SignOff" />
-          <BatchRow id="7"   name="Client Tax Profile & Eligibility"                 scope="TaxProfile, EligibilityDetermination, three-tier eligibility model" />
-          <BatchRow id="8"   name="Exceptions & Remediation"                         scope="ExceptionRecord, RemedyAction, re-ingestion triggers, audit trail" />
-        </div>
-        <div style={{ marginTop: "10px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
-          {[
-            { color: "#059669", label: "Active (PI 1 Complete)" },
-            { color: "#2563eb", label: "PI 2 Committed" },
-          ].map(l => (
-            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: l.color }} />
-              <span style={{ fontSize: "11px", color: "#475569" }}>{l.label}</span>
-            </div>
-          ))}
-        </div>
-      </Section>
+      {/* ── 4. Batch Reference & Consumer Impact Guide ── */}
+      <BatchReferenceGuide />
 
       {/* ── 5. Foundation Invariants ── */}
       <Section title="What Must Be True — Foundation Invariants" subtitle="Section 5 — Non-Negotiable Rules" accent="green">
