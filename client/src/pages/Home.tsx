@@ -668,84 +668,99 @@ export default function Home() {
 
 
       {/* ═══════════════════════════════════════════════════════════════════════
-           EXECUTIVE NAVIGATION TOOLBAR
+           QUICK NAVIGATION CARD
       ═══════════════════════════════════════════════════════════════════════ */}
       <div id="quick-nav" style={{
-        backgroundColor: "#1e293b",
-        borderRadius: "8px",
-        padding: "0 16px",
-        marginBottom: "16px",
-        display: "flex",
-        alignItems: "stretch",
-        height: "40px",
-        overflow: "hidden",
-        position: "relative",
+        backgroundColor: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03)",
+        padding: "14px 24px 12px",
+        marginBottom: "20px",
+        marginTop: "4px",
       }}>
-        {/* Label */}
-        <div style={{
-          fontSize: "9px", fontWeight: 800, letterSpacing: "0.12em",
-          textTransform: "uppercase", color: "#64748b",
-          display: "flex", alignItems: "center",
-          paddingRight: "12px",
-          borderRight: "1px solid #334155",
-          marginRight: "4px",
-          whiteSpace: "nowrap",
-          flexShrink: 0,
-        }}>
-          Navigate
+        {/* Header row */}
+        <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "10px" }}>
+          <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f1623" }}>🧭 Quick Navigation</span>
+          <span style={{ fontSize: "11px", color: "#64748b" }}>Jump directly to any section of the DCT Delivery Model.</span>
         </div>
 
-        {/* Internal section buttons */}
-        {quickNavItems.filter(i => i.internal).map((item, idx, arr) => (
-          <React.Fragment key={item.label}>
-            <button
-              onClick={() => scrollToSection(item.id)}
-              style={{
-                fontSize: "11px", fontWeight: 600, color: "#cbd5e1",
-                backgroundColor: "transparent", border: "none",
-                padding: "0 12px",
-                cursor: "pointer", whiteSpace: "nowrap",
-                display: "flex", alignItems: "center",
-                height: "100%",
-                transition: "color 0.15s, background-color 0.15s",
-                flexShrink: 0,
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#ffffff"; (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#334155"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#cbd5e1"; (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
-            >
-              {item.label}
-            </button>
-            {idx < arr.length - 1 && (
-              <div style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
-            )}
-          </React.Fragment>
-        ))}
+        {/* Navigation links row */}
+        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px" }}>
 
-        {/* Divider before external links */}
-        <div style={{ flex: 1 }} />
-        <div style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
+          {/* Internal section buttons */}
+          {quickNavItems.filter(i => i.internal).map((item, idx, arr) => (
+            <React.Fragment key={item.label}>
+              <button
+                onClick={() => scrollToSection(item.id)}
+                style={{
+                  fontSize: "12px", fontWeight: 600, color: "#1e3a5f",
+                  backgroundColor: "#f1f5f9",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "6px",
+                  padding: "5px 12px",
+                  cursor: "pointer", whiteSpace: "nowrap",
+                  lineHeight: "1.4",
+                  transition: "background-color 0.15s, border-color 0.15s, color 0.15s",
+                  outline: "none",
+                }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLButtonElement;
+                  el.style.backgroundColor = "#1e3a5f";
+                  el.style.color = "#ffffff";
+                  el.style.borderColor = "#1e3a5f";
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLButtonElement;
+                  el.style.backgroundColor = "#f1f5f9";
+                  el.style.color = "#1e3a5f";
+                  el.style.borderColor = "#e2e8f0";
+                }}
+                onFocus={e => {
+                  const el = e.currentTarget as HTMLButtonElement;
+                  el.style.outline = "2px solid #2563eb";
+                  el.style.outlineOffset = "2px";
+                }}
+                onBlur={e => {
+                  (e.currentTarget as HTMLButtonElement).style.outline = "none";
+                }}
+              >
+                {item.label}
+              </button>
+              {idx < arr.length - 1 && (
+                <span style={{ color: "#cbd5e1", fontSize: "12px", userSelect: "none", padding: "0 2px" }}>·</span>
+              )}
+            </React.Fragment>
+          ))}
 
-        {/* External links */}
-        {quickNavItems.filter(i => !i.internal).map((item, idx, arr) => (
-          <React.Fragment key={item.label}>
-            <Link href={item.href ?? "/"}>
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: "4px",
-                fontSize: "11px", fontWeight: 700, color: "#34d399",
-                backgroundColor: "transparent",
-                padding: "0 12px",
-                cursor: "pointer", whiteSpace: "nowrap",
-                height: "40px",
-                lineHeight: "40px",
-              }}>
-                {item.label} ↗
-              </span>
-            </Link>
-            {idx < arr.length - 1 && (
-              <div style={{ width: "1px", backgroundColor: "#334155", margin: "8px 0", flexShrink: 0 }} />
-            )}
-          </React.Fragment>
-        ))}
+          {/* Divider before external links */}
+          <span style={{ color: "#e2e8f0", fontSize: "16px", margin: "0 6px", userSelect: "none" }}>|</span>
+
+          {/* External links */}
+          {quickNavItems.filter(i => !i.internal).map((item, idx, arr) => (
+            <React.Fragment key={item.label}>
+              <Link href={item.href ?? "/"}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: "3px",
+                  fontSize: "12px", fontWeight: 700, color: "#059669",
+                  backgroundColor: "#f0fdf4",
+                  border: "1px solid #bbf7d0",
+                  borderRadius: "6px",
+                  padding: "5px 12px",
+                  cursor: "pointer", whiteSpace: "nowrap",
+                  lineHeight: "1.4",
+                  transition: "background-color 0.15s",
+                  textDecoration: "none",
+                }}>
+                  {item.label} ↗
+                </span>
+              </Link>
+              {idx < arr.length - 1 && (
+                <span style={{ color: "#cbd5e1", fontSize: "12px", userSelect: "none", padding: "0 2px" }}>·</span>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
 
       {/* ── Executive Delivery Dashboard (always visible) ── */}
