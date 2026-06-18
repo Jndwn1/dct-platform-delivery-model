@@ -747,6 +747,11 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ── Executive Delivery Dashboard (always visible) ── */}
+      <div id="exec-dashboard-anchor">
+        <ExecDashboard batches={BATCH_REFERENCE} />
+      </div>
+
       {/* ═══════════════════════════════════════════════════════════════════════
            DELIVERY HIGHLIGHTS
       ═══════════════════════════════════════════════════════════════════════ */}
@@ -805,11 +810,6 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* ── Executive Delivery Dashboard (always visible) ── */}
-      <div id="exec-dashboard-anchor">
-        <ExecDashboard batches={BATCH_REFERENCE} />
       </div>
 
       {/* ── Accordion: Purpose (collapsed by default) ── */}
