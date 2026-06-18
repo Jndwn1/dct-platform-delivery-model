@@ -535,8 +535,14 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── 2. End-to-End Flow ── */}
-      <Section title="End-to-End Delivery Model" subtitle="Section 2 — Critical Visual" accent="blue">
+      {/* ── Executive Delivery Dashboard ── */}
+      <ExecDashboard />
+
+      {/* ── 2. Batch Reference & Consumer Impact Guide ── */}
+      <BatchReferenceGuide />
+
+      {/* ── 3. End-to-End Flow ── */}
+      <Section title="End-to-End Delivery Model" subtitle="Section 3 — Critical Visual" accent="blue">
         <div style={{
           backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
           borderRadius: "10px", padding: "20px 24px",
@@ -573,8 +579,8 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── 3. System Ownership ── */}
-      <Section title="System Ownership Model" subtitle="Section 3 — No Overlapping Ownership" accent="blue">
+      {/* ── 4. System Ownership ── */}
+      <Section title="System Ownership Model" subtitle="Section 4 — No Overlapping Ownership" accent="blue">
         <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
           <div style={{
             display: "grid", gridTemplateColumns: "1fr 1fr 2fr",
@@ -605,12 +611,6 @@ export default function Home() {
           ))}
         </div>
       </Section>
-
-      {/* ── Executive Delivery Dashboard ── */}
-      <ExecDashboard />
-
-      {/* ── 4. Batch Reference & Consumer Impact Guide ── */}
-      <BatchReferenceGuide />
 
       {/* ── 5. Foundation Invariants ── */}
       <Section title="What Must Be True — Foundation Invariants" subtitle="Section 5 — Non-Negotiable Rules" accent="green">
