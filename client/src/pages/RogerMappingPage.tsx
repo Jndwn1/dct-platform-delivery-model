@@ -11,6 +11,7 @@ import {
 } from "../lib/rogerGovernanceData";
 import { GovernanceStatusBar } from "../components/GovernanceStatusBar";
 import GovernanceWorkflowSimulator from "../components/GovernanceWorkflowSimulator";
+import { ROGER_MODEL_GROUPS, READINESS_STYLE, OWNER_STYLE } from "../lib/rogerModelData";
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
 const RSM_BLUE = "#003087";
@@ -43,7 +44,71 @@ const OWNER_COLOR: Record<string, string> = {
   PDC: "#003087", TDC: "#059669", Orchestrator: "#6366f1", Unknown: "#9ca3af",
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Roger Model Groupings ─────────────────────────────────────────────
+function RogerModelGroupingsSection() {
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(["my-clients"]));
+  const toggle = (id: string) => setOpenGroups(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      {ROGER_MODEL_GROUPS.map(group => {
+        const open = openGroups.has(group.id);
+        const counts = { Delivered: 0, Partial: 0, Mocked: 0, Missing: 0, Deferred: 0 };
+        group.fields.forEach(f => counts[f.status]++);
+        return (
+          <div key={group.id} style={{ border: "1px solid #e5e7eb", borderRadius: "10px", overflow: "hidden" }}>
+            <button onClick={() => toggle(group.id)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", backgroundColor: "#003865", color: "white", border: "none", cursor: "pointer", textAlign: "left" as const }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 700 }}>{group.title}</span>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  {(Object.entries(counts) as [keyof typeof counts, number][]).filter(([, n]) => n > 0).map(([s, n]) => (
+                    <span key={s} style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "9999px", backgroundColor: READINESS_STYLE[s].bg, color: READINESS_STYLE[s].text, fontWeight: 700 }}>{n} {s.slice(0,1)}</span>
+                  ))}
+                </div>
+              </div>
+              <span style={{ color: "#93c5fd", fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
+            </button>
+            {open && (
+              <div style={{ padding: "12px 16px" }}>
+                <p style={{ fontSize: "11px", color: "#6b7280", marginBottom: "10px", fontStyle: "italic" }}>{group.desc}</p>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                    <thead>
+                      <tr style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
+                        {["UI Field","API Field","Source","Owner","Batch","Swagger","Status","Gap / Blocker"].map(h => (
+                          <th key={h} style={{ padding: "7px 10px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.05em", whiteSpace: "nowrap" as const }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.fields.map((f, i) => {
+                        const rs = READINESS_STYLE[f.status];
+                        const os = OWNER_STYLE[f.owner] || { bg: "#f3f4f6", text: "#374151" };
+                        return (
+                          <tr key={i} style={{ borderBottom: "1px solid #f3f4f6", backgroundColor: f.status === "Missing" ? "#fff5f5" : i % 2 === 0 ? "white" : "#fafafa" }}>
+                            <td style={{ padding: "8px 10px", fontWeight: 600, color: "#111827" }}>{f.uiField}</td>
+                            <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: "11px", color: "#6b7280" }}>{f.apiField}</td>
+                            <td style={{ padding: "8px 10px", color: "#374151" }}>{f.source}</td>
+                            <td style={{ padding: "8px 10px" }}><span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px", backgroundColor: os.bg, color: os.text }}>{f.owner}</span></td>
+                            <td style={{ padding: "8px 10px", fontFamily: "monospace", color: "#374151" }}>{f.batch}</td>
+                            <td style={{ padding: "8px 10px", fontFamily: "monospace", fontSize: "10px", color: "#9ca3af", maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }} title={f.swagger}>{f.swagger}</td>
+                            <td style={{ padding: "8px 10px" }}><span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "9999px", backgroundColor: rs.bg, color: rs.text, whiteSpace: "nowrap" as const }}>{rs.label}</span></td>
+                            <td style={{ padding: "8px 10px", color: "#6b7280", fontSize: "11px" }}>{f.gap !== "—" ? <span>⚠ {f.gap}</span> : <span style={{ color: "#d1d5db" }}>—</span>}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Sub-components ─────────────────────────────────────────────
 function SectionHeader({ num, title, subtitle }: { num: string; title: string; subtitle?: string }) {
   return (
     <div style={{ background: RSM_BLUE, borderRadius: "10px 10px 0 0", padding: "14px 20px" }}>
@@ -778,7 +843,15 @@ export default function RogerMappingPage() {
       {/* Governance Workflow Simulator */}
       <GovernanceWorkflowSimulator />
 
-      {/* Section 11 — Executive Footer */}
+      {/* Section 11 — Roger API Model Groupings — Field-Level Readiness */}
+      <div style={{ marginBottom: "20px" }}>
+        <SectionHeader num="11" title="Roger API Model Groupings — Field-Level Readiness" subtitle="Source: Roger API Design v1.0 · 05.07.2026 · Maps Roger UI fields to API contracts, ownership, batch dependency, and readiness status" />
+        <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "20px", background: "white" }}>
+          <RogerModelGroupingsSection />
+        </div>
+      </div>
+
+      {/* Section 12 — Executive Footer */}
       <div style={{ background: RSM_BLUE, borderRadius: "10px", padding: "20px 24px", color: "white", textAlign: "center" }}>
         <div style={{ fontWeight: 800, fontSize: "16px", marginBottom: "6px" }}>Roger UI Mapping & Governance Alignment</div>
         <div style={{ opacity: 0.8, fontSize: "12px", marginBottom: "4px" }}>Prepared by DCT · Source: Roger API Design v1.0 + TIM Swagger Analysis</div>
