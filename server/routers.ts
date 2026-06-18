@@ -137,7 +137,7 @@ export const appRouter = router({
       };
     }),
 
-    // Get the 5 most recent deployments for the Executive Dashboard
+    // Get recent deployments for the Executive Dashboard — limit matches all registry records
     recent: publicProcedure.query(async () => {
       const db = await getDb();
       if (!db) return [];
@@ -145,7 +145,7 @@ export const appRouter = router({
         .select()
         .from(deployments)
         .orderBy(desc(deployments.deploymentDate), desc(deployments.createdAt))
-        .limit(5);
+        .limit(10);
       return rows;
     }),
 
