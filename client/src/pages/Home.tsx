@@ -536,7 +536,7 @@ export default function Home() {
       </Section>
 
       {/* ── Executive Delivery Dashboard ── */}
-      <ExecDashboard />
+      <ExecDashboard batches={BATCH_REFERENCE} />
 
       {/* ── 2. Batch Reference & Consumer Impact Guide ── */}
       <BatchReferenceGuide />

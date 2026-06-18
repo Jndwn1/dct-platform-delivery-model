@@ -6,9 +6,11 @@
 // Data: Dynamically derived from BatchStatusContext (no mock values)
 // 
 
+import { useRef } from "react";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
+import GeneratePOEmail from "@/components/GeneratePOEmail";
 
 //  Helpers 
 
@@ -143,7 +145,13 @@ function PICard({
 
 //  Main component 
 
-export default function ExecDashboard() {
+// BATCH_REFERENCE is passed in from Home.tsx for the email generator
+interface ExecDashboardProps {
+  batches?: Array<{ pi: string; status: string; batchNum: string; platform: string; name: string; whatItDoes: string; rogerImpact: string }>;
+}
+
+export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const { statuses, piCompletion } = useBatchStatus();
   const { data: recentDeployments } = trpc.deploymentRegistry.recent.useQuery();
 
@@ -200,7 +208,7 @@ export default function ExecDashboard() {
   ];
 
   return (
-    <div style={{
+    <div ref={dashboardRef} style={{
       backgroundColor: "#f8fafc",
       border: "1px solid #e2e8f0",
       borderLeft: "4px solid #1e3a5f",
@@ -220,9 +228,12 @@ export default function ExecDashboard() {
             Executive Delivery Dashboard
           </h2>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#059669" }} />
-          <span style={{ fontSize: "11px", fontWeight: 700, color: "#059669" }}>Live · Derived from Roadmap Registry</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#059669" }} />
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#059669" }}>Live · Derived from Roadmap Registry</span>
+          </div>
+          <GeneratePOEmail dashboardRef={dashboardRef} batches={batches} />
         </div>
       </div>
 
