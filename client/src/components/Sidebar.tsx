@@ -96,7 +96,7 @@ const ON_HOLD_ITEMS: { label: string; path: string; batchKey: string }[] = [
 // Governance Gates — informational table-of-contents navigation
 // No status badges, no completion indicators — anchors to page sections
 const GATE_NAV_ITEMS = [
-  { id: "gate-flow",  label: "Gate Progression Lifecycle", icon: "→",  anchor: "gate-flow-section" },
+  { id: "gate-flow",  label: "Governance Gates Overview", icon: "→",  anchor: "gate-flow-section" },
 ];
 
 // Agents section removed — individual agent nav items consolidated into Agent Hub (Architecture & Diagrams)
@@ -318,11 +318,8 @@ function GatesNavSection() {
       <div style={{ padding: "10px 12px 4px" }}>
         <div style={{
           fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em",
-          textTransform: "uppercase", color: "#475569", marginBottom: "4px",
+          textTransform: "uppercase", color: "#475569",
         }}>Governance Gates</div>
-        <div style={{ fontSize: "9px", color: "#374151", lineHeight: "1.4", paddingLeft: "0" }}>
-          Governance readiness gates used throughout the DCT batch delivery lifecycle.
-        </div>
       </div>
 
       {/* Gate TOC items */}
