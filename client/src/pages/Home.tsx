@@ -9,6 +9,40 @@ import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import ExecDashboard from "@/components/ExecDashboard";
 
+// ─── Batch Calendar PI 2 + PI 3 (source of truth for Section 2) ─────────────
+// Data sourced directly from DCT_Calendar.xlsx, DCT Calendar sheet
+// Columns: PI, Status, Batch, Feat, Name, Start, End, What the batch does, Roger UI impact
+const BATCH_CALENDAR_PI23 = [
+  // ── PI 2 ──
+  { pi: "PI 2", status: "Done",        batch: "B4",    feat: "TDC",     name: "AI Mapping Proposals & Decisions",                                   startDate: "",          endDate: "Done",      whatItDoes: "Generates AI tax-mapping proposals with confidence and evidence per account.",                                                                  rogerImpact: "Line Mappings (stage 2)" },
+  { pi: "PI 2", status: "Done",        batch: "B5",    feat: "PDC",     name: "Entity Identity & Structure",                                       startDate: "Wed 4/22",  endDate: "Thu 4/30",  whatItDoes: "Gives every client and entity a permanent identity and access scope.",                                                                          rogerImpact: "Client / entity selection" },
+  { pi: "PI 2", status: "Done",        batch: "B6",    feat: "TDC",     name: "Practitioner Review & Lock",                                        startDate: "Wed 4/22",  endDate: "Thu 4/30",  whatItDoes: "Practitioners review, decide, and lock mappings; decisions are immutable.",                                                                     rogerImpact: "Review & lock" },
+  { pi: "PI 2", status: "Done",        batch: "B2A",   feat: "PDC",     name: "Orchestrator Classification Result & Contract Enforcement",          startDate: "Wed 4/29",  endDate: "Mon 5/9",   whatItDoes: "Enforces the orchestrator's classification result and contract at intake.",                                                                      rogerImpact: "None (behind the scenes)" },
+  { pi: "PI 2", status: "Done",        batch: "B7",    feat: "TDC",     name: "Client Tax Profile & Eligibility",                                  startDate: "Fri 5/1",   endDate: "Mon 5/11",  whatItDoes: "Holds the client tax profile and determines which rules apply.",                                                                               rogerImpact: "Eligibility" },
+  { pi: "PI 2", status: "Done",        batch: "B8",    feat: "PDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces cross-LOB ingestion and data exceptions for remediation.",                                                                             rogerImpact: "Exceptions surfacing" },
+  { pi: "PI 2", status: "Done",        batch: "B8",    feat: "TDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces tax-side exceptions for remediation.",                                                                                               rogerImpact: "Exceptions surfacing" },
+  { pi: "PI 2", status: "Done",        batch: "B9",    feat: "Gateway", name: "Roger Gateway & Governed Consumer Access Layer",                    startDate: "Thu 5/21",  endDate: "Tue 6/2",   whatItDoes: "Governed gateway exposing approved upstream data to consumers.",                                                                               rogerImpact: "None (gateway)" },
+  { pi: "PI 2", status: "Done",        batch: "B10",   feat: "TDC",     name: "Return Assembly, Filing & Lineage",                                 startDate: "Wed 6/3",   endDate: "Fri 6/5",   whatItDoes: "Assembles the return, creates the immutable filing record, anchors lineage.",                                                                    rogerImpact: "Form 1120 / filing (stage 10)" },
+  { pi: "PI 2", status: "Done",        batch: "B43",   feat: "TDC",     name: "Practitioner Book & Reclass Adjustments",                           startDate: "Wed 6/10",  endDate: "Tue 6/16",  whatItDoes: "Persists practitioner book and reclass adjustments as a multi-line model.",                                                                 rogerImpact: "High: Book Adjustment & Reclass Adjustment (stages 4-5)" },
+  { pi: "PI 2", status: "In Progress", batch: "B9",    feat: "Gateway", name: "Roger Gateway - TDC Integration Endpoints",                         startDate: "Wed 6/17",  endDate: "Fri 6/19",  whatItDoes: "Extends the governed gateway to TDC consumers.",                                                                                              rogerImpact: "None (gateway)" },
+  { pi: "PI 2", status: "In Progress", batch: "B11",   feat: "TDC",     name: "Learning Governance & Model Evolution",                             startDate: "Wed 6/17",  endDate: "Thu 6/25",  whatItDoes: "Captures learning from real decisions under consent; governs model evolution.",                                                                 rogerImpact: "None (behind the scenes)" },
+  { pi: "PI 2", status: "In Progress", batch: "B42",   feat: "TDC",     name: "Tax Rules Framework & Book-to-Tax Adjustment Rules",                startDate: "Wed 6/17",  endDate: "Thu 6/25",  whatItDoes: "Computes book-to-tax adjustments from governed, configured rules.",                                                                            rogerImpact: "High: Tax Adjustment (stage 7) + rule admin screen" },
+  { pi: "PI 2", status: "Stretch",     batch: "B16",   feat: "PDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 6/22",  endDate: "Tue 6/30",  whatItDoes: "Records the cross-LOB audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
+  // ── PI 3 ──
+  { pi: "PI 3", status: "MVP",         batch: "B16",   feat: "TDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 7/13",  endDate: "Tue 7/21",  whatItDoes: "Records the tax-side audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
+  { pi: "PI 3", status: "MVP",         batch: "B31",   feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
+  { pi: "PI 3", status: "MVP",         batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
+  { pi: "PI 3", status: "MVP",         batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
+  { pi: "PI 3", status: "MVP",         batch: "B39",   feat: "TDC",     name: "Calculation Report",                                                startDate: "Fri 7/31",  endDate: "Mon 8/10",  whatItDoes: "Produces the packaged, partner-ready calculation and sign-off report.",                                                                         rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
+  { pi: "PI 3", status: "MVP",         batch: "B20",   feat: "PDC",     name: "Firm Governance & Professional Standards",                          startDate: "Thu 7/23",  endDate: "Fri 7/31",  whatItDoes: "Holds firm governance and professional standards that gate sign-off.",                                                                          rogerImpact: "None: gates sign-off, no new screen" },
+  { pi: "PI 3", status: "MVP",         batch: "B29",   feat: "TDC",     name: "Consolidated Return Assembly",                                      startDate: "Tue 8/11",  endDate: "Wed 8/19",  whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                                rogerImpact: "High: consolidated / multi-entity views + Form 1120" },
+  { pi: "PI 3", status: "MVP",         batch: "B21",   feat: "PDC",     name: "Quality Control Standards",                                        startDate: "Mon 8/3",   endDate: "Tue 8/11",  whatItDoes: "Holds quality-control review standards and concurring-partner rules.",                                                                          rogerImpact: "None: reference only, no new screen" },
+  { pi: "PI 3", status: "MVP",         batch: "B17",   feat: "TDC",     name: "Decision Support, Overrides, Evidence & Workpapers",               startDate: "Thu 8/20",  endDate: "Fri 8/28",  whatItDoes: "Adds override policies, evidence on decisions, and workpaper lock to snapshot.",                                                                rogerImpact: "Med: wire evidence / override / lock into review screens" },
+  { pi: "PI 3", status: "MVP",         batch: "B26",   feat: "PDC",     name: "Entity Constituents & Allocations",                                 startDate: "Wed 8/12",  endDate: "Thu 8/20",  whatItDoes: "Models sub-entities (divisions, branches) and inter-entity allocations.",                                                                       rogerImpact: "None: structure only in MVP" },
+  { pi: "PI 3", status: "MVP",         batch: "B31",   feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
+  { pi: "PI 3", status: "Stretch",     batch: "B33",   feat: "TDC",     name: "State Reference, Apportionment, Payments, NOL/Credit, Forms, TX Franchise", startDate: "Thu 9/10", endDate: "Fri 9/18", whatItDoes: "Adds state apportionment, nexus, payments, NOL/credit, forms, TX franchise.", rogerImpact: "High (stretch): state screens" },
+];
+
 // ─── Batch Reference Data (from DCT Calendar v7) ─────────────────────────────
 const BATCH_REFERENCE = [
   { pi: "PI 2", status: "Done",      batchNum: "4",   platform: "TDC",      name: "AI Mapping Proposals & Decisions",                                    whatItDoes: "Generates AI tax-mapping proposals with confidence and evidence per account.",                                                                  rogerImpact: "Line Mappings (Stage 2)" },
@@ -223,195 +257,201 @@ function BatchRow({ id, name, scope }: { id: string; name: string; scope: string
   );
 }
 
-// ─── Batch Reference & Consumer Impact Guide ─────────────────────────────────
+// ─── Batch Portfolio Overview (Section 2) ─────────────────────────────────────
 function BatchReferenceGuide() {
   const [search, setSearch] = useState("");
-  const [piFilter, setPiFilter] = useState("All");
-  const [platformFilter, setPlatformFilter] = useState("All");
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
-  const piOptions = ["All", "PI 2", "PI 3", "PI 4", "PI 5", "Future", "Parked"];
-  const platformOptions = ["All", "PDC", "TDC", "Gateway"];
-
-  const filtered = useMemo(() => {
-    return BATCH_REFERENCE.filter(b => {
-      const matchSearch = !search ||
-        b.batchNum.toLowerCase().includes(search.toLowerCase()) ||
-        b.name.toLowerCase().includes(search.toLowerCase()) ||
-        b.whatItDoes.toLowerCase().includes(search.toLowerCase()) ||
-        b.rogerImpact.toLowerCase().includes(search.toLowerCase());
-      const matchPi = piFilter === "All" ||
-        (piFilter === "Future" && (b.status === "Future" || b.status === "Long-Term" || b.status === "Research")) ||
-        (piFilter === "Parked" && b.status === "Parked") ||
-        b.pi === piFilter;
-      const matchPlatform = platformFilter === "All" || b.platform === platformFilter;
-      return matchSearch && matchPi && matchPlatform;
-    });
-  }, [search, piFilter, platformFilter]);
-
   const statusColors: Record<string, { bg: string; text: string; border: string }> = {
-    Done:         { bg: "#f0fdf4", text: "#059669", border: "#bbf7d0" },
-    "In Progress": { bg: "#eff6ff", text: "#2563eb", border: "#bfdbfe" },
-    Planned:      { bg: "#f8fafc", text: "#475569", border: "#e2e8f0" },
-    Stretch:      { bg: "#faf5ff", text: "#7c3aed", border: "#e9d5ff" },
-    "Post-MVP":   { bg: "#fff7ed", text: "#9a3412", border: "#fed7aa" },
-    Future:       { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
-    Parked:       { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
-    "Long-Term":  { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
-    Research:     { bg: "#f1f5f9", text: "#64748b", border: "#cbd5e1" },
+    Done:           { bg: "#f0fdf4", text: "#059669", border: "#bbf7d0" },
+    "In Progress":  { bg: "#eff6ff", text: "#2563eb", border: "#bfdbfe" },
+    MVP:            { bg: "#faf5ff", text: "#7c3aed", border: "#e9d5ff" },
+    Stretch:        { bg: "#fff7ed", text: "#b45309", border: "#fde68a" },
+    "On Hold":      { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0" },
   };
-  const platformColors: Record<string, string> = {
+  const featColors: Record<string, string> = {
     PDC: "#1e3a5f", TDC: "#065f46", Gateway: "#7c3aed",
   };
 
+  const highImpactKeywords = [
+    "book adjustment", "tax adjustment", "form 1120", "consolidated return",
+    "workpaper", "provision", "calculation report", "state screens",
+  ];
+  const isHighImpact = (roger: string) =>
+    highImpactKeywords.some(kw => roger.toLowerCase().includes(kw));
+
+  const pi2Rows = useMemo(() => BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 2" && (
+    !search ||
+    b.batch.toLowerCase().includes(search.toLowerCase()) ||
+    b.name.toLowerCase().includes(search.toLowerCase()) ||
+    b.whatItDoes.toLowerCase().includes(search.toLowerCase()) ||
+    b.rogerImpact.toLowerCase().includes(search.toLowerCase())
+  )), [search]);
+
+  const pi3Rows = useMemo(() => BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 3" && (
+    !search ||
+    b.batch.toLowerCase().includes(search.toLowerCase()) ||
+    b.name.toLowerCase().includes(search.toLowerCase()) ||
+    b.whatItDoes.toLowerCase().includes(search.toLowerCase()) ||
+    b.rogerImpact.toLowerCase().includes(search.toLowerCase())
+  )), [search]);
+
+  const totalShown = pi2Rows.length + pi3Rows.length;
+
+  const renderGroup = (label: string, rows: typeof BATCH_CALENDAR_PI23, groupOffset: number) => (
+    <>
+      {/* PI Group Header */}
+      <div style={{
+        backgroundColor: "#1e293b",
+        padding: "8px 14px",
+        display: "flex", alignItems: "center", gap: "10px",
+      }}>
+        <div style={{ fontSize: "11px", fontWeight: 800, color: "#e2e8f0", letterSpacing: "0.1em", textTransform: "uppercase" }}>{label}</div>
+        <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600 }}>{rows.length} batches</div>
+      </div>
+      {rows.map((b, idx) => {
+        const globalIdx = groupOffset + idx;
+        const sc = statusColors[b.status] ?? { bg: "#f8fafc", text: "#475569", border: "#e2e8f0" };
+        const isExpanded = expandedIdx === globalIdx;
+        const highImpact = isHighImpact(b.rogerImpact);
+        const noImpact = b.rogerImpact.toLowerCase().startsWith("none");
+        return (
+          <div key={`${b.pi}-${b.batch}-${idx}`}
+            style={{
+              borderBottom: "1px solid #f1f5f9",
+              backgroundColor: isExpanded ? "#f0f9ff" : idx % 2 === 0 ? "#ffffff" : "#fafafa",
+              cursor: "pointer",
+            }}
+            onClick={() => setExpandedIdx(isExpanded ? null : globalIdx)}
+          >
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "90px 70px 1fr 90px 90px 1fr 1fr",
+              gap: "8px",
+              padding: "9px 14px",
+              alignItems: "start",
+            }}>
+              {/* Status badge */}
+              <div style={{
+                fontSize: "10px", fontWeight: 700,
+                backgroundColor: sc.bg, color: sc.text,
+                border: `1px solid ${sc.border}`,
+                borderRadius: "4px", padding: "2px 7px",
+                textAlign: "center", whiteSpace: "nowrap",
+                alignSelf: "center",
+              }}>{b.status}</div>
+              {/* Batch */}
+              <div style={{
+                fontWeight: 800, fontSize: "12px", color: "#0f1623",
+                backgroundColor: "#e2e8f0", borderRadius: "4px",
+                padding: "2px 6px", textAlign: "center",
+                alignSelf: "center",
+              }}>{b.batch}</div>
+              {/* Title */}
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "#1e293b", lineHeight: "1.4" }}>
+                {b.name}
+                <span style={{ marginLeft: "5px", fontSize: "9px", color: "#94a3b8" }}>{isExpanded ? "▲" : "▼"}</span>
+                <div style={{ fontSize: "10px", fontWeight: 600, color: featColors[b.feat] ?? "#475569", marginTop: "2px" }}>{b.feat}</div>
+              </div>
+              {/* Start Date */}
+              <div style={{ fontSize: "11px", color: "#475569", fontFamily: "monospace", paddingTop: "2px" }}>{b.startDate || "—"}</div>
+              {/* End Date */}
+              <div style={{ fontSize: "11px", color: "#475569", fontFamily: "monospace", paddingTop: "2px" }}>{b.endDate || "—"}</div>
+              {/* What it Does */}
+              <div style={{ fontSize: "11px", color: "#475569", lineHeight: "1.5" }}>{b.whatItDoes}</div>
+              {/* Roger UI Impact */}
+              <div style={{
+                fontSize: "11px", fontWeight: 600, lineHeight: "1.4",
+                color: highImpact ? "#059669" : noImpact ? "#94a3b8" : "#1e293b",
+                backgroundColor: highImpact ? "#f0fdf4" : "transparent",
+                borderRadius: highImpact ? "4px" : undefined,
+                padding: highImpact ? "2px 6px" : undefined,
+                border: highImpact ? "1px solid #bbf7d0" : undefined,
+              }}>{b.rogerImpact}</div>
+            </div>
+            {/* Expanded detail */}
+            {isExpanded && (
+              <div style={{
+                padding: "10px 14px 12px",
+                borderTop: "1px solid #e2e8f0",
+                backgroundColor: "#f0f9ff",
+                display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px",
+              }}>
+                <div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>What the Batch Does</div>
+                  <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6" }}>{b.whatItDoes}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Roger UI Impact</div>
+                  <div style={{ fontSize: "13px", color: highImpact ? "#059669" : "#1e293b", fontWeight: 600, lineHeight: "1.6" }}>{b.rogerImpact}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Schedule</div>
+                  <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6" }}>
+                    <span style={{ fontWeight: 600 }}>Start:</span> {b.startDate || "—"}<br />
+                    <span style={{ fontWeight: 600 }}>End:</span> {b.endDate || "—"}<br />
+                    <span style={{ fontWeight: 600 }}>Platform:</span> {b.feat}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+
   return (
-    <Section title="Batch Reference & Consumer Impact Guide" subtitle="Section 2 — Delivery Units & Roger Impact" accent="blue">
-      <div style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6", marginBottom: "16px" }}>
-        Understand what each batch delivers and how it affects the Roger practitioner experience.
+    <Section title="Batch Portfolio Overview" subtitle="Section 2 — PI 2 & PI 3 Delivery Units" accent="blue">
+      <div style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6", marginBottom: "14px" }}>
+        Delivery schedule and Roger practitioner impact for PI 2 (Current Delivery) and PI 3 (MVP Target).
         Source: DCT Calendar v7 · Columns J (What the Batch Does) and K (Roger UI Impact).
       </div>
 
-      {/* Filters */}
+      {/* Search */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "14px", alignItems: "center" }}>
         <input
           type="text"
-          placeholder="Search batch number, name, or description..."
+          placeholder="Search batch, title, description, or Roger impact..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
-            flex: "1 1 260px", padding: "7px 12px", fontSize: "13px",
+            flex: "1 1 300px", padding: "7px 12px", fontSize: "13px",
             border: "1px solid #cbd5e1", borderRadius: "6px",
             outline: "none", color: "#1e293b", backgroundColor: "#ffffff",
           }}
         />
-        <select
-          value={piFilter}
-          onChange={e => setPiFilter(e.target.value)}
-          style={{
-            padding: "7px 10px", fontSize: "12px", border: "1px solid #cbd5e1",
-            borderRadius: "6px", color: "#1e293b", backgroundColor: "#ffffff", cursor: "pointer",
-          }}
-        >
-          {piOptions.map(p => <option key={p} value={p}>{p === "All" ? "All PIs" : p}</option>)}
-        </select>
-        <select
-          value={platformFilter}
-          onChange={e => setPlatformFilter(e.target.value)}
-          style={{
-            padding: "7px 10px", fontSize: "12px", border: "1px solid #cbd5e1",
-            borderRadius: "6px", color: "#1e293b", backgroundColor: "#ffffff", cursor: "pointer",
-          }}
-        >
-          {platformOptions.map(p => <option key={p} value={p}>{p === "All" ? "All Platforms" : p}</option>)}
-        </select>
         <div style={{ fontSize: "11px", color: "#94a3b8", whiteSpace: "nowrap" }}>
-          {filtered.length} of {BATCH_REFERENCE.length} batches
+          {totalShown} of {BATCH_CALENDAR_PI23.length} batches
         </div>
       </div>
 
       {/* Table */}
       <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
-        {/* Header */}
+        {/* Column header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "70px 90px 1fr 1fr 90px",
-          gap: "10px",
+          gridTemplateColumns: "90px 70px 1fr 90px 90px 1fr 1fr",
+          gap: "8px",
           backgroundColor: "#0f1623",
-          padding: "10px 14px",
+          padding: "9px 14px",
         }}>
-          {["Batch #", "Platform", "Batch Title", "What the Batch Does", "Roger UI Impact"].map(h => (
+          {["Status", "Batch", "Title", "Start Date", "End Date", "What the Batch Does", "Roger UI Impact"].map(h => (
             <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase" }}>{h}</div>
           ))}
         </div>
 
-        {/* Rows */}
-        {filtered.length === 0 && (
-          <div style={{ padding: "20px", textAlign: "center", fontSize: "13px", color: "#94a3b8" }}>No batches match your filters.</div>
+        {totalShown === 0 && (
+          <div style={{ padding: "20px", textAlign: "center", fontSize: "13px", color: "#94a3b8" }}>No batches match your search.</div>
         )}
-        {filtered.map((b, idx) => {
-          const sc = statusColors[b.status] ?? statusColors["Planned"];
-          const isExpanded = expandedIdx === idx;
-          return (
-            <div key={idx}
-              style={{
-                borderBottom: idx < filtered.length - 1 ? "1px solid #f1f5f9" : undefined,
-                backgroundColor: isExpanded ? "#f8fafc" : idx % 2 === 0 ? "#ffffff" : "#fafafa",
-                cursor: "pointer",
-              }}
-              onClick={() => setExpandedIdx(isExpanded ? null : idx)}
-            >
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "70px 90px 1fr 1fr 90px",
-                gap: "10px",
-                padding: "10px 14px",
-                alignItems: "start",
-              }}>
-                {/* Batch # */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <div style={{
-                    fontWeight: 800, fontSize: "13px", color: "#0f1623",
-                    backgroundColor: "#e2e8f0", borderRadius: "4px",
-                    padding: "2px 6px", textAlign: "center", display: "inline-block",
-                  }}>{b.batchNum}</div>
-                  <div style={{
-                    fontSize: "9px", fontWeight: 700,
-                    backgroundColor: sc.bg, color: sc.text,
-                    border: `1px solid ${sc.border}`,
-                    borderRadius: "3px", padding: "1px 5px", textAlign: "center",
-                  }}>{b.status}</div>
-                </div>
-                {/* Platform */}
-                <div style={{
-                  fontSize: "11px", fontWeight: 700,
-                  color: platformColors[b.platform] ?? "#475569",
-                  paddingTop: "2px",
-                }}>{b.platform || "—"}</div>
-                {/* Batch Title */}
-                <div style={{ fontSize: "13px", fontWeight: 600, color: "#1e293b", lineHeight: "1.4", paddingTop: "1px" }}>
-                  {b.name}
-                  <span style={{ marginLeft: "6px", fontSize: "10px", color: "#94a3b8" }}>{isExpanded ? "▲" : "▼"}</span>
-                </div>
-                {/* What it Does */}
-                <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5", paddingTop: "1px" }}>{b.whatItDoes}</div>
-                {/* Roger Impact */}
-                <div style={{
-                  fontSize: "11px", fontWeight: 600,
-                  color: b.rogerImpact.startsWith("None") || b.rogerImpact === "Post-MVP" || b.rogerImpact === "Future" || b.rogerImpact === "Parked"
-                    ? "#94a3b8" : "#059669",
-                  lineHeight: "1.4",
-                }}>{b.rogerImpact}</div>
-              </div>
-              {/* Expanded detail row */}
-              {isExpanded && (
-                <div style={{
-                  padding: "0 14px 12px 14px",
-                  borderTop: "1px solid #e2e8f0",
-                  backgroundColor: "#f0f9ff",
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "12px",
-                }}>
-                  <div style={{ paddingTop: "10px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Full Description</div>
-                    <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6" }}>{b.whatItDoes}</div>
-                  </div>
-                  <div style={{ paddingTop: "10px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Roger UI Impact</div>
-                    <div style={{ fontSize: "13px", color: "#059669", fontWeight: 600, lineHeight: "1.6" }}>{b.rogerImpact}</div>
-                    {b.pi && (
-                      <div style={{ marginTop: "6px", fontSize: "11px", color: "#64748b" }}>PI: {b.pi} &nbsp;·&nbsp; Platform: {b.platform || "—"} &nbsp;·&nbsp; Status: {b.status}</div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+
+        {pi2Rows.length > 0 && renderGroup("PI 2 – Current Delivery", pi2Rows, 0)}
+        {pi3Rows.length > 0 && renderGroup("PI 3 – MVP", pi3Rows, pi2Rows.length)}
       </div>
     </Section>
   );
 }
+
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function Home() {
