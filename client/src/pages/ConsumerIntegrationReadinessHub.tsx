@@ -1634,10 +1634,18 @@ export default function ConsumerIntegrationReadinessHub() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         <div id="open-questions">
           <Section id="s11" title="11 — Open Questions / Pending Decisions" badge="Action Required" badgeColor="#dc2626">
-            <p className="text-sm text-slate-600 mb-3">
-              The following items are unresolved integration questions, pending architecture decisions, and
-              future PI considerations that require PO, architecture, or engineering input before proceeding.
-            </p>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+              <p className="text-sm text-slate-600" style={{ margin: 0 }}>
+                The following items are unresolved integration questions, pending architecture decisions, and
+                future PI considerations that require PO, architecture, or engineering input before proceeding.
+              </p>
+              <a
+                href="/data-model"
+                style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#1e3a5f", backgroundColor: "#f0f4f8", border: "1px solid #cbd5e1", fontWeight: 600, fontSize: "11px", padding: "5px 12px", borderRadius: "5px", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
+              >
+                ← Data Model, Gaps &amp; Governance
+              </a>
+            </div>
 
             <DataTable
               headers={["#", "ADO Feature", "Question / Decision", "Category", "Owner", "Priority", "Status", "Target Resolution"]}

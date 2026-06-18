@@ -1,4 +1,4 @@
-// DCT Platform — Data Model & Gaps — Executive Reference
+// DCT Platform — Data Model, Gaps & Governance — Executive Reference
 // 5 sections: Data Model Relationships, Data Availability, UI to Data Mapping, Gaps, Architecture Violations
 //
 // GOVERNANCE RULE: Data Availability rows are derived from batchModelSource.ts
@@ -297,8 +297,8 @@ export default function DataModelPage() {
           <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2563eb", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px" }}>Executive Reference</span>
           <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#374151", backgroundColor: "#f3f4f6", padding: "2px 8px", borderRadius: "4px" }}>DCT Platform</span>
         </div>
-        <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>Data Model &amp; Gaps</h1>
-        <p style={{ fontSize: "13px", color: "#6b7280", margin: 0 }}>Executive reference · Platform data relationships, availability, UI mapping, and open gaps</p>
+        <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>Data Model, Gaps &amp; Governance</h1>
+        <p style={{ fontSize: "13px", color: "#6b7280", margin: 0 }}>Executive reference · Platform data relationships, availability, UI mapping, governance cross-references, and open gaps</p>
         <p style={{ fontSize: "11px", color: "#9ca3af", fontStyle: "italic", marginTop: "4px" }}>
           Authoritative scope: Data model relationships, field governance &amp; gap analysis ·{" "}
           <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>← Platform Home</a>
@@ -586,7 +586,7 @@ export default function DataModelPage() {
             ADRs include consolidated filing governance, filing authority ownership, entity contribution lineage, filing signoff governance, and filing lock &amp; finalization decisions.
           </p>
           <a
-            href="/consumer-integration#open-questions"
+            href="/consumer-integration-hub#open-questions"
             style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "white", backgroundColor: "#2563eb", fontWeight: 700, fontSize: "12px", padding: "8px 16px", borderRadius: "6px", textDecoration: "none" }}
           >
             📖 View ADR Decisions &amp; Open Questions →

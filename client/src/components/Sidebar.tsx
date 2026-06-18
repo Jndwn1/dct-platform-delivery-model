@@ -107,7 +107,7 @@ const BA_ITEMS: NavItem[] = [
   { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
   { label: "Governance Gates",            path: "/gate/overview",              icon: "◉" },
   { label: "Touchpoints (T1–T11)",        path: "/touchpoints",                icon: "↝" },
-  { label: "Data Model & Gaps",           path: "/data-model",                 icon: "▦", badge: "Exec",     badgeColor: "#7c3aed" },
+  { label: "Data Model, Gaps & Governance", path: "/data-model",                 icon: "▦", badge: "Exec",     badgeColor: "#7c3aed" },
   { label: "Classification Walkthrough",  path: "/classification-walkthrough", icon: "⚑", badge: "Decision", badgeColor: "#dc2626" },
   { label: "Taxonomy Explorer",           path: "/taxonomy",                   icon: "◎" },
   { label: "Tax Mapping Confidence",      path: "/tax-mapping",                icon: "◇" },
