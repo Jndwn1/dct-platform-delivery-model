@@ -413,19 +413,44 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
           <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Target: Sep 16, 2026</div>
         </div>
 
-        {/* Last 5 Deployments */}
+        {/* Recent Deployments */}
         <div style={{ flex: "1 1 300px", minWidth: "260px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-            <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "#64748b" }}>Recent Deployments</div>
+          {/* Header row: label + count badge + View all */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "#64748b" }}>Recent Deployments</div>
+              <span style={{
+                fontSize: "10px", fontWeight: 700,
+                backgroundColor: "#1e3a5f", color: "#ffffff",
+                borderRadius: "10px", padding: "1px 7px",
+              }}>
+                {(recentDeployments ?? []).length} deployments
+              </span>
+            </div>
             <Link href="/deployment-registry">
               <span style={{ fontSize: "10px", fontWeight: 600, color: "#2563eb", cursor: "pointer" }}>View all</span>
             </Link>
           </div>
+          {/* Platform filter chips */}
+          <div style={{ display: "flex", gap: "4px", marginBottom: "8px", flexWrap: "wrap" }}>
+            {(["All", "PDC", "TDC", "Both"] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setDeployPlatformFilter(f)}
+                style={{
+                  fontSize: "10px", fontWeight: 600,
+                  padding: "2px 8px", borderRadius: "10px", cursor: "pointer", border: "none",
+                  backgroundColor: deployPlatformFilter === f ? "#1e3a5f" : "#f1f5f9",
+                  color: deployPlatformFilter === f ? "#ffffff" : "#475569",
+                }}
+              >{f}</button>
+            ))}
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            {(recentDeployments ?? []).length === 0 && (
-              <div style={{ fontSize: "12px", color: "#94a3b8", padding: "8px 0" }}>No deployments recorded yet.</div>
+            {(recentDeployments ?? []).filter(d => deployPlatformFilter === "All" || d.platform === deployPlatformFilter).length === 0 && (
+              <div style={{ fontSize: "12px", color: "#94a3b8", padding: "8px 0" }}>No deployments match this filter.</div>
             )}
-            {(recentDeployments ?? []).map((d) => {
+            {(recentDeployments ?? []).filter(d => deployPlatformFilter === "All" || d.platform === deployPlatformFilter).map((d) => {
               const statusColors: Record<string, { bg: string; text: string }> = {
                 Deployed:    { bg: "#f0fdf4", text: "#059669" },
                 "In Progress": { bg: "#eff6ff", text: "#2563eb" },
