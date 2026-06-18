@@ -523,6 +523,7 @@ export default function Home() {
 
   // Lifted accordion open state — keyed by accordion id
   const ACCORDION_IDS = [
+    "section-purpose",
     "section-work-status", "section-architecture", "section-ownership",
     "section-governance", "section-capabilities", "section-guardrails",
     "section-dependencies", "section-failure-modes",
@@ -562,31 +563,257 @@ export default function Home() {
     { label: "Batch Delivery Calendar",id: "",                      internal: false, href: "/batch-calendar" },
   ];
 
-  return (
-    <div style={{ padding: "28px 32px", maxWidth: "1100px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
+  // Delivery Highlights — active batches in progress
+  const activeBatches = BATCH_CALENDAR_PI23.filter(b => b.status === "In Progress");
+  const stretchBatches = BATCH_CALENDAR_PI23.filter(b => b.status === "Stretch");
+  const pi3MvpCount = BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 3" && b.status === "MVP").length;
 
-      {/* ── Page header ── */}
-      <div style={{ marginBottom: "32px", borderBottom: "2px solid #e2e8f0", paddingBottom: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-          <div style={{
-            width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "#0f1623",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#059669", fontWeight: 900, fontSize: "16px",
-          }}>D</div>
+  return (
+    <div style={{ width: "95%", maxWidth: "1600px", margin: "0 auto", fontFamily: "system-ui, sans-serif", paddingBottom: "40px" }}>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+           EXECUTIVE HERO BANNER
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <div style={{
+        background: "linear-gradient(135deg, #0f1623 0%, #1e3a5f 60%, #0f2d1a 100%)",
+        borderRadius: "14px",
+        padding: "32px 40px",
+        marginBottom: "0",
+        color: "white",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        {/* Subtle grid texture overlay */}
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)",
+          backgroundSize: "28px 28px",
+          pointerEvents: "none",
+        }} />
+
+        {/* Top row: title + meta */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px", position: "relative" }}>
           <div>
-            <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: 0, lineHeight: 1 }}>
-              DCT Delivery Model
-            </h1>
-            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
-              RSM · CATT · Governance & Architecture Readiness Workspace · Non-Production
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
+              <div style={{
+                width: "44px", height: "44px", borderRadius: "10px",
+                backgroundColor: "rgba(5,150,105,0.25)", border: "2px solid #059669",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#34d399", fontWeight: 900, fontSize: "20px",
+              }}>D</div>
+              <div>
+                <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#ffffff", margin: 0, lineHeight: 1, letterSpacing: "-0.02em" }}>
+                  DCT Delivery Model
+                </h1>
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+                  RSM · CATT · Governance &amp; Architecture Readiness Workspace
+                </div>
+              </div>
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "8px", flexWrap: "wrap" }}>
+              <span style={{
+                fontSize: "11px", fontWeight: 700, color: "#34d399",
+                backgroundColor: "rgba(5,150,105,0.2)", border: "1px solid rgba(52,211,153,0.4)",
+                borderRadius: "20px", padding: "3px 10px",
+              }}>● ACTIVE — PI 2</span>
+              <span style={{ fontSize: "11px", color: "#94a3b8" }}>Entity, Workflow &amp; Tax Ready · Apr–Jun 2026</span>
+              <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+            </div>
+          </div>
+          {/* Release Candidate Status */}
+          <div style={{
+            backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: "10px", padding: "14px 20px", textAlign: "center", minWidth: "160px",
+          }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
+            <div style={{ fontSize: "22px", fontWeight: 900, color: "#34d399" }}>RC-2</div>
+            <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Target: Sep 16, 2026</div>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ marginTop: "24px", position: "relative" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>PI 2 Readiness</span>
+            <span style={{ fontSize: "13px", fontWeight: 800, color: "#34d399" }}>{overallPct}% Complete</span>
+          </div>
+          <div style={{ height: "10px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "5px", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${overallPct}%`, background: "linear-gradient(90deg, #059669, #34d399)", borderRadius: "5px", transition: "width 0.5s ease" }} />
+          </div>
+        </div>
+
+        {/* KPI row */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px", marginTop: "20px", position: "relative" }}>
+          {[
+            { label: "Batches Done",    value: pi2Done,    sub: "PI 2 complete",       color: "#34d399" },
+            { label: "In Progress",    value: pi2Active,  sub: "Active this week",    color: "#60a5fa" },
+            { label: "Remaining",      value: pi2Planned, sub: "PI 2 to close",       color: "#94a3b8" },
+            { label: "PI 3 MVP",       value: pi3MvpCount,sub: "Batches queued",      color: "#a78bfa" },
+            { label: "Total Batches",  value: BATCH_CALENDAR_PI23.length, sub: "PI 2 + PI 3", color: "#fb923c" },
+          ].map(k => (
+            <div key={k.label} style={{
+              backgroundColor: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "10px", padding: "14px 16px",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: "28px", fontWeight: 900, color: k.color, lineHeight: 1 }}>{k.value}</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#e2e8f0", marginTop: "4px" }}>{k.label}</div>
+              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>{k.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+           PLATFORM HEALTH STATUS BANNER
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <div style={{
+        backgroundColor: "#0f1623",
+        borderRadius: "0 0 10px 10px",
+        padding: "10px 40px",
+        marginBottom: "20px",
+        display: "flex", alignItems: "center", gap: "0", flexWrap: "wrap",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em", marginRight: "20px", whiteSpace: "nowrap" }}>Platform Health</span>
+        {[
+          { label: "G1 Schema Lock",    status: gates.g1 },
+          { label: "G2 Invariant Lock", status: gates.g2 },
+          { label: "G3 Contract Pub",   status: gates.g3 },
+          { label: "G4 Lineage Close",  status: gates.g4 },
+          { label: "Architecture",      status: "Complete" },
+          { label: "Quality",           status: "In Progress" },
+        ].map((g, i) => {
+          const dotColor = g.status === "Complete" ? "#34d399" : g.status === "In Progress" ? "#60a5fa" : "#475569";
+          return (
+            <div key={g.label} style={{
+              display: "flex", alignItems: "center", gap: "5px",
+              paddingRight: "16px",
+              marginRight: i < 5 ? "0" : "0",
+              borderRight: i < 5 ? "1px solid rgba(255,255,255,0.08)" : "none",
+              paddingLeft: i > 0 ? "16px" : "0",
+            }}>
+              <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: dotColor, flexShrink: 0 }} />
+              <span style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", whiteSpace: "nowrap" }}>{g.label}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+           QUICK NAVIGATION (redesigned — larger buttons with icons)
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <div id="quick-nav" style={{
+        backgroundColor: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        padding: "16px 24px",
+        marginBottom: "20px",
+      }}>
+        <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "12px" }}>
+          Quick Navigation
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          {quickNavItems.map(item => (
+            item.internal ? (
+              <button
+                key={item.label}
+                onClick={() => scrollToSection(item.id)}
+                style={{
+                  fontSize: "13px", fontWeight: 600, color: "#1e3a5f",
+                  backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+                  borderRadius: "8px", padding: "8px 16px",
+                  cursor: "pointer", whiteSpace: "nowrap",
+                  display: "flex", alignItems: "center", gap: "6px",
+                }}
+              >
+                {item.label}
+              </button>
+            ) : (
+              <Link key={item.label} href={item.href ?? "/"}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  fontSize: "13px", fontWeight: 600, color: "#065f46",
+                  backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+                  borderRadius: "8px", padding: "8px 16px",
+                  cursor: "pointer", whiteSpace: "nowrap",
+                }}>
+                  {item.label} ↗
+                </span>
+              </Link>
+            )
+          ))}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+           DELIVERY HIGHLIGHTS
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <div style={{
+        backgroundColor: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        padding: "20px 28px",
+        marginBottom: "20px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+          <div style={{ fontSize: "14px", fontWeight: 800, color: "#0f1623" }}>Delivery Highlights</div>
+          <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600 }}>Week of Jun 18, 2026</div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+
+          {/* Active Batches */}
+          <div style={{ backgroundColor: "#eff6ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #2563eb" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active Batches</div>
+            {activeBatches.map(b => (
+              <div key={b.batch + b.feat} style={{ fontSize: "12px", color: "#1e3a5f", marginBottom: "4px", display: "flex", gap: "6px" }}>
+                <span style={{ fontWeight: 700, minWidth: "36px" }}>{b.batch}</span>
+                <span style={{ color: "#475569" }}>{b.name}</span>
+              </div>
+            ))}
+            {activeBatches.length === 0 && <div style={{ fontSize: "12px", color: "#94a3b8" }}>No active batches</div>}
+          </div>
+
+          {/* Upcoming Milestones */}
+          <div style={{ backgroundColor: "#faf5ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #7c3aed" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#4c1d95", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🟣 Upcoming Milestones</div>
+            {stretchBatches.map(b => (
+              <div key={b.batch + b.feat} style={{ fontSize: "12px", color: "#4c1d95", marginBottom: "4px", display: "flex", gap: "6px" }}>
+                <span style={{ fontWeight: 700, minWidth: "36px" }}>{b.batch}</span>
+                <span style={{ color: "#6b21a8" }}>{b.name} <span style={{ color: "#94a3b8" }}>({b.startDate}–{b.endDate})</span></span>
+              </div>
+            ))}
+            <div style={{ fontSize: "12px", color: "#4c1d95", marginTop: "6px", paddingTop: "6px", borderTop: "1px solid #e9d5ff" }}>
+              <span style={{ fontWeight: 700 }}>PI 3 MVP</span> — {pi3MvpCount} batches queued · Target Aug–Sep 2026
+            </div>
+          </div>
+
+          {/* Release Readiness */}
+          <div style={{ backgroundColor: "#f0fdf4", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #059669" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🟢 Release Readiness</div>
+            {[
+              { label: "PI 2 Completion",   value: `${overallPct}%`, ok: overallPct >= 70 },
+              { label: "Gates Passed",      value: `${[gates.g1, gates.g2, gates.g3, gates.g4].filter(g => g === "Complete").length} / 4`, ok: [gates.g1, gates.g2].every(g => g === "Complete") },
+              { label: "RC Status",         value: "RC-2 On Track",   ok: true },
+              { label: "MVP-Required Close",value: "Sep 16, 2026",    ok: true },
+            ].map(r => (
+              <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "5px" }}>
+                <span style={{ color: "#374151" }}>{r.label}</span>
+                <span style={{ fontWeight: 700, color: r.ok ? "#059669" : "#dc2626" }}>{r.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* ── 1. Purpose (always visible) ── */}
-      <div id="section-purpose" style={{ marginBottom: "24px" }}>
-      <Section title="Purpose" subtitle="Section 1" accent="blue">
+      {/* ── Executive Delivery Dashboard (always visible) ── */}
+      <div id="exec-dashboard-anchor">
+        <ExecDashboard batches={BATCH_REFERENCE} />
+      </div>
+
+      {/* ── Accordion: Purpose (collapsed by default) ── */}
+      <Accordion id="section-purpose" open={openSections["section-purpose"]} onToggle={() => toggleSection("section-purpose")} title="Purpose" subtitle="Section 1 — Platform Overview & Governance Context" accent="slate">
         <div style={{
           backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
           borderRadius: "8px", padding: "16px 20px",
@@ -608,104 +835,7 @@ export default function Home() {
             <strong style={{ color: "#92400e" }}>Governance Note:</strong> This workspace visualizes architecture patterns, readiness status, and governance structures using mock and seed data. It is not a production system, system of record, or integrated operational platform. All outputs require formal enterprise implementation outside this workspace.
           </p>
         </div>
-      </Section>
-      </div>
-
-      {/* ── Live Platform Status Bar (PI 2 — Current PI) ── */}
-      <div style={{
-        backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
-        borderRadius: "10px", padding: "14px 20px", marginBottom: "28px",
-        display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: "200px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
-            ● PI 2 Readiness
-          </div>
-          <div style={{ flex: 1, height: "8px", backgroundColor: "#d1fae5", borderRadius: "4px", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${overallPct}%`, backgroundColor: "#059669", borderRadius: "4px", transition: "width 0.4s ease" }} />
-          </div>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "#059669", whiteSpace: "nowrap" }}>{overallPct}% Complete</div>
-        </div>
-        <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-          {[
-            { label: "Done", value: pi2Done, color: "#059669" },
-            { label: "Active", value: pi2Active, color: "#2563eb" },
-            { label: "Remaining", value: pi2Planned, color: "#94a3b8" },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "16px", fontWeight: 800, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: "10px", color: "#64748b", fontWeight: 600 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          {[
-            { label: "G1 Schema Lock", status: gates.g1 },
-            { label: "G2 Invariant Lock", status: gates.g2 },
-            { label: "G3 Contract Pub", status: gates.g3 },
-            { label: "G4 Lineage Close", status: gates.g4 },
-          ].map(g => (
-            <div key={g.label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <div style={{
-                width: "8px", height: "8px", borderRadius: "50%",
-                backgroundColor: g.status === "Complete" ? "#059669" : g.status === "In Progress" ? "#2563eb" : "#94a3b8",
-              }} />
-              <span style={{ fontSize: "10px", fontWeight: 600, color: "#374151" }}>{g.label}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{ fontSize: "10px", color: "#6b7280", whiteSpace: "nowrap" }}>
-          Data as of: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-        </div>
-      </div>
-
-      {/* ── Quick Navigation ── */}
-      <div id="quick-nav" style={{
-        backgroundColor: "#f8fafc",
-        border: "1px solid #e2e8f0",
-        borderRadius: "10px",
-        padding: "14px 20px",
-        marginBottom: "24px",
-      }}>
-        <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "10px" }}>
-          Quick Navigation
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-          {quickNavItems.map(item => (
-            item.internal ? (
-              <button
-                key={item.label}
-                onClick={() => scrollToSection(item.id)}
-                style={{
-                  fontSize: "12px", fontWeight: 600, color: "#1e3a5f",
-                  backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
-                  borderRadius: "6px", padding: "5px 12px",
-                  cursor: "pointer", whiteSpace: "nowrap",
-                }}
-              >
-                {item.label}
-              </button>
-            ) : (
-              <Link key={item.label} href={item.href ?? "/"}>
-                <span style={{
-                  display: "inline-block",
-                  fontSize: "12px", fontWeight: 600, color: "#065f46",
-                  backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
-                  borderRadius: "6px", padding: "5px 12px",
-                  cursor: "pointer", whiteSpace: "nowrap",
-                }}>
-                  {item.label} ↗
-                </span>
-              </Link>
-            )
-          ))}
-        </div>
-      </div>
-
-      {/* ── Executive Delivery Dashboard (always visible) ── */}
-      <div id="exec-dashboard-anchor">
-        <ExecDashboard batches={BATCH_REFERENCE} />
-      </div>
+      </Accordion>
 
       {/* ── Accordion: Batch Portfolio Overview ── */}
       <Accordion id="section-work-status" open={openSections["section-work-status"]} onToggle={() => toggleSection("section-work-status")} title="Batch Portfolio Overview" subtitle="Section 2 — PI 2 & PI 3 Delivery Units" accent="blue">
