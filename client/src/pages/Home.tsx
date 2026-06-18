@@ -454,11 +454,14 @@ function BatchReferenceGuide() {
 
 
 // ─── Collapsible accordion wrapper ──────────────────────────────────────────
-function Accordion({ id, title, subtitle, accent, children, defaultOpen = false }: {
+function Accordion({ id, title, subtitle, accent, children, defaultOpen = false, open: controlledOpen, onToggle }: {
   id: string; title: string; subtitle?: string; children: React.ReactNode;
   accent?: "blue" | "green" | "red" | "amber" | "slate"; defaultOpen?: boolean;
+  open?: boolean; onToggle?: () => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onToggle ?? (() => setInternalOpen(o => !o));
   const accentMap: Record<string, string> = {
     blue: "#1e3a5f", green: "#065f46", red: "#7f1d1d", amber: "#78350f", slate: "#1e293b",
   };
@@ -476,7 +479,7 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false 
     >
       {/* Header */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen()}
         style={{
           width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "12px 16px", background: "none", border: "none", cursor: "pointer",
@@ -517,29 +520,45 @@ export default function Home() {
     ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
     : null;
 
-  const scrollToSection = useCallback((id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      // Trigger highlight flash
-      el.style.backgroundColor = "#f0fdf4";
-      el.style.transition = "background-color 0.4s ease";
-      setTimeout(() => { el.style.backgroundColor = ""; }, 1400);
-    }
+  // Lifted accordion open state — keyed by accordion id
+  const ACCORDION_IDS = [
+    "section-work-status", "section-architecture", "section-ownership",
+    "section-governance", "section-capabilities", "section-guardrails",
+    "section-dependencies", "section-failure-modes",
+  ];
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
+    Object.fromEntries(ACCORDION_IDS.map(id => [id, false]))
+  );
+  const toggleSection = useCallback((id: string) => {
+    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
-  // Quick Navigation items
+  const scrollToSection = useCallback((id: string) => {
+    // Expand the accordion first, then scroll after a short delay
+    if (ACCORDION_IDS.includes(id)) {
+      setOpenSections(prev => ({ ...prev, [id]: true }));
+    }
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 80);
+  }, []);
+
+  // Quick Navigation items — blue = expand accordion on this page, green = external page link
   const quickNavItems = [
-    { label: "Purpose",            id: "section-purpose",       internal: true },
-    { label: "Work Status",        id: "section-work-status",   internal: true },
-    { label: "Batch Calendar",     id: "",                      internal: false, href: "/batch-calendar" },
-    { label: "Roadmap",            id: "section-work-status",   internal: true },
-    { label: "Governance Status",  id: "section-governance",    internal: true },
-    { label: "Architecture",       id: "section-architecture",  internal: true },
-    { label: "Dependencies",       id: "section-dependencies",  internal: true },
-    { label: "Release Readiness",  id: "exec-dashboard-anchor", internal: true },
-    { label: "Deployment Registry",id: "",                      internal: false, href: "/deployment-registry" },
-    { label: "Ask Buddy",          id: "",                      internal: false, href: "/ask-buddy" },
+    { label: "Purpose",               id: "section-purpose",       internal: true },
+    { label: "Batch Portfolio",       id: "section-work-status",   internal: true },
+    { label: "End-to-End Flow",       id: "section-architecture",  internal: true },
+    { label: "System Ownership",      id: "section-ownership",     internal: true },
+    { label: "Foundation Invariants", id: "section-governance",    internal: true },
+    { label: "Platform Capabilities", id: "section-capabilities",  internal: true },
+    { label: "Architecture Guardrails",id: "section-guardrails",   internal: true },
+    { label: "Roger Connection",      id: "section-dependencies",  internal: true },
+    { label: "Failure Modes",         id: "section-failure-modes", internal: true },
+    { label: "Ask Buddy",             id: "",                       internal: false, href: "/ask-buddy" },
+    { label: "Batch Delivery Calendar",id: "",                      internal: false, href: "/batch-calendar" },
   ];
 
   return (
@@ -705,12 +724,12 @@ export default function Home() {
       </div>
 
       {/* ── Accordion: Batch Portfolio Overview ── */}
-      <Accordion id="section-work-status" title="Batch Portfolio Overview" subtitle="Section 2 — PI 2 & PI 3 Delivery Units" accent="blue">
+      <Accordion id="section-work-status" open={openSections["section-work-status"]} onToggle={() => toggleSection("section-work-status")} title="Batch Portfolio Overview" subtitle="Section 2 — PI 2 & PI 3 Delivery Units" accent="blue">
         <BatchReferenceGuide />
       </Accordion>
 
       {/* ── Accordion: End-to-End Delivery Model ── */}
-      <Accordion id="section-architecture" title="End-to-End Delivery Model" subtitle="Section 3 — Critical Visual" accent="blue">
+      <Accordion id="section-architecture" open={openSections["section-architecture"]} onToggle={() => toggleSection("section-architecture")} title="End-to-End Delivery Model" subtitle="Section 3 — Critical Visual" accent="blue">
         <div style={{
           backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
           borderRadius: "10px", padding: "20px 24px",
@@ -748,7 +767,7 @@ export default function Home() {
       </Accordion>
 
       {/* ── Accordion: System Ownership Model ── */}
-      <Accordion id="section-ownership" title="System Ownership Model" subtitle="Section 4 — No Overlapping Ownership" accent="blue">
+      <Accordion id="section-ownership" open={openSections["section-ownership"]} onToggle={() => toggleSection("section-ownership")} title="System Ownership Model" subtitle="Section 4 — No Overlapping Ownership" accent="blue">
         <div style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
           <div style={{
             display: "grid", gridTemplateColumns: "1fr 1fr 2fr",
@@ -781,7 +800,7 @@ export default function Home() {
       </Accordion>
 
       {/* ── Accordion: Foundation Invariants ── */}
-      <Accordion id="section-governance" title="What Must Be True — Foundation Invariants" subtitle="Section 5 — Non-Negotiable Rules" accent="green">
+      <Accordion id="section-governance" open={openSections["section-governance"]} onToggle={() => toggleSection("section-governance")} title="What Must Be True — Foundation Invariants" subtitle="Section 5 — Non-Negotiable Rules" accent="green">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
           {[
             "All data must enter through a governed ingestion boundary — no direct system writes.",
@@ -799,7 +818,7 @@ export default function Home() {
       </Accordion>
 
       {/* ── Accordion: Platform Capabilities ── */}
-      <Accordion id="section-capabilities" title="What This Enables" subtitle="Section 6 — Platform Capabilities" accent="green">
+      <Accordion id="section-capabilities" open={openSections["section-capabilities"]} onToggle={() => toggleSection("section-capabilities")} title="What This Enables" subtitle="Section 6 — Platform Capabilities" accent="green">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
           {[
             { icon: "⟳", title: "Deterministic Processing", desc: "Same input always produces the same output. Results are reproducible and auditable." },
@@ -822,7 +841,7 @@ export default function Home() {
       </Accordion>
 
       {/* ── Accordion: Architecture Guardrails ── */}
-      <Accordion id="section-guardrails" title="What This Is NOT — Architecture Guardrails & Workspace Limitations" subtitle="Section 7 — Guardrails" accent="amber">
+      <Accordion id="section-guardrails" open={openSections["section-guardrails"]} onToggle={() => toggleSection("section-guardrails")} title="What This Is NOT — Architecture Guardrails & Workspace Limitations" subtitle="Section 7 — Guardrails" accent="amber">
         <div style={{
           backgroundColor: "#fffbeb", border: "1px solid #fde68a",
           borderRadius: "8px", padding: "16px 20px",
@@ -856,7 +875,7 @@ export default function Home() {
       </Accordion>
 
       {/* ── Accordion: Roger Connection ── */}
-      <Accordion id="section-dependencies" title="How This Connects to Roger" subtitle="Section 8 — Consumption Layer" accent="slate">
+      <Accordion id="section-dependencies" open={openSections["section-dependencies"]} onToggle={() => toggleSection("section-dependencies")} title="How This Connects to Roger" subtitle="Section 8 — Consumption Layer" accent="slate">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           <div style={{
             backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
@@ -908,7 +927,7 @@ export default function Home() {
       </Accordion>
 
       {/* ── Accordion: Failure Modes ── */}
-      <Accordion id="section-failure-modes" title="Failure Modes" subtitle="Section 9 — If This Model Is Not Enforced" accent="red">
+      <Accordion id="section-failure-modes" open={openSections["section-failure-modes"]} onToggle={() => toggleSection("section-failure-modes")} title="Failure Modes" subtitle="Section 9 — If This Model Is Not Enforced" accent="red">
         <div style={{ marginBottom: "10px", fontSize: "13px", color: "#7f1d1d", fontWeight: 600 }}>
           The following failures occur when DCT governance rules are bypassed or not enforced:
         </div>
