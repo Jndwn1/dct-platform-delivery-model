@@ -265,7 +265,7 @@ function BatchReferenceGuide() {
   };
 
   return (
-    <Section title="Batch Reference & Consumer Impact Guide" subtitle="Section 4 — Delivery Units & Roger Impact" accent="blue">
+    <Section title="Batch Reference & Consumer Impact Guide" subtitle="Section 2 — Delivery Units & Roger Impact" accent="blue">
       <div style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6", marginBottom: "16px" }}>
         Understand what each batch delivers and how it affects the Roger practitioner experience.
         Source: DCT Calendar v7 · Columns J (What the Batch Does) and K (Roger UI Impact).
