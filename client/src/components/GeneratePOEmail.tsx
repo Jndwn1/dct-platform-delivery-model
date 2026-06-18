@@ -232,7 +232,7 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
   const [copied, setCopied] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const { data: recentDeployments = [] } = trpc.deploymentRegistry.recentDeployments.useQuery(undefined, { enabled: open });
+  const { data: recentDeployments = [] } = trpc.deploymentRegistry.recent.useQuery(undefined, { enabled: open });
 
   // Compute PI stats from batches
   const piStats = ["PI 2", "PI 3", "PI 4", "PI 5"].map(pi => {
@@ -304,77 +304,39 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
   const handleDownloadPDF = useCallback(async () => {
     if (!emailHTML) return;
     try {
-      // Render full email HTML in a hidden off-screen container at full height
-      const container = document.createElement("div");
-      container.style.cssText = "position:fixed;top:-99999px;left:-99999px;width:980px;background:#ffffff;z-index:-1;";
-      container.innerHTML = emailHTML;
-      document.body.appendChild(container);
+      // Use a sandboxed iframe to isolate the email HTML from Tailwind 4's oklch CSS variables.
+      // html2canvas cannot parse oklch() colors, so we must prevent the page stylesheet from leaking in.
+      const iframe = document.createElement("iframe");
+      iframe.style.cssText = "position:fixed;top:-99999px;left:-99999px;width:980px;height:1px;border:none;visibility:hidden;";
+      document.body.appendChild(iframe);
 
-      // html2canvas does not support oklch() (Tailwind 4 default).
-      // Inject a style tag that resets all elements to safe hex colors.
-      const safeStyle = document.createElement("style");
-      safeStyle.textContent = `
-        * { color: inherit !important; }
-        body, div, table, td, th, tr, span, p, h1, h2, h3, h4, h5, h6 {
-          background-color: transparent;
-        }
-      `;
-      container.appendChild(safeStyle);
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) { document.body.removeChild(iframe); return; }
 
-      // Walk all elements and replace any computed oklch background-color with a safe fallback
-      const allEls = container.querySelectorAll("*");
-      allEls.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        const computed = window.getComputedStyle(htmlEl);
-        const bg = computed.backgroundColor;
-        if (bg && bg.includes("oklch")) {
-          htmlEl.style.backgroundColor = "#ffffff";
-        }
-        const color = computed.color;
-        if (color && color.includes("oklch")) {
-          htmlEl.style.color = "#0f172a";
-        }
-      });
+      // Write the full self-contained email HTML into the iframe — it has no Tailwind dependency
+      iframeDoc.open();
+      iframeDoc.write(emailHTML);
+      iframeDoc.close();
 
-      // Wait for images/fonts to settle
-      await new Promise(r => setTimeout(r, 400));
+      // Expand iframe to full content height
+      await new Promise(r => setTimeout(r, 600));
+      const fullHeight = iframeDoc.body.scrollHeight;
+      iframe.style.height = `${fullHeight}px`;
+      await new Promise(r => setTimeout(r, 200));
 
-      const canvas = await html2canvas(container, {
+      const canvas = await html2canvas(iframeDoc.body, {
         scale: 1.5,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
         width: 980,
-        height: container.scrollHeight,
+        height: fullHeight,
         windowWidth: 980,
-        windowHeight: container.scrollHeight,
-        onclone: (_doc: Document, el: HTMLElement) => {
-          // Strip any oklch colors from the cloned element tree before html2canvas renders
-          const cloneEls = el.querySelectorAll("*");
-          cloneEls.forEach((node) => {
-            const n = node as HTMLElement;
-            const style = n.getAttribute("style") || "";
-            if (style.includes("oklch")) {
-              n.setAttribute("style", style.replace(/oklch\([^)]*\)/g, "#ffffff"));
-            }
-            // Also reset inline background/color that may be oklch
-            if (n.style.backgroundColor && n.style.backgroundColor.includes("oklch")) {
-              n.style.backgroundColor = "#ffffff";
-            }
-            if (n.style.color && n.style.color.includes("oklch")) {
-              n.style.color = "#0f172a";
-            }
-          });
-          // Inject a safe CSS override to prevent Tailwind oklch vars from leaking
-          const override = _doc.createElement("style");
-          override.textContent = `:root { --background: #ffffff; --foreground: #0f172a; } * { background-color: revert; color: revert; }`;
-          el.appendChild(override);
-        },
+        windowHeight: fullHeight,
       });
-      document.body.removeChild(container);
+      document.body.removeChild(iframe);
 
       const imgData = canvas.toDataURL("image/png");
-      // A4 portrait: 595 x 842 pt
       const pageW = 595;
       const pageH = 842;
       const imgW = pageW;
@@ -386,10 +348,9 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
       let page = 0;
       while (remaining > 0) {
         if (page > 0) pdf.addPage();
-        const sliceH = Math.min(pageH, remaining);
         pdf.addImage(imgData, "PNG", 0, -yOffset, imgW, imgH);
         yOffset += pageH;
-        remaining -= sliceH;
+        remaining -= Math.min(pageH, remaining);
         page++;
       }
 
