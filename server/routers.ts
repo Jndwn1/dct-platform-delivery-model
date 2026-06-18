@@ -137,6 +137,18 @@ export const appRouter = router({
       };
     }),
 
+    // Get the 5 most recent deployments for the Executive Dashboard
+    recent: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      const rows = await db
+        .select()
+        .from(deployments)
+        .orderBy(desc(deployments.deploymentDate), desc(deployments.createdAt))
+        .limit(5);
+      return rows;
+    }),
+
     // Get single deployment by id
     getById: publicProcedure
       .input(z.object({ id: z.number() }))

@@ -7,6 +7,8 @@
 // 
 
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
+import { trpc } from "@/lib/trpc";
+import { Link } from "wouter";
 
 //  Helpers 
 
@@ -143,6 +145,16 @@ function PICard({
 
 export default function ExecDashboard() {
   const { statuses, piCompletion } = useBatchStatus();
+  const { data: recentDeployments } = trpc.deploymentRegistry.recent.useQuery();
+
+  // Pilot countdown
+  const PILOT_DATE = new Date("2026-09-16T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysRemaining = Math.max(0, Math.ceil((PILOT_DATE.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+  const urgencyColor = daysRemaining <= 30 ? "#dc2626" : daysRemaining <= 60 ? "#d97706" : "#059669";
+  const urgencyBg = daysRemaining <= 30 ? "#fef2f2" : daysRemaining <= 60 ? "#fffbeb" : "#f0fdf4";
+  const urgencyBorder = daysRemaining <= 30 ? "#fecaca" : daysRemaining <= 60 ? "#fde68a" : "#bbf7d0";
 
   //  Row 1: KPI counts derived from live context 
   const allStatuses = Object.values(statuses);
@@ -332,70 +344,74 @@ export default function ExecDashboard() {
         </div>
       </div>
 
-      {/* ── Row 4: Release Validation Banner ── */}
-      <div style={{
-        backgroundColor: "#0f1623",
-        borderRadius: "8px",
-        padding: "16px 20px",
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: "16px",
-      }}>
-        {/* Left — headline */}
-        <div style={{ flex: "1 1 260px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-            <div style={{
-              width: "20px", height: "20px", borderRadius: "50%",
-              backgroundColor: "#059669",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "11px", color: "white", fontWeight: 900, flexShrink: 0,
-            }}>✓</div>
-            <span style={{ fontSize: "13px", fontWeight: 800, color: "#ffffff", letterSpacing: "0.02em" }}>
-              Release Candidate Validation Complete
-            </span>
+      {/* Row 4: Pilot Countdown + Last 5 Deployments */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+
+        {/* Pilot Countdown */}
+        <div style={{
+          backgroundColor: urgencyBg,
+          border: `1px solid ${urgencyBorder}`,
+          borderRadius: "8px",
+          padding: "14px 18px",
+          flex: "0 0 auto",
+          minWidth: "160px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "4px",
+        }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: urgencyColor }}>Pilot Countdown</div>
+          <div style={{ fontSize: "36px", fontWeight: 900, color: urgencyColor, lineHeight: 1 }}>{daysRemaining}</div>
+          <div style={{ fontSize: "11px", fontWeight: 600, color: urgencyColor }}>days remaining</div>
+          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Target: Sep 16, 2026</div>
+        </div>
+
+        {/* Last 5 Deployments */}
+        <div style={{ flex: "1 1 300px", minWidth: "260px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "#64748b" }}>Recent Deployments</div>
+            <Link href="/deployment-registry">
+              <span style={{ fontSize: "10px", fontWeight: 600, color: "#2563eb", cursor: "pointer" }}>View all</span>
+            </Link>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            {[
-              { label: "Roadmap discrepancies identified", value: "43", color: "#fbbf24" },
-              { label: "Roadmap discrepancies remediated", value: "43", color: "#34d399" },
-              { label: "Alignment discrepancies remaining", value: "0",  color: "#34d399" },
-              { label: "Functional walkthrough pass rate",  value: "100%", color: "#34d399" },
-            ].map(row => (
-              <div key={row.label} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div style={{
-                  fontSize: "14px", fontWeight: 800, color: row.color,
-                  minWidth: "40px", textAlign: "right",
+            {(recentDeployments ?? []).length === 0 && (
+              <div style={{ fontSize: "12px", color: "#94a3b8", padding: "8px 0" }}>No deployments recorded yet.</div>
+            )}
+            {(recentDeployments ?? []).map((d) => {
+              const statusColors: Record<string, { bg: string; text: string }> = {
+                Deployed:    { bg: "#f0fdf4", text: "#059669" },
+                "In Progress": { bg: "#eff6ff", text: "#2563eb" },
+                Planned:     { bg: "#f8fafc", text: "#64748b" },
+                Scheduled:   { bg: "#faf5ff", text: "#7c3aed" },
+                "Rolled Back": { bg: "#fef2f2", text: "#dc2626" },
+              };
+              const sc = statusColors[d.status ?? "Planned"] ?? { bg: "#f8fafc", text: "#64748b" };
+              const dateLabel = d.deploymentDate
+                ? new Date(d.deploymentDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                : "";
+              return (
+                <div key={d.id} style={{
+                  display: "flex", alignItems: "center", gap: "10px",
+                  backgroundColor: "#ffffff", border: "1px solid #e2e8f0",
+                  borderRadius: "6px", padding: "7px 10px",
                 }}>
-                  {row.value}
+                  <span style={{
+                    fontSize: "10px", fontWeight: 700,
+                    backgroundColor: sc.bg, color: sc.text,
+                    borderRadius: "4px", padding: "2px 6px", whiteSpace: "nowrap", flexShrink: 0,
+                  }}>{d.status ?? "Planned"}</span>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {d.releaseName}
+                  </span>
+                  <span style={{ fontSize: "10px", color: "#94a3b8", whiteSpace: "nowrap", flexShrink: 0 }}>{dateLabel}</span>
                 </div>
-                <div style={{ fontSize: "12px", color: "#94a3b8" }}>{row.label}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Right — metadata */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end", flexShrink: 0 }}>
-          <div style={{
-            backgroundColor: "#059669", color: "white",
-            fontSize: "11px", fontWeight: 700,
-            borderRadius: "5px", padding: "4px 10px",
-            letterSpacing: "0.05em",
-          }}>
-            RC1 · VALIDATED
-          </div>
-          <div style={{ fontSize: "11px", color: "#64748b", textAlign: "right" }}>
-            Validation Date
-          </div>
-          <div style={{ fontSize: "13px", fontWeight: 700, color: "#e2e8f0" }}>
-            June 17, 2026
-          </div>
-          <div style={{ fontSize: "10px", color: "#475569", textAlign: "right", maxWidth: "160px", lineHeight: "1.4" }}>
-            Roadmap v7 · Non-Production Workspace
-          </div>
-        </div>
       </div>
 
     </div>
