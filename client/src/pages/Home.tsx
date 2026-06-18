@@ -666,41 +666,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-           PLATFORM HEALTH STATUS BANNER
-      ═══════════════════════════════════════════════════════════════════════ */}
-      <div style={{
-        backgroundColor: "#0f1623",
-        borderRadius: "0 0 10px 10px",
-        padding: "10px 40px",
-        marginBottom: "20px",
-        display: "flex", alignItems: "center", gap: "0", flexWrap: "wrap",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
-      }}>
-        <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em", marginRight: "20px", whiteSpace: "nowrap" }}>Platform Health</span>
-        {[
-          { label: "G1 Schema Lock",    status: gates.g1 },
-          { label: "G2 Invariant Lock", status: gates.g2 },
-          { label: "G3 Contract Pub",   status: gates.g3 },
-          { label: "G4 Lineage Close",  status: gates.g4 },
-          { label: "Architecture",      status: "Complete" },
-          { label: "Quality",           status: "In Progress" },
-        ].map((g, i) => {
-          const dotColor = g.status === "Complete" ? "#34d399" : g.status === "In Progress" ? "#60a5fa" : "#475569";
-          return (
-            <div key={g.label} style={{
-              display: "flex", alignItems: "center", gap: "5px",
-              paddingRight: "16px",
-              marginRight: i < 5 ? "0" : "0",
-              borderRight: i < 5 ? "1px solid rgba(255,255,255,0.08)" : "none",
-              paddingLeft: i > 0 ? "16px" : "0",
-            }}>
-              <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: dotColor, flexShrink: 0 }} />
-              <span style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", whiteSpace: "nowrap" }}>{g.label}</span>
-            </div>
-          );
-        })}
-      </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════
            EXECUTIVE NAVIGATION TOOLBAR
