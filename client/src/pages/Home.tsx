@@ -463,9 +463,6 @@ export default function Home() {
       {/* ── Executive Delivery Dashboard ── */}
       <ExecDashboard />
 
-      {/* ── Governance Banner ── */}
-      <GovernanceBanner />
-
       {/* ── Live Platform Status Bar ── */}
       <div style={{
         backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
@@ -844,6 +841,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* ── Governance Banner (bottom) ── */}
+      <GovernanceBanner />
     </div>
   );
 }
