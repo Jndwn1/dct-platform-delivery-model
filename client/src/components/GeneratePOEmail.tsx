@@ -38,24 +38,74 @@ function statusBadgeStyle(status: string): { bg: string; text: string; border: s
 // ─── Build the email HTML string ──────────────────────────────────────────────
 function buildEmailHTML(
   batches: BatchRow[],
-  dashboardImgDataUrl: string | null,
-  recentDeployments: Array<{ releaseName: string; releaseDate: string; status: string }>,
+  _dashboardImgDataUrl: string | null,
+  recentDeployments: Array<{ releaseName: string; deploymentDate: string; status: string }>,
   piStats: { pi: string; total: number; done: number; active: number }[]
 ): string {
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  const totalBatches = batches.length;
-  const doneBatches = batches.filter(b => b.status === "Done" || b.status === "Complete").length;
-  const activeBatches = batches.filter(b => b.status === "In Progress").length;
-  const plannedBatches = batches.filter(b => b.status === "Planned").length;
 
-  // Group batches by PI
+  // Filter to PI 1, 2, and 3 only
+  const filteredBatches = batches.filter(b => b.pi === "PI 1" || b.pi === "PI 2" || b.pi === "PI 3");
+  const totalBatches = filteredBatches.length;
+  const doneBatches = filteredBatches.filter(b => b.status === "Done" || b.status === "Complete").length;
+  const activeBatches = filteredBatches.filter(b => b.status === "In Progress").length;
+
+  // Group filtered batches by PI
   const piGroups: Record<string, BatchRow[]> = {};
-  for (const b of batches) {
-    const key = b.pi || (b.status === "Future" ? "Future" : b.status === "Parked" ? "Parked" : "Other");
-    if (!piGroups[key]) piGroups[key] = [];
-    piGroups[key].push(b);
+  for (const b of filteredBatches) {
+    if (!piGroups[b.pi]) piGroups[b.pi] = [];
+    piGroups[b.pi].push(b);
   }
-  const piOrder = ["PI 2", "PI 3", "PI 4", "PI 5", "Future", "Parked", "Other"];
+  const piOrder = ["PI 1", "PI 2", "PI 3"];
+
+  // Build KPI summary card (replaces screenshot)
+  const pi2Batches = filteredBatches.filter(b => b.pi === "PI 2");
+  const pi3Batches = filteredBatches.filter(b => b.pi === "PI 3");
+  const pi2Done = pi2Batches.filter(b => b.status === "Done" || b.status === "Complete").length;
+  const pi3Done = pi3Batches.filter(b => b.status === "Done" || b.status === "Complete").length;
+  const pi2Pct = pi2Batches.length > 0 ? Math.round((pi2Done / pi2Batches.length) * 100) : 0;
+  const pi3Pct = pi3Batches.length > 0 ? Math.round((pi3Done / pi3Batches.length) * 100) : 0;
+  const overallPct = totalBatches > 0 ? Math.round((doneBatches / totalBatches) * 100) : 0;
+
+  const kpiCard = `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+        <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+          <div style="font-size:24px;font-weight:800;color:#059669;">${overallPct}%</div>
+          <div style="font-size:11px;color:#64748b;font-weight:600;">Overall Progress</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+          <div style="font-size:24px;font-weight:800;color:#0f1623;">${doneBatches}</div>
+          <div style="font-size:11px;color:#64748b;font-weight:600;">Batches Complete</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+          <div style="font-size:24px;font-weight:800;color:#2563eb;">${activeBatches}</div>
+          <div style="font-size:11px;color:#64748b;font-weight:600;">Active Batches</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+          <div style="font-size:24px;font-weight:800;color:#7c3aed;">Sep 16</div>
+          <div style="font-size:11px;color:#64748b;font-weight:600;">Pilot Target</div>
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:600;color:#0f1623;">PI 2 — Committed</span>
+          <span style="font-size:12px;font-weight:700;color:#059669;">${pi2Pct}% (${pi2Done}/${pi2Batches.length})</span>
+        </div>
+        <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pi2Pct}%;background:#059669;border-radius:4px;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:600;color:#0f1623;">PI 3 — MVP Target</span>
+          <span style="font-size:12px;font-weight:700;color:#2563eb;">${pi3Pct}% (${pi3Done}/${pi3Batches.length})</span>
+        </div>
+        <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pi3Pct}%;background:#2563eb;border-radius:4px;"></div>
+        </div>
+      </div>
+    </div>`;
 
   const batchTableRows = piOrder
     .filter(pi => piGroups[pi] && piGroups[pi].length > 0)
@@ -87,18 +137,12 @@ function buildEmailHTML(
         ${rows}`;
     }).join("");
 
-  const recentDeliveryRows = recentDeployments.slice(0, 5).map(d =>
-    `<li style="margin:2px 0;font-size:13px;color:#1e293b;">${d.releaseName} <span style="color:#64748b;font-size:11px;">(${new Date(d.releaseDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })})</span></li>`
-  ).join("");
-
-  const piSummaryRows = piStats.map(p => {
-    const pct = p.total > 0 ? Math.round((p.done / p.total) * 100) : 0;
-    return `<li style="margin:2px 0;font-size:13px;color:#1e293b;"><strong>${p.pi}:</strong> ${pct}% complete (${p.done}/${p.total} batches${p.active > 0 ? `, ${p.active} active` : ""})</li>`;
+  const recentDeliveryRows = recentDeployments.slice(0, 5).map(d => {
+    const dateStr = d.deploymentDate ? new Date(d.deploymentDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+    return `<li style="margin:2px 0;font-size:13px;color:#1e293b;">${d.releaseName}${dateStr ? ` <span style="color:#64748b;font-size:11px;">(${dateStr})</span>` : ""}</li>`;
   }).join("");
 
-  const dashboardSection = dashboardImgDataUrl
-    ? `<img src="${dashboardImgDataUrl}" alt="Executive Dashboard" style="width:100%;max-width:900px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;" />`
-    : `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px;text-align:center;color:#64748b;font-size:13px;">Dashboard screenshot not available</div>`;
+  const _piSummaryRows = piStats;
 
   return `<!DOCTYPE html>
 <html>
@@ -122,11 +166,11 @@ function buildEmailHTML(
     </div>
   </div>
 
-  <!-- Section 1: Executive Dashboard Screenshot -->
+  <!-- Section 1: Executive Dashboard KPI Summary -->
   <div style="margin-bottom:32px;">
     <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;margin-bottom:4px;">Section 1</div>
     <h2 style="font-size:16px;font-weight:700;color:#0f1623;margin:0 0 12px;border-left:4px solid #1e3a5f;padding-left:12px;">Executive Dashboard</h2>
-    ${dashboardSection}
+    ${kpiCard}
   </div>
 
   <!-- Section 2: Batch Portfolio Table -->
@@ -147,66 +191,7 @@ function buildEmailHTML(
         ${batchTableRows}
       </tbody>
     </table>
-    <div style="font-size:11px;color:#64748b;margin-top:6px;">Source: DCT Calendar v7 · Columns J (What the Batch Does) and K (Roger UI Impact) · ${totalBatches} total batches</div>
-  </div>
-
-  <!-- Section 3: Executive Summary -->
-  <div style="margin-bottom:32px;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;margin-bottom:4px;">Section 3</div>
-    <h2 style="font-size:16px;font-weight:700;color:#0f1623;margin:0 0 12px;border-left:4px solid #065f46;padding-left:12px;">Executive Summary</h2>
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Portfolio Metrics</div>
-          <ul style="margin:0;padding-left:16px;list-style:disc;">
-            <li style="margin:2px 0;font-size:13px;color:#1e293b;"><strong>Total Batches:</strong> ${totalBatches}</li>
-            <li style="margin:2px 0;font-size:13px;color:#1e293b;"><strong>Completed:</strong> ${doneBatches}</li>
-            <li style="margin:2px 0;font-size:13px;color:#1e293b;"><strong>Active:</strong> ${activeBatches}</li>
-            <li style="margin:2px 0;font-size:13px;color:#1e293b;"><strong>Planned:</strong> ${plannedBatches}</li>
-          </ul>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">PI Progress</div>
-          <ul style="margin:0;padding-left:16px;list-style:disc;">
-            ${piSummaryRows}
-          </ul>
-        </div>
-      </div>
-      ${recentDeliveryRows ? `
-      <div style="border-top:1px solid #e2e8f0;padding-top:12px;">
-        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Recent Deliveries</div>
-        <ul style="margin:0;padding-left:16px;list-style:disc;">${recentDeliveryRows}</ul>
-      </div>` : ""}
-    </div>
-  </div>
-
-  <!-- Section 4: Release Readiness -->
-  <div style="margin-bottom:32px;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;margin-bottom:4px;">Section 4</div>
-    <h2 style="font-size:16px;font-weight:700;color:#0f1623;margin:0 0 12px;border-left:4px solid #059669;padding-left:12px;">Release Readiness</h2>
-    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-        ${[
-          "Roadmap v7 Aligned",
-          "Governance Controls Active",
-          "Architecture Validated",
-          "All Routes Validated",
-          "No Runtime Errors",
-          "Ask Buddy Operational",
-          "Gate Verification Active",
-          "Deployment Registry Current",
-        ].map(item => `
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="color:#059669;font-size:14px;font-weight:700;">&#10003;</span>
-            <span style="font-size:13px;color:#1e293b;">${item}</span>
-          </div>`).join("")}
-      </div>
-      <div style="border-top:1px solid #bbf7d0;padding-top:10px;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:13px;font-weight:700;color:#065f46;">Platform Status:</span>
-        <span style="font-size:12px;font-weight:700;color:white;background:#059669;border-radius:4px;padding:3px 10px;">RC1 Ready</span>
-        <span style="font-size:11px;color:#64748b;">· Roadmap v7 · Non-Production Workspace · ${today}</span>
-      </div>
-    </div>
+    <div style="font-size:11px;color:#64748b;margin-top:6px;">Source: DCT Calendar v7 · Columns J (What the Batch Does) and K (Roger UI Impact) · ${totalBatches} total batches (PI 1–3 only)</div>
   </div>
 
   <!-- Footer -->
@@ -265,7 +250,7 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
       }
     }
 
-    const html = buildEmailHTML(batches, imgDataUrl, recentDeployments as Array<{ releaseName: string; releaseDate: string; status: string }>, piStats);
+    const html = buildEmailHTML(batches, imgDataUrl, recentDeployments as Array<{ releaseName: string; deploymentDate: string; status: string }>, piStats);
     setEmailHTML(html);
     setGenerating(false);
     setOpen(true);
