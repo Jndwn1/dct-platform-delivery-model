@@ -101,7 +101,7 @@ const GATE_NAV_ITEMS = [
 
 // Agents section removed — individual agent nav items consolidated into Agent Hub (Architecture & Diagrams)
 
-// BA & Requirements — primary BA workflow tools
+// Business Architecture & Governance — primary BA workflow tools
 const BA_ITEMS: NavItem[] = [
   { label: "Deployment Registry",          path: "/deployment-registry",        icon: "🚀", badge: "New",     badgeColor: "#059669" },
   { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
@@ -111,9 +111,10 @@ const BA_ITEMS: NavItem[] = [
   { label: "Classification Walkthrough",  path: "/classification-walkthrough", icon: "⚑", badge: "Decision", badgeColor: "#dc2626" },
   { label: "Taxonomy Explorer",           path: "/taxonomy",                   icon: "◎" },
   { label: "Tax Mapping Confidence",      path: "/tax-mapping",                icon: "◇" },
+  { label: "Integration Simulation",      path: "/integration-simulation",     icon: "🎮", badge: "LIVE",    badgeColor: "#059669" },
 ];
 
-// Governance — platform governance and data integrity
+// Platform Governance Tools — platform governance and data integrity
 const GOVERNANCE_ITEMS: NavItem[] = [
   { label: "Gap Analysis Engine",    path: "/gap-analysis",        icon: "🔍", badge: "NEW", badgeColor: "#dc2626" },
   { label: "AAP Review Model",            path: "/aap-review",             icon: "◈" },
@@ -124,10 +125,9 @@ const GOVERNANCE_ITEMS: NavItem[] = [
 
 // PI Planning removed — PI2/PI3 pages removed per governance cleanup
 
-// Roger UI — 3 authoritative pages (Consumer Readiness Center + Integration Alignment Hub consolidated into Consumer Integration Hub)
+// Roger UI — 2 authoritative pages (Integration Simulation moved to Business Architecture & Governance)
 const ROGER_UI_ITEMS: NavItem[] = [
   { label: "Consumer Integration Hub",  path: "/consumer-integration-hub",  icon: "🔗", badge: "v4.0",   badgeColor: "#7c3aed" },
-  { label: "Integration Simulation",   path: "/integration-simulation",   icon: "🎮", badge: "LIVE",   badgeColor: "#059669" },
   { label: "Roger API Evolution",      path: "/roger-api",                icon: "⚡", badge: "Export", badgeColor: "#003865" },
 ];
 
@@ -478,9 +478,9 @@ export default function Sidebar({ activeSection }: SidebarProps) {
           )}
         </div>
 
-        <NavSection title="BA & Requirements" items={BA_ITEMS} />
+        <NavSection title="Business Architecture & Governance" items={BA_ITEMS} />
         <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
-        <NavSection title="Governance" items={GOVERNANCE_ITEMS} />
+        <NavSection title="Platform Governance Tools" items={GOVERNANCE_ITEMS} />
         <NavSection title="Architecture & Diagrams" items={DIAGRAM_ITEMS} />
       </div>
 
