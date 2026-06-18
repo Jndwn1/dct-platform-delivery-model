@@ -460,9 +460,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Executive Delivery Dashboard ── */}
-      <ExecDashboard />
-
       {/* ── Live Platform Status Bar ── */}
       <div style={{
         backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
@@ -608,6 +605,9 @@ export default function Home() {
           ))}
         </div>
       </Section>
+
+      {/* ── Executive Delivery Dashboard ── */}
+      <ExecDashboard />
 
       {/* ── 4. Batch Reference & Consumer Impact Guide ── */}
       <BatchReferenceGuide />
