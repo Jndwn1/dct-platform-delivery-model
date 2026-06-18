@@ -402,7 +402,7 @@ function BatchReferenceGuide() {
   );
 
   return (
-    <Section title="Batch Portfolio Overview" subtitle="Section 2 — PI 2 & PI 3 Delivery Units" accent="blue">
+    <>
       <div style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6", marginBottom: "14px" }}>
         Delivery schedule and Roger practitioner impact for PI 2 (Current Delivery) and PI 3 (MVP Target).
         Source: DCT Calendar v7 · Columns J (What the Batch Does) and K (Roger UI Impact).
@@ -448,7 +448,7 @@ function BatchReferenceGuide() {
         {pi2Rows.length > 0 && renderGroup("PI 2 – Current Delivery", pi2Rows, 0)}
         {pi3Rows.length > 0 && renderGroup("PI 3 – MVP", pi3Rows, pi2Rows.length)}
       </div>
-    </Section>
+    </>
   );
 }
 
