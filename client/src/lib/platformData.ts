@@ -237,6 +237,7 @@ export interface EnrichedTouchpoint {
   deliveredBy?: string;      // Batch(es) that delivered this touchpoint
   deliveredDate?: string;    // Approximate delivery date from calendar
   statusNote?: string;       // Brief note explaining current status
+  walkthroughUrl?: string;   // Optional link to a detailed architecture walkthrough page
 }
 
 export const TOUCHPOINTS: EnrichedTouchpoint[] = [
@@ -271,6 +272,7 @@ export const TOUCHPOINTS: EnrichedTouchpoint[] = [
     gate: "G1", status: "COMPLETE", isAuthorityAction: false,
     deliveredBy: "B2 + B2A",
     deliveredDate: "PI 1 — Complete",
+    walkthroughUrl: "/classification-walkthrough",
     statusNote: "Batch 2 (Normalization) and Batch 2A (Contract Enforcement) both Complete in PI 1. FirmTaxonomyId required on every record; unclassified records rejected.",
     inputs: ["Recognized file from T2", "Schema Recognition Report", "FirmFinancialTaxonomy (XLOB) from PDC"],
     outputs: ["Normalized financial records", "Normalization Record", "RunId (processing version linked to DocumentId)", "FirmTaxonomyId per record (REQUIRED — Batch 2A)", "ClassificationStatus per record"],
@@ -283,6 +285,7 @@ export const TOUCHPOINTS: EnrichedTouchpoint[] = [
     gate: "G2", status: "COMPLETE", isAuthorityAction: true,
     deliveredBy: "B2 + B2A",
     deliveredDate: "PI 1 — Complete",
+    walkthroughUrl: "/classification-walkthrough",
     statusNote: "Batch 2 (PDC canonical persistence) and Batch 2A (FirmTaxonomyId enforcement) both Complete. vNormalizedTb read contract live.",
     inputs: ["Normalized records from T3", "Normalization Record", "FirmTaxonomyId (REQUIRED on every record — Batch 2A)"],
     outputs: ["Canonical Record Set (FinancialFact)", "PDC persistence confirmation", "RunId → DocumentId → EntityId lineage", "FirmTaxonomyId (REQUIRED — stored on every FinancialFact)", "ClassificationStatus (CLASSIFIED | UNCLASSIFIED | OVERRIDE)", "vNormalizedTb read contract (Roger-facing)"],

@@ -118,17 +118,17 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
                 transition-all duration-300 min-w-[110px]
                 ${isGap
                   ? "bg-red-900/80 border-red-400 ring-2 ring-red-400/60 shadow-lg shadow-red-900/40"
-                  : isTargetActive && isActive
-                  ? `${node.color} ring-2 ring-emerald-400/40 shadow-md`
+                  : isTargetActive
+                  ? `${node.color} ring-2 ring-emerald-400/60 shadow-lg shadow-emerald-900/20`
                   : isActive
                   ? `${node.color} ring-2 ring-white/20 shadow-md`
                   : "bg-slate-200/80 border-slate-300/60 opacity-50"
                 }
               `}>
-                <span className={`text-xs font-bold ${isGap ? "text-red-200" : isActive ? "text-white" : "text-slate-400"}`}>
+                <span className={`text-xs font-bold ${isGap ? "text-red-200" : (isTargetActive || isActive) ? "text-white" : "text-slate-400"}`}>
                   {node.label}
                 </span>
-                <span className={`text-[10px] mt-0.5 ${isGap ? "text-red-300" : isActive ? "text-white/70" : "text-slate-500"}`}>
+                <span className={`text-[10px] mt-0.5 ${isGap ? "text-red-300" : (isTargetActive || isActive) ? "text-white/70" : "text-slate-500"}`}>
                   {node.sub}
                 </span>
                 {isGap && (
@@ -136,9 +136,9 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
                     ✕ Missing
                   </span>
                 )}
-                {isTargetActive && isActive && node.isGapNode && (
+                {isTargetActive && (
                   <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">
-                    ✓ Required
+                    ✓ Live
                   </span>
                 )}
               </div>
@@ -152,8 +152,8 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
                     </div>
                   ) : (
                     <div className="flex items-center">
-                      <div className={`w-6 h-0.5 ${isTargetActive ? "bg-emerald-500/60" : "bg-slate-500/60"}`} />
-                      <span className={`text-xs ${isTargetActive ? "text-emerald-400" : "text-slate-500"}`}>▶</span>
+                      <div className={`w-6 h-0.5 ${isTargetActive ? "bg-emerald-400" : "bg-slate-500/60"}`} />
+                      <span className={`text-xs ${isTargetActive ? "text-emerald-500" : "text-slate-500"}`}>▶</span>
                     </div>
                   )}
                 </div>
@@ -170,8 +170,8 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
       )}
       {isTargetActive && (
           <div className="mt-2 flex items-center gap-2 text-emerald-700 text-xs font-medium">
-          <span className="text-emerald-400 font-bold">✓</span>
-          Expected: Every record includes FirmTaxonomyId before being stored in PDC.
+          <span className="text-emerald-500 font-bold">✓</span>
+          Full flow live — every record includes FirmTaxonomyId. Orchestrator → Classification → PDC Storage all active. B2+B2A+B3 delivered PI 1 Complete.
         </div>
       )}
     </div>
@@ -198,7 +198,7 @@ function Step1Content() {
                 { field: "periodEnd",            type: "DateOnly", note: "Required — temporal model" },
                 { field: "classificationStatus", type: "enum",     note: "CLASSIFIED / UNCLASSIFIED / PENDING" },
               ].map((f) => (
-                <div key={f.field} className="flex items-start gap-2 bg-slate-900/60 rounded-lg px-3 py-2">
+                <div key={f.field} className="flex items-start gap-2 bg-slate-100 rounded-lg px-3 py-2">
                   <span className="font-mono text-sky-300 text-xs min-w-[170px]">{f.field}</span>
                   <span className="text-slate-500 text-xs min-w-[70px]">{f.type}</span>
                   <span className="text-slate-400 text-xs">{f.note}</span>
@@ -217,7 +217,7 @@ function Step1Content() {
                 { field: "dataJson",              type: "JSON",  note: "Normalized financial payload",      gap: false },
                 { field: "processingRunId",        type: "GUID",  note: "Orchestrator run reference",       gap: false },
               ].map((f) => (
-                <div key={f.field} className={`flex items-start gap-2 rounded-lg px-3 py-2 ${f.gap ? "bg-amber-900/30 border border-amber-500/30" : "bg-slate-900/60"}`}>
+                <div key={f.field} className={`flex items-start gap-2 rounded-lg px-3 py-2 ${f.gap ? "bg-amber-900/30 border border-amber-500/30" : "bg-slate-100"}`}>
                   <span className={`font-mono text-xs min-w-[170px] ${f.gap ? "text-amber-300" : "text-sky-300"}`}>{f.field}</span>
                   <span className="text-slate-500 text-xs min-w-[60px]">{f.type}</span>
                   <span className={`text-xs ${f.gap ? "text-amber-400" : "text-slate-400"}`}>{f.note}</span>
@@ -258,7 +258,7 @@ function Step2Content() {
             { field: "dataJson",             type: "JSON",     required: true,  note: "Normalized financial payload",                                      gap: false },
             { field: "processingRunId",       type: "GUID",     required: true,  note: "Orchestrator run reference",                                        gap: false },
           ].map((f) => (
-            <div key={f.field} className={`flex items-center gap-3 rounded-lg px-4 py-2.5 ${f.gap ? "bg-amber-900/30 border border-amber-500/30" : "bg-slate-900/60"}`}>
+            <div key={f.field} className={`flex items-center gap-3 rounded-lg px-4 py-2.5 ${f.gap ? "bg-amber-900/30 border border-amber-500/30" : "bg-slate-100"}`}>
               <span className={`font-mono text-xs w-44 shrink-0 ${f.gap ? "text-amber-300" : "text-sky-300"}`}>{f.field}</span>
               <span className="text-slate-500 text-xs w-20 shrink-0">{f.type}</span>
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase w-20 shrink-0 text-center ${f.required ? "bg-emerald-900/60 text-emerald-400 border border-emerald-600/40" : "bg-amber-900/60 text-amber-400 border border-amber-600/40"}`}>
@@ -293,7 +293,7 @@ function Step3Content() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="bg-slate-900/60 border border-slate-600/40 rounded-xl p-4">
+          <div className="bg-slate-100 border border-slate-600/40 rounded-xl p-4">
             <div className="text-xs font-bold text-amber-300 uppercase tracking-wide mb-3">Option A — Bulk Import / Export</div>
             <div className="space-y-2 text-sm text-slate-300">
               <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">✓</span><span>Supports environment promotion (Dev → QA → Prod)</span></div>
@@ -302,7 +302,7 @@ function Step3Content() {
               <div className="flex items-start gap-2"><span className="text-amber-400 mt-0.5 shrink-0">⚠</span><span>Requires bulk API contract and data export governance</span></div>
             </div>
           </div>
-          <div className="bg-slate-900/60 border border-slate-600/40 rounded-xl p-4">
+          <div className="bg-slate-100 border border-slate-600/40 rounded-xl p-4">
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Option B — Row-Level Persistence Only</div>
             <div className="space-y-2 text-sm text-slate-300">
               <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">✓</span><span>Simpler contract surface — one record at a time</span></div>
@@ -344,7 +344,7 @@ function Step4Content() {
           </p>
           <div className="grid grid-cols-1 gap-3">
             {/* Input */}
-            <div className="bg-slate-900/70 border border-slate-600/40 rounded-lg p-3">
+            <div className="bg-slate-100 border border-slate-600/40 rounded-lg p-3">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Input Record</div>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
@@ -396,7 +396,7 @@ function Step4Content() {
             Overrides allow controlled exceptions when taxonomy rules do not fully resolve a valid classification.
           </p>
           {/* Scenario */}
-          <div className="bg-slate-900/70 border border-slate-600/40 rounded-lg p-3 mb-3">
+          <div className="bg-slate-100 border border-slate-600/40 rounded-lg p-3 mb-3">
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Example Scenario</div>
             <div className="space-y-1.5 mb-3">
               <div className="flex items-center gap-2">
@@ -418,7 +418,7 @@ function Step4Content() {
             </div>
           </div>
           {/* Governance requirements */}
-          <div className="bg-slate-900/60 border border-slate-600/30 rounded-lg p-3">
+          <div className="bg-slate-100 border border-slate-600/30 rounded-lg p-3">
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">If Overrides Are Allowed, They Must:</div>
             <div className="space-y-1.5">
               {[
@@ -453,7 +453,7 @@ function Step4Content() {
               { canonical: "CA-3001", label: "Revenue — Service",           firmId: "FT-5010", firmLabel: "Service Revenue" },
               { canonical: "CA-4001", label: "Expense — Compensation",      firmId: "FT-6100", firmLabel: "Compensation Expense" },
             ].map((r) => (
-              <div key={r.canonical} className="flex items-center gap-2 bg-slate-900/60 rounded-lg px-3 py-2">
+              <div key={r.canonical} className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
                 <span className="font-mono text-sky-300 text-xs w-16 shrink-0">{r.canonical}</span>
                 <span className="text-slate-400 text-xs flex-1 min-w-0 truncate">{r.label}</span>
                 <span className="text-slate-600 text-xs mx-1">→</span>
@@ -496,7 +496,7 @@ function Step4Content() {
                 { attr: "EffectiveFrom",   val: "PeriodStart-aligned" },
                 { attr: "TaxonomyVersion", val: "Semantic versioning (TDC-owned)" },
               ].map((a) => (
-                <div key={a.attr} className="flex items-center gap-2 bg-slate-900/60 rounded px-2.5 py-1.5">
+                <div key={a.attr} className="flex items-center gap-2 bg-slate-100 rounded px-2.5 py-1.5">
                   <span className="text-emerald-300 text-xs font-mono w-28 shrink-0">{a.attr}</span>
                   <span className="text-slate-400 text-xs">{a.val}</span>
                 </div>
@@ -709,7 +709,7 @@ function Step8Content({ decisions, onToggle }: { decisions: DecisionCheckpoint[]
               className={`w-full text-left flex items-start gap-3 rounded-lg px-4 py-3 border transition-all duration-200 ${
                 d.answered
                   ? "bg-emerald-900/30 border-emerald-500/30 hover:bg-emerald-900/40"
-                  : "bg-slate-900/60 border-slate-600/40 hover:bg-slate-700/60"
+                  : "bg-slate-100 border-slate-600/40 hover:bg-slate-700/60"
               }`}
             >
               <div className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${d.answered ? "bg-emerald-500 border-emerald-400" : "border-slate-500"}`}>
@@ -770,6 +770,16 @@ export default function ClassificationWalkthroughPage() {
             <div className="text-slate-400 text-xs mt-0.5">
               Classification enforced across PDC, Orchestrator, and Taxonomy Service — B2+B2A+B3 delivered PI 1 Complete.
             </div>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Delivered by</span>
+              {["B2", "B2A", "B3"].map(b => (
+                <span key={b} className="bg-slate-700 border border-slate-500/50 text-slate-200 text-[10px] font-black px-2 py-0.5 rounded">{b}</span>
+              ))}
+              <span className="text-slate-600 text-[10px]">·</span>
+              <span className="bg-emerald-700/50 border border-emerald-500/40 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wide">PI 1 Complete</span>
+              <span className="text-slate-600 text-[10px]">·</span>
+              <span className="text-slate-400 text-[10px]">May 21, 2026</span>
+            </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-2 bg-slate-800 border border-slate-600/40 rounded-lg px-3 py-1.5">
@@ -800,7 +810,7 @@ export default function ClassificationWalkthroughPage() {
                     : step.id === 6
                     ? "bg-emerald-900/40 border-emerald-500/50 shadow-md"
                     : "bg-slate-700/80 border-slate-400/40 shadow-md"
-                  : "bg-slate-800/40 border-slate-700/40 hover:bg-slate-700/40 hover:border-slate-500/40"
+                  : "bg-slate-800/40 border-slate-200 hover:bg-slate-700/40 hover:border-slate-500/40"
               }`}
             >
               <div className="flex items-center gap-1.5 mb-0.5">

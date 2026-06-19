@@ -2,11 +2,12 @@
 // RSM | CATT | DCT Platform Executive Demo Environment v3.1
 
 import { useState } from "react";
+import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, ChevronDown, ChevronRight, CheckCircle2,
   Clock, Circle, AlertTriangle, Layers, User, FileText, Zap,
-  Package, Calendar, Info
+  Package, Calendar, Info, ExternalLink
 } from "lucide-react";
 import { TOUCHPOINTS, AGENTS, getLayer, type EnrichedTouchpoint } from "@/lib/platformData";
 import { ANALYST_STORIES, GUARANTEE_TYPE_COLORS } from "@/lib/analystStories";
@@ -152,6 +153,14 @@ function TouchpointDetailCard({ tp, isOpen, onToggle }: {
                           <Info className="w-3 h-3 shrink-0 mt-0.5" />
                           <span>{tp.statusNote}</span>
                         </div>
+                      )}
+                      {tp.walkthroughUrl && (
+                        <Link href={tp.walkthroughUrl}>
+                          <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 cursor-pointer bg-white border border-emerald-300 rounded px-2.5 py-1.5 hover:bg-emerald-50 transition-colors w-fit">
+                            <ExternalLink className="w-3 h-3" />
+                            View Architecture Walkthrough →
+                          </div>
+                        </Link>
                       )}
                     </div>
                   )}
