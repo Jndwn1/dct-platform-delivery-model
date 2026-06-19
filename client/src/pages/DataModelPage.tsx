@@ -95,7 +95,7 @@ function GovernanceWorkbench() {
           <div style={{ overflowX: "auto" }}>
             <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Contract publication status by batch. Grounded in live gate status and meeting context (Jun 5, 2026).</p>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-              <thead><tr style={{ background: "#f8fafc" }}>{["Batch","Contract","Gate","Status","Owner","Consumer","Note"].map(h => <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e2e8f0" }}>{h}</th>)}</tr></thead>
+              <thead><tr style={{ background: "#f0f4f8" }}>{["Batch","Contract","Gate","Status","Owner","Consumer","Note"].map(h => <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#003865", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e2e8f0" }}>{h}</th>)}</tr></thead>
               <tbody>{CONTRACT_LIFECYCLE.map((r, i) => (
                 <tr key={r.batch} style={{ background: i % 2 === 0 ? "white" : "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
                   <td style={{ padding: "8px 10px", fontFamily: "monospace", fontWeight: 700, color: "#003865" }}>{r.batch}</td>
@@ -114,7 +114,7 @@ function GovernanceWorkbench() {
           <div style={{ overflowX: "auto" }}>
             <p style={{ fontSize: "12px", color: "#475569", marginBottom: "12px" }}>Field-level governance rules, ownership, and enforcement status.</p>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-              <thead><tr style={{ background: "#f8fafc" }}>{["Field","Type","Owner","Rule","Status"].map(h => <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e2e8f0" }}>{h}</th>)}</tr></thead>
+              <thead><tr style={{ background: "#f0f4f8" }}>{["Field","Type","Owner","Rule","Status"].map(h => <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#003865", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e2e8f0" }}>{h}</th>)}</tr></thead>
               <tbody>{FIELD_GOVERNANCE.map((r, i) => (
                 <tr key={r.field} style={{ background: i % 2 === 0 ? "white" : "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
                   <td style={{ padding: "8px 10px", fontFamily: "monospace", fontWeight: 700, color: "#003865" }}>{r.field}</td>
@@ -255,12 +255,12 @@ const VIOLATIONS = [
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 const s = {
   page: { padding: "28px 32px", maxWidth: "1200px", margin: "0 auto", fontFamily: "system-ui, sans-serif" } as React.CSSProperties,
-  sectionCard: { border: "1px solid #e5e7eb", borderRadius: "12px", overflow: "hidden", marginBottom: "24px" } as React.CSSProperties,
-  sectionHeader: { padding: "14px 20px", backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: "10px" } as React.CSSProperties,
-  sectionTitle: { fontSize: "13px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#374151" },
+  sectionCard: { border: "1px solid #dde3ea", borderRadius: "12px", overflow: "hidden", marginBottom: "24px", boxShadow: "0 1px 4px rgba(0,56,101,0.06)" } as React.CSSProperties,
+  sectionHeader: { padding: "14px 20px", backgroundColor: "#003865", borderBottom: "1px solid #002a4d", display: "flex", alignItems: "center", gap: "10px" } as React.CSSProperties,
+  sectionTitle: { fontSize: "13px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#ffffff" },
   sectionBody: { padding: "20px" } as React.CSSProperties,
   table: { width: "100%", borderCollapse: "collapse" as const, fontSize: "13px" },
-  th: { padding: "8px 12px", textAlign: "left" as const, fontSize: "11px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb", backgroundColor: "#f9fafb" },
+  th: { padding: "8px 12px", textAlign: "left" as const, fontSize: "11px", fontWeight: 700, color: "#003865", textTransform: "uppercase" as const, letterSpacing: "0.05em", borderBottom: "1px solid #e2e8f0", backgroundColor: "#f0f4f8" },
   td: { padding: "10px 12px", borderBottom: "1px solid #f3f4f6", verticalAlign: "top" as const },
 };
 
@@ -301,7 +301,7 @@ export default function DataModelPage() {
       {/* ── Page Header ── */}
       <div style={{ marginBottom: "28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-          <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2563eb", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px" }}>Executive Reference</span>
+          <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#ffffff", backgroundColor: "#003865", padding: "2px 8px", borderRadius: "4px" }}>Executive Reference</span>
           <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#374151", backgroundColor: "#f3f4f6", padding: "2px 8px", borderRadius: "4px" }}>DCT Platform</span>
         </div>
         <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>Data Model, Gaps &amp; Governance</h1>
@@ -317,7 +317,7 @@ export default function DataModelPage() {
         <div style={s.sectionHeader}>
           <span style={{ fontSize: "16px" }}>⚠️</span>
           <span style={s.sectionTitle}>Data Model Gaps &amp; Governance</span>
-          <span style={{ marginLeft: "auto", fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: "#fee2e2", color: "#dc2626" }}>{GAPS.length} open</span>
+          <span style={{ marginLeft: "auto", fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: "#fca5a5", color: "#7f1d1d" }}>{GAPS.length} open</span>
         </div>
         <div style={{ padding: "12px 20px" }}>
           {GAPS.map((gap) => (
@@ -327,7 +327,7 @@ export default function DataModelPage() {
               onClick={() => setExpandedGap(expandedGap === gap.num ? null : gap.num)}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0" }}>
-                <span style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#fee2e2", color: "#dc2626", fontSize: "11px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#fca5a5", color: "#7f1d1d", fontSize: "11px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   {gap.num}
                 </span>
                 <span style={{ fontSize: "13px", fontWeight: 600, color: "#111827", flex: 1 }}>{gap.title}</span>
