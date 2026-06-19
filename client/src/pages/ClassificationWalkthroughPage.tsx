@@ -17,6 +17,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "wouter";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -917,6 +918,32 @@ export default function ClassificationWalkthroughPage() {
               <div className="text-slate-500 text-xs">All classification governance decisions resolved — PI 1 Complete</div>
             </div>
           </div>
+        </div>
+        {/* Return to Touchpoints back-link */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px",
+          padding: "14px 20px", marginTop: "8px",
+          backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+          borderLeft: "4px solid #003865", borderRadius: "10px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "13px", color: "#003865", fontWeight: 700 }}>🔗 Linked Touchpoints</span>
+            <span style={{ fontSize: "12px", color: "#374151" }}>This walkthrough covers</span>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#1e40af", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px" }}>T3 · Financial Data Extraction</span>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#1e40af", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px" }}>T4 · Canonical Normalization (PDC)</span>
+          </div>
+          <Link
+            href="/touchpoints"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              fontSize: "13px", fontWeight: 700, color: "#003865",
+              backgroundColor: "#ffffff", border: "1px solid #003865",
+              padding: "7px 16px", borderRadius: "6px", textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            ← Return to Touchpoints
+          </Link>
         </div>
       </div>
     </div>

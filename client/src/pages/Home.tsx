@@ -910,6 +910,20 @@ export default function Home() {
             </div>
           </div>
 
+          {/* B16 Critical-Path Banner */}
+          <div style={{ backgroundColor: "#fef2f2", borderRadius: "8px", padding: "12px 16px", borderLeft: "3px solid #dc2626" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>🔴 Critical Path — Must Land Before 9/16 Pilot</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+              <span style={{ fontSize: "12px", fontWeight: 800, color: "#dc2626", backgroundColor: "#fee2e2", padding: "2px 7px", borderRadius: "4px", border: "1px solid #fca5a5" }}>B16</span>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Audit Trail &amp; Lineage Governance</span>
+            </div>
+            <div style={{ fontSize: "11px", color: "#991b1b", lineHeight: "1.5" }}>
+              PDC stories: PI 2 Stretch (6/22–6/30) · TDC stories: PI 3 MVP (7/13–7/21)
+            </div>
+            <div style={{ fontSize: "11px", color: "#b91c1c", marginTop: "4px", fontStyle: "italic" }}>
+              Must complete before pilot start — governance and lineage trail required for audit readiness.
+            </div>
+          </div>
           {/* Release Readiness */}
           <div style={{ backgroundColor: "#f0fdf4", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #059669" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🟢 Release Readiness</div>
