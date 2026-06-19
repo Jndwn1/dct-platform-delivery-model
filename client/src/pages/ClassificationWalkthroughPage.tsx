@@ -1,7 +1,8 @@
 /**
  * Taxonomy Classification Validation — PDC & Orchestrator Alignment
  *
- * Design: Dark executive panel layout, slate-950 base, amber/red gap callouts.
+ * Design: RSM Platform Design System — inline styles matching DataModelPage reference.
+ * Navy #003865 section headers, #f8fafc page canvas, white cards, platform badge treatments.
  * Completely separate from TaxonomyPage.tsx — do NOT import or modify that file.
  *
  * Spec: pasted_content_12.txt — 7-step enhanced walkthrough for leadership (Cass)
@@ -18,6 +19,21 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
+
+// ─── Design Tokens (matching DataModelPage platform standard) ─────────────────
+
+const s = {
+  page: { padding: "28px 32px", maxWidth: "1200px", margin: "0 auto", fontFamily: "system-ui, sans-serif" } as React.CSSProperties,
+  sectionCard: { border: "1px solid #dde3ea", borderRadius: "12px", overflow: "hidden", marginBottom: "20px", boxShadow: "0 1px 4px rgba(0,56,101,0.06)" } as React.CSSProperties,
+  sectionHeader: { padding: "14px 20px", backgroundColor: "#003865", borderBottom: "1px solid #002a4d", display: "flex", alignItems: "center", gap: "10px" } as React.CSSProperties,
+  sectionTitle: { fontSize: "13px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#ffffff" } as React.CSSProperties,
+  sectionBody: { padding: "20px" } as React.CSSProperties,
+  fieldRow: { display: "flex", alignItems: "center", gap: "12px", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#f8fafc", borderBottom: "1px solid #f1f5f9" } as React.CSSProperties,
+  fieldRowAlt: { display: "flex", alignItems: "center", gap: "12px", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#ffffff", borderBottom: "1px solid #f1f5f9" } as React.CSSProperties,
+  fieldName: { fontFamily: "monospace", fontSize: "12px", color: "#003865", fontWeight: 700, minWidth: "180px", flexShrink: 0 } as React.CSSProperties,
+  fieldType: { fontSize: "11px", color: "#64748b", minWidth: "70px", flexShrink: 0 } as React.CSSProperties,
+  fieldNote: { fontSize: "12px", color: "#374151" } as React.CSSProperties,
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,39 +63,64 @@ const STEPS: {
   label: string;
   subtitle: string;
   stateLabel: string;
-  stateColor: string;
+  stateType: "current" | "resolved" | "decision" | "delivered";
   shortLabel: string;
 }[] = [
-  { id: 1, label: "Data Retrieval",          subtitle: "API View",                stateLabel: "Current State",  stateColor: "bg-blue-900/60 border-blue-500/40 text-blue-300",       shortLabel: "API View" },
-  { id: 2, label: "Data Storage",            subtitle: "PDC Database",            stateLabel: "Expected State", stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "PDC DB" },
-  { id: 3, label: "Data Movement",           subtitle: "Operations",              stateLabel: "Decision",       stateColor: "bg-amber-900/60 border-amber-500/40 text-amber-300",    shortLabel: "Ops" },
-  { id: 4, label: "Taxonomy",                subtitle: "Source of Classification",stateLabel: "Expected State", stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "Taxonomy" },
-  { id: 5, label: "Gap Resolved",            subtitle: "B2+B2A PI 1 Complete",    stateLabel: "Resolved",       stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "Resolved" },
-  { id: 6, label: "Delivered State",          subtitle: "Full Flow Live",          stateLabel: "Delivered",      stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "Delivered" },
-  { id: 7, label: "Resolved Flow",            subtitle: "Classification Live",     stateLabel: "Resolved",       stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "Resolved" },
-  { id: 8, label: "Decision Checkpoints",    subtitle: "Governance",              stateLabel: "In Review",      stateColor: "bg-amber-900/60 border-amber-500/40 text-amber-300",    shortLabel: "Decisions" },
+  { id: 1, label: "Data Retrieval",       subtitle: "API View",                 stateLabel: "Current State", stateType: "current",  shortLabel: "API View" },
+  { id: 2, label: "Data Storage",         subtitle: "PDC Database",             stateLabel: "Expected State",stateType: "resolved", shortLabel: "PDC DB" },
+  { id: 3, label: "Data Movement",        subtitle: "Operations",               stateLabel: "Decision",      stateType: "decision", shortLabel: "Ops" },
+  { id: 4, label: "Taxonomy",             subtitle: "Source of Classification", stateLabel: "Expected State",stateType: "resolved", shortLabel: "Taxonomy" },
+  { id: 5, label: "Gap Resolved",         subtitle: "B2+B2A PI 1 Complete",     stateLabel: "Resolved",      stateType: "resolved", shortLabel: "Resolved" },
+  { id: 6, label: "Delivered State",      subtitle: "Full Flow Live",           stateLabel: "Delivered",     stateType: "delivered",shortLabel: "Delivered" },
+  { id: 7, label: "Resolved Flow",        subtitle: "Classification Live",      stateLabel: "Resolved",      stateType: "resolved", shortLabel: "Resolved" },
+  { id: 8, label: "Decision Checkpoints", subtitle: "Governance",               stateLabel: "In Review",     stateType: "decision", shortLabel: "Decisions" },
 ];
+
+// ─── State badge style helper ─────────────────────────────────────────────────
+
+function getStateBadgeStyle(type: "current" | "resolved" | "decision" | "delivered"): React.CSSProperties {
+  const map: Record<string, React.CSSProperties> = {
+    current:   { backgroundColor: "#dbeafe", color: "#1e40af", border: "1px solid #bfdbfe" },
+    resolved:  { backgroundColor: "#d1fae5", color: "#065f46", border: "1px solid #6ee7b7" },
+    decision:  { backgroundColor: "#fef3c7", color: "#92400e", border: "1px solid #fcd34d" },
+    delivered: { backgroundColor: "#d1fae5", color: "#065f46", border: "1px solid #6ee7b7" },
+  };
+  return {
+    ...map[type],
+    fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em",
+    textTransform: "uppercase", padding: "2px 7px", borderRadius: "4px",
+  };
+}
 
 // ─── Callout Block ────────────────────────────────────────────────────────────
 
-function Callout({ items, color = "blue", title = "Callouts" }: { items: string[]; color?: "blue" | "emerald" | "red" | "amber" | "violet"; title?: string }) {
-  const styles: Record<string, string> = {
-    blue:    "bg-blue-950/60 border-blue-500/30 text-blue-100/80",
-    emerald: "bg-emerald-950/60 border-emerald-500/30 text-emerald-100/80",
-    red:     "bg-red-950/60 border-red-500/30 text-red-100/80",
-    amber:   "bg-amber-950/60 border-amber-500/30 text-amber-100/80",
-    violet:  "bg-violet-950/60 border-violet-500/30 text-violet-100/80",
+function Callout({ items, color = "blue", title = "Callouts" }: {
+  items: string[];
+  color?: "blue" | "emerald" | "red" | "amber" | "violet";
+  title?: string;
+}) {
+  const styleMap: Record<string, React.CSSProperties> = {
+    blue:    { backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderLeft: "4px solid #003865" },
+    emerald: { backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderLeft: "4px solid #059669" },
+    red:     { backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderLeft: "4px solid #dc2626" },
+    amber:   { backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderLeft: "4px solid #d97706" },
+    violet:  { backgroundColor: "#f5f3ff", border: "1px solid #ddd6fe", borderLeft: "4px solid #7c3aed" },
   };
-  const iconColors: Record<string, string> = {
-    blue: "text-blue-400", emerald: "text-emerald-400", red: "text-red-400", amber: "text-amber-400", violet: "text-violet-400",
+  const titleColorMap: Record<string, string> = {
+    blue: "#003865", emerald: "#065f46", red: "#991b1b", amber: "#92400e", violet: "#5b21b6",
+  };
+  const textColorMap: Record<string, string> = {
+    blue: "#1e40af", emerald: "#166534", red: "#7f1d1d", amber: "#78350f", violet: "#4c1d95",
   };
   return (
-    <div className={`border rounded-xl px-5 py-4 space-y-2 ${styles[color]}`}>
-      <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${iconColors[color]}`}>💬 {title}</div>
+    <div style={{ ...styleMap[color], borderRadius: "8px", padding: "14px 18px" }}>
+      <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: titleColorMap[color], marginBottom: "10px" }}>
+        💬 {title}
+      </div>
       {items.map((item, i) => (
-        <div key={i} className="flex items-start gap-2 text-sm leading-relaxed">
-          <span className={`mt-1 shrink-0 ${iconColors[color]}`}>›</span>
-          <span>{item}</span>
+        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: i < items.length - 1 ? "6px" : 0 }}>
+          <span style={{ color: titleColorMap[color], fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>›</span>
+          <span style={{ fontSize: "13px", color: textColorMap[color], lineHeight: "1.55" }}>{item}</span>
         </div>
       ))}
     </div>
@@ -90,14 +131,14 @@ function Callout({ items, color = "blue", title = "Callouts" }: { items: string[
 
 function FlowDiagram({ activeStep }: { activeStep: StepId }) {
   const nodes = [
-    { id: 1, label: "Ingestion",     sub: "PDC",               color: "bg-blue-800 border-blue-500",     breakAfter: false },
-    { id: 2, label: "Orchestrator",  sub: "AI Agent",          color: "bg-violet-800 border-violet-500", breakAfter: true  },
-    { id: 3, label: "Classification",sub: "Taxonomy",          color: "bg-emerald-800 border-emerald-500",breakAfter: false, isGapNode: true },
-    { id: 4, label: "PDC Storage",   sub: "NormalizedRecords", color: "bg-blue-800 border-blue-500",     breakAfter: false },
-    { id: 5, label: "Retrieval",     sub: "DataRecords API",   color: "bg-sky-800 border-sky-500",       breakAfter: false },
+    { id: 1, label: "Ingestion",      sub: "PDC",                activeColor: "#003865", breakAfter: false },
+    { id: 2, label: "Orchestrator",   sub: "AI Agent",           activeColor: "#4f46e5", breakAfter: true  },
+    { id: 3, label: "Classification", sub: "Taxonomy",           activeColor: "#059669", breakAfter: false, isGapNode: true },
+    { id: 4, label: "PDC Storage",    sub: "NormalizedRecords",  activeColor: "#003865", breakAfter: false },
+    { id: 5, label: "Retrieval",      sub: "DataRecords API",    activeColor: "#0369a1", breakAfter: false },
   ];
 
-  const isGapActive   = activeStep === 5 || activeStep === 7;
+  const isGapActive    = activeStep === 5 || activeStep === 7;
   const isTargetActive = activeStep === 6;
 
   const highlightMap: Record<number, number[]> = {
@@ -106,55 +147,58 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
   const highlighted = highlightMap[activeStep] ?? [];
 
   return (
-    <div className="w-full mb-6">
-      <div className="text-xs font-semibold text-slate-600 uppercase tracking-widest mb-3">Architecture Flow</div>
-      <div className="flex items-center gap-0 overflow-x-auto pb-2">
+    <div style={{ marginBottom: "20px" }}>
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+        Architecture Flow
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "0", overflowX: "auto", paddingBottom: "8px" }}>
         {nodes.map((node, idx) => {
           const isActive = highlighted.includes(node.id);
           const isGap    = node.isGapNode && isGapActive;
           return (
-            <div key={node.id} className="flex items-center shrink-0">
-              <div className={`
-                relative flex flex-col items-center justify-center px-4 py-2.5 rounded-lg border
-                transition-all duration-300 min-w-[110px]
-                ${isGap
-                  ? "bg-red-900/80 border-red-400 ring-2 ring-red-400/60 shadow-lg shadow-red-900/40"
-                  : isTargetActive
-                  ? `${node.color} ring-2 ring-emerald-400/60 shadow-lg shadow-emerald-900/20`
-                  : isActive
-                  ? `${node.color} ring-2 ring-white/20 shadow-md`
-                  : "bg-slate-200/80 border-slate-300/60 opacity-50"
-                }
-              `}>
-                <span className={`text-xs font-bold ${isGap ? "text-red-200" : (isTargetActive || isActive) ? "text-white" : "text-slate-400"}`}>
-                  {node.label}
-                </span>
-                <span className={`text-[10px] mt-0.5 ${isGap ? "text-red-300" : (isTargetActive || isActive) ? "text-white/70" : "text-slate-500"}`}>
-                  {node.sub}
-                </span>
+            <div key={node.id} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+              <div style={{
+                position: "relative",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                padding: "10px 16px", borderRadius: "8px", minWidth: "110px",
+                backgroundColor: isGap ? "#fef2f2" : isTargetActive ? node.activeColor : isActive ? node.activeColor : "#f0f4f8",
+                border: isGap ? "2px solid #ef4444" : isTargetActive ? `2px solid ${node.activeColor}` : isActive ? `2px solid ${node.activeColor}` : "1px solid #dde3ea",
+                boxShadow: isActive || isGap || isTargetActive ? "0 2px 8px rgba(0,56,101,0.15)" : "none",
+                transition: "all 0.2s ease",
+              }}>
                 {isGap && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">
-                    ✕ Missing
-                  </span>
+                  <span style={{
+                    position: "absolute", top: "-10px", left: "50%", transform: "translateX(-50%)",
+                    backgroundColor: "#dc2626", color: "white", fontSize: "9px", fontWeight: 800,
+                    padding: "1px 6px", borderRadius: "3px", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap",
+                  }}>✕ Missing</span>
                 )}
                 {isTargetActive && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">
-                    ✓ Live
-                  </span>
+                  <span style={{
+                    position: "absolute", top: "-10px", left: "50%", transform: "translateX(-50%)",
+                    backgroundColor: "#059669", color: "white", fontSize: "9px", fontWeight: 800,
+                    padding: "1px 6px", borderRadius: "3px", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap",
+                  }}>✓ Live</span>
                 )}
+                <span style={{ fontSize: "12px", fontWeight: 700, color: isGap ? "#dc2626" : (isActive || isTargetActive) ? "#ffffff" : "#374151", lineHeight: "1.3" }}>
+                  {node.label}
+                </span>
+                <span style={{ fontSize: "10px", marginTop: "2px", color: isGap ? "#ef4444" : (isActive || isTargetActive) ? "rgba(255,255,255,0.8)" : "#64748b" }}>
+                  {node.sub}
+                </span>
               </div>
               {idx < nodes.length - 1 && (
-                <div className="flex items-center mx-0.5">
+                <div style={{ display: "flex", alignItems: "center", margin: "0 2px" }}>
                   {isGapActive && node.breakAfter ? (
-                    <div className="flex items-center gap-0.5">
-                      <div className="w-3 h-0.5 bg-red-400/60" />
-                      <span className="text-red-400 text-xs font-bold">✕</span>
-                      <div className="w-3 h-0.5 bg-red-400/60" />
+                    <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                      <div style={{ width: "12px", height: "2px", backgroundColor: "#ef4444" }} />
+                      <span style={{ color: "#ef4444", fontSize: "12px", fontWeight: 700 }}>✕</span>
+                      <div style={{ width: "12px", height: "2px", backgroundColor: "#ef4444" }} />
                     </div>
                   ) : (
-                    <div className="flex items-center">
-                      <div className={`w-6 h-0.5 ${isTargetActive ? "bg-emerald-400" : "bg-slate-500/60"}`} />
-                      <span className={`text-xs ${isTargetActive ? "text-emerald-500" : "text-slate-500"}`}>▶</span>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <div style={{ width: "20px", height: "2px", backgroundColor: isTargetActive ? "#059669" : "#cbd5e1" }} />
+                      <span style={{ color: isTargetActive ? "#059669" : "#94a3b8", fontSize: "11px" }}>▶</span>
                     </div>
                   )}
                 </div>
@@ -164,14 +208,14 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
         })}
       </div>
       {isGapActive && (
-          <div className="mt-2 flex items-center gap-2 text-red-600 text-xs font-medium">
-          <span className="text-red-400 font-bold">⚠</span>
+        <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "6px", color: "#dc2626", fontSize: "12px", fontWeight: 500 }}>
+          <span style={{ color: "#ef4444", fontWeight: 700 }}>⚠</span>
           Flow breaks at Orchestrator → Classification. Classification is not returned in the Orchestrator output contract.
         </div>
       )}
       {isTargetActive && (
-          <div className="mt-2 flex items-center gap-2 text-emerald-700 text-xs font-medium">
-          <span className="text-emerald-500 font-bold">✓</span>
+        <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "6px", color: "#065f46", fontSize: "12px", fontWeight: 500 }}>
+          <span style={{ color: "#059669", fontWeight: 700 }}>✓</span>
           Full flow live — every record includes FirmTaxonomyId. Orchestrator → Classification → PDC Storage all active. B2+B2A+B3 delivered PI 1 Complete.
         </div>
       )}
@@ -183,47 +227,49 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
 
 function Step1Content() {
   return (
-    <div className="space-y-5">
-      <div className="bg-slate-800/80 border border-slate-600/40 rounded-xl p-5">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wide">DataRecords API</span>
-          <span className="text-slate-400 text-xs font-mono">GET /api/pdc/data-records</span>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={s.sectionTitle}>DataRecords API</span>
+          <span style={{ marginLeft: "auto", fontSize: "11px", color: "#93c5fd", fontFamily: "monospace" }}>GET /api/pdc/data-records</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Query Filters</div>
-            <div className="space-y-1.5">
-              {[
-                { field: "entityId",            type: "GUID",     note: "Required — scopes to entity" },
-                { field: "periodStart",          type: "DateOnly", note: "Required — temporal model" },
-                { field: "periodEnd",            type: "DateOnly", note: "Required — temporal model" },
-                { field: "classificationStatus", type: "enum",     note: "CLASSIFIED / UNCLASSIFIED / PENDING" },
-              ].map((f) => (
-                <div key={f.field} className="flex items-start gap-2 bg-slate-100 rounded-lg px-3 py-2">
-                  <span className="font-mono text-sky-300 text-xs min-w-[170px]">{f.field}</span>
-                  <span className="text-slate-500 text-xs min-w-[70px]">{f.type}</span>
-                  <span className="text-slate-400 text-xs">{f.note}</span>
-                </div>
-              ))}
+        <div style={s.sectionBody}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            <div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#003865", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>Query Filters</div>
+              <div>
+                {[
+                  { field: "entityId",            type: "GUID",     note: "Required — scopes to entity" },
+                  { field: "periodStart",          type: "DateOnly", note: "Required — temporal model" },
+                  { field: "periodEnd",            type: "DateOnly", note: "Required — temporal model" },
+                  { field: "classificationStatus", type: "enum",     note: "CLASSIFIED / UNCLASSIFIED / PENDING" },
+                ].map((f, i) => (
+                  <div key={f.field} style={{ ...( i % 2 === 0 ? s.fieldRow : s.fieldRowAlt) }}>
+                    <span style={s.fieldName}>{f.field}</span>
+                    <span style={s.fieldType}>{f.type}</span>
+                    <span style={s.fieldNote}>{f.note}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Response Fields</div>
-            <div className="space-y-1.5">
-              {[
-                { field: "documentId",            type: "GUID",  note: "Immutable lineage anchor",         gap: false },
-                { field: "runId",                 type: "GUID",  note: "Processing run reference",          gap: false },
-                { field: "firmTaxonomyId",         type: "GUID",  note: "✓ Required — delivered B2+B2A",    gap: false },
-                { field: "classificationStatus",   type: "enum",  note: "✓ Required — CLASSIFIED enforced",  gap: false },
-                { field: "dataJson",              type: "JSON",  note: "Normalized financial payload",      gap: false },
-                { field: "processingRunId",        type: "GUID",  note: "Orchestrator run reference",       gap: false },
-              ].map((f) => (
-                <div key={f.field} className={`flex items-start gap-2 rounded-lg px-3 py-2 ${f.gap ? "bg-amber-900/30 border border-amber-500/30" : "bg-slate-100"}`}>
-                  <span className={`font-mono text-xs min-w-[170px] ${f.gap ? "text-amber-300" : "text-sky-300"}`}>{f.field}</span>
-                  <span className="text-slate-500 text-xs min-w-[60px]">{f.type}</span>
-                  <span className={`text-xs ${f.gap ? "text-amber-400" : "text-slate-400"}`}>{f.note}</span>
-                </div>
-              ))}
+            <div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#003865", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>Response Fields</div>
+              <div>
+                {[
+                  { field: "documentId",           type: "GUID",  note: "Immutable lineage anchor",        gap: false },
+                  { field: "runId",                type: "GUID",  note: "Processing run reference",         gap: false },
+                  { field: "firmTaxonomyId",        type: "GUID",  note: "✓ Required — delivered B2+B2A",   gap: false },
+                  { field: "classificationStatus",  type: "enum",  note: "✓ Required — CLASSIFIED enforced", gap: false },
+                  { field: "dataJson",             type: "JSON",  note: "Normalized financial payload",     gap: false },
+                  { field: "processingRunId",       type: "GUID",  note: "Orchestrator run reference",      gap: false },
+                ].map((f, i) => (
+                  <div key={f.field} style={{ ...(i % 2 === 0 ? s.fieldRow : s.fieldRowAlt), backgroundColor: f.gap ? "#fffbeb" : undefined, border: f.gap ? "1px solid #fde68a" : undefined }}>
+                    <span style={{ ...s.fieldName, color: f.gap ? "#92400e" : "#003865" }}>{f.field}</span>
+                    <span style={s.fieldType}>{f.type}</span>
+                    <span style={{ ...s.fieldNote, color: f.gap ? "#78350f" : "#374151" }}>{f.note}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -241,31 +287,37 @@ function Step1Content() {
 
 function Step2Content() {
   return (
-    <div className="space-y-5">
-      <div className="bg-slate-800/80 border border-slate-600/40 rounded-xl p-5">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wide">NormalizedRecords</span>
-          <span className="text-slate-400 text-xs font-mono">PDC — vNormalizedTb</span>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={s.sectionTitle}>NormalizedRecords</span>
+          <span style={{ marginLeft: "auto", fontSize: "11px", color: "#93c5fd", fontFamily: "monospace" }}>PDC — vNormalizedTb</span>
         </div>
-        <div className="space-y-2">
+        <div style={s.sectionBody}>
           {[
-            { field: "documentId",           type: "GUID",     required: true,  note: "Immutable lineage anchor — set at ingestion",                       gap: false },
-            { field: "runId",                type: "GUID",     required: true,  note: "Processing run reference",                                          gap: false },
-            { field: "entityId",             type: "GUID",     required: true,  note: "PDC-assigned; immutable",                                           gap: false },
-            { field: "periodStart",          type: "DateOnly", required: true,  note: "Temporal model — TaxYear is NOT stored",                            gap: false },
-            { field: "periodEnd",            type: "DateOnly", required: true,  note: "Temporal model — TaxYear is NOT stored",                            gap: false },
-            { field: "firmTaxonomyId",        type: "GUID",     required: true,  note: "Classification reference — REQUIRED; PDC rejects null (B2+B2A)",  gap: false },
-            { field: "classificationStatus",  type: "enum",     required: true,  note: "CLASSIFIED / UNCLASSIFIED / PENDING — enforced at write (B2+B2A)",  gap: false },
-            { field: "dataJson",             type: "JSON",     required: true,  note: "Normalized financial payload",                                      gap: false },
-            { field: "processingRunId",       type: "GUID",     required: true,  note: "Orchestrator run reference",                                        gap: false },
-          ].map((f) => (
-            <div key={f.field} className={`flex items-center gap-3 rounded-lg px-4 py-2.5 ${f.gap ? "bg-amber-900/30 border border-amber-500/30" : "bg-slate-100"}`}>
-              <span className={`font-mono text-xs w-44 shrink-0 ${f.gap ? "text-amber-300" : "text-sky-300"}`}>{f.field}</span>
-              <span className="text-slate-500 text-xs w-20 shrink-0">{f.type}</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase w-20 shrink-0 text-center ${f.required ? "bg-emerald-900/60 text-emerald-400 border border-emerald-600/40" : "bg-amber-900/60 text-amber-400 border border-amber-600/40"}`}>
+            { field: "documentId",          type: "GUID",     required: true,  note: "Immutable lineage anchor — set at ingestion",                      gap: false },
+            { field: "runId",               type: "GUID",     required: true,  note: "Processing run reference",                                         gap: false },
+            { field: "entityId",            type: "GUID",     required: true,  note: "PDC-assigned; immutable",                                          gap: false },
+            { field: "periodStart",         type: "DateOnly", required: true,  note: "Temporal model — TaxYear is NOT stored",                           gap: false },
+            { field: "periodEnd",           type: "DateOnly", required: true,  note: "Temporal model — TaxYear is NOT stored",                           gap: false },
+            { field: "firmTaxonomyId",       type: "GUID",     required: true,  note: "Classification reference — REQUIRED; PDC rejects null (B2+B2A)", gap: false },
+            { field: "classificationStatus", type: "enum",     required: true,  note: "CLASSIFIED / UNCLASSIFIED / PENDING — enforced at write (B2+B2A)",gap: false },
+            { field: "dataJson",            type: "JSON",     required: true,  note: "Normalized financial payload",                                     gap: false },
+            { field: "processingRunId",      type: "GUID",     required: true,  note: "Orchestrator run reference",                                       gap: false },
+          ].map((f, i) => (
+            <div key={f.field} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "9px 12px", borderRadius: "6px", backgroundColor: i % 2 === 0 ? "#f8fafc" : "#ffffff", borderBottom: "1px solid #f1f5f9" }}>
+              <span style={{ ...s.fieldName, color: f.gap ? "#92400e" : "#003865" }}>{f.field}</span>
+              <span style={s.fieldType}>{f.type}</span>
+              <span style={{
+                fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.04em",
+                minWidth: "72px", textAlign: "center", flexShrink: 0,
+                backgroundColor: f.required ? "#d1fae5" : "#fef3c7",
+                color: f.required ? "#065f46" : "#92400e",
+                border: f.required ? "1px solid #6ee7b7" : "1px solid #fcd34d",
+              }}>
                 {f.required ? "Required" : "Nullable ⚠"}
               </span>
-              <span className={`text-xs ${f.gap ? "text-amber-300" : "text-slate-400"}`}>{f.note}</span>
+              <span style={{ ...s.fieldNote, color: f.gap ? "#78350f" : "#374151" }}>{f.note}</span>
             </div>
           ))}
         </div>
@@ -284,38 +336,54 @@ function Step2Content() {
 
 function Step3Content() {
   return (
-    <div className="space-y-5">
-      <div className="bg-amber-950/60 border-2 border-amber-500/40 rounded-xl p-5">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🔄</span>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={s.sectionCard}>
+        <div style={{ ...s.sectionHeader, backgroundColor: "#78350f", borderBottom: "1px solid #92400e" }}>
+          <span style={{ fontSize: "18px" }}>🔄</span>
           <div>
-            <div className="text-amber-200 font-black text-base uppercase tracking-wide">Data Movement Strategy — Delivered</div>
-            <div className="text-amber-300/70 text-sm">B2A (PI 1 Complete) — Bulk import/export confirmed; environment promotion and replay are in scope</div>
+            <div style={{ ...s.sectionTitle, fontSize: "14px" }}>Data Movement Strategy — Delivered</div>
+            <div style={{ fontSize: "11px", color: "#fde68a", marginTop: "2px" }}>B2A (PI 1 Complete) — Bulk import/export confirmed; environment promotion and replay are in scope</div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="bg-slate-100 border border-slate-600/40 rounded-xl p-4">
-            <div className="text-xs font-bold text-amber-300 uppercase tracking-wide mb-3">Option A — Bulk Import / Export</div>
-            <div className="space-y-2 text-sm text-slate-300">
-              <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">✓</span><span>Supports environment promotion (Dev → QA → Prod)</span></div>
-              <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">✓</span><span>Enables replay of processing runs for audit or correction</span></div>
-              <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">✓</span><span>Supports initial data seeding and backfill scenarios</span></div>
-              <div className="flex items-start gap-2"><span className="text-amber-400 mt-0.5 shrink-0">⚠</span><span>Requires bulk API contract and data export governance</span></div>
+        <div style={s.sectionBody}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+            <div style={{ border: "1px solid #dde3ea", borderRadius: "8px", padding: "16px", backgroundColor: "#ffffff" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#003865", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>Option A — Bulk Import / Export</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[
+                  { icon: "✓", text: "Supports environment promotion (Dev → QA → Prod)", ok: true },
+                  { icon: "✓", text: "Enables replay of processing runs for audit or correction", ok: true },
+                  { icon: "✓", text: "Supports initial data seeding and backfill scenarios", ok: true },
+                  { icon: "⚠", text: "Requires bulk API contract and data export governance", ok: null },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                    <span style={{ color: item.ok === true ? "#059669" : "#d97706", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>{item.icon}</span>
+                    <span style={{ fontSize: "13px", color: "#374151", lineHeight: "1.4" }}>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ border: "1px solid #dde3ea", borderRadius: "8px", padding: "16px", backgroundColor: "#f8fafc" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>Option B — Row-Level Persistence Only</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[
+                  { icon: "✓", text: "Simpler contract surface — one record at a time", ok: true },
+                  { icon: "✓", text: "Lower risk of data leakage across environments", ok: true },
+                  { icon: "✕", text: "Cannot support environment promotion without re-ingestion", ok: false },
+                  { icon: "✕", text: "Replay requires full re-run from source — costly and slow", ok: false },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                    <span style={{ color: item.ok === true ? "#059669" : "#dc2626", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>{item.icon}</span>
+                    <span style={{ fontSize: "13px", color: "#374151", lineHeight: "1.4" }}>{item.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="bg-slate-100 border border-slate-600/40 rounded-xl p-4">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Option B — Row-Level Persistence Only</div>
-            <div className="space-y-2 text-sm text-slate-300">
-              <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">✓</span><span>Simpler contract surface — one record at a time</span></div>
-              <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">✓</span><span>Lower risk of data leakage across environments</span></div>
-              <div className="flex items-start gap-2"><span className="text-red-400 mt-0.5 shrink-0">✕</span><span>Cannot support environment promotion without re-ingestion</span></div>
-              <div className="flex items-start gap-2"><span className="text-red-400 mt-0.5 shrink-0">✕</span><span>Replay requires full re-run from source — costly and slow</span></div>
-            </div>
+          <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderLeft: "4px solid #d97706", borderRadius: "6px", padding: "12px 16px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Impact Statement</div>
+            <div style={{ fontSize: "13px", color: "#78350f", lineHeight: "1.5" }}>Bulk import/export was confirmed in B2A (PI 1 Complete). Environment promotion and replay are supported via the established bulk API contract.</div>
           </div>
-        </div>
-        <div className="bg-amber-900/30 border border-amber-500/30 rounded-lg px-4 py-3">
-          <div className="text-xs font-bold text-amber-300 uppercase tracking-wide mb-1">Impact Statement</div>
-            <div className="text-amber-100/80 text-sm">Bulk import/export was confirmed in B2A (PI 1 Complete). Environment promotion and replay are supported via the established bulk API contract.</div>
         </div>
       </div>
       <Callout color="amber" title="Decision Prompt" items={[
@@ -331,164 +399,176 @@ function Step3Content() {
 
 function Step4Content() {
   return (
-    <div className="space-y-5">
-
-      {/* ── Box 1: What is Classification? ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-blue-950/70 border-2 border-blue-500/40 rounded-xl p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xl">📘</span>
-            <div className="text-blue-200 font-black text-sm uppercase tracking-wide">What is Classification?</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* Box 1 & 2: Classification + Override */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        {/* Classification */}
+        <div style={{ ...s.sectionCard, marginBottom: 0 }}>
+          <div style={{ ...s.sectionHeader, backgroundColor: "#1e3a5f" }}>
+            <span style={{ fontSize: "16px" }}>📘</span>
+            <span style={s.sectionTitle}>What is Classification?</span>
           </div>
-          <p className="text-slate-200 text-sm leading-relaxed mb-4">
-            Classification is the process of assigning a financial record to a standardized category in the firm taxonomy.
-          </p>
-          <div className="grid grid-cols-1 gap-3">
-            {/* Input */}
-            <div className="bg-slate-100 border border-slate-600/40 rounded-lg p-3">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Input Record</div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-500 text-xs w-28 shrink-0">Account Name</span>
-                  <span className="text-slate-200 text-xs font-semibold">Operating Bank Account</span>
+          <div style={s.sectionBody}>
+            <p style={{ fontSize: "13px", color: "#374151", lineHeight: "1.6", marginBottom: "14px" }}>
+              Classification is the process of assigning a financial record to a standardized category in the firm taxonomy.
+            </p>
+            <div style={{ border: "1px solid #dde3ea", borderRadius: "8px", padding: "12px", marginBottom: "10px", backgroundColor: "#f8fafc" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>Input Record</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#64748b", minWidth: "120px" }}>Account Name</span>
+                  <span style={{ fontSize: "12px", color: "#0f1623", fontWeight: 600 }}>Operating Bank Account</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-500 text-xs w-28 shrink-0">Amount</span>
-                  <span className="text-slate-200 text-xs font-semibold">$500,000</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#64748b", minWidth: "120px" }}>Amount</span>
+                  <span style={{ fontSize: "12px", color: "#0f1623", fontWeight: 600 }}>$500,000</span>
                 </div>
               </div>
             </div>
-            {/* Arrow */}
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-0.5 flex-1 bg-blue-500/30" />
-              <span className="text-blue-400 text-xs font-bold">▼ Classification Applied</span>
-              <div className="h-0.5 flex-1 bg-blue-500/30" />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", margin: "8px 0" }}>
+              <div style={{ flex: 1, height: "1px", backgroundColor: "#dde3ea" }} />
+              <span style={{ fontSize: "11px", color: "#003865", fontWeight: 700 }}>▼ Classification Applied</span>
+              <div style={{ flex: 1, height: "1px", backgroundColor: "#dde3ea" }} />
             </div>
-            {/* Output */}
-            <div className="bg-emerald-900/40 border border-emerald-500/30 rounded-lg p-3">
-              <div className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-2">Classification Output</div>
-              <div className="space-y-1.5">
+            <div style={{ border: "1px solid #6ee7b7", borderRadius: "8px", padding: "12px", backgroundColor: "#f0fdf4" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>Classification Output</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {[
-                  { label: "FirmTaxonomyId",    value: "CASH_001",                              color: "text-emerald-300" },
-                  { label: "Canonical Account", value: "Cash",                                  color: "text-emerald-200" },
-                  { label: "Hierarchy",         value: "Assets → Current Assets → Cash",        color: "text-emerald-200" },
-                  { label: "Status",            value: "CLASSIFIED",                            color: "text-emerald-400" },
+                  { label: "FirmTaxonomyId",    value: "CASH_001",                       color: "#059669" },
+                  { label: "Canonical Account", value: "Cash",                           color: "#065f46" },
+                  { label: "Hierarchy",         value: "Assets → Current Assets → Cash", color: "#065f46" },
+                  { label: "Status",            value: "CLASSIFIED",                     color: "#059669" },
                 ].map((r) => (
-                  <div key={r.label} className="flex items-start gap-2">
-                    <span className="text-slate-500 text-xs w-32 shrink-0">{r.label}</span>
-                    <span className={`text-xs font-semibold ${r.color}`}>{r.value}</span>
+                  <div key={r.label} style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                    <span style={{ fontSize: "12px", color: "#64748b", minWidth: "128px", flexShrink: 0 }}>{r.label}</span>
+                    <span style={{ fontSize: "12px", fontWeight: 600, color: r.color }}>{r.value}</span>
                   </div>
                 ))}
               </div>
             </div>
+            <p style={{ fontSize: "11px", color: "#64748b", fontStyle: "italic", marginTop: "10px" }}>
+              This is what gives the data consistent meaning before it is used downstream.
+            </p>
           </div>
-          <p className="text-slate-400 text-xs mt-3 italic">
-            This is what gives the data consistent meaning before it is used downstream.
-          </p>
         </div>
 
-        {/* ── Box 2: Override Decision with Example ── */}
-        <div className="bg-amber-950/70 border-2 border-amber-500/40 rounded-xl p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xl">⚠</span>
-            <div className="text-amber-200 font-black text-sm uppercase tracking-wide">Override Decision — When Would This Be Needed?</div>
+        {/* Override Decision */}
+        <div style={{ ...s.sectionCard, marginBottom: 0 }}>
+          <div style={{ ...s.sectionHeader, backgroundColor: "#78350f" }}>
+            <span style={{ fontSize: "16px" }}>⚠</span>
+            <span style={s.sectionTitle}>Override Decision — When Would This Be Needed?</span>
           </div>
-          <p className="text-slate-200 text-sm leading-relaxed mb-4">
-            Overrides allow controlled exceptions when taxonomy rules do not fully resolve a valid classification.
-          </p>
-          {/* Scenario */}
-          <div className="bg-slate-100 border border-slate-600/40 rounded-lg p-3 mb-3">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Example Scenario</div>
-            <div className="space-y-1.5 mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500 text-xs w-36 shrink-0">Source Account</span>
-                <span className="text-slate-200 text-xs font-semibold">"Owner Distribution"</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500 text-xs w-36 shrink-0">System Classification</span>
-                <span className="text-red-300 text-xs font-semibold">Expense (EXPENSE_XXX)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500 text-xs w-36 shrink-0">Expected Classification</span>
-                <span className="text-emerald-300 text-xs font-semibold">Equity Distribution (EQUITY_DIST_XXX)</span>
-              </div>
-            </div>
-            <div className="bg-amber-900/30 border border-amber-500/30 rounded px-3 py-2">
-              <div className="text-xs font-bold text-amber-400 mb-1">Override Action</div>
-              <div className="text-xs text-amber-100/80">Override FirmTaxonomyId from <span className="font-mono text-red-300">EXPENSE_XXX</span> → <span className="font-mono text-emerald-300">EQUITY_DIST_XXX</span></div>
-            </div>
-          </div>
-          {/* Governance requirements */}
-          <div className="bg-slate-100 border border-slate-600/30 rounded-lg p-3">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">If Overrides Are Allowed, They Must:</div>
-            <div className="space-y-1.5">
-              {[
-                "Preserve original classification",
-                "Capture updated classification",
-                "Record reason for change",
-                "Capture approver and timestamp",
-              ].map((req, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="text-amber-400 text-xs shrink-0">›</span>
-                  <span className="text-slate-300 text-xs">{req}</span>
+          <div style={s.sectionBody}>
+            <p style={{ fontSize: "13px", color: "#374151", lineHeight: "1.6", marginBottom: "14px" }}>
+              Overrides allow controlled exceptions when taxonomy rules do not fully resolve a valid classification.
+            </p>
+            <div style={{ border: "1px solid #dde3ea", borderRadius: "8px", padding: "12px", marginBottom: "10px", backgroundColor: "#f8fafc" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>Example Scenario</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#64748b", minWidth: "144px", flexShrink: 0 }}>Source Account</span>
+                  <span style={{ fontSize: "12px", color: "#0f1623", fontWeight: 600 }}>"Owner Distribution"</span>
                 </div>
-              ))}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#64748b", minWidth: "144px", flexShrink: 0 }}>System Classification</span>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#dc2626" }}>Expense (EXPENSE_XXX)</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#64748b", minWidth: "144px", flexShrink: 0 }}>Expected Classification</span>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#059669" }}>Equity Distribution (EQUITY_DIST_XXX)</span>
+                </div>
+              </div>
+              <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "6px", padding: "8px 12px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", marginBottom: "3px" }}>Override Action</div>
+                <div style={{ fontSize: "12px", color: "#78350f" }}>Override FirmTaxonomyId from <span style={{ fontFamily: "monospace", color: "#dc2626" }}>EXPENSE_XXX</span> → <span style={{ fontFamily: "monospace", color: "#059669" }}>EQUITY_DIST_XXX</span></div>
+              </div>
             </div>
+            <div style={{ border: "1px solid #dde3ea", borderRadius: "8px", padding: "12px", backgroundColor: "#ffffff" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>If Overrides Are Allowed, They Must:</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                {["Preserve original classification", "Capture updated classification", "Record reason for change", "Capture approver and timestamp"].map((req, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ color: "#d97706", fontWeight: 700, flexShrink: 0 }}>›</span>
+                    <span style={{ fontSize: "12px", color: "#374151" }}>{req}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p style={{ fontSize: "11px", color: "#92400e", fontWeight: 600, fontStyle: "italic", marginTop: "10px" }}>
+              Overrides are not the default — they are a governed exception path.
+            </p>
           </div>
-          <p className="text-amber-300/80 text-xs mt-3 font-semibold italic">
-            Overrides are not the default — they are a governed exception path.
-          </p>
         </div>
       </div>
 
-      {/* ── Existing taxonomy content below ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Existing taxonomy content */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         {/* Canonical Accounts + Firm Taxonomy Bridge */}
-        <div className="bg-slate-800/80 border border-slate-600/40 rounded-xl p-4">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Canonical Accounts → Firm Taxonomy Bridge</div>
-          <div className="space-y-2">
+        <div style={s.sectionCard}>
+          <div style={s.sectionHeader}>
+            <span style={s.sectionTitle}>Canonical Accounts → Firm Taxonomy Bridge</span>
+          </div>
+          <div style={s.sectionBody}>
             {[
               { canonical: "CA-1001", label: "Fixed Assets — Prop & Equip", firmId: "FT-4210", firmLabel: "Depreciable Property" },
               { canonical: "CA-1002", label: "Fixed Assets — Intangibles",  firmId: "FT-4211", firmLabel: "Amortizable Intangibles" },
               { canonical: "CA-2001", label: "Liquid Assets — Cash",        firmId: "FT-3100", firmLabel: "Cash & Equivalents" },
               { canonical: "CA-3001", label: "Revenue — Service",           firmId: "FT-5010", firmLabel: "Service Revenue" },
               { canonical: "CA-4001", label: "Expense — Compensation",      firmId: "FT-6100", firmLabel: "Compensation Expense" },
-            ].map((r) => (
-              <div key={r.canonical} className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
-                <span className="font-mono text-sky-300 text-xs w-16 shrink-0">{r.canonical}</span>
-                <span className="text-slate-400 text-xs flex-1 min-w-0 truncate">{r.label}</span>
-                <span className="text-slate-600 text-xs mx-1">→</span>
-                <span className="font-mono text-emerald-300 text-xs w-16 shrink-0">{r.firmId}</span>
-                <span className="text-slate-400 text-xs flex-1 min-w-0 truncate">{r.firmLabel}</span>
+            ].map((r, i) => (
+              <div key={r.canonical} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 10px", borderRadius: "6px", backgroundColor: i % 2 === 0 ? "#f8fafc" : "#ffffff", borderBottom: "1px solid #f1f5f9" }}>
+                <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#003865", fontWeight: 700, minWidth: "60px", flexShrink: 0 }}>{r.canonical}</span>
+                <span style={{ fontSize: "12px", color: "#64748b", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
+                <span style={{ fontSize: "12px", color: "#94a3b8", flexShrink: 0 }}>→</span>
+                <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#059669", fontWeight: 700, minWidth: "60px", flexShrink: 0 }}>{r.firmId}</span>
+                <span style={{ fontSize: "12px", color: "#64748b", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.firmLabel}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Hierarchy Rules + Override Decision */}
-        <div className="space-y-3">
-          <div className="bg-emerald-950/60 border border-emerald-500/30 rounded-xl p-4">
-            <div className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-2">Hierarchy Ownership</div>
-            <div className="space-y-1.5 text-sm text-emerald-100/80">
-              <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">›</span><span>Taxonomy service defines parent-child relationships, hierarchy path, and inheritance rules.</span></div>
-              <div className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5 shrink-0">›</span><span>PDC should not duplicate hierarchy or classification logic.</span></div>
+        {/* Hierarchy + Override + Metadata */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={s.sectionCard}>
+            <div style={{ ...s.sectionHeader, backgroundColor: "#065f46" }}>
+              <span style={s.sectionTitle}>Hierarchy Ownership</span>
+            </div>
+            <div style={s.sectionBody}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                  <span style={{ color: "#059669", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>›</span>
+                  <span style={{ fontSize: "13px", color: "#374151", lineHeight: "1.5" }}>Taxonomy service defines parent-child relationships, hierarchy path, and inheritance rules.</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                  <span style={{ color: "#059669", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>›</span>
+                  <span style={{ fontSize: "13px", color: "#374151", lineHeight: "1.5" }}>PDC should not duplicate hierarchy or classification logic.</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="bg-amber-950/60 border border-amber-500/30 rounded-xl p-4">
-            <div className="text-xs font-bold text-amber-400 uppercase tracking-wide mb-2">Override Decision ⚖</div>
-            <div className="space-y-1.5 text-sm text-amber-100/80">
-              <div className="flex items-start gap-2"><span className="text-amber-400 mt-0.5 shrink-0">?</span><span>Should classification overrides be allowed when taxonomy rules do not fully resolve a valid classification?</span></div>
+          <div style={s.sectionCard}>
+            <div style={{ ...s.sectionHeader, backgroundColor: "#78350f" }}>
+              <span style={s.sectionTitle}>Override Decision ⚖</span>
             </div>
-            <div className="mt-3 space-y-1.5 text-xs text-slate-300">
-              <div className="font-semibold text-slate-400 uppercase tracking-wide mb-1">If Allowed — Governance Requirements</div>
+            <div style={s.sectionBody}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "10px" }}>
+                <span style={{ color: "#d97706", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>?</span>
+                <span style={{ fontSize: "13px", color: "#374151", lineHeight: "1.5" }}>Should classification overrides be allowed when taxonomy rules do not fully resolve a valid classification?</span>
+              </div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>If Allowed — Governance Requirements</div>
               {["Overrides must be fully auditable.", "Must capture original value, updated value, reason, approver, and timestamp.", "Overrides may be required when source data is incomplete, mappings are ambiguous, or business-approved exceptions are needed."].map((item, i) => (
-                <div key={i} className="flex items-start gap-2"><span className="text-amber-400 mt-0.5 shrink-0">›</span><span>{item}</span></div>
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "4px" }}>
+                  <span style={{ color: "#d97706", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>›</span>
+                  <span style={{ fontSize: "12px", color: "#374151", lineHeight: "1.4" }}>{item}</span>
+                </div>
               ))}
             </div>
           </div>
-          <div className="bg-slate-800/80 border border-slate-600/40 rounded-xl p-4">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Metadata Attributes</div>
-            <div className="space-y-1.5">
+          <div style={s.sectionCard}>
+            <div style={s.sectionHeader}>
+              <span style={s.sectionTitle}>Metadata Attributes</span>
+            </div>
+            <div style={s.sectionBody}>
               {[
                 { attr: "Jurisdiction",    val: "Federal / State / Local" },
                 { attr: "EntityType",      val: "C-Corp / Partnership / S-Corp" },
@@ -496,10 +576,10 @@ function Step4Content() {
                 { attr: "AdjustmentType",  val: "Permanent / Temporary" },
                 { attr: "EffectiveFrom",   val: "PeriodStart-aligned" },
                 { attr: "TaxonomyVersion", val: "Semantic versioning (TDC-owned)" },
-              ].map((a) => (
-                <div key={a.attr} className="flex items-center gap-2 bg-slate-100 rounded px-2.5 py-1.5">
-                  <span className="text-emerald-300 text-xs font-mono w-28 shrink-0">{a.attr}</span>
-                  <span className="text-slate-400 text-xs">{a.val}</span>
+              ].map((a, i) => (
+                <div key={a.attr} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", borderRadius: "4px", backgroundColor: i % 2 === 0 ? "#f8fafc" : "#ffffff", borderBottom: "1px solid #f1f5f9" }}>
+                  <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#059669", fontWeight: 700, minWidth: "112px", flexShrink: 0 }}>{a.attr}</span>
+                  <span style={{ fontSize: "12px", color: "#374151" }}>{a.val}</span>
                 </div>
               ))}
             </div>
@@ -520,47 +600,45 @@ function Step4Content() {
 
 function Step5Content() {
   return (
-    <div className="space-y-5">
-      <div className="bg-emerald-950/60 border-2 border-emerald-500/40 rounded-xl p-5 shadow-lg shadow-emerald-900/20">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">✅</span>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={s.sectionCard}>
+        <div style={{ ...s.sectionHeader, backgroundColor: "#065f46" }}>
+          <span style={{ fontSize: "18px" }}>✅</span>
           <div>
-            <div className="text-emerald-200 font-black text-base uppercase tracking-wide">Gap Resolved — Orchestrator Output (B2+B2A, PI 1 Complete)</div>
-            <div className="text-emerald-300/80 text-sm">FirmTaxonomyId and ClassificationStatus are now required fields in the Orchestrator output contract</div>
+            <div style={{ ...s.sectionTitle, fontSize: "14px" }}>Gap Resolved — Orchestrator Output (B2+B2A, PI 1 Complete)</div>
+            <div style={{ fontSize: "11px", color: "#6ee7b7", marginTop: "2px" }}>FirmTaxonomyId and ClassificationStatus are now required fields in the Orchestrator output contract</div>
           </div>
         </div>
-        <div className="bg-emerald-900/30 border border-emerald-500/30 rounded-lg p-4 mb-4">
-          <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-3">Orchestrator Output — Delivered State</div>
-          <div className="space-y-1.5">
+        <div style={s.sectionBody}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#003865", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>Orchestrator Output — Delivered State</div>
+          {[
+            { field: "documentId",              present: true, note: "✓ Present" },
+            { field: "runId",                   present: true, note: "✓ Present" },
+            { field: "entityId",                present: true, note: "✓ Present" },
+            { field: "periodStart",             present: true, note: "✓ Present" },
+            { field: "periodEnd",               present: true, note: "✓ Present" },
+            { field: "normalizedAmount",         present: true, note: "✓ Present" },
+            { field: "firmTaxonomyId",           present: true, note: "✓ REQUIRED — delivered B2+B2A" },
+            { field: "classificationStatus",     present: true, note: "✓ REQUIRED — CLASSIFIED enforced" },
+            { field: "classificationConfidence", present: true, note: "✓ RETURNED — confidence score included" },
+          ].map((f, i) => (
+            <div key={f.field} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 12px", borderRadius: "6px", backgroundColor: !f.present ? "#fef2f2" : i % 2 === 0 ? "#f0fdf4" : "#ffffff", border: !f.present ? "1px solid #fecaca" : "1px solid transparent", borderBottom: "1px solid #f1f5f9" }}>
+              <span style={{ fontFamily: "monospace", fontSize: "12px", fontWeight: 700, color: !f.present ? "#dc2626" : "#003865", minWidth: "210px", flexShrink: 0 }}>{f.field}</span>
+              <span style={{ fontSize: "12px", fontWeight: 600, color: !f.present ? "#dc2626" : "#059669" }}>{f.note}</span>
+            </div>
+          ))}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "16px" }}>
             {[
-              { field: "documentId",             present: true,  note: "✓ Present" },
-              { field: "runId",                  present: true,  note: "✓ Present" },
-              { field: "entityId",               present: true,  note: "✓ Present" },
-              { field: "periodStart",            present: true,  note: "✓ Present" },
-              { field: "periodEnd",              present: true,  note: "✓ Present" },
-              { field: "normalizedAmount",        present: true,  note: "✓ Present" },
-              { field: "firmTaxonomyId",          present: true,  note: "✓ REQUIRED — delivered B2+B2A" },
-              { field: "classificationStatus",    present: true,  note: "✓ REQUIRED — CLASSIFIED enforced" },
-              { field: "classificationConfidence",present: true,  note: "✓ RETURNED — confidence score included" },
-            ].map((f) => (
-            <div key={f.field} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${!f.present ? "bg-red-900/60 border border-red-400/40" : "bg-emerald-900/20 border border-emerald-600/20"}`}>
-              <span className={`font-mono text-xs w-52 shrink-0 ${!f.present ? "text-red-300 font-bold" : "text-emerald-300"}`}>{f.field}</span>
-              <span className={`text-xs font-semibold ${!f.present ? "text-red-300" : "text-emerald-400"}`}>{f.note}</span>
+              { label: "PDC Status",       desc: "FirmTaxonomyId and ClassificationStatus are REQUIRED on all NormalizedRecords — PDC rejects unclassified writes", color: "#065f46", bg: "#f0fdf4", border: "#6ee7b7" },
+              { label: "Retrieval Status", desc: "classificationStatus filter is fully operational — CLASSIFIED records are returned correctly from DataRecords API", color: "#065f46", bg: "#f0fdf4", border: "#6ee7b7" },
+              { label: "Batch 4 Status",   desc: "Tax mapping is unblocked — B4 AI mapping proceeded with classification confirmed (PI 2 Complete)",                  color: "#065f46", bg: "#f0fdf4", border: "#6ee7b7" },
+            ].map((item) => (
+              <div key={item.label} style={{ borderRadius: "8px", border: `1px solid ${item.border}`, padding: "12px 14px", backgroundColor: item.bg }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: item.color, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>{item.label}</div>
+                <div style={{ fontSize: "12px", color: "#374151", lineHeight: "1.5" }}>{item.desc}</div>
               </div>
             ))}
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[
-            { label: "PDC Status",        desc: "FirmTaxonomyId and ClassificationStatus are REQUIRED on all NormalizedRecords — PDC rejects unclassified writes",                color: "border-emerald-500/40 bg-emerald-900/20 text-emerald-300" },
-            { label: "Retrieval Status",  desc: "classificationStatus filter is fully operational — CLASSIFIED records are returned correctly from DataRecords API",            color: "border-emerald-500/40 bg-emerald-900/20 text-emerald-300" },
-            { label: "Batch 4 Status",    desc: "Tax mapping is unblocked — B4 AI mapping proceeded with classification confirmed (PI 2 Complete)",                              color: "border-emerald-500/40 bg-emerald-900/20 text-emerald-300" },
-          ].map((i) => (
-            <div key={i.label} className={`rounded-lg border px-4 py-3 ${i.color}`}>
-              <div className="text-xs font-bold uppercase tracking-wide mb-1">{i.label}</div>
-              <div className="text-slate-300 text-xs leading-relaxed">{i.desc}</div>
-            </div>
-          ))}
         </div>
       </div>
       <Callout color="emerald" title="Resolution Summary" items={[
@@ -578,30 +656,32 @@ function Step5Content() {
 
 function Step6Content() {
   return (
-    <div className="space-y-5">
-      <div className="bg-emerald-950/60 border border-emerald-500/30 rounded-xl p-5">
-        <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-4">Expected Flow — All Records Include FirmTaxonomyId</div>
-        <div className="space-y-3">
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={s.sectionCard}>
+        <div style={{ ...s.sectionHeader, backgroundColor: "#065f46" }}>
+          <span style={s.sectionTitle}>Expected Flow — All Records Include FirmTaxonomyId</span>
+        </div>
+        <div style={s.sectionBody}>
           {[
-            { step: "1", label: "Ingestion",     desc: "Source file received; DocumentId assigned; PeriodStart/PeriodEnd set",                                  system: "PDC",           wasGap: false },
-            { step: "2", label: "Orchestrator",  desc: "Normalizes financial data AND calls taxonomy service — returns FirmTaxonomyId + ClassificationStatus",  system: "AI Orchestrator",wasGap: true  },
-            { step: "3", label: "Classification",desc: "Taxonomy service resolves canonical account → FirmTaxonomyId via metadata conditions",                  system: "TDC / Taxonomy", wasGap: false },
-            { step: "4", label: "PDC Storage",   desc: "NormalizedRecord stored with FirmTaxonomyId and ClassificationStatus = CLASSIFIED",                     system: "PDC",           wasGap: false },
-            { step: "5", label: "Retrieval",     desc: "DataRecords API returns complete records — classificationStatus filter works as designed",               system: "PDC API",       wasGap: false },
-          ].map((s) => (
-            <div key={s.step} className={`flex items-start gap-4 rounded-lg px-4 py-3 ${s.wasGap ? "bg-emerald-900/40 border border-emerald-400/40" : "bg-slate-900/40"}`}>
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5 ${s.wasGap ? "bg-emerald-500 text-white" : "bg-slate-700 text-slate-300"}`}>
-                {s.step}
+            { step: "1", label: "Ingestion",     desc: "Source file received; DocumentId assigned; PeriodStart/PeriodEnd set",                                  system: "PDC",            wasGap: false },
+            { step: "2", label: "Orchestrator",  desc: "Normalizes financial data AND calls taxonomy service — returns FirmTaxonomyId + ClassificationStatus",  system: "AI Orchestrator", wasGap: true  },
+            { step: "3", label: "Classification",desc: "Taxonomy service resolves canonical account → FirmTaxonomyId via metadata conditions",                  system: "TDC / Taxonomy",  wasGap: false },
+            { step: "4", label: "PDC Storage",   desc: "NormalizedRecord stored with FirmTaxonomyId and ClassificationStatus = CLASSIFIED",                     system: "PDC",            wasGap: false },
+            { step: "5", label: "Retrieval",     desc: "DataRecords API returns complete records — classificationStatus filter works as designed",               system: "PDC API",         wasGap: false },
+          ].map((step) => (
+            <div key={step.step} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "12px 14px", borderRadius: "8px", marginBottom: "8px", backgroundColor: step.wasGap ? "#f0fdf4" : "#f8fafc", border: step.wasGap ? "1px solid #6ee7b7" : "1px solid #f1f5f9" }}>
+              <div style={{ width: "24px", height: "24px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, flexShrink: 0, marginTop: "1px", backgroundColor: step.wasGap ? "#059669" : "#003865", color: "#ffffff" }}>
+                {step.step}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className={`text-sm font-bold ${s.wasGap ? "text-emerald-200" : "text-slate-200"}`}>{s.label}</span>
-                  {s.wasGap && <span className="text-[10px] bg-emerald-600/40 border border-emerald-500/40 text-emerald-300 px-1.5 py-0.5 rounded font-bold uppercase">Fixed Here</span>}
-                  <span className="text-slate-500 text-xs ml-auto">{s.system}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: step.wasGap ? "#065f46" : "#0f1623" }}>{step.label}</span>
+                  {step.wasGap && <span style={{ fontSize: "10px", backgroundColor: "#059669", color: "#ffffff", padding: "1px 6px", borderRadius: "3px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Fixed Here</span>}
+                  <span style={{ fontSize: "11px", color: "#64748b", marginLeft: "auto" }}>{step.system}</span>
                 </div>
-                <div className="text-slate-400 text-xs leading-relaxed">{s.desc}</div>
+                <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{step.desc}</div>
               </div>
-              <span className="text-emerald-400 font-bold text-sm shrink-0 mt-0.5">✓</span>
+              <span style={{ color: "#059669", fontWeight: 700, fontSize: "14px", flexShrink: 0, marginTop: "3px" }}>✓</span>
             </div>
           ))}
         </div>
@@ -614,42 +694,35 @@ function Step6Content() {
   );
 }
 
-// ─── Step 7: Current Break Point ─────────────────────────────────────────────
+// ─── Step 7: Resolved Flow ────────────────────────────────────────────────────
 
 function Step7Content() {
   return (
-    <div className="space-y-5">
-      <div className="bg-emerald-950/60 border-2 border-emerald-500/40 rounded-xl p-5">
-        <div className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-4">Resolved State — Classification Gap Closed (B2+B2A, PI 1 Complete)</div>
-        <div className="space-y-3">
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={s.sectionCard}>
+        <div style={{ ...s.sectionHeader, backgroundColor: "#065f46" }}>
+          <span style={s.sectionTitle}>Resolved State — Classification Gap Closed (B2+B2A, PI 1 Complete)</span>
+        </div>
+        <div style={s.sectionBody}>
           {[
-            { step: "1", label: "Ingestion",      desc: "Source file received; DocumentId assigned",                                                             system: "PDC",            ok: true  },
-            { step: "2", label: "Orchestrator",   desc: "Normalizes financial data AND calls taxonomy service — returns FirmTaxonomyId + ClassificationStatus (B2+B2A)",  system: "AI Orchestrator", ok: true  },
-            { step: "3", label: "Classification", desc: "Taxonomy service resolves canonical account → FirmTaxonomyId via metadata conditions (B3, PI 1 Complete)",           system: "TDC / Taxonomy",  ok: true  },
-            { step: "4", label: "PDC Storage",    desc: "NormalizedRecord stored with FirmTaxonomyId REQUIRED and ClassificationStatus = CLASSIFIED (B2+B2A)",              system: "PDC",            ok: true  },
-            { step: "5", label: "Retrieval",      desc: "classificationStatus filter fully operational — CLASSIFIED records returned correctly from DataRecords API",     system: "PDC API",         ok: true  },
-          ].map((s, idx) => (
-            <div key={s.step} className={`flex items-start gap-4 rounded-lg px-4 py-3 border ${
-              s.isBreak   ? "bg-red-900/60 border-red-400/60 shadow-md shadow-red-900/30" :
-              s.isMissing ? "bg-red-900/40 border-red-500/30" :
-              s.ok        ? "bg-slate-900/40 border-slate-700/40" :
-                            "bg-slate-900/40 border-amber-500/20"
-            }`}>
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5 ${
-                s.isBreak ? "bg-red-500 text-white" : s.isMissing ? "bg-red-800 text-red-300" : s.ok ? "bg-slate-700 text-slate-300" : "bg-amber-800 text-amber-300"
-              }`}>
-                {s.step}
+            { step: "1", label: "Ingestion",      desc: "Source file received; DocumentId assigned",                                                                              system: "PDC",             ok: true  },
+            { step: "2", label: "Orchestrator",   desc: "Normalizes financial data AND calls taxonomy service — returns FirmTaxonomyId + ClassificationStatus (B2+B2A)",          system: "AI Orchestrator",  ok: true  },
+            { step: "3", label: "Classification", desc: "Taxonomy service resolves canonical account → FirmTaxonomyId via metadata conditions (B3, PI 1 Complete)",               system: "TDC / Taxonomy",   ok: true  },
+            { step: "4", label: "PDC Storage",    desc: "NormalizedRecord stored with FirmTaxonomyId REQUIRED and ClassificationStatus = CLASSIFIED (B2+B2A)",                   system: "PDC",             ok: true  },
+            { step: "5", label: "Retrieval",      desc: "classificationStatus filter fully operational — CLASSIFIED records returned correctly from DataRecords API",             system: "PDC API",          ok: true  },
+          ].map((step) => (
+            <div key={step.step} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "12px 14px", borderRadius: "8px", marginBottom: "8px", backgroundColor: "#f8fafc", border: "1px solid #f1f5f9" }}>
+              <div style={{ width: "24px", height: "24px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, flexShrink: 0, marginTop: "1px", backgroundColor: "#003865", color: "#ffffff" }}>
+                {step.step}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className={`text-sm font-bold ${s.isBreak ? "text-red-200" : s.isMissing ? "text-red-300" : s.ok ? "text-slate-300" : "text-amber-300"}`}>{s.label}</span>
-                  {s.isBreak   && <span className="text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded font-black uppercase">⚡ Break Point</span>}
-                  {s.isMissing && <span className="text-[10px] bg-red-900/60 border border-red-500/40 text-red-300 px-1.5 py-0.5 rounded font-bold uppercase">Not Called</span>}
-                  <span className="text-slate-500 text-xs ml-auto">{s.system}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>{step.label}</span>
+                  <span style={{ fontSize: "11px", color: "#64748b", marginLeft: "auto" }}>{step.system}</span>
                 </div>
-                <div className={`text-xs leading-relaxed ${s.isBreak ? "text-red-300" : s.isMissing ? "text-red-400" : "text-slate-400"}`}>{s.desc}</div>
+                <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{step.desc}</div>
               </div>
-              <span className={`font-bold text-sm shrink-0 mt-0.5 ${s.ok ? "text-emerald-400" : "text-red-400"}`}>{s.ok ? "✓" : "✕"}</span>
+              <span style={{ color: "#059669", fontWeight: 700, fontSize: "14px", flexShrink: 0, marginTop: "3px" }}>✓</span>
             </div>
           ))}
         </div>
@@ -668,66 +741,68 @@ function Step7Content() {
 function Step8Content({ decisions, onToggle }: { decisions: DecisionCheckpoint[]; onToggle: (id: number) => void }) {
   const answered = decisions.filter((d) => d.answered).length;
   return (
-    <div className="space-y-5">
-      {/* Final Message */}
-      <div className="bg-slate-800/80 border-2 border-amber-500/50 rounded-xl p-6 shadow-lg shadow-amber-900/20">
-        <div className="flex items-start gap-4">
-          <span className="text-3xl mt-1">⚖</span>
-          <div>
-              <div className="text-emerald-200 font-black text-base mb-2 uppercase tracking-wide">Governance Summary</div>
-            <div className="text-white text-base leading-relaxed font-medium">
-              Classification is enforced across the full platform stack.
-            </div>
-            <div className="text-emerald-100/80 text-sm leading-relaxed mt-1">
-              All six governance decisions are confirmed — B2+B2A and B3 delivered PI 1 Complete.
-            </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* Governance Summary */}
+      <div style={{ border: "2px solid #003865", borderRadius: "12px", padding: "20px 24px", backgroundColor: "#eff6ff", display: "flex", alignItems: "flex-start", gap: "16px" }}>
+        <span style={{ fontSize: "28px", marginTop: "2px" }}>⚖</span>
+        <div>
+          <div style={{ fontSize: "14px", fontWeight: 800, color: "#003865", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>Governance Summary</div>
+          <div style={{ fontSize: "15px", fontWeight: 600, color: "#0f1623", lineHeight: "1.5" }}>
+            Classification is enforced across the full platform stack.
+          </div>
+          <div style={{ fontSize: "13px", color: "#374151", lineHeight: "1.5", marginTop: "4px" }}>
+            All six governance decisions are confirmed — B2+B2A and B3 delivered PI 1 Complete.
           </div>
         </div>
       </div>
 
       {/* Decision Checkpoints */}
-      <div className="bg-slate-800/80 border border-amber-500/30 rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-amber-400 text-lg">⚖</span>
-            <div>
-              <div className="text-emerald-200 font-bold text-sm uppercase tracking-wide">Decision Checkpoints</div>
-              <div className="text-slate-400 text-xs">All confirmed — B2+B2A and B3 delivered PI 1 Complete</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-emerald-400 font-semibold">{answered}/{decisions.length} confirmed</span>
-            <div className="w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${(answered / decisions.length) * 100}%` }} />
-            </div>
+      <div style={s.sectionCard}>
+        <div style={s.sectionHeader}>
+          <span style={{ fontSize: "16px" }}>⚖</span>
+          <span style={s.sectionTitle}>Decision Checkpoints</span>
+          <span style={{ marginLeft: "auto", fontSize: "11px", color: "#6ee7b7", fontWeight: 700 }}>{answered}/{decisions.length} confirmed</span>
+          <div style={{ width: "80px", height: "6px", backgroundColor: "rgba(255,255,255,0.2)", borderRadius: "3px", overflow: "hidden", marginLeft: "8px" }}>
+            <div style={{ height: "100%", width: `${(answered / decisions.length) * 100}%`, backgroundColor: "#059669", borderRadius: "3px", transition: "width 0.4s ease" }} />
           </div>
         </div>
-        <div className="space-y-2.5">
-          {decisions.map((d) => (
-            <button
-              key={d.id}
-              onClick={() => onToggle(d.id)}
-              className={`w-full text-left flex items-start gap-3 rounded-lg px-4 py-3 border transition-all duration-200 ${
-                d.answered
-                  ? "bg-emerald-900/30 border-emerald-500/30 hover:bg-emerald-900/40"
-                  : "bg-slate-100 border-slate-600/40 hover:bg-slate-700/60"
-              }`}
-            >
-              <div className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${d.answered ? "bg-emerald-500 border-emerald-400" : "border-slate-500"}`}>
-                {d.answered && <span className="text-white text-[10px] font-black">✓</span>}
-              </div>
-              <span className={`text-sm leading-snug ${d.answered ? "text-emerald-200 line-through opacity-70" : "text-slate-200"}`}>
-                {d.question}
-              </span>
-            </button>
-          ))}
-        </div>
+        <div style={{ padding: "16px 20px" }}>
+          <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "12px" }}>All confirmed — B2+B2A and B3 delivered PI 1 Complete</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {decisions.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => onToggle(d.id)}
+                style={{
+                  width: "100%", textAlign: "left", display: "flex", alignItems: "flex-start", gap: "12px",
+                  padding: "12px 16px", borderRadius: "8px", cursor: "pointer",
+                  backgroundColor: d.answered ? "#f0fdf4" : "#f8fafc",
+                  border: d.answered ? "1px solid #6ee7b7" : "1px solid #dde3ea",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div style={{
+                  marginTop: "1px", width: "16px", height: "16px", borderRadius: "3px", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  backgroundColor: d.answered ? "#059669" : "#ffffff",
+                  border: d.answered ? "2px solid #059669" : "2px solid #d1d5db",
+                  transition: "all 0.15s ease",
+                }}>
+                  {d.answered && <span style={{ color: "white", fontSize: "10px", fontWeight: 800 }}>✓</span>}
+                </div>
+                <span style={{ fontSize: "13px", lineHeight: "1.5", color: d.answered ? "#065f46" : "#374151", textDecoration: d.answered ? "line-through" : "none", opacity: d.answered ? 0.75 : 1 }}>
+                  {d.question}
+                </span>
+              </button>
+            ))}
+          </div>
           {answered === decisions.length && (
-          <div className="mt-4 flex items-center gap-2 bg-emerald-900/30 border border-emerald-500/30 rounded-lg px-4 py-3">
-            <span className="text-emerald-400">✓</span>
-            <span className="text-emerald-200 text-sm font-semibold">All governance decisions confirmed — Orchestrator contract published (B2+B2A, PI 1 Complete)</span>
-          </div>
-        )}
+            <div style={{ marginTop: "14px", display: "flex", alignItems: "center", gap: "10px", backgroundColor: "#f0fdf4", border: "1px solid #6ee7b7", borderRadius: "8px", padding: "12px 16px" }}>
+              <span style={{ color: "#059669", fontWeight: 700 }}>✓</span>
+              <span style={{ fontSize: "13px", color: "#065f46", fontWeight: 600 }}>All governance decisions confirmed — Orchestrator contract published (B2+B2A, PI 1 Complete)</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -756,173 +831,178 @@ export default function ClassificationWalkthroughPage() {
   const answeredCount = decisions.filter((d) => d.answered).length;
 
   return (
-    <div className="min-h-screen" style={{ background: "#f8fafc", color: "#0f1623" }}>
-      {/* Header */}
-      <div style={{ borderBottom: "2px solid #e2e8f0", background: "#0f1623", padding: "16px 24px", position: "sticky", top: 0, zIndex: 30 }}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <span className="bg-blue-600/30 border border-blue-500/40 text-blue-300 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Architecture Walkthrough</span>
-              <span className="bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">PI 1 Complete</span>
+    <div style={{ background: "#f8fafc", color: "#0f1623", minHeight: "100vh", fontFamily: "system-ui, sans-serif" }}>
+      {/* ── Platform Standard Header ── */}
+      <div style={{ borderBottom: "2px solid #e2e8f0", background: "#ffffff", padding: "16px 32px", position: "sticky", top: 0, zIndex: 30, boxShadow: "0 1px 4px rgba(0,56,101,0.06)" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#ffffff", backgroundColor: "#003865", padding: "2px 8px", borderRadius: "4px" }}>Architecture Walkthrough</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#065f46", backgroundColor: "#d1fae5", padding: "2px 8px", borderRadius: "4px", border: "1px solid #6ee7b7" }}>PI 1 Complete</span>
+              </div>
+              <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#111827", margin: "0 0 2px" }}>
+                Taxonomy Classification — PDC &amp; Orchestrator Delivery Review
+              </h1>
+              <p style={{ fontSize: "13px", color: "#6b7280", margin: 0 }}>
+                Classification enforced across PDC, Orchestrator, and Taxonomy Service · B2+B2A+B3 delivered PI 1 Complete
+              </p>
+              <p style={{ fontSize: "11px", color: "#9ca3af", fontStyle: "italic", marginTop: "3px" }}>
+                Authoritative scope: Classification validation, PDC contract enforcement, taxonomy service integration ·{" "}
+                <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>← Platform Home</a>
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>Delivered by</span>
+                {["B2", "B2A", "B3"].map((b) => (
+                  <span key={b} style={{ fontSize: "11px", fontWeight: 700, color: "#003865", backgroundColor: "#dbeafe", padding: "1px 7px", borderRadius: "4px", border: "1px solid #bfdbfe" }}>{b}</span>
+                ))}
+                <span style={{ color: "#d1d5db", fontSize: "12px" }}>·</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", backgroundColor: "#d1fae5", padding: "1px 7px", borderRadius: "4px", border: "1px solid #6ee7b7", textTransform: "uppercase", letterSpacing: "0.05em" }}>PI 1 Complete</span>
+                <span style={{ color: "#d1d5db", fontSize: "12px" }}>·</span>
+                <span style={{ fontSize: "11px", color: "#9ca3af" }}>May 21, 2026</span>
+              </div>
             </div>
-            <h1 className="text-lg font-black text-white tracking-tight leading-tight">
-              Taxonomy Classification — PDC &amp; Orchestrator Delivery Review
-            </h1>
-            <div className="text-slate-400 text-xs mt-0.5">
-              Classification enforced across PDC, Orchestrator, and Taxonomy Service — B2+B2A+B3 delivered PI 1 Complete.
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#f0fdf4", border: "1px solid #6ee7b7", borderRadius: "8px", padding: "8px 14px" }}>
+                <span style={{ color: "#059669", fontWeight: 700 }}>✓</span>
+                <span style={{ fontSize: "12px", color: "#065f46", fontWeight: 600 }}>{answeredCount}/{decisions.length} confirmed</span>
+              </div>
+              <div style={{ fontSize: "11px", color: "#94a3b8" }}>← → to navigate</div>
             </div>
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Delivered by</span>
-              {["B2", "B2A", "B3"].map(b => (
-                <span key={b} className="bg-slate-700 border border-slate-500/50 text-slate-200 text-[10px] font-black px-2 py-0.5 rounded">{b}</span>
-              ))}
-              <span className="text-slate-600 text-[10px]">·</span>
-              <span className="bg-emerald-700/50 border border-emerald-500/40 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wide">PI 1 Complete</span>
-              <span className="text-slate-600 text-[10px]">·</span>
-              <span className="text-slate-400 text-[10px]">May 21, 2026</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2 bg-slate-800 border border-slate-600/40 rounded-lg px-3 py-1.5">
-              <span className="text-emerald-400 text-xs">✓</span>
-              <span className="text-slate-300 text-xs font-semibold">{answeredCount}/{decisions.length} confirmed</span>
-            </div>
-            <div className="text-slate-600 text-xs hidden md:block">← → to navigate</div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
-        {/* Flow Diagram */}
-        <FlowDiagram activeStep={activeStep} />
+      {/* ── Page Content ── */}
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px 32px" }}>
 
-        {/* Step Tabs — 2 rows for 8 steps */}
-        <div className="grid grid-cols-4 gap-2">
-          {STEPS.map((step) => (
-            <button
-              key={step.id}
-              onClick={() => setActiveStep(step.id)}
-              className={`relative flex flex-col items-start px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
-                activeStep === step.id
-                  ? step.id === 5 || step.id === 7
-                    ? "bg-emerald-900/50 border-emerald-500/60 shadow-lg shadow-emerald-900/30"
-                    : step.id === 3 || step.id === 8
-                    ? "bg-amber-900/40 border-amber-500/50 shadow-md"
-                    : step.id === 6
-                    ? "bg-emerald-900/40 border-emerald-500/50 shadow-md"
-                    : "bg-slate-700/80 border-slate-400/40 shadow-md"
-                  : "bg-slate-800/40 border-slate-200 hover:bg-slate-700/40 hover:border-slate-500/40"
-              }`}
-            >
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className={`text-xs font-black w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                  activeStep === step.id
-                    ? step.id === 5 || step.id === 7 ? "bg-emerald-500 text-white"
-                    : step.id === 3 || step.id === 8 ? "bg-amber-500 text-white"
-                    : step.id === 6 ? "bg-emerald-500 text-white"
-                    : "bg-white text-slate-900"
-                    : "bg-slate-700 text-slate-400"
-                }`}>
-                  {step.id <= 2 ? step.id : step.id === 3 ? "2A" : step.id - 1}
-                </span>
-                <span className={`text-[9px] font-bold px-1 py-0.5 rounded border uppercase tracking-wide ${step.stateColor}`}>
-                  {step.stateLabel}
-                </span>
-              </div>
-              <div className={`text-xs font-bold leading-tight ${activeStep === step.id ? "text-white" : "text-slate-400"}`}>{step.label}</div>
-              <div className={`text-[10px] ${activeStep === step.id ? "text-slate-300" : "text-slate-600"}`}>{step.subtitle}</div>
-            </button>
-          ))}
+        {/* Flow Diagram */}
+        <div style={{ ...s.sectionCard, padding: "16px 20px" }}>
+          <FlowDiagram activeStep={activeStep} />
         </div>
 
-        {/* Active Step Content */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-5">
-            <div className={`text-xs font-black w-7 h-7 rounded-full flex items-center justify-center ${
-              activeStep === 5 || activeStep === 7 ? "bg-emerald-500 text-white"
-              : activeStep === 3 || activeStep === 8 ? "bg-amber-500 text-white"
-              : activeStep === 6 ? "bg-emerald-500 text-white"
-              : "bg-slate-800 text-white"
-            }`}>
+        {/* Step Tabs — 2 rows of 4 */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "20px" }}>
+          {STEPS.map((step) => {
+            const isActive = activeStep === step.id;
+            const badgeStyle = getStateBadgeStyle(step.stateType);
+            return (
+              <button
+                key={step.id}
+                onClick={() => setActiveStep(step.id)}
+                style={{
+                  position: "relative", display: "flex", flexDirection: "column", alignItems: "flex-start",
+                  padding: "10px 14px", borderRadius: "10px", textAlign: "left", cursor: "pointer",
+                  backgroundColor: isActive ? "#003865" : "#ffffff",
+                  border: isActive ? "2px solid #003865" : "1px solid #dde3ea",
+                  boxShadow: isActive ? "0 2px 8px rgba(0,56,101,0.18)" : "0 1px 3px rgba(0,56,101,0.04)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                  <span style={{
+                    fontSize: "11px", fontWeight: 800, width: "20px", height: "20px", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    backgroundColor: isActive ? "#ffffff" : "#003865",
+                    color: isActive ? "#003865" : "#ffffff",
+                  }}>
+                    {step.id <= 2 ? step.id : step.id === 3 ? "2A" : step.id - 1}
+                  </span>
+                  <span style={{ ...badgeStyle, backgroundColor: isActive ? "rgba(255,255,255,0.15)" : badgeStyle.backgroundColor, color: isActive ? "#ffffff" : badgeStyle.color, border: isActive ? "1px solid rgba(255,255,255,0.3)" : badgeStyle.border }}>
+                    {step.stateLabel}
+                  </span>
+                </div>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: isActive ? "#ffffff" : "#0f1623", lineHeight: "1.3" }}>{step.label}</div>
+                <div style={{ fontSize: "10px", color: isActive ? "rgba(255,255,255,0.7)" : "#64748b", marginTop: "1px" }}>{step.subtitle}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Active Step Content Panel */}
+        <div style={{ ...s.sectionCard, marginBottom: "20px" }}>
+          <div style={s.sectionHeader}>
+            <div style={{ width: "24px", height: "24px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, flexShrink: 0, backgroundColor: "#ffffff", color: "#003865" }}>
               {activeStep <= 2 ? activeStep : activeStep === 3 ? "2A" : activeStep - 1}
             </div>
-            <div>
-              <div className="text-slate-900 font-black text-base">{currentStep.label}</div>
-              <div className="text-slate-500 text-xs">{currentStep.subtitle}</div>
-            </div>
-            <span className={`ml-auto text-[10px] font-bold px-2.5 py-1 rounded border uppercase tracking-wide ${currentStep.stateColor}`}>
+            <span style={s.sectionTitle}>{currentStep.label}</span>
+            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)" }}>{currentStep.subtitle}</span>
+            <span style={{ marginLeft: "auto", ...getStateBadgeStyle(currentStep.stateType), backgroundColor: "rgba(255,255,255,0.15)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.3)" }}>
               {currentStep.stateLabel}
             </span>
           </div>
+          <div style={s.sectionBody}>
+            {activeStep === 1 && <Step1Content />}
+            {activeStep === 2 && <Step2Content />}
+            {activeStep === 3 && <Step3Content />}
+            {activeStep === 4 && <Step4Content />}
+            {activeStep === 5 && <Step5Content />}
+            {activeStep === 6 && <Step6Content />}
+            {activeStep === 7 && <Step7Content />}
+            {activeStep === 8 && <Step8Content decisions={decisions} onToggle={toggleDecision} />}
 
-          {activeStep === 1 && <Step1Content />}
-          {activeStep === 2 && <Step2Content />}
-          {activeStep === 3 && <Step3Content />}
-          {activeStep === 4 && <Step4Content />}
-          {activeStep === 5 && <Step5Content />}
-          {activeStep === 6 && <Step6Content />}
-          {activeStep === 7 && <Step7Content />}
-          {activeStep === 8 && <Step8Content decisions={decisions} onToggle={toggleDecision} />}
-
-          {/* Navigation */}
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200">
-            <button
-              onClick={() => setActiveStep((s) => (s > 1 ? ((s - 1) as StepId) : s))}
-              disabled={activeStep === 1}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              ← {activeStep > 1 ? `Back: ${STEPS[activeStep - 2].label}` : "Previous"}
-            </button>
-            {activeStep < 8 ? (
+            {/* Navigation Footer */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #e2e8f0" }}>
               <button
-                onClick={() => setActiveStep((s) => ((s + 1) as StepId))}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
-                  activeStep + 1 === 5 || activeStep + 1 === 7
-                    ? "bg-emerald-700 border-emerald-500/60 text-white hover:bg-emerald-800"
-                    : activeStep + 1 === 3 || activeStep + 1 === 8
-                    ? "bg-amber-600 border-amber-500/60 text-white hover:bg-amber-700"
-                    : activeStep + 1 === 6
-                    ? "bg-emerald-700 border-emerald-500/60 text-white hover:bg-emerald-800"
-                    : "bg-slate-800 border-slate-600 text-white hover:bg-slate-700"
-                }`}
+                onClick={() => setActiveStep((s) => (s > 1 ? ((s - 1) as StepId) : s))}
+                disabled={activeStep === 1}
+                style={{
+                  display: "flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "8px",
+                  backgroundColor: "#f8fafc", border: "1px solid #dde3ea", color: "#374151",
+                  fontSize: "13px", fontWeight: 600, cursor: activeStep === 1 ? "not-allowed" : "pointer",
+                  opacity: activeStep === 1 ? 0.35 : 1, transition: "all 0.15s ease",
+                }}
               >
-                Next: {STEPS[activeStep].label} →
+                ← {activeStep > 1 ? `Back: ${STEPS[activeStep - 2].label}` : "Previous"}
               </button>
-            ) : (
-              <button
-                onClick={() => setActiveStep(1)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white text-sm font-semibold hover:bg-slate-700 transition-all"
-              >
-                ↩ Restart Walkthrough
-              </button>
-            )}
+              {activeStep < 8 ? (
+                <button
+                  onClick={() => setActiveStep((s) => ((s + 1) as StepId))}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "8px",
+                    backgroundColor: "#003865", border: "1px solid #002a4d", color: "#ffffff",
+                    fontSize: "13px", fontWeight: 600, cursor: "pointer", transition: "all 0.15s ease",
+                  }}
+                >
+                  Next: {STEPS[activeStep].label} →
+                </button>
+              ) : (
+                <button
+                  onClick={() => setActiveStep(1)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "8px",
+                    backgroundColor: "#003865", border: "1px solid #002a4d", color: "#ffffff",
+                    fontSize: "13px", fontWeight: 600, cursor: "pointer", transition: "all 0.15s ease",
+                  }}
+                >
+                  ↩ Restart Walkthrough
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Summary Footer */}
-        <div className="bg-white border border-slate-200 rounded-xl px-6 py-4 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-emerald-600 font-black text-lg">✓</div>
-              <div className="text-slate-700 text-xs font-semibold mt-1">Architecture is Correct</div>
-              <div className="text-slate-500 text-xs">Schema, API, taxonomy service, and hierarchy rules are all in place</div>
-            </div>
-            <div>
-              <div className="text-emerald-600 font-black text-lg">✓</div>
-              <div className="text-slate-700 text-xs font-semibold mt-1">Classification Gap Resolved</div>
-              <div className="text-slate-500 text-xs">Orchestrator returns FirmTaxonomyId — B2+B2A, PI 1 Complete</div>
-            </div>
-            <div>
-              <div className="text-emerald-600 font-black text-lg">✓</div>
-              <div className="text-slate-700 text-xs font-semibold mt-1">{answeredCount}/{decisions.length} Governance Decisions Confirmed</div>
-              <div className="text-slate-500 text-xs">All classification governance decisions resolved — PI 1 Complete</div>
-            </div>
+        <div style={{ border: "1px solid #dde3ea", borderRadius: "12px", backgroundColor: "#ffffff", padding: "20px 24px", marginBottom: "16px", boxShadow: "0 1px 4px rgba(0,56,101,0.06)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", textAlign: "center" }}>
+            {[
+              { icon: "✓", label: "Architecture is Correct", desc: "Schema, API, taxonomy service, and hierarchy rules are all in place" },
+              { icon: "✓", label: "Classification Gap Resolved", desc: "Orchestrator returns FirmTaxonomyId — B2+B2A, PI 1 Complete" },
+              { icon: "✓", label: `${answeredCount}/${decisions.length} Governance Decisions Confirmed`, desc: "All classification governance decisions resolved — PI 1 Complete" },
+            ].map((item) => (
+              <div key={item.label}>
+                <div style={{ fontSize: "20px", fontWeight: 800, color: "#059669" }}>{item.icon}</div>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginTop: "4px" }}>{item.label}</div>
+                <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px", lineHeight: "1.5" }}>{item.desc}</div>
+              </div>
+            ))}
           </div>
         </div>
+
         {/* Return to Touchpoints back-link */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px",
-          padding: "14px 20px", marginTop: "8px",
+          padding: "14px 20px",
           backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
           borderLeft: "4px solid #003865", borderRadius: "10px",
         }}>
