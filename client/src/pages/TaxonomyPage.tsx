@@ -285,7 +285,7 @@ const PDC_ACCOUNTS: CanonicalAccount[] = [
   },
   {
     id: "CA-4001", name: "Salaries and Wages Expense", cls: "Expense", balance: "Debit", contra: false,
-    gaap: "ASC 420", ifrs: "IAS 19", familyId: "FAM-EXP",
+    gaap: "ASC 710", ifrs: "IAS 19", familyId: "FAM-EXP",
     metadata: { jurisdiction: "Federal", entityType: "Partnership", basisType: "Book", activityType: "Operating", timingClassification: "Current" },
   },
 ];
@@ -871,12 +871,12 @@ function WhatChangedPanel() {
       <div style={{ fontSize: "11px", fontWeight: 800, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>What Changed? Direct Mapping → Metadata-Driven Decision Model</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
         <div style={{ padding: "12px 14px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "#dc2626", marginBottom: "8px" }}>Before — Direct Mapping Model</div>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#dc2626", marginBottom: "8px" }}>Before — Direct Mapping Model (B2/B3 pre-metadata)</div>
           {["Canonical Account → Tax Line (1:1)","No metadata context","Static, hardcoded mappings","No adjustment linkage","No rule explainability","Cannot support multiple entity types"].map(t => <div key={t} style={{ fontSize: "11px", color: "#64748b", marginBottom: "3px", display: "flex", alignItems: "flex-start", gap: "5px" }}><span style={{ color: "#dc2626", fontWeight: 700 }}>✕</span>{t}</div>)}
         </div>
         <div style={{ padding: "12px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px" }}>
           <div style={{ fontSize: "11px", fontWeight: 700, color: "#166534", marginBottom: "8px" }}>After — Metadata-Driven Decision Model</div>
-          {["Account + Metadata → Conditional Rule Evaluation","7 metadata attributes per account","Rules evaluate conditions dynamically","Adjustments linked to taxonomy","Full evaluation trace per rule","Supports Federal/State, multiple entity types"].map(t => <div key={t} style={{ fontSize: "11px", color: "#166534", marginBottom: "3px", display: "flex", alignItems: "flex-start", gap: "5px" }}><span style={{ fontWeight: 700 }}>✓</span>{t}</div>)}
+          {["Account + Metadata → Conditional Rule Evaluation","7 metadata attributes per account","Rules are conditionally applied based on metadata attributes — governed reference data, not hardcoded logic","Adjustments linked to taxonomy","Full evaluation trace per rule","Supports Federal/State, multiple entity types"].map(t => <div key={t} style={{ fontSize: "11px", color: "#166534", marginBottom: "3px", display: "flex", alignItems: "flex-start", gap: "5px" }}><span style={{ fontWeight: 700 }}>✓</span>{t}</div>)}
         </div>
       </div>
     </div>
@@ -1273,8 +1273,11 @@ export default function TaxonomyPage() {
                 {TDC_RULES.length} rules
               </span>
             </div>
-            <div style={{ fontSize: "11px", color: "#10b981", marginBottom: "8px" }}>
+            <div style={{ fontSize: "11px", color: "#10b981", marginBottom: "6px" }}>
               Rules evaluate metadata conditions — not static direct mappings. Multiple rules per canonical account supported.
+            </div>
+            <div style={{ fontSize: "10px", color: "#92400e", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "6px", padding: "5px 10px", marginBottom: "8px" }}>
+              <strong>B3 Governance Rule 3b:</strong> Tax calculation reference data (MACRS, §179, tax rates, NOL rules) is governed, versioned reference data — not hardcoded logic.
             </div>
             <div style={{ fontSize: "11px", color: "#64748b", display: "flex", alignItems: "center", gap: "4px", marginBottom: "10px" }}>
               <ChevronRight style={{ width: "12px", height: "12px", color: "#10b981" }} />
