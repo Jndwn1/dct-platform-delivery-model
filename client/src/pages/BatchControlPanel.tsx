@@ -1807,25 +1807,6 @@ export default function BatchControlPanel() {
         </div>
       </div>
 
-      {/* ── Gate Status ── */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <SectionHeader title="Derived Gate Status" subtitle="Updates automatically from batch progress" />
-        <div className="divide-y divide-slate-100">
-          {(["g1","g2","g3","g4"] as const).map(gKey => {
-            const Icon = GATE_ICONS[gKey];
-            return (
-              <div key={gKey} className="flex items-center gap-4 px-5 py-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-slate-600" />
-                </div>
-                <div className="flex-1 text-sm font-semibold text-slate-800">{GATE_LABELS[gKey]}</div>
-                <GateStatusBadge status={gates[gKey]} />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* ── Section 2: Delivered Work by Batch ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <SectionHeader
