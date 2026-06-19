@@ -310,6 +310,19 @@ export default function DataModelPage() {
           Authoritative scope: Data model relationships, field governance &amp; gap analysis ·{" "}
           <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>← Platform Home</a>
         </p>
+        {/* ── Last Reconciled callout ── */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap",
+          marginTop: "12px", padding: "10px 14px",
+          backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+          borderLeft: "4px solid #003865", borderRadius: "8px",
+        }}>
+          <span style={{ fontSize: "13px", fontWeight: 700, color: "#003865" }}>🗓 Last Reconciled Against Batch Roadmap</span>
+          <span style={{ fontSize: "13px", fontWeight: 700, color: "#1e40af" }}>June 19, 2026</span>
+          <span style={{ fontSize: "12px", color: "#1e40af", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px", fontWeight: 600 }}>Roadmap v4.0</span>
+          <span style={{ fontSize: "12px", color: "#1e40af", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px", fontWeight: 600 }}>PI 1 + PI 2 Complete</span>
+          <span style={{ fontSize: "11px", color: "#3b82f6", marginLeft: "auto" }}>Gaps, domain statuses, and batch owners verified against authoritative roadmap</span>
+        </div>
       </div>
 
       {/* ── Data Model Gaps & Governance (moved to top) ── */}
