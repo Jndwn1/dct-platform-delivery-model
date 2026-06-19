@@ -8,6 +8,7 @@ import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import ExecDashboard from "@/components/ExecDashboard";
+import GovernanceBanner from "@/components/GovernanceBanner";
 
 // ─── Batch Calendar PI 2 + PI 3 (source of truth for Section 2) ─────────────
 // Data sourced directly from DCT_Calendar.xlsx, DCT Calendar sheet
@@ -1173,6 +1174,11 @@ export default function Home() {
           ))}
         </div>
       </Accordion>
+
+      {/* ── Governance Notice (Home page only) ── */}
+      <div style={{ padding: "0 32px 24px" }}>
+        <GovernanceBanner />
+      </div>
 
     </div>
   );
