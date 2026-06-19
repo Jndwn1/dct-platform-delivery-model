@@ -36,6 +36,7 @@ interface IntakeEntity {
   alignStatus: AlignStatus;
   apiEndpoint: string;
   batchOwner: string;
+  batchOwnerNote?: string;
   smesRequired: string;
   fields: IntakeField[];
   resolutionItems: ResolutionItem[];
@@ -51,7 +52,8 @@ const INTAKE_ENTITIES: IntakeEntity[] = [
       "Cross-LOB financial concept taxonomy. Maps firm-specific account codes to canonical XLOB concepts. Foundation entity — every downstream TDC entity depends on it being loaded first.",
     alignStatus: "Partial",
     apiEndpoint: "POST /api/FirmTaxonomy  |  POST /api/FirmTaxonomy/bulk-upload",
-    batchOwner: "B4 (Done)",
+    batchOwner: "B2 + B2A (Done — PI 1)",
+    batchOwnerNote: "B2 establishes the canonical XLOB taxonomy; B2A enforces FirmTaxonomyId contract. B4 (AI Tax Mapping) consumes taxonomy — it does not own it.",
     smesRequired: "Finance / Chart of Accounts owners",
     fields: [
       { fieldName: "Firm Code", apiField: "firmCode", required: true, dashboardStatus: "Seed Data", gap: "Sample codes (REV-SALES, COGS, OPEX-SAL) — real firm chart of accounts not loaded" },
@@ -101,7 +103,8 @@ const INTAKE_ENTITIES: IntakeEntity[] = [
       "Tax form codes and line-level definitions. The anchor for all TDC mapping. Every Tax Taxonomy Account and Mapping Rule references a Tax Form Line Code.",
     alignStatus: "Partial",
     apiEndpoint: "POST /api/TaxForms  |  POST /api/TaxFormLines/bulk-upload",
-    batchOwner: "B6 (Done)",
+    batchOwner: "B3 (Done — PI 1)",
+    batchOwnerNote: "B3 Story 1 establishes Tax Forms, Return Templates, and Form Lines as reference data. B6 (Practitioner Review) references tax forms but does not own their definition.",
     smesRequired: "Tax Practice / Form specialists",
     fields: [
       { fieldName: "Form Code", apiField: "formCode", required: true, dashboardStatus: "Seed Data", gap: "1120, 1065, 1120S present as seed — confirm complete list of forms in scope for pilot" },
@@ -127,7 +130,8 @@ const INTAKE_ENTITIES: IntakeEntity[] = [
       "Return type + jurisdiction + tax year combinations that define what returns the platform supports. Required before entities can be associated with a return.",
     alignStatus: "Missing",
     apiEndpoint: "POST /api/ReturnTemplates  |  POST /api/ReturnTemplates/bulk-upload",
-    batchOwner: "B9 PDC (Active)",
+    batchOwner: "B3 (Done — PI 1)",
+    batchOwnerNote: "B3 Story 1 explicitly loads Return Templates as TDC reference data. B9 is the Roger Gateway — it surfaces data but does not own return template definitions.",
     smesRequired: "Tax Practice / Engagement management",
     fields: [
       { fieldName: "Parent Form Code", apiField: "parentFormCode", required: true, dashboardStatus: "No Platform Destination", gap: "Return Templates entity has no corresponding page or data model section in the dashboard" },
@@ -154,7 +158,8 @@ const INTAKE_ENTITIES: IntakeEntity[] = [
       "The bridge between PDC XLOB concepts and TDC tax treatment. Maps canonical financial accounts to tax categories and default form lines. Requires PDC Firm Taxonomy and TDC Tax Form Lines to be loaded first.",
     alignStatus: "Partial",
     apiEndpoint: "POST /api/TaxTaxonomyAccounts  |  POST /api/TaxTaxonomyAccounts/bulk-upload",
-    batchOwner: "B6 / B7 (Done)",
+    batchOwner: "B3 (Done — PI 1)",
+    batchOwnerNote: "B3 Story 1 loads TaxTaxonomyAccounts as reference data. B6 and B7 apply and evaluate tax taxonomy — they do not own the reference data definition.",
     smesRequired: "Tax SMEs / Tax Practice leads",
     fields: [
       { fieldName: "Account Code", apiField: "accountCode", required: true, dashboardStatus: "Seed Data", gap: "TAX-REV-SALES, TAX-COGS etc. are seed — real tax account codes needed from Tax SMEs" },
@@ -180,7 +185,8 @@ const INTAKE_ENTITIES: IntakeEntity[] = [
       "The encoded tax judgment of the practice. Rules drive AI mapping proposals. Each rule carries authorship provenance. Four rule types: DIRECT, PATTERN, OVERRIDE, DEFAULT.",
     alignStatus: "Partial",
     apiEndpoint: "POST /api/MappingRules  |  POST /api/MappingRules/bulk-upload",
-    batchOwner: "B7 / B17 (Active/Planned)",
+    batchOwner: "B3 (initial load, Done — PI 1) + B17 (override governance, PI 3 MVP)",
+    batchOwnerNote: "B3 Story 1 loads initial MappingRules as versioned reference data. B17 adds override policies, evidence attachment, and workpaper governance. B7 (Eligibility) consumes rules — it does not own them.",
     smesRequired: "Tax Practice leads / Senior Tax SMEs",
     fields: [
       { fieldName: "Description", apiField: "description", required: true, dashboardStatus: "Seed Data", gap: "Sample rule descriptions — real rule descriptions must come from Tax Practice" },
@@ -209,7 +215,8 @@ const INTAKE_ENTITIES: IntakeEntity[] = [
       "Filing deadlines per return type, jurisdiction, and tax year. Drives deadline-aware workflow and reporting. Must be set before the platform can compute deadline-driven triggers.",
     alignStatus: "Missing",
     apiEndpoint: "POST /api/FilingDueDates  |  POST /api/FilingDueDates/bulk-upload",
-    batchOwner: "B20 (Planned)",
+    batchOwner: "B3 (initial load, Done — PI 1) + B13 (regulatory calendar governance, PI 2 Stretch)",
+    batchOwnerNote: "B3 Story 1 establishes filing due dates as TDC reference data. B13 adds the full regulatory calendar governance layer including extensions and internal milestones. B20 (Firm Governance) does not own filing deadlines.",
     smesRequired: "Tax Practice / Compliance calendar owners",
     fields: [
       { fieldName: "Return Type", apiField: "returnType", required: true, dashboardStatus: "No Platform Destination", gap: "Filing Due Dates entity has no corresponding page or section in the dashboard" },
@@ -575,7 +582,7 @@ export default function GapAnalysisEngine() {
               </div>
 
               {/* Meta row */}
-              <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 16, marginBottom: entity.batchOwnerNote ? 10 : 24, flexWrap: "wrap" }}>
                 {[
                   { label: "API Endpoint", value: entity.apiEndpoint, mono: true },
                   { label: "Batch Owner", value: entity.batchOwner, mono: false },
@@ -587,6 +594,15 @@ export default function GapAnalysisEngine() {
                   </div>
                 ))}
               </div>
+              {entity.batchOwnerNote && (
+                <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 16px", marginBottom: 24, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>📋</span>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Batch Attribution Note (Roadmap v4.0)</div>
+                    <div style={{ fontSize: 12, color: "#78350f", lineHeight: 1.6 }}>{entity.batchOwnerNote}</div>
+                  </div>
+                </div>
+              )}
 
               {/* Field status table */}
               <div style={{ marginBottom: 28 }}>

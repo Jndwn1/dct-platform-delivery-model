@@ -868,6 +868,39 @@ export default function BatchDetailPage() {
             }} />
           </div>
         </div>
+
+        {/* Governance flags from Roadmap v4.0 */}
+        {(liveBatch.criticalPath || liveBatch.splitDelivery || liveBatch.deferred) && (
+          <div style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            {liveBatch.criticalPath && (
+              <div style={{ backgroundColor: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "10px 14px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                <span style={{ fontSize: "14px", flexShrink: 0 }}>🔴</span>
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>Critical Path — Must Land Before 9/16 Pilot</div>
+                  <div style={{ fontSize: "12px", color: "#7f1d1d", lineHeight: 1.6 }}>{liveBatch.criticalPathNote}</div>
+                </div>
+              </div>
+            )}
+            {liveBatch.splitDelivery && (
+              <div style={{ backgroundColor: "#faf5ff", border: "1px solid #d8b4fe", borderRadius: "8px", padding: "10px 14px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                <span style={{ fontSize: "14px", flexShrink: 0 }}>⚡</span>
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#6b21a8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>Split Delivery — Stories Span Multiple PIs</div>
+                  <div style={{ fontSize: "12px", color: "#581c87", lineHeight: 1.6 }}>{liveBatch.splitDeliveryNote}</div>
+                </div>
+              </div>
+            )}
+            {liveBatch.deferred && (
+              <div style={{ backgroundColor: "#f8fafc", border: "1px solid #94a3b8", borderRadius: "8px", padding: "10px 14px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                <span style={{ fontSize: "14px", flexShrink: 0 }}>⏸️</span>
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>Deferred — Removed from MVP Scope</div>
+                  <div style={{ fontSize: "12px", color: "#334155", lineHeight: 1.6 }}>{liveBatch.deferredNote}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Key Outcomes (always shown from batchModel) */}

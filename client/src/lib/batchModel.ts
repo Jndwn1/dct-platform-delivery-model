@@ -1,6 +1,6 @@
 /**
  * DCT Platform — Centralized Batch Model
- * Source of Truth: DCT Batch Roadmap v2.1 (April 28, 2026)
+ * Source of Truth: DCT Batch Roadmap v4.0 (May 2026)
  *
  * ALL screens must read from this model.
  * NO hardcoded batch lists anywhere else in the codebase.
@@ -27,6 +27,13 @@ export interface BatchEntry {
   dependencies: string[]; // Array of batch IDs this batch depends on
   keyOutcomes: string[];  // 2-3 key demo outcomes
   piCommitment?: "Committed" | "Stretch" | "Draft"; // PI 2+ commitment level
+  // ── Governance flags (Roadmap v4.0) ──────────────────────────────────────
+  criticalPath?: boolean;       // TRUE = must land before pilot start (9/16)
+  criticalPathNote?: string;    // Roadmap-sourced rationale
+  splitDelivery?: boolean;      // TRUE = batch has split delivery across PIs
+  splitDeliveryNote?: string;   // Describes the split (which stories, which PI)
+  deferred?: boolean;           // TRUE = explicitly removed from MVP scope
+  deferredNote?: string;        // Roadmap-sourced deferral reason and target
 }
 
 // ─── MASTER BATCH REGISTRY ────────────────────────────────────────────────────
@@ -348,6 +355,8 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "PDC platform-wide lineage event schema covers ingestion, normalization, and entity sync",
       "Roger and compliance teams can retrieve full audit trail for any engagement",
     ],
+    criticalPath: true,
+    criticalPathNote: "Roadmap v4.0 explicit flag: 'CORE MVP GOVERNANCE: The platform's audit defensibility depends on this batch. Must land before pilot start (9/16).' Every state transition, decision, sign-off, and transformation must produce a lineage event. Audit trail records are immutable and append-only.",
   },
   {
     id: "B17",
@@ -421,8 +430,8 @@ const BATCH_REGISTRY: BatchEntry[] = [
     id: "B21",
     name: "Quality Control",
     fullName: "Quality Control",
-    pi: "PI4",
-    piLabel: "PI 4 — Governance, QC & Analytics",
+    pi: "PI3",
+    piLabel: "PI 3 — MVP (PDC portion) / PI 4 (TDC portion)",
     status: "Planned",
     area: "PDC+TDC",
     storyCount: 6,
@@ -433,6 +442,8 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "Independence confirmation standards applied to all engagements requiring concurring review",
       "No engagement closes without QC requirements being satisfied",
     ],
+    splitDelivery: true,
+    splitDeliveryNote: "Roadmap v4.0 split: PDC QC stories 4–6 (QC reference data, independence confirmation, PDC QC read contract) are in PI 3 MVP (7/15–7/23). TDC QC stories 1–3 are deferred to PI 4 (9/29–10/8). Do not treat as a single undivided batch in PI planning.",
   },
   {
     id: "B22",
@@ -450,6 +461,8 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "Aging of outstanding items visible — overdue items surfaced",
       "Client Communication read contract extends Engagement Operations from Batch 12",
     ],
+    deferred: true,
+    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / FUTURE PI — Client communication tracking and outstanding item management. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI post-pilot.' Do not include in PI 3 MVP planning or 9/16 pilot scope.",
   },
   {
     id: "B23",
@@ -467,6 +480,8 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "Roger surfaces benchmark context alongside tax-ready and provision-ready records",
       "Outlier indicators visible — positions deviating from peer group surfaced",
     ],
+    deferred: true,
+    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / DEFERRED — Benchmark and peer analytics against industry peers. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI post-pilot.' Do not include in PI 3 MVP planning or 9/16 pilot scope.",
   },
   {
     id: "B24",
