@@ -1252,6 +1252,11 @@ export default function BatchControlPanel() {
   const [panelCopied, setPanelCopied] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [syncFlash, setSyncFlash] = useState(false);
+  const [openS2, setOpenS2] = useState(false);
+  const [openS3, setOpenS3] = useState(false);
+  const [openS4, setOpenS4] = useState(false);
+  const [openS6, setOpenS6] = useState(false);
+  const [openPO, setOpenPO] = useState(false);
   const prevLastUpdated = useRef<string | null>(null);
 
   // Flash the sync indicator whenever a status update propagates
@@ -1809,6 +1814,15 @@ export default function BatchControlPanel() {
 
       {/* ── Section 2: Delivered Work by Batch ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <button type="button" onClick={() => setOpenS2(v => !v)} className="w-full px-5 py-3 bg-[#003865] flex items-center justify-between text-left">
+          <div>
+            <div className="text-sm font-bold text-white">Delivered Work by Batch</div>
+            <div className="text-xs text-blue-200 mt-0.5">What was delivered, validated, and what remains open — use for PO status updates</div>
+          </div>
+          <svg className={`w-4 h-4 text-blue-200 transition-transform ${openS2 ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        {openS2 && (
+          <div>
         <SectionHeader
           title="Delivered Work by Batch"
           subtitle="What was delivered, validated, and what remains open — use for PO status updates"
@@ -2266,9 +2280,21 @@ export default function BatchControlPanel() {
             );
           })}
         </div>
+          </div>
+        )}
       </div>
 
       {/* ── Section 3: Swagger / API Coverage ── */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <button type="button" onClick={() => setOpenS3(v => !v)} className="w-full px-5 py-3 bg-[#003865] flex items-center justify-between text-left">
+          <div>
+            <div className="text-sm font-bold text-white">Swagger / API Coverage</div>
+            <div className="text-xs text-blue-200 mt-0.5">Endpoint coverage by batch — expand to review per-batch API readiness</div>
+          </div>
+          <svg className={`w-4 h-4 text-blue-200 transition-transform ${openS3 ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        {openS3 && (
+          <div>
       {/* ── Section 3: Swagger / API Coverage (grouped) ── */}
       {(() => {
         // Build batch groups from liveSwaggerEntries
@@ -2292,9 +2318,21 @@ export default function BatchControlPanel() {
           </div>
         );
       })()}
+          </div>
+        )}
+      </div>
 
       {/* ── Section 4: Roger UI Data Availability ── */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <button type="button" onClick={() => setOpenS4(v => !v)} className="w-full px-5 py-3 bg-[#003865] flex items-center justify-between text-left">
+          <div>
+            <div className="text-sm font-bold text-white">Roger UI Data Availability</div>
+            <div className="text-xs text-blue-200 mt-0.5">Which data points are ready for Roger to consume now vs carried forward to PI 2</div>
+          </div>
+          <svg className={`w-4 h-4 text-blue-200 transition-transform ${openS4 ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        {openS4 && (
+          <div>
         <div className="px-5 py-3 border-b border-slate-100 bg-[#003865] flex items-center justify-between">
           <div>
             <div className="text-sm font-bold text-white">Roger UI Data Availability</div>
@@ -2544,6 +2582,8 @@ export default function BatchControlPanel() {
             </tbody>
           </table>
         </div>
+          </div>
+        )}
       </div>
 
       {/* ── BA Assistant: Roger UI Data Point Agent ── */}
@@ -2568,50 +2608,17 @@ export default function BatchControlPanel() {
         }))}
       />
 
-      {/* ── Section 5: PO Status Summary ── */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <SectionHeader
-          title="PO Status Summary"
-          subtitle="Copy-ready summary for Stephane / PO email or Teams update"
-          cascadeStep={4}
-          cascadeActive={cascade.active && cascade.currentStep === 4}
-          cascadeDone={cascade.completedSteps.includes(4)}
-        />
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-3 gap-3 flex-wrap">
-            <div>
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Auto-generated from current batch data</div>
-              {poSummaryGeneratedAt && (
-                <div className="text-xs text-slate-400 mt-0.5">
-                  Generated: {poSummaryGeneratedAt}
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={sendToTeams}
-                className="flex items-center gap-1.5 text-xs font-semibold bg-[#464EB8] text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
-                title="Open Microsoft Teams with this summary pre-filled"
-              >
-                <Send className="w-3.5 h-3.5" />
-                Send to Teams
-              </button>
-              <button
-                onClick={copyPoSummary}
-                className="flex items-center gap-1.5 text-xs font-semibold bg-[#003865] text-white px-3 py-1.5 rounded-lg hover:bg-blue-900 transition-colors"
-              >
-                {poSummaryCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {poSummaryCopied ? "Copied!" : "Copy Full Summary"}
-              </button>
-            </div>
-          </div>
-          <pre className="text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-4 whitespace-pre-wrap font-mono leading-relaxed overflow-x-auto">
-            {poSummaryText}
-          </pre>
-        </div>
-      </div>
-
       {/* ── Section 6 (Panel 7): Contract Readiness Matrix ── */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <button type="button" onClick={() => setOpenS6(v => !v)} className="w-full px-5 py-3 bg-[#003865] flex items-center justify-between text-left">
+          <div>
+            <div className="text-sm font-bold text-white">Contract Readiness Matrix</div>
+            <div className="text-xs text-blue-200 mt-0.5">Contract publication status, version, and lineage enablement by batch</div>
+          </div>
+          <svg className={`w-4 h-4 text-blue-200 transition-transform ${openS6 ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        {openS6 && (
+          <div>
       {(() => {
         // ── Contract metadata derived entirely from SWAGGER_ENTRIES + BATCH_GOV_FLAGS ──
         // One row per batch. Contract status, version, additive-only flag, consumer guide
@@ -2852,6 +2859,66 @@ export default function BatchControlPanel() {
           </div>
         );
       })()}
+          </div>
+        )}
+      </div>
+
+      {/* ── PO Status Summary ── */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <button type="button" onClick={() => setOpenPO(v => !v)} className="w-full px-5 py-3 bg-[#003865] flex items-center justify-between text-left">
+          <div>
+            <div className="text-sm font-bold text-white">PO Status Summary</div>
+            <div className="text-xs text-blue-200 mt-0.5">Copy-ready summary for Stephane / PO email or Teams update</div>
+          </div>
+          <svg className={`w-4 h-4 text-blue-200 transition-transform ${openPO ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        {openPO && (
+          <div>
+      {/* ── Section 5: PO Status Summary ── */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <SectionHeader
+          title="PO Status Summary"
+          subtitle="Copy-ready summary for Stephane / PO email or Teams update"
+          cascadeStep={4}
+          cascadeActive={cascade.active && cascade.currentStep === 4}
+          cascadeDone={cascade.completedSteps.includes(4)}
+        />
+        <div className="p-5">
+          <div className="flex items-start justify-between mb-3 gap-3 flex-wrap">
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Auto-generated from current batch data</div>
+              {poSummaryGeneratedAt && (
+                <div className="text-xs text-slate-400 mt-0.5">
+                  Generated: {poSummaryGeneratedAt}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={sendToTeams}
+                className="flex items-center gap-1.5 text-xs font-semibold bg-[#464EB8] text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+                title="Open Microsoft Teams with this summary pre-filled"
+              >
+                <Send className="w-3.5 h-3.5" />
+                Send to Teams
+              </button>
+              <button
+                onClick={copyPoSummary}
+                className="flex items-center gap-1.5 text-xs font-semibold bg-[#003865] text-white px-3 py-1.5 rounded-lg hover:bg-blue-900 transition-colors"
+              >
+                {poSummaryCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {poSummaryCopied ? "Copied!" : "Copy Full Summary"}
+              </button>
+            </div>
+          </div>
+          <pre className="text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-4 whitespace-pre-wrap font-mono leading-relaxed overflow-x-auto">
+            {poSummaryText}
+          </pre>
+        </div>
+      </div>
+          </div>
+        )}
+      </div>
 
       {/* ── How it works ── */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
