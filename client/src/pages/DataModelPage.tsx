@@ -540,7 +540,7 @@ export default function DataModelPage() {
           onClick={() => setOpenS5(!openS5)}
         >
           <span style={{ fontSize: "16px" }}>🚫</span>
-          <span style={s.sectionTitle}>5 · Architecture Violations</span>
+          <span style={s.sectionTitle}>8 · Architecture Violations</span>
           <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS5 ? "▲" : "▼"}</span>
         </div>
         {openS5 && <div style={{ padding: "12px 20px 4px" }}>
@@ -585,7 +585,7 @@ export default function DataModelPage() {
           style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
           onClick={() => setOpenS7(!openS7)}
         >
-          <span style={s.sectionTitle}>My Clients — Governance Intelligence</span>
+          <span style={s.sectionTitle}>4 · My Clients — Governance Intelligence</span>
           <span style={{ fontSize: "11px", color: "#9ca3af", marginLeft: "8px" }}>Roger API Design v1.0 · Governance Gap Analysis · 2026-05-08</span>
           <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS7 ? "▲" : "▼"}</span>
         </div>
@@ -599,7 +599,7 @@ export default function DataModelPage() {
           style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
           onClick={() => setOpenS8(!openS8)}
         >
-          <span style={s.sectionTitle}>Entities — Governance Intelligence</span>
+          <span style={s.sectionTitle}>5 · Entities — Governance Intelligence</span>
           <span style={{ fontSize: "11px", color: "#9ca3af", marginLeft: "8px" }}>GET /api/clients/&#123;clientId&#125;/entities · PDC Identity Authority · TDC Workflow Authority</span>
           <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS8 ? "▲" : "▼"}</span>
         </div>

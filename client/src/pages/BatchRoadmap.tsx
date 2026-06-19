@@ -89,6 +89,10 @@ interface FeatureRow {
   governance: string[];
   // Cross-batch chain (if this feature is part of a multi-PI chain)
   chainNote?: string;
+  // Governance flags from Batch Model
+  criticalPath?: boolean;
+  splitDelivery?: boolean;
+  deferred?: boolean;
 }
 
 // ─── GOVERNANCE INDICATOR DEFINITIONS ────────────────────────────────────────
@@ -750,6 +754,27 @@ function FeatureCard({ feature, isExpanded, onToggle }: {
           )}
         </div>
 
+        {feature.criticalPath && (
+          <span style={{
+            fontSize: "9px", fontWeight: 800, padding: "2px 6px", borderRadius: "4px",
+            backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca",
+            whiteSpace: "nowrap", flexShrink: 0,
+          }}>🔴 CRITICAL PATH</span>
+        )}
+        {feature.deferred && (
+          <span style={{
+            fontSize: "9px", fontWeight: 800, padding: "2px 6px", borderRadius: "4px",
+            backgroundColor: "#f8fafc", color: "#64748b", border: "1px solid #cbd5e1",
+            whiteSpace: "nowrap", flexShrink: 0,
+          }}>🚫 DEFERRED</span>
+        )}
+        {feature.splitDelivery && (
+          <span style={{
+            fontSize: "9px", fontWeight: 800, padding: "2px 6px", borderRadius: "4px",
+            backgroundColor: "#f5f3ff", color: "#6d28d9", border: "1px solid #ddd6fe",
+            whiteSpace: "nowrap", flexShrink: 0,
+          }}>⚡ SPLIT</span>
+        )}
         {isExpanded
           ? <ChevronDown style={{ width: "13px", height: "13px", color: "#94a3b8", flexShrink: 0 }} />
           : <ChevronRight style={{ width: "13px", height: "13px", color: "#94a3b8", flexShrink: 0 }} />

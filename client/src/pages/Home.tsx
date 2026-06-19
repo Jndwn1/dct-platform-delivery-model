@@ -928,6 +928,22 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ── Roadmap Accuracy Indicator ── */}
+      <div style={{
+        margin: "0 0 12px",
+        backgroundColor: "#f0f9ff", border: "1px solid #bae6fd",
+        borderRadius: "8px", padding: "10px 16px",
+        display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap",
+      }}>
+        <span style={{ fontSize: "13px" }}>🗂️</span>
+        <span style={{ fontSize: "12px", fontWeight: 700, color: "#0369a1" }}>Roadmap Accuracy</span>
+        <span style={{ fontSize: "12px", color: "#0c4a6e" }}>
+          Last reconciled against <strong>Batch Roadmap v4.0 (May 2026)</strong> on <strong>Jun 19, 2026</strong>
+        </span>
+        <span style={{ marginLeft: "auto", fontSize: "11px", color: "#0369a1", fontWeight: 600,
+          backgroundColor: "#e0f2fe", borderRadius: "4px", padding: "2px 8px", border: "1px solid #7dd3fc",
+        }}>✓ Current</span>
+      </div>
       {/* ── Accordion: Purpose (collapsed by default) ── */}
       <Accordion id="section-purpose" open={openSections["section-purpose"]} onToggle={() => toggleSection("section-purpose")} title="Purpose" subtitle="Section 1 — Platform Overview & Governance Context" accent="slate">
         <div style={{
