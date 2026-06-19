@@ -31,12 +31,12 @@ interface DecisionCheckpoint {
 // ─── Decision Checkpoints (6 items) ──────────────────────────────────────────
 
 const INITIAL_DECISIONS: DecisionCheckpoint[] = [
-  { id: 1, question: "Should FirmTaxonomyId be REQUIRED on all PDC records?", answered: false },
-  { id: 2, question: "Should PDC reject records that do not include classification?", answered: false },
-  { id: 3, question: "Should classification overrides be allowed, and must they be auditable?", answered: false },
-  { id: 4, question: "Confirm PDC uses PeriodStart and PeriodEnd only (not TaxYear).", answered: false },
-  { id: 5, question: "Confirm taxonomy service owns hierarchy, versioning, and classification rules.", answered: false },
-  { id: 6, question: "Do we require bulk import/export to support migration, replay, and environment promotion?", answered: false },
+  { id: 1, question: "FirmTaxonomyId is REQUIRED on all PDC records (B2+B2A, PI 1 Complete).", answered: true },
+  { id: 2, question: "PDC rejects records that do not include classification (B2+B2A, PI 1 Complete).", answered: true },
+  { id: 3, question: "Classification overrides are allowed and must be fully auditable (governance rule confirmed).", answered: true },
+  { id: 4, question: "PDC uses PeriodStart and PeriodEnd only — TaxYear is NOT stored (B2 confirmed).", answered: true },
+  { id: 5, question: "Taxonomy service owns hierarchy, versioning, and classification rules (B3, PI 1 Complete).", answered: true },
+  { id: 6, question: "Bulk import/export confirmed for environment promotion and replay (B2A, PI 1 Complete).", answered: true },
 ];
 
 // ─── Step Definitions ─────────────────────────────────────────────────────────
@@ -53,10 +53,10 @@ const STEPS: {
   { id: 2, label: "Data Storage",            subtitle: "PDC Database",            stateLabel: "Expected State", stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "PDC DB" },
   { id: 3, label: "Data Movement",           subtitle: "Operations",              stateLabel: "Decision",       stateColor: "bg-amber-900/60 border-amber-500/40 text-amber-300",    shortLabel: "Ops" },
   { id: 4, label: "Taxonomy",                subtitle: "Source of Classification",stateLabel: "Expected State", stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "Taxonomy" },
-  { id: 5, label: "Gap Identification",      subtitle: "Critical",                stateLabel: "Gap",            stateColor: "bg-red-900/60 border-red-500/40 text-red-300",          shortLabel: "Gap" },
-  { id: 6, label: "Expected State",          subtitle: "Full Flow",               stateLabel: "Target",         stateColor: "bg-violet-900/60 border-violet-500/40 text-violet-300", shortLabel: "Target" },
-  { id: 7, label: "Current Break Point",     subtitle: "Where Flow Fails",        stateLabel: "Gap",            stateColor: "bg-red-900/60 border-red-500/40 text-red-300",          shortLabel: "Break" },
-  { id: 8, label: "Decision Checkpoints",    subtitle: "Governance",              stateLabel: "Action Required",stateColor: "bg-amber-900/60 border-amber-500/40 text-amber-300",    shortLabel: "Decisions" },
+  { id: 5, label: "Gap Resolved",            subtitle: "B2+B2A PI 1 Complete",    stateLabel: "Resolved",       stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "Resolved" },
+  { id: 6, label: "Delivered State",          subtitle: "Full Flow Live",          stateLabel: "Delivered",      stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "Delivered" },
+  { id: 7, label: "Resolved Flow",            subtitle: "Classification Live",     stateLabel: "Resolved",       stateColor: "bg-emerald-900/60 border-emerald-500/40 text-emerald-300", shortLabel: "Resolved" },
+  { id: 8, label: "Decision Checkpoints",    subtitle: "Governance",              stateLabel: "In Review",      stateColor: "bg-amber-900/60 border-amber-500/40 text-amber-300",    shortLabel: "Decisions" },
 ];
 
 // ─── Callout Block ────────────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
 
   return (
     <div className="w-full mb-6">
-      <div className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Architecture Flow</div>
+      <div className="text-xs font-semibold text-slate-600 uppercase tracking-widest mb-3">Architecture Flow</div>
       <div className="flex items-center gap-0 overflow-x-auto pb-2">
         {nodes.map((node, idx) => {
           const isActive = highlighted.includes(node.id);
@@ -122,7 +122,7 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
                   ? `${node.color} ring-2 ring-emerald-400/40 shadow-md`
                   : isActive
                   ? `${node.color} ring-2 ring-white/20 shadow-md`
-                  : "bg-slate-800/60 border-slate-600/40 opacity-40"
+                  : "bg-slate-200/80 border-slate-300/60 opacity-50"
                 }
               `}>
                 <span className={`text-xs font-bold ${isGap ? "text-red-200" : isActive ? "text-white" : "text-slate-400"}`}>
@@ -163,13 +163,13 @@ function FlowDiagram({ activeStep }: { activeStep: StepId }) {
         })}
       </div>
       {isGapActive && (
-        <div className="mt-2 flex items-center gap-2 text-red-300 text-xs font-medium">
+          <div className="mt-2 flex items-center gap-2 text-red-600 text-xs font-medium">
           <span className="text-red-400 font-bold">⚠</span>
           Flow breaks at Orchestrator → Classification. Classification is not returned in the Orchestrator output contract.
         </div>
       )}
       {isTargetActive && (
-        <div className="mt-2 flex items-center gap-2 text-emerald-300 text-xs font-medium">
+          <div className="mt-2 flex items-center gap-2 text-emerald-700 text-xs font-medium">
           <span className="text-emerald-400 font-bold">✓</span>
           Expected: Every record includes FirmTaxonomyId before being stored in PDC.
         </div>
@@ -212,8 +212,8 @@ function Step1Content() {
               {[
                 { field: "documentId",            type: "GUID",  note: "Immutable lineage anchor",         gap: false },
                 { field: "runId",                 type: "GUID",  note: "Processing run reference",          gap: false },
-                { field: "firmTaxonomyId",         type: "GUID?", note: "⚠ May be null — gap",              gap: true  },
-                { field: "classificationStatus",   type: "enum?", note: "⚠ May be null — gap",              gap: true  },
+                { field: "firmTaxonomyId",         type: "GUID",  note: "✓ Required — delivered B2+B2A",    gap: false },
+                { field: "classificationStatus",   type: "enum",  note: "✓ Required — CLASSIFIED enforced",  gap: false },
                 { field: "dataJson",              type: "JSON",  note: "Normalized financial payload",      gap: false },
                 { field: "processingRunId",        type: "GUID",  note: "Orchestrator run reference",       gap: false },
               ].map((f) => (
@@ -230,7 +230,7 @@ function Step1Content() {
       <Callout color="blue" items={[
         "This is how data is retrieved from PDC — as a filtered dataset, not individual records.",
         "Data is scoped by EntityId and PeriodStart/PeriodEnd.",
-        "This model assumes records are already classified and ready for downstream use.",
+        "Classification is enforced — PDC rejects records without FirmTaxonomyId (B2+B2A, PI 1 Complete).",
       ]} />
     </div>
   );
@@ -253,8 +253,8 @@ function Step2Content() {
             { field: "entityId",             type: "GUID",     required: true,  note: "PDC-assigned; immutable",                                           gap: false },
             { field: "periodStart",          type: "DateOnly", required: true,  note: "Temporal model — TaxYear is NOT stored",                            gap: false },
             { field: "periodEnd",            type: "DateOnly", required: true,  note: "Temporal model — TaxYear is NOT stored",                            gap: false },
-            { field: "firmTaxonomyId",        type: "GUID",     required: false, note: "Classification reference — SHOULD be required; currently nullable", gap: true  },
-            { field: "classificationStatus",  type: "enum",     required: false, note: "CLASSIFIED / UNCLASSIFIED / PENDING — currently nullable",          gap: true  },
+            { field: "firmTaxonomyId",        type: "GUID",     required: true,  note: "Classification reference — REQUIRED; PDC rejects null (B2+B2A)",  gap: false },
+            { field: "classificationStatus",  type: "enum",     required: true,  note: "CLASSIFIED / UNCLASSIFIED / PENDING — enforced at write (B2+B2A)",  gap: false },
             { field: "dataJson",             type: "JSON",     required: true,  note: "Normalized financial payload",                                      gap: false },
             { field: "processingRunId",       type: "GUID",     required: true,  note: "Orchestrator run reference",                                        gap: false },
           ].map((f) => (
@@ -273,7 +273,7 @@ function Step2Content() {
         "This is where classification should live in PDC.",
         "FirmTaxonomyId represents the classification of the financial record.",
         "ClassificationStatus indicates whether the record is usable or incomplete.",
-        "The data model supports classification — but it is not consistently populated today.",
+        "FirmTaxonomyId is now REQUIRED on all PDC records — PDC rejects unclassified records (B2+B2A, PI 1 Complete).",
       ]} />
     </div>
   );
@@ -288,8 +288,8 @@ function Step3Content() {
         <div className="flex items-center gap-3 mb-4">
           <span className="text-2xl">🔄</span>
           <div>
-            <div className="text-amber-200 font-black text-base uppercase tracking-wide">Operational Clarification — Data Movement Strategy</div>
-            <div className="text-amber-300/70 text-sm">Decision required before environment promotion and replay can be scoped</div>
+            <div className="text-amber-200 font-black text-base uppercase tracking-wide">Data Movement Strategy — Delivered</div>
+            <div className="text-amber-300/70 text-sm">B2A (PI 1 Complete) — Bulk import/export confirmed; environment promotion and replay are in scope</div>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -314,13 +314,13 @@ function Step3Content() {
         </div>
         <div className="bg-amber-900/30 border border-amber-500/30 rounded-lg px-4 py-3">
           <div className="text-xs font-bold text-amber-300 uppercase tracking-wide mb-1">Impact Statement</div>
-          <div className="text-amber-100/80 text-sm">This decision impacts migration, replay, backfill, and environment consistency. It must be resolved before Batch 2 delivery contracts are finalized.</div>
+            <div className="text-amber-100/80 text-sm">Bulk import/export was confirmed in B2A (PI 1 Complete). Environment promotion and replay are supported via the established bulk API contract.</div>
         </div>
       </div>
       <Callout color="amber" title="Decision Prompt" items={[
-        "Do we require bulk import/export to support environment promotion, replay of runs, and initial data seeding?",
-        "Or is row-level persistence sufficient for the current delivery scope?",
-        "This decision impacts migration, replay, backfill, and environment consistency.",
+        "Decision resolved in B2A (PI 1 Complete) — bulk import/export is confirmed for environment promotion and replay.",
+        "Row-level persistence is the default write path; bulk export supports Dev → QA → Prod promotion.",
+        "Environment consistency and replay are now governed by the established bulk API contract.",
       ]} />
     </div>
   );
@@ -520,16 +520,16 @@ function Step4Content() {
 function Step5Content() {
   return (
     <div className="space-y-5">
-      <div className="bg-red-950/80 border-2 border-red-500/60 rounded-xl p-5 shadow-lg shadow-red-900/30">
+      <div className="bg-emerald-950/60 border-2 border-emerald-500/40 rounded-xl p-5 shadow-lg shadow-emerald-900/20">
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🚨</span>
+          <span className="text-2xl">✅</span>
           <div>
-            <div className="text-red-200 font-black text-base uppercase tracking-wide">Critical Gap — Orchestrator Output</div>
-            <div className="text-red-300/80 text-sm">FirmTaxonomyId is not returned in the Orchestrator output contract</div>
+            <div className="text-emerald-200 font-black text-base uppercase tracking-wide">Gap Resolved — Orchestrator Output (B2+B2A, PI 1 Complete)</div>
+            <div className="text-emerald-300/80 text-sm">FirmTaxonomyId and ClassificationStatus are now required fields in the Orchestrator output contract</div>
           </div>
         </div>
-        <div className="bg-red-900/40 border border-red-500/30 rounded-lg p-4 mb-4">
-          <div className="text-xs font-semibold text-red-400 uppercase tracking-wide mb-3">Orchestrator Output — Current State</div>
+        <div className="bg-emerald-900/30 border border-emerald-500/30 rounded-lg p-4 mb-4">
+          <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-3">Orchestrator Output — Delivered State</div>
           <div className="space-y-1.5">
             {[
               { field: "documentId",             present: true,  note: "✓ Present" },
@@ -538,22 +538,22 @@ function Step5Content() {
               { field: "periodStart",            present: true,  note: "✓ Present" },
               { field: "periodEnd",              present: true,  note: "✓ Present" },
               { field: "normalizedAmount",        present: true,  note: "✓ Present" },
-              { field: "firmTaxonomyId",          present: false, note: "✕ NOT RETURNED — blocking gap" },
-              { field: "classificationStatus",    present: false, note: "✕ NOT RETURNED — blocking gap" },
-              { field: "classificationConfidence",present: false, note: "✕ NOT RETURNED — blocking gap" },
+              { field: "firmTaxonomyId",          present: true,  note: "✓ REQUIRED — delivered B2+B2A" },
+              { field: "classificationStatus",    present: true,  note: "✓ REQUIRED — CLASSIFIED enforced" },
+              { field: "classificationConfidence",present: true,  note: "✓ RETURNED — confidence score included" },
             ].map((f) => (
-              <div key={f.field} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${!f.present ? "bg-red-900/60 border border-red-400/40" : "bg-slate-900/40"}`}>
-                <span className={`font-mono text-xs w-52 shrink-0 ${!f.present ? "text-red-300 font-bold" : "text-slate-400"}`}>{f.field}</span>
-                <span className={`text-xs font-semibold ${!f.present ? "text-red-300" : "text-emerald-400"}`}>{f.note}</span>
+            <div key={f.field} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${!f.present ? "bg-red-900/60 border border-red-400/40" : "bg-emerald-900/20 border border-emerald-600/20"}`}>
+              <span className={`font-mono text-xs w-52 shrink-0 ${!f.present ? "text-red-300 font-bold" : "text-emerald-300"}`}>{f.field}</span>
+              <span className={`text-xs font-semibold ${!f.present ? "text-red-300" : "text-emerald-400"}`}>{f.note}</span>
               </div>
             ))}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
-            { label: "Impact on PDC",      desc: "FirmTaxonomyId and ClassificationStatus remain null — schema supports it but data is absent",                                   color: "border-amber-500/40 bg-amber-900/20 text-amber-300" },
-            { label: "Impact on Retrieval",desc: "classificationStatus filter returns no results — the filter exists but the data does not",                                      color: "border-red-500/40 bg-red-900/20 text-red-300" },
-            { label: "Impact on Batch 4",  desc: "Tax mapping is blocked — Batch 4 AI mapping cannot proceed without classification",                                             color: "border-red-500/40 bg-red-900/20 text-red-300" },
+            { label: "PDC Status",        desc: "FirmTaxonomyId and ClassificationStatus are REQUIRED on all NormalizedRecords — PDC rejects unclassified writes",                color: "border-emerald-500/40 bg-emerald-900/20 text-emerald-300" },
+            { label: "Retrieval Status",  desc: "classificationStatus filter is fully operational — CLASSIFIED records are returned correctly from DataRecords API",            color: "border-emerald-500/40 bg-emerald-900/20 text-emerald-300" },
+            { label: "Batch 4 Status",    desc: "Tax mapping is unblocked — B4 AI mapping proceeded with classification confirmed (PI 2 Complete)",                              color: "border-emerald-500/40 bg-emerald-900/20 text-emerald-300" },
           ].map((i) => (
             <div key={i.label} className={`rounded-lg border px-4 py-3 ${i.color}`}>
               <div className="text-xs font-bold uppercase tracking-wide mb-1">{i.label}</div>
@@ -562,13 +562,12 @@ function Step5Content() {
           ))}
         </div>
       </div>
-      <Callout color="red" items={[
-        "Gap: Orchestrator is not returning classification (FirmTaxonomyId).",
-        "As a result, PDC receives normalized data without classification.",
-        "Without classification, records are incomplete and not usable.",
-        "This prevents tax mapping, downstream processing, and reliable consumption.",
-        "Everything in the system is in place — the only missing piece is classification being returned from Orchestrator.",
-        "This gap prevents enforcement of hierarchy rules, overrides, and data contracts.",
+      <Callout color="emerald" title="Resolution Summary" items={[
+        "Resolved in B2+B2A (PI 1 Complete) — Orchestrator now returns FirmTaxonomyId and ClassificationStatus.",
+        "PDC enforces classification at write — records without FirmTaxonomyId are rejected.",
+        "Tax mapping (B4) and downstream processing are unblocked.",
+        "Hierarchy rules, overrides, and data contracts are fully enforced.",
+        "READY signal to TDC is blocked when any record is unclassified (B2A + B3, PI 1 Complete).",
       ]} />
     </div>
   );
@@ -619,15 +618,15 @@ function Step6Content() {
 function Step7Content() {
   return (
     <div className="space-y-5">
-      <div className="bg-red-950/80 border-2 border-red-500/50 rounded-xl p-5">
-        <div className="text-xs font-bold text-red-400 uppercase tracking-wide mb-4">Current State — Where the Flow Breaks</div>
+      <div className="bg-emerald-950/60 border-2 border-emerald-500/40 rounded-xl p-5">
+        <div className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-4">Resolved State — Classification Gap Closed (B2+B2A, PI 1 Complete)</div>
         <div className="space-y-3">
           {[
             { step: "1", label: "Ingestion",      desc: "Source file received; DocumentId assigned",                                                             system: "PDC",            ok: true  },
-            { step: "2", label: "Orchestrator",   desc: "Normalizes financial data — but does NOT call taxonomy service or return FirmTaxonomyId",              system: "AI Orchestrator", ok: false, isBreak: true },
-            { step: "3", label: "Classification", desc: "NOT CALLED — Taxonomy service is never invoked; FirmTaxonomyId is never resolved",                     system: "TDC / Taxonomy",  ok: false, isMissing: true },
-            { step: "4", label: "PDC Storage",    desc: "NormalizedRecord stored with FirmTaxonomyId = null and ClassificationStatus = null",                   system: "PDC",            ok: false },
-            { step: "5", label: "Retrieval",      desc: "classificationStatus filter returns no results — filter exists but data does not",                     system: "PDC API",         ok: false },
+            { step: "2", label: "Orchestrator",   desc: "Normalizes financial data AND calls taxonomy service — returns FirmTaxonomyId + ClassificationStatus (B2+B2A)",  system: "AI Orchestrator", ok: true  },
+            { step: "3", label: "Classification", desc: "Taxonomy service resolves canonical account → FirmTaxonomyId via metadata conditions (B3, PI 1 Complete)",           system: "TDC / Taxonomy",  ok: true  },
+            { step: "4", label: "PDC Storage",    desc: "NormalizedRecord stored with FirmTaxonomyId REQUIRED and ClassificationStatus = CLASSIFIED (B2+B2A)",              system: "PDC",            ok: true  },
+            { step: "5", label: "Retrieval",      desc: "classificationStatus filter fully operational — CLASSIFIED records returned correctly from DataRecords API",     system: "PDC API",         ok: true  },
           ].map((s, idx) => (
             <div key={s.step} className={`flex items-start gap-4 rounded-lg px-4 py-3 border ${
               s.isBreak   ? "bg-red-900/60 border-red-400/60 shadow-md shadow-red-900/30" :
@@ -654,10 +653,10 @@ function Step7Content() {
           ))}
         </div>
       </div>
-      <Callout color="red" title="Break Point" items={[
-        "Break occurs here — classification is not returned from Orchestrator.",
-        "The Orchestrator contract does not include FirmTaxonomyId or ClassificationStatus in its output.",
-        "This single missing field cascades through the entire downstream flow.",
+      <Callout color="emerald" title="Resolved" items={[
+        "Classification gap closed in B2+B2A (PI 1 Complete) — Orchestrator now returns FirmTaxonomyId.",
+        "The Orchestrator contract includes FirmTaxonomyId and ClassificationStatus as required output fields.",
+        "All downstream flows (PDC storage, retrieval, tax mapping) are unblocked.",
       ]} />
     </div>
   );
@@ -674,12 +673,12 @@ function Step8Content({ decisions, onToggle }: { decisions: DecisionCheckpoint[]
         <div className="flex items-start gap-4">
           <span className="text-3xl mt-1">⚖</span>
           <div>
-            <div className="text-amber-200 font-black text-base mb-2 uppercase tracking-wide">Final Message</div>
+              <div className="text-emerald-200 font-black text-base mb-2 uppercase tracking-wide">Governance Summary</div>
             <div className="text-white text-base leading-relaxed font-medium">
-              Without classification, we do not have usable financial data.
+              Classification is enforced across the full platform stack.
             </div>
-            <div className="text-amber-100/80 text-sm leading-relaxed mt-1">
-              This decision is required to complete Batch 2 and move forward.
+            <div className="text-emerald-100/80 text-sm leading-relaxed mt-1">
+              All six governance decisions are confirmed — B2+B2A and B3 delivered PI 1 Complete.
             </div>
           </div>
         </div>
@@ -691,12 +690,12 @@ function Step8Content({ decisions, onToggle }: { decisions: DecisionCheckpoint[]
           <div className="flex items-center gap-3">
             <span className="text-amber-400 text-lg">⚖</span>
             <div>
-              <div className="text-amber-200 font-bold text-sm uppercase tracking-wide">Decision Checkpoints</div>
-              <div className="text-slate-400 text-xs">Required before Orchestrator contract can be finalized</div>
+              <div className="text-emerald-200 font-bold text-sm uppercase tracking-wide">Decision Checkpoints</div>
+              <div className="text-slate-400 text-xs">All confirmed — B2+B2A and B3 delivered PI 1 Complete</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">{answered}/{decisions.length} addressed</span>
+            <span className="text-xs text-emerald-400 font-semibold">{answered}/{decisions.length} confirmed</span>
             <div className="w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
               <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${(answered / decisions.length) * 100}%` }} />
             </div>
@@ -722,10 +721,10 @@ function Step8Content({ decisions, onToggle }: { decisions: DecisionCheckpoint[]
             </button>
           ))}
         </div>
-        {answered === decisions.length && (
+          {answered === decisions.length && (
           <div className="mt-4 flex items-center gap-2 bg-emerald-900/30 border border-emerald-500/30 rounded-lg px-4 py-3">
             <span className="text-emerald-400">✓</span>
-            <span className="text-emerald-200 text-sm font-semibold">All decisions addressed — ready to update Orchestrator contract</span>
+            <span className="text-emerald-200 text-sm font-semibold">All governance decisions confirmed — Orchestrator contract published (B2+B2A, PI 1 Complete)</span>
           </div>
         )}
       </div>
@@ -756,26 +755,26 @@ export default function ClassificationWalkthroughPage() {
   const answeredCount = decisions.filter((d) => d.answered).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen" style={{ background: "#f8fafc", color: "#0f1623" }}>
       {/* Header */}
-      <div className="border-b border-slate-700/60 bg-slate-900/80 px-6 py-4 sticky top-0 z-30 backdrop-blur-sm">
+      <div style={{ borderBottom: "2px solid #e2e8f0", background: "#0f1623", padding: "16px 24px", position: "sticky", top: 0, zIndex: 30 }}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <span className="bg-amber-600/30 border border-amber-500/40 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Architecture Walkthrough</span>
-              <span className="bg-red-600/30 border border-red-500/40 text-red-300 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Decision Required</span>
+              <span className="bg-blue-600/30 border border-blue-500/40 text-blue-300 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Architecture Walkthrough</span>
+              <span className="bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">PI 1 Complete</span>
             </div>
             <h1 className="text-lg font-black text-white tracking-tight leading-tight">
-              Taxonomy Classification Validation — PDC &amp; Orchestrator Alignment
+              Taxonomy Classification — PDC &amp; Orchestrator Delivery Review
             </h1>
             <div className="text-slate-400 text-xs mt-0.5">
-              Validate where classification is applied, where it is stored, and identify the gap preventing complete financial records.
+              Classification enforced across PDC, Orchestrator, and Taxonomy Service — B2+B2A+B3 delivered PI 1 Complete.
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-2 bg-slate-800 border border-slate-600/40 rounded-lg px-3 py-1.5">
-              <span className="text-amber-400 text-xs">⚖</span>
-              <span className="text-slate-300 text-xs font-semibold">{answeredCount}/{decisions.length} decisions</span>
+              <span className="text-emerald-400 text-xs">✓</span>
+              <span className="text-slate-300 text-xs font-semibold">{answeredCount}/{decisions.length} confirmed</span>
             </div>
             <div className="text-slate-600 text-xs hidden md:block">← → to navigate</div>
           </div>
@@ -795,11 +794,11 @@ export default function ClassificationWalkthroughPage() {
               className={`relative flex flex-col items-start px-3 py-2.5 rounded-xl border transition-all duration-200 text-left ${
                 activeStep === step.id
                   ? step.id === 5 || step.id === 7
-                    ? "bg-red-900/50 border-red-500/60 shadow-lg shadow-red-900/30"
+                    ? "bg-emerald-900/50 border-emerald-500/60 shadow-lg shadow-emerald-900/30"
                     : step.id === 3 || step.id === 8
                     ? "bg-amber-900/40 border-amber-500/50 shadow-md"
                     : step.id === 6
-                    ? "bg-violet-900/40 border-violet-500/50 shadow-md"
+                    ? "bg-emerald-900/40 border-emerald-500/50 shadow-md"
                     : "bg-slate-700/80 border-slate-400/40 shadow-md"
                   : "bg-slate-800/40 border-slate-700/40 hover:bg-slate-700/40 hover:border-slate-500/40"
               }`}
@@ -807,9 +806,9 @@ export default function ClassificationWalkthroughPage() {
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span className={`text-xs font-black w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                   activeStep === step.id
-                    ? step.id === 5 || step.id === 7 ? "bg-red-500 text-white"
+                    ? step.id === 5 || step.id === 7 ? "bg-emerald-500 text-white"
                     : step.id === 3 || step.id === 8 ? "bg-amber-500 text-white"
-                    : step.id === 6 ? "bg-violet-500 text-white"
+                    : step.id === 6 ? "bg-emerald-500 text-white"
                     : "bg-white text-slate-900"
                     : "bg-slate-700 text-slate-400"
                 }`}>
@@ -826,19 +825,19 @@ export default function ClassificationWalkthroughPage() {
         </div>
 
         {/* Active Step Content */}
-        <div className="bg-slate-900/60 border border-slate-700/40 rounded-2xl p-6">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-5">
             <div className={`text-xs font-black w-7 h-7 rounded-full flex items-center justify-center ${
-              activeStep === 5 || activeStep === 7 ? "bg-red-500 text-white"
+              activeStep === 5 || activeStep === 7 ? "bg-emerald-500 text-white"
               : activeStep === 3 || activeStep === 8 ? "bg-amber-500 text-white"
-              : activeStep === 6 ? "bg-violet-500 text-white"
-              : "bg-white text-slate-900"
+              : activeStep === 6 ? "bg-emerald-500 text-white"
+              : "bg-slate-800 text-white"
             }`}>
               {activeStep <= 2 ? activeStep : activeStep === 3 ? "2A" : activeStep - 1}
             </div>
             <div>
-              <div className="text-white font-black text-base">{currentStep.label}</div>
-              <div className="text-slate-400 text-xs">{currentStep.subtitle}</div>
+              <div className="text-slate-900 font-black text-base">{currentStep.label}</div>
+              <div className="text-slate-500 text-xs">{currentStep.subtitle}</div>
             </div>
             <span className={`ml-auto text-[10px] font-bold px-2.5 py-1 rounded border uppercase tracking-wide ${currentStep.stateColor}`}>
               {currentStep.stateLabel}
@@ -855,11 +854,11 @@ export default function ClassificationWalkthroughPage() {
           {activeStep === 8 && <Step8Content decisions={decisions} onToggle={toggleDecision} />}
 
           {/* Navigation */}
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-700/40">
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200">
             <button
               onClick={() => setActiveStep((s) => (s > 1 ? ((s - 1) as StepId) : s))}
               disabled={activeStep === 1}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 border border-slate-600/40 text-slate-300 text-sm font-semibold hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               ← {activeStep > 1 ? `Back: ${STEPS[activeStep - 2].label}` : "Previous"}
             </button>
@@ -868,12 +867,12 @@ export default function ClassificationWalkthroughPage() {
                 onClick={() => setActiveStep((s) => ((s + 1) as StepId))}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
                   activeStep + 1 === 5 || activeStep + 1 === 7
-                    ? "bg-red-700/60 border-red-500/60 text-red-100 hover:bg-red-700/80"
+                    ? "bg-emerald-700 border-emerald-500/60 text-white hover:bg-emerald-800"
                     : activeStep + 1 === 3 || activeStep + 1 === 8
-                    ? "bg-amber-700/60 border-amber-500/60 text-amber-100 hover:bg-amber-700/80"
+                    ? "bg-amber-600 border-amber-500/60 text-white hover:bg-amber-700"
                     : activeStep + 1 === 6
-                    ? "bg-violet-700/60 border-violet-500/60 text-violet-100 hover:bg-violet-700/80"
-                    : "bg-slate-700 border-slate-500/40 text-white hover:bg-slate-600"
+                    ? "bg-emerald-700 border-emerald-500/60 text-white hover:bg-emerald-800"
+                    : "bg-slate-800 border-slate-600 text-white hover:bg-slate-700"
                 }`}
               >
                 Next: {STEPS[activeStep].label} →
@@ -881,7 +880,7 @@ export default function ClassificationWalkthroughPage() {
             ) : (
               <button
                 onClick={() => setActiveStep(1)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700 border border-slate-500/40 text-white text-sm font-semibold hover:bg-slate-600 transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white text-sm font-semibold hover:bg-slate-700 transition-all"
               >
                 ↩ Restart Walkthrough
               </button>
@@ -890,22 +889,22 @@ export default function ClassificationWalkthroughPage() {
         </div>
 
         {/* Summary Footer */}
-        <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl px-6 py-4">
+        <div className="bg-white border border-slate-200 rounded-xl px-6 py-4 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-emerald-400 font-black text-lg">✓</div>
-              <div className="text-slate-300 text-xs font-semibold mt-1">Architecture is Correct</div>
+              <div className="text-emerald-600 font-black text-lg">✓</div>
+              <div className="text-slate-700 text-xs font-semibold mt-1">Architecture is Correct</div>
               <div className="text-slate-500 text-xs">Schema, API, taxonomy service, and hierarchy rules are all in place</div>
             </div>
             <div>
-              <div className="text-red-400 font-black text-lg">✕</div>
-              <div className="text-slate-300 text-xs font-semibold mt-1">Classification Dependency Missing</div>
-              <div className="text-slate-500 text-xs">Orchestrator not returning FirmTaxonomyId — single blocking gap</div>
+              <div className="text-emerald-600 font-black text-lg">✓</div>
+              <div className="text-slate-700 text-xs font-semibold mt-1">Classification Gap Resolved</div>
+              <div className="text-slate-500 text-xs">Orchestrator returns FirmTaxonomyId — B2+B2A, PI 1 Complete</div>
             </div>
             <div>
-              <div className="text-amber-400 font-black text-lg">⚖</div>
-              <div className="text-slate-300 text-xs font-semibold mt-1">{answeredCount}/{decisions.length} Decisions Addressed</div>
-              <div className="text-slate-500 text-xs">Required to enforce classification in Orchestrator contract</div>
+              <div className="text-emerald-600 font-black text-lg">✓</div>
+              <div className="text-slate-700 text-xs font-semibold mt-1">{answeredCount}/{decisions.length} Governance Decisions Confirmed</div>
+              <div className="text-slate-500 text-xs">All classification governance decisions resolved — PI 1 Complete</div>
             </div>
           </div>
         </div>
