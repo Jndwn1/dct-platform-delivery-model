@@ -268,6 +268,15 @@ const s = {
 export default function DataModelPage() {
   const [expandedGap, setExpandedGap] = useState<number | null>(null);
   const [expandedViolation, setExpandedViolation] = useState<string | null>("V1");
+  // Collapsible section state — all collapsed by default
+  const [openS1, setOpenS1] = useState(false);
+  const [openS2, setOpenS2] = useState(false);
+  const [openS3, setOpenS3] = useState(false);
+  const [openS5, setOpenS5] = useState(false);
+  const [openS7, setOpenS7] = useState(false);
+  const [openS8, setOpenS8] = useState(false);
+  const [openS6, setOpenS6] = useState(false);
+  const [openS9, setOpenS9] = useState(false);
 
   // GOVERNANCE: Data Availability rows derived from Batch Model (dctData.ts via batchModelSource.ts)
   // Updating allBatches in dctData.ts automatically updates this table.
@@ -289,9 +298,7 @@ export default function DataModelPage() {
         context="Data Model & Governance Workbench"
       />
       <div style={s.page}>
-      {/* Governance Workbench — Command Center Panel */}
-      <GovernanceWorkbench />
-      {/* Header */}
+      {/* ── Page Header ── */}
       <div style={{ marginBottom: "28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
           <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2563eb", backgroundColor: "#dbeafe", padding: "2px 8px", borderRadius: "4px" }}>Executive Reference</span>
@@ -305,13 +312,51 @@ export default function DataModelPage() {
         </p>
       </div>
 
-      {/* Section 1 — Data Model Relationships */}
+      {/* ── Data Model Gaps & Governance (moved to top) ── */}
       <div style={s.sectionCard}>
         <div style={s.sectionHeader}>
+          <span style={{ fontSize: "16px" }}>⚠️</span>
+          <span style={s.sectionTitle}>Data Model Gaps &amp; Governance</span>
+          <span style={{ marginLeft: "auto", fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: "#fee2e2", color: "#dc2626" }}>{GAPS.length} open</span>
+        </div>
+        <div style={{ padding: "12px 20px" }}>
+          {GAPS.map((gap) => (
+            <div
+              key={gap.num}
+              style={{ borderBottom: "1px solid #f3f4f6", cursor: "pointer" }}
+              onClick={() => setExpandedGap(expandedGap === gap.num ? null : gap.num)}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0" }}>
+                <span style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#fee2e2", color: "#dc2626", fontSize: "11px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {gap.num}
+                </span>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: "#111827", flex: 1 }}>{gap.title}</span>
+                <span style={{ color: "#9ca3af", fontSize: "12px" }}>{expandedGap === gap.num ? "▲" : "▼"}</span>
+              </div>
+              {expandedGap === gap.num && (
+                <div style={{ padding: "0 0 14px 36px", fontSize: "13px", color: "#374151", lineHeight: "1.6" }}>
+                  {gap.desc}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Governance Workbench (second) ── */}
+      <GovernanceWorkbench />
+
+      {/* ── Section 1 — Data Model Relationships (collapsible) ── */}
+      <div style={s.sectionCard}>
+        <div
+          style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
+          onClick={() => setOpenS1(!openS1)}
+        >
           <span style={{ fontSize: "16px" }}>🔗</span>
           <span style={s.sectionTitle}>1 · Data Model Relationships</span>
+          <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS1 ? "▲" : "▼"}</span>
         </div>
-        <div style={s.sectionBody}>
+        {openS1 && <div style={s.sectionBody}>
           {/* Lineage Chain */}
           <div style={{ marginBottom: "20px" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9ca3af", marginBottom: "12px" }}>Lineage Chain</div>
@@ -353,16 +398,21 @@ export default function DataModelPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </div>}
       </div>
 
       {/* Section 2 — Data Availability */}
       <div style={s.sectionCard}>
-        <div style={s.sectionHeader}>
+        <div
+          style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
+          onClick={() => setOpenS2(!openS2)}
+        >
           <span style={{ fontSize: "16px" }}>🗂️</span>
           <span style={s.sectionTitle}>2 · Data Availability</span>
+          <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS2 ? "▲" : "▼"}</span>
         </div>
-        <div style={{ overflowX: "auto" }}>
+        {openS2 && <div>
+          <div style={{ overflowX: "auto" }}>
           <table style={{ ...s.table, minWidth: "900px" }}>
             <thead>
               <tr>
@@ -441,16 +491,21 @@ export default function DataModelPage() {
             </span>
           ))}
           <span style={{ fontSize: "10px", color: "#d1d5db", marginLeft: "auto" }}>Swagger validation is read-only — Batch Model remains source of truth</span>
-        </div>
+          </div>
+        </div>}
       </div>
 
       {/* Section 3 — UI to Data Mapping */}
       <div style={s.sectionCard}>
-        <div style={s.sectionHeader}>
+        <div
+          style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
+          onClick={() => setOpenS3(!openS3)}
+        >
           <span style={{ fontSize: "16px" }}>📊</span>
           <span style={s.sectionTitle}>3 · UI to Data Mapping</span>
+          <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS3 ? "▲" : "▼"}</span>
         </div>
-        <div style={{ overflowX: "auto" }}>
+        {openS3 && <div style={{ overflowX: "auto" }}>
           <table style={s.table}>
             <thead>
               <tr>
@@ -475,47 +530,20 @@ export default function DataModelPage() {
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Section 4 — Gaps */}
-      <div style={s.sectionCard}>
-        <div style={s.sectionHeader}>
-          <span style={{ fontSize: "16px" }}>⚠️</span>
-          <span style={s.sectionTitle}>4 · Gaps</span>
-          <span style={{ marginLeft: "auto", fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px", backgroundColor: "#fee2e2", color: "#dc2626" }}>{GAPS.length} open</span>
-        </div>
-        <div style={{ padding: "12px 20px" }}>
-          {GAPS.map((gap) => (
-            <div
-              key={gap.num}
-              style={{ borderBottom: "1px solid #f3f4f6", cursor: "pointer" }}
-              onClick={() => setExpandedGap(expandedGap === gap.num ? null : gap.num)}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0" }}>
-                <span style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#fee2e2", color: "#dc2626", fontSize: "11px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {gap.num}
-                </span>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: "#111827", flex: 1 }}>{gap.title}</span>
-                <span style={{ color: "#9ca3af", fontSize: "12px" }}>{expandedGap === gap.num ? "▲" : "▼"}</span>
-              </div>
-              {expandedGap === gap.num && (
-                <div style={{ padding: "0 0 14px 36px", fontSize: "13px", color: "#374151", lineHeight: "1.6" }}>
-                  {gap.desc}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        </div>}
       </div>
 
       {/* Section 5 — Architecture Violations */}
       <div style={s.sectionCard}>
-        <div style={s.sectionHeader}>
+        <div
+          style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
+          onClick={() => setOpenS5(!openS5)}
+        >
           <span style={{ fontSize: "16px" }}>🚫</span>
           <span style={s.sectionTitle}>5 · Architecture Violations</span>
+          <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS5 ? "▲" : "▼"}</span>
         </div>
-        <div style={{ padding: "12px 20px 4px" }}>
+        {openS5 && <div style={{ padding: "12px 20px 4px" }}>
           <div style={{ fontSize: "12px", color: "#6b7280", marginBottom: "16px", padding: "10px 14px", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px" }}>
             Critical no-go rules — any design or implementation that violates these boundaries must be rejected
           </div>
@@ -549,36 +577,48 @@ export default function DataModelPage() {
               )}
             </div>
           ))}
-        </div>
+        </div>}
       </div>
       {/* Section 7 — My Clients Governance Intelligence */}
       <div style={s.sectionCard}>
-        <div style={s.sectionHeader}>
+        <div
+          style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
+          onClick={() => setOpenS7(!openS7)}
+        >
           <span style={s.sectionTitle}>My Clients — Governance Intelligence</span>
-          <span style={{ fontSize: "11px", color: "#9ca3af" }}>Roger API Design v1.0 · Governance Gap Analysis · 2026-05-08</span>
+          <span style={{ fontSize: "11px", color: "#9ca3af", marginLeft: "8px" }}>Roger API Design v1.0 · Governance Gap Analysis · 2026-05-08</span>
+          <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS7 ? "▲" : "▼"}</span>
         </div>
-        <div style={s.sectionBody}>
+        {openS7 && <div style={s.sectionBody}>
           <MyClientsGovernancePanel />
-        </div>
+        </div>}
       </div>
       {/* Section 8 — Entities Governance Intelligence */}
       <div style={s.sectionCard}>
-        <div style={s.sectionHeader}>
+        <div
+          style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
+          onClick={() => setOpenS8(!openS8)}
+        >
           <span style={s.sectionTitle}>Entities — Governance Intelligence</span>
-          <span style={{ fontSize: "11px", color: "#9ca3af" }}>GET /api/clients/&#123;clientId&#125;/entities · PDC Identity Authority · TDC Workflow Authority · Roger API Design v1.0</span>
+          <span style={{ fontSize: "11px", color: "#9ca3af", marginLeft: "8px" }}>GET /api/clients/&#123;clientId&#125;/entities · PDC Identity Authority · TDC Workflow Authority</span>
+          <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS8 ? "▲" : "▼"}</span>
         </div>
-        <div style={s.sectionBody}>
+        {openS8 && <div style={s.sectionBody}>
           <EntitiesGovernancePanel />
-        </div>
+        </div>}
       </div>
       {/* Section 6 — ADR Decisions Cross-Reference */}
       <div style={{ ...s.sectionCard, borderLeft: "4px solid #2563eb" }}>
-        <div style={s.sectionHeader}>
+        <div
+          style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
+          onClick={() => setOpenS6(!openS6)}
+        >
           <span style={{ fontSize: "16px" }}>📌</span>
           <span style={s.sectionTitle}>6 · Open ADR Decisions</span>
-          <span style={{ marginLeft: "auto", fontSize: "11px", color: "#2563eb", fontWeight: 600 }}>Consumer Integration Hub</span>
+          <span style={{ fontSize: "11px", color: "#2563eb", fontWeight: 600, marginLeft: "8px" }}>Consumer Integration Hub</span>
+          <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS6 ? "▲" : "▼"}</span>
         </div>
-        <div style={{ padding: "14px 20px", fontSize: "13px", color: "#374151", lineHeight: "1.7" }}>
+        {openS6 && <div style={{ padding: "14px 20px", fontSize: "13px", color: "#374151", lineHeight: "1.7" }}>
           <p style={{ margin: "0 0 10px" }}>
             Architecture Decision Records (ADRs) and pending platform decisions that affect data model governance, ownership boundaries, and contract readiness are maintained in the Consumer Integration Hub.
           </p>
@@ -591,21 +631,25 @@ export default function DataModelPage() {
           >
             📖 View ADR Decisions &amp; Open Questions →
           </a>
-        </div>
+        </div>}
       </div>
 
-      {/* Section 7 — Roger API Model Groupings moved to Roger UI Data Mapping */}
+      {/* Section 9 — Roger API Model Groupings moved to Roger UI Data Mapping */}
       <div style={{ ...s.sectionCard, borderLeft: "4px solid #7c3aed" }}>
-        <div style={s.sectionHeader}>
+        <div
+          style={{ ...s.sectionHeader, cursor: "pointer", userSelect: "none" }}
+          onClick={() => setOpenS9(!openS9)}
+        >
           <span style={{ fontSize: "16px" }}>🔌</span>
           <span style={s.sectionTitle}>7 · Roger API Model Groupings</span>
-          <span style={{ marginLeft: "auto", fontSize: "11px", color: "#7c3aed", fontWeight: 600 }}>Moved to Roger UI</span>
+          <span style={{ fontSize: "11px", color: "#7c3aed", fontWeight: 600, marginLeft: "8px" }}>Moved to Roger UI</span>
+          <span style={{ marginLeft: "auto", fontSize: "13px", color: "#9ca3af" }}>{openS9 ? "▲" : "▼"}</span>
         </div>
-        <div style={{ padding: "14px 20px", fontSize: "13px", color: "#374151", lineHeight: "1.6" }}>
+        {openS9 && <div style={{ padding: "14px 20px", fontSize: "13px", color: "#374151", lineHeight: "1.6" }}>
           Field-level readiness data for Roger API model groupings is now maintained in the Roger UI section.
           {" "}
           <a href="/roger-mapping" style={{ color: "#7c3aed", fontWeight: 700, textDecoration: "underline" }}>View Roger UI Data Mapping →</a>
-        </div>
+        </div>}
       </div>
       {/* DCT Summary Agent — floating panel */}
       <DCTSummaryAgent />
