@@ -5,19 +5,20 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, ChevronDown, ChevronRight, CheckCircle2,
-  Clock, Circle, AlertTriangle, Layers, User, FileText, Zap
+  Clock, Circle, AlertTriangle, Layers, User, FileText, Zap,
+  Package, Calendar, Info
 } from "lucide-react";
 import { TOUCHPOINTS, AGENTS, getLayer, type EnrichedTouchpoint } from "@/lib/platformData";
 import { ANALYST_STORIES, GUARANTEE_TYPE_COLORS } from "@/lib/analystStories";
 
 // ─── STATUS CONFIG ────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { icon: React.ElementType; badge: string; dot: string }> = {
-  COMPLETE: { icon: CheckCircle2, badge: "bg-emerald-100 text-emerald-800 border-emerald-200", dot: "bg-emerald-500" },
-  IN_PROGRESS: { icon: Clock, badge: "bg-blue-100 text-blue-800 border-blue-200", dot: "bg-blue-500 animate-pulse" },
-  PENDING: { icon: Clock, badge: "bg-amber-100 text-amber-800 border-amber-200", dot: "bg-amber-500" },
-  PLANNED: { icon: Circle, badge: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" },
-  BLOCKED: { icon: AlertTriangle, badge: "bg-red-100 text-red-800 border-red-200", dot: "bg-red-500" },
+const STATUS_CONFIG: Record<string, { icon: React.ElementType; badge: string; dot: string; label: string }> = {
+  COMPLETE:    { icon: CheckCircle2,  badge: "bg-emerald-100 text-emerald-800 border-emerald-200", dot: "bg-emerald-500",             label: "Delivered" },
+  IN_PROGRESS: { icon: Clock,         badge: "bg-blue-100 text-blue-800 border-blue-200",         dot: "bg-blue-500 animate-pulse", label: "In Progress" },
+  PENDING:     { icon: Clock,         badge: "bg-amber-100 text-amber-800 border-amber-200",       dot: "bg-amber-500",              label: "Pending" },
+  PLANNED:     { icon: Circle,        badge: "bg-slate-100 text-slate-600 border-slate-200",       dot: "bg-slate-400",              label: "Not Started" },
+  BLOCKED:     { icon: AlertTriangle, badge: "bg-red-100 text-red-800 border-red-200",             dot: "bg-red-500",                label: "Blocked" },
 };
 
 const LAYER_COLORS: Record<string, string> = {
@@ -68,7 +69,7 @@ function TouchpointDetailCard({ tp, isOpen, onToggle }: {
             <span className="text-sm font-bold text-foreground">{tp.name}</span>
             <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border font-medium ${statusCfg.badge}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
-              {tp.status.replace("_", " ")}
+              {statusCfg.label}
             </span>
             {tp.gate && (
               <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${gateColor}`}>
@@ -132,6 +133,37 @@ function TouchpointDetailCard({ tp, isOpen, onToggle }: {
 
                 {/* Right column */}
                 <div className="space-y-3">
+                  {/* Delivery status box */}
+                  {tp.deliveredBy && (
+                    <div className="rounded-lg p-3 border bg-emerald-50 border-emerald-200">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <Package className="w-3 h-3 text-emerald-700" />
+                        <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Delivered By</span>
+                      </div>
+                      <div className="text-xs font-bold text-emerald-900 mb-0.5">{tp.deliveredBy}</div>
+                      {tp.deliveredDate && (
+                        <div className="flex items-center gap-1 text-xs text-emerald-700">
+                          <Calendar className="w-3 h-3" />
+                          {tp.deliveredDate}
+                        </div>
+                      )}
+                      {tp.statusNote && (
+                        <div className="mt-2 flex items-start gap-1.5 text-xs text-emerald-800 bg-emerald-100 rounded p-2">
+                          <Info className="w-3 h-3 shrink-0 mt-0.5" />
+                          <span>{tp.statusNote}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {/* For IN_PROGRESS or PLANNED — show status note if no deliveredBy */}
+                  {!tp.deliveredBy && tp.statusNote && (
+                    <div className="rounded-lg p-3 border bg-blue-50 border-blue-200">
+                      <div className="flex items-start gap-1.5 text-xs text-blue-800">
+                        <Info className="w-3 h-3 shrink-0 mt-0.5" />
+                        <span>{tp.statusNote}</span>
+                      </div>
+                    </div>
+                  )}
                   {/* Layer info */}
                   <div className={`rounded-lg p-3 border`} style={{ background: `${dotColor.replace("bg-", "")}10` }}>
                     <div className="text-xs font-semibold text-muted-foreground mb-1">Platform Layer</div>
