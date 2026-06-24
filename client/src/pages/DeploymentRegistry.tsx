@@ -866,21 +866,180 @@ export default function DeploymentRegistry() {
     sortBy,
   });
 
-  // Auto-generate wiki markdown whenever rows data changes
+  // Auto-generate full wiki page whenever rows data changes
   const wikiMarkdown = useMemo(() => {
-    const lines: string[] = [];
-    lines.push(`| # | Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |`);
-    lines.push(`| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`);
+    const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
     const sorted = [...rows].sort((a, b) => b.deploymentDate.localeCompare(a.deploymentDate));
+
+    const totalDeployments = sorted.length;
+    const productionCount = sorted.filter(r => r.status === "Deployed").length;
+    const pdcCount = sorted.filter(r => r.platform === "PDC").length;
+    const tdcCount = sorted.filter(r => r.platform === "TDC").length;
+    const rollbackCount = sorted.filter(r => r.status === "Rolled Back").length;
+    const dates = sorted.map(r => r.deploymentDate).filter(Boolean);
+    const dateRange = dates.length > 0 ? `${dates[dates.length - 1]} — ${dates[0]}` : "—";
+
+    const lines: string[] = [];
+
+    // ── Header ──────────────────────────────────────────────────────────────────
+    lines.push(`# DCT Platform — Deployment Registry`);
+    lines.push(``);
+    lines.push(`**Organization:** RSM US LLP — CATT (Center for Advanced Tax Technology)`);
+    lines.push(`**Platform:** DCT Gate Verification Dashboard`);
+    lines.push(`**Document Type:** Deployment Registry Wiki`);
+    lines.push(`**Last Updated:** ${today}`);
+    lines.push(`**Maintained By:** CATT Sr. Business Analyst — DCT Platform Delivery`);
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+
+    // ── Overview ────────────────────────────────────────────────────────────────
+    lines.push(`## Overview`);
+    lines.push(``);
+    lines.push(`The DCT Platform Deployment Registry is the authoritative record of all production deployments across the PDC (Phoenix Data Consolidation), TDC (Tax Data Consolidation), and Platform layers of the DCT architecture. Each entry captures the release name, deployment date, type, platform ownership, deployment owner, product owner, status, summary, and release notes reference.`);
+    lines.push(``);
+    lines.push(`This registry supports delivery governance, audit traceability, and PI readiness reporting. All deployments are governed by the DCT Batch Delivery Model and must satisfy the applicable gate exit conditions (G1 Schema Lock, G2 Invariant Lock, G3 Contract Publication, G4 Lineage Closure) before being recorded as Deployed.`);
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+
+    // ── Summary KPI table ───────────────────────────────────────────────────────
+    lines.push(`## Deployment Summary`);
+    lines.push(``);
+    lines.push(`| Metric | Value |`);
+    lines.push(`|---|---|`);
+    lines.push(`| Total Deployments | ${totalDeployments} |`);
+    lines.push(`| Deployed to Production | ${productionCount} |`);
+    lines.push(`| PDC Deployments | ${pdcCount} |`);
+    lines.push(`| TDC Deployments | ${tdcCount} |`);
+    lines.push(`| Rollback Candidates | ${rollbackCount} |`);
+    lines.push(`| Date Range | ${dateRange} |`);
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+
+    // ── Deployment Registry Table ────────────────────────────────────────────────
+    lines.push(`## Deployment Registry Table`);
+    lines.push(``);
+    lines.push(`| # | Deployment Date | Release Name | Type | Platform | Deployment Owner | Product Owner | Status | Summary | Release Notes |`);
+    lines.push(`|---|---|---|---|---|---|---|---|---|---|`);
+
     sorted.forEach((r, idx) => {
-      // Summary column = full release notes bullets text (the detailed description)
-      const summaryCell = r.releaseNotesBullets
+      const summaryCell = (r.releaseNotesBullets
         ? r.releaseNotesBullets.replace(/\|/g, "-").replace(/\n/g, " ").trim()
-        : (r.summary ?? "").replace(/\|/g, "-");
-      // Release Notes column = raw URL (adoFeatureUrl first, then adoStoryUrl); blank if neither is set
-      const notesCell = r.adoFeatureUrl ?? r.adoStoryUrl ?? "";
+        : (r.summary ?? "").replace(/\|/g, "-")).slice(0, 300);
+
+      // Build release notes hyperlink: prefer releaseNotesUrl, then swaggerUrl, then adoFeatureUrl, then adoStoryUrl
+      let notesCell = "—";
+      const notesUrl = r.releaseNotesUrl ?? r.swaggerUrl ?? r.adoFeatureUrl ?? r.adoStoryUrl ?? null;
+      if (notesUrl) {
+        const label = r.swaggerUrl && !r.releaseNotesUrl ? "Swagger" : "Release Notes";
+        notesCell = `[${label}](${notesUrl})`;
+      }
+
       lines.push(`| ${idx + 1} | ${r.deploymentDate} | ${r.releaseName.replace(/\|/g, "-")} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summaryCell} | ${notesCell} |`);
     });
+
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+
+    // ── Detail Entries ───────────────────────────────────────────────────────────
+    lines.push(`## Deployment Detail Entries`);
+    lines.push(``);
+
+    sorted.forEach((r, idx) => {
+      const adoIds = r.adoWorkItemId ? r.adoWorkItemId.split(/[,\s]+/).filter(Boolean) : [];
+      const summaryText = r.summary ?? "Deployment details to be documented.";
+
+      lines.push(`### ${idx + 1} — ${r.releaseName}`);
+      lines.push(``);
+      lines.push(`| Attribute | Value |`);
+      lines.push(`|---|---|`);
+      lines.push(`| Deployment Date | ${r.deploymentDate} |`);
+      lines.push(`| Platform | ${r.platform} |`);
+      lines.push(`| Type | ${r.type} |`);
+      lines.push(`| Status | ${r.status} |`);
+      lines.push(`| Deployment Owner | ${r.deploymentOwner} |`);
+      lines.push(`| Product Owner | ${r.productOwner} |`);
+      lines.push(`| Environment | ${r.environment} |`);
+      if (r.relatedBatch) lines.push(`| Related Batch | ${r.relatedBatch} |`);
+      if (adoIds.length > 0) lines.push(`| ADO Work Item | ${adoIds.join(", ")} |`);
+      if (r.githubReleaseTag) lines.push(`| GitHub Release Tag | ${r.githubReleaseTag} |`);
+      lines.push(``);
+      lines.push(`**Summary**`);
+      lines.push(``);
+      lines.push(summaryText);
+      lines.push(``);
+
+      // Release notes bullets
+      if (r.releaseNotesBullets && r.releaseNotesBullets.trim()) {
+        lines.push(`**Release Notes**`);
+        lines.push(``);
+        r.releaseNotesBullets.split("\n").map(b => b.trim()).filter(Boolean).forEach(b => {
+          lines.push(`- ${b}`);
+        });
+        lines.push(``);
+      } else if (r.relatedFeature || r.relatedStory) {
+        lines.push(`**Release Notes**`);
+        lines.push(``);
+        if (r.relatedFeature) lines.push(`- ${r.relatedFeature}`);
+        if (r.relatedBatch) lines.push(`- Related to ${r.relatedBatch}`);
+        if (r.relatedStory) lines.push(`- ${r.relatedStory}`);
+        lines.push(``);
+      }
+
+      // Reference links
+      const hasLinks = r.releaseNotesUrl || r.swaggerUrl || r.adoFeatureUrl || r.adoStoryUrl;
+      if (hasLinks) {
+        lines.push(`**Reference Links**`);
+        lines.push(``);
+        if (r.releaseNotesUrl) lines.push(`- [Release Notes](${r.releaseNotesUrl})`);
+        if (r.swaggerUrl) lines.push(`- [Swagger / API Documentation](${r.swaggerUrl})`);
+        if (r.adoFeatureUrl) lines.push(`- [ADO Feature](${r.adoFeatureUrl})`);
+        if (r.adoStoryUrl) lines.push(`- [ADO Deployment Story](${r.adoStoryUrl})`);
+        lines.push(``);
+      } else {
+        lines.push(`**Reference Links:** — *(Not applicable — gate closure documentation serves as the authoritative release record)*`);
+        lines.push(``);
+      }
+
+      lines.push(`---`);
+      lines.push(``);
+    });
+
+    // ── Governance Notes ─────────────────────────────────────────────────────────
+    lines.push(`## Governance Notes`);
+    lines.push(``);
+    lines.push(`All deployments recorded in this registry have been executed against the DCT Platform's governed delivery model. The following governance principles apply to all entries.`);
+    lines.push(``);
+    lines.push(`**PDC Authority:** PDC (Phoenix Data Consolidation) is the canonical financial data authority. PDC deployments must not introduce tax logic, classification inference, or TDC-owned domain behavior.`);
+    lines.push(``);
+    lines.push(`**TDC Authority:** TDC (Tax Data Consolidation) is the tax domain authority. TDC deployments govern tax mapping proposals, practitioner review decisions, adjustment lifecycle management, and tax rule evaluation.`);
+    lines.push(``);
+    lines.push(`**Roger Read-Only:** Roger UI is a read-only consumer. No deployment may introduce write capabilities to the Roger layer. Roger never writes to PDC or TDC.`);
+    lines.push(``);
+    lines.push(`**AI Governance:** The AI Orchestrator is stateless compute. AI deployments must not introduce system-of-record behavior, persistent state, or direct tax decision authority. AI assists; humans decide.`);
+    lines.push(``);
+    lines.push(`**Gate Compliance:** All production deployments must satisfy the applicable gate exit conditions before being recorded as Deployed. Deployments that have not cleared their gate requirements must be recorded as Planned, Scheduled, or In Progress.`);
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+
+    // ── Reference Links ──────────────────────────────────────────────────────────
+    lines.push(`## Reference Links`);
+    lines.push(``);
+    lines.push(`| Resource | Link |`);
+    lines.push(`|---|---|`);
+    lines.push(`| DCT Platform Gate Verification Dashboard | Internal — CATT Platform |`);
+    lines.push(`| DCT Batch Roadmap v4.0 | SharePoint — Project Documentation |`);
+    lines.push(`| ADO Feature Board | Azure DevOps — CATT Backlog |`);
+    lines.push(`| Swagger — PDC API (QA) | [qa-pdc.api.rsmus.com/swagger](https://qa-pdc.api.rsmus.com/swagger/index.html) |`);
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+    lines.push(`*This wiki page is maintained by the CATT Sr. Business Analyst — DCT Platform Delivery. For questions or updates, contact Jenniver.Stafford@rsmus.com.*`);
+
     return lines.join("\n");
   }, [rows]);
 
@@ -1247,8 +1406,8 @@ export default function DeploymentRegistry() {
                   <FileText size={16} color="white" />
                 </div>
                 <div>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Generate Wiki Table</div>
-                  <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} deployment{rows.length !== 1 ? "s" : ""} — copy and paste into your ADO wiki page to replace the full table</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Generate Wiki Page</div>
+                  <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} deployment{rows.length !== 1 ? "s" : ""} — full wiki page with summary, table, detail entries, governance notes, and reference links</div>
                 </div>
                 <button onClick={() => setShowWikiModal(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#a7f3d0" }}><X size={18} /></button>
               </div>
@@ -1256,7 +1415,7 @@ export default function DeploymentRegistry() {
             {/* Instructions */}
             <div style={{ padding: "10px 24px", backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", flexShrink: 0 }}>
               <div style={{ fontSize: "12px", color: "#065f46", lineHeight: "1.6" }}>
-                <strong>How to use:</strong> Click <em>Copy All Markdown</em> below, then open your ADO wiki page, click Edit, select and delete the existing table, and paste. The table includes all {rows.length} deployments sorted newest first.
+                <strong>How to use:</strong> Click <em>Copy All Markdown</em> below, then open your ADO wiki page, click Edit, select all existing content, and paste. The page includes a summary KPI table, the full deployment registry table with hyperlinked release notes, individual detail entries for each deployment, governance notes, and reference links — all {rows.length} deployments sorted newest first.
               </div>
             </div>
             {/* Markdown preview */}
