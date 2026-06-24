@@ -512,15 +512,34 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function Home() {
-  const { gates } = useBatchStatus();
+  const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
 
-  // Readiness Status — current PI (PI 2) metrics derived from Batch Calendar
-  const pi2Batches = BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 2");
-  const pi2Total = pi2Batches.length;
-  const pi2Done = pi2Batches.filter(b => b.status === "Done").length;
-  const pi2Active = pi2Batches.filter(b => b.status === "In Progress").length;
-  const pi2Planned = pi2Batches.filter(b => b.status !== "Done" && b.status !== "In Progress").length;
-  const overallPct = pi2Total > 0 ? Math.round((pi2Done / pi2Total) * 100) : 0;
+  // ── Live batch counts derived from BatchStatusContext (Control Panel source of truth) ──
+  const statusValues = useMemo(() => Object.values(statuses as Record<string, string>), [statuses]);
+  const liveComplete = useMemo(() => statusValues.filter(s => s === "Complete" || s === "Delivered").length, [statusValues]);
+  const liveDev = useMemo(() => statusValues.filter(s => s === "In Progress" || s === "Dev" || s === "MVP" || s === "Stretch").length, [statusValues]);
+  const liveInReview = useMemo(() => statusValues.filter(s => s === "In Review" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready").length, [statusValues]);
+  const livePlanned = useMemo(() => statusValues.filter(s => s === "Not Started" || s === "Planned").length, [statusValues]);
+  const liveTotal = statusValues.length;
+  const overallPct = liveTotal > 0 ? Math.round((liveComplete / liveTotal) * 100) : 0;
+
+  // For backward compat with sections that use pi2Done/pi2Active/pi2Planned names
+  const pi2Done = liveComplete;
+  const pi2Active = liveDev;
+  const pi2Planned = livePlanned;
+
+  // Active batches: derive from context keys that are In Progress / Dev / MVP / Stretch
+  // Map context keys back to calendar entries for display
+  const ctxActiveKeys = useMemo(() => {
+    return Object.entries(statuses as Record<string, string>)
+      .filter(([, s]) => s === "In Progress" || s === "Dev" || s === "MVP" || s === "Stretch")
+      .map(([k]) => k);
+  }, [statuses]);
+
+  // Last updated label
+  const lastUpdatedLabel = lastUpdated
+    ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+    : null;
 
   // Lifted accordion open state — keyed by accordion id
   const ACCORDION_IDS = [
@@ -573,9 +592,28 @@ export default function Home() {
     { label: "Batch Delivery Calendar",id: "",                      internal: false, href: "/batch-calendar" },
   ];
 
-  // Delivery Highlights — active batches in progress
-  const activeBatches = BATCH_CALENDAR_PI23.filter(b => b.status === "In Progress");
-  const stretchBatches = BATCH_CALENDAR_PI23.filter(b => b.status === "Stretch");
+  // Delivery Highlights — derive active/stretch batches by overlaying live context status onto calendar entries
+  // Context key format: "foundation-core" for FC, numeric string for B1/B2/etc., "2a" for B2A
+  const ctxKeyForBatch = (batchStr: string): string => {
+    if (batchStr === "FC") return "foundation-core";
+    return batchStr.replace(/^B/, "").toLowerCase();
+  };
+  const activeBatches = useMemo(() => {
+    return BATCH_CALENDAR_PI23.filter(b => {
+      const key = ctxKeyForBatch(b.batch);
+      const liveStatus = (statuses as Record<string, string>)[key];
+      if (liveStatus) return liveStatus === "In Progress" || liveStatus === "Dev" || liveStatus === "MVP";
+      return b.status === "In Progress";
+    });
+  }, [statuses]);
+  const stretchBatches = useMemo(() => {
+    return BATCH_CALENDAR_PI23.filter(b => {
+      const key = ctxKeyForBatch(b.batch);
+      const liveStatus = (statuses as Record<string, string>)[key];
+      if (liveStatus) return liveStatus === "Stretch";
+      return b.status === "Stretch";
+    });
+  }, [statuses]);
   const pi3MvpCount = BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 3" && b.status === "MVP").length;
 
   return (
@@ -644,7 +682,10 @@ export default function Home() {
         {/* Progress bar */}
         <div style={{ marginTop: "24px", position: "relative" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-            <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>PI 2 Readiness</span>
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Platform Readiness
+              {lastUpdatedLabel && <span style={{ fontWeight: 400, color: "#64748b", marginLeft: "8px", textTransform: "none", letterSpacing: 0 }}>· synced {lastUpdatedLabel}</span>}
+            </span>
             <span style={{ fontSize: "13px", fontWeight: 800, color: "#34d399" }}>{overallPct}% Complete</span>
           </div>
           <div style={{ height: "12px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "6px", overflow: "hidden" }}>
@@ -655,11 +696,11 @@ export default function Home() {
         {/* KPI row */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px", marginTop: "20px", position: "relative" }}>
           {[
-            { label: "Batches Done",    value: pi2Done,    sub: "PI 2 complete",       color: "#34d399" },
-            { label: "In Progress",    value: pi2Active,  sub: "Active this week",    color: "#60a5fa" },
-            { label: "Remaining",      value: pi2Planned, sub: "PI 2 to close",       color: "#94a3b8" },
-            { label: "PI 3 MVP",       value: pi3MvpCount,sub: "Batches queued",      color: "#a78bfa" },
-            { label: "Total Batches",  value: BATCH_CALENDAR_PI23.length, sub: "PI 2 + PI 3", color: "#fb923c" },
+            { label: "Batches Complete", value: liveComplete,  sub: "Marked complete",    color: "#34d399" },
+            { label: "In Dev",           value: liveDev,       sub: "Active this week",   color: "#60a5fa" },
+            { label: "In Review",        value: liveInReview,  sub: "QA / Demo Ready",    color: "#a78bfa" },
+            { label: "Planned",          value: livePlanned,   sub: "Not yet started",    color: "#94a3b8" },
+            { label: "Total Batches",    value: liveTotal,     sub: "All tracked batches",color: "#fb923c" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",
@@ -734,10 +775,11 @@ export default function Home() {
           <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Batch Portfolio</div>
             {[
-              { label: "Total Batches",  value: BATCH_CALENDAR_PI23.length, color: "#0f1623" },
-              { label: "Complete",       value: pi2Done,                     color: "#059669" },
-              { label: "In Progress",    value: pi2Active,                   color: "#2563eb" },
-              { label: "Remaining",      value: pi2Planned,                  color: "#94a3b8" },
+              { label: "Total Batches",  value: liveTotal,     color: "#0f1623" },
+              { label: "Complete",       value: liveComplete,  color: "#059669" },
+              { label: "In Dev",         value: liveDev,       color: "#2563eb" },
+              { label: "In Review",      value: liveInReview,  color: "#7c3aed" },
+              { label: "Planned",        value: livePlanned,   color: "#94a3b8" },
             ].map(row => (
               <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
                 <span style={{ fontSize: "12px", color: "#475569" }}>{row.label}</span>
@@ -752,8 +794,8 @@ export default function Home() {
             {[
               { label: "Release Candidate", value: "RC-2",         color: "#059669" },
               { label: "Target MVP Date",   value: "Sep 16, 2026", color: "#0f1623" },
-              { label: "PI 2 Readiness",    value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
-              { label: "PI 3 Queued",       value: `${pi3MvpCount} batches`, color: "#7c3aed" },
+              { label: "Platform Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
+              { label: "PI 3 Queued",          value: `${pi3MvpCount} batches`, color: "#7c3aed" },
             ].map(row => (
               <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
                 <span style={{ fontSize: "12px", color: "#475569" }}>{row.label}</span>
@@ -928,7 +970,7 @@ export default function Home() {
           <div style={{ backgroundColor: "#f0fdf4", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #059669" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🟢 Release Readiness</div>
             {[
-              { label: "PI 2 Completion",   value: `${overallPct}%`, ok: overallPct >= 70 },
+              { label: "Platform Completion", value: `${overallPct}%`, ok: overallPct >= 70 },
               { label: "Gates Passed",      value: `${[gates.g1, gates.g2, gates.g3, gates.g4].filter(g => g === "Complete").length} / 4`, ok: [gates.g1, gates.g2].every(g => g === "Complete") },
               { label: "RC Status",         value: "RC-2 On Track",   ok: true },
               { label: "MVP-Required Close",value: "Sep 16, 2026",    ok: true },
