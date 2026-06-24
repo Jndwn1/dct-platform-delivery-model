@@ -20,6 +20,7 @@
  */
 
 import React, { useState, useMemo } from "react";
+import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import {
   CheckCircle2, AlertTriangle, XCircle, Clock, Eye,
   ChevronDown, ChevronUp, AlertCircle, Shield, Zap,
@@ -222,6 +223,39 @@ const NEXT_ACTIONS = [
   { action: "Validate consumer guide for AI Mapping Proposals",   owner: "Roger BA",          status: "Open",        impact: "Low",    adoRef: "#1349156" },
 ];
 
+// ── Batch label → context key mapping (matches Control Panel logic) ─────────
+function batchShortToKey(batch: string): string {
+  const b = batch.trim().toUpperCase();
+  if (b === "FC") return "foundation-core";
+  const m = batch.trim().match(/^B([0-9]+[A-Za-z]?)$/i);
+  if (m) return m[1].toLowerCase();
+  return batch.trim().toLowerCase();
+}
+
+// Derive ReadinessStatus from live batch context status
+function deriveReadiness(batchKey: string, statuses: Record<string, string>, baseStatus: ReadinessStatus): ReadinessStatus {
+  const s = statuses[batchKey];
+  if (!s) return baseStatus;
+  if (s === "Complete" || s === "Delivered") return "Consumer Ready";
+  if (s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready" || s === "MVP" || s === "Stretch") {
+    if (baseStatus === "Future State") return "Draft Contract";
+    if (baseStatus === "Governance Pending" || baseStatus === "Blocked") return "Governance Pending";
+    return "Partial Data";
+  }
+  if (s === "Blocked") return "Blocked";
+  return baseStatus;
+}
+
+// Derive DataStatus from live batch context status
+function deriveDataStatus(batchKey: string, statuses: Record<string, string>, baseData: DataStatus): DataStatus {
+  const s = statuses[batchKey];
+  if (!s) return baseData;
+  if (s === "Complete" || s === "Delivered") return "Real Data";
+  if (s === "In Progress" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready" || s === "MVP" || s === "Stretch") return "Partial";
+  if (s === "Blocked") return baseData;
+  return baseData;
+}
+
 // ── Helper Components ─────────────────────────────────────────────────────────
 
 function ReadinessBadge({ status }: { status: ReadinessStatus }) {
@@ -284,25 +318,76 @@ export default function RogerConsumerReadinessCenter() {
   const [expandedRisk, setExpandedRisk] = useState<number | null>(null);
   const [copiedMatrix, setCopiedMatrix] = useState(false);
 
-  // Computed summary stats
-  const consumerReady = ENDPOINT_MATRIX.filter(r => r.status === "Consumer Ready" || r.status === "Delivered").length;
-  const mockOnly = ENDPOINT_MATRIX.filter(r => r.status === "Mock Only").length;
-  const govBlocked = ENDPOINT_MATRIX.filter(r => r.status === "Governance Pending" || r.status === "Blocked").length;
-  const futureState = ENDPOINT_MATRIX.filter(r => r.status === "Future State").length;
-  const partialData = ENDPOINT_MATRIX.filter(r => r.status === "Partial Data" || r.status === "Draft Contract").length;
+  // ── Live batch status from Control Panel ─────────────────────────────────
+  const { statuses } = useBatchStatus();
+  const liveStatuses = statuses as unknown as Record<string, string>;
+
+  // ── Live Endpoint Matrix — status + data derived from batch context ───────
+  const liveEndpointMatrix = useMemo(() =>
+    ENDPOINT_MATRIX.map(row => {
+      const key = batchShortToKey(row.batch);
+      return {
+        ...row,
+        status: deriveReadiness(key, liveStatuses, row.status),
+        data: deriveDataStatus(key, liveStatuses, row.data),
+      };
+    }),
+  [liveStatuses]);
+
+  // ── Live Data Availability — realData/mockData/pipelineValidated from context
+  const liveDataAvailability = useMemo(() =>
+    DATA_AVAILABILITY.map(row => {
+      // Map API name → batch key
+      const batchKeyMap: Record<string, string> = {
+        "File Ingestion Status":     "foundation-core",
+        "Lineage Anchor":            "1",
+        "Normalized Trial Balance":  "2",
+        "FirmTaxonomyId":            "2a",
+        "AI Mapping Proposals":      "4",
+        "Entity Identity":           "5",
+        "Practitioner Review Queue": "6",
+        "Client Tax Profile":        "7",
+        "Exception Record":          "8",
+        "Remedy Action":             "8",
+      };
+      const key = batchKeyMap[row.api];
+      if (!key) return row;
+      const s = liveStatuses[key];
+      if (!s) return row;
+      const isComplete = s === "Complete" || s === "Delivered";
+      const isActive = ["In Progress","Ready for QA","QA In Progress","Demo Ready","MVP","Stretch"].includes(s);
+      return {
+        ...row,
+        realData: isComplete ? true : isActive ? row.realData : row.realData,
+        mockData: isComplete ? false : row.mockData,
+        samplePayload: isComplete ? true : isActive ? row.samplePayload : row.samplePayload,
+        pipelineValidated: isComplete ? true : isActive ? row.pipelineValidated : row.pipelineValidated,
+        notes: isComplete
+          ? row.notes.replace(/ Mock only[^.]*\./, "").replace(/ Not yet[^.]*\./, "").trim() + " ✓ Batch Complete."
+          : row.notes,
+      };
+    }),
+  [liveStatuses]);
+
+  // ── Computed summary stats (live) ─────────────────────────────────────────
+  const consumerReady = liveEndpointMatrix.filter(r => r.status === "Consumer Ready" || r.status === "Delivered").length;
+  const mockOnly = liveEndpointMatrix.filter(r => r.status === "Mock Only").length;
+  const govBlocked = liveEndpointMatrix.filter(r => r.status === "Governance Pending" || r.status === "Blocked").length;
+  const futureState = liveEndpointMatrix.filter(r => r.status === "Future State").length;
+  const partialData = liveEndpointMatrix.filter(r => r.status === "Partial Data" || r.status === "Draft Contract").length;
   const demoReady = DEMO_READINESS.filter(r => r.demoReady === "Demo Ready" || r.demoReady === "Production Ready").length;
   const prodReady = DEMO_READINESS.filter(r => r.prodReady === "Production Ready").length;
   const openAdrs = OPEN_ADRS.filter(a => a.status === "Open").length;
   const criticalRisks = INTEGRATION_RISKS.filter(r => r.level === "Critical").length;
 
   const filteredMatrix = useMemo(() => {
-    if (matrixFilter === "All") return ENDPOINT_MATRIX;
-    return ENDPOINT_MATRIX.filter(r => r.status === matrixFilter);
-  }, [matrixFilter]);
+    if (matrixFilter === "All") return liveEndpointMatrix;
+    return liveEndpointMatrix.filter(r => r.status === matrixFilter);
+  }, [matrixFilter, liveEndpointMatrix]);
 
   const copyMatrix = () => {
     const header = "Batch | API | Purpose | Roger Capability | Status | Data | Gov Status | Blockers | Owner";
-    const rows = ENDPOINT_MATRIX.map(r =>
+    const rows = liveEndpointMatrix.map(r =>
       `${r.batch} | ${r.api} | ${r.purpose} | ${r.capability} | ${r.status} | ${r.data} | ${r.govStatus} | ${r.blockers} | ${r.owner}`
     );
     navigator.clipboard.writeText([header, ...rows].join("\n")).then(() => {
@@ -422,7 +507,13 @@ export default function RogerConsumerReadinessCenter() {
 
         {/* ── SECTION 2: Endpoint Readiness Matrix ─────────────────────────── */}
         <section>
-          <SectionHeader num={2} title="Roger Endpoint Readiness Matrix" icon={<Database className="w-4 h-4" />} count={`${ENDPOINT_MATRIX.length} APIs`} />
+          <SectionHeader num={2} title="Roger Endpoint Readiness Matrix" icon={<Database className="w-4 h-4" />} count={`${liveEndpointMatrix.length} APIs`} />
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "#d1fae5", color: "#065f46", border: "1px solid #34d399" }}>
+              <Activity className="w-3 h-3" /> Live — synced from Control Panel
+            </span>
+            <span className="text-xs text-slate-400">Status and data availability update automatically when batches are marked Complete</span>
+          </div>
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
             <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
             This section maps each endpoint to the batch, capability, source system, readiness status, data availability, and blocker so Roger can quickly see what can be consumed today versus what is pending governance, in development, or future state.
@@ -576,9 +667,15 @@ export default function RogerConsumerReadinessCenter() {
           </div>
         </section>
 
-        {/* ── SECTION 5: Data Availability ─────────────────────────────────── */}
+          {/* ── SECTION 5: Data Availability ─────────────────────────────────── */}
         <section>
           <SectionHeader num={5} title="Data Availability Status" icon={<Activity className="w-4 h-4" />} />
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "#d1fae5", color: "#065f46", border: "1px solid #34d399" }}>
+              <Activity className="w-3 h-3" /> Live — synced from Control Panel
+            </span>
+            <span className="text-xs text-slate-400">Real Data and Pipeline Validated flags update when the corresponding batch is marked Complete</span>
+          </div>
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 text-xs text-blue-800 leading-relaxed">
             <Info className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
             This section shows whether Roger is looking at real data, mock data, sample payloads, or draft contract data. Real Data means the pipeline is operational. Mock Data means the demo uses simulated values. Pipeline Validated means the end-to-end data flow has been tested.
@@ -597,7 +694,7 @@ export default function RogerConsumerReadinessCenter() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {DATA_AVAILABILITY.map((row, i) => (
+                  {liveDataAvailability.map((row, i) => (
                     <tr key={i} className="hover:bg-slate-50">
                       <td className="px-3 py-2.5 font-medium text-slate-800">{row.api}</td>
                       {[row.realData, row.mockData, row.samplePayload, row.pipelineValidated].map((val, j) => (
