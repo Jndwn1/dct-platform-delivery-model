@@ -1,6 +1,7 @@
 // DCT Platform — Governance Timeline
 // Shows gate milestones, batch delivery dates, and governance checkpoints
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useBatchStatus } from "@/contexts/BatchStatusContext";
 
 const TIMELINE_EVENTS = [
   { date: "2024-Q4", label: "Foundation Core", type: "batch", status: "complete", description: "Infrastructure setup: code repo, templates, Copilot Agent and Blitzy configuration, development environment.", gate: null },
@@ -44,10 +45,72 @@ const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string; lab
   "post-mvp":  { bg: "#f3f4f6", text: "#6b7280", dot: "#9ca3af", label: "Post-MVP" },
 };
 
+// Map batch label keywords to BatchStatusContext keys
+const BATCH_KEY_MAP: Record<string, string> = {
+  "Foundation Core": "foundation-core",
+  "Batch 1":  "1",
+  "Batch 2 ": "2",
+  "Batch 2A": "2a",
+  "Batch 3":  "3",
+  "Batch 4":  "4",
+  "Batch 5":  "5",
+  "Batch 6":  "6",
+  "Batch 7":  "7",
+  "Batch 8":  "8",
+  "Batch 9 ": "9",
+  "Batch 9A": "9a",
+  "Batch 9 TDC": "9-tdc",
+  "Batch 10": "10",
+  "Batch 11": "11",
+  "Batch 12": "12",
+  "Batch 42": "42",
+  "Batch 43": "43",
+};
+
+function batchLabelToContextKey(label: string): string | null {
+  for (const [prefix, key] of Object.entries(BATCH_KEY_MAP)) {
+    if (label.startsWith(prefix)) return key;
+  }
+  return null;
+}
+
+function contextStatusToTimeline(s: string): string {
+  if (s === "Complete" || s === "Delivered") return "complete";
+  if (s === "Demo Ready" || s === "QA In Progress" || s === "Ready for QA") return "in-progress";
+  if (s === "In Progress") return "active";
+  if (s === "MVP") return "mvp";
+  if (s === "Stretch") return "stretch";
+  if (s === "Blocked") return "on-hold";
+  return "planned";
+}
+
 export default function GovernanceTimelinePage() {
   const [filter, setFilter] = useState<"all" | "gate" | "batch">("all");
+  const { statuses, gates } = useBatchStatus();
 
-  const filtered = TIMELINE_EVENTS.filter(e => filter === "all" || e.type === filter);
+  // Derive live timeline events by overlaying current batch statuses
+  const liveEvents = useMemo(() => {
+    return TIMELINE_EVENTS.map(event => {
+      if (event.type === "gate") {
+        // Map gate events to live gate status
+        const gateKey = event.gate?.toLowerCase() as "g1" | "g2" | "g3" | "g4" | null;
+        if (gateKey && gates[gateKey]) {
+          const gs = gates[gateKey];
+          const liveGateStatus = gs === "Complete" ? "locked" : gs === "In Progress" ? "in-progress" : "pending";
+          return { ...event, status: liveGateStatus };
+        }
+        return event;
+      }
+      // Batch event — look up live status
+      const key = batchLabelToContextKey(event.label);
+      if (key && statuses[key as keyof typeof statuses]) {
+        return { ...event, status: contextStatusToTimeline(statuses[key as keyof typeof statuses]) };
+      }
+      return event;
+    });
+  }, [statuses, gates]);
+
+  const filtered = liveEvents.filter(e => filter === "all" || e.type === filter);
 
   return (
     <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>

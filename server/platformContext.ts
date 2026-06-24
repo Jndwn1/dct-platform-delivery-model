@@ -29,7 +29,24 @@ import {
   ADR_CARDS,
 } from "../client/src/lib/rogerGovernanceData";
 
-export function buildPlatformSystemPrompt(): string {
+export interface LiveSnapshotInput {
+  asOf: string;
+  statuses: Record<string, string>;
+  gates: { g1: string; g2: string; g3: string; g4: string };
+  piCompletion: {
+    pi1: { total: number; complete: number; pct: number };
+    pi2: { total: number; complete: number; pct: number };
+    pi3: { total: number; complete: number; pct: number };
+    pi4: { total: number; complete: number; pct: number };
+    overall: { total: number; complete: number; pct: number };
+  };
+  completedBatches: string[];
+  activeBatches: string[];
+  blockedBatches: string[];
+  plannedBatches: string[];
+}
+
+export function buildPlatformSystemPrompt(liveSnapshot?: LiveSnapshotInput): string {
   const summary = getPlatformSummary();
   const allBatchRegistry = getAllBatches();
 
@@ -43,6 +60,57 @@ export function buildPlatformSystemPrompt(): string {
   lines.push(`Format responses with headers, bullet points, and tables where helpful. Keep answers concise but complete.`);
   lines.push(`GOVERNANCE NOTE: This is a non-production architecture visualization workspace. All data is seed/mock data for planning and readiness purposes only.`);
   lines.push(``);
+
+  // ── LIVE BATCH STATUS SNAPSHOT (injected from Control Panel) ─────────────
+  if (liveSnapshot) {
+    lines.push(`## ⚡ LIVE PLATFORM STATUS (as of ${new Date(liveSnapshot.asOf).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })})`)
+    lines.push(`**IMPORTANT: This section reflects the CURRENT live state of the platform as set in the Control Panel. Use this data to answer any questions about current batch status, delivery progress, or readiness. It overrides any static status values in the sections below.**`);
+    lines.push(``);
+    lines.push(`### Live Gate Status`);
+    lines.push(`- G1 Schema Lock: ${liveSnapshot.gates.g1}`);
+    lines.push(`- G2 Invariant Lock: ${liveSnapshot.gates.g2}`);
+    lines.push(`- G3 Contract Publication: ${liveSnapshot.gates.g3}`);
+    lines.push(`- G4 Lineage Closure: ${liveSnapshot.gates.g4}`);
+    lines.push(``);
+    lines.push(`### Live PI Completion`);
+    lines.push(`- PI 1: ${liveSnapshot.piCompletion.pi1.complete}/${liveSnapshot.piCompletion.pi1.total} batches complete (${liveSnapshot.piCompletion.pi1.pct}%)`);
+    lines.push(`- PI 2: ${liveSnapshot.piCompletion.pi2.complete}/${liveSnapshot.piCompletion.pi2.total} batches complete (${liveSnapshot.piCompletion.pi2.pct}%)`);
+    lines.push(`- PI 3: ${liveSnapshot.piCompletion.pi3.complete}/${liveSnapshot.piCompletion.pi3.total} batches complete (${liveSnapshot.piCompletion.pi3.pct}%)`);
+    lines.push(`- PI 4: ${liveSnapshot.piCompletion.pi4.complete}/${liveSnapshot.piCompletion.pi4.total} batches complete (${liveSnapshot.piCompletion.pi4.pct}%)`);
+    lines.push(`- Overall: ${liveSnapshot.piCompletion.overall.complete}/${liveSnapshot.piCompletion.overall.total} batches complete (${liveSnapshot.piCompletion.overall.pct}%)`);
+    lines.push(``);
+    lines.push(`### Live Batch Status by Key`);
+    for (const [key, status] of Object.entries(liveSnapshot.statuses)) {
+      lines.push(`- ${key}: ${status}`);
+    }
+    lines.push(``);
+    lines.push(`### Completed Batches (${liveSnapshot.completedBatches.length})`);
+    if (liveSnapshot.completedBatches.length > 0) {
+      for (const b of liveSnapshot.completedBatches) lines.push(`- ✅ ${b}`);
+    } else {
+      lines.push(`- None yet`);
+    }
+    lines.push(``);
+    lines.push(`### Active / In-Progress Batches (${liveSnapshot.activeBatches.length})`);
+    if (liveSnapshot.activeBatches.length > 0) {
+      for (const b of liveSnapshot.activeBatches) lines.push(`- 🔄 ${b}`);
+    } else {
+      lines.push(`- None currently active`);
+    }
+    lines.push(``);
+    if (liveSnapshot.blockedBatches.length > 0) {
+      lines.push(`### Blocked Batches (${liveSnapshot.blockedBatches.length})`);
+      for (const b of liveSnapshot.blockedBatches) lines.push(`- 🚫 ${b}`);
+      lines.push(``);
+    }
+    lines.push(`### Planned / Not Started Batches (${liveSnapshot.plannedBatches.length})`);
+    if (liveSnapshot.plannedBatches.length > 0) {
+      for (const b of liveSnapshot.plannedBatches) lines.push(`- ⏳ ${b}`);
+    }
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+  }
 
   // ── Platform Overview ──────────────────────────────────────────────────────
   lines.push(`## Platform Overview`);

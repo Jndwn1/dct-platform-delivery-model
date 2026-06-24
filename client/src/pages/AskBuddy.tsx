@@ -2,10 +2,11 @@
 // Pulls live data from batchModel.ts, dctData.ts, platformData.ts, BatchDetailPage BATCH_CONTENT
 // NON-PRODUCTION ARCHITECTURE REFERENCE
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import { trpc } from "@/lib/trpc";
+import { useBatchStatus, buildLiveSnapshot } from "@/contexts/BatchStatusContext";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -370,6 +371,13 @@ export default function AskBuddy() {
     ? decodeURIComponent(new URLSearchParams(window.location.search).get("prompt") ?? "")
     : "";
 
+  // Live batch status from Control Panel — injected into every Ask Buddy LLM call
+  const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
+  const liveSnapshot = useMemo(
+    () => buildLiveSnapshot(statuses, gates, piCompletion, lastUpdated),
+    [statuses, gates, piCompletion, lastUpdated]
+  );
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -569,6 +577,7 @@ export default function AskBuddy() {
         ...history,
         { role: "user" as const, content: text.trim() },
       ],
+      liveSnapshot,
     });
   };
 

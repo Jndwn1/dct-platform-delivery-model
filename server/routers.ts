@@ -33,10 +33,32 @@ export const appRouter = router({
               content: z.string(),
             })
           ),
+          // Live batch snapshot from the client's BatchStatusContext
+          liveSnapshot: z.object({
+            asOf: z.string(),
+            statuses: z.record(z.string()),
+            gates: z.object({
+              g1: z.string(),
+              g2: z.string(),
+              g3: z.string(),
+              g4: z.string(),
+            }),
+            piCompletion: z.object({
+              pi1: z.object({ total: z.number(), complete: z.number(), pct: z.number() }),
+              pi2: z.object({ total: z.number(), complete: z.number(), pct: z.number() }),
+              pi3: z.object({ total: z.number(), complete: z.number(), pct: z.number() }),
+              pi4: z.object({ total: z.number(), complete: z.number(), pct: z.number() }),
+              overall: z.object({ total: z.number(), complete: z.number(), pct: z.number() }),
+            }),
+            completedBatches: z.array(z.string()),
+            activeBatches: z.array(z.string()),
+            blockedBatches: z.array(z.string()),
+            plannedBatches: z.array(z.string()),
+          }).optional(),
         })
       )
       .mutation(async ({ input }) => {
-        const systemPrompt = buildPlatformSystemPrompt();
+        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot);
 
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },

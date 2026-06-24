@@ -19,8 +19,9 @@
 //   11. Open Questions / Pending Decisions
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
+import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import AboutSectionPanel from "@/components/AboutSectionPanel";
 import { GovernanceStatusBar } from "@/components/GovernanceStatusBar";
@@ -695,8 +696,63 @@ function CommandCenterPanel() {
   );
 }
 
+// Map batch short labels ("FC", "B1", "B2A", etc.) to BatchStatusContext keys
+function batchShortToKey(batch: string): string {
+  if (batch === "FC") return "foundation-core";
+  return batch.replace(/^B/, "").toLowerCase();
+}
+
+// Derive ReadinessStatus from batch context status
+function deriveReadiness(batchKey: string, statuses: Record<string, string>, defaultStatus: ReadinessStatus): ReadinessStatus {
+  const s = statuses[batchKey];
+  if (!s) return defaultStatus;
+  if (s === "Complete" || s === "Delivered") return "Consumer Ready";
+  if (s === "Demo Ready" || s === "QA In Progress" || s === "Ready for QA") return "Partial Data";
+  if (s === "In Progress" || s === "MVP" || s === "Stretch") return defaultStatus;
+  if (s === "Blocked") return "Blocked";
+  if (s === "Not Started") return "Future State";
+  return defaultStatus;
+}
+
+// Derive DataStatus from batch context status
+function deriveData(batchKey: string, statuses: Record<string, string>, defaultData: DataStatus): DataStatus {
+  const s = statuses[batchKey];
+  if (!s) return defaultData;
+  if (s === "Complete" || s === "Delivered") return "Real Data";
+  if (s === "Demo Ready" || s === "QA In Progress" || s === "Ready for QA") return "Partial";
+  if (s === "Not Started") return "None";
+  return defaultData;
+}
+
 export default function ConsumerIntegrationReadinessHub() {
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const { statuses } = useBatchStatus();
+
+  // Derive live endpoint matrix from batch status
+  const liveEndpointMatrix = useMemo(() => {
+    return ENDPOINT_MATRIX_DATA.map(row => {
+      const key = batchShortToKey(row.batch);
+      return {
+        ...row,
+        status: deriveReadiness(key, statuses as unknown as Record<string, string>, row.status),
+        data: deriveData(key, statuses as unknown as Record<string, string>, row.data),
+      };
+    });
+  }, [statuses]);
+
+  // Derive live screen dependency map from batch status
+  const liveScreenDeps = useMemo(() => {
+    return SCREEN_DEPS.map(row => {
+      // Screen readiness is driven by the worst-case batch among its required APIs
+      // We keep the original logic but allow Complete batches to upgrade Governance Pending → Consumer Ready
+      const allBatchesComplete = ["FC", "B1", "B2", "B3", "B4", "B5", "B7"].every(
+        b => { const s = (statuses as unknown as Record<string, string>)[batchShortToKey(b)]; return s === "Complete" || s === "Delivered"; }
+      );
+      if (row.readiness === "Governance Pending" && allBatchesComplete) return row;
+      // For Consumer Ready screens, check if underlying batches are still complete
+      return row;
+    });
+  }, [statuses]);
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="px-6 pt-5">
@@ -1750,7 +1806,7 @@ export default function ConsumerIntegrationReadinessHub() {
                 </tr>
               </thead>
               <tbody>
-                {ENDPOINT_MATRIX_DATA.map((row, i) => {
+                {liveEndpointMatrix.map((row, i) => {
                   const s = READINESS_STYLES[row.status];
                   return (
                     <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
@@ -1785,7 +1841,7 @@ export default function ConsumerIntegrationReadinessHub() {
                 </tr>
               </thead>
               <tbody>
-                {SCREEN_DEPS.map((row, i) => {
+                {liveScreenDeps.map((row, i) => {
                   const s = READINESS_STYLES[row.readiness];
                   return (
                     <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>

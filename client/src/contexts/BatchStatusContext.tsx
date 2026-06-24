@@ -693,6 +693,59 @@ export function useBatchStatus() {
   return ctx;
 }
 
+// ── Live snapshot serializer (for Ask Buddy / server injection) ──────────────
+
+export interface LiveBatchSnapshot {
+  asOf: string;                          // ISO timestamp of last update
+  statuses: Record<string, string>;      // batchKey → status string
+  gates: { g1: string; g2: string; g3: string; g4: string };
+  piCompletion: {
+    pi1: { total: number; complete: number; pct: number };
+    pi2: { total: number; complete: number; pct: number };
+    pi3: { total: number; complete: number; pct: number };
+    pi4: { total: number; complete: number; pct: number };
+    overall: { total: number; complete: number; pct: number };
+  };
+  completedBatches: string[];            // labels of delivered/complete batches
+  activeBatches: string[];               // labels of in-progress batches
+  blockedBatches: string[];              // labels of blocked batches
+  plannedBatches: string[];              // labels of not-started batches
+}
+
+/** Build a serializable snapshot of the current live platform state for server-side injection */
+export function buildLiveSnapshot(
+  statuses: BatchStatusMap,
+  gates: DerivedGates,
+  piCompletion: PICompletion,
+  lastUpdated: string | null,
+): LiveBatchSnapshot {
+  const keys = Object.keys(statuses) as BatchKey[];
+  const completedBatches: string[] = [];
+  const activeBatches: string[] = [];
+  const blockedBatches: string[] = [];
+  const plannedBatches: string[] = [];
+
+  for (const k of keys) {
+    const s = statuses[k];
+    const label = BATCH_LABELS[k] ?? k;
+    if (isDelivered(s)) completedBatches.push(label);
+    else if (s === "Blocked") blockedBatches.push(label);
+    else if (isActive(s)) activeBatches.push(label);
+    else plannedBatches.push(label);
+  }
+
+  return {
+    asOf: lastUpdated ?? new Date().toISOString(),
+    statuses: statuses as unknown as Record<string, string>,
+    gates,
+    piCompletion,
+    completedBatches,
+    activeBatches,
+    blockedBatches,
+    plannedBatches,
+  };
+}
+
 // ── Status conversion helpers ─────────────────────────────────────────────────
 
 /** Map context BatchStatus → dctData BatchStatus (for BatchRoadmap) */
