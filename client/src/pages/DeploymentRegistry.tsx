@@ -925,19 +925,27 @@ export default function DeploymentRegistry() {
     lines.push(`|---|---|---|---|---|---|---|---|---|---|`);
 
     sorted.forEach((r, idx) => {
-      const summaryCell = (r.releaseNotesBullets
-        ? r.releaseNotesBullets.replace(/\|/g, "-").replace(/\n/g, " ").trim()
-        : (r.summary ?? "").replace(/\|/g, "-")).slice(0, 300);
+      // Sanitize a string for safe use inside a markdown table cell:
+      // replace pipes, newlines, carriage returns, and truncate
+      const sanitizeCell = (s: string, maxLen = 120) =>
+        s.replace(/[|\r\n]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLen);
+
+      const rawSummary = r.releaseNotesBullets
+        ? r.releaseNotesBullets.split("\n").filter(Boolean).join("; ")
+        : (r.summary ?? "");
+      const summaryCell = sanitizeCell(rawSummary, 120);
 
       // Build release notes hyperlink: prefer releaseNotesUrl, then swaggerUrl, then adoFeatureUrl, then adoStoryUrl
+      // Wrap URL in angle brackets so ADO wiki treats the whole URL as a single token
       let notesCell = "—";
       const notesUrl = r.releaseNotesUrl ?? r.swaggerUrl ?? r.adoFeatureUrl ?? r.adoStoryUrl ?? null;
       if (notesUrl) {
         const label = r.swaggerUrl && !r.releaseNotesUrl ? "Swagger" : "Release Notes";
-        notesCell = `[${label}](${notesUrl})`;
+        notesCell = `[${label}](<${notesUrl}>)`;
       }
 
-      lines.push(`| ${idx + 1} | ${r.deploymentDate} | ${r.releaseName.replace(/\|/g, "-")} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summaryCell} | ${notesCell} |`);
+      const releaseName = sanitizeCell(r.releaseName, 200);
+      lines.push(`| ${idx + 1} | ${r.deploymentDate} | ${releaseName} | ${r.type} | ${r.platform} | ${r.deploymentOwner} | ${r.productOwner} | ${r.status} | ${summaryCell} | ${notesCell} |`);
     });
 
     lines.push(``);
