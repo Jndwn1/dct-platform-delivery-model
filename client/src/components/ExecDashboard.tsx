@@ -6,10 +6,11 @@
 // Data: Dynamically derived from BATCH_CALENDAR_PI23 (Batch Calendar source of truth)
 // 
 
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import GeneratePOEmail from "@/components/GeneratePOEmail";
+import { useBatchStatus } from "@/contexts/BatchStatusContext";
 
 // ─── Batch Calendar PI 2 + PI 3 (mirrors Home.tsx BATCH_CALENDAR_PI23) ─────────
 // This is the single source of truth for all Executive Dashboard KPI calculations.
@@ -177,6 +178,22 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   const { data: recentDeployments } = trpc.deploymentRegistry.recent.useQuery();
   const [deployPlatformFilter, setDeployPlatformFilter] = useState<"All" | "PDC" | "TDC" | "Both">("All");
 
+  // ── Live batch status from BatchStatusContext (Control Panel source of truth) ──
+  const { statuses, piCompletion, lastUpdated } = useBatchStatus();
+
+  // Helper: convert BatchStatusContext key → is complete
+  const isComplete = (v: string) => v === "Complete" || v === "Delivered";
+  // isActive is used for future extension — kept for reference
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const isActive   = (v: string) => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed";
+
+  // Derive live counts from context
+  const statusValues = useMemo(() => Object.values(statuses), [statuses]);
+  const totalBatches   = statusValues.length;
+  const completedCount = useMemo(() => statusValues.filter(isComplete).length, [statusValues]);
+  const activeCount    = useMemo(() => statusValues.filter(v => v === "In Progress" || v === "Dev").length, [statusValues]);
+  const plannedCount   = useMemo(() => statusValues.filter(v => v === "MVP" || v === "Committed" || v === "Stretch").length, [statusValues]);
+
   // Pilot countdown
   const PILOT_DATE = new Date("2026-09-16T00:00:00");
   const today = new Date();
@@ -186,20 +203,15 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   const urgencyBg = daysRemaining <= 30 ? "#fef2f2" : daysRemaining <= 60 ? "#fffbeb" : "#f0fdf4";
   const urgencyBorder = daysRemaining <= 30 ? "#fecaca" : daysRemaining <= 60 ? "#fde68a" : "#bbf7d0";
 
-  // ── Row 1: KPI counts derived from Batch Calendar ──
-  const totalBatches   = BATCH_CALENDAR_PI23.length;
-  const completedCount = BATCH_CALENDAR_PI23.filter(b => b.status === "Done").length;
-  const activeCount    = BATCH_CALENDAR_PI23.filter(b => b.status === "In Progress").length;
-  // Planned = PI 3 MVP batches (represents planned future work)
-  const plannedCount   = BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 3" && b.status === "MVP").length;
+  // ── PI progress derived from piCompletion (live context) ──
+  // piCompletion has shape { pi1: { total, complete, pct }, pi2: { ... }, pi3: { ... } }
+  const pi2Pct = piCompletion?.pi2?.pct ?? 0;
+  const pi3Pct = piCompletion?.pi3?.pct ?? 0;
 
-  // ── Row 3: PI progress data derived from Batch Calendar ──
-  const pi2Rows  = BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 2");
-  const pi3Rows  = BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 3");
-  const pi2Done  = pi2Rows.filter(b => b.status === "Done").length;
-  const pi3Done  = pi3Rows.filter(b => b.status === "Done").length;
-  const pi2Pct   = pi2Rows.length > 0 ? Math.round((pi2Done / pi2Rows.length) * 100) : 0;
-  const pi3Pct   = pi3Rows.length > 0 ? Math.round((pi3Done / pi3Rows.length) * 100) : 0;
+  // Last updated label
+  const lastUpdatedLabel = lastUpdated
+    ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+    : "Jun 18, 2026";
 
   const piCards = [
     {
@@ -267,7 +279,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#059669" }}>Live · Derived from Batch Calendar</span>
           </div>
           <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap" }}>
-            Data as of: Jun 18, 2026
+            Last synced: {lastUpdatedLabel}
           </div>
           <GeneratePOEmail dashboardRef={dashboardRef} batches={batches} />
         </div>
@@ -283,13 +295,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="Total Batches"
           value={totalBatches}
-          sub="PI 2 + PI 3 batches"
+          sub="All tracked batches"
           accent="#1e3a5f"
         />
         <KPICard
           title="Completed"
           value={completedCount}
-          sub="Status = Done"
+          sub="Marked complete"
           accent="#059669"
           badge="Done"
           badgeColor="#059669"
@@ -297,7 +309,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="Active"
           value={activeCount}
-          sub="Status = In Progress"
+          sub="In Dev this week"
           accent="#2563eb"
           badge="In Flight"
           badgeColor="#2563eb"
@@ -305,7 +317,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="Planned"
           value={plannedCount}
-          sub="PI 3 MVP batches"
+          sub="MVP / Committed / Stretch"
           accent="#94a3b8"
           badge="Upcoming"
           badgeColor="#64748b"
