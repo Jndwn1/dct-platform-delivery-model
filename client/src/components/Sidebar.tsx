@@ -103,6 +103,7 @@ const GATE_NAV_ITEMS = [
 
 // Business Architecture & Governance — primary BA workflow tools
 const BA_ITEMS: NavItem[] = [
+  { label: "Delivery Intelligence",        path: "/delivery-intelligence",       icon: "◉", badge: "PI3",    badgeColor: "#003865" },
   { label: "Deployment Registry",          path: "/deployment-registry",        icon: "🚀", badge: "New",     badgeColor: "#059669" },
   { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
   { label: "Governance Gates",            path: "/gate/overview",              icon: "◉" },
