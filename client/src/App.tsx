@@ -54,7 +54,7 @@ import DCTOverview from "./pages/discovery/DCTOverview";
 import RogerOverview from "./pages/discovery/RogerOverview";
 import GoSystemTax from "./pages/discovery/GoSystemTax";
 import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
-import OnboardingHub from "./pages/onboarding/OnboardingHub";
+import DiscoveryWorkspace from "./pages/onboarding/DiscoveryWorkspace";
 import Step1Features from "./pages/onboarding/Step1Features";
 import Step2FeatureDetail from "./pages/onboarding/Step2FeatureDetail";
 import Step3DiscoveryReview from "./pages/onboarding/Step3DiscoveryReview";
@@ -155,8 +155,8 @@ function Router() {
            <Route path="/discovery/gosystem" component={GoSystemTax} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />
-          {/* Onboarding Hub */}
-          <Route path="/onboarding" component={OnboardingHub} />
+          {/* Provision & State Discovery Workspace */}
+          <Route path="/onboarding" component={DiscoveryWorkspace} />
           <Route path="/onboarding/step1" component={Step1Features} />
           <Route path="/onboarding/step2" component={Step2FeatureDetail} />
           <Route path="/onboarding/step3" component={Step3DiscoveryReview} />
