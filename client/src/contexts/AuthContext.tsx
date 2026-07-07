@@ -15,7 +15,10 @@ export const ALLOWLISTED_USERS: AllowlistedUser[] = [
   { id: "stephane-lacombe",     name: "Stephane Lacombe",      role: "Product Owner"        },
   { id: "provision-lead", name: "Provision Lead", role: "Provision BA"     },
   { id: "state-lead",     name: "State Lead",     role: "State BA"         },
-  { id: "jenniver",       name: "Jenniver",       role: "Sr. Business Analyst" },
+  { id: "jenniver-stafford",   name: "Jenniver Stafford",  role: "Administrator"        },
+  { id: "neha-sethi",          name: "Neha Sethi",         role: "Business Analyst"     },
+  { id: "krista-gigliotti",    name: "Krista Gigliotti",   role: "Business Analyst"     },
+  { id: "courtney-saunders",   name: "Courtney Saunders",  role: "Business Analyst"     },
 ];
 
 type AuthContextType = {
