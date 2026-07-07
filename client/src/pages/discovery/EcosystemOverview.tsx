@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+import RelatedObjectsPanel from "@/components/RelatedObjectsPanel";
 
 
 type Platform = "erp" | "pdc" | "tdc" | "roger" | "gosystem";
@@ -355,6 +356,7 @@ export default function EcosystemOverview() {
           }}
         />
       )}
+      <RelatedObjectsPanel rootNodeId="sys-tdc" title="Platform Ecosystem — Connected Knowledge Graph" />
       <DiscoveryAskBuddy pagePath="/discovery/ecosystem" pageTitle="Ecosystem Overview" />
     </div>
   );

@@ -53,6 +53,7 @@ import Glossary from "./pages/discovery/Glossary";
 import DCTOverview from "./pages/discovery/DCTOverview";
 import RogerOverview from "./pages/discovery/RogerOverview";
 import GoSystemTax from "./pages/discovery/GoSystemTax";
+import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -145,6 +146,7 @@ function Router() {
           <Route path="/discovery/roger-overview" component={RogerOverview} />
            <Route path="/discovery/gosystem" component={GoSystemTax} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
+           <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>

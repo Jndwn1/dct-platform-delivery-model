@@ -1,4 +1,5 @@
 import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+import RelatedObjectsPanel from "@/components/RelatedObjectsPanel";
 export default function GoSystemTax() {
   const OUTPUTS = [
     { title: "Federal Return",    icon: "📋", desc: "The complete federal income tax return assembled from TDC finalized data.", color: "#1e3a5f" },
@@ -116,6 +117,7 @@ export default function GoSystemTax() {
           ))}
         </div>
       </div>
+      <RelatedObjectsPanel rootNodeId="sys-gosystem" title="GoSystem Tax — Connected Knowledge Graph" />
       <DiscoveryAskBuddy pagePath="/discovery/gosystem" pageTitle="GoSystem Tax" />
     </div>
   );

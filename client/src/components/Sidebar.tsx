@@ -130,6 +130,7 @@ const DISCOVERY_ITEMS: NavItem[] = [
   { label: "Roger Overview",             path: "/discovery/roger-overview",           icon: "R" },
   { label: "GoSystem Tax",               path: "/discovery/gosystem",                icon: "GS" },
   { label: "Glossary",                   path: "/discovery/glossary",                icon: "≡" },
+  { label: "Knowledge Graph",             path: "/discovery/knowledge-graph",          icon: "🕸️", badge: "NEW", badgeColor: "#0891b2" },
 ];
 
 // Platform Governance Tools — platform governance and data integrity

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+import RelatedObjectsPanel from "@/components/RelatedObjectsPanel";
 
 
 const ROGER_CAPABILITIES = [
@@ -185,6 +186,7 @@ export default function RogerOverview() {
           ))}
         </div>
       </div>
+      <RelatedObjectsPanel rootNodeId="sys-roger" title="Roger — Connected Knowledge Graph" />
       <DiscoveryAskBuddy pagePath="/discovery/roger-overview" pageTitle="Roger Overview" />
     </div>
   );

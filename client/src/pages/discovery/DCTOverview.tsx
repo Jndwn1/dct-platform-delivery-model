@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+import RelatedObjectsPanel from "@/components/RelatedObjectsPanel";
 
 
 const CORE_CAPABILITIES = [
@@ -146,6 +147,7 @@ export default function DCTOverview() {
           ))}
         </div>
       </div>
+      <RelatedObjectsPanel rootNodeId="sys-tdc" title="TDC / DCT — Connected Knowledge Graph" />
       <DiscoveryAskBuddy pagePath="/discovery/dct-overview" pageTitle="TDC / DCT Overview" />
     </div>
   );
