@@ -58,17 +58,20 @@ import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import { BatchStatusProvider } from "./contexts/BatchStatusContext";
 import { DiscoveryProvider } from "./contexts/DiscoveryContext";
+import { GlobalPageProvider } from "./contexts/GlobalPageContext";
+import ContextAwarenessPanel from "./components/ContextAwarenessPanel";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#f8fafc" }}>
       <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden" style={{ marginRight: "0px" }}>
         <Header />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto" style={{ paddingRight: "0px" }}>
           {children}
         </main>
       </div>
+      <ContextAwarenessPanel />
     </div>
   );
 }
@@ -157,10 +160,12 @@ function App() {
         <AuthProvider>
           <BatchStatusProvider>
             <DiscoveryProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
+              <GlobalPageProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Router />
+                </TooltipProvider>
+              </GlobalPageProvider>
             </DiscoveryProvider>
           </BatchStatusProvider>
         </AuthProvider>
