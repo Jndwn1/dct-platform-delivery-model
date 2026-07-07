@@ -3140,7 +3140,7 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
                 }}>
                   <iframe
                     srcDoc={buildGanttHtml(true)}
-                    style={{ width: "100%", height: "200px", border: "none", transform: "scale(0.55)", transformOrigin: "top left", width: "182%", pointerEvents: "none" }}
+                    style={{ height: "200px", border: "none", transform: "scale(0.55)", transformOrigin: "top left", width: "182%", pointerEvents: "none" }}
                     title="Email Preview"
                   />
                 </div>

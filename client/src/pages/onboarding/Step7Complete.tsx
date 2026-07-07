@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { markStepComplete, ONBOARDING_STEPS, getProgress } from "./OnboardingHub";
+import { markStepComplete, ONBOARDING_STEPS, getOnboardingProgress } from "./OnboardingHub";
 
 const NEXT_STEPS = [
   {
@@ -63,7 +63,9 @@ const READINESS_ITEMS = [
 export default function Step7Complete() {
   const [, navigate] = useLocation();
   const [printed, setPrinted] = useState(false);
-  const progress = getProgress();
+  const progressMap = getOnboardingProgress();
+  const completedCount = ONBOARDING_STEPS.filter(s => progressMap[s.key]).length;
+  const progress = { completed: completedCount, total: ONBOARDING_STEPS.length };
   const questionsRaw = localStorage.getItem("onboarding-discovery-questions");
   const questions = questionsRaw ? JSON.parse(questionsRaw) : [];
   const openQuestions = questions.filter((q: { status: string }) => q.status === "Open").length;
