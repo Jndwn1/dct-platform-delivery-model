@@ -41,6 +41,7 @@ import DeploymentRegistry from "./pages/DeploymentRegistry";
 import DeliveryIntelligencePage from "./pages/DeliveryIntelligencePage";
 // Discovery Center
 import DiscoveryCenter from "./pages/DiscoveryCenter";
+import BAStoryBuilder from "./pages/discovery/BAStoryBuilder";
 import EcosystemOverview from "./pages/discovery/EcosystemOverview";
 import PlatformResponsibilities from "./pages/discovery/PlatformResponsibilities";
 import EndToEndDataFlow from "./pages/discovery/EndToEndDataFlow";
@@ -56,6 +57,7 @@ import GoSystemTax from "./pages/discovery/GoSystemTax";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import { BatchStatusProvider } from "./contexts/BatchStatusContext";
+import { DiscoveryProvider } from "./contexts/DiscoveryContext";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -138,8 +140,8 @@ function Router() {
           <Route path="/discovery/glossary" component={Glossary} />
           <Route path="/discovery/dct-overview" component={DCTOverview} />
           <Route path="/discovery/roger-overview" component={RogerOverview} />
-          <Route path="/discovery/gosystem" component={GoSystemTax} />
-
+           <Route path="/discovery/gosystem" component={GoSystemTax} />
+          <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>
@@ -154,10 +156,12 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <AuthProvider>
           <BatchStatusProvider>
+            <DiscoveryProvider>
             <TooltipProvider>
               <Toaster />
               <Router />
             </TooltipProvider>
+            </DiscoveryProvider>
           </BatchStatusProvider>
         </AuthProvider>
       </ThemeProvider>

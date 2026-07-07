@@ -35,10 +35,23 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Story": "#0f1623",
 };
 
+const PRINT_STYLES = `
+  @media print {
+    body * { visibility: hidden !important; }
+    #discovery-checklist-print, #discovery-checklist-print * { visibility: visible !important; }
+    #discovery-checklist-print { position: fixed; top: 0; left: 0; width: 100%; padding: 24px 32px; }
+    .no-print { display: none !important; }
+    .print-page-break { page-break-before: always; }
+    @page { margin: 1.5cm; size: A4; }
+  }
+`;
+
 export default function DiscoveryChecklist() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [hoveredTooltip, setHoveredTooltip] = useState<string | null>(null);
   const [storyName, setStoryName] = useState("");
+  const [sprintName, setSprintName] = useState("");
+  const [baName, setBAName] = useState("");
 
   const toggle = (id: string) => {
     setChecked(prev => {
@@ -61,36 +74,114 @@ export default function DiscoveryChecklist() {
     color: CATEGORY_COLORS[cat],
   })).filter(g => g.items.length > 0);
 
+  const handlePrint = () => {
+    // Inject print styles if not already present
+    const styleId = "discovery-print-style";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = PRINT_STYLES;
+      document.head.appendChild(style);
+    }
+    window.print();
+  };
+
+  const printDate = new Date().toLocaleDateString("en-US", {
+    month: "long", day: "numeric", year: "numeric",
+  });
+
   return (
-    <div style={{ padding: "28px 32px", maxWidth: "900px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-          <span style={{ fontSize: "24px" }}>☑</span>
-          <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: 0 }}>Discovery Checklist</h1>
+    <div id="discovery-checklist-print" style={{ padding: "28px 32px", maxWidth: "900px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
+
+      {/* Print header — only visible when printing */}
+      <div style={{ display: "none" }} className="print-only" id="print-header">
+        <div style={{ borderBottom: "2px solid #0f1623", paddingBottom: "12px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f1623" }}>DCT Platform — Story Readiness Checklist</div>
+              <div style={{ fontSize: "12px", color: "#475569", marginTop: "4px" }}>RSM · CATT · Discovery Center · Sprint Ceremony Artifact</div>
+            </div>
+            <div style={{ textAlign: "right", fontSize: "11px", color: "#64748b" }}>
+              <div>Printed: {printDate}</div>
+              {baName && <div>BA: {baName}</div>}
+              {sprintName && <div>Sprint: {sprintName}</div>}
+            </div>
+          </div>
+          {storyName && (
+            <div style={{ marginTop: "10px", padding: "8px 12px", backgroundColor: "#f8fafc", borderRadius: "6px", borderLeft: "3px solid #1e3a5f" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748b" }}>Story / Feature: </span>
+              <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>{storyName}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Screen header */}
+      <div style={{ marginBottom: "24px" }} className="no-print">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "24px" }}>☑</span>
+            <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: 0 }}>Discovery Checklist</h1>
+          </div>
+          {/* Export button */}
+          <button
+            onClick={handlePrint}
+            style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "8px 16px", borderRadius: "6px", border: "none",
+              backgroundColor: "#1e3a5f", color: "white",
+              fontSize: "12px", fontWeight: 700, cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#0f1623"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#1e3a5f"}
+          >
+            <span style={{ fontSize: "14px" }}>⬇</span>
+            Export / Print PDF
+          </button>
         </div>
         <p style={{ fontSize: "14px", color: "#475569", margin: 0, lineHeight: "1.6" }}>
           Use this checklist before writing any Roger user story. All 13 items must be checked before a story is considered ready for development.
         </p>
       </div>
 
-      {/* Story name input */}
-      <div style={{ marginBottom: "20px" }}>
-        <label style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", display: "block", marginBottom: "6px" }}>
-          Story / Feature Name (optional)
-        </label>
-        <input
-          type="text"
-          value={storyName}
-          onChange={e => setStoryName(e.target.value)}
-          placeholder="e.g., B9 — Roger Account Mapping Review"
-          style={{
-            width: "100%", padding: "8px 12px", borderRadius: "6px",
-            border: "1px solid #e2e8f0", fontSize: "13px", color: "#0f1623",
-            outline: "none", boxSizing: "border-box",
-          }}
-        />
+      {/* Artifact metadata inputs (screen only) */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "20px" }} className="no-print">
+        {[
+          { label: "Story / Feature Name", value: storyName, setter: setStoryName, placeholder: "e.g., B9 — Roger Account Mapping" },
+          { label: "Sprint Name", value: sprintName, setter: setSprintName, placeholder: "e.g., PI3 Sprint 1" },
+          { label: "BA Name", value: baName, setter: setBAName, placeholder: "e.g., Jenniver" },
+        ].map(field => (
+          <div key={field.label}>
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", display: "block", marginBottom: "5px" }}>
+              {field.label}
+            </label>
+            <input
+              type="text"
+              value={field.value}
+              onChange={e => field.setter(e.target.value)}
+              placeholder={field.placeholder}
+              style={{
+                width: "100%", padding: "7px 10px", borderRadius: "6px",
+                border: "1px solid #e2e8f0", fontSize: "12px", color: "#0f1623",
+                outline: "none", boxSizing: "border-box",
+              }}
+            />
+          </div>
+        ))}
       </div>
+
+      {/* Print-visible story name */}
+      {storyName && (
+        <div style={{ display: "none" }} className="print-story-name">
+          <div style={{ marginBottom: "16px", padding: "8px 12px", backgroundColor: "#f8fafc", borderRadius: "6px", borderLeft: "3px solid #1e3a5f" }}>
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748b" }}>Story: </span>
+            <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>{storyName}</span>
+            {sprintName && <span style={{ fontSize: "11px", color: "#64748b", marginLeft: "16px" }}>Sprint: {sprintName}</span>}
+            {baName && <span style={{ fontSize: "11px", color: "#64748b", marginLeft: "16px" }}>BA: {baName}</span>}
+          </div>
+        </div>
+      )}
 
       {/* Progress bar */}
       <div style={{
@@ -114,7 +205,7 @@ export default function DiscoveryChecklist() {
             borderRadius: "4px", transition: "width 0.3s ease",
           }} />
         </div>
-        <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+        <div style={{ display: "flex", gap: "8px", marginTop: "10px" }} className="no-print">
           <button
             onClick={checkAll}
             style={{
@@ -197,14 +288,13 @@ export default function DiscoveryChecklist() {
                         <div style={{
                           fontSize: "13px", color: isChecked ? "#065f46" : "#334155",
                           fontWeight: isChecked ? 600 : 400,
-                          textDecoration: isChecked ? "none" : "none",
                         }}>
                           {item.label}
                         </div>
 
-                        {/* Tooltip on hover */}
+                        {/* Tooltip on hover (screen only) */}
                         {hoveredTooltip === item.id && (
-                          <div style={{
+                          <div className="no-print" style={{
                             fontSize: "11px", color: "#475569", marginTop: "4px",
                             lineHeight: "1.5", padding: "6px 10px",
                             backgroundColor: "#f8fafc", borderRadius: "6px",
@@ -213,6 +303,10 @@ export default function DiscoveryChecklist() {
                             {item.tooltip}
                           </div>
                         )}
+                        {/* Tooltip always visible on print */}
+                        <div className="print-tooltip" style={{ display: "none", fontSize: "10px", color: "#64748b", marginTop: "3px", lineHeight: "1.4" }}>
+                          {item.tooltip}
+                        </div>
                       </div>
 
                       {/* Category tag */}
@@ -247,6 +341,28 @@ export default function DiscoveryChecklist() {
           </div>
         </div>
       )}
+
+      {/* Print footer */}
+      <div style={{ display: "none" }} className="print-footer">
+        <div style={{ marginTop: "24px", paddingTop: "12px", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#94a3b8" }}>
+          <span>DCT Platform — Story Readiness Artifact · RSM CATT</span>
+          <span>{printDate}</span>
+        </div>
+      </div>
+
+      {/* Inject print CSS into page head via style tag rendered in DOM */}
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          .print-tooltip { display: block !important; }
+          .print-footer { display: block !important; }
+          .print-story-name { display: block !important; }
+          #print-header { display: block !important; }
+          body > *:not(#discovery-checklist-print) { display: none !important; }
+          #discovery-checklist-print { display: block !important; }
+          @page { margin: 1.5cm; size: A4; }
+        }
+      `}</style>
     </div>
   );
 }

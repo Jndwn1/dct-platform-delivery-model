@@ -14,6 +14,72 @@ import {
 import { useBatchStatus, type BatchKey } from "@/contexts/BatchStatusContext";
 import { trpc } from "@/lib/trpc";
 
+// ── Discovery Center contextual links ───────────────────────────────────────
+// Maps batch systems to relevant Discovery Center pages
+const SYSTEM_DISCOVERY_LINKS: Record<string, { label: string; path: string; desc: string; color: string }[]> = {
+  "TDC":         [{ label: "TDC / DCT Overview",      path: "/discovery/dct-overview",            desc: "TDC architecture, capabilities & boundaries", color: "#065f46" },
+                  { label: "End-to-End Data Flow",     path: "/discovery/data-flow",               desc: "Full pipeline from ingestion to GoSystem",    color: "#1e3a5f" }],
+  "PDC":         [{ label: "Ecosystem Overview",       path: "/discovery/ecosystem",               desc: "Platform ecosystem & PDC role",              color: "#1e3a5f" },
+                  { label: "Platform Responsibilities",path: "/discovery/platform-responsibilities",desc: "PDC ownership boundaries",                  color: "#0369a1" }],
+  "Roger UI":    [{ label: "Roger Overview",           path: "/discovery/roger-overview",          desc: "Roger capabilities, APIs & BA guidance",    color: "#7c3aed" },
+                  { label: "BA Requirement Discovery", path: "/discovery/ba-requirements",         desc: "How to write Roger stories correctly",      color: "#dc2626" }],
+  "Orchestrator":[{ label: "Integration Architecture",path: "/discovery/integration-architecture", desc: "Orchestrator integration patterns",          color: "#0369a1" },
+                  { label: "Data Flow Simulation",     path: "/discovery/simulation",              desc: "Animated step-by-step pipeline walkthrough", color: "#059669" }],
+  "GoSystem":    [{ label: "GoSystem Tax",             path: "/discovery/gosystem",               desc: "GoSystem role, outputs & governance",       color: "#92400e" }],
+  "Service Bus": [{ label: "Integration Architecture",path: "/discovery/integration-architecture", desc: "Event bus & integration patterns",          color: "#0369a1" }],
+  "Tax Portal":  [{ label: "Ecosystem Overview",       path: "/discovery/ecosystem",               desc: "Full platform ecosystem diagram",           color: "#1e3a5f" }],
+};
+
+function DiscoveryCenterLinks({ batchId, systems }: { batchId: string; systems: string[] }) {
+  // Collect unique discovery links based on systems involved in this batch
+  const seen = new Set<string>();
+  const links: { label: string; path: string; desc: string; color: string }[] = [];
+  systems.forEach(sys => {
+    (SYSTEM_DISCOVERY_LINKS[sys] ?? []).forEach(link => {
+      if (!seen.has(link.path)) {
+        seen.add(link.path);
+        links.push(link);
+      }
+    });
+  });
+  // Always include BA Requirement Discovery and Discovery Checklist
+  if (!seen.has("/discovery/ba-requirements")) links.push({ label: "BA Requirement Discovery", path: "/discovery/ba-requirements", desc: "Guided BA discovery workflow for this batch", color: "#dc2626" });
+  if (!seen.has("/discovery/checklist"))       links.push({ label: "Discovery Checklist",        path: "/discovery/checklist",        desc: "Story readiness checklist — export to PDF",  color: "#0f1623" });
+
+  return (
+    <div style={{
+      backgroundColor: "white", borderRadius: "10px", border: "1px solid #e2e8f0",
+      padding: "16px 20px", marginBottom: "14px",
+      borderLeft: "3px solid #7c3aed",
+    }}>
+      <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#7c3aed", marginBottom: "12px" }}>
+        🧭 Discovery Center — Learn More
+      </div>
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        {links.map(link => (
+          <Link key={link.path} href={link.path}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              padding: "7px 12px", borderRadius: "6px", cursor: "pointer",
+              backgroundColor: `${link.color}0d`, border: `1px solid ${link.color}30`,
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = `${link.color}1a`; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = `${link.color}0d`; }}
+            >
+              <span style={{ fontSize: "12px", fontWeight: 700, color: link.color }}>{link.label}</span>
+              <span style={{ fontSize: "10px", color: "#94a3b8" }}>→</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+      <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "10px" }}>
+        Open Discovery Center pages for architecture context, BA guidance, and story readiness tools relevant to {batchId}.
+      </div>
+    </div>
+  );
+}
+
 // ── Deployment History sub-component ─────────────────────────────────────────
 function DeploymentHistorySection({ batchId }: { batchId: string }) {
   const { data, isLoading } = trpc.deploymentRegistry.getByBatch.useQuery({ batchId });
@@ -1097,6 +1163,9 @@ export default function BatchDetailPage() {
           </p>
         </div>
       )}
+
+      {/* Discovery Center contextual links */}
+      <DiscoveryCenterLinks batchId={batchId} systems={content?.systems ?? []} />
 
       {/* Deployment History */}
       <DeploymentHistorySection batchId={batchId} />

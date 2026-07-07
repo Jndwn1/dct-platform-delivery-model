@@ -125,6 +125,7 @@ const DISCOVERY_ITEMS: NavItem[] = [
   { label: "Integration Architecture",  path: "/discovery/integration-architecture",  icon: "↝" },
   { label: "BA Requirement Discovery",   path: "/discovery/ba-requirements",          icon: "🔍", badge: "KEY",  badgeColor: "#dc2626" },
   { label: "Discovery Checklist",        path: "/discovery/checklist",                icon: "☑" },
+  { label: "BA Story Builder",            path: "/discovery/ba-story-builder",         icon: "✍", badge: "NEW", badgeColor: "#7c3aed" },
   { label: "TDC / DCT Overview",         path: "/discovery/dct-overview",             icon: "T" },
   { label: "Roger Overview",             path: "/discovery/roger-overview",           icon: "R" },
   { label: "GoSystem Tax",               path: "/discovery/gosystem",                icon: "GS" },

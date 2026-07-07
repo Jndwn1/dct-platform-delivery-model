@@ -18,6 +18,7 @@ import {
 import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send, Download, FileSpreadsheet, FileJson, AlignLeft, Filter } from "lucide-react";
 import { BAAssistant } from "@/components/BAAssistant";
 import { RogerConsumerReadinessPanel } from "@/components/RogerConsumerReadinessPanel";
+import { DiscoveryContextPanel } from "@/components/DiscoveryContextPanel";
 
 // ── SwaggerBatchGroup ───────────────────────────────────────────────────────
 interface SwaggerGroupEntry { batch: string; endpoint: string; path: string; status: string; consumerGuide: string; missingFromGuide: boolean; missingFromSwagger: boolean; notes: string; owner?: string; }
@@ -1762,6 +1763,8 @@ export default function BatchControlPanel() {
         ))}
       </div>
 
+      {/* ── Discovery Center Context Panel (auto-updates when Discovery pages are open) ── */}
+      <DiscoveryContextPanel />
       {/* ── Roger Consumer Readiness ── */}
       <RogerConsumerReadinessPanel />
 
