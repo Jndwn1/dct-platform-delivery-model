@@ -7,10 +7,14 @@ export type AllowlistedUser = {
 };
 
 export const ALLOWLISTED_USERS: AllowlistedUser[] = [
-  { id: "sarah-johnson",  name: "Sarah Johnson",  role: "Administrator" },
-  { id: "michael-chen",   name: "Michael Chen",   role: "Legal Counsel"  },
-  { id: "john-smith",     name: "John Smith",     role: "Tax Analyst"    },
-  { id: "emily-davis",    name: "Emily Davis",    role: "Tax Analyst"    },
+  { id: "sarah-johnson",  name: "Sarah Johnson",  role: "Administrator"    },
+  { id: "michael-chen",   name: "Michael Chen",   role: "Legal Counsel"    },
+  { id: "john-smith",     name: "John Smith",     role: "Tax Analyst"      },
+  { id: "emily-davis",    name: "Emily Davis",    role: "Tax Analyst"      },
+  { id: "product-owner",  name: "Product Owner",  role: "Product Owner"    },
+  { id: "provision-lead", name: "Provision Lead", role: "Provision BA"     },
+  { id: "state-lead",     name: "State Lead",     role: "State BA"         },
+  { id: "jenniver",       name: "Jenniver",       role: "Sr. Business Analyst" },
 ];
 
 type AuthContextType = {
