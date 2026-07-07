@@ -406,6 +406,15 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSection }: SidebarProps) {
   const [batchesOpen, setBatchesOpen] = useState(true);
+  const [piOpen, setPiOpen] = useState<Record<string, boolean>>({
+    pi1: true,
+    pi2: true,
+    pi2s: true,
+    pi3: true,
+    pi4: false,
+    onhold: false,
+  });
+  const togglePi = (key: string) => setPiOpen(prev => ({ ...prev, [key]: !prev[key] }));
   const { statuses, resetAll } = useBatchStatus();
 
   return (
@@ -458,39 +467,75 @@ export default function Sidebar({ activeSection }: SidebarProps) {
           {batchesOpen && (
             <>
               {/* PI 1 */}
-              <div style={{ padding: "4px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#3b82f6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 1 — Foundation &amp; AI Mapping</div>
-              {BATCH_ITEM_DEFS.map((def) => {
+              <button
+                onClick={() => togglePi("pi1")}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "4px 12px 2px", background: "none", border: "none", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: "9px", fontWeight: 700, color: "#3b82f6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 1 — Foundation &amp; AI Mapping</span>
+                <span style={{ fontSize: "9px", color: "#3b82f6" }}>{piOpen.pi1 ? "▲" : "▼"}</span>
+              </button>
+              {piOpen.pi1 && BATCH_ITEM_DEFS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey]);
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* PI 2 */}
-              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#10b981", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 — Entity, Workflow &amp; Tax Ready</div>
-              {PI2_BATCH_ITEMS.map((def) => {
+              <button
+                onClick={() => togglePi("pi2")}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "6px 12px 2px", background: "none", border: "none", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: "9px", fontWeight: 700, color: "#10b981", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 — Entity, Workflow &amp; Tax Ready</span>
+                <span style={{ fontSize: "9px", color: "#10b981" }}>{piOpen.pi2 ? "▲" : "▼"}</span>
+              </button>
+              {piOpen.pi2 && PI2_BATCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey]);
                 const isSubBatch = def.indent === true;
                 return <NavItem key={def.path} item={{ label: def.label.trim(), path: def.path, indent: !isSubBatch, subBatch: isSubBatch, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* PI 2 Stretch */}
-              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#0ea5e9", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 Stretch — Reference &amp; Audit Trail</div>
-              {PI2_STRETCH_ITEMS.map((def) => {
+              <button
+                onClick={() => togglePi("pi2s")}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "6px 12px 2px", background: "none", border: "none", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: "9px", fontWeight: 700, color: "#0ea5e9", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 2 Stretch — Reference &amp; Audit Trail</span>
+                <span style={{ fontSize: "9px", color: "#0ea5e9" }}>{piOpen.pi2s ? "▲" : "▼"}</span>
+              </button>
+              {piOpen.pi2s && PI2_STRETCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* PI 3 MVP */}
-              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#8b5cf6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 3 — Intelligence, Provision &amp; Pilot (7/13–9/15)</div>
-              {PI3_BATCH_ITEMS.map((def) => {
+              <button
+                onClick={() => togglePi("pi3")}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "6px 12px 2px", background: "none", border: "none", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: "9px", fontWeight: 700, color: "#8b5cf6", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 3 — Intelligence, Provision &amp; Pilot (7/13–9/15)</span>
+                <span style={{ fontSize: "9px", color: "#8b5cf6" }}>{piOpen.pi3 ? "▲" : "▼"}</span>
+              </button>
+              {piOpen.pi3 && PI3_BATCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* Post-MVP / PI 4 */}
-              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#f59e0b", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 4 — Governance, QC &amp; Analytics (Post-Pilot)</div>
-              {PI4_BATCH_ITEMS.map((def) => {
+              <button
+                onClick={() => togglePi("pi4")}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "6px 12px 2px", background: "none", border: "none", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: "9px", fontWeight: 700, color: "#f59e0b", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 4 — Governance, QC &amp; Analytics (Post-Pilot)</span>
+                <span style={{ fontSize: "9px", color: "#f59e0b" }}>{piOpen.pi4 ? "▲" : "▼"}</span>
+              </button>
+              {piOpen.pi4 && PI4_BATCH_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "Not Started");
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label, statusColor: badge?.color, statusTooltip: badge?.tooltip }} />;
               })}
               {/* On Hold */}
-              <div style={{ padding: "6px 12px 2px", fontSize: "9px", fontWeight: 700, color: "#b45309", letterSpacing: "0.08em", textTransform: "uppercase" }}>⏸ On Hold</div>
-              {ON_HOLD_ITEMS.map((def) => {
+              <button
+                onClick={() => togglePi("onhold")}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "6px 12px 2px", background: "none", border: "none", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: "9px", fontWeight: 700, color: "#b45309", letterSpacing: "0.08em", textTransform: "uppercase" }}>⏸ On Hold</span>
+                <span style={{ fontSize: "9px", color: "#b45309" }}>{piOpen.onhold ? "▲" : "▼"}</span>
+              </button>
+              {piOpen.onhold && ON_HOLD_ITEMS.map((def) => {
                 const badge = contextToSidebarBadge(statuses[def.batchKey as BatchKey] ?? "On Hold");
                 return <NavItem key={def.path} item={{ label: def.label, path: def.path, indent: true, status: badge?.label ?? "On Hold", statusColor: badge?.color ?? "#b45309", statusTooltip: badge?.tooltip ?? "On Hold — paused pending dependency resolution or PI reprioritization" }} />;
               })}
