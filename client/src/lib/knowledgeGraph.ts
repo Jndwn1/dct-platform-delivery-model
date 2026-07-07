@@ -55,8 +55,8 @@ export interface GraphEdge {
 export const GRAPH_NODES: GraphNode[] = [
 
   // ── SYSTEMS ──────────────────────────────────────────────────────────────────
-  { id: "sys-pdc",         label: "PDC",          type: "system", icon: "🏦", description: "Platform Data Consolidation — ingests and normalizes financial data from ERP systems", route: "/discovery/ecosystem" },
-  { id: "sys-tdc",         label: "TDC",          type: "system", icon: "🏛️", description: "Tax Data Consolidation — authoritative tax data platform and system of record", route: "/discovery/dct-overview" },
+  { id: "sys-pdc",         label: "PDC",          type: "system", icon: "🏦", description: "Phoenix Data Consolidation (DCT) — ingests and normalizes financial data from ERP systems", route: "/discovery/ecosystem" },
+  { id: "sys-tdc",         label: "TDC",          type: "system", icon: "🏛️", description: "Tax Data Consolidation (DCT) — authoritative tax data platform and system of record", route: "/discovery/dct-overview" },
   { id: "sys-orchestrator",label: "Orchestrator", type: "system", icon: "🤖", description: "Stateless AI orchestration engine — executes classification and decision workflows", route: "/discovery/ecosystem" },
   { id: "sys-roger",       label: "Roger",        type: "system", icon: "💬", description: "Practitioner-facing AI assistant — read-only consumer of TDC data", route: "/discovery/roger-overview" },
   { id: "sys-gosystem",    label: "GoSystem Tax", type: "system", icon: "💼", description: "Downstream tax filing system — consumes TDC data via Roger export", route: "/discovery/gosystem" },
@@ -306,15 +306,22 @@ export function getConnectedNodes(nodeId: string): {
   direction: "outbound" | "inbound";
 }[] {
   const results: { node: GraphNode; edge: GraphEdge; direction: "outbound" | "inbound" }[] = [];
+  const seen = new Set<string>();
   const nodeMap = new Map(GRAPH_NODES.map(n => [n.id, n]));
 
   for (const edge of GRAPH_EDGES) {
     if (edge.source === nodeId) {
       const target = nodeMap.get(edge.target);
-      if (target) results.push({ node: target, edge, direction: "outbound" });
+      if (target && !seen.has(target.id)) {
+        seen.add(target.id);
+        results.push({ node: target, edge, direction: "outbound" });
+      }
     } else if (edge.target === nodeId) {
       const source = nodeMap.get(edge.source);
-      if (source) results.push({ node: source, edge, direction: "inbound" });
+      if (source && !seen.has(source.id)) {
+        seen.add(source.id);
+        results.push({ node: source, edge, direction: "inbound" });
+      }
     }
   }
 

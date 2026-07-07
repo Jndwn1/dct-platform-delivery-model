@@ -25,7 +25,7 @@ const INTEGRATIONS: IntegrationRow[] = [
     dataDirection: "out",
   },
   {
-    system: "PDC — Platform Data Cloud",
+    system: "PDC — Phoenix Data Consolidation (DCT)",
     systemColor: "#1e3a5f",
     systemBg: "#eff6ff",
     apiLayer: ["Ingestion API", "Entity API", "Normalization API", "Reporting Period API", "Exception API"],
@@ -35,7 +35,7 @@ const INTEGRATIONS: IntegrationRow[] = [
     dataDirection: "both",
   },
   {
-    system: "TDC / DCT — Tax Data Cloud",
+    system: "TDC — Tax Data Consolidation (DCT)",
     systemColor: "#065f46",
     systemBg: "#f0fdf4",
     apiLayer: ["Tax Mapping API", "Adjustment API", "Classification API", "Lineage API", "Known Mappings API", "State Rules API", "Roger Read API", "Roger Update API"],

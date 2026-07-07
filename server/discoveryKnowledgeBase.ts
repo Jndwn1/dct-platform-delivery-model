@@ -30,7 +30,7 @@ export const DISCOVERY_KNOWLEDGE_BASE: Record<string, DiscoveryPageKnowledge> = 
 
 The DCT Platform consists of five primary components that work together to deliver governed, AI-assisted tax data processing:
 
-### 1. PDC — Phoenix Data Consolidation
+### 1. PDC — Phoenix Data Consolidation (sub-system of DCT)
 - **Owner:** PDC Engineering Team
 - **Role:** Ingests raw financial data from Tax Portal, normalizes it across Lines of Business (LOB), and enforces the Cross-LOB Taxonomy contract
 - **Outputs:** Normalized financial records, ingestion job status, classification results
@@ -38,7 +38,7 @@ The DCT Platform consists of five primary components that work together to deliv
 - **Does NOT own:** Tax decisions, mapping logic, practitioner workflows
 - **Key Batches:** FC (Foundation Core), B1 (File Ingestion), B2 (Normalization), B2A (Contract Enforcement)
 
-### 2. TDC — Tax Data Consolidation
+### 2. TDC — Tax Data Consolidation (sub-system of DCT)
 - **Owner:** TDC Engineering Team
 - **Role:** Applies AI-generated tax mapping decisions, enforces tax rules, manages practitioner review workflows, and produces immutable tax records
 - **Outputs:** TaxProfile, MappingDecision, Adjustment, SignOffRecord, EligibilityRecord, FilingRecord
@@ -96,7 +96,7 @@ The DCT Platform consists of five primary components that work together to deliv
     context: `
 ## Platform Responsibilities & Ownership Boundaries
 
-### PDC — Phoenix Data Consolidation
+### PDC — Phoenix Data Consolidation (sub-system of DCT)
 **OWNS:**
 - Raw financial data ingestion from Tax Portal
 - Cross-LOB financial normalization
@@ -110,7 +110,7 @@ The DCT Platform consists of five primary components that work together to deliv
 - GoSystem Tax integration
 - Roger UI data contracts
 
-### TDC — Tax Data Consolidation
+### TDC — Tax Data Consolidation (sub-system of DCT)
 **OWNS:**
 - All tax mapping decisions (immutable once committed)
 - Tax rules framework and enforcement

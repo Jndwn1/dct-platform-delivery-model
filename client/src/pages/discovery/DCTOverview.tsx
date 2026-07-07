@@ -43,11 +43,11 @@ export default function DCTOverview() {
           }}>T</div>
           <div>
             <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: 0 }}>TDC / DCT Overview</h1>
-            <div style={{ fontSize: "11px", color: "#64748b" }}>Tax Data Cloud — System of Record for All Tax Data</div>
+            <div style={{ fontSize: "11px", color: "#64748b" }}>Tax Data Consolidation — System of Record for All Tax Data</div>
           </div>
         </div>
         <p style={{ fontSize: "14px", color: "#475569", margin: "10px 0 0", lineHeight: "1.6" }}>
-          TDC (Tax Data Cloud) is the central tax transformation platform. It receives financial data from PDC, applies the complete tax transformation pipeline, serves data to Roger and GoSystem, and maintains immutable lineage for all changes.
+          TDC (Tax Data Consolidation) is the central tax transformation platform. It receives financial data from PDC, applies the complete tax transformation pipeline, serves data to Roger and GoSystem, and maintains immutable lineage for all changes.
         </p>
       </div>
 

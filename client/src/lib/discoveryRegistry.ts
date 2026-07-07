@@ -334,7 +334,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
   "/discovery/dct-overview": {
     path: "/discovery/dct-overview",
     title: "DCT / TDC Overview",
-    description: "Tax Data Consolidation (TDC) architecture, capabilities, batch model, and governance boundaries.",
+    description: "Tax Data Consolidation architecture, capabilities, batch model, and governance boundaries.",
     icon: "🏗",
     relatedFeatures: [
       "TDC Reference Data (B3)",

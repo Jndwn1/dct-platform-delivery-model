@@ -20,7 +20,7 @@ interface PlatformCard {
 const CARDS: PlatformCard[] = [
   {
     id: "pdc",
-    name: "Platform Data Cloud",
+    name: "PDC — Phoenix Data Consolidation (DCT)",
     shortName: "PDC",
     purpose: "Financial Truth",
     purposeLabel: "Source of financial truth for all downstream tax processing",
@@ -39,7 +39,7 @@ const CARDS: PlatformCard[] = [
   },
   {
     id: "tdc",
-    name: "Tax Data Cloud (DCT)",
+    name: "TDC — Tax Data Consolidation (DCT)",
     shortName: "TDC / DCT",
     purpose: "Tax Transformation Platform",
     purposeLabel: "Transforms financial data into tax-ready data with full lineage",

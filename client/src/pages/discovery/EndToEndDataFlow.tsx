@@ -26,7 +26,7 @@ const FLOW_STEPS: FlowStep[] = [
   },
   {
     id: "pdc",
-    system: "PDC — Platform Data Cloud",
+    system: "PDC — Phoenix Data Consolidation (DCT)",
     systemColor: "#1e3a5f",
     systemBg: "#eff6ff",
     title: "Financial Truth Creation",
@@ -36,7 +36,7 @@ const FLOW_STEPS: FlowStep[] = [
   },
   {
     id: "tdc",
-    system: "TDC / DCT — Tax Data Cloud",
+    system: "TDC — Tax Data Consolidation (DCT)",
     systemColor: "#065f46",
     systemBg: "#f0fdf4",
     title: "Tax Transformation",
