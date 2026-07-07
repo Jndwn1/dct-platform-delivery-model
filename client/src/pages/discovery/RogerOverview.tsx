@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 const ROGER_CAPABILITIES = [
   { id: "display",    icon: "🖥", title: "Account Display",         desc: "Roger displays tax accounts, amounts, and classifications from TDC in a practitioner-friendly workspace. Data is read via TDC Read APIs.", color: "#7c3aed" },
@@ -183,6 +185,7 @@ export default function RogerOverview() {
           ))}
         </div>
       </div>
+      <DiscoveryAskBuddy pagePath="/discovery/roger-overview" pageTitle="Roger Overview" />
     </div>
   );
 }

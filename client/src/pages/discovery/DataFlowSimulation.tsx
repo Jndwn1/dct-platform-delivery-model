@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 interface SimStep {
   id: number;
@@ -271,6 +273,7 @@ export default function DataFlowSimulation() {
           </div>
         ))}
       </div>
+      <DiscoveryAskBuddy pagePath="/discovery/simulation" pageTitle="Data Flow Simulation" />
     </div>
   );
 }

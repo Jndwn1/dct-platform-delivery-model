@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 const CORE_CAPABILITIES = [
   { id: "ingestion",     icon: "⬇", title: "Data Ingestion",          color: "#1e3a5f", desc: "Receives normalized financial data from PDC via the PDC→TDC data contract. Validates, stages, and queues data for the tax transformation pipeline." },
@@ -144,6 +146,7 @@ export default function DCTOverview() {
           ))}
         </div>
       </div>
+      <DiscoveryAskBuddy pagePath="/discovery/dct-overview" pageTitle="TDC / DCT Overview" />
     </div>
   );
 }

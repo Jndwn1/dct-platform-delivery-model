@@ -2,6 +2,7 @@ import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM } from "./_core/llm";
 import { buildPlatformSystemPrompt } from "./platformContext";
+import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -33,6 +34,8 @@ export const appRouter = router({
               content: z.string(),
             })
           ),
+          // Optional: current Discovery Center page path for context-aware responses
+          discoveryPagePath: z.string().optional(),
           // Live batch snapshot from the client's BatchStatusContext
           liveSnapshot: z.object({
             asOf: z.string(),
@@ -58,7 +61,10 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot);
+        const discoveryBlock = input.discoveryPagePath
+          ? buildDiscoveryContextBlock(input.discoveryPagePath)
+          : "";
+        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + discoveryBlock;
 
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },

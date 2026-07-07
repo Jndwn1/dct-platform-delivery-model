@@ -1,3 +1,4 @@
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
 export default function GoSystemTax() {
   const OUTPUTS = [
     { title: "Federal Return",    icon: "📋", desc: "The complete federal income tax return assembled from TDC finalized data.", color: "#1e3a5f" },
@@ -115,6 +116,7 @@ export default function GoSystemTax() {
           ))}
         </div>
       </div>
+      <DiscoveryAskBuddy pagePath="/discovery/gosystem" pageTitle="GoSystem Tax" />
     </div>
   );
 }

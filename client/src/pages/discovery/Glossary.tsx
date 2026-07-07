@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 interface GlossaryTerm {
   term: string;
@@ -295,6 +297,7 @@ export default function Glossary() {
           No terms found for "{search}". Try a different search term.
         </div>
       )}
+      <DiscoveryAskBuddy pagePath="/discovery/glossary" pageTitle="Glossary" />
     </div>
   );
 }

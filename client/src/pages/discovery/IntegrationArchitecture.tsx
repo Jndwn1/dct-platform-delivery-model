@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 interface IntegrationRow {
   system: string;
@@ -261,6 +263,7 @@ export default function IntegrationArchitecture() {
           </div>
         </div>
       )}
+      <DiscoveryAskBuddy pagePath="/discovery/integration-architecture" pageTitle="Integration Architecture" />
     </div>
   );
 }

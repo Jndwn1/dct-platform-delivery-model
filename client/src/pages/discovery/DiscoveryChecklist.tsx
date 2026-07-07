@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 interface CheckItem {
   id: string;
@@ -363,6 +365,7 @@ export default function DiscoveryChecklist() {
           @page { margin: 1.5cm; size: A4; }
         }
       `}</style>
+      <DiscoveryAskBuddy pagePath="/discovery/checklist" pageTitle="Discovery Checklist" />
     </div>
   );
 }

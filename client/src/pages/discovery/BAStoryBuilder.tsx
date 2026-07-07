@@ -5,6 +5,8 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { Copy, Check, ChevronDown, ChevronUp, FileText, Zap, RotateCcw, BookOpen } from "lucide-react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 // ── Data: TDC objects, APIs, screens ─────────────────────────────────────────
 const TDC_OBJECTS = [
@@ -666,6 +668,7 @@ export default function BAStoryBuilder() {
           </div>
         </div>
       </div>
+      <DiscoveryAskBuddy pagePath="/discovery/ba-story-builder" pageTitle="BA Story Builder" />
     </div>
   );
 }

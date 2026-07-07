@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 const WORKFLOW_STEPS = [
   { id: 1, label: "Business Need",           icon: "💡", color: "#1e3a5f", desc: "Identify and articulate the business problem or capability gap. What does the tax professional need to accomplish?" },
@@ -275,6 +277,7 @@ export default function BARequirementDiscovery() {
           <div>• Given [approval], When [user approves], Then [TDC Update API called, lineage updated]</div>
         </div>
       </div>
+      <DiscoveryAskBuddy pagePath="/discovery/ba-requirements" pageTitle="BA Requirement Discovery" />
     </div>
   );
 }

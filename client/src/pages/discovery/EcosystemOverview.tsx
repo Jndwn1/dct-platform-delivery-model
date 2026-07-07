@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 type Platform = "erp" | "pdc" | "tdc" | "roger" | "gosystem";
 
@@ -353,6 +355,7 @@ export default function EcosystemOverview() {
           }}
         />
       )}
+      <DiscoveryAskBuddy pagePath="/discovery/ecosystem" pageTitle="Ecosystem Overview" />
     </div>
   );
 }

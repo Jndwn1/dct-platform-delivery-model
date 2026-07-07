@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 interface PlatformCard {
   id: string;
@@ -270,6 +272,7 @@ export default function PlatformResponsibilities() {
           <span style={{ fontSize: "11px", color: "#64748b" }}>Governed data pipeline — each system owns its domain</span>
         </div>
       </div>
+      <DiscoveryAskBuddy pagePath="/discovery/platform-responsibilities" pageTitle="Platform Responsibilities" />
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+
 
 interface FlowStep {
   id: string;
@@ -207,6 +209,7 @@ export default function EndToEndDataFlow() {
       }}>
         <strong style={{ color: "white" }}>Key Principle:</strong> Data flows in one direction — from ERP through PDC to TDC to Roger/GoSystem. Roger sends practitioner decisions back to TDC, which is the single system of record. GoSystem only reads from TDC and never writes back.
       </div>
+      <DiscoveryAskBuddy pagePath="/discovery/data-flow" pageTitle="End-to-End Data Flow" />
     </div>
   );
 }
