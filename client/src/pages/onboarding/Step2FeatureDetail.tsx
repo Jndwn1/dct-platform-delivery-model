@@ -1,5 +1,5 @@
 // Step2FeatureDetail.tsx
-// Onboarding Step 2 — Feature Detail View
+// Discovery Hub Step 2 — Analyze Existing Capabilities
 // Shows all 11 sections for each feature: Overview, Business Objectives, Scope,
 // Business Workflow, Architecture, Related APIs, Related User Stories,
 // Acceptance Criteria, Dependencies, Downstream Consumers, Known Constraints
@@ -285,16 +285,26 @@ export default function Step2FeatureDetail() {
 
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px", fontSize: "12px", color: "#64748b" }}>
-        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Onboarding Hub</span>
+        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Provision &amp; State Discovery Hub</span>
         <span>›</span>
-        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding/step1")}>Step 1 — Features</span>
+        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding/step1")}>Step 1 — Review Existing DCT Capabilities</span>
         <span>›</span>
-        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 2 — Feature Detail</span>
+        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 2 — Analyze Existing Capabilities</span>
       </div>
 
-      <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: "0 0 20px" }}>
-        🔍 Feature Detail View
+      <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: "0 0 8px" }}>
+        🔍 Analyze Existing Capabilities
       </h1>
+      <div style={{
+        backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+        borderRadius: "8px", padding: "10px 14px", marginBottom: "16px",
+      }}>
+        <p style={{ margin: 0, fontSize: "13px", color: "#1e40af", lineHeight: "1.6" }}>
+          Review each capability in detail to determine: what business problem it solves, what functionality already exists,
+          what is in scope, what is out of scope, dependencies, and integration points.
+          Use this analysis to understand whether your business need is already addressed before documenting a new requirement.
+        </p>
+      </div>
 
       {/* Feature selector tabs */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>

@@ -1,6 +1,6 @@
 // OnboardingHub.tsx
-// Provision & State Workstream Onboarding Hub
-// 7-step guided onboarding within the Discovery Center
+// Provision & State Discovery Hub
+// Guided discovery experience to understand existing DCT capabilities before defining business requirements.
 
 import { useLocation } from "wouter";
 
@@ -8,9 +8,9 @@ export const ONBOARDING_STEPS = [
   {
     id: 1,
     key: "step1-features",
-    title: "Review DCT Features",
+    title: "Review Existing DCT Capabilities",
     subtitle: "Required — Cannot Skip",
-    description: "Review the existing DCT Features to understand business capabilities already planned and in development.",
+    description: "Review the DCT capabilities that have already been designed and planned. Understand the business purpose, scope, architecture, APIs, user stories, acceptance criteria, and downstream consumers before documenting new requirements.",
     icon: "📋",
     route: "/onboarding/step1",
     required: true,
@@ -18,9 +18,9 @@ export const ONBOARDING_STEPS = [
   {
     id: 2,
     key: "step2-feature-detail",
-    title: "Explore Feature Details",
-    subtitle: "Deep-dive into each feature",
-    description: "Select a feature to review its business objectives, scope, architecture, APIs, stories, and acceptance criteria.",
+    title: "Analyze Existing Capabilities",
+    subtitle: "Deep-dive into each capability",
+    description: "Review each capability in detail to determine: what business problem it solves, what functionality already exists, what is in scope, what is out of scope, dependencies, and integration points.",
     icon: "🔍",
     route: "/onboarding/step2",
     required: true,
@@ -28,9 +28,9 @@ export const ONBOARDING_STEPS = [
   {
     id: 3,
     key: "step3-discovery-center",
-    title: "Discovery Center Review",
+    title: "Understand the DCT Solution",
     subtitle: "Platform responsibilities & architecture",
-    description: "Understand platform responsibilities, system ownership, data flow, Roger, TDC, and GoSystem.",
+    description: "Review platform responsibilities, system ownership, architecture, data flow, Roger, TDC, GoSystem, and integration responsibilities. The objective is to understand where each capability exists within the DCT ecosystem.",
     icon: "🧭",
     route: "/onboarding/step3",
     required: true,
@@ -38,9 +38,9 @@ export const ONBOARDING_STEPS = [
   {
     id: 4,
     key: "step4-simulation",
-    title: "Data Flow Simulation",
-    subtitle: "GoSystem integration walkthrough",
-    description: "Complete the GoSystem integration simulation to understand what data moves through each platform.",
+    title: "Validate the Business Process",
+    subtitle: "End-to-end business process walkthrough",
+    description: "Walk through the end-to-end business process. Observe how data moves through the DCT ecosystem. Understand which platform owns each step. Understand downstream impacts.",
     icon: "🔄",
     route: "/onboarding/step4",
     required: true,
@@ -48,9 +48,9 @@ export const ONBOARDING_STEPS = [
   {
     id: 5,
     key: "step5-ask-buddy",
-    title: "Engage Ask Buddy",
-    subtitle: "Ask questions about DCT capabilities",
-    description: "Use Ask Buddy to explore DCT features, batches, and capabilities before forming new requirements.",
+    title: "Research Existing Capabilities",
+    subtitle: "Use Ask Buddy before documenting new requirements",
+    description: "Use Ask Buddy to research existing functionality before documenting new requirements. Buddy will first check whether DCT already supports the need, identify the relevant Feature, Batch, APIs, and business objects.",
     icon: "💬",
     route: "/onboarding/step5",
     required: false,
@@ -58,9 +58,9 @@ export const ONBOARDING_STEPS = [
   {
     id: 6,
     key: "step6-questions",
-    title: "Prepare Discovery Questions",
-    subtitle: "Capture questions for the DCT BA team",
-    description: "Document your questions and gaps discovered during the review to guide your BA discussion.",
+    title: "Requirements Discovery",
+    subtitle: "Document findings from the capability review",
+    description: "Document findings from the capability review. Capture: Business Need, Existing Capability, Gap, Recommendation, Dependency, Questions, and Potential Enhancement.",
     icon: "❓",
     route: "/onboarding/step6",
     required: false,
@@ -68,9 +68,9 @@ export const ONBOARDING_STEPS = [
   {
     id: 7,
     key: "step7-complete",
-    title: "Ready for BA Discussion",
-    subtitle: "Onboarding complete",
-    description: "You have completed the DCT onboarding review and are ready to meet with the DCT Business Analysts.",
+    title: "Discovery Complete",
+    subtitle: "Ready to begin requirements documentation",
+    description: "You now understand the existing DCT capabilities supporting the Provision and State workstreams. You are prepared to begin documenting business requirements based on the current DCT solution.",
     icon: "✅",
     route: "/onboarding/step7",
     required: false,
@@ -97,7 +97,6 @@ export function resetOnboarding() {
 
 export function isStepUnlocked(stepIndex: number, progress: Record<string, boolean>): boolean {
   if (stepIndex === 0) return true;
-  // Each step unlocks when the previous required step is done
   for (let i = 0; i < stepIndex; i++) {
     if (ONBOARDING_STEPS[i].required && !progress[ONBOARDING_STEPS[i].key]) {
       return false;
@@ -122,28 +121,56 @@ export default function OnboardingHub() {
             width: "36px", height: "36px", borderRadius: "8px", backgroundColor: "#0f1623",
             display: "flex", alignItems: "center", justifyContent: "center",
             color: "#059669", fontWeight: 900, fontSize: "18px",
-          }}>🎓</div>
+          }}>🔎</div>
           <div>
             <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: 0, lineHeight: 1 }}>
-              Provision & State Workstream Onboarding
+              Provision &amp; State Discovery Hub
             </h1>
             <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px" }}>
-              DCT Platform · Discovery Center · Guided Onboarding Experience
+              Guided discovery experience to understand existing DCT capabilities before defining business requirements.
             </div>
           </div>
         </div>
 
-        {/* Principle banner */}
+        {/* Discovery Principle banner */}
         <div style={{
           backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
-          borderRadius: "8px", padding: "12px 16px", marginTop: "14px",
+          borderRadius: "8px", padding: "14px 16px", marginTop: "14px",
         }}>
-          <div style={{ fontSize: "13px", color: "#1e40af", fontWeight: 600, marginBottom: "3px" }}>
-            🎯 Onboarding Principle
+          <div style={{ fontSize: "13px", color: "#1e40af", fontWeight: 700, marginBottom: "6px" }}>
+            🎯 Discovery Principle
           </div>
-          <div style={{ fontSize: "13px", color: "#1e3a8a", lineHeight: "1.6" }}>
-            <strong>Understand the existing DCT capabilities before identifying new requirements.</strong>{" "}
-            Discovery begins with understanding what is already planned and in development — not with defining new scope.
+          <div style={{ fontSize: "13px", color: "#1e3a8a", lineHeight: "1.7" }}>
+            <strong>Effective discovery begins with understanding existing capabilities before defining new requirements.</strong>
+            <br />
+            The purpose of this Discovery Hub is to help Business Analysts determine whether a business need is already supported by DCT, identify potential gaps, and build requirements based on the current solution architecture.
+          </div>
+        </div>
+
+        {/* Purpose section */}
+        <div style={{
+          backgroundColor: "#f8fafc", border: "1px solid #e2e8f0",
+          borderRadius: "8px", padding: "14px 16px", marginTop: "12px",
+        }}>
+          <div style={{ fontSize: "13px", color: "#0f1623", fontWeight: 700, marginBottom: "8px" }}>
+            📌 Purpose
+          </div>
+          <div style={{ fontSize: "13px", color: "#334155", marginBottom: "6px" }}>
+            This Discovery Hub is designed to help the Provision and State Business Analysts:
+          </div>
+          <ul style={{ margin: "0 0 8px 0", paddingLeft: "20px", fontSize: "13px", color: "#334155", lineHeight: "1.8" }}>
+            <li>Understand the DCT capabilities that already exist.</li>
+            <li>Learn how those capabilities support their business processes.</li>
+            <li>Identify where existing functionality satisfies business needs.</li>
+            <li>Recognize capability gaps that may require additional requirements.</li>
+            <li>Build well-informed business requirements using the current DCT solution as the baseline.</li>
+          </ul>
+          <div style={{
+            fontSize: "13px", color: "#1e40af", fontWeight: 600,
+            backgroundColor: "#eff6ff", borderRadius: "6px", padding: "8px 12px",
+            borderLeft: "3px solid #2563eb",
+          }}>
+            The goal is not to redesign DCT. The goal is to understand the current solution before proposing enhancements.
           </div>
         </div>
       </div>
@@ -156,7 +183,7 @@ export default function OnboardingHub() {
       }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "#065f46" }}>Onboarding Progress</span>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#065f46" }}>Discovery Progress</span>
             <span style={{ fontSize: "12px", fontWeight: 700, color: "#059669" }}>{completedCount} / {ONBOARDING_STEPS.length} steps</span>
           </div>
           <div style={{ height: "8px", backgroundColor: "#d1fae5", borderRadius: "4px", overflow: "hidden" }}>
@@ -262,8 +289,7 @@ export default function OnboardingHub() {
         backgroundColor: "#fffbeb", border: "1px solid #fde68a",
         borderRadius: "8px", fontSize: "12px", color: "#92400e",
       }}>
-        <strong>Note:</strong> Steps 1–4 are required and must be completed in order before proceeding to Ask Buddy and Discovery Questions.
-        Steps 5–7 are available after completing the required steps.
+        <strong>Note:</strong> Steps 1–4 are required and must be completed in order. These steps ensure you have reviewed existing DCT capabilities before proceeding to research and requirements documentation. Steps 5–7 become available after completing the required steps.
       </div>
     </div>
   );

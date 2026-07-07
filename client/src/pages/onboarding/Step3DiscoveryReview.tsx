@@ -1,5 +1,5 @@
 // Step3DiscoveryReview.tsx
-// Onboarding Step 3 — Discovery Center Review
+// Discovery Hub Step 3 — Understand the DCT Solution
 // Covers Platform Responsibilities, Architecture, System Ownership, Data Flow, Roger, TDC, GoSystem
 
 import { useState } from "react";
@@ -111,7 +111,7 @@ export default function Step3DiscoveryReview() {
 
   function handleTopicClick(id: string) {
     setActiveTopic(id);
-    setReviewed(prev => new Set([...prev, id]));
+    setReviewed(prev => new Set(Array.from(prev).concat(id)));
   }
 
   function handleContinue() {
@@ -124,16 +124,17 @@ export default function Step3DiscoveryReview() {
 
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px", fontSize: "12px", color: "#64748b" }}>
-        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Onboarding Hub</span>
+        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Provision &amp; State Discovery Hub</span>
         <span>›</span>
-        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 3 — Discovery Center Review</span>
+        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 3 — Understand the DCT Solution</span>
       </div>
 
       <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: "0 0 8px" }}>
-        🧭 Discovery Center Review
+        🧭 Understand the DCT Solution
       </h1>
       <p style={{ fontSize: "14px", color: "#475569", marginBottom: "20px", lineHeight: "1.6" }}>
-        Review all seven topics to understand the DCT platform before engaging in discovery discussions.
+        Review platform responsibilities, system ownership, architecture, data flow, Roger, TDC, GoSystem, and integration responsibilities.
+        The objective is to understand where each capability exists within the DCT ecosystem before defining new requirements.
         Topics reviewed: <strong>{reviewed.size} / {TOPICS.length}</strong>
       </p>
 

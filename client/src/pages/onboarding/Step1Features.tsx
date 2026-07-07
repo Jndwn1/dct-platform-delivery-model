@@ -1,5 +1,5 @@
 // Step1Features.tsx
-// Onboarding Step 1 — Review Existing DCT Features
+// Discovery Hub Step 1 — Review Existing DCT Capabilities
 // Displays B9A, B16, B28 with full business context. Required step — cannot skip.
 
 import { useState } from "react";
@@ -143,9 +143,9 @@ export default function Step1Features() {
 
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px", fontSize: "12px", color: "#64748b" }}>
-        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Onboarding Hub</span>
+        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Provision &amp; State Discovery Hub</span>
         <span>›</span>
-        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 1 — Review DCT Features</span>
+        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 1 — Review Existing DCT Capabilities</span>
         <span style={{
           marginLeft: "8px", fontSize: "10px", fontWeight: 700, color: "#dc2626",
           backgroundColor: "#fef2f2", border: "1px solid #fecaca",
@@ -156,16 +156,17 @@ export default function Step1Features() {
       {/* Header */}
       <div style={{ marginBottom: "24px" }}>
         <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: "0 0 8px" }}>
-          📋 Review Existing DCT Features
+          📋 Review Existing DCT Capabilities
         </h1>
         <div style={{
           backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
           borderRadius: "8px", padding: "12px 16px",
         }}>
           <p style={{ margin: 0, fontSize: "14px", color: "#1e40af", lineHeight: "1.6" }}>
-            <strong>Before beginning discovery, review the existing DCT Features</strong> to understand the business
-            capabilities already planned and in development. These features represent committed scope — understanding
-            them prevents duplicate requirements and ensures your discovery questions are focused on genuine gaps.
+            <strong>Before documenting any new requirements, review the existing DCT capabilities</strong> already
+            planned and in development. Understanding the current scope — including business purpose, architecture,
+            APIs, user stories, acceptance criteria, and downstream consumers — prevents duplicate requirements
+            and ensures your discovery is focused on genuine capability gaps.
           </p>
         </div>
       </div>
@@ -289,8 +290,8 @@ export default function Step1Features() {
             style={{ marginTop: "2px", width: "16px", height: "16px", cursor: "pointer" }}
           />
           <span style={{ fontSize: "14px", color: "#065f46", lineHeight: "1.5" }}>
-            <strong>I confirm that I have reviewed all three DCT Features</strong> (Batch 9A, Batch 16, and Batch 28)
-            and understand the existing business capabilities before proceeding to discovery.
+            <strong>I confirm that I have reviewed the existing DCT capabilities</strong> (Batch 9A, Batch 16, and Batch 28)
+            and understand what is already planned before proceeding to requirements discovery.
           </span>
         </label>
         <div style={{ marginTop: "14px", display: "flex", gap: "10px" }}>
@@ -314,7 +315,7 @@ export default function Step1Features() {
               cursor: confirmed ? "pointer" : "not-allowed",
             }}
           >
-            ✓ Mark Complete & Continue to Step 2 →
+            ✓ Mark Complete &amp; Continue to Step 2 →
           </button>
         </div>
       </div>

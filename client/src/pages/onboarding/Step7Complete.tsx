@@ -1,6 +1,6 @@
 // Step7Complete.tsx
-// Onboarding Step 7 — Completion Page
-// Summary, readiness certificate, and next steps for the Provision & State workstream
+// Discovery Hub Step 7 — Discovery Complete
+// Summary, readiness confirmation, and next steps for the Provision & State workstream
 
 import { useState } from "react";
 import { useLocation } from "wouter";
@@ -50,14 +50,14 @@ const NEXT_STEPS = [
 ];
 
 const READINESS_ITEMS = [
+  "Reviewed existing DCT capabilities (B9A, B16, B28) before defining requirements",
   "Understands DCT platform architecture and system boundaries",
   "Knows PDC (Phoenix Data Consolidation) and TDC (Tax Data Consolidation) roles",
   "Understands Roger's read-only role and override flow",
   "Understands GoSystem's downstream consumer role",
-  "Completed the GoSystem Integration Data Flow Simulation",
-  "Engaged with Ask Buddy on Provision & State workstream questions",
-  "Captured open discovery questions for follow-up",
-  "Familiar with B9A, B16, and B28 feature scope",
+  "Validated the end-to-end business process through the data flow simulation",
+  "Researched existing capabilities using Ask Buddy before documenting new requirements",
+  "Captured requirements discovery entries with Business Need, Gap, and Recommendation",
 ];
 
 export default function Step7Complete() {
@@ -83,9 +83,9 @@ export default function Step7Complete() {
 
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px", fontSize: "12px", color: "#64748b" }}>
-        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Onboarding Hub</span>
+        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Provision &amp; State Discovery Hub</span>
         <span>›</span>
-        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 7 — Completion</span>
+        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 7 — Discovery Complete</span>
       </div>
 
       {/* Completion banner */}
@@ -94,14 +94,14 @@ export default function Step7Complete() {
         borderRadius: "14px", padding: "28px 32px", marginBottom: "28px",
         textAlign: "center",
       }}>
-        <div style={{ fontSize: "56px", marginBottom: "12px" }}>🎓</div>
+        <div style={{ fontSize: "56px", marginBottom: "12px" }}>🔎</div>
         <h1 style={{ fontSize: "26px", fontWeight: 900, color: "#065f46", margin: "0 0 10px" }}>
-          Onboarding Complete!
+          Discovery Complete!
         </h1>
-        <p style={{ fontSize: "15px", color: "#166534", lineHeight: "1.7", maxWidth: "600px", margin: "0 auto 16px" }}>
-          You have completed the <strong>DCT Provision & State Workstream Onboarding</strong>.
-          You are now ready to engage in discovery discussions, write stories, and collaborate
-          with the CATT team on the Provision & State workstream.
+        <p style={{ fontSize: "15px", color: "#166534", lineHeight: "1.7", maxWidth: "640px", margin: "0 auto 16px" }}>
+          You now understand the existing DCT capabilities supporting the Provision and State workstreams.
+          You are prepared to begin documenting business requirements based on the current DCT solution.
+          If new requirements are identified, validate that they represent capability gaps before proposing enhancements.
         </p>
         <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
           <button
@@ -122,7 +122,7 @@ export default function Step7Complete() {
               borderRadius: "8px", padding: "10px 20px", cursor: "pointer",
             }}
           >
-            ↩ Back to Onboarding Hub
+            ↩ Back to Discovery Hub
           </button>
         </div>
       </div>
@@ -210,7 +210,7 @@ export default function Step7Complete() {
           display: "flex", justifyContent: "space-between", alignItems: "center",
         }}>
           <div style={{ fontSize: "13px", color: "#92400e" }}>
-            ⚠️ You have <strong>{openQuestions} open discovery question{openQuestions === 1 ? "" : "s"}</strong> that still need answers. Review them before writing stories.
+            ⚠️ You have <strong>{openQuestions} open discovery entr{openQuestions === 1 ? "y" : "ies"}</strong> that still need answers. Review and resolve them before writing requirements.
           </div>
           <button
             onClick={() => navigate("/onboarding/step6")}

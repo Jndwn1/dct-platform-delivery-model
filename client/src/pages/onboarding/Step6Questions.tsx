@@ -1,33 +1,38 @@
 // Step6Questions.tsx
-// Onboarding Step 6 — Capture Discovery Questions
-// BAs capture open questions, gaps, and items to clarify before story writing
+// Discovery Hub Step 6 — Requirements Discovery
+// BAs capture: Business Need, Existing Capability, Gap, Recommendation, Dependency, Questions, Potential Enhancement
 
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { markStepComplete } from "./OnboardingHub";
 
-const QUESTION_CATEGORIES = [
+const DISCOVERY_CATEGORIES = [
+  { id: "provision", label: "Provision Workstream", color: "#7c3aed", icon: "📊" },
+  { id: "state", label: "State Filing", color: "#b45309", icon: "🗺️" },
   { id: "gosystem", label: "GoSystem Integration", color: "#be185d", icon: "🖥️" },
   { id: "roger", label: "Roger / Practitioner UI", color: "#0369a1", icon: "👤" },
   { id: "tdc", label: "TDC / Tax Data Consolidation", color: "#065f46", icon: "⚙️" },
-  { id: "provision", label: "Provision Workstream", color: "#7c3aed", icon: "📊" },
-  { id: "state", label: "State Filing", color: "#b45309", icon: "🗺️" },
   { id: "gateway", label: "Gateway / API Access", color: "#1e3a5f", icon: "🔐" },
   { id: "other", label: "Other / General", color: "#64748b", icon: "💬" },
 ];
 
-type Question = {
+type DiscoveryEntry = {
   id: string;
   category: string;
-  text: string;
+  businessNeed: string;
+  existingCapability: string;
+  gap: string;
+  recommendation: string;
+  dependency: string;
+  questions: string;
+  potentialEnhancement: string;
   priority: "High" | "Medium" | "Low";
   status: "Open" | "Answered" | "Deferred";
-  notes: string;
 };
 
 const STORAGE_KEY = "onboarding-discovery-questions";
 
-function loadQuestions(): Question[] {
+function loadEntries(): DiscoveryEntry[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -36,66 +41,75 @@ function loadQuestions(): Question[] {
   }
 }
 
-function saveQuestions(qs: Question[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(qs));
+function saveEntries(entries: DiscoveryEntry[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
 }
+
+const EMPTY_FORM = {
+  category: "provision",
+  businessNeed: "",
+  existingCapability: "",
+  gap: "",
+  recommendation: "",
+  dependency: "",
+  questions: "",
+  potentialEnhancement: "",
+  priority: "Medium" as const,
+};
 
 export default function Step6Questions() {
   const [, navigate] = useLocation();
-  const [questions, setQuestions] = useState<Question[]>(loadQuestions);
-  const [newText, setNewText] = useState("");
-  const [newCategory, setNewCategory] = useState("gosystem");
-  const [newPriority, setNewPriority] = useState<"High" | "Medium" | "Low">("Medium");
+  const [entries, setEntries] = useState<DiscoveryEntry[]>(loadEntries);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [filterCat, setFilterCat] = useState("all");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editNotes, setEditNotes] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const canProceed = questions.length >= 1;
+  const canProceed = entries.length >= 1;
 
-  function addQuestion() {
-    if (!newText.trim()) return;
-    const q: Question = {
-      id: `q-${Date.now()}`,
-      category: newCategory,
-      text: newText.trim(),
-      priority: newPriority,
+  function updateForm(field: keyof typeof EMPTY_FORM, value: string) {
+    setForm(prev => ({ ...prev, [field]: value }));
+  }
+
+  function addEntry() {
+    if (!form.businessNeed.trim()) return;
+    const entry: DiscoveryEntry = {
+      id: `de-${Date.now()}`,
+      ...form,
       status: "Open",
-      notes: "",
     };
-    const updated = [...questions, q];
-    setQuestions(updated);
-    saveQuestions(updated);
-    setNewText("");
+    const updated = [...entries, entry];
+    setEntries(updated);
+    saveEntries(updated);
+    setForm(EMPTY_FORM);
   }
 
-  function updateStatus(id: string, status: Question["status"]) {
-    const updated = questions.map(q => q.id === id ? { ...q, status } : q);
-    setQuestions(updated);
-    saveQuestions(updated);
+  function updateStatus(id: string, status: DiscoveryEntry["status"]) {
+    const updated = entries.map(e => e.id === id ? { ...e, status } : e);
+    setEntries(updated);
+    saveEntries(updated);
   }
 
-  function saveNotes(id: string) {
-    const updated = questions.map(q => q.id === id ? { ...q, notes: editNotes } : q);
-    setQuestions(updated);
-    saveQuestions(updated);
-    setEditingId(null);
-  }
-
-  function removeQuestion(id: string) {
-    const updated = questions.filter(q => q.id !== id);
-    setQuestions(updated);
-    saveQuestions(updated);
+  function removeEntry(id: string) {
+    const updated = entries.filter(e => e.id !== id);
+    setEntries(updated);
+    saveEntries(updated);
   }
 
   function exportToText() {
-    const lines = ["DCT Onboarding — Discovery Questions", "=".repeat(50), ""];
-    QUESTION_CATEGORIES.forEach(cat => {
-      const catQs = questions.filter(q => q.category === cat.id);
-      if (catQs.length === 0) return;
+    const lines = ["DCT Provision & State Discovery Hub — Requirements Discovery", "=".repeat(60), ""];
+    DISCOVERY_CATEGORIES.forEach(cat => {
+      const catEntries = entries.filter(e => e.category === cat.id);
+      if (catEntries.length === 0) return;
       lines.push(`## ${cat.label}`);
-      catQs.forEach((q, i) => {
-        lines.push(`${i + 1}. [${q.priority}] [${q.status}] ${q.text}`);
-        if (q.notes) lines.push(`   Notes: ${q.notes}`);
+      catEntries.forEach((e, i) => {
+        lines.push(`\n### Entry ${i + 1} — [${e.priority}] [${e.status}]`);
+        lines.push(`Business Need: ${e.businessNeed}`);
+        if (e.existingCapability) lines.push(`Existing Capability: ${e.existingCapability}`);
+        if (e.gap) lines.push(`Gap: ${e.gap}`);
+        if (e.recommendation) lines.push(`Recommendation: ${e.recommendation}`);
+        if (e.dependency) lines.push(`Dependency: ${e.dependency}`);
+        if (e.questions) lines.push(`Questions: ${e.questions}`);
+        if (e.potentialEnhancement) lines.push(`Potential Enhancement: ${e.potentialEnhancement}`);
       });
       lines.push("");
     });
@@ -103,7 +117,7 @@ export default function Step6Questions() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "DCT_Discovery_Questions.txt";
+    a.download = "DCT_Requirements_Discovery.txt";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -113,31 +127,31 @@ export default function Step6Questions() {
     navigate("/onboarding/step7");
   }
 
-  const filtered = filterCat === "all" ? questions : questions.filter(q => q.category === filterCat);
-  const openCount = questions.filter(q => q.status === "Open").length;
-  const answeredCount = questions.filter(q => q.status === "Answered").length;
+  const filtered = filterCat === "all" ? entries : entries.filter(e => e.category === filterCat);
+  const openCount = entries.filter(e => e.status === "Open").length;
+  const answeredCount = entries.filter(e => e.status === "Answered").length;
 
   return (
     <div style={{ padding: "28px 32px", maxWidth: "1000px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
 
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px", fontSize: "12px", color: "#64748b" }}>
-        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Onboarding Hub</span>
+        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Provision &amp; State Discovery Hub</span>
         <span>›</span>
-        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 6 — Discovery Questions</span>
+        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 6 — Requirements Discovery</span>
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
         <div>
           <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: "0 0 6px" }}>
-            📝 Capture Discovery Questions
+            📝 Requirements Discovery
           </h1>
           <p style={{ fontSize: "14px", color: "#475569", margin: 0, lineHeight: "1.6" }}>
-            Record open questions, gaps, and items to clarify before writing stories.
-            These will be saved and available throughout your onboarding.
+            Document findings from the capability review. For each business need, capture the existing capability,
+            any identified gap, your recommendation, dependencies, open questions, and potential enhancements.
           </p>
         </div>
-        {questions.length > 0 && (
+        {entries.length > 0 && (
           <button
             onClick={exportToText}
             style={{
@@ -146,19 +160,19 @@ export default function Step6Questions() {
               borderRadius: "7px", padding: "8px 14px", cursor: "pointer", whiteSpace: "nowrap",
             }}
           >
-            ↓ Export Questions
+            ↓ Export Discovery
           </button>
         )}
       </div>
 
       {/* Stats */}
-      {questions.length > 0 && (
+      {entries.length > 0 && (
         <div style={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
           {[
-            { label: "Total", value: questions.length, color: "#1e3a5f" },
+            { label: "Total", value: entries.length, color: "#1e3a5f" },
             { label: "Open", value: openCount, color: "#dc2626" },
             { label: "Answered", value: answeredCount, color: "#059669" },
-            { label: "Deferred", value: questions.length - openCount - answeredCount, color: "#d97706" },
+            { label: "Deferred", value: entries.length - openCount - answeredCount, color: "#d97706" },
           ].map(s => (
             <div key={s.label} style={{
               padding: "10px 16px", backgroundColor: "white",
@@ -171,69 +185,82 @@ export default function Step6Questions() {
         </div>
       )}
 
-      {/* Add question form */}
+      {/* Add entry form */}
       <div style={{
         backgroundColor: "white", border: "1px solid #e2e8f0",
-        borderRadius: "10px", padding: "16px 20px", marginBottom: "20px",
+        borderRadius: "10px", padding: "18px 20px", marginBottom: "20px",
       }}>
-        <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "12px" }}>
-          + Add a Discovery Question
+        <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "14px" }}>
+          + Add Discovery Entry
         </div>
-        <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+
+        {/* Category + Priority row */}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
           <select
-            value={newCategory}
-            onChange={e => setNewCategory(e.target.value)}
-            style={{
-              padding: "8px 10px", fontSize: "12px", border: "1px solid #e2e8f0",
-              borderRadius: "6px", color: "#0f1623", backgroundColor: "white",
-            }}
+            value={form.category}
+            onChange={e => updateForm("category", e.target.value)}
+            style={{ padding: "8px 10px", fontSize: "12px", border: "1px solid #e2e8f0", borderRadius: "6px", color: "#0f1623", backgroundColor: "white" }}
           >
-            {QUESTION_CATEGORIES.map(c => (
+            {DISCOVERY_CATEGORIES.map(c => (
               <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
             ))}
           </select>
           <select
-            value={newPriority}
-            onChange={e => setNewPriority(e.target.value as "High" | "Medium" | "Low")}
-            style={{
-              padding: "8px 10px", fontSize: "12px", border: "1px solid #e2e8f0",
-              borderRadius: "6px", color: "#0f1623", backgroundColor: "white",
-            }}
+            value={form.priority}
+            onChange={e => updateForm("priority", e.target.value)}
+            style={{ padding: "8px 10px", fontSize: "12px", border: "1px solid #e2e8f0", borderRadius: "6px", color: "#0f1623", backgroundColor: "white" }}
           >
             <option value="High">🔴 High Priority</option>
             <option value="Medium">🟡 Medium Priority</option>
             <option value="Low">🟢 Low Priority</option>
           </select>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <input
-            value={newText}
-            onChange={e => setNewText(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && addQuestion()}
-            placeholder="Type your discovery question..."
-            style={{
-              flex: 1, padding: "9px 12px", fontSize: "13px",
-              border: "1px solid #e2e8f0", borderRadius: "6px",
-              outline: "none", color: "#0f1623",
-            }}
-          />
-          <button
-            onClick={addQuestion}
-            disabled={!newText.trim()}
-            style={{
-              padding: "9px 18px", fontSize: "13px", fontWeight: 700,
-              backgroundColor: newText.trim() ? "#1e3a5f" : "#94a3b8",
-              color: "white", border: "none", borderRadius: "6px",
-              cursor: newText.trim() ? "pointer" : "not-allowed",
-            }}
-          >
-            Add
-          </button>
-        </div>
+
+        {/* Discovery fields */}
+        {[
+          { field: "businessNeed" as const, label: "Business Need *", placeholder: "What business need or requirement are you trying to address?", required: true },
+          { field: "existingCapability" as const, label: "Existing Capability", placeholder: "Does DCT already support this? Which Feature / Batch / API?" },
+          { field: "gap" as const, label: "Gap", placeholder: "What gap exists between the existing capability and the business need?" },
+          { field: "recommendation" as const, label: "Recommendation", placeholder: "What do you recommend? (Enhancement, new requirement, or accept existing capability)" },
+          { field: "dependency" as const, label: "Dependency", placeholder: "What dependencies exist? (Other batches, systems, teams)" },
+          { field: "questions" as const, label: "Questions", placeholder: "What open questions need to be answered before writing requirements?" },
+          { field: "potentialEnhancement" as const, label: "Potential Enhancement", placeholder: "If a gap exists, describe the potential enhancement to DCT" },
+        ].map(({ field, label, placeholder, required }) => (
+          <div key={field} style={{ marginBottom: "10px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#475569", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              {label}
+            </div>
+            <textarea
+              value={form[field]}
+              onChange={e => updateForm(field, e.target.value)}
+              placeholder={placeholder}
+              rows={2}
+              style={{
+                width: "100%", padding: "8px 10px", fontSize: "13px",
+                border: `1px solid ${required && !form[field] ? "#fca5a5" : "#e2e8f0"}`,
+                borderRadius: "6px", outline: "none", color: "#0f1623",
+                resize: "vertical", boxSizing: "border-box",
+              }}
+            />
+          </div>
+        ))}
+
+        <button
+          onClick={addEntry}
+          disabled={!form.businessNeed.trim()}
+          style={{
+            padding: "9px 20px", fontSize: "13px", fontWeight: 700,
+            backgroundColor: form.businessNeed.trim() ? "#1e3a5f" : "#94a3b8",
+            color: "white", border: "none", borderRadius: "6px",
+            cursor: form.businessNeed.trim() ? "pointer" : "not-allowed",
+          }}
+        >
+          Add Discovery Entry
+        </button>
       </div>
 
       {/* Filter */}
-      {questions.length > 0 && (
+      {entries.length > 0 && (
         <div style={{ display: "flex", gap: "6px", marginBottom: "14px", flexWrap: "wrap" }}>
           <button
             onClick={() => setFilterCat("all")}
@@ -244,9 +271,9 @@ export default function Step6Questions() {
               color: filterCat === "all" ? "white" : "#64748b",
             }}
           >
-            All ({questions.length})
+            All ({entries.length})
           </button>
-          {QUESTION_CATEGORIES.filter(c => questions.some(q => q.category === c.id)).map(c => (
+          {DISCOVERY_CATEGORIES.filter(c => entries.some(e => e.category === c.id)).map(c => (
             <button
               key={c.id}
               onClick={() => setFilterCat(c.id)}
@@ -257,31 +284,33 @@ export default function Step6Questions() {
                 color: filterCat === c.id ? "white" : "#64748b",
               }}
             >
-              {c.icon} {c.label} ({questions.filter(q => q.category === c.id).length})
+              {c.icon} {c.label} ({entries.filter(e => e.category === c.id).length})
             </button>
           ))}
         </div>
       )}
 
-      {/* Questions list */}
+      {/* Entries list */}
       {filtered.length === 0 ? (
         <div style={{
           textAlign: "center", padding: "32px", backgroundColor: "#f8fafc",
           border: "1px dashed #e2e8f0", borderRadius: "10px",
           fontSize: "14px", color: "#94a3b8",
         }}>
-          {questions.length === 0
-            ? "No questions yet. Add your first discovery question above."
-            : "No questions in this category."}
+          {entries.length === 0
+            ? "No discovery entries yet. Add your first entry above."
+            : "No entries in this category."}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {filtered.map(q => {
-            const cat = QUESTION_CATEGORIES.find(c => c.id === q.category)!;
-            const priorityColor = q.priority === "High" ? "#dc2626" : q.priority === "Medium" ? "#d97706" : "#059669";
-            const statusColor = q.status === "Answered" ? "#059669" : q.status === "Deferred" ? "#d97706" : "#dc2626";
+          {filtered.map(entry => {
+            const cat = DISCOVERY_CATEGORIES.find(c => c.id === entry.category)!;
+            const priorityColor = entry.priority === "High" ? "#dc2626" : entry.priority === "Medium" ? "#d97706" : "#059669";
+            const statusColor = entry.status === "Open" ? "#dc2626" : entry.status === "Answered" ? "#059669" : "#d97706";
+            const isExpanded = expandedId === entry.id;
+
             return (
-              <div key={q.id} style={{
+              <div key={entry.id} style={{
                 backgroundColor: "white", border: "1px solid #e2e8f0",
                 borderRadius: "8px", padding: "12px 16px",
                 borderLeft: `3px solid ${cat.color}`,
@@ -289,85 +318,55 @@ export default function Step6Questions() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", gap: "6px", marginBottom: "6px", flexWrap: "wrap" }}>
-                      <span style={{
-                        fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px",
-                        backgroundColor: `${cat.color}15`, color: cat.color,
-                      }}>
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", backgroundColor: `${cat.color}15`, color: cat.color }}>
                         {cat.icon} {cat.label}
                       </span>
-                      <span style={{
-                        fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px",
-                        backgroundColor: `${priorityColor}15`, color: priorityColor,
-                      }}>
-                        {q.priority}
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", backgroundColor: `${priorityColor}15`, color: priorityColor }}>
+                        {entry.priority}
                       </span>
-                      <span style={{
-                        fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px",
-                        backgroundColor: `${statusColor}15`, color: statusColor,
-                      }}>
-                        {q.status}
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", backgroundColor: `${statusColor}15`, color: statusColor }}>
+                        {entry.status}
                       </span>
                     </div>
-                    <div style={{ fontSize: "13px", color: "#1e293b", fontWeight: 600, lineHeight: "1.5" }}>
-                      {q.text}
+                    <div style={{ fontSize: "13px", color: "#1e293b", fontWeight: 600, lineHeight: "1.5", marginBottom: "4px" }}>
+                      Business Need: {entry.businessNeed}
                     </div>
-                    {q.notes && (
-                      <div style={{ fontSize: "12px", color: "#64748b", marginTop: "4px", fontStyle: "italic" }}>
-                        Notes: {q.notes}
+                    {isExpanded && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
+                        {[
+                          { label: "Existing Capability", value: entry.existingCapability },
+                          { label: "Gap", value: entry.gap },
+                          { label: "Recommendation", value: entry.recommendation },
+                          { label: "Dependency", value: entry.dependency },
+                          { label: "Questions", value: entry.questions },
+                          { label: "Potential Enhancement", value: entry.potentialEnhancement },
+                        ].filter(f => f.value).map(f => (
+                          <div key={f.label} style={{ fontSize: "12px", color: "#475569" }}>
+                            <strong style={{ color: "#334155" }}>{f.label}:</strong> {f.value}
+                          </div>
+                        ))}
                       </div>
                     )}
-                    {editingId === q.id && (
-                      <div style={{ marginTop: "8px", display: "flex", gap: "6px" }}>
-                        <input
-                          value={editNotes}
-                          onChange={e => setEditNotes(e.target.value)}
-                          placeholder="Add notes..."
-                          style={{
-                            flex: 1, padding: "6px 10px", fontSize: "12px",
-                            border: "1px solid #e2e8f0", borderRadius: "5px", outline: "none",
-                          }}
-                        />
-                        <button
-                          onClick={() => saveNotes(q.id)}
-                          style={{
-                            padding: "6px 12px", fontSize: "12px", fontWeight: 600,
-                            backgroundColor: "#059669", color: "white", border: "none",
-                            borderRadius: "5px", cursor: "pointer",
-                          }}
-                        >
-                          Save
-                        </button>
-                      </div>
-                    )}
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                      style={{ fontSize: "11px", color: "#2563eb", background: "none", border: "none", cursor: "pointer", padding: "4px 0 0 0" }}
+                    >
+                      {isExpanded ? "▲ Collapse" : "▼ View Details"}
+                    </button>
                   </div>
                   <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
                     <select
-                      value={q.status}
-                      onChange={e => updateStatus(q.id, e.target.value as Question["status"])}
-                      style={{
-                        fontSize: "11px", padding: "4px 6px", border: "1px solid #e2e8f0",
-                        borderRadius: "5px", color: "#0f1623", backgroundColor: "white",
-                      }}
+                      value={entry.status}
+                      onChange={e => updateStatus(entry.id, e.target.value as DiscoveryEntry["status"])}
+                      style={{ fontSize: "11px", padding: "4px 6px", border: "1px solid #e2e8f0", borderRadius: "5px", color: "#0f1623", backgroundColor: "white" }}
                     >
                       <option value="Open">Open</option>
                       <option value="Answered">Answered</option>
                       <option value="Deferred">Deferred</option>
                     </select>
                     <button
-                      onClick={() => { setEditingId(editingId === q.id ? null : q.id); setEditNotes(q.notes); }}
-                      style={{
-                        fontSize: "11px", padding: "4px 8px", border: "1px solid #e2e8f0",
-                        borderRadius: "5px", cursor: "pointer", backgroundColor: "white", color: "#64748b",
-                      }}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => removeQuestion(q.id)}
-                      style={{
-                        fontSize: "11px", padding: "4px 8px", border: "1px solid #fecaca",
-                        borderRadius: "5px", cursor: "pointer", backgroundColor: "#fef2f2", color: "#dc2626",
-                      }}
+                      onClick={() => removeEntry(entry.id)}
+                      style={{ fontSize: "11px", padding: "4px 8px", border: "1px solid #fecaca", borderRadius: "5px", cursor: "pointer", backgroundColor: "#fef2f2", color: "#dc2626" }}
                     >
                       ✕
                     </button>
@@ -388,8 +387,8 @@ export default function Step6Questions() {
       }}>
         <div style={{ fontSize: "13px", color: canProceed ? "#065f46" : "#64748b" }}>
           {canProceed
-            ? `✓ ${questions.length} question${questions.length === 1 ? "" : "s"} captured — you're ready to complete your onboarding.`
-            : "Add at least 1 discovery question to unlock the final step."}
+            ? `✓ ${entries.length} discovery entr${entries.length === 1 ? "y" : "ies"} captured — you're ready to complete discovery.`
+            : "Add at least 1 discovery entry to unlock the final step."}
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <button
@@ -412,7 +411,7 @@ export default function Step6Questions() {
               cursor: canProceed ? "pointer" : "not-allowed",
             }}
           >
-            ✓ Complete Onboarding →
+            ✓ Complete Discovery →
           </button>
         </div>
       </div>

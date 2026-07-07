@@ -1,6 +1,6 @@
 // Step5AskBuddy.tsx
-// Onboarding Step 5 — Ask Buddy with Onboarding Guardrails
-// Guided Ask Buddy session focused on Provision & State workstream questions
+// Discovery Hub Step 5 — Research Existing Capabilities
+// Guided Ask Buddy session — research existing functionality before documenting new requirements
 
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
@@ -38,7 +38,7 @@ export default function Step5AskBuddy() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "👋 I'm Ask Buddy, your DCT platform guide for the Provision & State Workstream onboarding.\n\nI'm pre-loaded with context about GoSystem, Roger, TDC, PDC, the Gateway, and the Provision & State workstream.\n\nAsk me anything — or click a suggested question below to get started.",
+      content: "👋 I'm Ask Buddy, your DCT capabilities research guide.\n\nBefore documenting any new requirements, use me to research what DCT already supports. I will first check whether an existing capability satisfies your business need, then identify the relevant Feature, Batch, APIs, and business objects.\n\nAsk me about a business need — or click a suggested question below to get started.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -66,12 +66,12 @@ export default function Step5AskBuddy() {
     setQuestionsAsked(prev => prev + 1);
 
     try {
+      const allMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
       const result = await chatMutation.mutateAsync({
-        message: text,
-        history: messages.map(m => ({ role: m.role, content: m.content })),
+        messages: allMessages,
         discoveryPagePath: "/discovery/gosystem",
       });
-      setMessages(prev => [...prev, { role: "assistant", content: result.reply }]);
+      setMessages(prev => [...prev, { role: "assistant", content: result.text }]);
     } catch {
       setMessages(prev => [...prev, {
         role: "assistant",
@@ -92,17 +92,18 @@ export default function Step5AskBuddy() {
 
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px", fontSize: "12px", color: "#64748b" }}>
-        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Onboarding Hub</span>
+        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Provision &amp; State Discovery Hub</span>
         <span>›</span>
-        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 5 — Ask Buddy</span>
+        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 5 — Research Existing Capabilities</span>
       </div>
 
       <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: "0 0 8px" }}>
-        🤖 Ask Buddy — Provision & State Workstream
+        🤖 Research Existing Capabilities
       </h1>
       <p style={{ fontSize: "14px", color: "#475569", marginBottom: "20px", lineHeight: "1.6" }}>
-        Ask at least <strong>3 questions</strong> about the Provision & State workstream to unlock Step 6.
-        Ask Buddy is pre-loaded with full DCT platform context including GoSystem, Roger, TDC, and the Gateway.
+        Use Ask Buddy to research existing DCT functionality <strong>before documenting new requirements</strong>.
+        Ask at least <strong>3 questions</strong> about your business needs to unlock Step 6.
+        Buddy will first check whether DCT already supports the need, then identify the relevant Feature, Batch, APIs, and business objects.
         {questionsAsked > 0 && (
           <span style={{ marginLeft: "8px", color: "#059669", fontWeight: 600 }}>
             {questionsAsked} / 3 questions asked{canProceed ? " ✓" : ""}

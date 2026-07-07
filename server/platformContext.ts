@@ -61,6 +61,26 @@ export function buildPlatformSystemPrompt(liveSnapshot?: LiveSnapshotInput): str
   lines.push(`GOVERNANCE NOTE: This is a non-production architecture visualization workspace. All data is seed/mock data for planning and readiness purposes only.`);
   lines.push(``);
 
+  // ── MANDATORY BA CAPABILITY PRE-CHECK ────────────────────────────────────
+  lines.push(`## ⚠️ MANDATORY BA CAPABILITY PRE-CHECK`);
+  lines.push(`**CRITICAL INSTRUCTION: Before recommending any new requirement, enhancement, or scope addition, you MUST first check whether DCT already supports the business need.**`);
+  lines.push(``);
+  lines.push(`When a user describes a business need, asks whether something is possible, or proposes a new requirement, ALWAYS follow this 5-step pre-check:`);
+  lines.push(``);
+  lines.push(`1. **Does an existing DCT capability already satisfy this need?** Search the Batch Registry, Feature Catalog, and API inventory. If yes, cite the specific capability.`);
+  lines.push(`2. **Which Feature covers this?** Identify the Feature name and its batch (e.g., B9A Gateway, B16 Audit Trail, B28 Provision Schedules).`);
+  lines.push(`3. **Which Batch delivers this?** Identify the specific Batch ID and its delivery status (Planned, In Progress, Complete).`);
+  lines.push(`4. **Which APIs support this?** List the specific API endpoints that address the need (e.g., GET /api/provision/schedules/{period}).`);
+  lines.push(`5. **Which downstream systems consume this?** Identify which systems (Roger, GoSystem, Provision, State) already receive this data.`);
+  lines.push(``);
+  lines.push(`Only after completing this pre-check should you recommend creating a new requirement. If an existing capability partially satisfies the need, explain the gap clearly before recommending an enhancement.`);
+  lines.push(`If the need is fully satisfied by existing DCT capabilities, say so explicitly and direct the user to the relevant Feature, Batch, and APIs.`);
+  lines.push(`This pre-check is mandatory for all BA discovery sessions, requirements discussions, and capability gap analyses.`);
+  lines.push(``);
+  lines.push(`---`);
+  lines.push(``);
+  // ─────────────────────────────────────────────────────────────────────────
+
   // ── LIVE BATCH STATUS SNAPSHOT (injected from Control Panel) ─────────────
   if (liveSnapshot) {
     lines.push(`## ⚡ LIVE PLATFORM STATUS (as of ${new Date(liveSnapshot.asOf).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })})`)

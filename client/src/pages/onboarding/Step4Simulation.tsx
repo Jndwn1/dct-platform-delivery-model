@@ -1,5 +1,5 @@
 // Step4Simulation.tsx
-// Onboarding Step 4 — GoSystem Integration Data Flow Simulation
+// Discovery Hub Step 4 — Validate the Business Process
 // Animated step-by-step walkthrough: ERP → PDC → TDC → Roger → GoSystem
 
 import { useState } from "react";
@@ -104,16 +104,17 @@ export default function Step4Simulation() {
 
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px", fontSize: "12px", color: "#64748b" }}>
-        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Onboarding Hub</span>
+        <span style={{ cursor: "pointer", color: "#2563eb" }} onClick={() => navigate("/onboarding")}>Provision &amp; State Discovery Hub</span>
         <span>›</span>
-        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 4 — Data Flow Simulation</span>
+        <span style={{ fontWeight: 600, color: "#0f1623" }}>Step 4 — Validate the Business Process</span>
       </div>
 
       <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: "0 0 8px" }}>
-        🔄 GoSystem Integration Data Flow Simulation
+        🔄 Validate the Business Process
       </h1>
       <p style={{ fontSize: "14px", color: "#475569", marginBottom: "20px", lineHeight: "1.6" }}>
-        Walk through the complete data flow from ERP to GoSystem. For each step, understand which platform is active,
+        Walk through the end-to-end business process. Observe how data moves through the DCT ecosystem, understand
+        which platform owns each step, and understand downstream impacts. For each step, understand which platform is active,
         who owns the data, who owns the business rules, and what information moves downstream.
       </p>
 
@@ -261,9 +262,9 @@ export default function Step4Simulation() {
             Simulation Complete!
           </h2>
           <p style={{ fontSize: "14px", color: "#166534", lineHeight: "1.7", maxWidth: "600px", margin: "0 auto 20px" }}>
-            You have completed the GoSystem Integration Data Flow Simulation. You now understand how data flows
-            from ERP through PDC, TDC, and the Gateway to Roger and GoSystem — and who owns the data and
-            business rules at each step.
+            You have completed the business process validation. You now understand how data flows from ERP through PDC, TDC,
+            and the Gateway to Roger and GoSystem — and who owns the data and business rules at each step.
+            Use this understanding to validate whether your business need is already supported by an existing platform capability.
           </p>
           <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
             <button
