@@ -115,6 +115,22 @@ const BA_ITEMS: NavItem[] = [
   { label: "Integration Simulation",      path: "/integration-simulation",     icon: "🎮", badge: "LIVE",    badgeColor: "#059669" },
 ];
 
+// Discovery Center — BA learning and platform knowledge hub
+const DISCOVERY_ITEMS: NavItem[] = [
+  { label: "Discovery Center",          path: "/discovery",                           icon: "🧭", badge: "NEW",  badgeColor: "#7c3aed" },
+  { label: "Ecosystem Overview",         path: "/discovery/ecosystem",                icon: "◎" },
+  { label: "Platform Responsibilities",  path: "/discovery/platform-responsibilities", icon: "▦" },
+  { label: "End-to-End Data Flow",       path: "/discovery/data-flow",                icon: "→" },
+  { label: "Data Flow Simulation",       path: "/discovery/simulation",               icon: "🎮", badge: "LIVE", badgeColor: "#059669" },
+  { label: "Integration Architecture",  path: "/discovery/integration-architecture",  icon: "↝" },
+  { label: "BA Requirement Discovery",   path: "/discovery/ba-requirements",          icon: "🔍", badge: "KEY",  badgeColor: "#dc2626" },
+  { label: "Discovery Checklist",        path: "/discovery/checklist",                icon: "☑" },
+  { label: "TDC / DCT Overview",         path: "/discovery/dct-overview",             icon: "T" },
+  { label: "Roger Overview",             path: "/discovery/roger-overview",           icon: "R" },
+  { label: "GoSystem Tax",               path: "/discovery/gosystem",                icon: "GS" },
+  { label: "Glossary",                   path: "/discovery/glossary",                icon: "≡" },
+];
+
 // Platform Governance Tools — platform governance and data integrity
 const GOVERNANCE_ITEMS: NavItem[] = [
   { label: "Gap Analysis Engine",    path: "/gap-analysis",        icon: "🔍", badge: "NEW", badgeColor: "#dc2626" },
@@ -479,6 +495,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
           )}
         </div>
 
+        <NavSection title="Discovery Center" items={DISCOVERY_ITEMS} />
         <NavSection title="Business Architecture & Governance" items={BA_ITEMS} />
         <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
         <NavSection title="Platform Governance Tools" items={GOVERNANCE_ITEMS} />

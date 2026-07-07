@@ -39,7 +39,19 @@ import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadines
 import GapAnalysisEngine from "./pages/GapAnalysisEngine";
 import DeploymentRegistry from "./pages/DeploymentRegistry";
 import DeliveryIntelligencePage from "./pages/DeliveryIntelligencePage";
-
+// Discovery Center
+import DiscoveryCenter from "./pages/DiscoveryCenter";
+import EcosystemOverview from "./pages/discovery/EcosystemOverview";
+import PlatformResponsibilities from "./pages/discovery/PlatformResponsibilities";
+import EndToEndDataFlow from "./pages/discovery/EndToEndDataFlow";
+import DataFlowSimulation from "./pages/discovery/DataFlowSimulation";
+import IntegrationArchitecture from "./pages/discovery/IntegrationArchitecture";
+import BARequirementDiscovery from "./pages/discovery/BARequirementDiscovery";
+import DiscoveryChecklist from "./pages/discovery/DiscoveryChecklist";
+import Glossary from "./pages/discovery/Glossary";
+import DCTOverview from "./pages/discovery/DCTOverview";
+import RogerOverview from "./pages/discovery/RogerOverview";
+import GoSystemTax from "./pages/discovery/GoSystemTax";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -114,6 +126,19 @@ function Router() {
           <Route path="/gap-analysis" component={GapAnalysisEngine} />
           <Route path="/deployment-registry" component={DeploymentRegistry} />
           <Route path="/delivery-intelligence" component={DeliveryIntelligencePage} />
+          {/* Discovery Center */}
+          <Route path="/discovery" component={DiscoveryCenter} />
+          <Route path="/discovery/ecosystem" component={EcosystemOverview} />
+          <Route path="/discovery/platform-responsibilities" component={PlatformResponsibilities} />
+          <Route path="/discovery/data-flow" component={EndToEndDataFlow} />
+          <Route path="/discovery/simulation" component={DataFlowSimulation} />
+          <Route path="/discovery/integration-architecture" component={IntegrationArchitecture} />
+          <Route path="/discovery/ba-requirements" component={BARequirementDiscovery} />
+          <Route path="/discovery/checklist" component={DiscoveryChecklist} />
+          <Route path="/discovery/glossary" component={Glossary} />
+          <Route path="/discovery/dct-overview" component={DCTOverview} />
+          <Route path="/discovery/roger-overview" component={RogerOverview} />
+          <Route path="/discovery/gosystem" component={GoSystemTax} />
 
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
