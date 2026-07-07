@@ -54,6 +54,14 @@ import DCTOverview from "./pages/discovery/DCTOverview";
 import RogerOverview from "./pages/discovery/RogerOverview";
 import GoSystemTax from "./pages/discovery/GoSystemTax";
 import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
+import OnboardingHub from "./pages/onboarding/OnboardingHub";
+import Step1Features from "./pages/onboarding/Step1Features";
+import Step2FeatureDetail from "./pages/onboarding/Step2FeatureDetail";
+import Step3DiscoveryReview from "./pages/onboarding/Step3DiscoveryReview";
+import Step4Simulation from "./pages/onboarding/Step4Simulation";
+import Step5AskBuddy from "./pages/onboarding/Step5AskBuddy";
+import Step6Questions from "./pages/onboarding/Step6Questions";
+import Step7Complete from "./pages/onboarding/Step7Complete";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -147,6 +155,15 @@ function Router() {
            <Route path="/discovery/gosystem" component={GoSystemTax} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />
+          {/* Onboarding Hub */}
+          <Route path="/onboarding" component={OnboardingHub} />
+          <Route path="/onboarding/step1" component={Step1Features} />
+          <Route path="/onboarding/step2" component={Step2FeatureDetail} />
+          <Route path="/onboarding/step3" component={Step3DiscoveryReview} />
+          <Route path="/onboarding/step4" component={Step4Simulation} />
+          <Route path="/onboarding/step5" component={Step5AskBuddy} />
+          <Route path="/onboarding/step6" component={Step6Questions} />
+          <Route path="/onboarding/step7" component={Step7Complete} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>
