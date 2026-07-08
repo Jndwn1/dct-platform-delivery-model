@@ -21,7 +21,7 @@ const FEATURES = [
       "Rate limiting and access policy enforcement",
       "Audit logging of all consumer data requests",
       "Roger consumer access profile",
-      "GoSystem export access profile",
+      "IMS-ready governed data access profile",
       "Provision and State read access profiles",
     ],
     capabilities: [
@@ -61,7 +61,7 @@ const FEATURES = [
       "Practitioner override capture and justification logging",
       "Data transformation history per financial record",
       "Lineage closure gate verification (G4)",
-      "Audit trail export for GoSystem and regulatory review",
+      "Audit trail export for IMS delivery and regulatory review",
     ],
     capabilities: [
       "Complete decision audit trail per tax entity",
@@ -100,7 +100,7 @@ const FEATURES = [
       "Provision-specific API endpoints",
       "Schedule period management (quarterly, annual)",
       "Adjustment and reclassification tracking",
-      "Workpaper export to GoSystem format",
+      "Workpaper data delivery via IMS to return engine",
       "State apportionment data feed",
     ],
     capabilities: [
@@ -108,10 +108,10 @@ const FEATURES = [
       "Tax workpaper generation and export",
       "State apportionment data access",
       "Adjustment and reclassification history",
-      "GoSystem-compatible workpaper export",
+      "IMS-ready workpaper payload delivery",
     ],
-    expectedOutcome: "Provision teams access structured, governed workpaper data directly from TDC via the Gateway. Manual spreadsheet extraction is eliminated. State teams receive apportionment data through the same governed channel. GoSystem receives workpaper data in the correct format.",
-    dependencies: ["B9A — Gateway Access", "B16 — Audit Trail", "B22 — Tax Object Model", "B25 — GoSystem Integration"],
+    expectedOutcome: "Provision teams access structured, governed workpaper data directly from TDC via the B9A Gateway. Manual spreadsheet extraction is eliminated. State teams receive apportionment data through the same governed channel. IMS retrieves workpaper data via the Gateway and delivers it to the return engine in the correct format.",
+    dependencies: ["B9A — Gateway Access", "B16 — Audit Trail", "B22 — Tax Object Model"],
     relatedAPIs: [
       "GET /api/provision/schedules/{period}",
       "GET /api/provision/workpaper/{entityId}",
@@ -123,7 +123,7 @@ const FEATURES = [
       "Tax Workpaper",
       "State Apportionment Record",
       "Adjustment Entry",
-      "GoSystem Workpaper Export",
+      "IMS Workpaper Payload Delivery",
     ],
   },
 ];

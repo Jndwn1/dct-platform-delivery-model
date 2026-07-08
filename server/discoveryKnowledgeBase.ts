@@ -17,7 +17,7 @@ export const DISCOVERY_KNOWLEDGE_BASE: Record<string, DiscoveryPageKnowledge> = 
   "/discovery/ecosystem": {
     pageTitle: "Ecosystem Overview",
     pagePath: "/discovery/ecosystem",
-    summary: "Full DCT platform ecosystem: PDC, TDC, Orchestrator, Roger, GoSystem Tax, and their relationships.",
+    summary: "Full DCT platform ecosystem: PDC, TDC, Orchestrator, Roger, and IMS (Integration & Management System) — the integration broker to all downstream return engines.",
     suggestedQuestions: [
       "What are the five platform components?",
       "What does PDC own vs TDC?",
@@ -59,25 +59,25 @@ The DCT Platform consists of five primary components that work together to deliv
 - **Key APIs consumed:** All TDC read endpoints
 - **Key Batches:** B5 (Entity Identity), B9 (Roger Gateway & Consumer Access Layer), B9A (Data Gateway)
 
-### 5. GoSystem Tax
-- **Role:** RSM's enterprise tax preparation system. Receives finalized, validated tax data from TDC for return assembly and filing.
-- **Key Principle:** GoSystem Tax is a CONSUMER of TDC output. It does not push data back into DCT.
-- **Integration:** TDC exports a structured tax data package to GoSystem Tax after Sign-Off is complete.
-- **Key Batches:** B10 (Return Assembly & Lineage Closure), B29 (Consolidated Return Assembly)
+### 5. IMS — Integration & Management System
+- **Role:** Integration broker between DCT/Roger and all downstream return engines (GoSystem, CCH, OIT, future engines). DCT does not integrate directly with any return engine.
+- **Key Principle:** IMS retrieves governed data from TDC via the B9A Gateway and routes it to the appropriate return engine. IMS owns all engine routing, payload translation, and delivery.
+- **Integration:** TDC → B9A Gateway → IMS → Return Engine (GoSystem, CCH, OIT, etc.)
+- **Key Batches:** B9A (Gateway & Governed Access Layer), B16 (Audit Trail & Lineage Governance), B28 (Provision Reference Data & BTP Outbound Contract)
 
 ### Platform Data Flow (End-to-End)
 1. Tax Portal → PDC (ingestion)
 2. PDC → Orchestrator (normalized data for AI mapping)
 3. Orchestrator → TDC (mapping proposals)
 4. TDC → Practitioner via Roger (review & sign-off)
-5. TDC → GoSystem Tax (finalized tax data export)
+5. TDC → B9A Gateway → IMS → Return Engine (GoSystem, CCH, OIT — IMS routes and translates)
 
 ### Governance Principles
 - PDC = Financial truth (no tax logic)
 - TDC = Tax judgment and immutable decisions
 - Orchestrator = AI execution (proposes, never decides)
 - Roger = Read-only practitioner interface
-- GoSystem Tax = Downstream consumer only
+- IMS = Integration broker to return engines (GoSystem, CCH, OIT) — DCT does not connect directly to any return engine
 `,
   },
 
@@ -107,7 +107,7 @@ The DCT Platform consists of five primary components that work together to deliv
 **DOES NOT OWN:**
 - Tax decisions or tax logic
 - Practitioner workflows
-- GoSystem Tax integration
+- IMS integration or return engine routing
 - Roger UI data contracts
 
 ### TDC — Tax Data Consolidation (sub-system of DCT)
@@ -119,7 +119,7 @@ The DCT Platform consists of five primary components that work together to deliv
 - Exception management and remediation
 - Audit trail for all state changes
 - Roger read contract (API surface that Roger consumes)
-- GoSystem Tax export package
+- B9A Gateway consumer contract (IMS retrieves governed data via B9A)
 
 **DOES NOT OWN:**
 - Financial normalization (PDC's responsibility)
@@ -147,14 +147,14 @@ The DCT Platform consists of five primary components that work together to deliv
 **DOES NOT OWN:**
 - Tax data (reads from TDC APIs only)
 - Tax logic or decision-making
-- Direct GoSystem Tax integration
+- Direct return engine integration (IMS owns all return engine routing)
 - Any write operations outside of submitting confirmed practitioner actions back to TDC
 
 ### Cross-System Boundary Rules
 1. PDC → TDC: PDC sends normalized financial records; TDC applies tax logic
 2. Orchestrator → TDC: Orchestrator sends proposals; TDC confirms or rejects
 3. TDC → Roger: TDC exposes read APIs; Roger consumes them (no reverse writes)
-4. TDC → GoSystem Tax: One-way export after sign-off; GoSystem does not push back
+4. TDC → B9A Gateway → IMS → Return Engine: IMS retrieves governed data via B9A and delivers to the appropriate return engine (GoSystem, CCH, OIT). No direct TDC → GoSystem connection.
 5. Roger → TDC: Roger submits practitioner actions (adjustments, sign-offs) via TDC write APIs only
 `,
   },
@@ -163,13 +163,13 @@ The DCT Platform consists of five primary components that work together to deliv
   "/discovery/data-flow": {
     pageTitle: "End-to-End Data Flow",
     pagePath: "/discovery/data-flow",
-    summary: "Step-by-step data flow from Tax Portal ingestion through PDC, TDC, Roger, and GoSystem Tax export.",
+    summary: "Step-by-step data flow from Tax Portal ingestion through PDC, TDC, Roger, and IMS delivery to return engine.",
     suggestedQuestions: [
       "What happens after a file is ingested?",
       "How does data move from PDC to TDC?",
       "What triggers the AI mapping step?",
       "When does data reach Roger?",
-      "What is the final step before GoSystem Tax?",
+      "What is the final step before IMS delivers to the return engine?",
     ],
     context: `
 ## End-to-End Data Flow
@@ -207,11 +207,12 @@ The DCT Platform consists of five primary components that work together to deliv
 - Audit record created for every sign-off action
 - Batch: B6, B7 — Client Tax Profile & Eligibility
 
-### Step 6: Return Assembly (TDC → GoSystem Tax)
-- TDC assembles the final tax data package
-- Package is exported to GoSystem Tax for return preparation
-- GoSystem Tax uses the package to generate the tax return
-- Batches: B10 (Return Assembly), B29 (Consolidated Return Assembly)
+### Step 6: Return Assembly (TDC → B9A Gateway → IMS → Return Engine)
+- TDC assembles the final tax-ready data package
+- IMS retrieves the governed package from TDC via the B9A Gateway
+- IMS routes and translates the payload to the appropriate return engine (GoSystem, CCH, OIT)
+- The return engine generates the tax return
+- Batches: B9A (Gateway), B10 (Return Assembly), B29 (Consolidated Return Assembly)
 
 ### Key Data Objects by Stage
 | Stage | Key Object | Owner |
@@ -229,7 +230,7 @@ The DCT Platform consists of five primary components that work together to deliv
   "/discovery/simulation": {
     pageTitle: "Data Flow Simulation",
     pagePath: "/discovery/simulation",
-    summary: "Interactive 32-step simulation of data moving through the DCT platform from ingestion to GoSystem export.",
+    summary: "Interactive 32-step simulation of data moving through the DCT platform from ingestion to IMS delivery to return engine.",
     suggestedQuestions: [
       "What are all 32 steps in the simulation?",
       "What happens at step 15?",
@@ -240,7 +241,7 @@ The DCT Platform consists of five primary components that work together to deliv
     context: `
 ## Data Flow Simulation — 32-Step Platform Journey
 
-The simulation walks through the complete lifecycle of a tax engagement from file upload to GoSystem Tax export.
+The simulation walks through the complete lifecycle of a tax engagement from file upload to IMS delivery to the return engine.
 
 ### Phase 1: Ingestion (Steps 1–6)
 1. Client uploads tax data package via Tax Portal
@@ -283,8 +284,8 @@ The simulation walks through the complete lifecycle of a tax engagement from fil
 ### Phase 6: Export (Steps 29–32)
 29. TDC assembles final tax data package (FilingRecord)
 30. TDC validates package completeness and lineage closure
-31. TDC exports package to GoSystem Tax
-32. GoSystem Tax confirms receipt — engagement complete
+31. IMS retrieves governed package from TDC via B9A Gateway and delivers to return engine
+32. Return engine (GoSystem/CCH/OIT) confirms receipt — engagement complete
 `,
   },
 
@@ -333,11 +334,11 @@ The simulation walks through the complete lifecycle of a tax engagement from fil
 - **Responsibility:** Display TDC data to practitioners, submit practitioner actions back to TDC
 - **Key Batches:** B5, B9, B9A
 
-### Layer 6: Export Layer
-- **Components:** TDC Export Engine, GoSystem Tax Integration
-- **Protocol:** TDC → GoSystem Tax structured data package
-- **Responsibility:** Assemble and export finalized tax data for return preparation
-- **Key Batches:** B10, B29
+### Layer 6: IMS Integration Layer
+- **Components:** B9A Gateway, IMS Engine Router, IMS Payload Translator
+- **Protocol:** TDC → B9A Gateway → IMS → Return Engine (GoSystem, CCH, OIT)
+- **Responsibility:** IMS retrieves governed tax-ready data via B9A Gateway and routes/translates it to the appropriate return engine. DCT does not connect directly to any return engine.
+- **Key Batches:** B9A, B10, B29
 
 ### Cross-Layer Integration Patterns
 - **Event-Driven:** Service Bus triggers between Tax Portal → PDC
@@ -519,7 +520,7 @@ TaxProfile, MappingDecision, MappingRule, TaxFormTemplate, Adjustment, SignOffRe
 Roger is RSM's practitioner-facing web application that displays TDC tax data to Tax Practitioners, Tax Managers, and Senior Reviewers. Roger is a **read-only consumer** of TDC data — it does not own any tax logic.
 
 ### Core Roger Principle
-> "Roger reads from TDC. Roger does not own tax decisions. Roger does not call GoSystem Tax directly."
+> "Roger reads from TDC. Roger does not own tax decisions. Roger does not call GoSystem Tax or any return engine directly — IMS owns all return engine integration."
 
 ### How Roger Saves Data
 Roger does NOT save data directly. When a practitioner performs an action in Roger (e.g., submitting an adjustment or sign-off), Roger calls a **TDC write API**. TDC owns the persistence layer.
@@ -577,77 +578,63 @@ Roger does NOT save data directly. When a practitioner performs an action in Rog
 `,
   },
 
-  // ── GoSystem Tax ─────────────────────────────────────────────────────────
+  // ── IMS — Integration & Management System ────────────────────────────────
   "/discovery/gosystem": {
-    pageTitle: "GoSystem Tax",
+    pageTitle: "IMS — Integration & Management System",
     pagePath: "/discovery/gosystem",
-    summary: "GoSystem Tax integration: what data is sent, required fields, error handling, and the TDC export process.",
+    summary: "IMS is the integration broker between DCT/Roger and all downstream return engines. DCT does not integrate directly with any return engine.",
     suggestedQuestions: [
-      "What data is sent to GoSystem?",
-      "What fields are required?",
-      "What happens if a field is missing?",
-      "How does TDC export to GoSystem?",
-      "What batches handle the GoSystem integration?",
+      "What does IMS do?",
+      "How does data get to GoSystem?",
+      "Does DCT connect directly to GoSystem?",
+      "What return engines does IMS support?",
+      "What is the IMS architecture boundary?",
     ],
     context: `
-## GoSystem Tax — Integration Overview
+## IMS — Integration & Management System
 
-### What is GoSystem Tax?
-GoSystem Tax is RSM's enterprise tax preparation and filing system. It is a **downstream consumer** of TDC output — it receives finalized, validated tax data from TDC for return assembly and filing.
+### What is IMS?
+IMS (Integration & Management System) is the **integration broker** between DCT/Roger and all downstream return engines.
+DCT does not integrate directly with GoSystem, CCH, OIT, or any other return engine — all return engine routing, payload translation, and delivery is owned by IMS.
 
-### Core GoSystem Principle
-> "GoSystem Tax receives data FROM TDC. It does not push data back into DCT. It does not interact with PDC or Roger directly."
+### Core IMS Architecture Rule
+> "DCT does not connect directly to any return engine. IMS owns all engine routing, payload translation, and delivery. TDC and Roger have no awareness of GoSystem, CCH, OIT, or any other return engine."
 
-### What Data is Sent to GoSystem Tax?
-TDC exports a structured **FilingRecord** package to GoSystem Tax after sign-off is complete. The package includes:
+### IMS Responsibilities
+| Responsibility | Description |
+|---|---|
+| Engine Routing | Determines which return engine receives each payload (GoSystem, CCH, OIT, future) |
+| Payload Translation | Translates governed TDC/Roger output into the format required by each target engine |
+| Inbound Data Retrieval | Retrieves governed tax-ready data from TDC via the B9A Gateway (governed consumer) |
+| Outbound Delivery | Delivers translated payloads to the appropriate return engine and tracks acknowledgements |
+| Engine Lookup | Maintains the mapping of entity → return engine |
 
-| Data Element | TDC Object | Required? |
-|-------------|-----------|----------|
-| Entity identification | EntityId, EngagementId | Yes |
-| Tax profile | TaxProfile | Yes |
-| Finalized mapping decisions | MappingDecision (locked) | Yes |
-| Practitioner sign-off confirmation | SignOffRecord | Yes |
-| Eligibility status | EligibilityRecord | Yes |
-| Adjusted amounts | Adjustment (committed) | If applicable |
-| Lineage trace ID | LineageRecord | Yes |
-| Confidence band summary | ConfidenceBand | Yes |
+### How Data Reaches a Return Engine (e.g., GoSystem)
+1. TDC finalizes tax-ready data and publishes a downstream event
+2. IMS retrieves the governed payload from TDC via the **B9A Gateway** (as a governed consumer)
+3. IMS performs engine lookup to determine the correct return engine for the entity
+4. IMS translates the payload into the engine-specific format
+5. IMS delivers the translated payload to the return engine (GoSystem, CCH, OIT, etc.)
+6. The return engine confirms receipt — IMS tracks delivery status
 
-### Required Fields for GoSystem Export
-All of the following must be present and non-null before TDC will export to GoSystem:
-1. EntityId — unique entity identifier
-2. EngagementId — engagement reference
-3. TaxProfile.status = "SIGNED_OFF"
-4. SignOffRecord — must exist and be immutable
-5. All MappingDecision records must be in COMMITTED status
-6. LineageRecord — full lineage trace must be closed
-7. EligibilityRecord.status = "ELIGIBLE"
+### Governance Rules
+- DCT does NOT integrate directly with any return engine
+- IMS retrieves data through the B9A Gateway (same governed consumer pattern as Roger)
+- IMS does not compute tax or modify the governed payload
+- B28 delivers TDC provision reference data (DTAClassification, DTLClassification, ETRCategory, ValuationAllowanceCriterion, BTPProvisionOutbound) — it does NOT export directly to GoSystem
+- If a requirement involves delivering data to a return engine, it belongs to the IMS integration layer, not DCT scope
 
-### What Happens if a Required Field is Missing?
-- TDC validates the export package before sending
-- If any required field is missing or invalid, TDC returns an export validation error
-- The export is blocked until all required fields are present
-- Roger displays an "Export Blocked" status on the Filing Status screen
-- The practitioner must resolve the missing data before GoSystem export can proceed
+### IMS APIs
+- GET /api/v1/ims/payload/{entityId} — Retrieve governed tax-ready payload via B9A
+- POST /api/v1/ims/deliver/{entityId}/{engine} — Deliver translated payload to return engine
+- GET /api/v1/ims/engine-lookup/{entityId} — Determine which return engine is assigned
+- GET /api/v1/ims/delivery-status/{entityId} — Check delivery status and acknowledgement
+- POST /api/v1/ims/inbound/{engine}/{entityId} — Receive inbound data from return engine
 
-### Error Scenarios
-| Error | Cause | Resolution |
-|-------|-------|-----------|
-| Export Blocked — Missing Sign-Off | SignOffRecord not created | Practitioner must complete sign-off in Roger |
-| Export Blocked — Open Decisions | MappingDecision records still in PROPOSED status | Practitioner must review and commit all proposals |
-| Export Blocked — Lineage Gap | LineageRecord incomplete | Engineering must resolve lineage closure (B10) |
-| Export Blocked — Ineligible | EligibilityRecord.status ≠ ELIGIBLE | Eligibility issue must be resolved (B7) |
-
-### Batches That Handle GoSystem Integration
-- **B10 — Return Assembly & Lineage Closure:** Primary batch for GoSystem export
-- **B29 — Consolidated Return Assembly:** Consolidated entity return assembly
-- **B7 — Client Tax Profile & Eligibility:** Provides EligibilityRecord required for export
-- **B6 — Practitioner Review, Adjustments & Lock:** Provides committed Adjustment records
-
-### Integration Protocol
-- TDC → GoSystem Tax: Structured JSON data package via REST API
-- Authentication: Service-to-service token (managed by TDC)
-- Retry policy: 3 retries with exponential backoff on GoSystem API failure
-- Confirmation: GoSystem Tax returns a receipt confirmation to TDC upon successful import
+### Relevant Batches
+- **B9A — Gateway & Governed Access Layer:** IMS uses B9A Gateway APIs to retrieve governed data
+- **B16 — Audit Trail & Lineage Governance:** Provides audit trail for IMS delivery events
+- **B28 — Provision Reference Data & BTP Outbound Contract:** Delivers provision reference data to BTP (not GoSystem directly)
 `,
   },
 
@@ -691,7 +678,7 @@ All of the following must be present and non-null before TDC will export to GoSy
 - **Lineage Trace ID** — A unique identifier that links a record to its full data lineage chain
 - **Roger Gateway (B9)** — The API layer that defines Roger's read contract with TDC
 - **Orchestrator** — Stateless AI agent that generates mapping proposals (proposes, never decides)
-- **FilingRecord** — TDC object representing the finalized tax data package exported to GoSystem Tax
+- **FilingRecord** — TDC object representing the finalized tax-ready data package retrieved by IMS via the B9A Gateway for delivery to the return engine
 - **EligibilityRecord** — TDC object representing a client's eligibility status for tax filing
 - **NormalizedRecord** — PDC object representing a financial record after Cross-LOB normalization
 - **IngestionJob** — PDC object tracking the status of a file ingestion pipeline run
@@ -772,9 +759,9 @@ Every DCT user story must include:
 The Discovery Center is the primary resource for Business Analysts working on the DCT Platform. It contains everything needed to understand the platform, write stories, and prepare for sprint ceremonies.
 
 ### Discovery Center Pages
-1. **Ecosystem Overview** — Full platform architecture: PDC, TDC, Orchestrator, Roger, GoSystem Tax
+1. **Ecosystem Overview** — Full platform architecture: PDC, TDC, Orchestrator, Roger, and IMS (integration broker to return engines)
 2. **Platform Responsibilities** — Ownership boundaries for each system
-3. **End-to-End Data Flow** — Step-by-step data journey from ingestion to GoSystem export
+3. **End-to-End Data Flow** — Step-by-step data journey from ingestion to IMS delivery to return engine
 4. **Data Flow Simulation** — Interactive 32-step simulation of the full platform journey
 5. **Integration Architecture** — Six-layer architecture model
 6. **BA Requirement Discovery** — 13 questions to answer before writing a story
@@ -782,7 +769,7 @@ The Discovery Center is the primary resource for Business Analysts working on th
 8. **BA Story Builder** — Guided form that auto-generates Azure DevOps-ready user stories
 9. **TDC / DCT Overview** — Platform overview, batch model, and governance gates
 10. **Roger Overview** — Roger's role, screens, APIs, and BA guidance
-11. **GoSystem Tax** — GoSystem integration: data sent, required fields, error handling
+11. **IMS Integration** — IMS architecture: engine routing, payload translation, B9A Gateway retrieval, return engine delivery
 12. **Glossary** — DCT terms, acronyms, and definitions
 
 ### Recommended BA Workflow
@@ -792,7 +779,7 @@ The Discovery Center is the primary resource for Business Analysts working on th
 4. Use **BA Requirement Discovery** to answer the 13 questions for your story
 5. Complete the **Discovery Checklist** to verify story readiness
 6. Use **BA Story Builder** to generate the ADO-ready story output
-7. Reference **Roger Overview** and **GoSystem Tax** for system-specific questions
+7. Reference **Roger Overview** and **IMS Integration** for system-specific questions
 8. Use the **Glossary** for any unfamiliar terms
 `,
   },

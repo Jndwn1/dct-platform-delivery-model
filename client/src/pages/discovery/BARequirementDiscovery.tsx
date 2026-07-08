@@ -9,7 +9,7 @@ const WORKFLOW_STEPS = [
   { id: 4, label: "Understand Validations",  icon: "✓",  color: "#059669", desc: "Document all validation rules TDC enforces on this object. These become the acceptance criteria for the Roger story." },
   { id: 5, label: "Determine Editable Fields", icon: "✏", color: "#7c3aed", desc: "Identify which fields the practitioner can edit in Roger. Not all fields are editable — TDC owns the rules on editability." },
   { id: 6, label: "Determine Persistence",   icon: "💾", color: "#92400e", desc: "Confirm how changes are persisted. Roger calls TDC Update API — TDC persists. Roger does NOT persist independently." },
-  { id: 7, label: "Determine Downstream Impacts", icon: "→", color: "#dc2626", desc: "Identify what downstream systems (GoSystem, reporting, lineage) are affected by changes to this object." },
+  { id: 7, label: "Determine Downstream Impacts", icon: "→", color: "#dc2626", desc: "Identify what downstream systems (IMS, Roger, State, Provision, reporting, lineage) are affected by changes to this object." },
   { id: 8, label: "Design Roger Experience", icon: "🖥", color: "#475569", desc: "Design the practitioner UI experience — screen layout, actions, buttons, validation messages, save behavior." },
   { id: 9, label: "Create User Story",        icon: "📝", color: "#0f1623", desc: "Write the user story with complete acceptance criteria, referencing the TDC API, validations, and downstream impacts." },
 ];
@@ -67,7 +67,7 @@ const DISCOVERY_QUESTIONS: { category: string; color: string; icon: string; ques
     color: "#92400e",
     icon: "→",
     questions: [
-      "What is the GoSystem impact?",
+      "What is the IMS/return engine impact?",
       "What is the state tax impact?",
       "What is the provision impact?",
       "What audit records are created?",

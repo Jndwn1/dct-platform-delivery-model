@@ -85,7 +85,7 @@ const CARDS: PlatformCard[] = [
   },
   {
     id: "gosystem",
-    name: "GoSystem Tax",
+    name: "IMS Integration",
     shortName: "GoSystem",
     purpose: "Enterprise Tax Return Preparation",
     purposeLabel: "Downstream consumer of TDC data for return preparation",
@@ -101,7 +101,7 @@ const CARDS: PlatformCard[] = [
       "Filing packages",
     ],
     output: "Tax returns & filing packages",
-    note: "GoSystem is the downstream consumer of TDC data.",
+    note: "IMS is the integration broker. DCT does not connect directly to any return engine.",
   },
 ];
 
@@ -240,7 +240,7 @@ export default function PlatformResponsibilities() {
                       {card.id === "pdc" && "PDC is the source of financial truth. It does NOT apply tax logic, make tax decisions, or own tax-ready data. Any financial data transformation that is not tax-specific belongs in PDC."}
                       {card.id === "tdc" && "TDC owns all tax logic, tax decisions, and tax-ready data. It does NOT own the user experience. All Roger stories must trace back to a TDC API or business object. TDC is the system of record."}
                       {card.id === "roger" && "Roger is a consumer of TDC. It does NOT own business rules, tax logic, or data persistence. Roger stories describe what the practitioner sees and does — not what the data does. All data changes in Roger call TDC APIs."}
-                      {card.id === "gosystem" && "GoSystem is a downstream consumer. It receives finalized, tax-ready data from TDC. It does NOT modify TDC data. GoSystem owns the return preparation workflow and filing output only."}
+                      {card.id === "gosystem" && "IMS is the integration broker between DCT/Roger and all downstream return engines (GoSystem, CCH, OIT). DCT does not connect directly to any return engine. IMS retrieves governed data via the B9A Gateway, translates the payload, and routes it to the correct return engine."}
                     </div>
                   </div>
                 )}

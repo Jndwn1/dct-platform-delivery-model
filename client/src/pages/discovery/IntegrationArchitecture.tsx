@@ -41,7 +41,7 @@ const INTEGRATIONS: IntegrationRow[] = [
     apiLayer: ["Tax Mapping API", "Adjustment API", "Classification API", "Lineage API", "Known Mappings API", "State Rules API", "Roger Read API", "Roger Update API"],
     businessServices: ["Tax Rules Engine", "Known Mapping Service", "Book-to-Tax Classifier", "State Rules Processor", "Provision Engine", "Lineage Tracker", "Event Publisher"],
     persistence: "TDC Data Store (system of record — tax-ready data + lineage)",
-    consumers: ["Roger", "GoSystem Tax", "Reporting / Analytics"],
+    consumers: ["Roger", "IMS (Integration & Management System)", "Reporting / Analytics"],
     dataDirection: "both",
   },
   {
@@ -55,14 +55,14 @@ const INTEGRATIONS: IntegrationRow[] = [
     dataDirection: "both",
   },
   {
-    system: "GoSystem Tax",
-    systemColor: "#92400e",
-    systemBg: "#fffbeb",
-    apiLayer: ["TDC Data Export API (read-only)", "GoSystem Import API"],
-    businessServices: ["Return Assembly", "Form Generator", "Schedule Builder", "Filing Package Assembler"],
-    persistence: "GoSystem Return Store (filing outputs only)",
-    consumers: ["Tax Filing Authorities", "Client Deliverables"],
-    dataDirection: "in",
+    system: "IMS — Integration & Management System",
+    systemColor: "#7c3aed",
+    systemBg: "#faf5ff",
+    apiLayer: ["IMS Payload Retrieval API (← B9A Gateway)", "IMS Engine Delivery API", "IMS Engine Lookup API", "IMS Inbound API"],
+    businessServices: ["Engine Router", "Payload Translator", "Engine Lookup Service", "Delivery Tracker", "Inbound Handler"],
+    persistence: "IMS Delivery Store (routing decisions, delivery status, acknowledgements)",
+    consumers: ["GoSystem Tax", "CCH", "OIT", "Future Return Engines"],
+    dataDirection: "both",
   },
 ];
 
@@ -81,7 +81,8 @@ const API_CALLS: ApiCallRow[] = [
   { caller: "TDC",     callerColor: "#065f46", api: "Roger Read API",             target: "Roger",   targetColor: "#7c3aed", direction: "→", purpose: "Deliver tax-ready data to practitioner workspace" },
   { caller: "Roger",   callerColor: "#7c3aed", api: "Roger Update API",           target: "TDC",     targetColor: "#065f46", direction: "→", purpose: "Send practitioner edits and adjustments back to TDC" },
   { caller: "Roger",   callerColor: "#7c3aed", api: "Roger Approval API",         target: "TDC",     targetColor: "#065f46", direction: "→", purpose: "Submit practitioner approval decisions to TDC" },
-  { caller: "TDC",     callerColor: "#065f46", api: "TDC Data Export API",        target: "GoSystem",targetColor: "#92400e", direction: "→", purpose: "Publish finalized tax-ready data to GoSystem Tax" },
+  { caller: "B9A Gateway", callerColor: "#065f46", api: "B9A Consumer API", target: "IMS", targetColor: "#7c3aed", direction: "→", purpose: "IMS retrieves governed tax-ready payload via B9A Gateway (governed consumer)" },
+  { caller: "IMS",     callerColor: "#7c3aed", api: "IMS Engine Delivery API",   target: "Return Engine", targetColor: "#92400e", direction: "→", purpose: "IMS routes translated payload to GoSystem, CCH, OIT, or future engine" },
   { caller: "TDC",     callerColor: "#065f46", api: "Lineage API",                target: "TDC",     targetColor: "#065f46", direction: "↺", purpose: "Update lineage records on every data change" },
   { caller: "TDC",     callerColor: "#065f46", api: "Event Publisher",            target: "All",     targetColor: "#475569", direction: "→", purpose: "Publish downstream events when data is ready" },
 ];

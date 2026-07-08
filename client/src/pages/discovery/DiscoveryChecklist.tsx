@@ -22,7 +22,7 @@ const CHECKLIST: CheckItem[] = [
   { id: "c9",  label: "Security documented",                category: "API",        categoryColor: "#0369a1", tooltip: "Confirm authentication requirements, role-based access, and any field-level security rules." },
   { id: "c10", label: "Audit requirements captured",        category: "Downstream", categoryColor: "#92400e", tooltip: "Identify what audit records must be created when this action is performed." },
   { id: "c11", label: "Lineage reviewed",                   category: "TDC",        categoryColor: "#065f46", tooltip: "Confirm how the lineage record is updated when this data changes and who can trace it." },
-  { id: "c12", label: "Downstream impacts understood",      category: "Downstream", categoryColor: "#92400e", tooltip: "Identify all downstream systems (GoSystem, state, provision, reporting) affected by this change." },
+  { id: "c12", label: "Downstream impacts understood",      category: "Downstream", categoryColor: "#92400e", tooltip: "Identify all downstream systems (IMS, Roger, State, Provision, reporting, lineage) affected by this change." },
   { id: "c13", label: "Acceptance Criteria complete",       category: "Story",      categoryColor: "#0f1623", tooltip: "Write complete Given/When/Then acceptance criteria covering happy path, errors, and edge cases." },
 ];
 

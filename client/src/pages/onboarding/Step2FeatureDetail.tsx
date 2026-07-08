@@ -39,7 +39,7 @@ const FEATURE_DETAILS: Record<string, {
       "Rate limiting and throttle policies per consumer profile",
       "Audit logging of all consumer data requests",
       "Roger consumer access profile (read-only, UI-scoped data)",
-      "GoSystem export access profile (workpaper and schedule data)",
+      "IMS-ready governed data access profile (workpaper and schedule data)",
       "Provision read access profile (provision schedules, adjustments)",
       "State read access profile (apportionment data)",
     ],
@@ -107,7 +107,7 @@ const FEATURE_DETAILS: Record<string, {
       "Provide source-to-output data lineage for every financial record",
       "Enable practitioners to review and understand AI-generated classifications",
       "Satisfy G4 Lineage Closure gate requirement",
-      "Support regulatory audit exports for GoSystem and external reviewers",
+      "Support regulatory audit exports for IMS delivery and external reviewers",
     ],
     scope: [
       "Immutable audit log for all TDC write operations",
@@ -115,7 +115,7 @@ const FEATURE_DETAILS: Record<string, {
       "Practitioner override capture with mandatory justification",
       "Data transformation history per financial record",
       "Lineage closure gate verification (G4)",
-      "Audit trail export in GoSystem-compatible format",
+      "Audit trail export in IMS-ready format",
       "Lineage query API for Roger practitioner screens",
     ],
     businessWorkflow: [
@@ -142,7 +142,7 @@ const FEATURE_DETAILS: Record<string, {
     ],
     relatedStories: [
       { id: "US-16-001", title: "As a Practitioner, I need to see the full decision history for a classification so I can understand why it was made", priority: "High" },
-      { id: "US-16-002", title: "As an Audit Reviewer, I need to export all decisions for a tax period to a GoSystem-compatible format", priority: "High" },
+      { id: "US-16-002", title: "As an Audit Reviewer, I need to export all decisions for a tax period in an IMS-ready format for return engine delivery", priority: "High" },
       { id: "US-16-003", title: "As a TDC Admin, I need to verify G4 Lineage Closure before a batch can be marked complete", priority: "High" },
       { id: "US-16-004", title: "As a Practitioner, I need to provide a justification when overriding an AI classification", priority: "Medium" },
     ],
@@ -175,7 +175,7 @@ const FEATURE_DETAILS: Record<string, {
   b28: {
     id: "b28", batch: "Batch 28", title: "Tax Workpaper & Provision Schedules",
     icon: "📊", color: "#7c3aed",
-    overview: "Batch 28 delivers structured tax workpaper data and provision schedule outputs from TDC to support Provision and State team workflows. It provides governed API access to pre-computed tax schedules, adjustments, and workpaper data, and enables GoSystem-compatible exports.",
+    overview: "Batch 28 delivers provision reference data (DTAClassification, DTLClassification, ETRCategory, ValuationAllowanceCriterion) and the BTPProvisionOutbound contract from TDC to support Provision and State team workflows. It provides governed API access via the B9A Gateway. B28 does not compute provision or export directly to any return engine.",
     businessObjectives: [
       "Provide Provision teams with governed access to TDC provision schedule data",
       "Eliminate manual spreadsheet extraction for workpaper preparation",

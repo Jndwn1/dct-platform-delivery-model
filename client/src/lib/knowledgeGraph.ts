@@ -59,7 +59,7 @@ export const GRAPH_NODES: GraphNode[] = [
   { id: "sys-tdc",         label: "TDC",          type: "system", icon: "🏛️", description: "Tax Data Consolidation (DCT) — authoritative tax data platform and system of record", route: "/discovery/dct-overview" },
   { id: "sys-orchestrator",label: "Orchestrator", type: "system", icon: "🤖", description: "Stateless AI orchestration engine — executes classification and decision workflows", route: "/discovery/ecosystem" },
   { id: "sys-roger",       label: "Roger",        type: "system", icon: "💬", description: "Practitioner-facing AI assistant — read-only consumer of TDC data", route: "/discovery/roger-overview" },
-  { id: "sys-gosystem",    label: "GoSystem Tax", type: "system", icon: "💼", description: "Downstream tax filing system — consumes TDC data via Roger export", route: "/discovery/gosystem" },
+  { id: "sys-ims",         label: "IMS Integration", type: "system", icon: "🔀", description: "Integration broker between DCT/Roger and all downstream return engines (GoSystem, CCH, OIT). DCT does not connect directly to any return engine.", route: "/discovery/gosystem" },
   { id: "sys-servicebus",  label: "Service Bus",  type: "system", icon: "🔀", description: "Azure Service Bus — event-driven messaging backbone between all systems", route: "/touchpoints" },
   { id: "sys-erp",         label: "ERP / Tax Portal", type: "system", icon: "🏢", description: "Source ERP systems — originate financial data ingested by PDC", route: "/discovery/data-flow" },
 
@@ -73,7 +73,7 @@ export const GRAPH_NODES: GraphNode[] = [
   { id: "api-decisions",         label: "Decision Capture API",   type: "api", icon: "📡", description: "Captures practitioner decisions from Roger back to TDC", route: "/roger-api", metadata: { method: "POST", path: "/api/roger/decisions", owner: "TDC", consumer: "Roger" } },
   { id: "api-screens",           label: "Screen Data API",        type: "api", icon: "📡", description: "Returns structured data for Roger screen population", route: "/roger-api", metadata: { method: "GET", path: "/api/roger/screens", owner: "TDC", consumer: "Roger" } },
   { id: "api-validations",       label: "Validation Rules API",   type: "api", icon: "📡", description: "Returns field-level validation rules for Roger screens", route: "/roger-api", metadata: { method: "GET", path: "/api/roger/validations", owner: "TDC", consumer: "Roger" } },
-  { id: "api-gosystem-export",   label: "GoSystem Export API",    type: "api", icon: "📡", description: "Exports tax data from TDC to GoSystem Tax filing format", route: "/roger-api", metadata: { method: "GET", path: "/api/roger/gosystem-export", owner: "TDC", consumer: "GoSystem" } },
+  { id: "api-ims-deliver",       label: "IMS Delivery API",        type: "api", icon: "📡", description: "IMS retrieves governed payload via B9A Gateway and delivers to the appropriate return engine", route: "/discovery/gosystem", metadata: { method: "POST", path: "/api/v1/ims/deliver/{entityId}/{engine}", owner: "IMS", consumer: "GoSystem/CCH/OIT" } },
   { id: "api-batch-status",      label: "Batch Status API",       type: "api", icon: "📡", description: "Returns current status of all delivery batches", route: "/control-panel", metadata: { method: "GET", path: "/api/batches/status", owner: "Platform", consumer: "Control Panel" } },
   { id: "api-gate-health",       label: "Gate Health API",        type: "api", icon: "📡", description: "Returns health status of all four governance gates", route: "/gate/overview", metadata: { method: "GET", path: "/api/gates/health", owner: "Platform", consumer: "Dashboard" } },
 
@@ -84,13 +84,13 @@ export const GRAPH_NODES: GraphNode[] = [
   { id: "bo-confidence-band",    label: "Confidence Band",       type: "businessObject", icon: "📊", description: "Confidence score range (0–1) for AI classification decisions", route: "/roger-mapping" },
   { id: "bo-audit-trail",        label: "Audit Trail",           type: "businessObject", icon: "📋", description: "Immutable log of all tax decisions and data transformations", route: "/data-governance" },
   { id: "bo-decision",           label: "Decision",              type: "businessObject", icon: "⚖️", description: "Practitioner tax decision captured from Roger and written to TDC", route: "/discovery/roger-overview" },
-  { id: "bo-gosystem-field",     label: "GoSystem Field",        type: "businessObject", icon: "📝", description: "Required field in GoSystem Tax filing format", route: "/discovery/gosystem" },
+  { id: "bo-ims-payload",        label: "IMS Payload",           type: "businessObject", icon: "📝", description: "Governed tax-ready payload retrieved by IMS via B9A Gateway for delivery to return engine", route: "/discovery/gosystem" },
   { id: "bo-entity-resolution",  label: "Entity Resolution",     type: "businessObject", icon: "🔗", description: "Resolved canonical entity reference from ambiguous input", route: "/discovery/roger-overview" },
   { id: "bo-lineage-record",     label: "Lineage Record",        type: "businessObject", icon: "🧬", description: "Data lineage record tracking transformation history", route: "/data-governance" },
   { id: "bo-schema",             label: "Schema",                type: "businessObject", icon: "🗄️", description: "TDC or PDC data schema definition — versioned and governed", route: "/data-model" },
   { id: "bo-taxonomy-node",      label: "Taxonomy Node",         type: "businessObject", icon: "🌳", description: "Classification hierarchy node in the DCT taxonomy", route: "/taxonomy" },
   { id: "bo-contract",           label: "API Contract",          type: "businessObject", icon: "📜", description: "Published API contract — defines interface between systems", route: "/gate/overview" },
-  { id: "bo-field-mapping",      label: "Field Mapping",         type: "businessObject", icon: "↔️", description: "Mapping between financial data fields and GoSystem tax fields", route: "/tax-mapping" },
+  { id: "bo-field-mapping",      label: "Field Mapping",         type: "businessObject", icon: "↔️", description: "Mapping between financial data fields and IMS-ready return engine fields", route: "/tax-mapping" },
 
   // ── SCREENS ──────────────────────────────────────────────────────────────────
   { id: "scr-known-mapping",     label: "Known Mapping Screen",      type: "screen", icon: "🖥️", description: "Roger screen displaying pre-classified tax mappings for review", route: "/discovery/roger-overview" },
@@ -110,7 +110,7 @@ export const GRAPH_NODES: GraphNode[] = [
   { id: "feat-entity-res",       label: "Entity Resolution",     type: "feature", icon: "⭐", description: "Resolving ambiguous financial entities to canonical TDC records", route: "/discovery/roger-overview" },
   { id: "feat-confidence",       label: "Confidence Scoring",    type: "feature", icon: "⭐", description: "Scoring AI classification confidence to flag low-confidence items for review", route: "/discovery/roger-overview" },
   { id: "feat-audit",            label: "Audit Trail",           type: "feature", icon: "⭐", description: "Immutable audit logging of all tax decisions and data transformations", route: "/data-governance" },
-  { id: "feat-gosystem",         label: "GoSystem Export",       type: "feature", icon: "⭐", description: "Exporting TDC tax data to GoSystem Tax filing format", route: "/discovery/gosystem" },
+  { id: "feat-ims",              label: "IMS Integration",       type: "feature", icon: "⭐", description: "IMS engine routing, payload translation, and delivery to return engines (GoSystem, CCH, OIT)", route: "/discovery/gosystem" },
   { id: "feat-decision-capture", label: "Decision Capture",      type: "feature", icon: "⭐", description: "Capturing practitioner tax decisions from Roger back to TDC", route: "/discovery/roger-overview" },
   { id: "feat-schema-lock",      label: "Schema Lock",           type: "feature", icon: "⭐", description: "Governance gate that locks all schemas before downstream development begins", route: "/gate/overview" },
   { id: "feat-lineage",          label: "Lineage Closure",       type: "feature", icon: "⭐", description: "Governance gate ensuring complete data lineage documentation", route: "/gate/overview" },
@@ -126,9 +126,9 @@ export const GRAPH_NODES: GraphNode[] = [
   { id: "batch-b15", label: "B15 — Known Mapping",          type: "batch", icon: "📦", description: "Implements Known Mapping pre-classification feature", route: "/batch/B15" },
   { id: "batch-b16", label: "B16 — Entity Resolution",      type: "batch", icon: "📦", description: "Implements entity resolution for ambiguous financial data", route: "/batch/B16" },
   { id: "batch-b17", label: "B17 — Confidence Scoring",     type: "batch", icon: "📦", description: "Implements AI confidence band scoring for classifications", route: "/batch/B17" },
-  { id: "batch-b38", label: "B38 — GoSystem Integration",   type: "batch", icon: "📦", description: "Implements GoSystem Tax export integration", route: "/batch/B38" },
-  { id: "batch-b39", label: "B39 — Tax Field Mapping",      type: "batch", icon: "📦", description: "Maps TDC tax objects to GoSystem field format", route: "/batch/B39" },
-  { id: "batch-b40", label: "B40 — Export Validation",      type: "batch", icon: "📦", description: "Validates GoSystem export completeness and field requirements", route: "/batch/B40" },
+  { id: "batch-b9a", label: "B9A — Gateway & Governed Access", type: "batch", icon: "📦", description: "B9A Gateway provides governed access layer for IMS, Roger, State, and Provision consumers", route: "/batch/9a" },
+  { id: "batch-b39", label: "B39 — Tax Field Mapping",      type: "batch", icon: "📦", description: "Maps TDC tax objects to IMS-ready payload format for return engine delivery", route: "/batch/B39" },
+  { id: "batch-b40", label: "B40 — Export Validation",      type: "batch", icon: "📦", description: "Validates IMS payload completeness and field requirements before delivery to return engine", route: "/batch/B40" },
   { id: "batch-b42", label: "B42 — Roger Screen Population",type: "batch", icon: "📦", description: "Implements full Roger screen population from TDC APIs", route: "/batch/B42" },
   { id: "batch-b43", label: "B43 — Decision Capture",       type: "batch", icon: "📦", description: "Implements practitioner decision capture from Roger to TDC", route: "/batch/B43" },
 
@@ -141,7 +141,7 @@ export const GRAPH_NODES: GraphNode[] = [
   // ── USER STORIES ─────────────────────────────────────────────────────────────
   { id: "story-known-mapping",    label: "Story: Known Mapping Display",       type: "story", icon: "📖", description: "As a practitioner, I want to see pre-classified tax mappings so I can review without manual classification", route: "/discovery/ba-story-builder" },
   { id: "story-classification",   label: "Story: Classification Review",       type: "story", icon: "📖", description: "As a practitioner, I want to review and override AI classifications so I can ensure accuracy", route: "/discovery/ba-story-builder" },
-  { id: "story-gosystem-export",  label: "Story: GoSystem Export",             type: "story", icon: "📖", description: "As a practitioner, I want to export tax data to GoSystem so I can complete tax filing", route: "/discovery/ba-story-builder" },
+  { id: "story-ims-delivery",     label: "Story: IMS Return Engine Delivery",  type: "story", icon: "📖", description: "As a practitioner, I want IMS to deliver governed tax data to the return engine so I can complete tax filing", route: "/discovery/ba-story-builder" },
   { id: "story-decision-capture", label: "Story: Decision Capture",            type: "story", icon: "📖", description: "As a practitioner, I want my tax decisions captured automatically so I have a complete audit trail", route: "/discovery/ba-story-builder" },
   { id: "story-audit-trail",      label: "Story: Audit Trail Review",          type: "story", icon: "📖", description: "As a practitioner, I want to view the complete audit trail so I can verify decision history", route: "/discovery/ba-story-builder" },
   { id: "story-confidence-band",  label: "Story: Confidence Band Display",     type: "story", icon: "📖", description: "As a practitioner, I want to see confidence scores so I know which items need manual review", route: "/discovery/ba-story-builder" },
@@ -151,7 +151,7 @@ export const GRAPH_NODES: GraphNode[] = [
   // ── QA ITEMS ─────────────────────────────────────────────────────────────────
   { id: "qa-known-mapping",    label: "QA: Known Mapping Accuracy",        type: "qa", icon: "✅", description: "Verify known mappings return correct tax categories for all test cases", route: "/discovery/checklist" },
   { id: "qa-classification",   label: "QA: Classification Confidence",     type: "qa", icon: "✅", description: "Verify confidence scores are >= 0.85 for all auto-classified items", route: "/discovery/checklist" },
-  { id: "qa-gosystem-export",  label: "QA: GoSystem Export Completeness",  type: "qa", icon: "✅", description: "Verify all required GoSystem fields are populated before export", route: "/discovery/checklist" },
+  { id: "qa-ims-delivery",     label: "QA: IMS Payload Completeness",      type: "qa", icon: "✅", description: "Verify all required IMS payload fields are populated before delivery to return engine", route: "/discovery/checklist" },
   { id: "qa-decision-capture", label: "QA: Decision Write-Back",           type: "qa", icon: "✅", description: "Verify practitioner decisions are written to TDC within 2 seconds", route: "/discovery/checklist" },
   { id: "qa-audit-trail",      label: "QA: Audit Trail Completeness",      type: "qa", icon: "✅", description: "Verify all tax decisions appear in audit trail with correct timestamps", route: "/discovery/checklist" },
   { id: "qa-validation",       label: "QA: Validation Error Display",      type: "qa", icon: "✅", description: "Verify validation errors are shown before export attempt", route: "/discovery/checklist" },
@@ -159,10 +159,10 @@ export const GRAPH_NODES: GraphNode[] = [
 
   // ── DISCOVERY PAGES ──────────────────────────────────────────────────────────
   { id: "page-roger",          label: "Roger Overview",          type: "page", icon: "🧭", description: "Discovery page covering Roger architecture, APIs, screens, and governance", route: "/discovery/roger-overview" },
-  { id: "page-gosystem",       label: "GoSystem Tax",            type: "page", icon: "🧭", description: "Discovery page covering GoSystem integration, field mapping, and export workflow", route: "/discovery/gosystem" },
+  { id: "page-ims",            label: "IMS Integration",         type: "page", icon: "🧭", description: "Discovery page covering IMS as integration broker between DCT/Roger and all downstream return engines", route: "/discovery/gosystem" },
   { id: "page-dct",            label: "TDC / DCT Overview",      type: "page", icon: "🧭", description: "Discovery page covering TDC architecture, batch model, and governance gates", route: "/discovery/dct-overview" },
   { id: "page-ecosystem",      label: "Ecosystem Overview",      type: "page", icon: "🧭", description: "Discovery page covering all five platform components and their relationships", route: "/discovery/ecosystem" },
-  { id: "page-data-flow",      label: "End-to-End Data Flow",    type: "page", icon: "🧭", description: "Discovery page covering the complete data flow from ERP to GoSystem", route: "/discovery/data-flow" },
+  { id: "page-data-flow",      label: "End-to-End Data Flow",    type: "page", icon: "🧭", description: "Discovery page covering the complete data flow from ERP to IMS delivery to return engine", route: "/discovery/data-flow" },
   { id: "page-ba-requirements",label: "BA Requirement Discovery",type: "page", icon: "🧭", description: "Discovery page with 13-question BA discovery workflow", route: "/discovery/ba-requirements" },
   { id: "page-checklist",      label: "Discovery Checklist",     type: "page", icon: "🧭", description: "Discovery page with 13-item story readiness checklist", route: "/discovery/checklist" },
   { id: "page-glossary",       label: "Glossary",                type: "page", icon: "🧭", description: "Discovery page with searchable DCT terminology glossary", route: "/discovery/glossary" },
@@ -171,7 +171,7 @@ export const GRAPH_NODES: GraphNode[] = [
   // ── BUSINESS RULES ───────────────────────────────────────────────────────────
   { id: "rule-roger-readonly",    label: "Roger is Read-Only",             type: "rule", icon: "📏", description: "Roger never writes to TDC directly — all writes go through the Decision Capture API", route: "/discovery/roger-overview" },
   { id: "rule-confidence-85",     label: "Confidence Threshold 0.85",     type: "rule", icon: "📏", description: "Classifications with confidence < 0.85 require manual practitioner review", route: "/discovery/roger-overview" },
-  { id: "rule-gosystem-required", label: "Required GoSystem Fields",       type: "rule", icon: "📏", description: "All required GoSystem fields must be populated — missing fields block export", route: "/discovery/gosystem" },
+  { id: "rule-ims-required",      label: "IMS Payload Fields Required",    type: "rule", icon: "📏", description: "All required IMS payload fields must be populated — missing fields block delivery to return engine", route: "/discovery/gosystem" },
   { id: "rule-tdc-immutable",     label: "TDC Decisions are Immutable",   type: "rule", icon: "📏", description: "Once written to TDC, tax decisions cannot be modified — only superseded", route: "/discovery/dct-overview" },
   { id: "rule-schema-lock",       label: "Schema Lock Required",           type: "rule", icon: "📏", description: "Schema changes require G1 Schema Lock gate approval before implementation", route: "/gate/overview" },
   { id: "rule-api-contract",      label: "API Contract Required",          type: "rule", icon: "📏", description: "All inter-system APIs must have a published contract before G3 passes", route: "/gate/overview" },
@@ -260,7 +260,7 @@ export const GRAPH_EDGES: GraphEdge[] = [
   { id: "e62", source: "sys-tdc",          target: "api-validations",       type: "partOf", label: "owns" },
   { id: "e63", source: "sys-tdc",          target: "api-gosystem-export",   type: "partOf", label: "owns" },
 
-  // ── GoSystem consumes APIs ───────────────────────────────────────────────────
+  // ── IMS consumes APIs via B9A Gateway ────────────────────────────────────────
   { id: "e64", source: "sys-gosystem", target: "api-gosystem-export", type: "consumes", label: "consumes" },
   { id: "e65", source: "sys-gosystem", target: "bo-gosystem-field",   type: "consumes", label: "consumes" },
 

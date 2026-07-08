@@ -61,8 +61,8 @@ const FLOW_STEPS: FlowStep[] = [
     systemBg: "#f0fdf4",
     title: "Validation & Lineage Closure",
     description: "TDC validates the practitioner's changes, persists them, updates the lineage record, and publishes events to make data available downstream.",
-    steps: ["Validate incoming changes", "Persist updates to data store", "Update lineage record", "Publish downstream events", "Make data available to GoSystem"],
-    output: "Finalized tax-ready data → GoSystem Tax",
+    steps: ["Validate incoming changes", "Persist updates to data store", "Update lineage record", "Publish downstream events", "Make data available to IMS via B9A Gateway"],
+    output: "Finalized tax-ready data → B9A Gateway → IMS → Return Engine",
   },
   {
     id: "gosystem",

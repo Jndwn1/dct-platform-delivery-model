@@ -16,7 +16,7 @@ const CORE_CAPABILITIES = [
 
 const BOUNDARIES = [
   { system: "PDC",      owns: "Financial data normalization, entity assignment, canonical model", doesNotOwn: "Tax logic, tax rules, tax-ready data", color: "#1e3a5f" },
-  { system: "TDC",      owns: "Tax transformation, business rules, data persistence, lineage, API layer", doesNotOwn: "UI/UX, practitioner workflow, GoSystem return production", color: "#065f46" },
+  { system: "TDC",      owns: "Tax transformation, business rules, data persistence, lineage, API layer", doesNotOwn: "UI/UX, practitioner workflow, return engine production (owned by IMS)", color: "#065f46" },
   { system: "Roger",    owns: "Practitioner UI/UX, user workflow, exception resolution interface", doesNotOwn: "Business rules, data persistence, tax logic", color: "#7c3aed" },
   { system: "GoSystem", owns: "Return preparation, form generation, filing package assembly", doesNotOwn: "Tax data, business rules, lineage", color: "#92400e" },
 ];
@@ -25,7 +25,7 @@ const BATCH_GROUPS = [
   { group: "Foundation", batches: ["FC — Foundation Core", "B1 — Entity Model", "B2 — Reporting Period", "B3 — Canonical Model"], color: "#1e3a5f" },
   { group: "Tax Transformation", batches: ["B4 — Tax Rules Engine", "B5 — Known Mappings", "B6 — Book-to-Tax", "B7 — Tax Adjustments", "B8 — State Rules", "B9 — Provision"], color: "#065f46" },
   { group: "Roger Integration", batches: ["B10 — Roger Read APIs", "B11 — Roger Update APIs", "B12 — Roger Approval Flow"], color: "#7c3aed" },
-  { group: "GoSystem & Lineage", batches: ["B13 — GoSystem Export", "B14 — Lineage Closure", "B15 — Audit & Reporting"], color: "#92400e" },
+  { group: "IMS & Lineage", batches: ["B9A — Gateway & Governed Access", "B14 — Lineage Closure", "B15 — Audit & Reporting"], color: "#92400e" },
 ];
 
 export default function DCTOverview() {

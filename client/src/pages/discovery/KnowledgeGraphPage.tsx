@@ -20,7 +20,7 @@ const QUICK_FILTERS: { label: string; nodeId: string; icon: string }[] = [
   { label: "Known Mapping", nodeId: "bo-known-mapping",icon: "🗺️" },
   { label: "G1 Schema Lock",nodeId: "gate-g1",         icon: "🔒" },
   { label: "B9 Roger API",  nodeId: "batch-b9",        icon: "📦" },
-  { label: "B38 GoSystem",  nodeId: "batch-b38",       icon: "📦" },
+  { label: "B9A Gateway",   nodeId: "batch-b9a",       icon: "📦" },
 ];
 
 export default function KnowledgeGraphPage() {

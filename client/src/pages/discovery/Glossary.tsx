@@ -37,11 +37,11 @@ const TERMS: GlossaryTerm[] = [
     relatedTerms: ["TDC", "Roger Read API", "Roger Update API", "Practitioner"],
   },
   {
-    term: "GoSystem Tax",
+    term: "IMS (Integration & Management System)",
     category: "Platform",
     categoryColor: "#92400e",
-    definition: "Enterprise tax return preparation system by Thomson Reuters. GoSystem is the downstream consumer of finalized TDC data. It produces federal returns, state returns, schedules, and filing packages. GoSystem does NOT write back to TDC.",
-    context: "GoSystem is read-only from TDC's perspective. It consumes finalized data and produces tax return outputs.",
+    definition: "IMS is the integration broker between DCT/Roger and all downstream return engines (GoSystem, CCH, OIT). IMS retrieves governed tax-ready data from TDC via the B9A Gateway, translates the payload, and routes it to the correct return engine. DCT does not connect directly to any return engine.",
+    context: "IMS owns all engine routing, payload translation, and delivery. GoSystem, CCH, and OIT are downstream consumers of IMS — not direct consumers of DCT.",
     relatedTerms: ["TDC", "Tax Ready Data", "Federal Return", "State Return"],
   },
   {
@@ -85,14 +85,14 @@ const TERMS: GlossaryTerm[] = [
     category: "Tax",
     categoryColor: "#065f46",
     definition: "Tax provision — the estimated amount of income tax a company expects to pay for the current period. TDC supports provision calculations as part of the tax transformation pipeline, applying provision-specific rules and schedules.",
-    relatedTerms: ["TDC", "Tax Ready Data", "GoSystem Tax"],
+    relatedTerms: ["TDC", "Tax Ready Data", "IMS (Integration & Management System)"],
   },
   {
     term: "State",
     category: "Tax",
     categoryColor: "#065f46",
     definition: "State tax — tax obligations imposed by individual US states. TDC applies state-specific tax rules, apportionment factors, and NOL (Net Operating Loss) calculations for each applicable jurisdiction.",
-    relatedTerms: ["TDC", "GoSystem Tax", "Provision"],
+    relatedTerms: ["TDC", "IMS (Integration & Management System)", "Provision"],
   },
   {
     term: "Lineage",
@@ -121,7 +121,7 @@ const TERMS: GlossaryTerm[] = [
     category: "Data",
     categoryColor: "#065f46",
     definition: "The fully transformed, tax-classified, and practitioner-approved data produced by TDC. Tax-ready data has been through the complete tax transformation pipeline — rules, mappings, adjustments, classifications, and practitioner review — and is ready for consumption by GoSystem Tax.",
-    relatedTerms: ["TDC", "GoSystem Tax", "Lineage", "Financial Truth"],
+    relatedTerms: ["TDC", "IMS (Integration & Management System)", "Lineage", "Financial Truth"],
   },
 ];
 

@@ -52,7 +52,7 @@ import DiscoveryChecklist from "./pages/discovery/DiscoveryChecklist";
 import Glossary from "./pages/discovery/Glossary";
 import DCTOverview from "./pages/discovery/DCTOverview";
 import RogerOverview from "./pages/discovery/RogerOverview";
-import GoSystemTax from "./pages/discovery/GoSystemTax";
+import IMSIntegration from "./pages/discovery/GoSystemTax";
 import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
 import DiscoveryWorkspace from "./pages/onboarding/DiscoveryWorkspace";
 import Step1Features from "./pages/onboarding/Step1Features";
@@ -152,7 +152,7 @@ function Router() {
           <Route path="/discovery/glossary" component={Glossary} />
           <Route path="/discovery/dct-overview" component={DCTOverview} />
           <Route path="/discovery/roger-overview" component={RogerOverview} />
-           <Route path="/discovery/gosystem" component={GoSystemTax} />
+           <Route path="/discovery/gosystem" component={IMSIntegration} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />
           {/* Provision & State Discovery Workspace */}

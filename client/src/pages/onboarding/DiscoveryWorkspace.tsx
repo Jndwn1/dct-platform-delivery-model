@@ -66,7 +66,7 @@ function WorkstreamOverview() {
               { label: "What is it?", text: "The State workstream manages state income tax compliance and reporting across all jurisdictions where RSM clients operate. It ensures that state-specific tax data is accurately computed, classified, and delivered to practitioners and downstream systems." },
               { label: "Business Objectives", text: "Ensure accurate state tax data is available for practitioner review, state return preparation, and regulatory compliance. Reduce manual effort in state apportionment and classification." },
               { label: "Primary Business Functions", items: ["Apply state tax rules and classifications", "Compute state apportionment factors", "Prepare state tax returns and disclosures", "Ensure compliance with state regulations", "Provide complete audit trail for regulatory review"] },
-              { label: "Downstream Consumers", items: ["Roger (practitioner review)", "GoSystem Tax (state return filing)", "State filing teams", "Regulatory reporting"] },
+              { label: "Downstream Consumers", items: ["Roger (practitioner review)", "IMS (routes governed data to return engines)", "State filing teams", "Regulatory reporting"] },
               { label: "Business Outcomes", text: "Accurate, auditable state tax data available through governed APIs. Reduced manual intervention in state compliance workflows." },
             ].map(({ label, text, items }) => (
               <div key={label} style={{ marginBottom: "14px" }}>
@@ -91,10 +91,10 @@ function WorkstreamOverview() {
           </div>
           <div style={{ padding: "18px 20px" }}>
             {[
-              { label: "What is it?", text: "The Provision workstream manages tax provision computation and financial reporting. It computes current and deferred tax positions, prepares provision schedules, and delivers structured outputs to practitioners, GoSystem, and financial reporting systems." },
+              { label: "What is it?", text: "The Provision workstream manages tax provision computation and financial reporting. It computes current and deferred tax positions, prepares provision schedules, and delivers structured outputs to practitioners and financial reporting systems. Governed provision data is handed off to IMS, which routes it to the appropriate return engine." },
               { label: "Business Objectives", text: "Deliver accurate, auditable tax provision data for financial reporting. Support interim and annual provision cycles. Ensure traceability from source financial data to final provision output." },
               { label: "Primary Business Functions", items: ["Compute current and deferred tax positions", "Manage uncertain tax positions and reserves", "Prepare provision schedules and workpapers", "Support financial statement reporting", "Require accurate, traceable data and supporting evidence"] },
-              { label: "Downstream Consumers", items: ["Roger (provision review)", "GoSystem Tax (provision export)", "Provision teams", "Financial reporting and audit"] },
+              { label: "Downstream Consumers", items: ["Roger (provision review)", "IMS (routes governed provision data to return engines)", "Provision teams", "Financial reporting and audit"] },
               { label: "Business Outcomes", text: "Structured, governed provision schedules and workpapers delivered through DCT APIs. Full lineage from ERP source data to final provision output." },
             ].map(({ label, text, items }) => (
               <div key={label} style={{ marginBottom: "14px" }}>
@@ -112,16 +112,16 @@ function WorkstreamOverview() {
 
 // ─── SECTION 2: Responsibility Matrix ────────────────────────────────────────
 const RESP_ROWS = [
-  { row: "Business Rules",  state: "State tax rules, apportionment formulas", provision: "Provision computation rules, deferred tax logic", dct: "TDC owns all tax rule execution", roger: "Displays rule outputs (read-only)", gosystem: "Receives rule outputs for filing" },
-  { row: "Data Ownership",  state: "State-scoped tax data", provision: "Provision-scoped financial data", dct: "PDC owns source financial records; TDC owns tax records", roger: "No data ownership — read-only consumer", gosystem: "No data ownership — downstream consumer" },
-  { row: "User Experience", state: "State practitioners via Roger", provision: "Provision practitioners via Roger", dct: "No direct UX — API provider", roger: "Primary practitioner interface", gosystem: "Tax compliance filing UI" },
-  { row: "Persistence",     state: "TDC persists state decisions", provision: "TDC persists provision schedules", dct: "TDC is system of record for all tax decisions", roger: "Does NOT persist data", gosystem: "Persists filed returns and workpapers" },
-  { row: "Audit",           state: "Full audit trail via Batch 16", provision: "Full audit trail via Batch 16", dct: "TDC maintains immutable audit records", roger: "Displays audit trail (read-only)", gosystem: "Receives audit exports" },
-  { row: "Reporting",       state: "State return data via Gateway (B9A)", provision: "Provision schedule data via Gateway (B9A)", dct: "Provides governed API access via B9A", roger: "Renders reports for practitioners", gosystem: "Generates regulatory filings" },
-  { row: "Tax Returns",     state: "State returns prepared by practitioners", provision: "Not applicable (provision ≠ filing)", dct: "Provides data; does not file", roger: "Supports review before filing", gosystem: "Executes state and federal filing" },
-  { row: "APIs",            state: "Consumes B9A Gateway APIs", provision: "Consumes B9A Gateway APIs", dct: "Publishes all APIs via B9A Gateway", roger: "Calls TDC read APIs via Gateway", gosystem: "Calls Gateway export APIs" },
-  { row: "Workpapers",      state: "State workpapers via Batch 28", provision: "Provision workpapers via Batch 28", dct: "Batch 28 generates structured workpapers", roger: "Displays workpapers for review", gosystem: "Receives workpaper exports" },
-  { row: "Lineage",         state: "Full lineage via Batch 16", provision: "Full lineage via Batch 16", dct: "TDC enforces lineage closure (G4)", roger: "Displays lineage (read-only)", gosystem: "Receives lineage evidence" },
+  { row: "Business Rules",  state: "State tax rules, apportionment formulas", provision: "Provision computation rules, deferred tax logic", dct: "TDC owns all tax rule execution", roger: "Displays rule outputs (read-only)", ims: "Routes governed outputs to return engines" },
+  { row: "Data Ownership",  state: "State-scoped tax data", provision: "Provision-scoped financial data", dct: "PDC owns source financial records; TDC owns tax records", roger: "No data ownership — read-only consumer", ims: "No data ownership — integration broker only" },
+  { row: "User Experience", state: "State practitioners via Roger", provision: "Provision practitioners via Roger", dct: "No direct UX — API provider", roger: "Primary practitioner interface", ims: "No direct UX — engine routing layer" },
+  { row: "Persistence",     state: "TDC persists state decisions", provision: "TDC persists provision schedules", dct: "TDC is system of record for all tax decisions", roger: "Does NOT persist data", ims: "Does NOT persist tax data — broker only" },
+  { row: "Audit",           state: "Full audit trail via Batch 16", provision: "Full audit trail via Batch 16", dct: "TDC maintains immutable audit records", roger: "Displays audit trail (read-only)", ims: "Receives audit exports for delivery" },
+  { row: "Reporting",       state: "State return data via Gateway (B9A)", provision: "Provision schedule data via Gateway (B9A)", dct: "Provides governed API access via B9A", roger: "Renders reports for practitioners", ims: "Routes governed data to return engines for filing" },
+  { row: "Tax Returns",     state: "State returns prepared by practitioners", provision: "Not applicable (provision ≠ filing)", dct: "Provides data; does not file", roger: "Supports review before filing", ims: "Routes to GoSystem / CCH / OIT for return execution" },
+  { row: "APIs",            state: "Consumes B9A Gateway APIs", provision: "Consumes B9A Gateway APIs", dct: "Publishes all APIs via B9A Gateway", roger: "Calls TDC read APIs via Gateway", ims: "Inbound retrieval, outbound delivery, engine lookup APIs" },
+  { row: "Workpapers",      state: "State workpapers via Batch 28", provision: "Provision workpapers via Batch 28", dct: "Batch 28 generates structured workpapers", roger: "Displays workpapers for review", ims: "Receives workpaper payload for engine delivery" },
+  { row: "Lineage",         state: "Full lineage via Batch 16", provision: "Full lineage via Batch 16", dct: "TDC enforces lineage closure (G4)", roger: "Displays lineage (read-only)", ims: "Receives lineage evidence with payload" },
 ];
 
 function ResponsibilityMatrix() {
@@ -130,12 +130,12 @@ function ResponsibilityMatrix() {
     { key: "provision", label: "Provision", color: C.purple },
     { key: "dct",       label: "DCT / TDC", color: C.blue },
     { key: "roger",     label: "Roger",     color: "#0891b2" },
-    { key: "gosystem",  label: "GoSystem",  color: C.rose },
+    { key: "ims",       label: "IMS",       color: C.rose },
   ];
 
   return (
     <section id="s2" style={{ marginBottom: "48px" }}>
-      <SectionHeading number="2" title="Workstream Responsibilities" subtitle="Who owns what across State, Provision, DCT, Roger, and GoSystem." />
+      <SectionHeading number="2" title="Workstream Responsibilities" subtitle="Who owns what across State, Provision, DCT, Roger, and IMS (Integration & Management System)." />
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
           <thead>
@@ -173,10 +173,10 @@ const BATCHES = [
     name: "Gateway & Governed Consumer Access Layer",
     color: C.b9a,
     icon: "🔐",
-    businessPurpose: "Provides a secure, governed API gateway that controls how all downstream consumers (Roger, GoSystem, Provision, State) access TDC data. B9A is the single entry point for all data consumption outside TDC.",
+    businessPurpose: "Provides a secure, governed API gateway that controls how all downstream consumers (Roger, IMS, Provision, State) access TDC data. B9A is the single entry point for all data consumption outside TDC.",
     businessProblem: "Without a governed gateway, downstream systems would require direct database access to TDC, creating uncontrolled data exposure, no consumer scoping, and no audit trail for data access.",
     capabilities: [
-      "Consumer-scoped API access — each consumer (Roger, GoSystem, State, Provision) receives only the data their profile allows",
+      "Consumer-scoped API access — each consumer (Roger, IMS, State, Provision) receives only the data their profile allows",
       "Governed read-only access to all TDC financial and tax records",
       "Authentication and authorization for all downstream API calls",
       "Rate limiting, logging, and access audit trail",
@@ -192,8 +192,8 @@ const BATCHES = [
       "GET /api/v1/gateway/audit-trail/{entityId}",
     ],
     dependencies: ["TDC (source of all data)", "B3 (Tax Domain Authority)", "B16 (Audit Trail)"],
-    supportsState: "Provides State teams with governed API access to state apportionment data, state tax classifications, and state filing data. State consumers are scoped to state-relevant records only.",
-    supportsProvision: "Provides Provision teams with governed API access to provision schedules, deferred tax data, and uncertain tax positions. Provision consumers are scoped to provision-relevant records only.",
+    supportsState: "Provides State teams with governed API access to state apportionment data, state tax classifications, and state filing data. State consumers are scoped to state-relevant records only. IMS receives the governed state payload for routing to the appropriate return engine.",
+    supportsProvision: "Provides Provision teams with governed API access to provision schedules, deferred tax data, and uncertain tax positions. Provision consumers are scoped to provision-relevant records only. IMS receives the governed provision payload for routing to the appropriate return engine.",
   },
   {
     id: "B16",
@@ -207,7 +207,7 @@ const BATCHES = [
       "Full lineage chain from ERP source data through PDC normalization to TDC tax decision",
       "Decision history with timestamps, actor, and justification",
       "Lineage closure verification (G4 Gate requirement)",
-      "Audit export for regulatory review and GoSystem",
+      "Audit export for regulatory review and IMS delivery",
     ],
     scope: "Covers all TDC state changes and decisions. Lineage records are append-only and cannot be modified.",
     businessObjects: ["AuditRecord", "LineageChain", "DecisionHistory", "OverrideRecord", "LineageClosure"],
@@ -407,17 +407,17 @@ const FLOW_STEPS = [
     batch: "B9A (Gateway — primary access layer for Roger)",
   },
   {
-    id: "gosystem",
-    label: "GoSystem",
-    sublabel: "Tax Compliance Filing",
+    id: "ims",
+    label: "IMS",
+    sublabel: "Integration & Management System",
     color: C.rose,
-    icon: "📤",
-    businessPurpose: "RSM's tax compliance system. Receives governed workpaper and provision data from TDC via the B9A Gateway. GoSystem is a downstream consumer — it does not send data back into DCT.",
-    dataOwner: "GoSystem / Tax Compliance Team",
-    infoMoves: "Provision schedule exports, state workpaper exports, tax return data, regulatory filing data",
-    stateUse: "GoSystem receives state tax data and workpapers for state return preparation and filing",
-    provisionUse: "GoSystem receives provision schedule exports and provision workpapers for financial reporting and filing",
-    batch: "B9A (Gateway — GoSystem consumer access), B28 (Provision export to GoSystem)",
+    icon: "🔀",
+    businessPurpose: "IMS is the integration broker between DCT/Roger and downstream return engines (GoSystem, CCH, OIT, future engines). DCT does not integrate directly with any return engine — IMS owns all engine routing, translation, and delivery.",
+    dataOwner: "IMS Team",
+    infoMoves: "Governed tax-ready payload from Roger/TDC; inbound return data from engines; engine lookup results; delivery acknowledgements",
+    stateUse: "IMS receives governed state tax data from TDC and routes it to the appropriate return engine for state return preparation and filing",
+    provisionUse: "IMS receives governed provision data from TDC and routes it to the appropriate return engine for provision reporting and filing",
+    batch: "B9A (Gateway — IMS consumer access)",
   },
 ];
 
@@ -446,7 +446,7 @@ function DataFlowSection() {
 
   return (
     <section id="s4" style={{ marginBottom: "48px" }}>
-      <SectionHeading number="4" title="End-to-End Data Flow" subtitle="State & Provision specific. Step through how data moves from ERP to GoSystem and how each workstream uses it." />
+      <SectionHeading number="4" title="End-to-End Data Flow" subtitle="State & Provision specific. Step through how data moves from ERP through IMS to return engines and how each workstream uses it." />
 
       {/* Flow diagram */}
       <div style={{ display: "flex", alignItems: "center", gap: "0", marginBottom: "20px", overflowX: "auto", backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px 24px" }}>
@@ -543,7 +543,7 @@ const CAPABILITY_ROWS = [
   { need: "Valuation allowance criteria", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/valuation-allowance/{entityTypeCode}", gap: false },
   { need: "BTP provision outbound (DTA/DTL recon, ETR recon, return-to-provision)", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "POST /api/v1/provision/outbound/btp/{entityId}", gap: false },
   { need: "Provision compute / recognition rules (UTP, period mismatch, consolidation)", capability: "Not in DCT scope — owned by Provision team & BTP", batch: "—", apis: "Not applicable", gap: true },
-  { need: "Audit export for GoSystem", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/export/{entityId}", gap: false },
+  { need: "Audit export for IMS delivery", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/export/{entityId}", gap: false },
 ];
 
 function CapabilityMappingTable() {
@@ -596,7 +596,7 @@ const DISCOVERY_QUESTIONS = [
     "Would this require new scope beyond B9A, B16, or B28?",
     "Which system owns this capability — PDC, TDC, or the Gateway?",
     "Is this a new business rule (TDC), a new API (B9A), or a new output format (B28)?",
-    "What is the downstream consumer — Roger, GoSystem, or both?",
+    "What is the downstream consumer — Roger, IMS, or both?",
   ]},
   { category: "Data & Lineage", questions: [
     "What source data is required, and does PDC already normalize it?",
@@ -605,7 +605,7 @@ const DISCOVERY_QUESTIONS = [
     "What audit trail requirements apply to this capability?",
   ]},
   { category: "Integration", questions: [
-    "Does GoSystem need to receive this data? (B9A Gateway + B28 export)",
+    "Does IMS need to route this data to a return engine? (B9A Gateway consumer scope)",
     "Does Roger need to display this data? (B9A Gateway consumer scope)",
     "Are there dependencies on other batches not yet delivered?",
     "What validations and error handling are required?",
@@ -651,7 +651,7 @@ const BUDDY_SUGGESTED = [
   "Which APIs support Provision schedules?",
   "How does Batch 28 work?",
   "What does Roger provide to practitioners?",
-  "What information reaches GoSystem?",
+  "What information does IMS route to return engines?",
   "Does DCT already support audit trail for provision?",
 ];
 
@@ -677,7 +677,7 @@ function AskBuddySection() {
       const allMsgs = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
       const result = await chatMutation.mutateAsync({
         messages: allMsgs,
-        discoveryPagePath: "/discovery/gosystem",
+        discoveryPagePath: "/discovery/ims",
       });
       setMessages(prev => [...prev, { role: "assistant", content: result.text }]);
     } catch {
@@ -816,7 +816,7 @@ export default function DiscoveryWorkspace() {
           {[
             { label: "Batch 9A — Gateway", color: C.b9a },
             { label: "Batch 16 — Audit Trail", color: C.b16 },
-            { label: "Batch 28 — Provision Schedules", color: C.b28 },
+            { label: "Batch 28 — Provision Reference Data", color: C.b28 },
             { label: "State Workstream", color: C.teal },
             { label: "Provision Workstream", color: C.purple },
           ].map(b => (

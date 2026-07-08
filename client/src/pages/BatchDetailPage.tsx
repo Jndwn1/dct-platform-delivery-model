@@ -18,7 +18,7 @@ import { trpc } from "@/lib/trpc";
 // Maps batch systems to relevant Discovery Center pages
 const SYSTEM_DISCOVERY_LINKS: Record<string, { label: string; path: string; desc: string; color: string }[]> = {
   "TDC":         [{ label: "TDC / DCT Overview",      path: "/discovery/dct-overview",            desc: "TDC architecture, capabilities & boundaries", color: "#065f46" },
-                  { label: "End-to-End Data Flow",     path: "/discovery/data-flow",               desc: "Full pipeline from ingestion to GoSystem",    color: "#1e3a5f" }],
+                  { label: "End-to-End Data Flow",     path: "/discovery/data-flow",               desc: "Full pipeline from ingestion to IMS delivery", color: "#1e3a5f" }],
   "PDC":         [{ label: "Ecosystem Overview",       path: "/discovery/ecosystem",               desc: "Platform ecosystem & PDC role",              color: "#1e3a5f" },
                   { label: "Platform Responsibilities",path: "/discovery/platform-responsibilities",desc: "PDC ownership boundaries",                  color: "#0369a1" }],
   "Roger UI":    [{ label: "Roger Overview",           path: "/discovery/roger-overview",          desc: "Roger capabilities, APIs & BA guidance",    color: "#7c3aed" },

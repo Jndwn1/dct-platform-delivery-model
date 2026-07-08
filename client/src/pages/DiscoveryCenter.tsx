@@ -10,7 +10,7 @@ import EndToEndDataFlow from "./discovery/EndToEndDataFlow";
 import PlatformResponsibilities from "./discovery/PlatformResponsibilities";
 import DCTOverview from "./discovery/DCTOverview";
 import RogerOverview from "./discovery/RogerOverview";
-import GoSystemTax from "./discovery/GoSystemTax";
+import IMSIntegration from "./discovery/GoSystemTax";
 import IntegrationArchitecture from "./discovery/IntegrationArchitecture";
 import DataFlowSimulation from "./discovery/DataFlowSimulation";
 import BARequirementDiscovery from "./discovery/BARequirementDiscovery";
@@ -36,7 +36,7 @@ const NAV_ITEMS: { id: DiscoveryPage; label: string; icon: string; badge?: strin
   { id: "responsibilities",label: "Platform Responsibilities", icon: "▦" },
   { id: "dct-overview",    label: "DCT Overview",             icon: "◉" },
   { id: "roger-overview",  label: "Roger Overview",           icon: "◈" },
-  { id: "gosystem",        label: "GoSystem Tax",             icon: "⚑" },
+  { id: "gosystem",        label: "IMS Integration",          icon: "🔀" },
   { id: "integration",     label: "Integration Architecture", icon: "↝" },
   { id: "simulation",      label: "Data Flow Simulation",     icon: "🎮", badge: "Interactive", badgeColor: "#7c3aed" },
   { id: "ba-discovery",    label: "BA Requirement Discovery", icon: "🔍", badge: "Key", badgeColor: "#dc2626" },
@@ -55,7 +55,7 @@ export default function DiscoveryCenter() {
       case "responsibilities": return <PlatformResponsibilities />;
       case "dct-overview":     return <DCTOverview />;
       case "roger-overview":   return <RogerOverview />;
-      case "gosystem":         return <GoSystemTax />;
+      case "gosystem":         return <IMSIntegration />;
       case "integration":      return <IntegrationArchitecture />;
       case "simulation":       return <DataFlowSimulation />;
       case "ba-discovery":     return <BARequirementDiscovery />;

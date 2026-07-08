@@ -55,7 +55,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
       "TDC Tax Decision Engine",
       "Orchestrator AI Coordination",
       "Roger UI Practitioner Interface",
-      "GoSystem Tax Output",
+      "IMS Outbound Delivery",
     ],
     relatedAPIs: [
       { method: "GET",  path: "/api/v1/ingestion/{jobId}",       owner: "PDC" },
@@ -87,7 +87,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
       "PDC → Orchestrator",
       "Orchestrator → TDC",
       "TDC → Roger UI",
-      "TDC → GoSystem Tax",
+      "TDC → B9A Gateway → IMS → Return Engine",
     ],
   },
 
@@ -134,7 +134,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
   "/discovery/data-flow": {
     path: "/discovery/data-flow",
     title: "End-to-End Data Flow",
-    description: "Full pipeline from Tax Portal file upload through PDC normalization, TDC tax decisions, and GoSystem output.",
+    description: "Full pipeline from Tax Portal file upload through PDC normalization, TDC tax decisions, Roger review, and IMS delivery to return engine.",
     icon: "🔄",
     relatedFeatures: [
       "File Ingestion Pipeline (B1)",
@@ -176,7 +176,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
       "Service Bus → PDC",
       "PDC → Orchestrator (vNormalizedTb)",
       "Orchestrator → TDC (Mapping Proposals)",
-      "TDC → GoSystem Tax (Filing Record)",
+      "TDC → IMS → Return Engine (Filing Record)",
     ],
   },
 
@@ -254,7 +254,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
       "Service Bus → PDC (Event Consumer)",
       "PDC → Orchestrator (vNormalizedTb Read Contract)",
       "Orchestrator → TDC (Proposal Write Contract)",
-      "TDC → GoSystem (Filing Record)",
+      "TDC → IMS → Return Engine (Filing Record)",
     ],
   },
 
@@ -297,7 +297,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
     relatedIntegrations: [
       "Roger UI → TDC (Write Contracts)",
       "TDC → Audit Log",
-      "TDC → GoSystem (downstream)",
+      "TDC → IMS (downstream broker)",
     ],
   },
 
@@ -375,7 +375,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
     relatedIntegrations: [
       "Orchestrator → TDC (Proposal Write)",
       "TDC → Roger (Read Contracts)",
-      "TDC → GoSystem Tax (Filing Record)",
+      "TDC → IMS → Return Engine (Filing Record)",
       "TDC → Audit Log (Immutable)",
     ],
   },
@@ -431,12 +431,12 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
 
   "/discovery/gosystem": {
     path: "/discovery/gosystem",
-    title: "GoSystem Tax",
-    description: "GoSystem Tax role as the downstream tax preparation system that receives the immutable filing record from TDC.",
+    title: "IMS — Integration & Management System",
+    description: "IMS is the integration broker between DCT/Roger and all downstream return engines. DCT does not integrate directly with GoSystem or any return engine.",
     icon: "📋",
     relatedFeatures: [
       "Tax Return Assembly (B10)",
-      "GoSystem Integration",
+      "IMS Integration",
       "Filing Record Publication",
       "Lineage Closure (G4)",
     ],
@@ -451,7 +451,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
     ],
     relatedStories: [
       "Filing Record (immutable)",
-      "GoSystem Outbound Integration",
+      "IMS Outbound Integration",
       "Lineage Closure",
     ],
     relatedScreens: [
@@ -459,7 +459,7 @@ export const DISCOVERY_REGISTRY: Record<string, DiscoveryPageContext> = {
       "Roger Lineage View",
     ],
     relatedIntegrations: [
-      "TDC → GoSystem Tax (Filing Record outbound)",
+      "TDC → IMS → Return Engine (Filing Record outbound)",
       "TDC → Lineage Closure (G4 Gate)",
     ],
   },

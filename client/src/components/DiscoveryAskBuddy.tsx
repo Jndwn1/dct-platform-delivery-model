@@ -77,10 +77,10 @@ const DEFAULT_QUESTIONS: Record<string, string[]> = {
     "What validations exist in Roger?",
   ],
   "/discovery/gosystem": [
-    "What data is sent to GoSystem?",
-    "What fields are required?",
-    "What happens if a field is missing?",
-    "What batches handle the GoSystem integration?",
+    "What does IMS do?",
+    "How does data get to GoSystem?",
+    "Does DCT connect directly to GoSystem?",
+    "What return engines does IMS support?",
   ],
   "/discovery/glossary": [
     "What does PDC stand for?",

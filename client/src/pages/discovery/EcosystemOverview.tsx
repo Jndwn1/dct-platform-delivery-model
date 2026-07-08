@@ -94,7 +94,7 @@ const PLATFORMS: PlatformDetail[] = [
   },
   {
     id: "gosystem",
-    name: "GoSystem Tax",
+    name: "IMS Integration",
     shortName: "GoSystem",
     purpose: "Enterprise tax return preparation system — consumes finalized TDC data to produce federal and state tax returns.",
     owner: "Thomson Reuters / RSM",
@@ -106,7 +106,7 @@ const PLATFORMS: PlatformDetail[] = [
     input: "Finalized tax-ready data from TDC",
     output: "Federal returns, state returns, schedules, filing packages",
     consumers: ["Tax Filing Systems", "Regulatory Authorities", "Client Deliverables"],
-    apis: ["TDC Data Export API", "GoSystem Import API", "Filing API"],
+    apis: ["B9A Gateway API", "IMS Delivery API", "IMS Engine Lookup API"],
     businessObjects: ["Federal Return", "State Return", "Tax Form", "Schedule", "Filing Package"],
   },
 ];
