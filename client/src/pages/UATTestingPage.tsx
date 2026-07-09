@@ -369,6 +369,7 @@ export default function UATTestingPage() {
   const { data: dbRisks = [], refetch: refetchRisks } = trpc.uat.getRisks.useQuery();
 
   const addTestCaseMutation = trpc.uat.addTestCase.useMutation({ onSuccess: () => refetchTestCases() });
+  const updateTestCaseMutation = trpc.uat.updateTestCase.useMutation({ onSuccess: () => refetchTestCases() });
   const deleteTestCaseMutation = trpc.uat.deleteTestCase.useMutation({ onSuccess: () => refetchTestCases() });
   const importTestCasesMutation = trpc.uat.importTestCases.useMutation({ onSuccess: () => refetchTestCases() });
   const addDefectMutation = trpc.uat.addDefect.useMutation({ onSuccess: () => refetchDefects() });
@@ -383,7 +384,23 @@ export default function UATTestingPage() {
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
   // ── Add Test Case form state ──────────────────────────────────────────────────
-  const [tcForm, setTcForm] = useState({ testId: "", epic: "", feature: "", story: "", requirementId: "", configItem: "", workbookTab: "", rogerScreen: "", expectedResult: "", tester: "", businessReviewer: "", priority: "Medium" as Priority, status: "Not Started" as TestStatus, comments: "" });
+  const [tcForm, setTcForm] = useState({ testId: "", epic: "", feature: "", story: "", requirementId: "", configItem: "", workbookTab: "", rogerScreen: "", expectedResult: "", tester: "", businessReviewer: "", priority: "Medium" as Priority, status: "Not Started" as TestStatus, defectId: "", comments: "" });
+
+  // ── Excel export handler ───────────────────────────────────────────────────────────────
+  const handleExcelExport = () => {
+    const headers = ["Test ID", "Epic", "Feature", "Story", "Requirement ID", "Config Item", "Workbook Tab", "Roger Screen", "Expected Result", "Actual Result", "Tester", "Business Reviewer", "Priority", "Status", "Defect ID", "Retest", "Comments"];
+    const rows = filteredCases.map(tc => [
+      tc.testId, tc.epic, tc.feature, tc.story, tc.requirementId, tc.configItem, tc.workbookTab,
+      tc.rogerScreen, tc.expectedResult, tc.actualResult, tc.tester, tc.businessReviewer,
+      tc.priority, tc.status, tc.defectId, tc.retest ? "Yes" : "No", tc.comments
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    // Column widths
+    ws["!cols"] = headers.map((h, i) => ({ wch: i === 3 || i === 8 || i === 9 ? 40 : 18 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "UAT Test Cases");
+    XLSX.writeFile(wb, `DCT_UAT_TestCases_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
 
   // ── Log Defect form state ─────────────────────────────────────────────────────
   const [defForm, setDefForm] = useState({ defectNumber: "", description: "", severity: "Medium" as Priority, priority: "P2" as "P1"|"P2"|"P3"|"P4", assignedDeveloper: "", status: "Open" as DefectStatus, targetFixDate: "", retestStatus: "Pending" as "Pending"|"Passed"|"Failed"|"N/A", comments: "" });
@@ -806,6 +823,9 @@ export default function UATTestingPage() {
                 <input type="file" accept=".xlsx,.xls,.csv" style={{ display: "none" }} onChange={handleExcelImport} />
               </label>
               <button onClick={() => setShowAddTestCase(true)} style={{ padding: "7px 14px", backgroundColor: GREEN, color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>+ Add Test Case</button>
+              {filteredCases.length > 0 && (
+                <button onClick={handleExcelExport} style={{ padding: "7px 14px", backgroundColor: "#065f46", color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>&#8595; Export to Excel</button>
+              )}
               {importStatus && (
                 <span style={{ fontSize: 11, color: importStatus.startsWith("✓") ? GREEN : RED, fontWeight: 600 }}>{importStatus}</span>
               )}
@@ -854,7 +874,21 @@ export default function UATTestingPage() {
                         <td style={{ padding: "8px 12px", borderBottom: `1px solid ${BORDER}`, color: SLATE }}>{tc.tester || "—"}</td>
                         <td style={{ padding: "8px 12px", borderBottom: `1px solid ${BORDER}`, color: SLATE }}>{tc.businessReviewer || "—"}</td>
                         <td style={{ padding: "8px 12px", borderBottom: `1px solid ${BORDER}` }}><PriorityBadge priority={tc.priority} /></td>
-                        <td style={{ padding: "8px 12px", borderBottom: `1px solid ${BORDER}` }}><StatusBadge status={tc.status} /></td>
+                        <td style={{ padding: "8px 12px", borderBottom: `1px solid ${BORDER}` }}>
+                          <select
+                            value={tc.status}
+                            onChange={(e) => updateTestCaseMutation.mutate({ id: tc.id, status: e.target.value as TestStatus })}
+                            style={{
+                              fontSize: 11, fontWeight: 700, borderRadius: 4, padding: "3px 6px", cursor: "pointer", border: "none", outline: "none",
+                              backgroundColor: tc.status === "Passed" ? "#f0fdf4" : tc.status === "Failed" ? "#fef2f2" : tc.status === "In Progress" ? "#eff6ff" : tc.status === "Blocked" ? "#fff7ed" : "#f8fafc",
+                              color: tc.status === "Passed" ? "#166534" : tc.status === "Failed" ? "#991b1b" : tc.status === "In Progress" ? "#1d4ed8" : tc.status === "Blocked" ? "#9a3412" : "#475569",
+                            }}
+                          >
+                            {(["Not Started", "In Progress", "Passed", "Failed", "Blocked", "Deferred", "Retest Required", "Production Ready"] as TestStatus[]).map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </td>
                         <td style={{ padding: "8px 12px", borderBottom: `1px solid ${BORDER}`, color: tc.defectId ? RED : SLATE, fontWeight: tc.defectId ? 700 : 400 }}>{tc.defectId || "—"}</td>
                         <td style={{ padding: "8px 12px", borderBottom: `1px solid ${BORDER}`, textAlign: "center" }}>{tc.retest ? "✓" : "—"}</td>
                         <td style={{ padding: "8px 12px", borderBottom: `1px solid ${BORDER}`, color: SLATE, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tc.comments || "—"}</td>
@@ -1291,6 +1325,10 @@ export default function UATTestingPage() {
               {formField("Business Reviewer", inp(tcForm.businessReviewer, v => setTcForm(f => ({ ...f, businessReviewer: v })), "Reviewer name"))}
               {formField("Priority", sel(tcForm.priority, v => setTcForm(f => ({ ...f, priority: v as Priority })), ["Critical", "High", "Medium", "Low"]))}
             </div>
+            <div style={formRow}>
+              {formField("Defect ID (if known)", inp(tcForm.defectId, v => setTcForm(f => ({ ...f, defectId: v })), "DEF-001"))}
+              {formField("Status", sel(tcForm.status, v => setTcForm(f => ({ ...f, status: v as TestStatus })), ["Not Started", "In Progress", "Passed", "Failed", "Blocked", "Deferred", "Retest Required", "Production Ready"]))}
+            </div>
             <div style={{ marginBottom: 20 }}>
               {formField("Comments", textarea(tcForm.comments, v => setTcForm(f => ({ ...f, comments: v })), "Optional notes..."))}
             </div>
@@ -1299,7 +1337,7 @@ export default function UATTestingPage() {
               <button onClick={async () => {
                 if (!tcForm.testId.trim()) return;
                 await addTestCaseMutation.mutateAsync(tcForm);
-                setTcForm({ testId: "", epic: "", feature: "", story: "", requirementId: "", configItem: "", workbookTab: "", rogerScreen: "", expectedResult: "", tester: "", businessReviewer: "", priority: "Medium", status: "Not Started", comments: "" });
+                setTcForm({ testId: "", epic: "", feature: "", story: "", requirementId: "", configItem: "", workbookTab: "", rogerScreen: "", expectedResult: "", tester: "", businessReviewer: "", priority: "Medium", status: "Not Started", defectId: "", comments: "" });
                 setShowAddTestCase(false);
               }} style={{ padding: "8px 18px", backgroundColor: GREEN, color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Save Test Case</button>
             </div>
