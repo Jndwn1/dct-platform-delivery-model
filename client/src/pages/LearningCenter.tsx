@@ -411,9 +411,22 @@ const TUTORIALS: Tutorial[] = [
     relatedLabel: "Batch 28 Detail",
   },
 
-  // ── Ask Buddy ──────────────────────────────────────────────────────────────
   {
     id: "t24",
+    title: "TDC to IMS: Understanding the Outbound Contract",
+    description: "A detailed walkthrough of the TDC Outbound Contract to IMS (v1.0, 07.09.2026). Covers the envelope structure (clientId, entityId, taxYear, returnType, filingId, assemblyId, deliveryId, contractVersion), the flat tax-line payload (returnLineId, formLineCode, formLineLabel, scheduleReference, amount), the two-identifier model (filingId for IMS idempotency vs. deliveryId for TDC per-attempt tracking), IMS roll-up responsibility (TDC emits one line per record; IMS rolls up to per-form-line totals), and the current delivery status (payload is built and real — only the live transport is stubbed until IMS stands up its endpoint).",
+    duration: "18 min",
+    topic: "ims-integration",
+    level: "Advanced",
+    tags: ["IMS", "TDC Outbound", "Payload", "Contract", "filingId", "deliveryId", "formLineCode", "returnLineId", "Roll-Up", "Flat Payload", "B9A Gateway"],
+    comingSoon: true,
+    relatedPath: "/discovery/gosystem",
+    relatedLabel: "IMS Integration",
+  },
+
+  // ── Ask Buddy ──────────────────────────────────────────────────────────────
+  {
+    id: "t25",
     title: "Getting Started with Ask Buddy",
     description: "Learn how to use Ask Buddy effectively — how to ask good questions, what data sources Buddy has access to, how the capability pre-check works, and how to use Buddy for BA discovery, architecture research, and requirements validation.",
     duration: "8 min",
@@ -425,7 +438,7 @@ const TUTORIALS: Tutorial[] = [
     relatedLabel: "Ask Buddy",
   },
   {
-    id: "t25",
+    id: "t26",
     title: "Ask Buddy: Advanced Prompting for BAs",
     description: "Advanced techniques for getting precise, actionable answers from Ask Buddy. Covers multi-step research prompts, capability gap analysis, story validation, and how to use Buddy to prepare for PI planning.",
     duration: "15 min",
