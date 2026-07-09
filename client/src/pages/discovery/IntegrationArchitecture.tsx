@@ -58,9 +58,9 @@ const INTEGRATIONS: IntegrationRow[] = [
     system: "IMS — Integration & Management System",
     systemColor: "#7c3aed",
     systemBg: "#faf5ff",
-    apiLayer: ["IMS Payload Retrieval API (← B9A Gateway)", "IMS Engine Delivery API", "IMS Engine Lookup API", "IMS Inbound API"],
-    businessServices: ["Engine Router", "Payload Translator", "Engine Lookup Service", "Delivery Tracker", "Inbound Handler"],
-    persistence: "IMS Delivery Store (routing decisions, delivery status, acknowledgements)",
+    apiLayer: ["IMS Payload Retrieval API (← B9A Gateway)", "IMS Engine Delivery API", "IMS Engine Lookup API", "IMS Inbound Feedback API"],
+    businessServices: ["IRS Line Translator (formLineCode → engine field)", "Roll-Up & Grouping Service (per-record → per-form-line)", "Data-Copy Service", "Engine Router", "Delivery Tracker", "Per-Line Feedback Handler (returnLineId correlation)"],
+    persistence: "IMS Delivery Store (routing decisions, delivery status, per-line results)",
     consumers: ["GoSystem Tax", "CCH", "OIT", "Future Return Engines"],
     dataDirection: "both",
   },
@@ -89,7 +89,7 @@ const API_CALLS: ApiCallRow[] = [
 
 export default function IntegrationArchitecture() {
   const [activeSystem, setActiveSystem] = useState<string | null>(null);
-  const [view, setView] = useState<"layers" | "api-calls">("layers");
+  const [view, setView] = useState<"layers" | "api-calls" | "outbound-contract">("layers");
 
   const filtered = activeSystem
     ? INTEGRATIONS.filter(i => i.system.includes(activeSystem))
@@ -110,7 +110,7 @@ export default function IntegrationArchitecture() {
 
       {/* View toggle */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
-        {[["layers", "System Layers"], ["api-calls", "API Call Map"]].map(([v, label]) => (
+        {[["layers", "System Layers"], ["api-calls", "API Call Map"], ["outbound-contract", "TDC Outbound Contract"]].map(([v, label]) => (
           <button
             key={v}
             onClick={() => setView(v as "layers" | "api-calls")}
@@ -211,6 +211,95 @@ export default function IntegrationArchitecture() {
             ))}
           </div>
         </>
+      )}
+
+      {view === "outbound-contract" && (
+        <div>
+          <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "16px" }}>Source: TDC Outbound to IMS — Structure and Aggregation v1.0 (07.09.2026)</div>
+
+          {/* Implementation status */}
+          <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Implementation Status</div>
+            <div style={{ fontSize: "13px", color: "#78350f", lineHeight: "1.6" }}>
+              The outbound payload to IMS is <strong>built and exists in code</strong>. Only the live transport is stubbed: until IMS stands up its endpoint, delivery attempts return a 503 and TDC records a <code style={{backgroundColor:"#fef3c7",padding:"1px 4px",borderRadius:"3px",fontSize:"11px"}}>DELIVERY_FAILED</code> outcome. <strong>The payload shape is real and is the contract IMS builds to.</strong>
+            </div>
+          </div>
+
+          {/* Payload structure */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
+            <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "14px", borderTop: "3px solid #065f46" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Envelope Fields</div>
+              {["clientId","entityId","taxYear","returnType","filingId (IMS idempotency key)","assemblyId","deliveryId (TDC per-attempt key)","contractVersion (\"1.0\")"].map(f => (
+                <div key={f} style={{ padding: "5px 0", borderBottom: "1px solid #f8fafc" }}>
+                  <code style={{ fontSize: "11px", backgroundColor: "#f0fdf4", color: "#065f46", padding: "2px 6px", borderRadius: "3px" }}>{f}</code>
+                </div>
+              ))}
+            </div>
+            <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "14px", borderTop: "3px solid #0369a1" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#0369a1", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Each Tax Line (flat list)</div>
+              {["returnLineId","formLineCode","formLineLabel","scheduleReference","amount"].map(f => (
+                <div key={f} style={{ padding: "5px 0", borderBottom: "1px solid #f8fafc" }}>
+                  <code style={{ fontSize: "11px", backgroundColor: "#eff6ff", color: "#0369a1", padding: "2px 6px", borderRadius: "3px" }}>{f}</code>
+                </div>
+              ))}
+              <div style={{ fontSize: "11px", color: "#64748b", marginTop: "10px", lineHeight: "1.5" }}>Flat list — no nesting, no grouping containers. One line per underlying record. Same formLineCode can appear multiple times.</div>
+            </div>
+          </div>
+
+          {/* Structural responsibility table */}
+          <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden", marginBottom: "20px" }}>
+            <div style={{ padding: "10px 14px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623" }}>Structural Responsibility — TDC vs. IMS</div>
+            </div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#f8fafc" }}>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e2e8f0", width: "160px" }}>Structure</th>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontWeight: 700, color: "#065f46", borderBottom: "1px solid #e2e8f0" }}>TDC Provides</th>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontWeight: 700, color: "#7c3aed", borderBottom: "1px solid #e2e8f0" }}>IMS Shapes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { s: "Simple fields",          tdc: "formLineCode + amount per line",                                    ims: "Translates to engine field" },
+                  { s: "Repeating data",          tdc: "Multiple flat lines (one per record, same formLineCode)",          ims: "Rolls up to per-form-line total" },
+                  { s: "Grouped / multi-level",   tdc: "Flat lines with scheduleReference string only",                    ims: "Groups into engine worksheet structure" },
+                  { s: "Data-copy scenarios",      tdc: "Each governed value sent once",                                    ims: "Copies to multiple engine fields if needed" },
+                  { s: "Activity / sub-entity",   tdc: "Not represented — out of MVP scope",                              ims: "Intake gap — requirements still owed" },
+                ].map((row, i) => (
+                  <tr key={row.s} style={{ backgroundColor: i % 2 === 0 ? "white" : "#fafafa" }}>
+                    <td style={{ padding: "9px 14px", fontWeight: 600, color: "#1e293b", borderBottom: "1px solid #f1f5f9", verticalAlign: "top" }}>{row.s}</td>
+                    <td style={{ padding: "9px 14px", color: "#065f46", borderBottom: "1px solid #f1f5f9", lineHeight: "1.5", verticalAlign: "top" }}>{row.tdc}</td>
+                    <td style={{ padding: "9px 14px", color: "#7c3aed", borderBottom: "1px solid #f1f5f9", lineHeight: "1.5", verticalAlign: "top" }}>{row.ims}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Open Decisions */}
+          <div style={{ marginBottom: "8px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f1623", marginBottom: "6px" }}>Open Decisions</div>
+            <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "12px" }}>Items requiring future agreement or implementation — not yet in the build.</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[
+                { id: "OD-1", title: "Destination Return Locator (locatorId)", detail: "Not in payload today. DCT position: user intent selected in Roger and carried explicitly, not inferred by IMS.", status: "Open" },
+                { id: "OD-2", title: "Confirm IMS Owns Roll-Up", detail: "IMS must explicitly own roll-up from line-per-record to per-form-line totals. Must not fall through the gap.", status: "Open" },
+                { id: "OD-3", title: "Per-Line Error Response Contract", detail: "Structure for IMS to return per-line results (returnLineId + failure reason) back to TDC. Not yet defined.", status: "Open" },
+                { id: "OD-4", title: "Activity / Sub-Entity Differentiation", detail: "Not in outbound payload. Out of MVP scope. Requirements still owed.", status: "Out of Scope (MVP)" },
+              ].map(od => (
+                <div key={od.id} style={{ display: "flex", alignItems: "flex-start", gap: "12px", backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, backgroundColor: od.status === "Open" ? "#fef3c7" : "#f1f5f9", color: od.status === "Open" ? "#92400e" : "#64748b", padding: "2px 6px", borderRadius: "4px", whiteSpace: "nowrap", alignSelf: "flex-start" }}>{od.id}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "4px" }}>{od.title}</div>
+                    <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{od.detail}</div>
+                  </div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, backgroundColor: od.status === "Open" ? "#fef2f2" : "#f8fafc", color: od.status === "Open" ? "#dc2626" : "#64748b", padding: "2px 8px", borderRadius: "4px", whiteSpace: "nowrap", alignSelf: "flex-start" }}>{od.status}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {view === "api-calls" && (

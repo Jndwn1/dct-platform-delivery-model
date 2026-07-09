@@ -42,22 +42,23 @@ const SIM_STEPS: SimStep[] = [
   { id: 23, phase: "Phase 4: TDC Persistence",   system: "TDC",    systemColor: "#065f46", action: "TDC validates",                    detail: "TDC validates the incoming practitioner changes against business rules and constraints.", icon: "✓" },
   { id: 24, phase: "Phase 4: TDC Persistence",   system: "TDC",    systemColor: "#065f46", action: "TDC persists",                     detail: "TDC persists the validated changes to the data store — TDC is the system of record.", icon: "💾" },
   { id: 25, phase: "Phase 4: TDC Persistence",   system: "TDC",    systemColor: "#065f46", action: "Updates lineage",                  detail: "TDC updates the lineage record to capture who changed what, when, and why.", icon: "🔗" },
-  { id: 26, phase: "Phase 4: TDC Persistence",   system: "TDC",    systemColor: "#065f46", action: "Publishes events",                 detail: "TDC publishes downstream events to notify GoSystem and other consumers that data is ready.", icon: "📡" },
-  { id: 27, phase: "Phase 4: TDC Persistence",   system: "TDC",    systemColor: "#065f46", action: "Makes data available downstream",  detail: "Finalized, practitioner-approved data is now available to GoSystem Tax.", icon: "→" },
-  // Phase 5: GoSystem
-  { id: 28, phase: "Phase 5: GoSystem Tax",      system: "GoSystem", systemColor: "#92400e", action: "GoSystem consumes finalized data", detail: "GoSystem Tax receives the finalized data from TDC and begins return preparation.", icon: "📥" },
-  { id: 29, phase: "Phase 5: GoSystem Tax",      system: "GoSystem", systemColor: "#92400e", action: "Produces Federal Return",          detail: "GoSystem assembles the federal tax return using the finalized TDC data.", icon: "📋" },
-  { id: 30, phase: "Phase 5: GoSystem Tax",      system: "GoSystem", systemColor: "#92400e", action: "Produces State Return",            detail: "GoSystem produces state returns for each applicable jurisdiction.", icon: "🗺" },
-  { id: 31, phase: "Phase 5: GoSystem Tax",      system: "GoSystem", systemColor: "#92400e", action: "Produces Schedules",               detail: "GoSystem generates all required supporting schedules.", icon: "📊" },
-  { id: 32, phase: "Phase 5: GoSystem Tax",      system: "GoSystem", systemColor: "#92400e", action: "Produces Tax Forms",               detail: "GoSystem generates all required tax forms.", icon: "📄" },
+  { id: 26, phase: "Phase 4: TDC Persistence",   system: "TDC",    systemColor: "#065f46", action: "Publishes events",                 detail: "TDC publishes downstream events to notify IMS and other governed consumers that data is ready.", icon: "📡" },
+  { id: 27, phase: "Phase 4: TDC Persistence",   system: "TDC",    systemColor: "#065f46", action: "Makes data available downstream",  detail: "Finalized, practitioner-approved data is now available via the B9A Gateway. IMS retrieves it as a governed consumer.", icon: "→" },
+  // Phase 5: IMS Integration
+  { id: 28, phase: "Phase 5: IMS Integration",   system: "IMS",    systemColor: "#7c3aed", action: "IMS retrieves payload via B9A",    detail: "IMS (Integration & Management System) retrieves the governed tax-ready payload from TDC via the B9A Gateway API. IMS is a governed consumer — it does not receive a direct push from TDC.", icon: "📥" },
+  { id: 29, phase: "Phase 5: IMS Integration",   system: "IMS",    systemColor: "#7c3aed", action: "IMS translates IRS line codes",    detail: "IMS translates each formLineCode from the TDC flat payload into the target engine's specific field format. TDC sends one flat line per record; IMS rolls up to per-form-line totals.", icon: "↔" },
+  { id: 30, phase: "Phase 5: IMS Integration",   system: "IMS",    systemColor: "#7c3aed", action: "IMS routes to return engine",      detail: "IMS routes the translated, engine-shaped payload to the correct return engine (GoSystem Tax, CCH, OIT, or future engine) based on the filing's engine assignment.", icon: "🔀" },
+  { id: 31, phase: "Phase 5: IMS Integration",   system: "IMS",    systemColor: "#7c3aed", action: "Return engine produces return",    detail: "The target return engine (e.g., GoSystem Tax) receives the IMS-translated payload and assembles the federal return, state returns, schedules, and tax forms.", icon: "📋" },
+  { id: 32, phase: "Phase 5: IMS Integration",   system: "IMS",    systemColor: "#7c3aed", action: "IMS sends per-line feedback",      detail: "IMS returns per-line results to TDC using the returnLineId correlation key. TDC records delivery status (DELIVERED or DELIVERY_FAILED) for lineage.", icon: "↩" },
 ];
 
-const PHASES = ["Phase 1: PDC Ingestion", "Phase 2: TDC Transformation", "Phase 3: Roger Review", "Phase 4: TDC Persistence", "Phase 5: GoSystem Tax"];
+const PHASES = ["Phase 1: PDC Ingestion", "Phase 2: TDC Transformation", "Phase 3: Roger Review", "Phase 4: TDC Persistence", "Phase 5: IMS Integration"];
 
 const SYSTEM_COLORS: Record<string, string> = {
   "PDC": "#1e3a5f",
   "TDC": "#065f46",
   "Roger": "#7c3aed",
+  "IMS": "#7c3aed",
   "GoSystem": "#92400e",
 };
 
@@ -218,11 +219,11 @@ export default function DataFlowSimulation() {
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#475569", marginBottom: "4px" }}>
             System Pipeline
           </div>
-          {["ERP / Client", "PDC", "TDC", "Roger", "TDC (Persist)", "GoSystem"].map((sys, idx) => {
+          {["ERP / Client", "PDC", "TDC", "Roger", "TDC (Persist)", "IMS"].map((sys, idx) => {
             const sysKey = sys.split(" ")[0].replace("(Persist)", "").trim();
             const color = SYSTEM_COLORS[sysKey] ?? "#475569";
             const isActive = activeStep.system === sysKey || (sys === "TDC (Persist)" && activeStep.system === "TDC" && activeStep.phase === "Phase 4: TDC Persistence");
-            const isPast = idx < ["ERP / Client", "PDC", "TDC", "Roger", "TDC (Persist)", "GoSystem"].indexOf(
+            const isPast = idx < ["ERP / Client", "PDC", "TDC", "Roger", "TDC (Persist)", "IMS"].indexOf(
               activeStep.system === "TDC" && activeStep.phase === "Phase 4: TDC Persistence" ? "TDC (Persist)" : activeStep.system
             );
             return (

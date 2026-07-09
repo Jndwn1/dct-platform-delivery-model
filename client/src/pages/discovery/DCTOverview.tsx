@@ -11,7 +11,7 @@ const CORE_CAPABILITIES = [
   { id: "adjustments",  icon: "±",  title: "Tax Adjustment Engine",   color: "#059669", desc: "Applies system-level tax adjustments — depreciation, amortization, deferred items — and accepts practitioner-created adjustments from Roger." },
   { id: "state",        icon: "🗺", title: "State Rules Processor",   color: "#dc2626", desc: "Applies state-specific tax rules, apportionment factors, and NOL calculations for each applicable jurisdiction." },
   { id: "lineage",      icon: "🔗", title: "Lineage Tracker",         color: "#92400e", desc: "Maintains an immutable audit trail of every data change — who changed what, when, and why. Lineage cannot be deleted or modified." },
-  { id: "api",          icon: "⚡", title: "API Layer",                color: "#475569", desc: "Exposes governed Read and Update APIs to Roger and GoSystem. All external access to TDC data goes through the API layer." },
+  { id: "api",          icon: "⚡", title: "API Layer",                color: "#475569", desc: "Exposes governed Read and Update APIs to Roger and IMS (via B9A Gateway). All external access to TDC data goes through the API layer. DCT does not expose APIs directly to return engines." },
 ];
 
 const BOUNDARIES = [
@@ -47,7 +47,7 @@ export default function DCTOverview() {
           </div>
         </div>
         <p style={{ fontSize: "14px", color: "#475569", margin: "10px 0 0", lineHeight: "1.6" }}>
-          TDC (Tax Data Consolidation) is the central tax transformation platform. It receives financial data from PDC, applies the complete tax transformation pipeline, serves data to Roger and GoSystem, and maintains immutable lineage for all changes.
+          TDC (Tax Data Consolidation) is the central tax transformation platform. It receives financial data from PDC, applies the complete tax transformation pipeline, serves data to Roger and IMS (via the B9A Gateway), and maintains immutable lineage for all changes.
         </p>
       </div>
 
@@ -147,6 +147,102 @@ export default function DCTOverview() {
           ))}
         </div>
       </div>
+      {/* TDC Outbound Contract */}
+      <div style={{ marginBottom: "28px", marginTop: "28px" }}>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f1623", marginBottom: "6px" }}>TDC Outbound Contract — IMS Delivery</div>
+        <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "14px" }}>Source: TDC Outbound to IMS — Structure and Aggregation v1.0 (07.09.2026)</div>
+
+        {/* Delivery status note */}
+        <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Implementation Status</div>
+          <div style={{ fontSize: "13px", color: "#78350f", lineHeight: "1.6" }}>
+            The outbound payload to IMS is <strong>built and exists in code</strong>. Only the live transport is stubbed: until IMS stands up its endpoint, delivery attempts return a 503 and TDC records a <code style={{backgroundColor:"#fef3c7",padding:"1px 4px",borderRadius:"3px",fontSize:"11px"}}>DELIVERY_FAILED</code> outcome. <strong>The payload shape is real and is the contract IMS builds to.</strong>
+          </div>
+        </div>
+
+        {/* Envelope + Tax Line side by side */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+          <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "14px", borderTop: "3px solid #065f46" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Envelope Fields</div>
+            {["clientId","entityId","taxYear","returnType","filingId","assemblyId","deliveryId","contractVersion (\"1.0\")"].map(f => (
+              <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 0", borderBottom: "1px solid #f8fafc" }}>
+                <code style={{ fontSize: "11px", backgroundColor: "#f0fdf4", color: "#065f46", padding: "2px 6px", borderRadius: "3px", fontFamily: "monospace" }}>{f}</code>
+              </div>
+            ))}
+          </div>
+          <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "14px", borderTop: "3px solid #0369a1" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#0369a1", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Each Tax Line</div>
+            {["returnLineId","formLineCode","formLineLabel","scheduleReference","amount"].map(f => (
+              <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 0", borderBottom: "1px solid #f8fafc" }}>
+                <code style={{ fontSize: "11px", backgroundColor: "#eff6ff", color: "#0369a1", padding: "2px 6px", borderRadius: "3px", fontFamily: "monospace" }}>{f}</code>
+              </div>
+            ))}
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "10px", lineHeight: "1.5" }}>
+              The payload is a <strong>flat list of tax lines</strong> — no nesting, no grouping containers. Grouping context is carried only as a <code style={{fontSize:"10px",backgroundColor:"#f1f5f9",padding:"1px 3px",borderRadius:"2px"}}>scheduleReference</code> string on each line.
+            </div>
+          </div>
+        </div>
+
+        {/* Identifier table */}
+        <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden", marginBottom: "16px" }}>
+          <div style={{ padding: "10px 14px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623" }}>Two Identifiers, Two Purposes</div>
+          </div>
+          <div style={{ padding: "0" }}>
+            {[
+              { field: "filingId", purpose: "IMS idempotency key", detail: "IMS dedupes on it. A second delivery of the same filing requires an explicit re-delivery." },
+              { field: "deliveryId", purpose: "TDC per-attempt tracking key", detail: "Unique per attempt. Used for TDC-side delivery tracking, not for IMS deduplication." },
+            ].map((row, i) => (
+              <div key={row.field} style={{ display: "grid", gridTemplateColumns: "140px 180px 1fr", gap: "12px", padding: "10px 14px", borderBottom: i === 0 ? "1px solid #f1f5f9" : "none" }}>
+                <code style={{ fontSize: "11px", backgroundColor: "#f0fdf4", color: "#065f46", padding: "2px 6px", borderRadius: "3px", fontFamily: "monospace", alignSelf: "start" }}>{row.field}</code>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "#1e293b" }}>{row.purpose}</div>
+                <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{row.detail}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Structural responsibility table */}
+        <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden", marginBottom: "16px" }}>
+          <div style={{ padding: "10px 14px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623" }}>Structural Responsibility — TDC vs. IMS</div>
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#f8fafc" }}>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e2e8f0", width: "160px" }}>Structure</th>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontWeight: 700, color: "#065f46", borderBottom: "1px solid #e2e8f0" }}>How TDC Represents It</th>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontWeight: 700, color: "#7c3aed", borderBottom: "1px solid #e2e8f0" }}>Where Shaping Happens</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { structure: "Simple fields", tdc: "formLineCode + amount per line", shaping: "TDC provides directly" },
+                  { structure: "Repeating data", tdc: "Multiple flat lines. Same formLineCode can appear more than once — one line per underlying record", shaping: "TDC provides as repeated lines" },
+                  { structure: "Grouped / multi-level", tdc: "Not structured in the payload. Each line carries a flat scheduleReference. No nested worksheet or multi-level container", shaping: "IMS shapes into the engine's structure" },
+                  { structure: "Data-copy scenarios", tdc: "Not in the payload. TDC sends each governed value once", shaping: "IMS, if an engine needs a value in multiple places" },
+                  { structure: "Activity / sub-entity", tdc: "Not represented outbound. Current data layer does not capture activity-level grouping within a legal entity", shaping: "Intake gap — out of MVP scope. Requirements still owed." },
+                ].map((row, i) => (
+                  <tr key={row.structure} style={{ backgroundColor: i % 2 === 0 ? "white" : "#fafafa" }}>
+                    <td style={{ padding: "9px 14px", fontWeight: 600, color: "#1e293b", borderBottom: "1px solid #f1f5f9", verticalAlign: "top" }}>{row.structure}</td>
+                    <td style={{ padding: "9px 14px", color: "#334155", borderBottom: "1px solid #f1f5f9", lineHeight: "1.5", verticalAlign: "top" }}>{row.tdc}</td>
+                    <td style={{ padding: "9px 14px", color: "#334155", borderBottom: "1px solid #f1f5f9", lineHeight: "1.5", verticalAlign: "top" }}>{row.shaping}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Through-line statement */}
+        <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px 16px" }}>
+          <div style={{ fontSize: "13px", color: "#065f46", lineHeight: "1.6" }}>
+            <strong>The through-line:</strong> TDC provides governed, lineage-preserving line detail tagged with an IRS-form schedule reference. It does not provide engine-shaped structure. Every consumer receives the same flat, IRS-form-structured lines regardless of engine.
+          </div>
+        </div>
+      </div>
+
       <RelatedObjectsPanel rootNodeId="sys-tdc" title="TDC / DCT — Connected Knowledge Graph" />
       <DiscoveryAskBuddy pagePath="/discovery/dct-overview" pageTitle="TDC / DCT Overview" />
     </div>

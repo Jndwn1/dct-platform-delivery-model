@@ -3,11 +3,11 @@ import RelatedObjectsPanel from "@/components/RelatedObjectsPanel";
 
 export default function GoSystemTax() {
   const RESPONSIBILITIES = [
-    { title: "Engine Routing",       icon: "🔀", desc: "IMS determines which return engine (GoSystem, CCH, OIT, future) receives each governed data payload based on entity type, jurisdiction, and filing requirements.", color: "#7c3aed" },
-    { title: "Payload Translation",  icon: "⚙️", desc: "IMS translates the governed TDC/Roger output into the format required by each target return engine. DCT does not know about engine-specific formats.", color: "#0369a1" },
-    { title: "Inbound Data Retrieval", icon: "📥", desc: "IMS retrieves governed tax-ready data from TDC via the B9A Gateway APIs. It is a governed consumer with a scoped consumer profile.", color: "#065f46" },
-    { title: "Outbound Delivery",    icon: "📤", desc: "IMS delivers translated payloads to the appropriate return engine and receives acknowledgements. Delivery status is tracked and auditable.", color: "#92400e" },
-    { title: "Engine Lookup",        icon: "🔍", desc: "IMS maintains the mapping of entity → return engine. When a new entity is onboarded, IMS determines the correct engine assignment.", color: "#1e3a5f" },
+    { title: "IRS Line Translation",  icon: "↔", desc: "Translates each IRS form line code (formLineCode) from the TDC flat payload into the GoSystem-specific field. IMS owns the IRS-to-engine mapping.", color: "#7c3aed" },
+    { title: "Roll-Up & Grouping",    icon: "∑", desc: "Sums per-record tax lines into the single per-form-line figure the engine's input grid expects. Groups lines into engine worksheet structures. TDC emits one line per record; IMS aggregates.", color: "#0369a1" },
+    { title: "Data-Copy",             icon: "📋", desc: "Where the target engine requires the same value in multiple fields, IMS performs the copy. TDC sends each governed value once.", color: "#065f46" },
+    { title: "Engine Routing",        icon: "🔀", desc: "Routes data to the correct engine and return instance. Writes data into GoSystem. Determines which return instance receives the payload.", color: "#92400e" },
+    { title: "Per-Line Feedback",     icon: "📨", desc: "Returns per-line processing results using returnLineId for correlation. IMS echoes the returnLineId from the TDC payload to identify which lines succeeded or failed.", color: "#1e3a5f" },
   ];
 
   const RULES = [
@@ -169,6 +169,79 @@ export default function GoSystemTax() {
             <div key={item.label} style={{ display: "flex", gap: "8px" }}>
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", minWidth: "140px" }}>{item.label}:</div>
               <div style={{ fontSize: "12px", color: "#334155" }}>{item.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* The Dividing Test */}
+      <div style={{ marginBottom: "28px" }}>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f1623", marginBottom: "14px" }}>The Dividing Test — TDC vs. IMS</div>
+        <div style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "10px", padding: "16px 20px", marginBottom: "12px" }}>
+          <div style={{ fontSize: "13px", color: "#0c4a6e", lineHeight: "1.7" }}>
+            <strong>Does the operation depend on the target engine's input format?</strong>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "12px" }}>
+            <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>If YES → IMS</div>
+              <div style={{ fontSize: "12px", color: "#1e293b", lineHeight: "1.5" }}>The operation is engine-shaped. If the target engine changed, the work would have to be redone. IMS owns it.</div>
+            </div>
+            <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "12px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>If NO → TDC</div>
+              <div style={{ fontSize: "12px", color: "#1e293b", lineHeight: "1.5" }}>The operation is the same for every engine because it is defined by the IRS form or tax law. TDC owns it.</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623", marginBottom: "8px" }}>Roll-Up Ownership — Explicit Assignment</div>
+          <div style={{ fontSize: "13px", color: "#334155", lineHeight: "1.6" }}>
+            TDC emits <strong>one line per tax-ready record</strong>, not a rolled-up total per form line. The same <code style={{fontSize:"11px",backgroundColor:"#f1f5f9",padding:"1px 4px",borderRadius:"3px"}}>formLineCode</code> can appear on several lines. This is deliberate: one line per record preserves line-level lineage back to the source. Rolling those up into a single per-form-line total is lossy and engine-shaped, so it sits downstream.
+          </div>
+          <div style={{ marginTop: "10px", padding: "10px 14px", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px" }}>
+            <div style={{ fontSize: "12px", color: "#7f1d1d", lineHeight: "1.5" }}>
+              <strong>DCT's position:</strong> The roll-up from line-per-record to per-form-line totals is IMS's responsibility, as part of translating to the engine. It must be <strong>assigned explicitly</strong> so it does not fall through the gap between TDC and IMS.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* IMS Does NOT Own */}
+      <div style={{ marginBottom: "28px" }}>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f1623", marginBottom: "14px" }}>IMS Does NOT Own</div>
+        <div style={{ backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "14px 18px" }}>
+          <div style={{ fontSize: "13px", color: "#7f1d1d", lineHeight: "1.7" }}>
+            IMS <strong>does not perform tax-semantic calculations</strong>. Tax calculations and governed values remain the responsibility of TDC. IMS translates, shapes, and routes — it does not compute tax.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginTop: "12px" }}>
+            {["Tax-semantic calculations","Governed tax values","IRS-form structure","Lineage preservation","Stable outbound contract","Stable identifiers (filingId, assemblyId, deliveryId, returnLineId)"].map(item => (
+              <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                <span style={{ color: "#dc2626", fontSize: "12px", flexShrink: 0, marginTop: "1px" }}>✕</span>
+                <div style={{ fontSize: "12px", color: "#7f1d1d" }}>{item}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: "11px", color: "#92400e", marginTop: "10px", fontStyle: "italic" }}>These are owned by TDC / DCT.</div>
+        </div>
+      </div>
+
+      {/* Open Decisions */}
+      <div style={{ marginBottom: "28px" }}>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f1623", marginBottom: "6px" }}>Open Decisions</div>
+        <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "14px" }}>Items requiring future agreement or implementation — not yet in the build.</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {[
+            { id: "OD-1", title: "Destination Return Locator (locatorId)", detail: "Not carried in the payload today. DCT's position: it is user intent, selected in Roger and carried explicitly, not inferred by IMS. Needs to be added to the contract.", status: "Open" },
+            { id: "OD-2", title: "Confirm IMS Owns Roll-Up", detail: "Confirm IMS owns the roll-up from line-per-record to per-form-line totals. Must be assigned explicitly so it does not fall through the gap.", status: "Open" },
+            { id: "OD-3", title: "Per-Line Error Response Contract", detail: "Structure for IMS to return per-line processing results (which returnLineId failed and why) back to TDC. Not yet defined.", status: "Open" },
+            { id: "OD-4", title: "Activity / Sub-Entity Differentiation", detail: "Not represented in the outbound payload. Current data layer does not capture activity-level grouping within a legal entity. Out of MVP scope.", status: "Out of Scope (MVP)" },
+          ].map(od => (
+            <div key={od.id} style={{ display: "flex", alignItems: "flex-start", gap: "12px", backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, backgroundColor: od.status === "Open" ? "#fef3c7" : "#f1f5f9", color: od.status === "Open" ? "#92400e" : "#64748b", padding: "2px 6px", borderRadius: "4px", whiteSpace: "nowrap", alignSelf: "flex-start", marginTop: "1px" }}>{od.id}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "4px" }}>{od.title}</div>
+                <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{od.detail}</div>
+              </div>
+              <div style={{ fontSize: "10px", fontWeight: 700, backgroundColor: od.status === "Open" ? "#fef2f2" : "#f8fafc", color: od.status === "Open" ? "#dc2626" : "#64748b", padding: "2px 8px", borderRadius: "4px", whiteSpace: "nowrap", alignSelf: "flex-start" }}>{od.status}</div>
             </div>
           ))}
         </div>

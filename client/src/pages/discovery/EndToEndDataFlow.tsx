@@ -42,7 +42,7 @@ const FLOW_STEPS: FlowStep[] = [
     title: "Tax Transformation",
     description: "TDC receives the financial data and applies the full tax transformation pipeline — rules, mappings, classifications, adjustments, and state logic.",
     steps: ["Receive financial data from PDC", "Apply tax rules engine", "Apply known mappings", "Apply book-to-tax classifications", "Apply tax adjustments", "Apply state rules", "Apply provision logic", "Store tax-ready data with lineage", "Publish events downstream"],
-    output: "Tax-ready data with full lineage → Roger + GoSystem",
+    output: "Tax-ready data with full lineage → Roger + B9A Gateway (IMS retrieves as governed consumer)",
   },
   {
     id: "roger",
@@ -65,14 +65,14 @@ const FLOW_STEPS: FlowStep[] = [
     output: "Finalized tax-ready data → B9A Gateway → IMS → Return Engine",
   },
   {
-    id: "gosystem",
-    system: "GoSystem Tax",
-    systemColor: "#92400e",
-    systemBg: "#fffbeb",
-    title: "Return Preparation",
-    description: "GoSystem Tax consumes the finalized, practitioner-approved data from TDC and produces the complete tax return package.",
-    steps: ["Consume finalized data from TDC", "Prepare Federal Return", "Prepare State Returns", "Generate Schedules", "Produce Tax Forms", "Assemble Filing Package"],
-    output: "Federal Return · State Returns · Schedules · Filing Package",
+    id: "ims",
+    system: "IMS — Integration & Management System",
+    systemColor: "#7c3aed",
+    systemBg: "#faf5ff",
+    title: "Return Engine Delivery",
+    description: "IMS retrieves the governed tax-ready payload from TDC via the B9A Gateway, translates IRS line codes to engine-specific fields, rolls up per-record lines to per-form-line totals, and routes the payload to the correct return engine (GoSystem Tax, CCH, OIT, or future engine).",
+    steps: ["Retrieve payload via B9A Gateway API", "Translate formLineCode to engine field (IRS line translation)", "Roll up per-record lines to per-form-line totals", "Group into engine worksheet structure", "Route to correct return engine", "Return engine produces Federal Return, State Returns, Schedules", "Send per-line feedback to TDC (returnLineId correlation)", "TDC records DELIVERED or DELIVERY_FAILED status"],
+    output: "Federal Return · State Returns · Schedules · Per-line delivery status back to TDC",
   },
 ];
 
@@ -88,7 +88,7 @@ export default function EndToEndDataFlow() {
           <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#0f1623", margin: 0 }}>End-to-End Data Flow</h1>
         </div>
         <p style={{ fontSize: "14px", color: "#475569", margin: 0, lineHeight: "1.6" }}>
-          Trace how financial data moves from a client's ERP system through PDC, TDC, Roger, and GoSystem Tax. Click any step to see the detailed sub-steps.
+          Trace how financial data moves from a client's ERP system through PDC, TDC, Roger, and IMS to the return engine. Click any step to see the detailed sub-steps.
         </p>
       </div>
 
@@ -207,7 +207,7 @@ export default function EndToEndDataFlow() {
         backgroundColor: "#0f1623", borderRadius: "10px",
         fontSize: "12px", color: "#94a3b8", lineHeight: "1.6",
       }}>
-        <strong style={{ color: "white" }}>Key Principle:</strong> Data flows in one direction — from ERP through PDC to TDC to Roger/GoSystem. Roger sends practitioner decisions back to TDC, which is the single system of record. GoSystem only reads from TDC and never writes back.
+        <strong style={{ color: "white" }}>Key Principle:</strong> Data flows in one direction — from ERP through PDC to TDC to Roger, then via IMS to the return engine. Roger sends practitioner decisions back to TDC, which is the single system of record. IMS retrieves governed data from TDC via the B9A Gateway and routes it to GoSystem, CCH, OIT, or any future return engine. DCT does not integrate directly with any return engine.
       </div>
       <DiscoveryAskBuddy pagePath="/discovery/data-flow" pageTitle="End-to-End Data Flow" />
     </div>
