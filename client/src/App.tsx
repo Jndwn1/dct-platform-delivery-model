@@ -63,6 +63,7 @@ import Step4Simulation from "./pages/onboarding/Step4Simulation";
 import Step5AskBuddy from "./pages/onboarding/Step5AskBuddy";
 import Step6Questions from "./pages/onboarding/Step6Questions";
 import Step7Complete from "./pages/onboarding/Step7Complete";
+import UATTestingPage from "./pages/UATTestingPage";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -156,6 +157,8 @@ function Router() {
            <Route path="/discovery/gosystem" component={IMSIntegration} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />
+          {/* UAT Testing */}
+          <Route path="/uat-testing" component={UATTestingPage} />
           {/* Learning Center */}
           <Route path="/learning-center" component={LearningCenter} />
           {/* Provision & State Discovery Workspace */}

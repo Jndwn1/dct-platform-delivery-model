@@ -415,8 +415,77 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
-});
 
+  uat: router({
+    askBuddy: publicProcedure
+      .input(z.object({ question: z.string() }))
+      .mutation(async ({ input }) => {
+        const systemPrompt = `You are Ask Buddy, the AI Testing Assistant for the DCT Platform UAT. 
+You have deep knowledge of the DCT Platform's architecture, test cases, defects, and release readiness.
+
+Platform context:
+- Owner: Jennifer Dawn Stafford
+- MVP Release: September 21, 2026
+- UAT Phase: Mid-August 2026
+- Source of Truth: DCT Enterprise Master Data Workbook v1.0
+- 20 UAT test cases across 5 epics: PDC Data Ingestion, TDC Tax Classification, Orchestrator, Roger Consumer, IMS Integration
+- 3 active defects: DEF-001 (Orchestrator retry logic), DEF-002 (Roger auth not provisioned), DEF-003 (ETRCategory schema mismatch)
+- Current Go/No Go status: NO GO — 2 critical defects open, Roger auth blocked
+
+When asked to generate test cases, provide structured test case IDs, epics, features, stories, requirements, and expected results.
+When asked about defects, summarize severity, owner, and resolution path.
+When asked for Go/No Go recommendation, evaluate based on: all critical defects closed, all tests passed, all business areas signed off.
+Be concise, professional, and enterprise-ready in your responses.`;
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: input.question },
+          ],
+        });
+        const answer = response.choices?.[0]?.message?.content ?? "I was unable to generate a response. Please try again.";
+        return { answer };
+      }),
+
+    generateReport: publicProcedure
+      .input(z.object({ reportType: z.string() }))
+      .mutation(async ({ input }) => {
+        const systemPrompt = `You are a UAT reporting assistant for the DCT Platform. Generate a professional, enterprise-grade ${input.reportType} based on the following UAT data:
+
+Test Summary:
+- Total: 20 test cases | Passed: 8 | Failed: 1 | Blocked: 1 | In Progress: 3 | Not Started: 6 | Retest Required: 1
+- Pass Rate: 40% | Fail Rate: 5% | Blocked: 5%
+- Defects: 3 total (1 Critical, 1 High, 1 Medium) | 2 open
+- Go/No Go: NO GO — critical defects open
+
+Epic Coverage:
+- PDC Data Ingestion: 80% pass rate (4/5 passed)
+- TDC Tax Classification: 50% pass rate (3/6 passed)
+- Orchestrator: 0% pass rate (0/3 — 1 failed, 1 in progress, 1 retest)
+- Roger Consumer: 0% pass rate (0/3 — all blocked or not started)
+- IMS Integration: 0% pass rate (0/2 — not started)
+
+Open Defects:
+- DEF-001 (High): Orchestrator retry logic fails on large TB files — In Progress — Fix by Aug 12
+- DEF-002 (Critical): Roger auth not provisioned in UAT — Open — Fix by Aug 10
+
+Business Signoff: 1 of 5 areas approved (PDC only)
+Release Readiness: 2 of 8 criteria met
+MVP Target: September 21, 2026 | Decision Date: September 14, 2026
+
+Generate a complete, professional ${input.reportType} formatted for executive consumption. Include key metrics, risks, recommendations, and next steps.`;
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Generate the ${input.reportType} now.` },
+          ],
+        });
+        const report = response.choices?.[0]?.message?.content ?? "Unable to generate report at this time.";
+        return { report };
+      }),
+  }),
+});
 export type AppRouter = typeof appRouter;
 
 
