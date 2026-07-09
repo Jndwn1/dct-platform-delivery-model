@@ -55,6 +55,7 @@ import RogerOverview from "./pages/discovery/RogerOverview";
 import IMSIntegration from "./pages/discovery/GoSystemTax";
 import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
 import DiscoveryWorkspace from "./pages/onboarding/DiscoveryWorkspace";
+import LearningCenter from "./pages/LearningCenter";
 import Step1Features from "./pages/onboarding/Step1Features";
 import Step2FeatureDetail from "./pages/onboarding/Step2FeatureDetail";
 import Step3DiscoveryReview from "./pages/onboarding/Step3DiscoveryReview";
@@ -155,6 +156,8 @@ function Router() {
            <Route path="/discovery/gosystem" component={IMSIntegration} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />
+          {/* Learning Center */}
+          <Route path="/learning-center" component={LearningCenter} />
           {/* Provision & State Discovery Workspace */}
           <Route path="/onboarding" component={DiscoveryWorkspace} />
           <Route path="/onboarding/step1" component={Step1Features} />

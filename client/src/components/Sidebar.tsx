@@ -25,6 +25,7 @@ interface NavItem {
 const PLATFORM_ITEMS: NavItem[] = [
   { label: "DCT Delivery Model", path: "/", icon: "⬡" },
   { label: "Ask Buddy", path: "/ask-buddy", icon: "🐱", badge: "AI", badgeColor: "#0d9488" },
+  { label: "Learning Center", path: "/learning-center", icon: "📚", badge: "NEW", badgeColor: "#7c3aed" },
   { label: "Batch Delivery Calendar", path: "/batch-calendar", icon: "▤", badge: "Planning", badgeColor: "#64748b" },
 ];
 
