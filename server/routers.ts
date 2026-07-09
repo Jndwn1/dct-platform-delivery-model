@@ -424,7 +424,7 @@ export const appRouter = router({
 You have deep knowledge of the DCT Platform's architecture, test cases, defects, and release readiness.
 
 Platform context:
-- Owner: Jennifer Dawn Stafford
+- Owner: Jenniver Dawn Stafford
 - MVP Release: September 21, 2026
 - UAT Phase: Mid-August 2026
 - Source of Truth: DCT Enterprise Master Data Workbook v1.0

@@ -1,6 +1,6 @@
 // DCT Platform — UAT Testing Dashboard
 // Source of Truth: DCT Enterprise Master Data Workbook v1.0
-// Owner: Jennifer Dawn Stafford | MVP: September 21 | UAT: Mid-August
+// Owner: Jenniver Dawn Stafford | MVP: September 21 | UAT: Mid-August
 
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
@@ -84,21 +84,21 @@ const DEFECTS: Defect[] = [
 ];
 
 const SIGNOFF_ROWS: SignoffRow[] = [
-  { businessArea: "PDC — Financial Data", businessOwner: "Jennifer Dawn Stafford", dateTested: "2026-08-06", approvalStatus: "Approved", signature: "J. Stafford" },
+  { businessArea: "PDC — Financial Data", businessOwner: "Jenniver Dawn Stafford", dateTested: "2026-08-06", approvalStatus: "Approved", signature: "J. Stafford" },
   { businessArea: "TDC — Tax Classification", businessOwner: "Stephane Lacombe", dateTested: "", approvalStatus: "Pending", signature: "" },
   { businessArea: "Orchestrator — AI Execution", businessOwner: "Stephane Lacombe", dateTested: "", approvalStatus: "Pending", signature: "" },
-  { businessArea: "Roger — Practitioner UI", businessOwner: "Jennifer Dawn Stafford", dateTested: "", approvalStatus: "Pending", signature: "" },
-  { businessArea: "IMS — GoSystem Integration", businessOwner: "Jennifer Dawn Stafford", dateTested: "", approvalStatus: "Pending", signature: "" },
+  { businessArea: "Roger — Practitioner UI", businessOwner: "Jenniver Dawn Stafford", dateTested: "", approvalStatus: "Pending", signature: "" },
+  { businessArea: "IMS — GoSystem Integration", businessOwner: "Jenniver Dawn Stafford", dateTested: "", approvalStatus: "Pending", signature: "" },
 ];
 
 const RELEASE_READINESS = [
-  { item: "Requirements Complete", status: true, owner: "Jennifer Dawn Stafford", notes: "All B1–B10 requirements documented" },
-  { item: "Stories Complete", status: true, owner: "Jennifer Dawn Stafford", notes: "20 UAT stories authored and linked" },
+  { item: "Requirements Complete", status: true, owner: "Jenniver Dawn Stafford", notes: "All B1–B10 requirements documented" },
+  { item: "Stories Complete", status: true, owner: "Jenniver Dawn Stafford", notes: "20 UAT stories authored and linked" },
   { item: "Testing Complete", status: false, owner: "Neha Sethi", notes: "In progress — 60% complete" },
   { item: "Regression Complete", status: false, owner: "Krista Gigliotti", notes: "Not started — scheduled Aug 15" },
   { item: "Critical Defects Closed", status: false, owner: "Platform Team", notes: "DEF-001, DEF-002 open" },
   { item: "Deployment Ready", status: false, owner: "Stephane Lacombe", notes: "Pending testing completion" },
-  { item: "Business Approval", status: false, owner: "Jennifer Dawn Stafford", notes: "Pending — 4 of 5 areas pending signoff" },
+  { item: "Business Approval", status: false, owner: "Jenniver Dawn Stafford", notes: "Pending — 4 of 5 areas pending signoff" },
   { item: "Go / No Go", status: false, owner: "Stephane Lacombe", notes: "Decision: September 14, 2026" },
 ];
 
@@ -372,7 +372,7 @@ export default function UATTestingPage() {
               DCT Platform · Source of Truth: Enterprise Master Data Workbook v1.0
             </div>
             <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 4px", color: "white" }}>User Acceptance Testing</h1>
-            <div style={{ fontSize: 14, color: "#94a3b8" }}>Owner: Jennifer Dawn Stafford · MVP Release: September 21, 2026 · UAT Phase: Mid-August</div>
+            <div style={{ fontSize: 14, color: "#94a3b8" }}>Owner: Jenniver Dawn Stafford · MVP Release: September 21, 2026 · UAT Phase: Mid-August</div>
           </div>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ textAlign: "center", backgroundColor: "#1e3a5f", borderRadius: 8, padding: "10px 18px" }}>
@@ -746,7 +746,7 @@ export default function UATTestingPage() {
       {/* ── FOOTER ── */}
       <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 16, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         <div style={{ fontSize: 12, color: "#64748b" }}>
-          <strong>Source of Truth:</strong> DCT Enterprise Master Data Workbook v1.0 · Owner: Jennifer Dawn Stafford
+          <strong>Source of Truth:</strong> DCT Enterprise Master Data Workbook v1.0 · Owner: Jenniver Dawn Stafford
         </div>
         <div style={{ display: "flex", gap: 16 }}>
           {["Ask Buddy", "Azure DevOps", "Power BI", "DCT Platform"].map(s => (
