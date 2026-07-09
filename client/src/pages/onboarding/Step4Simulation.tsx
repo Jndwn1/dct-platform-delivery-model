@@ -66,16 +66,16 @@ const SIMULATION_STEPS = [
   {
     id: 5,
     from: "Gateway",
-    to: "GoSystem",
-    platform: "GoSystem Tax",
-    platformColor: "#be185d",
-    owner: "RSM — Tax Compliance Team",
-    dataOwner: "GoSystem owns the tax return and filing — not the source data",
-    businessRuleOwner: "GoSystem owns filing rules and regulatory compliance logic",
-    dataMoving: "Tax workpapers, provision schedules, adjustment history, state apportionment data",
-    description: "GoSystem requests workpaper and provision exports from the Gateway. The Gateway returns GoSystem-scoped data in the GoSystem-compatible export format (Batch 28). GoSystem uses this data for tax return preparation and regulatory filing.",
-    keyFact: "GoSystem is a DOWNSTREAM CONSUMER. It receives data from TDC — it does not send data back into DCT.",
-    icon: "🖥️",
+    to: "IMS",
+    platform: "IMS — Integration & Management System",
+    platformColor: "#7c3aed",
+    owner: "RSM / CATT — IMS Team",
+    dataOwner: "IMS does not own data — it translates and routes TDC-governed data to return engines",
+    businessRuleOwner: "IMS owns engine translation, roll-up, grouping, routing, and per-line feedback",
+    dataMoving: "Flat IRS-form-structured tax lines (formLineCode, returnLineId, amount, scheduleReference) via B9A Gateway",
+    description: "IMS retrieves governed tax-ready data from TDC via the B9A Gateway. IMS translates each IRS form line code (formLineCode) into the engine-specific field, rolls up per-record lines to per-form-line totals, groups into engine worksheet structure, and routes the engine-shaped payload to GoSystem, CCH, OIT, or any future return engine. DCT does not connect directly to any return engine.",
+    keyFact: "IMS is the INTEGRATION BROKER. DCT does not connect directly to GoSystem, CCH, or OIT. IMS owns all engine routing, translation, and delivery.",
+    icon: "↔️",
   },
 ];
 
@@ -125,7 +125,7 @@ export default function Step4Simulation() {
         borderRadius: "10px", padding: "14px 20px", marginBottom: "24px",
         overflowX: "auto",
       }}>
-        {["ERP", "PDC", "TDC", "Gateway", "Roger / GoSystem"].map((node, i) => (
+        {["ERP", "PDC", "TDC", "Gateway", "Roger / IMS"].map((node, i) => (
           <div key={node} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <div style={{
               padding: "6px 12px", borderRadius: "6px", fontSize: "12px", fontWeight: 700,

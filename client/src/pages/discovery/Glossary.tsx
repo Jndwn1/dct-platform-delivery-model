@@ -120,7 +120,7 @@ const TERMS: GlossaryTerm[] = [
     term: "Tax Ready Data",
     category: "Data",
     categoryColor: "#065f46",
-    definition: "The fully transformed, tax-classified, and practitioner-approved data produced by TDC. Tax-ready data has been through the complete tax transformation pipeline — rules, mappings, adjustments, classifications, and practitioner review — and is ready for consumption by GoSystem Tax.",
+    definition: "The fully transformed, tax-classified, and practitioner-approved data produced by TDC. Tax-ready data has been through the complete tax transformation pipeline — rules, mappings, adjustments, classifications, and practitioner review — and is ready for delivery via IMS to downstream return engines (GoSystem, CCH, OIT). TDC delivers tax-ready data as a flat, IRS-form-structured payload to IMS; IMS performs translation, roll-up, and engine-specific shaping before writing to the return engine.",
     relatedTerms: ["TDC", "IMS (Integration & Management System)", "Lineage", "Financial Truth"],
   },
 ];

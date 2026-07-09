@@ -256,7 +256,7 @@ export default function PlatformResponsibilities() {
         backgroundColor: "#0f1623", borderRadius: "12px",
         display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap",
       }}>
-        {["ERP", "→", "PDC", "→", "TDC / DCT", "→", "Roger", "→", "GoSystem Tax"].map((item, idx) => (
+        {["ERP", "→", "PDC", "→", "TDC / DCT", "→", "Roger", "→", "IMS", "→", "GoSystem"].map((item, idx) => (
           <span key={idx} style={{
             fontSize: item === "→" ? "16px" : "13px",
             fontWeight: item === "→" ? 400 : 700,
@@ -269,7 +269,7 @@ export default function PlatformResponsibilities() {
           </span>
         ))}
         <div style={{ flex: 1, textAlign: "right" }}>
-          <span style={{ fontSize: "11px", color: "#64748b" }}>Governed data pipeline — each system owns its domain</span>
+          <span style={{ fontSize: "11px", color: "#64748b" }}>Governed data pipeline — IMS is the integration broker between TDC and all return engines</span>
         </div>
       </div>
       <DiscoveryAskBuddy pagePath="/discovery/platform-responsibilities" pageTitle="Platform Responsibilities" />

@@ -8,9 +8,9 @@ import { trpc } from "@/lib/trpc";
 import { markStepComplete } from "./OnboardingHub";
 
 const SUGGESTED_QUESTIONS = [
-  { category: "GoSystem", q: "What data is sent to GoSystem from TDC?" },
-  { category: "GoSystem", q: "What fields are required in the GoSystem export?" },
-  { category: "GoSystem", q: "What happens if a required field is missing in the GoSystem export?" },
+  { category: "IMS", q: "What data does IMS receive from TDC, and what does IMS do with it?" },
+  { category: "IMS", q: "What fields are in the TDC outbound contract to IMS?" },
+  { category: "IMS", q: "What is the difference between filingId and deliveryId in the IMS payload?" },
   { category: "Roger", q: "How does Roger display provision data?" },
   { category: "Roger", q: "What APIs does Roger call to get provision information?" },
   { category: "TDC", q: "What business objects exist in TDC for Provision?" },
@@ -23,7 +23,7 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  GoSystem: "#be185d",
+  IMS: "#7c3aed",
   Roger: "#0369a1",
   TDC: "#065f46",
   Provision: "#7c3aed",
@@ -69,7 +69,7 @@ export default function Step5AskBuddy() {
       const allMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
       const result = await chatMutation.mutateAsync({
         messages: allMessages,
-        discoveryPagePath: "/discovery/gosystem",
+              discoveryPagePath: "/discovery/ims",
       });
       setMessages(prev => [...prev, { role: "assistant", content: result.text }]);
     } catch {
@@ -161,7 +161,7 @@ export default function Step5AskBuddy() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
-              placeholder="Ask about GoSystem, Roger, TDC, Provision, State..."
+              placeholder="Ask about IMS, Roger, TDC, Provision, State..."
               style={{
                 flex: 1, padding: "8px 12px", fontSize: "13px",
                 border: "1px solid #e2e8f0", borderRadius: "6px",

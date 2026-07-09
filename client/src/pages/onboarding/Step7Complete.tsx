@@ -26,7 +26,7 @@ const NEXT_STEPS = [
   {
     icon: "🕸️",
     title: "Explore the Knowledge Graph",
-    desc: "Navigate the DCT Knowledge Graph to understand how GoSystem, TDC, Roger, and the Gateway are connected.",
+    desc: "Navigate the DCT Knowledge Graph to understand how IMS, TDC, Roger, and the Gateway are connected.",
     action: "/discovery/knowledge-graph",
     actionLabel: "Open Knowledge Graph",
     color: "#1e3a5f",
