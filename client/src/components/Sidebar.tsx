@@ -407,12 +407,12 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeSection }: SidebarProps) {
-  const [batchesOpen, setBatchesOpen] = useState(true);
+  const [batchesOpen, setBatchesOpen] = useState(false);
   const [piOpen, setPiOpen] = useState<Record<string, boolean>>({
-    pi1: true,
-    pi2: true,
-    pi2s: true,
-    pi3: true,
+    pi1: false,
+    pi2: false,
+    pi2s: false,
+    pi3: false,
     pi4: false,
     onhold: false,
   });
