@@ -13,8 +13,6 @@ export const ALLOWLISTED_USERS: AllowlistedUser[] = [
   { id: "emily-davis",    name: "Emily Davis",    role: "Tax Analyst"      },
   { id: "product-owner",        name: "Product Owner",         role: "Product Owner"        },
   { id: "stephane-lacombe",     name: "Stephane Lacombe",      role: "Product Owner"        },
-  { id: "provision-lead", name: "Provision Lead", role: "Provision BA"     },
-  { id: "state-lead",     name: "State Lead",     role: "State BA"         },
   { id: "jenniver-stafford",   name: "Jenniver Stafford",  role: "Administrator"        },
   { id: "neha-sethi",          name: "Neha Sethi",         role: "Business Analyst"     },
   { id: "krista-gigliotti",    name: "Krista Gigliotti",   role: "Business Analyst"     },
