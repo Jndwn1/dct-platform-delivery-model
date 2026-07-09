@@ -4,6 +4,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
+import * as XLSX from "xlsx";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type TestStatus = "Not Started" | "In Progress" | "Passed" | "Failed" | "Blocked" | "Deferred" | "Retest Required" | "Production Ready";
@@ -50,9 +51,9 @@ type TraceabilityRow = {
   validationStatus: string; release: string;
 };
 
-// ─── Empty Data ───────────────────────────────────────────────────────────────
-const TEST_CASES: TestCase[] = [];
-const DEFECTS: Defect[] = [];
+// ─── Static empty arrays (replaced by live DB queries below) ─────────────────
+const TEST_CASES_STATIC: TestCase[] = [];
+const DEFECTS_STATIC: Defect[] = [];
 const SIGNOFF_ROWS: SignoffRow[] = [
   { businessArea: "PDC — Financial Data", businessOwner: "", dateTested: "", approvalStatus: "Pending", approvalDate: "", comments: "", signature: "" },
   { businessArea: "TDC — Tax Classification", businessOwner: "", dateTested: "", approvalStatus: "Pending", approvalDate: "", comments: "", signature: "" },
@@ -362,6 +363,80 @@ export default function UATTestingPage() {
   const [reportType, setReportType] = useState("");
   const generateReportMutation = trpc.uat.generateReport.useMutation();
 
+  // ── Live DB queries ──────────────────────────────────────────────────────────
+  const { data: dbTestCases = [], refetch: refetchTestCases } = trpc.uat.getTestCases.useQuery();
+  const { data: dbDefects = [], refetch: refetchDefects } = trpc.uat.getDefects.useQuery();
+  const { data: dbRisks = [], refetch: refetchRisks } = trpc.uat.getRisks.useQuery();
+
+  const addTestCaseMutation = trpc.uat.addTestCase.useMutation({ onSuccess: () => refetchTestCases() });
+  const deleteTestCaseMutation = trpc.uat.deleteTestCase.useMutation({ onSuccess: () => refetchTestCases() });
+  const importTestCasesMutation = trpc.uat.importTestCases.useMutation({ onSuccess: () => refetchTestCases() });
+  const addDefectMutation = trpc.uat.addDefect.useMutation({ onSuccess: () => refetchDefects() });
+  const deleteDefectMutation = trpc.uat.deleteDefect.useMutation({ onSuccess: () => refetchDefects() });
+  const addRiskMutation = trpc.uat.addRisk.useMutation({ onSuccess: () => refetchRisks() });
+  const deleteRiskMutation = trpc.uat.deleteRisk.useMutation({ onSuccess: () => refetchRisks() });
+
+  // ── Modal state ───────────────────────────────────────────────────────────────
+  const [showAddTestCase, setShowAddTestCase] = useState(false);
+  const [showLogDefect, setShowLogDefect] = useState(false);
+  const [showAddRisk, setShowAddRisk] = useState(false);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+
+  // ── Add Test Case form state ──────────────────────────────────────────────────
+  const [tcForm, setTcForm] = useState({ testId: "", epic: "", feature: "", story: "", requirementId: "", configItem: "", workbookTab: "", rogerScreen: "", expectedResult: "", tester: "", businessReviewer: "", priority: "Medium" as Priority, status: "Not Started" as TestStatus, comments: "" });
+
+  // ── Log Defect form state ─────────────────────────────────────────────────────
+  const [defForm, setDefForm] = useState({ defectNumber: "", description: "", severity: "Medium" as Priority, priority: "P2" as "P1"|"P2"|"P3"|"P4", assignedDeveloper: "", status: "Open" as DefectStatus, targetFixDate: "", retestStatus: "Pending" as "Pending"|"Passed"|"Failed"|"N/A", comments: "" });
+
+  // ── Add Risk form state ───────────────────────────────────────────────────────
+  const [riskForm, setRiskForm] = useState({ risk: "", businessImpact: "", probability: "Medium" as RiskLevel, mitigation: "", owner: "", status: "Open", targetResolution: "" });
+
+  // ── Excel import handler ──────────────────────────────────────────────────────
+  const handleExcelImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportStatus("Parsing workbook...");
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const data = new Uint8Array(ev.target!.result as ArrayBuffer);
+        const wb = XLSX.read(data, { type: "array" });
+        // Try "UAT Test Cases" sheet first, then first sheet
+        const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes("uat") || n.toLowerCase().includes("test")) ?? wb.SheetNames[0];
+        const ws = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: "" });
+        const testCases = rows.map((row, idx) => ({
+          testId: String(row["Test ID"] || row["TestID"] || row["ID"] || `TC-${String(idx + 1).padStart(3, "0")}`),
+          epic: String(row["Epic"] || row["EPIC"] || ""),
+          feature: String(row["Feature"] || ""),
+          story: String(row["Story"] || row["User Story"] || ""),
+          requirementId: String(row["Requirement ID"] || row["Req ID"] || ""),
+          configItem: String(row["Config Item"] || row["Configuration Item"] || ""),
+          workbookTab: String(row["Workbook Tab"] || row["Tab"] || ""),
+          rogerScreen: String(row["Roger Screen"] || row["Screen"] || ""),
+          expectedResult: String(row["Expected Result"] || row["Expected"] || ""),
+          tester: String(row["Tester"] || ""),
+          businessReviewer: String(row["Business Reviewer"] || row["Reviewer"] || ""),
+          priority: (["Critical","High","Medium","Low"].includes(String(row["Priority"])) ? row["Priority"] : "Medium") as Priority,
+          status: "Not Started" as TestStatus,
+          comments: String(row["Comments"] || ""),
+        }));
+        if (testCases.length === 0) { setImportStatus("No rows found in workbook."); return; }
+        const res = await importTestCasesMutation.mutateAsync({ testCases });
+        setImportStatus(`✓ Imported ${res.count} test case${res.count !== 1 ? "s" : ""} from "${sheetName}"`);
+      } catch (err) {
+        setImportStatus("Import failed — check the workbook format and try again.");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
+  };
+
+  // ── Derived stats (live) ──────────────────────────────────────────────────────
+  const TEST_CASES = dbTestCases as unknown as TestCase[];
+  const DEFECTS = dbDefects as unknown as Defect[];
+  const RISKS_LIVE = dbRisks as unknown as Risk[];
+
   // Derived stats
   const total = TEST_CASES.length;
   const executed = TEST_CASES.filter(t => t.status !== "Not Started").length;
@@ -383,9 +458,9 @@ export default function UATTestingPage() {
     (statusFilter === "All" || t.status === statusFilter) &&
     (priorityFilter === "All" || t.priority === priorityFilter) &&
     (testerFilter === "All" || t.tester === testerFilter)
-  ), [epicFilter, statusFilter, priorityFilter, testerFilter]);
+  ), [TEST_CASES, epicFilter, statusFilter, priorityFilter, testerFilter]);
 
-  const epics = ["All", ...Array.from(new Set(TEST_CASES.map(t => t.epic)))];
+  const epics = ["All", ...Array.from(new Set(TEST_CASES.map(t => t.epic).filter(Boolean)))];
   const testers = ["All", ...Array.from(new Set(TEST_CASES.map(t => t.tester).filter(Boolean)))];
 
   // Ask Buddy send
@@ -426,6 +501,28 @@ export default function UATTestingPage() {
   };
 
   const SECTIONS = ["Overview", "Master Data", "Roger Validation", "Traceability", "Test Execution", "Defects", "Approvals", "Readiness", "Risk Register", "Ask Buddy", "Reports"];
+
+  // ── Modal overlay style ───────────────────────────────────────────────────────────────
+  const modalOverlay: React.CSSProperties = { position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 };
+  const modalBox: React.CSSProperties = { backgroundColor: "white", borderRadius: 12, padding: 28, width: "100%", maxWidth: 640, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" };
+  const formRow: React.CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 };
+  const formField = (label: string, el: React.ReactNode) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <label style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</label>
+      {el}
+    </div>
+  );
+  const inp = (val: string, onChange: (v: string) => void, placeholder?: string): React.ReactNode => (
+    <input value={val} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ padding: "7px 10px", border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 12, color: NAVY, width: "100%", boxSizing: "border-box" }} />
+  );
+  const sel = (val: string, onChange: (v: string) => void, options: string[]): React.ReactNode => (
+    <select value={val} onChange={e => onChange(e.target.value)} style={{ padding: "7px 10px", border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 12, color: NAVY, backgroundColor: "white", width: "100%", boxSizing: "border-box" }}>
+      {options.map(o => <option key={o}>{o}</option>)}
+    </select>
+  );
+  const textarea = (val: string, onChange: (v: string) => void, placeholder?: string): React.ReactNode => (
+    <textarea value={val} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={2} style={{ padding: "7px 10px", border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 12, color: NAVY, width: "100%", boxSizing: "border-box", resize: "vertical" }} />
+  );
 
   return (
     <div style={{ backgroundColor: LIGHT_BG, minHeight: "100vh", fontFamily: "system-ui, -apple-system, sans-serif" }}>
@@ -702,6 +799,18 @@ export default function UATTestingPage() {
           <div>
             {sectionHeader("Test Execution Grid", `${filteredCases.length} of ${total} test cases`, BLUE)}
 
+            {/* Toolbar: Import + Add Test Case */}
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", backgroundColor: NAVY, color: "white", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none" }}>
+                📥 Import from Excel
+                <input type="file" accept=".xlsx,.xls,.csv" style={{ display: "none" }} onChange={handleExcelImport} />
+              </label>
+              <button onClick={() => setShowAddTestCase(true)} style={{ padding: "7px 14px", backgroundColor: GREEN, color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>+ Add Test Case</button>
+              {importStatus && (
+                <span style={{ fontSize: 11, color: importStatus.startsWith("✓") ? GREEN : RED, fontWeight: 600 }}>{importStatus}</span>
+              )}
+            </div>
+
             {/* Filters */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
               {[
@@ -761,7 +870,13 @@ export default function UATTestingPage() {
         {/* ── DEFECTS ── */}
         {activeSection === "Defects" && (
           <div>
-            {sectionHeader("Defect Command Center", "Active Defect Tracking", RED)}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ borderLeft: `4px solid ${RED}`, paddingLeft: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: SLATE, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>Active Defect Tracking</div>
+              <h2 style={{ fontSize: 17, fontWeight: 800, color: NAVY, margin: 0 }}>Defect Command Center</h2>
+            </div>
+            <button onClick={() => setShowLogDefect(true)} style={{ padding: "8px 16px", backgroundColor: RED, color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>+ Log Defect</button>
+          </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12, marginBottom: 24 }}>
               {kpiCard("Open Defects", openDefects, "Total open", openDefects > 0 ? RED : GREEN)}
               {kpiCard("Critical", DEFECTS.filter(d => d.severity === "Critical" && d.status !== "Closed").length, "P1 — must fix", RED)}
@@ -784,7 +899,7 @@ export default function UATTestingPage() {
             </div>
 
             {DEFECTS.length === 0 ? (
-              <EmptyState message="No defects logged — defects will appear here as they are discovered during UAT" />
+              <EmptyState message="No defects logged - use the Log Defect button to record a defect discovered during UAT" />
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
@@ -914,37 +1029,43 @@ export default function UATTestingPage() {
         {/* ── RISK REGISTER ── */}
         {activeSection === "Risk Register" && (
           <div>
-            {sectionHeader("Project Risk Register", "Risk Identification & Mitigation", RED)}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ borderLeft: `4px solid ${RED}`, paddingLeft: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: SLATE, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>Risk Identification &amp; Mitigation</div>
+              <h2 style={{ fontSize: 17, fontWeight: 800, color: NAVY, margin: 0 }}>Project Risk Register</h2>
+            </div>
+            <button onClick={() => setShowAddRisk(true)} style={{ padding: "8px 16px", backgroundColor: AMBER, color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>+ Add Risk</button>
+          </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
               <div style={{ backgroundColor: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 16 }}>Risk Heat Map</div>
-                <RiskHeatMap risks={RISKS} />
+                <RiskHeatMap risks={RISKS_LIVE} />
               </div>
               <div style={{ backgroundColor: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 16 }}>Risk Summary</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  {kpiCard("Total Risks", RISKS.length, "Identified", NAVY)}
-                  {kpiCard("Critical", RISKS.filter(r => r.probability === "Critical").length, "Immediate action", RED)}
-                  {kpiCard("High", RISKS.filter(r => r.probability === "High").length, "Monitor closely", AMBER)}
-                  {kpiCard("Open", RISKS.filter(r => r.status === "Open").length, "Unresolved", BLUE)}
+              {kpiCard("Total Risks", RISKS_LIVE.length, "Identified", NAVY)}
+              {kpiCard("Critical", RISKS_LIVE.filter(r => r.probability === "Critical").length, "Immediate action", RED)}
+              {kpiCard("High", RISKS_LIVE.filter(r => r.probability === "High").length, "Monitor closely", AMBER)}
+              {kpiCard("Open", RISKS_LIVE.filter(r => r.status === "Open").length, "Unresolved", BLUE)}
                 </div>
               </div>
             </div>
 
-            {RISKS.length === 0 ? (
-              <EmptyState message="No risks logged — add risks to the register as they are identified" />
+            {RISKS_LIVE.length === 0 ? (
+              <EmptyState message="No risks logged - use the Add Risk button to identify and track project risks" />
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead>
                     <tr style={{ backgroundColor: NAVY }}>
-                      {["Risk", "Business Impact", "Probability", "Mitigation", "Owner", "Status", "Target Resolution"].map(h => (
+                      {["Risk", "Business Impact", "Probability", "Mitigation", "Owner", "Status", "Target Resolution", ""].map(h => (
                         <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {RISKS.map((r, i) => (
+                    {RISKS_LIVE.map((r, i) => (
                       <tr key={i} style={{ backgroundColor: i % 2 === 0 ? CARD_BG : LIGHT_BG }}>
                         <td style={{ padding: "9px 14px", borderBottom: `1px solid ${BORDER}`, color: NAVY, fontWeight: 600, maxWidth: 200 }}>{r.risk}</td>
                         <td style={{ padding: "9px 14px", borderBottom: `1px solid ${BORDER}`, color: SLATE }}>{r.businessImpact}</td>
@@ -1135,6 +1256,133 @@ export default function UATTestingPage() {
         )}
 
       </div>
+
+      {/* ── ADD TEST CASE MODAL ── */}
+      {showAddTestCase && (
+        <div style={modalOverlay} onClick={() => setShowAddTestCase(false)}>
+          <div style={modalBox} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: NAVY }}>Add Test Case</h3>
+              <button onClick={() => setShowAddTestCase(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SLATE }}>×</button>
+            </div>
+            <div style={formRow}>
+              {formField("Test ID *", inp(tcForm.testId, v => setTcForm(f => ({ ...f, testId: v })), "TC-001"))}
+              {formField("Epic", inp(tcForm.epic, v => setTcForm(f => ({ ...f, epic: v })), "PDC Data Ingestion"))}
+            </div>
+            <div style={formRow}>
+              {formField("Feature", inp(tcForm.feature, v => setTcForm(f => ({ ...f, feature: v })), "Feature name"))}
+              {formField("Requirement ID", inp(tcForm.requirementId, v => setTcForm(f => ({ ...f, requirementId: v })), "REQ-001"))}
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              {formField("Story / Test Scenario", textarea(tcForm.story, v => setTcForm(f => ({ ...f, story: v })), "Describe the user story or test scenario..."))}
+            </div>
+            <div style={formRow}>
+              {formField("Config Item", inp(tcForm.configItem, v => setTcForm(f => ({ ...f, configItem: v })), "Configuration item"))}
+              {formField("Workbook Tab", inp(tcForm.workbookTab, v => setTcForm(f => ({ ...f, workbookTab: v })), "Tax Forms"))}
+            </div>
+            <div style={formRow}>
+              {formField("Roger Screen", inp(tcForm.rogerScreen, v => setTcForm(f => ({ ...f, rogerScreen: v })), "Screen name"))}
+              {formField("Tester", inp(tcForm.tester, v => setTcForm(f => ({ ...f, tester: v })), "Tester name"))}
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              {formField("Expected Result", textarea(tcForm.expectedResult, v => setTcForm(f => ({ ...f, expectedResult: v })), "What should happen when this test is executed?"))}
+            </div>
+            <div style={formRow}>
+              {formField("Business Reviewer", inp(tcForm.businessReviewer, v => setTcForm(f => ({ ...f, businessReviewer: v })), "Reviewer name"))}
+              {formField("Priority", sel(tcForm.priority, v => setTcForm(f => ({ ...f, priority: v as Priority })), ["Critical", "High", "Medium", "Low"]))}
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              {formField("Comments", textarea(tcForm.comments, v => setTcForm(f => ({ ...f, comments: v })), "Optional notes..."))}
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setShowAddTestCase(false)} style={{ padding: "8px 18px", border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", backgroundColor: "white", color: SLATE }}>Cancel</button>
+              <button onClick={async () => {
+                if (!tcForm.testId.trim()) return;
+                await addTestCaseMutation.mutateAsync(tcForm);
+                setTcForm({ testId: "", epic: "", feature: "", story: "", requirementId: "", configItem: "", workbookTab: "", rogerScreen: "", expectedResult: "", tester: "", businessReviewer: "", priority: "Medium", status: "Not Started", comments: "" });
+                setShowAddTestCase(false);
+              }} style={{ padding: "8px 18px", backgroundColor: GREEN, color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Save Test Case</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── LOG DEFECT MODAL ── */}
+      {showLogDefect && (
+        <div style={modalOverlay} onClick={() => setShowLogDefect(false)}>
+          <div style={modalBox} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: NAVY }}>Log Defect</h3>
+              <button onClick={() => setShowLogDefect(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SLATE }}>×</button>
+            </div>
+            <div style={formRow}>
+              {formField("Defect # *", inp(defForm.defectNumber, v => setDefForm(f => ({ ...f, defectNumber: v })), "DEF-001"))}
+              {formField("Severity", sel(defForm.severity, v => setDefForm(f => ({ ...f, severity: v as Priority })), ["Critical", "High", "Medium", "Low"]))}
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              {formField("Description *", textarea(defForm.description, v => setDefForm(f => ({ ...f, description: v })), "Describe the defect in detail..."))}
+            </div>
+            <div style={formRow}>
+              {formField("Priority", sel(defForm.priority, v => setDefForm(f => ({ ...f, priority: v as "P1"|"P2"|"P3"|"P4" })), ["P1", "P2", "P3", "P4"]))}
+              {formField("Status", sel(defForm.status, v => setDefForm(f => ({ ...f, status: v as DefectStatus })), ["Open", "In Progress", "Fixed", "Closed", "Deferred"]))}
+            </div>
+            <div style={formRow}>
+              {formField("Assigned Developer", inp(defForm.assignedDeveloper, v => setDefForm(f => ({ ...f, assignedDeveloper: v })), "Developer name"))}
+              {formField("Target Fix Date", inp(defForm.targetFixDate, v => setDefForm(f => ({ ...f, targetFixDate: v })), "YYYY-MM-DD"))}
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              {formField("Comments", textarea(defForm.comments, v => setDefForm(f => ({ ...f, comments: v })), "Optional notes..."))}
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setShowLogDefect(false)} style={{ padding: "8px 18px", border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", backgroundColor: "white", color: SLATE }}>Cancel</button>
+              <button onClick={async () => {
+                if (!defForm.defectNumber.trim() || !defForm.description.trim()) return;
+                await addDefectMutation.mutateAsync(defForm);
+                setDefForm({ defectNumber: "", description: "", severity: "Medium", priority: "P2", assignedDeveloper: "", status: "Open", targetFixDate: "", retestStatus: "Pending", comments: "" });
+                setShowLogDefect(false);
+              }} style={{ padding: "8px 18px", backgroundColor: RED, color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Log Defect</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ADD RISK MODAL ── */}
+      {showAddRisk && (
+        <div style={modalOverlay} onClick={() => setShowAddRisk(false)}>
+          <div style={modalBox} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: NAVY }}>Add Risk</h3>
+              <button onClick={() => setShowAddRisk(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: SLATE }}>×</button>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              {formField("Risk Description *", textarea(riskForm.risk, v => setRiskForm(f => ({ ...f, risk: v })), "Describe the risk..."))}
+            </div>
+            <div style={formRow}>
+              {formField("Business Impact", inp(riskForm.businessImpact, v => setRiskForm(f => ({ ...f, businessImpact: v })), "e.g. High, Revenue Impact"))}
+              {formField("Probability", sel(riskForm.probability, v => setRiskForm(f => ({ ...f, probability: v as RiskLevel })), ["Critical", "High", "Medium", "Low"]))}
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              {formField("Mitigation Plan", textarea(riskForm.mitigation, v => setRiskForm(f => ({ ...f, mitigation: v })), "How will this risk be mitigated?"))}
+            </div>
+            <div style={formRow}>
+              {formField("Owner", inp(riskForm.owner, v => setRiskForm(f => ({ ...f, owner: v })), "Risk owner"))}
+              {formField("Target Resolution", inp(riskForm.targetResolution, v => setRiskForm(f => ({ ...f, targetResolution: v })), "YYYY-MM-DD"))}
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              {formField("Status", sel(riskForm.status, v => setRiskForm(f => ({ ...f, status: v })), ["Open", "In Progress", "Mitigated", "Closed"]))}
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setShowAddRisk(false)} style={{ padding: "8px 18px", border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", backgroundColor: "white", color: SLATE }}>Cancel</button>
+              <button onClick={async () => {
+                if (!riskForm.risk.trim()) return;
+                await addRiskMutation.mutateAsync(riskForm);
+                setRiskForm({ risk: "", businessImpact: "", probability: "Medium", mitigation: "", owner: "", status: "Open", targetResolution: "" });
+                setShowAddRisk(false);
+              }} style={{ padding: "8px 18px", backgroundColor: AMBER, color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Add Risk</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── FOOTER ── */}
       <div style={{ backgroundColor: NAVY, color: "white", padding: "24px 32px", marginTop: 40 }}>

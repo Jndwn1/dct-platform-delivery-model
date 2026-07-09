@@ -7,7 +7,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { integrationQuestions, deployments } from "../drizzle/schema";
+import { integrationQuestions, deployments, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 
 export const appRouter = router({
@@ -417,6 +417,154 @@ export const appRouter = router({
   }),
 
   uat: router({
+    // ── Test Cases CRUD ────────────────────────────────────────────────────
+    getTestCases: publicProcedure
+      .query(async () => {
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(uatTestCases).orderBy(desc(uatTestCases.createdAt));
+      }),
+    addTestCase: publicProcedure
+      .input(z.object({
+        testId: z.string(),
+        epic: z.string().optional(),
+        feature: z.string().optional(),
+        story: z.string().optional(),
+        requirementId: z.string().optional(),
+        configItem: z.string().optional(),
+        workbookTab: z.string().optional(),
+        rogerScreen: z.string().optional(),
+        expectedResult: z.string().optional(),
+        actualResult: z.string().optional(),
+        tester: z.string().optional(),
+        businessReviewer: z.string().optional(),
+        priority: z.enum(["Critical", "High", "Medium", "Low"]).default("Medium"),
+        status: z.enum(["Not Started", "In Progress", "Passed", "Failed", "Blocked", "Deferred", "Retest Required", "Production Ready"]).default("Not Started"),
+        defectId: z.string().optional(),
+        comments: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.insert(uatTestCases).values({ ...input, retest: 0 });
+        return { success: true };
+      }),
+    updateTestCase: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["Not Started", "In Progress", "Passed", "Failed", "Blocked", "Deferred", "Retest Required", "Production Ready"]).optional(),
+        actualResult: z.string().optional(),
+        tester: z.string().optional(),
+        defectId: z.string().optional(),
+        comments: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        const { id, ...rest } = input;
+        await db.update(uatTestCases).set(rest).where(eq(uatTestCases.id, id));
+        return { success: true };
+      }),
+    deleteTestCase: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.delete(uatTestCases).where(eq(uatTestCases.id, input.id));
+        return { success: true };
+      }),
+    importTestCases: publicProcedure
+      .input(z.object({
+        testCases: z.array(z.object({
+          testId: z.string(),
+          epic: z.string().optional(),
+          feature: z.string().optional(),
+          story: z.string().optional(),
+          requirementId: z.string().optional(),
+          configItem: z.string().optional(),
+          workbookTab: z.string().optional(),
+          rogerScreen: z.string().optional(),
+          expectedResult: z.string().optional(),
+          tester: z.string().optional(),
+          businessReviewer: z.string().optional(),
+          priority: z.enum(["Critical", "High", "Medium", "Low"]).default("Medium"),
+          status: z.enum(["Not Started", "In Progress", "Passed", "Failed", "Blocked", "Deferred", "Retest Required", "Production Ready"]).default("Not Started"),
+          comments: z.string().optional(),
+        }))
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false, count: 0 };
+        if (input.testCases.length === 0) return { success: true, count: 0 };
+        for (const tc of input.testCases) {
+          await db.insert(uatTestCases).values({ ...tc, retest: 0 });
+        }
+        return { success: true, count: input.testCases.length };
+      }),
+    // ── Defects CRUD ───────────────────────────────────────────────────────────
+    getDefects: publicProcedure
+      .query(async () => {
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(uatDefects).orderBy(desc(uatDefects.createdAt));
+      }),
+    addDefect: publicProcedure
+      .input(z.object({
+        defectNumber: z.string(),
+        description: z.string(),
+        severity: z.enum(["Critical", "High", "Medium", "Low"]).default("Medium"),
+        priority: z.enum(["P1", "P2", "P3", "P4"]).default("P2"),
+        assignedDeveloper: z.string().optional(),
+        status: z.enum(["Open", "In Progress", "Fixed", "Closed", "Deferred"]).default("Open"),
+        targetFixDate: z.string().optional(),
+        retestStatus: z.enum(["Pending", "Passed", "Failed", "N/A"]).default("Pending"),
+        comments: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.insert(uatDefects).values({ ...input, daysOpen: 0 });
+        return { success: true };
+      }),
+    deleteDefect: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.delete(uatDefects).where(eq(uatDefects.id, input.id));
+        return { success: true };
+      }),
+    // ── Risks CRUD ─────────────────────────────────────────────────────────────
+    getRisks: publicProcedure
+      .query(async () => {
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(uatRisks).orderBy(desc(uatRisks.createdAt));
+      }),
+    addRisk: publicProcedure
+      .input(z.object({
+        risk: z.string(),
+        businessImpact: z.string().optional(),
+        probability: z.enum(["Critical", "High", "Medium", "Low"]).default("Medium"),
+        mitigation: z.string().optional(),
+        owner: z.string().optional(),
+        status: z.string().optional(),
+        targetResolution: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.insert(uatRisks).values(input);
+        return { success: true };
+      }),
+    deleteRisk: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.delete(uatRisks).where(eq(uatRisks.id, input.id));
+        return { success: true };
+      }),
     askBuddy: publicProcedure
       .input(z.object({ question: z.string() }))
       .mutation(async ({ input }) => {

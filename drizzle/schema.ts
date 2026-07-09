@@ -89,3 +89,66 @@ export const deployments = mysqlTable("deployments", {
 
 export type Deployment = typeof deployments.$inferSelect;
 export type InsertDeployment = typeof deployments.$inferInsert;
+// ─── UAT Test Cases ──────────────────────────────────────────────────────────
+export const uatTestCases = mysqlTable("uat_test_cases", {
+  id: int("id").autoincrement().primaryKey(),
+  testId: varchar("testId", { length: 32 }).notNull(),
+  epic: varchar("epic", { length: 128 }),
+  feature: varchar("feature", { length: 128 }),
+  story: text("story"),
+  requirementId: varchar("requirementId", { length: 64 }),
+  configItem: varchar("configItem", { length: 128 }),
+  workbookTab: varchar("workbookTab", { length: 64 }),
+  rogerScreen: varchar("rogerScreen", { length: 128 }),
+  expectedResult: text("expectedResult"),
+  actualResult: text("actualResult"),
+  tester: varchar("tester", { length: 128 }),
+  businessReviewer: varchar("businessReviewer", { length: 128 }),
+  priority: mysqlEnum("priority", ["Critical", "High", "Medium", "Low"]).default("Medium").notNull(),
+  status: mysqlEnum("status", ["Not Started", "In Progress", "Passed", "Failed", "Blocked", "Deferred", "Retest Required", "Production Ready"]).default("Not Started").notNull(),
+  defectId: varchar("defectId", { length: 32 }),
+  retest: int("retest").default(0).notNull(),
+  comments: text("comments"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UatTestCase = typeof uatTestCases.$inferSelect;
+export type InsertUatTestCase = typeof uatTestCases.$inferInsert;
+
+// ─── UAT Defects ──────────────────────────────────────────────────────────────
+export const uatDefects = mysqlTable("uat_defects", {
+  id: int("id").autoincrement().primaryKey(),
+  defectNumber: varchar("defectNumber", { length: 32 }).notNull(),
+  description: text("description").notNull(),
+  severity: mysqlEnum("severity", ["Critical", "High", "Medium", "Low"]).default("Medium").notNull(),
+  priority: mysqlEnum("priority", ["P1", "P2", "P3", "P4"]).default("P2").notNull(),
+  assignedDeveloper: varchar("assignedDeveloper", { length: 128 }),
+  status: mysqlEnum("status", ["Open", "In Progress", "Fixed", "Closed", "Deferred"]).default("Open").notNull(),
+  targetFixDate: varchar("targetFixDate", { length: 16 }),
+  retestStatus: mysqlEnum("retestStatus", ["Pending", "Passed", "Failed", "N/A"]).default("Pending").notNull(),
+  daysOpen: int("daysOpen").default(0).notNull(),
+  comments: text("comments"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UatDefect = typeof uatDefects.$inferSelect;
+export type InsertUatDefect = typeof uatDefects.$inferInsert;
+
+// ─── UAT Risks ────────────────────────────────────────────────────────────────
+export const uatRisks = mysqlTable("uat_risks", {
+  id: int("id").autoincrement().primaryKey(),
+  risk: text("risk").notNull(),
+  businessImpact: varchar("businessImpact", { length: 32 }),
+  probability: mysqlEnum("probability", ["Critical", "High", "Medium", "Low"]).default("Medium").notNull(),
+  mitigation: text("mitigation"),
+  owner: varchar("owner", { length: 128 }),
+  status: varchar("status", { length: 64 }).default("Open"),
+  targetResolution: varchar("targetResolution", { length: 16 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UatRisk = typeof uatRisks.$inferSelect;
+export type InsertUatRisk = typeof uatRisks.$inferInsert;
