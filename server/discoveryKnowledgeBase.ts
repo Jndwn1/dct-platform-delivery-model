@@ -352,51 +352,64 @@ The simulation walks through the complete lifecycle of a tax engagement from fil
   "/discovery/ba-requirements": {
     pageTitle: "BA Requirement Discovery",
     pagePath: "/discovery/ba-requirements",
-    summary: "BA discovery workflow: 13 questions to ask before writing a story, covering TDC objects, APIs, validations, and governance.",
+    summary: "BA discovery workflow under Stephane Lacombe's operating model: 10-step intake lifecycle, gap analysis classifications, API review (validation only), one feedback cycle, and ownership boundaries.",
     suggestedQuestions: [
-      "What are the 13 BA discovery questions?",
-      "What questions should I ask about TDC objects?",
-      "What governance questions are required?",
-      "What API questions should a BA ask?",
-      "What validation questions are needed for a story?",
+      "What are the 10 steps in the BA discovery lifecycle?",
+      "What does DCT own vs what does the BA own?",
+      "What is the gap analysis classification process?",
+      "What happens during the API review step?",
+      "How does the feedback cycle work?",
     ],
     context: `
-## BA Requirement Discovery — 13 Questions Before Writing a Story
+## BA Requirement Discovery — Operating Model (Stephane Lacombe)
 
-Before writing any user story for the DCT Platform, a BA must answer these 13 questions:
+### Core Principle
+BAs describe business intent. DCT owns platform design, gap analysis, build, QA, and published contracts. There is no endpoint design phase on either side.
 
-### Category 1: Business Context (Questions 1–3)
-1. **Who is the user?** — Identify the persona (Tax Practitioner, Tax Manager, QA Reviewer, etc.)
-2. **What action do they need to perform?** — Describe the specific workflow step in Roger or the platform
-3. **What is the business benefit?** — Articulate the outcome this story enables (e.g., "practitioners can validate AI proposals before they become immutable decisions")
+### The 10-Step Discovery Lifecycle
 
-### Category 2: Platform Context (Questions 4–6)
-4. **Which batch does this story belong to?** — Identify the batch (e.g., B6, B9, B42) that owns this capability
-5. **Which TDC business object is involved?** — Identify the specific TDC object (e.g., MappingDecision, Adjustment, SignOffRecord)
-6. **Which API endpoint does this story call?** — Identify the specific REST endpoint (e.g., PUT /api/v1/adjustments/{id})
+**Steps 1–2 (BA owns):**
+1. **Business Need** — Identify and articulate the business problem. Describe what the practitioner needs to capture, change, correct, approve, remove, or retrieve, and by which handles.
+2. **BA Requirements** — Submit using the DCT intake template. Write at user-story altitude: what the practitioner does, the business outcome, the business process, the required data, user actions, and business rules. No API design, no endpoint definitions, no payload structures.
 
-### Category 3: Roger Screen Context (Questions 7–8)
-7. **Which Roger screen does this story appear on?** — Map to a specific Roger screen (Mapping Review, Adjustments, Sign-Off, etc.)
-8. **What fields are editable by the user?** — List all fields the practitioner can modify on this screen
+**Steps 3–6 (DCT owns):**
+3. **DCT Intake** — DCT receives requirements via the intake template. This is the formal handoff point — DCT takes ownership of platform design.
+4. **Gap Analysis** — DCT runs AI-assisted gap analysis against existing platform contracts. Each requirement is classified as: Covered (integration starts immediately), Partially Covered (scoping agreement produced), or Net-New (DCT authors the build spec).
+5. **Platform Specification** — DCT authors the implementation specification. Requirements plus platform conventions become the build spec, with an explicit assumption list.
+6. **Platform Build** — DCT generates the initial platform build. First built iteration exists within days of clearing gap analysis.
 
-### Category 4: Validation & Error Handling (Questions 9–10)
-9. **What validation rules apply?** — List all field-level and business-level validations
-10. **What happens when validation fails?** — Define the error state, error message, and recovery path
+**Step 7 (BA + Team — validation only):**
+7. **API Review** — Review one question: can everything described be done through what is on this page, and are the assumptions right? This is validation, not design.
 
-### Category 5: Governance (Questions 11–13)
-11. **Is this record immutable once submitted?** — If yes, add immutability AC and HTTP 409 error handling
-12. **Does this story require an audit record?** — If yes, define what is captured (timestamp, actor, previous state, new state, correlation ID)
-13. **Does this story require sign-off?** — If yes, define authentication requirements and the sign-off API call
+**Step 8 (BA + DCT — shared):**
+8. **Feedback Cycle** — One consolidated feedback pass. Issues come back as one response within five business days; silence confirms. A miss means a spec fix and a rebuild — days, not batches. Disputes route to the DCT Product Owner.
 
-### Story Readiness Checklist
-A story is ready for ADO when all 13 questions are answered AND:
-- [ ] TDC object is identified
-- [ ] API endpoint is specified
-- [ ] Roger screen is mapped
-- [ ] All validations are listed
-- [ ] Governance flags are set (immutable / audit / sign-off)
-- [ ] Acceptance criteria cover all 13 answers
-- [ ] Definition of Done is complete
+**Steps 9–10 (DCT owns):**
+9. **QA** — DCT runs QA against the published spec. Consuming teams do not run DCT QA — they test their own integration.
+10. **Published Contract** — The contract publishes. Consuming teams integrate against the published contract.
+
+### Gap Analysis Classifications
+- **Covered** — Capability exists. Integration starts immediately against the existing contract.
+- **Partially Covered** — Scoping agreement produced. Shows what is covered and what is net-new.
+- **Net-New** — DCT authors the build spec. First iteration available within days.
+
+### Ownership Boundaries
+**BA owns:** Business requirements, practitioner workflows, business rules, acceptance criteria, validation of business intent, review of DCT-generated assumptions.
+**BA does NOT own:** API design, endpoint design, payload modeling, integration architecture, technical implementation.
+
+**DCT owns:** Gap analysis, platform design, API contracts, build specifications, platform implementation, QA, published contracts.
+**DCT does NOT own:** Business requirements, practitioner workflow decisions, acceptance criteria, application-specific testing.
+
+### Story Template (Business Intent Level)
+As a [tax professional role],
+I want to [action — capture / change / correct / approve / remove / retrieve],
+So that [business outcome].
+
+Business Process: [describe the practitioner workflow]
+Required Data: [what data is needed, by which handles]
+Business Rules: [what rules govern this action]
+
+Note: Do not include API endpoints, payload fields, or technical implementation details. DCT derives those from the business intent.
 `,
   },
 
@@ -404,47 +417,45 @@ A story is ready for ADO when all 13 questions are answered AND:
   "/discovery/checklist": {
     pageTitle: "Discovery Checklist",
     pagePath: "/discovery/checklist",
-    summary: "13-item interactive checklist for story readiness before submitting to Azure DevOps.",
+    summary: "Interactive story readiness checklist covering business context, TDC platform context, Roger screen context, validations, and governance flags.",
     suggestedQuestions: [
-      "What are the 13 checklist items?",
-      "What must be true before a story is ADO-ready?",
+      "What checklist items are required before a story is ADO-ready?",
+      "What must be true before a story is submitted?",
       "What governance items are on the checklist?",
-      "What API items are required?",
+      "What business context items are required?",
       "What does Definition of Done require?",
     ],
     context: `
-## Discovery Checklist — 13 Story Readiness Items
+## Discovery Checklist — Story Readiness Items
 
-A story is ADO-ready when all 13 items are checked:
+A story is ADO-ready when all items are checked. Note: BAs document business intent; DCT derives API endpoints from that intent. Do not include endpoint design in BA requirements.
 
 ### Business Context
-1. ☐ Persona identified (Tax Practitioner, Tax Manager, QA Reviewer, etc.)
-2. ☐ Action described in plain business language
-3. ☐ Business benefit articulated (what outcome does this enable?)
+1. ☐ Business objective defined (what business problem does this story solve?)
+2. ☐ TDC owner identified (which TDC domain owns the object or API?)
+3. ☐ Data owner confirmed (PDC or TDC?)
 
-### Platform Context
-4. ☐ Batch identified (e.g., B6, B9, B42)
-5. ☐ TDC business object identified (e.g., MappingDecision, Adjustment)
-6. ☐ API endpoint specified (e.g., PUT /api/v1/adjustments/{id})
+### Platform Context (Reference only — DCT derives from business intent)
+4. ☐ APIs identified (Read API and Update API if applicable)
+5. ☐ Required fields documented
+6. ☐ Validation rules documented
+7. ☐ Error handling documented
 
 ### Roger Screen Context
-7. ☐ Roger screen mapped (e.g., Roger Mapping Review, Roger Adjustments Screen)
-8. ☐ Editable fields listed
+8. ☐ UI behavior documented (screen layout, actions, buttons, save behavior)
+9. ☐ Security documented (authentication, role-based access, field-level security)
 
-### Validation & Error Handling
-9. ☐ Validation rules listed (field-level and business-level)
-10. ☐ Error handling defined (error state, message, recovery path)
-
-### Governance
-11. ☐ Immutability flag set (if record is immutable once submitted)
-12. ☐ Audit requirement confirmed (if state change requires audit record)
-13. ☐ Sign-off requirement confirmed (if practitioner authentication is required)
+### Downstream & Governance
+10. ☐ Audit requirements captured
+11. ☐ Lineage reviewed
+12. ☐ Downstream impacts understood (IMS, Roger, State, Provision, reporting)
+13. ☐ Acceptance Criteria complete (Given/When/Then covering happy path, errors, edge cases)
 
 ### Definition of Done (Required for all stories)
-- API endpoint implemented and unit tested
+- API contract published by DCT
 - Roger UI screen renders correctly with live API data
 - All acceptance criteria verified by QA
-- Consumer Guide updated to reflect new endpoint
+- Consumer Guide updated to reflect new contract
 - Story demo-ready for PI review
 `,
   },

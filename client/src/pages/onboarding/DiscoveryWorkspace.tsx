@@ -647,18 +647,18 @@ function DiscoveryQuestionsSection() {
 type Message = { role: "user" | "assistant"; content: string };
 
 const BUDDY_SUGGESTED = [
+  "Does DCT already support this capability?",
+  "What is the gap analysis classification process?",
   "Which Batch supports State tax data access?",
-  "Which APIs support Provision schedules?",
   "How does Batch 28 work?",
-  "What does Roger provide to practitioners?",
-  "What information does IMS route to return engines?",
-  "Does DCT already support audit trail for provision?",
+  "What does the BA own vs what does DCT own?",
+  "How does the feedback cycle work?",
 ];
 
 function AskBuddySection() {
   const [messages, setMessages] = useState<Message[]>([{
     role: "assistant",
-    content: "👋 I'm Ask Buddy. I'm pre-loaded with full context for Batch 9A, Batch 16, Batch 28, the Discovery Center, and the DCT architecture.\n\nBefore documenting any new requirement, ask me whether DCT already supports it. I will check existing capabilities first and identify the relevant Feature, Batch, and APIs.",
+    content: "👋 I'm Ask Buddy. I'm pre-loaded with full context for Batch 9A, Batch 16, Batch 28, the Discovery Center, and the DCT architecture.\n\nBefore documenting any new requirement, ask me whether DCT already supports it. I'll check existing capabilities first and classify the gap as Covered, Partially Covered, or Net-New.\n\nRemember: describe what the practitioner needs to do — DCT derives the API from your business intent. There is no endpoint design phase.",
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);

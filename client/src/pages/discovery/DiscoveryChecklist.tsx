@@ -106,7 +106,7 @@ export default function DiscoveryChecklist() {
             <div style={{ textAlign: "right", fontSize: "11px", color: "#64748b" }}>
               <div>Printed: {printDate}</div>
               {baName && <div>BA: {baName}</div>}
-              {sprintName && <div>Sprint: {sprintName}</div>}
+              {sprintName && <div>Batch / PI: {sprintName}</div>}
             </div>
           </div>
           {storyName && (
@@ -151,7 +151,7 @@ export default function DiscoveryChecklist() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "20px" }} className="no-print">
         {[
           { label: "Story / Feature Name", value: storyName, setter: setStoryName, placeholder: "e.g., B9 — Roger Account Mapping" },
-          { label: "Sprint Name", value: sprintName, setter: setSprintName, placeholder: "e.g., PI3 Sprint 1" },
+          { label: "Batch / PI", value: sprintName, setter: setSprintName, placeholder: "e.g., PI3 Batch 9A" },
           { label: "BA Name", value: baName, setter: setBAName, placeholder: "e.g., Jenniver" },
         ].map(field => (
           <div key={field.label}>
@@ -179,7 +179,7 @@ export default function DiscoveryChecklist() {
           <div style={{ marginBottom: "16px", padding: "8px 12px", backgroundColor: "#f8fafc", borderRadius: "6px", borderLeft: "3px solid #1e3a5f" }}>
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748b" }}>Story: </span>
             <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>{storyName}</span>
-            {sprintName && <span style={{ fontSize: "11px", color: "#64748b", marginLeft: "16px" }}>Sprint: {sprintName}</span>}
+            {sprintName && <span style={{ fontSize: "11px", color: "#64748b", marginLeft: "16px" }}>Batch / PI: {sprintName}</span>}
             {baName && <span style={{ fontSize: "11px", color: "#64748b", marginLeft: "16px" }}>BA: {baName}</span>}
           </div>
         </div>
