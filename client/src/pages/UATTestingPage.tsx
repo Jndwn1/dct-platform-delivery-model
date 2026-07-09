@@ -53,53 +53,25 @@ type SignoffRow = {
   signature: string;
 };
 
-// ─── Seed Data ────────────────────────────────────────────────────────────────
-const TEST_CASES: TestCase[] = [
-  { testId: "UAT-001", epic: "PDC Data Ingestion", feature: "Trial Balance Upload", story: "As a practitioner, I can upload a trial balance file", requirement: "REQ-PDC-001", businessProcess: "Data Ingestion", tester: "Neha Sethi", status: "Passed", priority: "Critical", executionDate: "2026-08-05", result: "Pass", defectId: "", comments: "All 47 TB accounts mapped correctly" },
-  { testId: "UAT-002", epic: "PDC Data Ingestion", feature: "Trial Balance Upload", story: "As a practitioner, I can validate TB account mapping", requirement: "REQ-PDC-002", businessProcess: "Data Ingestion", tester: "Neha Sethi", status: "Passed", priority: "Critical", executionDate: "2026-08-05", result: "Pass", defectId: "", comments: "TCC pattern validation confirmed" },
-  { testId: "UAT-003", epic: "TDC Tax Classification", feature: "Tax Taxonomy", story: "As a practitioner, I can view the tax taxonomy hierarchy", requirement: "REQ-TDC-001", businessProcess: "Tax Classification", tester: "Krista Gigliotti", status: "Passed", priority: "High", executionDate: "2026-08-06", result: "Pass", defectId: "", comments: "Form 1120 taxonomy loaded correctly" },
-  { testId: "UAT-004", epic: "TDC Tax Classification", feature: "Adjustment Rules", story: "As a practitioner, book-to-tax adjustments are computed automatically", requirement: "REQ-TDC-002", businessProcess: "Tax Computation", tester: "Krista Gigliotti", status: "In Progress", priority: "Critical", executionDate: "2026-08-07", result: "Pending", defectId: "", comments: "Testing permanent vs temporary adjustments" },
-  { testId: "UAT-005", epic: "TDC Tax Classification", feature: "Adjustment Rules", story: "As a practitioner, I can view M-1/M-3 reconciliation output", requirement: "REQ-TDC-003", businessProcess: "Tax Computation", tester: "Courtney Saunders", status: "Not Started", priority: "Critical", executionDate: "", result: "", defectId: "", comments: "Scheduled for Aug 10" },
-  { testId: "UAT-006", epic: "Orchestrator", feature: "Agent Execution", story: "As a practitioner, the Orchestrator triggers tax computation automatically", requirement: "REQ-ORC-001", businessProcess: "AI Orchestration", tester: "Neha Sethi", status: "In Progress", priority: "High", executionDate: "2026-08-07", result: "Pending", defectId: "", comments: "Stateless execution confirmed; testing retry logic" },
-  { testId: "UAT-007", epic: "Orchestrator", feature: "Agent Execution", story: "As a practitioner, failed agent steps are retried automatically", requirement: "REQ-ORC-002", businessProcess: "AI Orchestration", tester: "Neha Sethi", status: "Failed", priority: "High", executionDate: "2026-08-07", result: "Fail", defectId: "DEF-001", comments: "Retry count exceeded on large TB files" },
-  { testId: "UAT-008", epic: "Roger Consumer", feature: "Roger UI", story: "As a practitioner, I can view tax computation results in Roger", requirement: "REQ-ROG-001", businessProcess: "Practitioner Consumption", tester: "Courtney Saunders", status: "Blocked", priority: "Critical", executionDate: "2026-08-08", result: "Blocked", defectId: "DEF-002", comments: "Auth provisioning not yet complete for UAT env" },
-  { testId: "UAT-009", epic: "Roger Consumer", feature: "Roger UI", story: "As a practitioner, I can export Roger output to GoSystem", requirement: "REQ-ROG-002", businessProcess: "Practitioner Consumption", tester: "Courtney Saunders", status: "Not Started", priority: "High", executionDate: "", result: "", defectId: "", comments: "Depends on UAT-008 resolution" },
-  { testId: "UAT-010", epic: "IMS Integration", feature: "GoSystem Tax", story: "As a practitioner, tax data is transmitted to GoSystem correctly", requirement: "REQ-IMS-001", businessProcess: "IMS Integration", tester: "Krista Gigliotti", status: "Not Started", priority: "Critical", executionDate: "", result: "", defectId: "", comments: "Scheduled for Aug 12" },
-  { testId: "UAT-011", epic: "PDC Data Ingestion", feature: "Entity Management", story: "As a practitioner, I can manage entity types and jurisdictions", requirement: "REQ-PDC-003", businessProcess: "Data Ingestion", tester: "Neha Sethi", status: "Passed", priority: "Medium", executionDate: "2026-08-06", result: "Pass", defectId: "", comments: "FEDERAL/STATE/LOCAL/INTERNATIONAL confirmed" },
-  { testId: "UAT-012", epic: "TDC Tax Classification", feature: "Return Templates", story: "As a practitioner, return templates are pre-populated from TB data", requirement: "REQ-TDC-004", businessProcess: "Tax Computation", tester: "Krista Gigliotti", status: "Passed", priority: "High", executionDate: "2026-08-06", result: "Pass", defectId: "", comments: "Form 1120 lines 1–28 validated" },
-  { testId: "UAT-013", epic: "Orchestrator", feature: "Lineage Tracking", story: "As a practitioner, I can trace data lineage from TB to return line", requirement: "REQ-ORC-003", businessProcess: "Lineage & Audit", tester: "Courtney Saunders", status: "In Progress", priority: "High", executionDate: "2026-08-08", result: "Pending", defectId: "", comments: "Lineage closure testing in progress" },
-  { testId: "UAT-014", epic: "PDC Data Ingestion", feature: "Data Quality", story: "As a practitioner, data quality rules are enforced on upload", requirement: "REQ-PDC-004", businessProcess: "Data Ingestion", tester: "Neha Sethi", status: "Passed", priority: "Medium", executionDate: "2026-08-05", result: "Pass", defectId: "", comments: "Null checks and type validations confirmed" },
-  { testId: "UAT-015", epic: "IMS Integration", feature: "Provision Reference Data", story: "As a practitioner, provision reference data is loaded correctly", requirement: "REQ-IMS-002", businessProcess: "IMS Integration", tester: "Krista Gigliotti", status: "Not Started", priority: "High", executionDate: "", result: "", defectId: "", comments: "B28 scope: DTAClassification, DTLClassification" },
-  { testId: "UAT-016", epic: "Roger Consumer", feature: "Workpaper Generation", story: "As a practitioner, workpapers are generated from TDC output", requirement: "REQ-ROG-003", businessProcess: "Practitioner Consumption", tester: "Courtney Saunders", status: "Not Started", priority: "Medium", executionDate: "", result: "", defectId: "", comments: "Depends on TDC adjustment rules completion" },
-  { testId: "UAT-017", epic: "TDC Tax Classification", feature: "Deferred Tax", story: "As a practitioner, deferred tax assets and liabilities are computed", requirement: "REQ-TDC-005", businessProcess: "Tax Computation", tester: "Krista Gigliotti", status: "Not Started", priority: "Critical", executionDate: "", result: "", defectId: "", comments: "B28 scope: DTAClassification, DTLClassification" },
-  { testId: "UAT-018", epic: "PDC Data Ingestion", feature: "API Endpoints", story: "As a developer, PDC bulk upload API accepts valid payloads", requirement: "REQ-PDC-005", businessProcess: "API Validation", tester: "Neha Sethi", status: "Passed", priority: "High", executionDate: "2026-08-05", result: "Pass", defectId: "", comments: "POST /api/v1/trial-balance/bulk-upload confirmed" },
-  { testId: "UAT-019", epic: "TDC Tax Classification", feature: "API Endpoints", story: "As a developer, TDC tax forms API returns correct line data", requirement: "REQ-TDC-006", businessProcess: "API Validation", tester: "Neha Sethi", status: "Passed", priority: "High", executionDate: "2026-08-06", result: "Pass", defectId: "", comments: "POST /api/TaxForms/bulk-upload confirmed" },
-  { testId: "UAT-020", epic: "Orchestrator", feature: "Contract Publication", story: "As a developer, published API contracts match Swagger spec", requirement: "REQ-ORC-004", businessProcess: "API Validation", tester: "Courtney Saunders", status: "Retest Required", priority: "High", executionDate: "2026-08-07", result: "Retest", defectId: "DEF-003", comments: "Minor schema mismatch on ETRCategory field" },
-];
+// ─── Data ─────────────────────────────────────────────────────────────────────
+// No test cases loaded — populate from the DCT Enterprise Master Data Workbook
+const TEST_CASES: TestCase[] = [];
 
-const DEFECTS: Defect[] = [
-  { defectNumber: "DEF-001", description: "Orchestrator retry logic fails on trial balance files > 5MB — retry count exceeded without fallback", severity: "High", priority: "P1", assignedDeveloper: "Platform Team", status: "In Progress", targetFixDate: "2026-08-12", retestStatus: "Pending", comments: "Root cause: timeout threshold too low for large files" },
-  { defectNumber: "DEF-002", description: "Roger authentication not provisioned in UAT environment — all Roger UI tests blocked", severity: "Critical", priority: "P1", assignedDeveloper: "Platform Team", status: "Open", targetFixDate: "2026-08-10", retestStatus: "Pending", comments: "Auth provisioning request submitted to platform team" },
-  { defectNumber: "DEF-003", description: "ETRCategory field schema mismatch between published contract and Swagger spec — nullable vs required", severity: "Medium", priority: "P2", assignedDeveloper: "TDC Team", status: "Fixed", targetFixDate: "2026-08-09", retestStatus: "Pending", comments: "Fix deployed to UAT env; awaiting retest" },
-];
+// No defects logged — log defects as they are discovered during UAT
+const DEFECTS: Defect[] = [];
 
-const SIGNOFF_ROWS: SignoffRow[] = [
-  { businessArea: "PDC — Financial Data", businessOwner: "Jenniver Dawn Stafford", dateTested: "2026-08-06", approvalStatus: "Approved", signature: "J. Stafford" },
-  { businessArea: "TDC — Tax Classification", businessOwner: "Stephane Lacombe", dateTested: "", approvalStatus: "Pending", signature: "" },
-  { businessArea: "Orchestrator — AI Execution", businessOwner: "Stephane Lacombe", dateTested: "", approvalStatus: "Pending", signature: "" },
-  { businessArea: "Roger — Practitioner UI", businessOwner: "Jenniver Dawn Stafford", dateTested: "", approvalStatus: "Pending", signature: "" },
-  { businessArea: "IMS — GoSystem Integration", businessOwner: "Jenniver Dawn Stafford", dateTested: "", approvalStatus: "Pending", signature: "" },
-];
+// No signoff entries — business owners will sign off as UAT areas are completed
+const SIGNOFF_ROWS: SignoffRow[] = [];
 
 const RELEASE_READINESS = [
-  { item: "Requirements Complete", status: true, owner: "Jenniver Dawn Stafford", notes: "All B1–B10 requirements documented" },
-  { item: "Stories Complete", status: true, owner: "Jenniver Dawn Stafford", notes: "20 UAT stories authored and linked" },
-  { item: "Testing Complete", status: false, owner: "Neha Sethi", notes: "In progress — 60% complete" },
-  { item: "Regression Complete", status: false, owner: "Krista Gigliotti", notes: "Not started — scheduled Aug 15" },
-  { item: "Critical Defects Closed", status: false, owner: "Platform Team", notes: "DEF-001, DEF-002 open" },
-  { item: "Deployment Ready", status: false, owner: "Stephane Lacombe", notes: "Pending testing completion" },
-  { item: "Business Approval", status: false, owner: "Jenniver Dawn Stafford", notes: "Pending — 4 of 5 areas pending signoff" },
-  { item: "Go / No Go", status: false, owner: "Stephane Lacombe", notes: "Decision: September 14, 2026" },
+  { item: "Requirements Complete",  status: false, owner: "", notes: "" },
+  { item: "Stories Complete",        status: false, owner: "", notes: "" },
+  { item: "Testing Complete",        status: false, owner: "", notes: "" },
+  { item: "Regression Complete",     status: false, owner: "", notes: "" },
+  { item: "Critical Defects Closed", status: false, owner: "", notes: "" },
+  { item: "Deployment Ready",        status: false, owner: "", notes: "" },
+  { item: "Business Approval",       status: false, owner: "", notes: "" },
+  { item: "Go / No Go",              status: false, owner: "", notes: "" },
 ];
 
 // ─── Status badge helper ───────────────────────────────────────────────────────
