@@ -17,7 +17,7 @@ export default function UATWorkflowDiagram() {
 
   // Canvas
   const W = 860;
-  const H = 820;
+  const H = 850;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function Box({
@@ -168,6 +168,7 @@ export default function UATWorkflowDiagram() {
   const Y_YES_PARTIAL = 600; // Partial / Full Reload row
   const Y_YES_ROGER   = 680; // Reload Roger
   const Y_YES_REVAL   = 750; // Business Revalidation
+  const BH_REVAL = 72; // taller box so label + subtitle don't overlap
 
   return (
     <div style={{
@@ -312,14 +313,14 @@ export default function UATWorkflowDiagram() {
         <Arrow x1={YX} y1={Y_YES_ROGER + BH_SM} x2={YX} y2={Y_YES_REVAL - 6} color={SLATE} />
 
         {/* Business Revalidation */}
-        <Box x={YX - BW_Y / 2} y={Y_YES_REVAL} w={BW_Y} h={BH_SM}
+        <Box x={YX - BW_Y / 2} y={Y_YES_REVAL} w={BW_Y} h={BH_REVAL}
           label="Business Revalidation" sub="Re-test Affected Data"
           fill={LBLUE} stroke={BLUE} textColor={NAVY} />
 
         {/* ── FEEDBACK LOOP: Revalidation → Business Validation ─────────── */}
         {/* Single clean curved arrow going left from Revalidation back up to Business Validation */}
         <PathArrow
-          d={`M ${YX - BW_Y / 2} ${Y_YES_REVAL + BH_SM / 2}
+          d={`M ${YX - BW_Y / 2} ${Y_YES_REVAL + BH_REVAL / 2}
               C ${YX - BW_Y / 2 - 80} ${Y_YES_REVAL + BH_SM / 2},
                 ${MX + BW / 2 + 80} ${Y3 + BH / 2},
                 ${MX + (BW + 16) / 2 + 4} ${Y3 + (BH + 4) / 2}`}
