@@ -168,48 +168,100 @@ export default function UATTestingPage() {
 
       {/* ── Section 2: UAT Objectives ── */}
       <section style={{ marginBottom: 40 }}>
-        <SectionHeader number="02" title="UAT Objectives" icon="📋" color={TEAL} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+        <SectionHeader number="02" title="UAT Objectives" icon="📋" color={NAVY} />
+
+        {/* Executive summary statement */}
+        <p style={{
+          margin: "0 0 28px", fontSize: 15, color: "#1e293b",
+          lineHeight: 1.7, fontStyle: "italic", fontWeight: 400,
+          borderLeft: `3px solid ${BLUE}`, paddingLeft: 16,
+        }}>
+          The objective of UAT is to validate the accuracy, integrity, and readiness of master data before production deployment.
+        </p>
+
+        {/* Vertical process flow */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", maxWidth: 680 }}>
           {[
             {
-              icon: "01", label: "Validate Master Data",
-              detail: "Validate that the master data loaded into Roger matches the approved Master Data Workbook.",
-              accent: BLUE,
+              icon: "✔",
+              label: "Validate Master Data",
+              detail: "Confirm that the master data loaded into Roger matches the approved Master Data Workbook.",
+              isApproval: false,
             },
             {
-              icon: "02", label: "Verify Data Integrity",
-              detail: "Confirm that relationships and dependencies across reference data are complete and accurate.",
-              accent: NAVY,
+              icon: "✔",
+              label: "Verify Data Integrity",
+              detail: "Validate relationships and dependencies across reference data to ensure completeness and consistency.",
+              isApproval: false,
             },
             {
-              icon: "03", label: "Validate Business Rules",
-              detail: "Verify that mappings, configurations, tax forms, jurisdictions, and business rules function as expected.",
-              accent: "#1e3a5f",
+              icon: "✔",
+              label: "Validate Business Rules",
+              detail: "Confirm that mappings, tax forms, configurations, jurisdictions, and business rules function as expected.",
+              isApproval: false,
             },
             {
-              icon: "04", label: "Resolve Defects",
-              detail: "Identify, document, and resolve master data defects before production deployment.",
-              accent: "#7c3aed",
+              icon: "✔",
+              label: "Resolve Defects",
+              detail: "Document, prioritize, and resolve master data defects identified during UAT.",
+              isApproval: false,
             },
             {
-              icon: "05", label: "Business Approval",
+              icon: "✔",
+              label: "Business Approval",
               detail: "Obtain business approval confirming the master data is production-ready.",
-              accent: GREEN,
+              isApproval: true,
             },
-          ].map((obj, i) => (
-            <div key={i} style={{
-              backgroundColor: "white", border: `1px solid ${BORDER}`,
-              borderRadius: 10, overflow: "hidden",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-            }}>
+          ].map((obj, i, arr) => (
+            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
+              {/* Card */}
               <div style={{
-                backgroundColor: obj.accent, padding: "10px 18px",
-                display: "flex", alignItems: "center", gap: 8,
+                display: "flex", alignItems: "flex-start", gap: 16,
+                backgroundColor: obj.isApproval ? "#f0fdf4" : "white",
+                border: `1px solid ${obj.isApproval ? "#bbf7d0" : BORDER}`,
+                borderLeft: `4px solid ${obj.isApproval ? "#059669" : NAVY}`,
+                borderRadius: 8, padding: "18px 22px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
               }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.7)", letterSpacing: "0.08em" }}>{obj.icon}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "white" }}>{obj.label}</span>
+                {/* Check icon */}
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+                  backgroundColor: obj.isApproval ? "#059669" : NAVY,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 12, color: "white", fontWeight: 700,
+                }}>{obj.icon}</div>
+                {/* Text */}
+                <div>
+                  <div style={{
+                    fontSize: 14, fontWeight: 700,
+                    color: obj.isApproval ? "#065f46" : NAVY,
+                    marginBottom: 4,
+                  }}>{obj.label}</div>
+                  <div style={{ fontSize: 13, color: SLATE, lineHeight: 1.65 }}>{obj.detail}</div>
+                </div>
               </div>
-              <p style={{ margin: 0, padding: "14px 18px", fontSize: 12.5, color: SLATE, lineHeight: 1.7 }}>{obj.detail}</p>
+              {/* Connector arrow (not after last item) */}
+              {i < arr.length - 1 && (
+                <div style={{
+                  display: "flex", justifyContent: "flex-start",
+                  paddingLeft: 35, margin: "0",
+                }}>
+                  <div style={{
+                    width: 1, height: 24,
+                    backgroundColor: "#cbd5e1",
+                    position: "relative",
+                  }}>
+                    <div style={{
+                      position: "absolute", bottom: -4, left: "50%",
+                      transform: "translateX(-50%)",
+                      width: 0, height: 0,
+                      borderLeft: "4px solid transparent",
+                      borderRight: "4px solid transparent",
+                      borderTop: "5px solid #cbd5e1",
+                    }} />
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
