@@ -136,47 +136,80 @@ export default function UATTestingPage() {
       <section style={{ marginBottom: 40 }}>
         <SectionHeader number="01" title="Purpose" icon="🎯" color={BLUE} />
         <div style={{
-          backgroundColor: LIGHT, border: `1px solid ${BORDER}`,
-          borderRadius: 10, padding: "22px 26px",
+          backgroundColor: "white", border: `1px solid ${BORDER}`,
+          borderRadius: 10, padding: "28px 32px",
         }}>
-          <p style={{ margin: "0 0 14px", fontSize: 14, color: "#1e293b", lineHeight: 1.8 }}>
-            The <strong>DCT Enterprise Master Data Workbook</strong> serves as the authoritative source of truth for all master data
-            used to seed the DCT platform. It defines the reference data, tax form mappings, statutory filing due dates,
-            taxonomy structures, and entity configurations that drive platform behavior.
+          <p style={{ margin: "0 0 18px", fontSize: 14.5, color: "#1e293b", lineHeight: 1.85, maxWidth: 820 }}>
+            The <strong style={{ color: NAVY }}>DCT Enterprise Master Data Workbook</strong> is the authoritative source of truth for all master data loaded into the Roger application. It defines the reference data, taxonomy, tax forms, tax form lines, mapping rules, return templates, filing due dates, entity types, jurisdictions, and configuration data that drive application behavior.
           </p>
-          <p style={{ margin: 0, fontSize: 14, color: "#1e293b", lineHeight: 1.8 }}>
-            The purpose of UAT is to <strong>validate that master data has been loaded accurately into the Roger application</strong> and
-            behaves as expected under real business conditions. UAT confirms that all data relationships are intact, all
-            mappings are correct, and the platform is ready for production use.
+          <p style={{ margin: 0, fontSize: 14.5, color: "#1e293b", lineHeight: 1.85, maxWidth: 820 }}>
+            The purpose of User Acceptance Testing (UAT) is to validate that the approved master data has been accurately loaded into Roger, that relationships and mappings function correctly, and that the application is ready for business approval and production deployment.
           </p>
+
+          {/* Reference Artifact Callout */}
+          <div style={{
+            marginTop: 24, display: "flex", alignItems: "center", gap: 16,
+            backgroundColor: "#f0f6ff", border: "1px solid #bfdbfe",
+            borderRadius: 8, padding: "14px 20px",
+          }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+              backgroundColor: BLUE, display: "flex", alignItems: "center",
+              justifyContent: "center", fontSize: 16,
+            }}>📎</div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: BLUE, marginBottom: 2 }}>Reference Artifact</div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: NAVY }}>DCT Enterprise Master Data Workbook</div>
+              <div style={{ fontSize: 12, color: SLATE, marginTop: 2 }}>Authoritative Source of Truth for all master data loaded into Roger.</div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── Section 2: UAT Objectives ── */}
       <section style={{ marginBottom: 40 }}>
-        <SectionHeader number="02" title="UAT Objectives" icon="🎯" color={TEAL} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+        <SectionHeader number="02" title="UAT Objectives" icon="📋" color={TEAL} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
           {[
-            { icon: "✅", text: "Validate all loaded master data against the approved workbook", color: GREEN },
-            { icon: "🔗", text: "Confirm relationships between reference data entities", color: BLUE },
-            { icon: "📄", text: "Verify tax forms and line-level mappings are accurate", color: "#7c3aed" },
-            { icon: "📅", text: "Validate statutory filing due dates and jurisdiction rules", color: AMBER },
-            { icon: "🗂️", text: "Confirm taxonomy mappings align with business definitions", color: TEAL },
-            { icon: "🐛", text: "Identify and log data defects for resolution", color: "#7f1d1d" },
-            { icon: "🏭", text: "Ensure all data is production-ready before go-live", color: NAVY },
+            {
+              icon: "01", label: "Validate Master Data",
+              detail: "Validate that the master data loaded into Roger matches the approved Master Data Workbook.",
+              accent: BLUE,
+            },
+            {
+              icon: "02", label: "Verify Data Integrity",
+              detail: "Confirm that relationships and dependencies across reference data are complete and accurate.",
+              accent: NAVY,
+            },
+            {
+              icon: "03", label: "Validate Business Rules",
+              detail: "Verify that mappings, configurations, tax forms, jurisdictions, and business rules function as expected.",
+              accent: "#1e3a5f",
+            },
+            {
+              icon: "04", label: "Resolve Defects",
+              detail: "Identify, document, and resolve master data defects before production deployment.",
+              accent: "#7c3aed",
+            },
+            {
+              icon: "05", label: "Business Approval",
+              detail: "Obtain business approval confirming the master data is production-ready.",
+              accent: GREEN,
+            },
           ].map((obj, i) => (
             <div key={i} style={{
-              display: "flex", alignItems: "flex-start", gap: 12,
               backgroundColor: "white", border: `1px solid ${BORDER}`,
-              borderRadius: 8, padding: "14px 16px",
+              borderRadius: 10, overflow: "hidden",
               boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
             }}>
               <div style={{
-                width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                backgroundColor: `${obj.color}15`,
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
-              }}>{obj.icon}</div>
-              <p style={{ margin: 0, fontSize: 13, color: "#1e293b", lineHeight: 1.6, fontWeight: 500 }}>{obj.text}</p>
+                backgroundColor: obj.accent, padding: "10px 18px",
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.7)", letterSpacing: "0.08em" }}>{obj.icon}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "white" }}>{obj.label}</span>
+              </div>
+              <p style={{ margin: 0, padding: "14px 18px", fontSize: 12.5, color: SLATE, lineHeight: 1.7 }}>{obj.detail}</p>
             </div>
           ))}
         </div>
