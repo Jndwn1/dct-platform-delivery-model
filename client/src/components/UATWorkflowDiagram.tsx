@@ -23,11 +23,13 @@ export default function UATWorkflowDiagram() {
   function Box({
     x, y, w = 160, h = 64, label, sub, owner,
     fill = "white", stroke = BORDER, textColor = NAVY,
+    subColor, ownerColor,
     bold = false, accent = false,
   }: {
     x: number; y: number; w?: number; h?: number;
     label: string; sub?: string; owner?: string;
     fill?: string; stroke?: string; textColor?: string;
+    subColor?: string; ownerColor?: string;
     bold?: boolean; accent?: boolean;
   }) {
     return (
@@ -43,7 +45,7 @@ export default function UATWorkflowDiagram() {
         {sub && (
           <text x={x + w / 2} y={y + (owner ? h / 2 + 4 : h / 2 + 11)}
             textAnchor="middle" dominantBaseline="middle"
-            fontSize={10} fontWeight={400} fill={SLATE}
+            fontSize={10} fontWeight={400} fill={subColor ?? SLATE}
             fontFamily="'Segoe UI', system-ui, -apple-system, sans-serif">
             {sub}
           </text>
@@ -51,7 +53,7 @@ export default function UATWorkflowDiagram() {
         {owner && (
           <text x={x + w / 2} y={y + h / 2 + 18}
             textAnchor="middle" dominantBaseline="middle"
-            fontSize={9} fontWeight={600} fill={BLUE}
+            fontSize={9} fontWeight={600} fill={ownerColor ?? BLUE}
             fontFamily="'Segoe UI', system-ui, -apple-system, sans-serif">
             {owner}
           </text>
@@ -228,7 +230,7 @@ export default function UATWorkflowDiagram() {
         <Box x={MX - (BW + 16) / 2} y={Y3} w={BW + 16} h={BH + 4}
           label="Business Validation" sub="User Acceptance Testing"
           owner="Business"
-          fill={BLUE} stroke={BLUE} textColor="white" bold accent />
+          fill={BLUE} stroke={BLUE} textColor="#FFFFFF" subColor="#DCE9F8" ownerColor="#DCE9F8" bold accent />
 
         {/* Arrow 3→Decision */}
         <Arrow x1={MX} y1={Y3 + BH + 4} x2={MX} y2={YD - 28 - 6} color={SLATE} />
@@ -251,7 +253,7 @@ export default function UATWorkflowDiagram() {
         {/* UAT Complete */}
         <Box x={MX - BW_SM / 2} y={Y_NO_COMPLETE} w={BW_SM} h={BH_SM}
           label="UAT Complete" sub="Ready for Production"
-          fill={GREEN} stroke={GREEN} textColor="white" bold accent />
+          fill={GREEN} stroke={GREEN} textColor="#FFFFFF" subColor="#D1FAE5" bold accent />
 
         {/* ── YES BRANCH (right column) ──────────────────────────────────── */}
         {/* Arrow Decision → Review & Triage (right) */}
@@ -312,7 +314,7 @@ export default function UATWorkflowDiagram() {
         {/* Business Revalidation */}
         <Box x={YX - BW_Y / 2} y={Y_YES_REVAL} w={BW_Y} h={BH_SM}
           label="Business Revalidation" sub="Re-test Affected Data"
-          fill="white" stroke={BLUE} textColor={NAVY} />
+          fill={LBLUE} stroke={BLUE} textColor={NAVY} />
 
         {/* ── FEEDBACK LOOP: Revalidation → Business Validation ─────────── */}
         {/* Single clean curved arrow going left from Revalidation back up to Business Validation */}
