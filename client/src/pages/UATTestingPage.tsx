@@ -1,6 +1,8 @@
 // DCT Platform — UAT Master Data Documentation Page
 // RSM Digital Solutions | Enterprise Design
 
+import UATWorkflowDiagram from "@/components/UATWorkflowDiagram";
+
 export default function UATTestingPage() {
   // ── Design tokens ──────────────────────────────────────────────────────────
   const NAVY   = "#0f2744";
@@ -183,42 +185,7 @@ export default function UATTestingPage() {
       {/* ── Section 3: UAT Workflow ── */}
       <section style={{ marginBottom: 40 }}>
         <SectionHeader number="03" title="UAT Workflow" icon="🔄" color={NAVY} />
-        <div style={{
-          backgroundColor: "white", border: `1px solid ${BORDER}`,
-          borderRadius: 10, padding: "28px 32px",
-          boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
-        }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
-            {workflowSteps.map((step, i) => {
-              if (step.isArrow) {
-                return (
-                  <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", height: 28 }}>
-                    <div style={{ width: 2, height: 14, backgroundColor: "#cbd5e1", marginBottom: 0 }} />
-                    <div style={{ fontSize: 14, color: "#94a3b8", lineHeight: 1 }}>▼</div>
-                  </div>
-                );
-              }
-              return (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 14,
-                  backgroundColor: step.color, borderRadius: 10,
-                  padding: "13px 24px", width: "100%", maxWidth: 520,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-                }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                    backgroundColor: "rgba(255,255,255,0.15)",
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
-                  }}>{step.icon}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "white", lineHeight: 1.2 }}>{step.label}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{step.sub}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <UATWorkflowDiagram />
       </section>
 
       {/* ── Section 4: Roles & Responsibilities ── */}
