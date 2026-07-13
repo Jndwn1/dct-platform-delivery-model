@@ -275,34 +275,101 @@ export default function UATTestingPage() {
 
       {/* ── Section 4: Roles & Responsibilities ── */}
       <section style={{ marginBottom: 40 }}>
-        <SectionHeader number="04" title="Roles &amp; Responsibilities" icon="👥" color={BLUE} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
-          {roles.map((r, i) => (
+        <SectionHeader number="04" title="Roles &amp; Responsibilities" icon="👥" color={NAVY} />
+
+        {/* Section subtitle */}
+        <p style={{
+          margin: "0 0 24px", fontSize: 14, color: SLATE,
+          lineHeight: 1.7, fontWeight: 400,
+        }}>
+          Clear ownership ensures efficient execution of UAT activities, controlled master data updates, and successful business validation.
+        </p>
+
+        {/* Three equal-width role cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 24 }}>
+          {[
+            {
+              role: "Business Analyst",
+              responsibilities: [
+                "Coordinate and facilitate UAT activities",
+                "Maintain the Master Data Workbook as the authoritative source of truth",
+                "Review and triage master data defects with Business and Development",
+                "Update the Master Data Workbook with approved changes",
+                "Coordinate master data reload requests and communicate updates",
+                "Support business sign-off and maintain change history",
+              ],
+            },
+            {
+              role: "Business Users",
+              responsibilities: [
+                "Execute business validation against loaded master data",
+                "Validate business rules, mappings, and data accuracy",
+                "Document defects and submit change requests",
+                "Revalidate corrected data after workbook updates and reloads",
+                "Approve validated results and provide business sign-off",
+              ],
+            },
+            {
+              role: "Development Team",
+              responsibilities: [
+                "Load approved master data into the Roger application",
+                "Determine whether changes require a partial or full reload",
+                "Execute master data reloads",
+                "Resolve technical defects and data load issues",
+                "Validate successful data loads before business revalidation",
+                "Support UAT environment readiness",
+              ],
+            },
+          ].map((r, i) => (
             <div key={i} style={{
-              backgroundColor: "white", border: `1px solid ${BORDER}`,
-              borderRadius: 10, overflow: "hidden",
-              boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
+              backgroundColor: "white",
+              border: `1px solid ${BORDER}`,
+              borderTop: `3px solid ${NAVY}`,
+              borderRadius: 10,
+              padding: "22px 22px 20px",
+              boxShadow: "0 1px 4px rgba(15,45,82,0.06)",
+              display: "flex", flexDirection: "column",
             }}>
+              {/* Role title */}
               <div style={{
-                backgroundColor: r.color, padding: "14px 18px",
-                display: "flex", alignItems: "center", gap: 10,
-              }}>
-                <span style={{ fontSize: 20 }}>{r.icon}</span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "white" }}>{r.role}</span>
-              </div>
-              <ul style={{ margin: 0, padding: "14px 18px 14px 32px", listStyle: "none" }}>
+                fontSize: 14, fontWeight: 800, color: NAVY,
+                marginBottom: 16,
+                paddingBottom: 12,
+                borderBottom: `1px solid ${BORDER}`,
+                letterSpacing: "0.01em",
+              }}>{r.role}</div>
+              {/* Responsibilities */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {r.responsibilities.map((resp, j) => (
-                  <li key={j} style={{
-                    fontSize: 12.5, color: "#374151", lineHeight: 1.6, marginBottom: 6,
-                    paddingLeft: 0, position: "relative",
-                  }}>
-                    <span style={{ color: r.color, fontWeight: 700, marginRight: 6 }}>›</span>
-                    {resp}
-                  </li>
+                  <div key={j} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <div style={{
+                      width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+                      backgroundColor: "#EEF3FA",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 10, color: BLUE, fontWeight: 800,
+                    }}>✔</div>
+                    <span style={{ fontSize: 12.5, color: "#374151", lineHeight: 1.65 }}>{resp}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           ))}
+        </div>
+
+        {/* Key Principle callout */}
+        <div style={{
+          backgroundColor: "#F0F4FA",
+          border: `1px solid #C5D5E8`,
+          borderLeft: `4px solid ${BLUE}`,
+          borderRadius: 8,
+          padding: "16px 20px",
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: BLUE, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Key Principle</div>
+          <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.75 }}>
+            The <strong>Business Analyst</strong> owns the Master Data Workbook and coordinates approved changes.
+            The <strong>Development Team</strong> owns data loads and reload execution.
+            <strong> Business Users</strong> validate the loaded data and provide final business approval.
+          </div>
         </div>
       </section>
 
