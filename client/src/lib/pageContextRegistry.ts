@@ -667,31 +667,6 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     integrations: ["Azure DevOps", "BatchStatusContext"],
   },
 
-  // ─── UAT TESTING ────────────────────────────────────────────────────────────
-  "/uat-testing": {
-    pageTitle: "UAT Testing",
-    pageIcon: "✅",
-    description: "Master Data UAT documentation — validation process, roles, change control, defect management, and exit criteria for the DCT platform MVP.",
-    features: ["Master Data Validation", "UAT Workflow", "Defect Management", "Business Sign-Off", "Exit Criteria Checklist"],
-    apis: ["GET /api/uat/test-cases", "POST /api/uat/test-cases", "POST /api/uat/defects", "POST /api/uat/risks", "PATCH /api/uat/test-cases/:id"],
-    stories: [
-      "As a BA, I validate master data is loaded accurately into Roger",
-      "As a Business User, I execute UAT test scripts and approve results",
-      "As a Developer, I perform data loads and resolve technical issues",
-      "As a QA Lead, I log defects and validate fixes before closure",
-    ],
-    screens: ["UAT Testing Page", "UAT Workflow Diagram", "Roles & Responsibilities", "Change Control Process", "Defect Management", "Exit Criteria Checklist"],
-    businessRules: [
-      "Master Data Workbook is the authoritative source of truth",
-      "All critical defects must be resolved before Business Sign-Off",
-      "SharePoint version history serves as change control for workbook updates",
-      "Business revalidation is required after every data reload",
-      "UAT is complete only when all 6 exit criteria are satisfied",
-    ],
-    batches: ["Foundation Core", "All MVP Batches"],
-    businessObjects: ["MasterDataWorkbook", "UATTestCase", "Defect", "BusinessSignOff", "ExitCriteria", "ReloadStrategy"],
-    integrations: ["Roger Database", "DCT Enterprise Master Data Workbook", "SharePoint Version History", "Azure DevOps"],
-  },
 
 };
 
