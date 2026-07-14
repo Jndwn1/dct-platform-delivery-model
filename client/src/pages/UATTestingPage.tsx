@@ -376,40 +376,219 @@ export default function UATTestingPage() {
       {/* ── Section 5: Change Control ── */}
       <section style={{ marginBottom: 40 }}>
         <SectionHeader number="05" title="Change Control During UAT" icon="🔒" color={AMBER} />
+
+        {/* Important callout */}
         <div style={{
           backgroundColor: AMBER_BG, border: `1px solid ${AMBER_BORDER}`,
-          borderRadius: 10, padding: "20px 24px", marginBottom: 16,
+          borderRadius: 10, padding: "20px 24px", marginBottom: 24,
         }}>
           <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: AMBER }}>
-            ⚠ Important: All changes to master data during UAT must follow the approved change control process.
+            ⚠ Important: All Master Data changes during UAT must follow the approved change control process.
           </p>
           <p style={{ margin: 0, fontSize: 13, color: "#78350f", lineHeight: 1.7 }}>
-            SharePoint version history serves as the version control mechanism for the Master Data Workbook.
-            No changes may be applied to production data without completing the full change control cycle below.
+            Every approved Master Data change must undergo an impact assessment before a reload is performed.
+            Depending on the type of change, Development may execute a <strong>Partial Reload</strong>, <strong>Coordinated Partial Reload</strong>, or <strong>Full Reload</strong>.
+            UAT may resume only after validation confirms the updated data has been successfully processed.
           </p>
         </div>
+
+        {/* Steps 1–3 */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 10 }}>
+          {[
+            {
+              step: "1", label: "Business Validates the Issue",
+              detail: "Business users confirm the reported discrepancy is a legitimate Master Data issue and not caused by test scripts, previously loaded data, or an environment issue.",
+              bullets: [],
+            },
+            {
+              step: "2", label: "BA Performs Impact Assessment",
+              detail: "The Business Analyst reviews the requested change, evaluates dependencies, determines the impact on existing data, and obtains stakeholder approval.",
+              bullets: [
+                "Type of Master Data being modified",
+                "Dataset dependencies",
+                "Taxonomy relationships",
+                "Whether Taxonomy IDs change",
+                "Whether previously loaded Trial Balance data requires remapping",
+                "Expected reload strategy",
+              ],
+            },
+            {
+              step: "3", label: "Master Data Workbook Updated",
+              detail: "The approved changes are applied to the Master Data Workbook.",
+              bullets: [
+                "SharePoint Version History",
+                "Version Number",
+                "Change Log",
+              ],
+            },
+          ].map((item, i) => (
+            <div key={i}>
+              <div style={{
+                display: "flex", alignItems: "flex-start", gap: 14,
+                backgroundColor: "white", border: `1px solid ${BORDER}`,
+                borderRadius: 8, padding: "14px 18px",
+              }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                  backgroundColor: AMBER, color: "white",
+                  fontSize: 12, fontWeight: 800,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>{item.step}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b", marginBottom: 3 }}>{item.label}</div>
+                  <div style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, marginBottom: item.bullets.length ? 8 : 0 }}>{item.detail}</div>
+                  {item.bullets.length > 0 && (
+                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: SLATE, lineHeight: 1.7 }}>
+                      {item.bullets.map((b, j) => <li key={j}>{b}</li>)}
+                    </ul>
+                  )}
+                </div>
+              </div>
+              {i < 2 && (
+                <div style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 27, marginTop: 2, marginBottom: 2 }}>
+                  <div style={{ width: 2, height: 10, backgroundColor: AMBER, borderRadius: 1 }} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Connector to Step 4 */}
+        <div style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 27, marginBottom: 2 }}>
+          <div style={{ width: 2, height: 10, backgroundColor: AMBER, borderRadius: 1 }} />
+        </div>
+
+        {/* Step 4 — Decision Panel */}
+        <div style={{
+          border: `2px solid ${AMBER}`, borderRadius: 10,
+          backgroundColor: "#fffdf5", padding: "18px 20px", marginBottom: 10,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+              backgroundColor: AMBER, color: "white",
+              fontSize: 12, fontWeight: 800,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>4</div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>Determine Reload Strategy</div>
+              <div style={{ fontSize: 12, color: SLATE, marginTop: 2 }}>Development determines the appropriate reload approach based on the impact assessment.</div>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            {/* Partial Reload */}
+            <div style={{
+              backgroundColor: "#eff6ff", border: "1px solid #bfdbfe",
+              borderRadius: 8, padding: "14px 16px",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#1d4ed8", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Partial Reload</div>
+              <div style={{ fontSize: 11.5, color: "#1e3a5f", lineHeight: 1.6, marginBottom: 8 }}>Use when updating independent reference data:</div>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: "#1e3a5f", lineHeight: 1.7 }}>
+                <li>Individual reference value corrections</li>
+                <li>New Taxonomy values</li>
+                <li>Independent Mapping Rule updates</li>
+                <li>Confidence Bands</li>
+                <li>Filing Due Dates</li>
+              </ul>
+              <div style={{ fontSize: 11, color: "#1d4ed8", marginTop: 8, fontStyle: "italic" }}>Roger updates taxonomy indexes through the Service Bus.</div>
+            </div>
+            {/* Coordinated Partial Reload */}
+            <div style={{
+              backgroundColor: "#faf5ff", border: "1px solid #d8b4fe",
+              borderRadius: 8, padding: "14px 16px",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#6d28d9", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Coordinated Partial Reload</div>
+              <div style={{ fontSize: 11.5, color: "#3b0764", lineHeight: 1.6, marginBottom: 8 }}>Required when foundational objects have dependent datasets:</div>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: "#3b0764", lineHeight: 1.7 }}>
+                <li>Tax Forms</li>
+                <li>Tax Form Lines</li>
+                <li>Tax-Taxonomy Associations</li>
+                <li>Mapping Rules</li>
+                <li>Other dependent entities</li>
+              </ul>
+              <div style={{ fontSize: 11, color: "#6d28d9", marginTop: 8, fontStyle: "italic" }}>All related datasets must be reloaded together.</div>
+            </div>
+            {/* Full Reload */}
+            <div style={{
+              backgroundColor: "#fff1f2", border: "1px solid #fecdd3",
+              borderRadius: 8, padding: "14px 16px",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#be123c", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Full Reload</div>
+              <div style={{ fontSize: 11.5, color: "#7f1d1d", lineHeight: 1.6, marginBottom: 8 }}>Required when:</div>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: "#7f1d1d", lineHeight: 1.7 }}>
+                <li>Foundational Master Data changes</li>
+                <li>Referential integrity changes</li>
+                <li>Taxonomy relationships change</li>
+                <li>Previously loaded Trial Balance data requires remapping</li>
+                <li>Data consistency cannot be maintained through a partial reload</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Connector to Steps 5–6 */}
+        <div style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 27, marginBottom: 2 }}>
+          <div style={{ width: 2, height: 10, backgroundColor: AMBER, borderRadius: 1 }} />
+        </div>
+
+        {/* Steps 5–6 */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {[
-            { step: "1", label: "Business validates the issue", detail: "Business users confirm the discrepancy is a genuine data error, not a test script or environment issue." },
-            { step: "2", label: "BA reviews the requested change", detail: "The Business Analyst reviews the change request, assesses impact, and obtains stakeholder approval before proceeding." },
-            { step: "3", label: "Workbook is updated", detail: "The approved change is applied to the Master Data Workbook. The version number and change log are updated in SharePoint." },
-            { step: "4", label: "Development reloads the data", detail: "The Development Team performs a targeted reload of the affected data records into the Roger platform." },
-            { step: "5", label: "Business re-validates affected records", detail: "Business users re-execute the relevant test scripts to confirm the corrected data behaves as expected." },
-          ].map((item, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "flex-start", gap: 14,
-              backgroundColor: "white", border: `1px solid ${BORDER}`,
-              borderRadius: 8, padding: "14px 18px",
-            }}>
+            {
+              step: "5", label: "Development Executes Reload",
+              detail: "Development executes the approved reload strategy.",
+              bullets: [
+                "Reload affected datasets",
+                "Refresh taxonomy indexes",
+                "Reload dependent entities",
+                "Reprocess affected records",
+                "Update taxonomy mappings",
+              ],
+            },
+            {
+              step: "6", label: "Validation Before UAT Resumes",
+              detail: "Development and Business jointly validate before UAT resumes:",
+              bullets: [
+                "Previously processed data remains accurate",
+                "Newly loaded Master Data is reflected correctly",
+                "Taxonomy mappings are valid",
+                "Search indexes have been refreshed",
+                "Validation suite passes successfully",
+              ],
+              note: "UAT resumes only after successful validation.",
+            },
+          ].map((item: any, i) => (
+            <div key={i}>
+              {i > 0 && (
+                <div style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 27, marginTop: 2, marginBottom: 2 }}>
+                  <div style={{ width: 2, height: 10, backgroundColor: AMBER, borderRadius: 1 }} />
+                </div>
+              )}
               <div style={{
-                width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                backgroundColor: AMBER, color: "white",
-                fontSize: 12, fontWeight: 800,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>{item.step}</div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b", marginBottom: 3 }}>{item.label}</div>
-                <div style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6 }}>{item.detail}</div>
+                display: "flex", alignItems: "flex-start", gap: 14,
+                backgroundColor: "white", border: `1px solid ${BORDER}`,
+                borderRadius: 8, padding: "14px 18px",
+              }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                  backgroundColor: AMBER, color: "white",
+                  fontSize: 12, fontWeight: 800,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>{item.step}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b", marginBottom: 3 }}>{item.label}</div>
+                  <div style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, marginBottom: item.bullets.length ? 8 : 0 }}>{item.detail}</div>
+                  {item.bullets.length > 0 && (
+                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: SLATE, lineHeight: 1.7 }}>
+                      {item.bullets.map((b: string, j: number) => <li key={j}>{b}</li>)}
+                    </ul>
+                  )}
+                  {item.note && (
+                    <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: GREEN, borderTop: `1px solid ${BORDER}`, paddingTop: 8 }}>
+                      ✓ {item.note}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
