@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
 import RelatedObjectsPanel from "@/components/RelatedObjectsPanel";
+import IMSArchitectureDiagrams from "@/components/IMSArchitectureDiagrams";
 
 // ─── Design tokens (match existing Discovery Center palette) ─────────────────
 const NAVY   = "#0f1623";
@@ -743,7 +744,17 @@ export default function GoSystemTax() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* SECTION 7 — ARCHITECTURE SPECIFICATION (expandable)                   */}
+      {/* SECTION 7a — ARCHITECTURE DIAGRAMS (interactive)                       */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <div style={{ marginBottom: "4px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: BLUE, marginBottom: "4px" }}>Section 7a</div>
+        <div style={{ fontSize: "17px", fontWeight: 800, color: NAVY, marginBottom: "4px" }}>Architecture Diagrams</div>
+        <div style={{ fontSize: "12px", color: SLATE, marginBottom: "14px" }}>Interactive visual reference — select a diagram tab to explore the platform architecture, ownership boundaries, and data flow.</div>
+      </div>
+      <IMSArchitectureDiagrams />
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 7b — ARCHITECTURE SPECIFICATION (expandable)                  */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       <ArchitectureSpec />
 
