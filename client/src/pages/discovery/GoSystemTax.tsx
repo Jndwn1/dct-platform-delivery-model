@@ -289,6 +289,8 @@ export default function GoSystemTax() {
     { req: "", capability: "", gap: "", owner: "" },
   ]);
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
+  const [qaOpen, setQaOpen] = useState<Record<string, boolean>>({});
+  const toggleQa = (title: string) => setQaOpen(o => ({ ...o, [title]: !o[title] }));
 
   const toggleCheck = (key: string) =>
     setChecklist(c => ({ ...c, [key]: !c[key] }));
@@ -326,28 +328,29 @@ export default function GoSystemTax() {
     },
     {
       num: "02", title: "Review Existing DCT Capabilities", color: "#0369a1",
-      items: ["IMS Overview","Batch 9A – Gateway","Batch 16 – Audit Trail & Lineage","Batch 28 – Workpapers & Provision","Existing APIs","Existing Data Contracts","Existing Payload Structure","Existing Architecture"],
+      items: ["IMS Overview","Architecture Specification","Batch 9A","Batch 16","Batch 28","Gateway","Existing APIs","Existing Data Contracts","Existing Payload Structure"],
     },
     {
       num: "03", title: "Ask Buddy", color: PURPLE,
       items: ["Does DCT already support this capability?","Does this identifier already exist?","Does this attribute already exist?","Does an API already exist?","Is this owned by IMS or DCT?","Which batch already implements this?"],
     },
     {
-      num: "04", title: "Perform Gap Analysis", color: "#059669",
-      items: ["Only after reviewing the existing platform should new requirements be documented.","Identify the existing capability.","Determine whether a gap exists.","Determine whether the work belongs to IMS or DCT.","Document only true enhancements."],
+      num: "04", title: "Document Only the Gaps", color: "#059669",
+      items: ["If the capability already exists, no additional requirement should be created.","If a capability does not exist, document the gap for DCT review.","Identify the existing capability.","Determine whether the work belongs to IMS or DCT.","Document only true enhancements."],
     },
   ];
 
   const CHECKLIST_ITEMS = [
-    { key: "ims-docs",  label: "Review IMS documentation" },
-    { key: "b9a",       label: "Review Batch 9A" },
-    { key: "b16",       label: "Review Batch 16" },
-    { key: "b28",       label: "Review Batch 28" },
-    { key: "apis",      label: "Review existing APIs" },
-    { key: "payload",   label: "Review existing payload" },
-    { key: "buddy",     label: "Ask Buddy" },
-    { key: "verify",    label: "Verify capability does not already exist" },
-    { key: "gaps",      label: "Document only true capability gaps" },
+    { key: "ims-overview",  label: "Reviewed IMS Overview" },
+    { key: "arch-spec",     label: "Reviewed Architecture Specification" },
+    { key: "b9a",           label: "Reviewed Batch 9A" },
+    { key: "b16",           label: "Reviewed Batch 16" },
+    { key: "b28",           label: "Reviewed Batch 28" },
+    { key: "apis",          label: "Reviewed existing APIs" },
+    { key: "payload",       label: "Reviewed existing payload" },
+    { key: "buddy",         label: "Asked Ask Buddy" },
+    { key: "verify",        label: "Verified capability does not already exist" },
+    { key: "gaps",          label: "Identified a true platform gap" },
   ];
 
   const BUDDY_PROMPTS = [
@@ -359,14 +362,82 @@ export default function GoSystemTax() {
     "Explain the Gateway.",
     "What identifiers already exist?",
     "What APIs already exist?",
+    "What data contracts already exist?",
+    "Show me the outbound payload.",
     "Explain approved grain.",
     "Explain summary versus detail.",
+    "Explain Filing Record.",
+    "Explain Return Assembly.",
     "What does IMS own?",
     "What does DCT own?",
-    "Show me the outbound payload.",
-    "Explain the Filing Record.",
-    "Explain Return Assembly.",
-    "What capabilities already exist for IMS?",
+    "Does DCT already support this capability?",
+    "Is this an IMS responsibility or a DCT responsibility?",
+    "What remains an open decision?",
+  ];
+
+  const QA_CATEGORIES = [
+    {
+      title: "Architecture",
+      color: BLUE,
+      icon: "🏗",
+      questions: [
+        "How does IMS integrate with DCT?",
+        "Does TDC integrate directly with GoSystem?",
+        "What is IMS responsible for?",
+        "What is DCT responsible for?",
+        "Where is the architecture boundary?",
+      ],
+    },
+    {
+      title: "Existing Capabilities",
+      color: "#0369a1",
+      icon: "✓",
+      questions: [
+        "Which capabilities already exist?",
+        "Which batches implement those capabilities?",
+        "Which APIs already exist?",
+        "Which data contracts already exist?",
+        "Which payloads already exist?",
+      ],
+    },
+    {
+      title: "Data",
+      color: "#059669",
+      icon: "📊",
+      questions: [
+        "What identifiers already exist?",
+        "What attributes already exist?",
+        "What payload does IMS receive?",
+        "What metadata already exists?",
+        "What information is included in the outbound contract?",
+      ],
+    },
+    {
+      title: "Processing",
+      color: PURPLE,
+      icon: "⚙",
+      questions: [
+        "Who owns roll-up?",
+        "Who translates IRS form lines?",
+        "Who performs payload transformation?",
+        "Who owns engine routing?",
+        "Who owns tax calculations?",
+        "Who owns lineage?",
+        "Who owns Filing Record?",
+        "Who owns Return Assembly?",
+      ],
+    },
+    {
+      title: "Implementation",
+      color: "#92400e",
+      icon: "🔧",
+      questions: [
+        "Does DCT already support this capability?",
+        "Which batch owns the functionality?",
+        "Is the work already planned?",
+        "Does the enhancement belong to IMS or DCT?",
+      ],
+    },
   ];
 
   return (
@@ -402,13 +473,13 @@ export default function GoSystemTax() {
         borderRadius: "12px", padding: "20px 24px", marginBottom: "28px",
       }}>
         <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: BLUE, marginBottom: "6px" }}>
-          Process Team — Discovery Workspace
+          Process Team — Self-Service Discovery
         </div>
         <div style={{ fontSize: "17px", fontWeight: 800, color: NAVY, marginBottom: "10px" }}>
-          Before You Begin Discovery
+          Self-Service Discovery
         </div>
         <p style={{ fontSize: "13px", color: "#334155", lineHeight: "1.7", margin: "0 0 14px" }}>
-          This page should be reviewed before documenting IMS requirements. The Process Team should first understand the capabilities that already exist within DCT before documenting new functionality. This helps avoid duplicate requirements and ensures discovery focuses on <strong>capability gaps</strong> rather than rebuilding existing functionality.
+          This page is intended to answer the majority of questions regarding the Roger/DCT → IMS integration. Before documenting new requirements or requesting DCT enhancements, use this page and Ask Buddy to determine whether the capability already exists within DCT. The goal is to identify <strong>true capability gaps</strong>, not recreate existing functionality.
         </p>
         {/* Discovery Principle callout */}
         <div style={{
@@ -420,8 +491,8 @@ export default function GoSystemTax() {
             Discovery Principle
           </div>
           <div style={{ fontSize: "13px", color: "#1e3a5f", lineHeight: "1.7" }}>
-            Understand the existing DCT platform before documenting new requirements.
-            The objective is to determine what already exists, identify any gaps, and only then propose new capabilities.
+            Discovery begins by understanding the existing platform.<br />
+            If the answer already exists within this workspace or Ask Buddy, additional DCT discovery should not be required.
           </div>
         </div>
       </div>
@@ -430,7 +501,7 @@ export default function GoSystemTax() {
       {/* SECTION 2 — DISCOVERY WORKFLOW (4 steps)                              */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       <div style={{ marginBottom: "28px" }}>
-        <SectionHeading label="Discovery Workflow" sub="Complete these steps before creating any new requirement" />
+        <SectionHeading label="Discovery Process" sub="Complete these steps before creating any new requirement" />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
           {DISCOVERY_STEPS.map(step => (
             <div key={step.num} style={{
@@ -454,6 +525,45 @@ export default function GoSystemTax() {
                   </div>
                 ))}
               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 2b — WHAT QUESTIONS CAN THIS PAGE ANSWER?                     */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <div style={{ marginBottom: "28px" }}>
+        <SectionHeading label="What Questions Can This Page Answer?" sub="Expand a category to see what this workspace covers" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {QA_CATEGORIES.map(cat => (
+            <div key={cat.title} style={{
+              backgroundColor: "white", border: `1px solid ${BORDER}`,
+              borderRadius: "10px", overflow: "hidden",
+            }}>
+              <button
+                onClick={() => toggleQa(cat.title)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: "12px",
+                  padding: "12px 16px", backgroundColor: "transparent", border: "none",
+                  cursor: "pointer", textAlign: "left",
+                  borderLeft: `4px solid ${cat.color}`,
+                }}
+              >
+                <span style={{ fontSize: "16px" }}>{cat.icon}</span>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: NAVY, flex: 1 }}>{cat.title}</span>
+                <span style={{ fontSize: "11px", color: SLATE }}>{qaOpen[cat.title] ? "▲ Collapse" : "▼ Expand"}</span>
+              </button>
+              {qaOpen[cat.title] && (
+                <div style={{ padding: "12px 16px 14px 36px", borderTop: `1px solid ${BORDER}`, backgroundColor: "#f8fafc" }}>
+                  {cat.questions.map(q => (
+                    <div key={q} style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
+                      <span style={{ color: cat.color, fontSize: "11px", flexShrink: 0, marginTop: "2px" }}>→</span>
+                      <div style={{ fontSize: "12px", color: "#334155", lineHeight: "1.5" }}>{q}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -508,10 +618,10 @@ export default function GoSystemTax() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* SECTION 4 — BEFORE CREATING A REQUIREMENT (checklist)                 */}
+      {/* SECTION 4 — BEFORE REQUESTING A DCT ENHANCEMENT (checklist)           */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       <div style={{ marginBottom: "28px" }}>
-        <SectionHeading label="Before Creating a Requirement" sub="Complete this checklist before submitting any new IMS requirement" />
+        <SectionHeading label="Before Requesting a DCT Enhancement" sub="Complete this checklist before submitting any new IMS requirement" />
         <div style={{
           backgroundColor: "white", border: `1px solid ${BORDER}`,
           borderRadius: "10px", padding: "18px 20px",
@@ -547,10 +657,10 @@ export default function GoSystemTax() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* SECTION 5 — ASK BUDDY PROMPTS                                         */}
+      {/* SECTION 5 — ASK BUDDY INSTEAD                                         */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       <div style={{ marginBottom: "28px" }}>
-        <SectionHeading label="Suggested Ask Buddy Prompts" sub="Use these prompts to explore existing DCT capabilities before documenting requirements" />
+        <SectionHeading label="Ask Buddy Instead" sub="Before contacting DCT, ask Buddy questions such as:" />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
           {BUDDY_PROMPTS.map(prompt => (
             <div key={prompt} style={{
@@ -570,13 +680,13 @@ export default function GoSystemTax() {
       {/* SECTION 6 — GAP ANALYSIS TEMPLATE                                     */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       <div style={{ marginBottom: "28px" }}>
-        <SectionHeading label="Gap Analysis Template" sub="Before requesting DCT enhancements, complete a row for each business requirement" />
+        <SectionHeading label="Gap Analysis" sub="Before requesting DCT enhancements, complete a row for each business requirement" />
         <div style={{
           backgroundColor: "#fffbeb", border: "1px solid #fcd34d",
           borderRadius: "8px", padding: "10px 14px", marginBottom: "12px",
           fontSize: "12px", color: "#78350f", lineHeight: "1.6",
         }}>
-          Before requesting DCT enhancements: identify the existing capability, determine whether a gap exists, determine whether the work belongs to IMS or DCT, and document only true enhancements.
+          Before documenting a DCT enhancement: identify the existing capability, determine whether the capability already satisfies the business requirement, identify only true capability gaps, and determine whether the enhancement belongs to IMS or DCT.
         </div>
         <div style={{ backgroundColor: "white", border: `1px solid ${BORDER}`, borderRadius: "10px", overflow: "hidden" }}>
           {/* Table header */}
@@ -850,6 +960,37 @@ export default function GoSystemTax() {
                 <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{od.detail}</div>
               </div>
               <div style={{ fontSize: "10px", fontWeight: 700, backgroundColor: od.status === "Open" ? "#fef2f2" : "#f8fafc", color: od.status === "Open" ? "#dc2626" : SLATE, padding: "2px 8px", borderRadius: "4px", whiteSpace: "nowrap", alignSelf: "flex-start" }}>{od.status}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* EXPECTED OUTCOME                                                        */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <div style={{
+        backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+        borderRadius: "12px", padding: "20px 24px", marginBottom: "28px",
+      }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#065f46", marginBottom: "6px" }}>
+          Expected Outcome
+        </div>
+        <div style={{ fontSize: "15px", fontWeight: 800, color: NAVY, marginBottom: "12px" }}>
+          After reviewing this workspace, a Process Team Business Analyst should be able to:
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+          {[
+            "Understand the Roger/DCT → IMS architecture.",
+            "Understand the ownership boundaries between IMS and DCT.",
+            "Identify existing DCT capabilities.",
+            "Determine whether an existing capability already satisfies the business requirement.",
+            "Understand the current APIs, payloads, identifiers, and data contracts.",
+            "Identify only true capability gaps requiring DCT enhancements.",
+            "Document requirements without needing a DCT architecture walkthrough.",
+          ].map(item => (
+            <div key={item} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+              <span style={{ color: "#059669", fontSize: "13px", flexShrink: 0, marginTop: "1px" }}>✓</span>
+              <div style={{ fontSize: "12px", color: "#1e293b", lineHeight: "1.5" }}>{item}</div>
             </div>
           ))}
         </div>
