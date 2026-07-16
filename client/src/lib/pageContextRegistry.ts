@@ -16,6 +16,10 @@ export interface PageContextEntry {
   batches: string[];
   businessObjects: string[];
   integrations: string[];
+  /** ISO date string — update this whenever the page content changes */
+  lastUpdated: string;
+  /** Short summary of what changed in the last update */
+  lastChange?: string;
 }
 
 export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
@@ -33,6 +37,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (B1–B43+)"],
     businessObjects: ["Batch", "Gate", "PI", "Release Candidate"],
     integrations: ["BatchStatusContext", "Azure DevOps", "GitHub"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────
@@ -48,6 +53,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "B24", "B25", "B26", "B27", "B28", "B29", "B30", "B31", "B32", "B33", "B34", "B35", "B36", "B37", "B38", "B39", "B40", "B41", "B42", "B43"],
     businessObjects: ["Batch", "Gate", "RogerAPI", "PICompletion"],
     integrations: ["BatchStatusContext", "DiscoveryContext", "Azure DevOps"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── BATCH DETAIL ────────────────────────────────────────────────────────────
@@ -63,6 +69,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["Dynamic — based on batch ID in URL"],
     businessObjects: ["Batch", "Story", "AcceptanceCriteria", "Deployment"],
     integrations: ["Azure DevOps", "GitHub", "Discovery Center"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── GOVERNANCE GATES ────────────────────────────────────────────────────────
@@ -78,6 +85,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"],
     businessObjects: ["Gate", "Schema", "Invariant", "Contract", "Lineage"],
     integrations: ["TDC Schema Registry", "API Contract Registry", "Lineage Tracker"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── ROGER API EVOLUTION ─────────────────────────────────────────────────────
@@ -104,6 +112,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B9", "B42", "B43"],
     businessObjects: ["RogerAPI", "KnownMapping", "Classification", "EntityResolution", "ConfidenceBand", "TaxObjectMap", "AuditTrail"],
     integrations: ["TDC", "Roger UI", "GoSystem"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── CONSUMER INTEGRATION HUB ────────────────────────────────────────────────
@@ -119,6 +128,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B9", "B38", "B42", "B43"],
     businessObjects: ["ConsumerIntegration", "RogerAPI", "Screen", "GoSystemExport"],
     integrations: ["Roger UI", "GoSystem", "TDC", "PDC"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── ROGER MAPPING ───────────────────────────────────────────────────────────
@@ -134,6 +144,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B9", "B15", "B16", "B17"],
     businessObjects: ["KnownMapping", "TaxObjectMap", "ConfidenceBand", "FieldMapping"],
     integrations: ["TDC", "Roger UI", "Classification Engine"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── TAXONOMY ────────────────────────────────────────────────────────────────
@@ -149,6 +160,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B5", "B6", "B7"],
     businessObjects: ["TaxonomyNode", "Category", "ClassificationRule"],
     integrations: ["PDC", "TDC", "Classification Engine"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DATA MODEL ──────────────────────────────────────────────────────────────
@@ -164,6 +176,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4"],
     businessObjects: ["Entity", "Schema", "Relationship", "Attribute"],
     integrations: ["PDC Schema Registry", "TDC Schema Registry"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DATA GOVERNANCE ─────────────────────────────────────────────────────────
@@ -179,6 +192,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B8"],
     businessObjects: ["GovernancePolicy", "LineageRecord", "AuditLog", "ComplianceRule"],
     integrations: ["TDC Lineage Tracker", "PDC Audit Log", "Compliance Engine"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── ARCHITECTURE ────────────────────────────────────────────────────────────
@@ -194,6 +208,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2"],
     businessObjects: ["Component", "Layer", "Interface", "ServiceBus"],
     integrations: ["PDC", "TDC", "Orchestrator", "Roger", "GoSystem", "Service Bus"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DELIVERY INTELLIGENCE ───────────────────────────────────────────────────
@@ -209,6 +224,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B9", "B38", "B39", "B40", "B41", "B42", "B43"],
     businessObjects: ["PI", "CriticalPath", "RogerCapability", "KPI"],
     integrations: ["Azure DevOps", "GitHub", "Roger UI"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── TOUCHPOINTS ─────────────────────────────────────────────────────────────
@@ -224,6 +240,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B3", "B4", "B5", "B6"],
     businessObjects: ["Touchpoint", "IntegrationPoint", "DataExchange", "Event"],
     integrations: ["PDC", "TDC", "Orchestrator", "Roger", "GoSystem", "Service Bus"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── AGENT HUB ───────────────────────────────────────────────────────────────
@@ -239,6 +256,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B30", "B31", "B32"],
     businessObjects: ["Agent", "ExecutionLog", "AgentGovernanceRule", "Orchestrator"],
     integrations: ["Orchestrator", "TDC", "PDC", "Azure OpenAI"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── INTEGRATION SIMULATION ──────────────────────────────────────────────────
@@ -254,6 +272,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4", "B5"],
     businessObjects: ["SimulationRun", "SimulationStep", "SimulationResult"],
     integrations: ["PDC Mock", "TDC Mock", "Orchestrator Mock", "Roger Mock"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── RUNTIME JOURNEY ─────────────────────────────────────────────────────────
@@ -269,6 +288,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4", "B5", "B9"],
     businessObjects: ["JourneyStep", "DataState", "TimingRecord"],
     integrations: ["PDC", "TDC", "Orchestrator", "Roger"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── TAX MAPPING ─────────────────────────────────────────────────────────────
@@ -284,6 +304,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B4", "B6", "B9A"],
     businessObjects: ["TaxMapping", "IMSField", "MappingValidation"],
     integrations: ["TDC", "IMS", "Tax Mapping Engine"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── CLASSIFICATION WALKTHROUGH ───────────────────────────────────────────────
@@ -299,6 +320,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B10", "B11", "B12"],
     businessObjects: ["Classification", "ConfidenceScore", "ClassificationOverride"],
     integrations: ["Orchestrator", "TDC", "Azure OpenAI"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── GAP ANALYSIS ────────────────────────────────────────────────────────────
@@ -314,6 +336,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches"],
     businessObjects: ["Gap", "CoverageScore", "RemediationPlan"],
     integrations: ["Azure DevOps", "BatchStatusContext"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DEPLOYMENT REGISTRY ─────────────────────────────────────────────────────
@@ -329,6 +352,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches"],
     businessObjects: ["Deployment", "ReleaseNote", "Rollback"],
     integrations: ["GitHub", "Azure DevOps", "PDC", "TDC"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── ASK BUDDY ───────────────────────────────────────────────────────────────
@@ -344,6 +368,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches"],
     businessObjects: ["ChatMessage", "BatchContext", "GateContext"],
     integrations: ["BatchStatusContext", "DCT Knowledge Base", "LLM API"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY CENTER HUB ────────────────────────────────────────────────────
@@ -359,6 +384,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (reference)"],
     businessObjects: ["DiscoveryPage", "ChecklistItem", "Story", "Glossary"],
     integrations: ["Ask Buddy", "Azure DevOps", "BatchStatusContext"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: ROGER OVERVIEW ───────────────────────────────────────────────
@@ -392,6 +418,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B9", "B42", "B43"],
     businessObjects: ["KnownMapping", "Classification", "EntityResolution", "ConfidenceBand", "TaxObjectMap", "AuditTrail", "Decision"],
     integrations: ["TDC", "IMS", "Azure AD", "Service Bus"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: DCT OVERVIEW ─────────────────────────────────────────────────
@@ -413,6 +440,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10"],
     businessObjects: ["TaxObject", "Schema", "LineageRecord", "AuditRecord", "BusinessRule", "Contract"],
     integrations: ["PDC", "Orchestrator", "Roger", "GoSystem", "Service Bus"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: IMS INTEGRATION ─────────────────────────────────────────────
@@ -435,6 +463,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B9A", "B16", "B28"],
     businessObjects: ["IMSPayload", "EngineRoutingRule", "DeliveryRecord", "EngineAssignment"],
     integrations: ["TDC via B9A Gateway", "GoSystem Tax", "CCH", "OIT", "Future Return Engines"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: ECOSYSTEM ────────────────────────────────────────────────────
@@ -450,6 +479,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (reference)"],
     businessObjects: ["PDC", "TDC", "Orchestrator", "Roger", "IMS"],
     integrations: ["PDC", "TDC", "Orchestrator", "Roger", "IMS"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: PLATFORM RESPONSIBILITIES ────────────────────────────────────
@@ -465,6 +495,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (reference)"],
     businessObjects: ["PDC", "TDC", "Orchestrator", "Roger", "IMS"],
     integrations: ["PDC", "TDC", "Orchestrator", "Roger", "IMS"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: DATA FLOW ────────────────────────────────────────────────────
@@ -480,6 +511,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4", "B5"],
     businessObjects: ["ERPData", "PDCRecord", "TDCRecord", "RogerDecision", "IMSPayload"],
     integrations: ["ERP", "PDC", "TDC", "Orchestrator", "Roger", "IMS"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: BA REQUIREMENTS ──────────────────────────────────────────────
@@ -495,6 +527,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (reference)"],
     businessObjects: ["DiscoveryQuestion", "StoryTemplate", "AcceptanceCriteria"],
     integrations: ["Azure DevOps", "Ask Buddy"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: CHECKLIST ────────────────────────────────────────────────────
@@ -510,6 +543,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (reference)"],
     businessObjects: ["ChecklistItem", "StoryReadiness", "DefinitionOfDone"],
     integrations: ["Azure DevOps", "PDF Export"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: GLOSSARY ─────────────────────────────────────────────────────
@@ -525,6 +559,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (reference)"],
     businessObjects: ["GlossaryTerm", "Acronym", "Definition"],
     integrations: ["Ask Buddy"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: BA STORY BUILDER ─────────────────────────────────────────────
@@ -540,6 +575,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (reference)"],
     businessObjects: ["UserStory", "AcceptanceCriteria", "GovernanceFlag", "DefinitionOfDone"],
     integrations: ["Azure DevOps"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: INTEGRATION ARCHITECTURE ─────────────────────────────────────
@@ -555,6 +591,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4"],
     businessObjects: ["Layer", "Component", "Protocol", "IntegrationPattern"],
     integrations: ["Service Bus", "PDC", "TDC", "Orchestrator", "Roger", "GoSystem"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── DISCOVERY: SIMULATION ───────────────────────────────────────────────────
@@ -570,6 +607,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4", "B5"],
     businessObjects: ["SimulationStep", "DataState", "SystemHandoff"],
     integrations: ["PDC Mock", "TDC Mock", "Orchestrator Mock", "Roger Mock"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── PROVISION & STATE DISCOVERY WORKSPACE ─────────────────────────────────
@@ -635,6 +673,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
       "DTAClassification", "DTLClassification", "ETRCategory", "ValuationAllowanceCriterion", "BTPProvisionOutbound",
     ],
     integrations: ["Ask Buddy", "Roger", "GoSystem", "PDC", "TDC", "ERP"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── AAP REVIEW ──────────────────────────────────────────────────────────────
@@ -650,6 +689,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2"],
     businessObjects: ["AAPDecision", "AlignmentRecord"],
     integrations: ["Architecture Board", "Azure DevOps"],
+    lastUpdated: "2026-07-16",
   },
 
   // ─── BATCH DELIVERY REVIEW ───────────────────────────────────────────────────
@@ -665,10 +705,177 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches"],
     businessObjects: ["DeliveryReview", "SprintMapping", "SignOff"],
     integrations: ["Azure DevOps", "BatchStatusContext"],
+    lastUpdated: "2026-07-16",
   },
 
 
+  // ─── PDC OVERVIEW ────────────────────────────────────────────────────────────
+  "/discovery/pdc": {
+    pageTitle: "PDC — Phoenix Data Consolidation",
+    pageIcon: "🏛️",
+    description: "PDC is the upstream financial data foundation — ingests, normalizes, and publishes all financial data consumed by TDC and the DCT platform",
+    features: ["Financial Data Ingestion", "Data Normalization", "Schema Enforcement", "Event Publication", "Canonical Data Model", "Batch Group Delivery"],
+    apis: ["GET /api/pdc/entities", "GET /api/pdc/schema", "GET /api/pdc/batches", "GET /api/pdc/events"],
+    stories: ["Ingest Financial Data", "Normalize to Canonical Model", "Publish to TDC", "Enforce Schema Lock"],
+    screens: ["PDC Overview", "Canonical Data Model", "Batch Group Map", "BA Guidance Panel"],
+    businessRules: ["PDC owns financial data — not tax logic", "TDC consumes PDC output only", "Schema Lock required before TDC can consume", "PDC does not derive eligibility"],
+    batches: ["FC", "B1", "B2", "B2A", "B5", "B8", "B16", "B21"],
+    businessObjects: ["FinancialEntity", "CanonicalRecord", "SchemaVersion", "PDCEvent", "BatchGroup"],
+    integrations: ["TDC", "Orchestrator", "Service Bus", "Tax Portal"],
+    lastUpdated: "2026-07-16",
+    lastChange: "Initial PDC Overview page created — 7 sections covering capabilities, ownership, canonical model, batch groups, and BA guidance",
+  },
+
+  // ─── DATA GATEWAY ────────────────────────────────────────────────────────────
+  "/discovery/data-gateway": {
+    pageTitle: "Tax Solutions Data Gateway",
+    pageIcon: "🌐",
+    description: "The Tax Solutions Data Gateway is the single API surface Roger uses to read all DCT platform data — no direct database access",
+    features: ["Read API Surface", "Write API Surface", "Security Model", "Response Envelope Standard", "Paging Support", "Multi-Status Responses"],
+    apis: [
+      "GET /api/gateway/taxforms", "GET /api/gateway/taxformlines", "GET /api/gateway/returntemplates",
+      "GET /api/gateway/taxonomyaccounts", "GET /api/gateway/businessrules",
+      "POST /api/gateway/taxforms", "PUT /api/gateway/taxforms/:id", "DELETE /api/gateway/taxforms/:id",
+      "GET /api/gateway/health",
+    ],
+    stories: ["Roger Reads Tax Forms via Gateway", "Roger Reads Return Templates", "BA Validates Gateway Coverage", "Architect Reviews API Surface"],
+    screens: ["Gateway Overview", "Read API Reference", "Write API Reference", "Security Model", "API Consumption Guide"],
+    businessRules: ["Roger has no direct database access", "All reads go through the Gateway", "Response envelope: statusCode / message / data / error", "Paging defaults: page 1, size 100", "Status codes: 200, 207, 400, 401"],
+    batches: ["B9A", "B16", "B28"],
+    businessObjects: ["GatewayRequest", "GatewayResponse", "APIEndpoint", "SecurityToken"],
+    integrations: ["Roger", "TDC", "PDC", "Orchestrator"],
+    lastUpdated: "2026-07-16",
+    lastChange: "Data Gateway Discovery page created — 8 sections including API Consumption Guide iframe and architecture diagrams",
+  },
+
+  // ─── KNOWLEDGE GRAPH ─────────────────────────────────────────────────────────
+  "/discovery/knowledge-graph": {
+    pageTitle: "DCT Knowledge Graph",
+    pageIcon: "🕸️",
+    description: "Interactive knowledge graph — visualizes relationships between batches, APIs, business objects, screens, and platform components",
+    features: ["Interactive Graph Visualization", "Entity Relationship Explorer", "Batch-to-API Mapping", "Cross-Platform Dependency View"],
+    apis: ["GET /api/knowledge/entities", "GET /api/knowledge/relationships", "GET /api/knowledge/graph"],
+    stories: ["Explore Platform Relationships", "Trace Batch Dependencies", "Identify API Coverage Gaps"],
+    screens: ["Knowledge Graph Canvas", "Entity Detail Panel", "Relationship Filter", "Dependency Path Tracer"],
+    businessRules: ["All platform entities must be represented in the graph", "Relationships must be bidirectional", "Orphaned nodes indicate missing coverage"],
+    batches: ["All batches"],
+    businessObjects: ["Entity", "Relationship", "GraphNode", "GraphEdge"],
+    integrations: ["Discovery Center", "BatchStatusContext", "pageContextRegistry"],
+    lastUpdated: "2026-07-16",
+    lastChange: "Knowledge Graph page added to Discovery Center navigation",
+  },
+
+  // ─── UAT TESTING ─────────────────────────────────────────────────────────────
+  "/uat-testing": {
+    pageTitle: "Master Data UAT Testing",
+    pageIcon: "✅",
+    description: "UAT framework for the DCT Master Data Workbook — validation process, execution guide, roles, change control, defect management, and exit criteria",
+    features: ["UAT Process Flow", "Execution Guide", "Workbook Validation", "Defect Management", "Business Sign-Off", "Exit Criteria Checklist"],
+    apis: ["GET /api/uat/test-cases", "POST /api/uat/test-cases", "POST /api/uat/defects", "POST /api/uat/risks", "PATCH /api/uat/test-cases/:id"],
+    stories: ["Business User Validates Workbook Data", "BA Performs Impact Assessment", "Dev Team Executes Reload", "Business User Signs Off UAT"],
+    screens: ["UAT Process Flow Diagram", "UAT Execution Guide", "Roles Panel", "Change Control Workflow", "Defect Log", "Exit Criteria Checklist", "MVP Worksheet Reference Table"],
+    businessRules: ["Workbook is the authoritative source of truth", "Validate in load order only", "Every defect must reference workbook tab and row", "Reload requires BA impact assessment", "UAT resumes only after validation suite passes"],
+    batches: ["B9A", "B16", "B28", "B29", "B39"],
+    businessObjects: ["Worksheet", "TestCase", "Defect", "LoadOrder", "SignOff", "ReloadStrategy"],
+    integrations: ["DCT Master Data Intake Workbook", "Roger", "Azure DevOps"],
+    lastUpdated: "2026-07-16",
+    lastChange: "v3.0 — Workbook-driven rewrite: BPMN process flow, 8-step Execution Guide, 17 real MVP worksheets from intake workbook",
+  },
+
+  // ─── LEARNING CENTER ─────────────────────────────────────────────────────────
+  "/learning-center": {
+    pageTitle: "Learning Center",
+    pageIcon: "🎓",
+    description: "Guided learning paths for the DCT platform — role-based onboarding, architecture walkthroughs, and governance training",
+    features: ["Role-Based Learning Paths", "Architecture Walkthroughs", "Governance Training", "Platform Onboarding"],
+    apis: ["GET /api/learning/paths", "GET /api/learning/progress"],
+    stories: ["New BA Completes Onboarding", "Developer Reviews Architecture", "PO Reviews Governance Model"],
+    screens: ["Learning Path Selector", "Module Viewer", "Progress Tracker", "Completion Certificate"],
+    businessRules: ["Learning paths are role-specific", "Architecture modules require Discovery Center completion", "Governance training is mandatory for all roles"],
+    batches: ["All batches"],
+    businessObjects: ["LearningPath", "Module", "Progress", "Completion"],
+    integrations: ["Discovery Center", "Onboarding Workspace"],
+    lastUpdated: "2026-07-16",
+    lastChange: "Learning Center page added to platform navigation",
+  },
+
+  // ─── BATCH DELIVERY CALENDAR ─────────────────────────────────────────────────
+  "/batch-calendar": {
+    pageTitle: "Batch Delivery Calendar",
+    pageIcon: "📅",
+    description: "Visual calendar of batch delivery schedule — PI 1, PI 2, PI 3, and PI 4 batch timelines and milestone dates",
+    features: ["Batch Calendar View", "PI Timeline", "Milestone Tracking", "Sprint-to-Batch Mapping"],
+    apis: ["GET /api/batches/calendar", "GET /api/pi/schedule"],
+    stories: ["View Batch Delivery Calendar", "Track PI Milestones", "Identify Delivery Gaps"],
+    screens: ["Calendar Grid", "PI Timeline", "Milestone Markers", "Batch Status Legend"],
+    businessRules: ["PI 2 is complete", "PI 3 is active — MVP target Sep 21, 2026", "PI 4 is Post-Pilot", "Batch order follows dependency chain"],
+    batches: ["All batches (B1–B43+)"],
+    businessObjects: ["BatchSchedule", "PITimeline", "Milestone", "Sprint"],
+    integrations: ["BatchStatusContext", "Azure DevOps"],
+    lastUpdated: "2026-07-16",
+    lastChange: "Batch Delivery Calendar page — PI 2 Complete, PI 3 Active, MVP Sep 21 2026",
+  },
+
+  // ─── GATE STATUS ─────────────────────────────────────────────────────────────
+  "/gate-status": {
+    pageTitle: "Gate Status Overview",
+    pageIcon: "🔒",
+    description: "Four-gate governance verification — Schema Lock, Invariant Lock, Contract Publication, Lineage Closure",
+    features: ["Gate Verification Dashboard", "Gate Health Monitoring", "Gate Criteria Checklist", "Gate Sign-Off Workflow"],
+    apis: ["GET /api/gates/status", "GET /api/gates/health", "POST /api/gates/:id/verify"],
+    stories: ["Verify Schema Lock Gate", "Verify Invariant Lock Gate", "Verify Contract Publication Gate", "Verify Lineage Closure Gate"],
+    screens: ["Gate Status Grid", "Gate Detail Panel", "Criteria Checklist", "Sign-Off Panel"],
+    businessRules: ["All 4 gates must pass before RC", "Schema Lock required before Invariant Lock", "Contract Publication requires all APIs documented", "Lineage Closure requires end-to-end traceability"],
+    batches: ["All batches"],
+    businessObjects: ["Gate", "GateCriteria", "GateVerification", "SignOff"],
+    integrations: ["BatchStatusContext", "Architecture Board"],
+    lastUpdated: "2026-07-16",
+    lastChange: "Gate Status page registered in context registry",
+  },
+
 };
+
+// ─── Registry Manifest ───────────────────────────────────────────────────────
+// GOVERNANCE RULE: Every route in App.tsx MUST have a corresponding entry here.
+// When adding a new page:
+//   1. Add the route to App.tsx
+//   2. Add an entry to PAGE_CONTEXT_REGISTRY above with ALL fields populated
+//   3. Set lastUpdated to today's date (YYYY-MM-DD)
+//   4. Set lastChange to a brief description of what the page contains
+// When updating an existing page:
+//   1. Update the relevant fields in the registry entry
+//   2. Update lastUpdated to today's date
+//   3. Update lastChange to describe what changed
+// The Registry Audit page (/registry-audit) will flag any violations.
+export const REGISTRY_MANIFEST = {
+  version: "v8",
+  lastAudit: "2026-07-16",
+  totalRoutes: 47,
+  registeredRoutes: 47,
+  rule: "Every route in App.tsx must have a corresponding PAGE_CONTEXT_REGISTRY entry with lastUpdated set to the date of the most recent page change.",
+};
+
+// ─── Validate Registry ───────────────────────────────────────────────────────
+// Returns a list of routes that are missing from the registry.
+// Used by the Registry Audit page to surface gaps.
+export function validateRegistry(appRoutes: string[]): {
+  missing: string[];
+  stale: string[];
+  registered: string[];
+} {
+  const registered = Object.keys(PAGE_CONTEXT_REGISTRY);
+  const missing = appRoutes.filter(
+    (r) => !PAGE_CONTEXT_REGISTRY[r] && !r.includes(":")
+  );
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const stale = registered.filter((r) => {
+    const entry = PAGE_CONTEXT_REGISTRY[r];
+    if (!entry.lastUpdated) return true;
+    return new Date(entry.lastUpdated) < thirtyDaysAgo;
+  });
+  return { missing, stale, registered };
+}
 
 // ─── Utility: resolve context for a given pathname ─────────────────────────
 // Handles dynamic routes like /batch/:id and /gate/:id

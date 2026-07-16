@@ -66,6 +66,7 @@ import Step5AskBuddy from "./pages/onboarding/Step5AskBuddy";
 import Step6Questions from "./pages/onboarding/Step6Questions";
 import Step7Complete from "./pages/onboarding/Step7Complete";
 import UATTestingPage from "./pages/UATTestingPage";
+import RegistryAudit from "./pages/RegistryAudit";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -163,6 +164,7 @@ function Router() {
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />
           {/* UAT Testing */}
           <Route path="/uat-testing" component={UATTestingPage} />
+          <Route path="/registry-audit" component={RegistryAudit} />
           {/* Learning Center */}
           <Route path="/learning-center" component={LearningCenter} />
           {/* Provision & State Discovery Workspace */}

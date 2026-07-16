@@ -107,6 +107,7 @@ const BA_ITEMS: NavItem[] = [
   { label: "UAT Testing",                 path: "/uat-testing",                 icon: "✓", badge: "UAT",    badgeColor: "#059669" },
   { label: "Delivery Intelligence",        path: "/delivery-intelligence",       icon: "◉", badge: "PI3",    badgeColor: "#003865" },
   { label: "Deployment Registry",          path: "/deployment-registry",        icon: "🚀", badge: "New",     badgeColor: "#059669" },
+  { label: "Registry Audit",               path: "/registry-audit",              icon: "🔍", badge: "Dev",     badgeColor: "#7c3aed" },
   { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
   { label: "Governance Gates",            path: "/gate/overview",              icon: "◉" },
   { label: "Touchpoints (T1–T11)",        path: "/touchpoints",                icon: "↝" },
