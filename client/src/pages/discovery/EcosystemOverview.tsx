@@ -3,7 +3,7 @@ import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
 import RelatedObjectsPanel from "@/components/RelatedObjectsPanel";
 
 
-type Platform = "erp" | "pdc" | "tdc" | "roger" | "gosystem";
+type Platform = "erp" | "pdc" | "tdc" | "gateway" | "roger" | "gosystem";
 
 interface PlatformDetail {
   id: Platform;
@@ -74,6 +74,23 @@ const PLATFORMS: PlatformDetail[] = [
     consumers: ["Roger", "IMS (Integration & Management System)", "Downstream reporting"],
     apis: ["Tax Mapping API", "Adjustment API", "Classification API", "Lineage API", "Known Mappings API", "State Rules API"],
     businessObjects: ["Tax Mapping", "Tax Adjustment", "Known Mapping", "Reclassification", "Lineage Record", "Tax-Ready Record"],
+  },
+  {
+    id: "gateway",
+    name: "Tax Solutions Data Gateway",
+    shortName: "Data Gateway",
+    purpose: "Governed API layer between Roger and backend DCT services. Handles authentication, routing, response aggregation, API governance, and audit propagation.",
+    owner: "RSM / CATT",
+    color: "#0d7d84",
+    bgColor: "#d6ecec",
+    borderColor: "#0d7d84",
+    icon: "🔀",
+    responsibilities: ["Centralize authentication (Okta)", "Enforce authorization", "Route requests to CEM / PDC / TDC / Task Mgmt", "Aggregate multi-backend responses", "Normalize API contracts for Roger", "Support versioning", "Capture and propagate audit metadata", "Cache reference data (~1 hour)"],
+    input: "Roger UI requests with Okta bearer tokens",
+    output: "Unified, normalized API responses for Roger",
+    consumers: ["Roger"],
+    apis: ["GET /api/assigned-clients/", "GET /clients/{id}/entities", "GET /api/clients/{id}/engagements", "GET /api/engagements/{id}/deliverables", "GET /api/consolidations/{id}/line-mappings/taxYear/{year}", "POST /api/consolidations/{id}/line-mappings/decisions", "GET /api/firm-taxonomies", "GET /api/tax-forms/taxYear/{year}", "GET /api/taxonomy-accounts/with-form-lines/{year}"],
+    businessObjects: ["Client Assignment", "Legal Entity", "Engagement", "Deliverable", "Line Mapping Row", "Classify Decision", "Proposal Decision", "Firm Taxonomy", "Tax Form"],
   },
   {
     id: "roger",

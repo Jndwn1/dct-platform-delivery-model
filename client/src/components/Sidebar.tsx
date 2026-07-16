@@ -131,6 +131,7 @@ const DISCOVERY_ITEMS: NavItem[] = [
   { label: "TDC / DCT Overview",         path: "/discovery/dct-overview",             icon: "T" },
   { label: "Roger Overview",             path: "/discovery/roger-overview",           icon: "R" },
   { label: "IMS Integration",            path: "/discovery/gosystem",                icon: "IMS" },
+  { label: "Data Gateway",               path: "/discovery/data-gateway",            icon: "🔀", badge: "NEW", badgeColor: "#0d7d84" },
   { label: "Glossary",                   path: "/discovery/glossary",                icon: "≡" },
   { label: "Knowledge Graph",             path: "/discovery/knowledge-graph",          icon: "🕸️", badge: "NEW", badgeColor: "#0891b2" },
   { label: "Provision & State Discovery Hub", path: "/onboarding",                      icon: "🔎", badge: "NEW", badgeColor: "#059669" },
