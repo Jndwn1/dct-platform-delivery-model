@@ -595,6 +595,180 @@ export default function UATTestingPage() {
         </div>
       </div>
 
+      {/* ── Examples: Defect vs. Approved Master Data Change ── */}
+      <div style={{ marginBottom: 36 }}>
+        <div style={{ borderLeft: "4px solid #003865", paddingLeft: 14, marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#64748b", marginBottom: 2 }}>Section 04b — Worked Examples</div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: "#0f1623", margin: 0 }}>Examples: Defect vs. Approved Master Data Change</h2>
+        </div>
+        <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, marginBottom: 20, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "12px 16px" }}>
+          Not every issue discovered during UAT is a software defect. The examples below illustrate how to determine whether an issue should follow the Defect Management process or the Approved Master Data Change process.
+        </div>
+
+        {/* Two-column: Example 1 (green) + Example 2 (blue) */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+
+          {/* Example 1 — Software Defect (green) */}
+          <div style={{ background: "#f0fdf4", border: "2px solid #86efac", borderRadius: 10, padding: "20px 22px", display: "flex", flexDirection: "column" as const, gap: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 22 }}>🐞</span>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#065f46", marginBottom: 1 }}>Example 1</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#14532d" }}>Software Defect</div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#065f46", marginBottom: 6 }}>Scenario</div>
+              <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7 }}>
+                The Approved Master Data Workbook specifies that the Filing Due Date for Form 1120 is <strong>April 15</strong>. After the data load, Roger displays <strong>March 31</strong>.
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#065f46", marginBottom: 6 }}>Comparison</div>
+              <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
+                <thead>
+                  <tr style={{ background: "#dcfce7" }}>
+                    <th style={{ padding: "7px 12px", textAlign: "left" as const, fontWeight: 700, color: "#14532d", borderBottom: "1px solid #86efac" }}>Approved Workbook</th>
+                    <th style={{ padding: "7px 12px", textAlign: "left" as const, fontWeight: 700, color: "#14532d", borderBottom: "1px solid #86efac" }}>Roger</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: "8px 12px", color: "#166534", fontWeight: 700, background: "white", borderBottom: "1px solid #d1fae5" }}>April 15</td>
+                    <td style={{ padding: "8px 12px", color: "#dc2626", fontWeight: 700, background: "white", borderBottom: "1px solid #d1fae5" }}>March 31 ✕</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div style={{ background: "#dcfce7", border: "1px solid #86efac", borderRadius: 6, padding: "8px 12px" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#065f46" }}>Result: </span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#14532d" }}>Software Defect</span>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#065f46", marginBottom: 4 }}>Why?</div>
+              <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.6 }}>The Approved Master Data Workbook is correct, but the platform does not match the approved data.</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#065f46", marginBottom: 6 }}>Next Steps</div>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#1e293b", lineHeight: 1.8 }}>
+                <li>Log a software defect.</li>
+                <li>Development corrects the issue.</li>
+                <li>Reload if necessary.</li>
+                <li>Business retests the affected worksheet.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Example 2 — Approved Master Data Change (blue) */}
+          <div style={{ background: "#eff6ff", border: "2px solid #93c5fd", borderRadius: 10, padding: "20px 22px", display: "flex", flexDirection: "column" as const, gap: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 22 }}>📝</span>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#1d4ed8", marginBottom: 1 }}>Example 2</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#1e3a8a" }}>Approved Master Data Change</div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#1d4ed8", marginBottom: 6 }}>Scenario</div>
+              <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7 }}>
+                The Approved Master Data Workbook specifies the Filing Due Date as <strong>March 31</strong>. Roger also displays <strong>March 31</strong>. During UAT, the business determines the correct due date should actually be <strong>April 15</strong>.
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#1d4ed8", marginBottom: 6 }}>Comparison</div>
+              <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
+                <thead>
+                  <tr style={{ background: "#dbeafe" }}>
+                    <th style={{ padding: "7px 12px", textAlign: "left" as const, fontWeight: 700, color: "#1e3a8a", borderBottom: "1px solid #93c5fd" }}>Approved Workbook</th>
+                    <th style={{ padding: "7px 12px", textAlign: "left" as const, fontWeight: 700, color: "#1e3a8a", borderBottom: "1px solid #93c5fd" }}>Roger</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: "8px 12px", color: "#1d4ed8", fontWeight: 700, background: "white", borderBottom: "1px solid #bfdbfe" }}>March 31</td>
+                    <td style={{ padding: "8px 12px", color: "#059669", fontWeight: 700, background: "white", borderBottom: "1px solid #bfdbfe" }}>March 31 ✓</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div style={{ background: "#dbeafe", border: "1px solid #93c5fd", borderRadius: 6, padding: "8px 12px" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#1d4ed8" }}>Result: </span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#1e3a8a" }}>Approved Master Data Change</span>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#1d4ed8", marginBottom: 4 }}>Why?</div>
+              <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.6 }}>Roger correctly loaded the approved workbook. The business decision changed, not the application.</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#1d4ed8", marginBottom: 6 }}>Next Steps</div>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#1e293b", lineHeight: 1.8 }}>
+                <li>Update the Approved Master Data Workbook.</li>
+                <li>Perform a Business Analyst Impact Assessment.</li>
+                <li>Determine the appropriate reload strategy.</li>
+                <li>Reload the affected data.</li>
+                <li>Business revalidates the impacted worksheets.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Example 3 — Taxonomy Mapping Change (orange, full-width) */}
+        <div style={{ background: "#fff7ed", border: "2px solid #fdba74", borderRadius: 10, padding: "20px 24px", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <span style={{ fontSize: 22 }}>🔄</span>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#c2410c", marginBottom: 1 }}>Example 3 — Full-Width</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#7c2d12" }}>Taxonomy Mapping Change</div>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+            <div style={{ gridColumn: "1 / 3" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#c2410c", marginBottom: 6 }}>Scenario</div>
+              <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, marginBottom: 12 }}>
+                During UAT, the business decides that the <strong>Cash Equivalents</strong> Taxonomy Account should map to a different Tax Form Line than originally approved. Roger displays exactly what exists in the Approved Master Data Workbook.
+              </div>
+              <div style={{ background: "#fed7aa", border: "1px solid #fdba74", borderRadius: 6, padding: "8px 12px", marginBottom: 12 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#c2410c" }}>Result: </span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#7c2d12" }}>Approved Master Data Change</span>
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#c2410c", marginBottom: 4 }}>Why?</div>
+              <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.6, marginBottom: 12 }}>The application is functioning correctly. The approved business mapping has changed.</div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#c2410c", marginBottom: 6 }}>Next Steps</div>
+              <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#1e293b", lineHeight: 1.9 }}>
+                <li>Update the Approved Master Data Workbook.</li>
+                <li>Perform a Business Analyst Impact Assessment.</li>
+                <li>Identify all downstream dependencies.</li>
+                <li>Determine whether a Partial, Coordinated Partial, or Full Reload is required.</li>
+                <li>Execute the reload.</li>
+                <li>Revalidate all impacted worksheets before resuming UAT.</li>
+              </ol>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#c2410c", marginBottom: 6 }}>Potential Impact</div>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#1e293b", lineHeight: 1.9 }}>
+                <li>Tax Taxonomy Accounts</li>
+                <li>Tax Form Lines</li>
+                <li>Return Templates</li>
+                <li>Downstream Mapping Rules</li>
+                <li>Reporting Outputs</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Remember callout banner */}
+        <div style={{ background: "#eff6ff", border: "1px solid #93c5fd", borderLeft: "4px solid #2563eb", borderRadius: 8, padding: "16px 20px", display: "flex", gap: 14, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 22, flexShrink: 0, marginTop: 1 }}>💡</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#1e3a8a", marginBottom: 6 }}>Remember</div>
+            <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.8 }}>
+              <div style={{ marginBottom: 6 }}>If Roger does <strong>not</strong> match the Approved Master Data Workbook, it is a <strong style={{ color: "#14532d" }}>Software Defect</strong>.</div>
+              <div>If Roger <strong>matches</strong> the Approved Master Data Workbook, but the business decides the master data should change, it is an <strong style={{ color: "#1d4ed8" }}>Approved Master Data Change</strong> and must follow the Change Control process.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── Section 05 — Change Control ── */}
       <div style={{ marginBottom: 36 }}>
         <SectionHeader num="05" title="Change Control During UAT" subtitle="All changes originate in the Approved Master Data Workbook. No reload occurs without a documented workbook change." />
