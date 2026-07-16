@@ -357,7 +357,7 @@ export const allBatches: ArchitecturalBatch[] = [
     completionPct: 0,
     startDate: undefined,
     targetDate: "2026-09-19",
-    piLabel: "PI 2 — Committed",
+    piLabel: "PI 2 — Complete",
     overview: "The Orchestrator delivers tax mapping proposals to TDC for the first time. Every account gets a proposal with a confidence band and structured evidence. Practitioners can accept, override, or reject. All decisions are immutable and auditable. Roger gets its primary TDC read contract — this is the moment the platform comes to life for a practitioner.",
     whatMustBeTrue: "The Orchestrator has completed its tax mapping work and delivers proposals to TDC. TDC receives and persists proposals as immutable records with confidence scores and structured evidence. Practitioners act on proposals — decisions are recorded immutably and layered on top without mutation. TDC publishes facts. Roger's primary read contract is live.",
     stories: [
@@ -388,7 +388,7 @@ export const allBatches: ArchitecturalBatch[] = [
     completionPct: 0,
     startDate: undefined,
     targetDate: "2026-12-04",
-    piLabel: "PI 2 — Committed",
+    piLabel: "PI 2 — Complete",
     overview: "PDC establishes the authoritative entity registry — client groups and legal entities — and serves as the single source of truth for EntityId across the platform. Ownership relationships, jurisdictions, and entity characteristics are stored as governed, versioned facts. This closes the EntityId risk that has been an open item since PI 1. Roger gains a stable, governed identity layer it can use to scope views, navigate multi-entity engagements, and display client hierarchy. Batch 5 also establishes governed synchronization with upstream systems (CEM) and user-to-entity entitlement mappings required for downstream consumption.",
     whatMustBeTrue: "PDC must function as the system of record for entity identity, where each entity is assigned a unique, immutable GUID-based EntityId linked to a ClientId. The model must support complex client group structures, including multiple entities per client and parent-child ownership relationships that are hierarchical, queryable, and time-aware. Ownership, jurisdiction, and entity characteristic data are loaded through a governed Admin API as an interim approach until upstream systems (MDM/EODS) become available. All entity, ownership, jurisdiction, and characteristic records must include a DataSourceType field (e.g., ADMIN_API_MANUAL, CEM_SYNC, MDM_SYNC, EODS_SYNC). PDC must support governed synchronization of client and legal entity identity from upstream systems (CEM) and maintain user-to-entity entitlement mappings for downstream consumption, without acting as an authoring or authorization system.",
     stories: [
@@ -423,7 +423,7 @@ export const allBatches: ArchitecturalBatch[] = [
     completionPct: 0,
     startDate: undefined,
     targetDate: "2027-02-12",
-    piLabel: "PI 2 — Committed",
+    piLabel: "PI 2 — Complete",
     overview: "Practitioners can now do real work. Review tasks are generated automatically from data state. Adjustments move through a governed lifecycle. Tax-ready records are derived deterministically from mapping decisions and approved book-to-tax adjustments only. Sign-off is non-repudiable, and lock is terminal. Roger surfaces the full practitioner workflow — proposals, decisions, adjustments, derivation results, and finalization state — for the first time end to end.",
     whatMustBeTrue: "Batch 6 establishes a governed practitioner workflow where review tasks are generated automatically from data state and entity status is derived from task and adjustment activity. Adjustments move through a controlled, versioned lifecycle with rule-based approval, and all records are immutable once finalized. Tax-ready records are system-derived from accepted decisions and approved adjustments only. Finalization requires non-repudiable sign-off. Lock is terminal — mutation attempts are rejected and logged. Unlock transitions entity to AMENDED through a governed operation with recorded actor, reason, and timestamp.",
     stories: [
@@ -461,7 +461,7 @@ export const allBatches: ArchitecturalBatch[] = [
     completionPct: 0,
     startDate: undefined,
     targetDate: "2025-09-30",
-    piLabel: "PI 2 — Committed",
+    piLabel: "PI 2 — Complete",
     overview: "TDC serves as the system of record for tax profile and eligibility determinations at the EntityId and ReportingPeriod level. Eligibility is governed through a structured three-tier model (Must Have, Must Not Have, Flag & Review) with all rules explicitly defined and versioned. Eligibility acts as a downstream processing gate — entities in INELIGIBLE or unresolved FLAG_AND_REVIEW state must not proceed to AI mapping or practitioner workflow.",
     whatMustBeTrue: "Determinations are system-evaluated, persisted as governed records, and fully traceable to the exact rule versions and entity inputs used. Flag & Review conditions require explicit practitioner confirmation or override before a determination can be finalized. Determination outcomes are versioned and immutable once finalized, with re-determination producing a new record rather than overwriting prior results. Determination and re-determination are explicitly triggered governed operations and are not executed automatically or by background processes.",
     stories: [
@@ -499,7 +499,7 @@ export const allBatches: ArchitecturalBatch[] = [
     completionPct: 0,
     startDate: undefined,
     targetDate: "2025-09-30",
-    piLabel: "PI 2 — Committed",
+    piLabel: "PI 2 — Complete",
     overview: "Failures are never silent. Every exception across ingestion, normalization, mapping, and workflow is structured, queryable, and tracked through to resolution. Roger can surface exception status to practitioners — data quality issues and processing failures are visible rather than hidden. The data team can manage exceptions without direct database access.",
     whatMustBeTrue: "PDC captures ingestion and normalization exceptions — failure type, entity, period, root cause, and remediation lifecycle. PDC Exceptions read contract published. TDC captures mapping, decision, and workflow exceptions — failure type, entity, period, root cause, and remediation lifecycle. TDC Exceptions read contract published.",
     stories: [
@@ -534,7 +534,7 @@ export const allBatches: ArchitecturalBatch[] = [
     completionPct: 80,
     startDate: "2026-05-31",
     targetDate: "2026-06-12",
-    piLabel: "PI 2 — Committed",
+    piLabel: "PI 2 — Complete",
     overview: "ARCHITECTURAL CHANGE: B9 repurposed from IMS Integration & Prior Year Retrieval to Roger Gateway & Governed Consumer Access Layer (surface-not-store). PDC delivers the Ocelot gateway scaffolding plus IMS, CEM, and TIM pass-through surfaces. Roger and all future consumers access enterprise data through the gateway rather than calling underlying systems directly. TDC B9 Rollforward scope is ON HOLD — absorbed by B31.",
     whatMustBeTrue: "Roger and all consumers call the gateway — not underlying systems directly. No direct system-to-system calls bypass the gateway. The gateway surfaces data from IMS, CEM, and TIM — it does not store that data in PDC. Surface-not-store is the governing principle. The Gateway Read Contract is additive-only. No field may be removed or re-typed once published. eODS pass-through is deferred — it can layer in later without changing the gateway contract. Future pass-through providers must integrate through the gateway contract.",
     stories: [

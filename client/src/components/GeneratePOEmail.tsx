@@ -89,7 +89,7 @@ function buildEmailHTML(
       </div>
       <div style="margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:600;color:#0f1623;">PI 2 — Committed</span>
+          <span style="font-size:12px;font-weight:600;color:#0f1623;">PI 2 — Complete</span>
           <span style="font-size:12px;font-weight:700;color:#059669;">${pi2Pct}% (${pi2Done}/${pi2Batches.length})</span>
         </div>
         <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
@@ -125,7 +125,7 @@ function buildEmailHTML(
           </tr>`;
       }).join("");
 
-      const piLabel = pi === "PI 2" ? "PI 2 — Committed" :
+      const piLabel = pi === "PI 2" ? "PI 2 — Complete" :
                       pi === "PI 3" ? "PI 3 — MVP Target" :
                       pi === "PI 4" ? "PI 4 — Post-Pilot" :
                       pi === "PI 5" ? "PI 5 — Future Roadmap" :

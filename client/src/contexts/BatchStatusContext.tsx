@@ -260,8 +260,8 @@ export type SyncLogEntry = AuditLogEntry;
 
 // ── Default initial state ─────────────────────────────────────────────────────
 
-// DEFAULT_STATUS reflects Roadmap v7 (updated June 2026)
-// PI 1 — Complete | PI 2 — Committed (5/21–6/22) | PI 3 — Committed (7/13–9/15) | PI 4 — Future
+// DEFAULT_STATUS reflects Roadmap v8 (updated July 2026)
+// PI 1 — Complete | PI 2 — COMPLETE (July 2026) | PI 3 — ACTIVE (7/13–9/15) | PI 4 — Future
 const DEFAULT_STATUS: BatchStatusMap = {
   // ── PI 1 — Complete ──────────────────────────────────────────────────────
   "foundation-core": "Complete",
@@ -269,33 +269,33 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "2": "Complete",
   "2a": "Complete",
   "3": "Complete",
-  // ── PI 2 — Committed (5/21–6/22) ─────────────────────────────────────────
+  // ── PI 2 — COMPLETE (as of July 2026) ─────────────────────────────────────────
   "4": "Complete",
   "5": "Complete",
   "6": "Complete",
   "7": "Complete",
-  "8": "Done",
-  "8-pdc": "Done",
-  "8-tdc": "Done",
-  "9": "Done",          // B9 PDC — Roger Gateway delivered
-  "9-pdc": "Done",
+  "8": "Complete",
+  "8-pdc": "Complete",
+  "8-tdc": "Complete",
+  "9": "Complete",      // B9 PDC — Roger Gateway delivered
+  "9-pdc": "Complete",
   "9-tdc": "On Hold",  // B9 TDC — Rollforward ON HOLD, absorbed by B31
-  "10": "Done",         // B10 — Return Assembly delivered 6/11
-  "11": "Committed",   // B11 — Learning Governance, 6/12–6/22
-  "43": "In Progress", // B43 — Practitioner Book & Reclass, currently in flight
-  // ── PI 2 Stretch ──────────────────────────────────────────────────────────
-  "13": "Committed",   // B13 — Platform Reference & Document Provenance (PI 2 Stretch)
-  "16": "Committed",   // B16 PDC+TDC — Audit Trail & Lineage Governance (PI 2 Stretch)
+  "10": "Complete",    // B10 — Return Assembly delivered 6/11
+  "11": "Complete",    // B11 — Learning Governance, 6/12–6/22
+  "43": "Complete",    // B43 — Practitioner Book & Reclass, currently in flight
+  // ── PI 2 Stretch — Complete ──────────────────────────────────────────────────────────
+  "13": "Complete",    // B13 — Platform Reference & Document Provenance (PI 2 Stretch)
+  "16": "Complete",    // B16 PDC+TDC — Audit Trail & Lineage Governance (PI 2 Stretch)
   "12": "On Hold",     // B12 — Engagement Identity (ON HOLD per v7)
-  // ── PI 3 — Committed (7/13–9/15) ─────────────────────────────────────────
-  "20": "Committed",   // B20 — Firm Governance & Professional Standards
+  // ── PI 3 — ACTIVE (7/13–9/15) ─────────────────────────────────────────
+  "20": "In Progress", // B20 — Firm Governance & Professional Standards
   "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (6/17–6/25)
-  "21": "Committed",   // B21 — Quality Control (PDC MVP)
-  "28": "Committed",   // B28 — Tax Workpaper & Provision Schedules
-  "9a": "Committed",   // B9A — Data Gateway (IMS, CDS, DUO)
-  "31": "Committed",   // B31 — Legacy Tool Prior Year Ingestion (PDC + TDC)
-  "17": "Committed",   // B17 — Decision Support — Overrides, Evidence & Workpapers
-  "26": "Committed",   // B26 — Entity Constituents & Allocations (PDC MVP)
+  "21": "In Progress", // B21 — Quality Control (PDC MVP)
+  "28": "In Progress", // B28 — Tax Workpaper & Provision Schedules
+  "9a": "In Progress", // B9A — Data Gateway (IMS, CDS, DUO)
+  "31": "In Progress", // B31 — Legacy Tool Prior Year Ingestion (PDC + TDC)
+  "17": "In Progress", // B17 — Decision Support — Overrides, Evidence & Workpapers
+  "26": "In Progress", // B26 — Entity Constituents & Allocations (PDC MVP)
   "29": "Committed",   // B29 — Consolidated Return Assembly
   "39": "Committed",   // B39 — Calculation Report
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
@@ -309,8 +309,8 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "23": "Not Started",  // B23 — Benchmark & Peer Analytics (Post-MVP, future PI)
 };
 
-const STORAGE_KEY     = "dct_batch_status_v5";
-const AUDITLOG_KEY    = "dct_audit_log_v5";
+const STORAGE_KEY     = "dct_batch_status_v6"; // v6: PI 2 Complete, PI 3 Active (July 2026)
+const AUDITLOG_KEY    = "dct_audit_log_v6";
 const MAX_LOG_ENTRIES = 50;
 
 // ── PI membership ─────────────────────────────────────────────────────────────

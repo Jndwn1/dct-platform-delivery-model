@@ -65,13 +65,13 @@ const BATCH_REFERENCE = [
   { pi: "PI 2", status: "Done",      batchNum: "13",  platform: "TDC",      name: "API Route Standardization",                                          whatItDoes: "Standardizes TDC API routes for governed consumer access.",                                                                                   rogerImpact: "None (infrastructure)" },
   { pi: "PI 3", status: "In Progress", batchNum: "42", platform: "TDC",     name: "Tax Rules Framework (PI 3 continuation)",                            whatItDoes: "Extends book-to-tax adjustment rules for additional scenarios.",                                                                               rogerImpact: "Tax Adjustment (Stage 7)" },
   { pi: "PI 3", status: "In Progress", batchNum: "17", platform: "PDC",     name: "Many-to-Many Form Line Mapping & Jurisdiction-Aware Derivation",     whatItDoes: "Supports many-to-many form line mappings with jurisdiction-aware tax derivation.",                                                              rogerImpact: "Line Mappings (Stage 2) + Jurisdiction" },
-  { pi: "PI 3", status: "Planned",   batchNum: "20",  platform: "TDC",      name: "Apportionment & State Allocation",                                   whatItDoes: "Handles state apportionment and income allocation across jurisdictions.",                                                                     rogerImpact: "State Apportionment" },
-  { pi: "PI 3", status: "Planned",   batchNum: "21",  platform: "PDC",      name: "Multi-Entity Consolidation",                                         whatItDoes: "Consolidates financial data across multiple entities for group-level reporting.",                                                              rogerImpact: "Consolidation View" },
-  { pi: "PI 3", status: "Planned",   batchNum: "26",  platform: "PDC",      name: "Known Mappings — Confirmed Classification Retrieval",                whatItDoes: "Retrieves and surfaces confirmed classification decisions for practitioner review.",                                                             rogerImpact: "Line Mappings (Stage 2)" },
-  { pi: "PI 3", status: "Planned",   batchNum: "28",  platform: "TDC",      name: "Deferred Tax & Temporary Differences",                               whatItDoes: "Computes deferred tax assets/liabilities and temporary differences.",                                                                         rogerImpact: "Deferred Tax" },
+  { pi: "PI 3", status: "In Progress", batchNum: "20",  platform: "TDC",      name: "Apportionment & State Allocation",                                   whatItDoes: "Handles state apportionment and income allocation across jurisdictions.",                                                                     rogerImpact: "State Apportionment" },
+  { pi: "PI 3", status: "In Progress", batchNum: "21",  platform: "PDC",      name: "Multi-Entity Consolidation",                                         whatItDoes: "Consolidates financial data across multiple entities for group-level reporting.",                                                              rogerImpact: "Consolidation View" },
+  { pi: "PI 3", status: "In Progress", batchNum: "26",  platform: "PDC",      name: "Known Mappings — Confirmed Classification Retrieval",                whatItDoes: "Retrieves and surfaces confirmed classification decisions for practitioner review.",                                                             rogerImpact: "Line Mappings (Stage 2)" },
+  { pi: "PI 3", status: "In Progress", batchNum: "28",  platform: "TDC",      name: "Deferred Tax & Temporary Differences",                               whatItDoes: "Computes deferred tax assets/liabilities and temporary differences.",                                                                         rogerImpact: "Deferred Tax" },
   { pi: "PI 3", status: "Planned",   batchNum: "29",  platform: "TDC",      name: "Credits & Incentives",                                               whatItDoes: "Identifies and applies eligible tax credits and incentives.",                                                                                 rogerImpact: "Credits & Incentives" },
-  { pi: "PI 3", status: "Planned",   batchNum: "31",  platform: "TDC",      name: "Partnership K-1 & Pass-Through Allocation",                          whatItDoes: "Handles K-1 income allocation and pass-through entity tax treatment.",                                                                         rogerImpact: "K-1 / Pass-Through" },
-  { pi: "PI 3", status: "Planned",   batchNum: "9A",  platform: "Gateway",  name: "Roger Gateway — Extended Consumer Contracts",                        whatItDoes: "Extends the Roger Gateway with additional governed consumer contracts.",                                                                       rogerImpact: "Gateway Expansion" },
+  { pi: "PI 3", status: "In Progress", batchNum: "31",  platform: "TDC",      name: "Partnership K-1 & Pass-Through Allocation",                          whatItDoes: "Handles K-1 income allocation and pass-through entity tax treatment.",                                                                         rogerImpact: "K-1 / Pass-Through" },
+  { pi: "PI 3", status: "In Progress", batchNum: "9A",  platform: "Gateway",  name: "Roger Gateway — Extended Consumer Contracts",                        whatItDoes: "Extends the Roger Gateway with additional governed consumer contracts.",                                                                       rogerImpact: "Gateway Expansion" },
   { pi: "PI 3", status: "Planned",   batchNum: "39",  platform: "TDC",      name: "International Tax — GILTI, FDII, BEAT",                              whatItDoes: "Computes international tax provisions including GILTI, FDII, and BEAT.",                                                                      rogerImpact: "International Tax" },
   { pi: "PI 3", status: "Stretch",   batchNum: "33",  platform: "TDC",      name: "S-Corp & Flow-Through Specialization",                               whatItDoes: "S-Corp and flow-through entity tax specialization.",                                                                                         rogerImpact: "S-Corp / Flow-Through" },
   { pi: "PI 4", status: "Planned",   batchNum: "19",  platform: "TDC",      name: "Estimated Tax & Safe Harbor",                                        whatItDoes: "Manages estimated tax payments and safe harbor calculations.",                                                                                rogerImpact: "Estimated Tax" },
@@ -446,8 +446,8 @@ function BatchReferenceGuide() {
           <div style={{ padding: "20px", textAlign: "center", fontSize: "13px", color: "#94a3b8" }}>No batches match your search.</div>
         )}
 
-        {pi2Rows.length > 0 && renderGroup("PI 2 – Current Delivery", pi2Rows, 0)}
-        {pi3Rows.length > 0 && renderGroup("PI 3 – MVP", pi3Rows, pi2Rows.length)}
+        {pi2Rows.length > 0 && renderGroup("PI 2 – Complete", pi2Rows, 0)}
+        {pi3Rows.length > 0 && renderGroup("PI 3 – Active", pi3Rows, pi2Rows.length)}
       </div>
     </>
   );
@@ -663,8 +663,8 @@ export default function Home() {
                 fontSize: "11px", fontWeight: 700, color: "#34d399",
                 backgroundColor: "rgba(5,150,105,0.2)", border: "1px solid rgba(52,211,153,0.4)",
                 borderRadius: "20px", padding: "3px 10px",
-              }}>● ACTIVE — PI 2</span>
-              <span style={{ fontSize: "11px", color: "#94a3b8" }}>Entity, Workflow &amp; Tax Ready · Apr–Jun 2026</span>
+              }}>● ACTIVE — PI 3</span>
+              <span style={{ fontSize: "11px", color: "#94a3b8" }}>PI 2 Complete · PI 3 Active · Jul–Sep 2026</span>
               <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · Last refresh: {new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
             </div>
           </div>
@@ -674,7 +674,7 @@ export default function Home() {
             borderRadius: "10px", padding: "14px 20px", textAlign: "center", minWidth: "180px",
           }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
-            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>RC-2</div>
+            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>RC-3</div>
             <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: Sep 16, 2026</div>
           </div>
         </div>
@@ -757,8 +757,8 @@ export default function Home() {
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Program Increment Status</div>
             {[
               { label: "PI 1", status: "Complete", color: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
-              { label: "PI 2", status: "Active",   color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-              { label: "PI 3", status: "Planned",  color: "#94a3b8", bg: "#f8fafc", border: "#e2e8f0" },
+              { label: "PI 2", status: "Complete", color: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
+              { label: "PI 3", status: "Active",   color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
             ].map(pi => (
               <div key={pi.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                 <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>{pi.label}</span>
