@@ -55,13 +55,13 @@ const PI2_BATCH_ITEMS: { label: string; path: string; batchKey: BatchKey; indent
   { label: "B43 — Practitioner Book & Reclass Adjustments",    path: "/batch/43",              batchKey: "43" },
 ];
 
-// PI 2 Stretch batch items — per Roadmap v7 (6/25–7/3)
+// PI 2 Stretch batch items — per Roadmap v8 (6/25–7/3)
 const PI2_STRETCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B13 — Platform Reference & Document Provenance",    path: "/batch/13",              batchKey: "13" },
   { label: "B16 — Audit Trail & Lineage Governance (PDC+TDC)",  path: "/batch/16",              batchKey: "16" },
 ];
 
-// PI 3 MVP batch items — per Roadmap v7 (7/13–9/15)
+// PI 3 MVP batch items — per Roadmap v8 (7/13–9/21)
 const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B42 — Tax Rules Framework & Book-to-Tax Rules",     path: "/batch/42",              batchKey: "42" },
   { label: "B17 — Decision Support — Overrides & Workpapers",   path: "/batch/17",              batchKey: "17" },
@@ -76,7 +76,7 @@ const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B33 — State Tax (Apportionment, NOL, Forms)",       path: "/batch/33",              batchKey: "33" },
 ];
 
-// PI 4 / Post-Pilot batch items — per Roadmap v7
+// PI 4 / Post-Pilot batch items — per Roadmap v8
 const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B19 — Audit Tax-Expense Cross-LOB Outbound",        path: "/batch/19",              batchKey: "19" },
   { label: "B21 | TDC — Quality Control Review Records",        path: "/batch/21-tdc",          batchKey: "21" },
@@ -87,7 +87,7 @@ const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B23 — Benchmark & Peer Analytics (Future PI)",      path: "/batch/23",              batchKey: "23" },
 ];
 
-// On Hold batch items — per Roadmap v7
+// On Hold batch items — per Roadmap v8
 const ON_HOLD_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B9 | TDC — Rollforward (absorbed by B31)",          path: "/batch/9-tdc",           batchKey: "9-tdc" },
   { label: "B12 — Engagement Identity & TIM Reconciliation",    path: "/batch/12",              batchKey: "12" },

@@ -792,7 +792,7 @@ export default function Home() {
           <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Release Targets</div>
             {[
-              { label: "Release Candidate", value: "RC-2",         color: "#059669" },
+              { label: "Release Candidate", value: "RC-3",         color: "#059669" },
               { label: "Target MVP Date",   value: "Sep 21, 2026", color: "#0f1623" },
               { label: "Platform Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
               { label: "PI 3 Queued",          value: `${pi3MvpCount} batches`, color: "#7c3aed" },
@@ -972,7 +972,7 @@ export default function Home() {
             {[
               { label: "Platform Completion", value: `${overallPct}%`, ok: overallPct >= 70 },
               { label: "Gates Passed",      value: `${[gates.g1, gates.g2, gates.g3, gates.g4].filter(g => g === "Complete").length} / 4`, ok: [gates.g1, gates.g2].every(g => g === "Complete") },
-              { label: "RC Status",         value: "RC-2 On Track",   ok: true },
+              { label: "RC Status",         value: "RC-3 On Track",   ok: true },
               { label: "MVP-Required Close",value: "Sep 21, 2026",    ok: true },
             ].map(r => (
               <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "5px" }}>
@@ -994,7 +994,7 @@ export default function Home() {
         <span style={{ fontSize: "13px" }}>🗂️</span>
         <span style={{ fontSize: "12px", fontWeight: 700, color: "#0369a1" }}>Roadmap Accuracy</span>
         <span style={{ fontSize: "12px", color: "#0c4a6e" }}>
-          Last reconciled against <strong>Batch Roadmap v4.0 (May 2026)</strong> on <strong>Jun 19, 2026</strong>
+          Last reconciled against <strong>Batch Roadmap v8 (July 2026)</strong> on <strong>Jul 16, 2026</strong>
         </span>
         <span style={{ marginLeft: "auto", fontSize: "11px", color: "#0369a1", fontWeight: 600,
           backgroundColor: "#e0f2fe", borderRadius: "4px", padding: "2px 8px", border: "1px solid #7dd3fc",

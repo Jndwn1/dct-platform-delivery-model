@@ -187,15 +187,69 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isActive   = (v: string) => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed";
 
-  // Derive live counts from context
+  // Derive live counts from context (all derived from BatchStatusContext — no hardcoded values)
   const statusValues = useMemo(() => Object.values(statuses), [statuses]);
   const totalBatches   = statusValues.length;
   const completedCount = useMemo(() => statusValues.filter(isComplete).length, [statusValues]);
   const activeCount    = useMemo(() => statusValues.filter(v => v === "In Progress" || v === "Dev").length, [statusValues]);
-  const plannedCount   = useMemo(() => statusValues.filter(v => v === "MVP" || v === "Committed" || v === "Stretch").length, [statusValues]);
+  const inReviewCount  = useMemo(() => statusValues.filter(v => v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready").length, [statusValues]);
+  const plannedCount   = useMemo(() => statusValues.filter(v => v === "MVP" || v === "Committed" || v === "Stretch" || v === "Not Started" || v === "Planned").length, [statusValues]);
+  const onHoldCount    = useMemo(() => statusValues.filter(v => v === "On Hold").length, [statusValues]);
 
-  // Pilot countdown
-  const PILOT_DATE = new Date("2026-09-16T00:00:00");
+  // Platform Readiness — weighted: Complete=100%, In Review=90%, In Progress/MVP/Stretch/Committed=50%, On Hold=25%, Not Started=0%
+  const platformReadinessPct = useMemo(() => {
+    if (totalBatches === 0) return 0;
+    const weightedSum = statusValues.reduce((acc, v) => {
+      if (v === "Complete" || v === "Delivered" || v === "Done") return acc + 100;
+      if (v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready") return acc + 90;
+      if (v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed") return acc + 50;
+      if (v === "On Hold" || v === "Blocked") return acc + 25;
+      return acc; // Not Started / Planned = 0
+    }, 0);
+    return Math.round(weightedSum / totalBatches);
+  }, [statusValues, totalBatches]);
+
+  // Release Candidate — derived from PI completion: PI1+PI2 complete → RC-3 (PI 3 active)
+  const releaseCandidateLabel = useMemo(() => {
+    const pi1Pct = piCompletion?.pi1?.pct ?? 0;
+    const pi2Pct = piCompletion?.pi2?.pct ?? 0;
+    const pi3Pct = piCompletion?.pi3?.pct ?? 0;
+    if (pi3Pct >= 100) return "RC-4";
+    if (pi1Pct >= 100 && pi2Pct >= 100) return "RC-3"; // PI 1 + PI 2 complete, PI 3 active
+    if (pi1Pct >= 100) return "RC-2"; // PI 1 complete, PI 2 active
+    return "RC-1";
+  }, [piCompletion]);
+
+  // Weighted PI 3 progress (per governance spec: Complete=100%, Review=90%, Active=50%, Blocked=25%, Not Started=0%)
+  const pi3WeightedPct = useMemo(() => {
+    const pi3Keys = ["20", "42", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
+    const vals = pi3Keys.map(k => (statuses as Record<string, string>)[k] ?? "Not Started");
+    if (vals.length === 0) return 0;
+    const sum = vals.reduce((acc, v) => {
+      if (v === "Complete" || v === "Delivered" || v === "Done") return acc + 100;
+      if (v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready") return acc + 90;
+      if (v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed") return acc + 50;
+      if (v === "On Hold" || v === "Blocked") return acc + 25;
+      return acc;
+    }, 0);
+    return Math.round(sum / vals.length);
+  }, [statuses]);
+
+  // PI 3 breakdown for tooltip
+  const pi3Breakdown = useMemo(() => {
+    const pi3Keys = ["20", "42", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
+    const vals = pi3Keys.map(k => (statuses as Record<string, string>)[k] ?? "Not Started");
+    return {
+      total: vals.length,
+      complete: vals.filter(v => v === "Complete" || v === "Delivered" || v === "Done").length,
+      inReview: vals.filter(v => v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready").length,
+      active: vals.filter(v => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed").length,
+      remaining: vals.filter(v => v === "Not Started" || v === "Planned").length,
+    };
+  }, [statuses]);
+
+  // Pilot countdown — MVP target Sep 21, 2026
+  const PILOT_DATE = new Date("2026-09-21T00:00:00");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const daysRemaining = Math.max(0, Math.ceil((PILOT_DATE.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
@@ -206,7 +260,8 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // ── PI progress derived from piCompletion (live context) ──
   // piCompletion has shape { pi1: { total, complete, pct }, pi2: { ... }, pi3: { ... } }
   const pi2Pct = piCompletion?.pi2?.pct ?? 0;
-  const pi3Pct = piCompletion?.pi3?.pct ?? 0;
+  // pi3Pct uses weighted execution model instead of simple isDelivered count
+  const pi3Pct = pi3WeightedPct;
 
   // Last updated label
   const lastUpdatedLabel = lastUpdated
@@ -264,7 +319,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            Platform Intelligence · Roadmap v8
+            Platform Intelligence · Roadmap v8 · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
@@ -309,34 +364,42 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="Active"
           value={activeCount}
-          sub="In Dev this week"
+          sub="In Dev this sprint"
           accent="#2563eb"
           badge="In Flight"
           badgeColor="#2563eb"
         />
         <KPICard
-          title="Planned"
+          title="Planned / Queued"
           value={plannedCount}
-          sub="MVP / Committed / Stretch"
+          sub="MVP / Committed / Stretch / Not Started"
           accent="#94a3b8"
           badge="Upcoming"
           badgeColor="#64748b"
         />
         <KPICard
-          title="Roadmap Alignment"
-          value="100%"
-          sub="Discrepancies remediated"
+          title="Platform Readiness"
+          value={`${platformReadinessPct}%`}
+          sub="Weighted: Complete+Active+Planned"
           accent="#059669"
-          badge="Complete"
-          badgeColor="#059669"
+          badge={platformReadinessPct >= 70 ? "On Track" : "At Risk"}
+          badgeColor={platformReadinessPct >= 70 ? "#059669" : "#dc2626"}
         />
         <KPICard
-          title="Platform Status"
-          value="RC1"
-          sub="Release Candidate 1"
+          title="In Review"
+          value={inReviewCount}
+          sub="QA / Demo Ready"
           accent="#7c3aed"
-          badge="Ready"
+          badge="Review"
           badgeColor="#7c3aed"
+        />
+        <KPICard
+          title="Release Candidate"
+          value={releaseCandidateLabel}
+          sub="Derived from PI completion"
+          accent="#1e3a5f"
+          badge="Active"
+          badgeColor="#1e3a5f"
         />
       </div>
 
@@ -347,7 +410,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
           <StatusPill
-            label="Roadmap v7 Aligned"
+            label="Roadmap v8 Aligned"
             indicator="🟢"
             color="#065f46"
             bg="#f0fdf4"

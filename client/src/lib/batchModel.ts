@@ -716,7 +716,7 @@ export interface PIGroup {
   borderColor: string;  // Tailwind border token
 }
 
-// PI_GROUPS reflects Roadmap v7 (updated June 2026)
+// PI_GROUPS reflects Roadmap v8 (updated July 2026)
 export const PI_GROUPS: PIGroup[] = [
   {
     id: "PI1",

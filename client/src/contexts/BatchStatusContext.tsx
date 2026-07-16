@@ -102,7 +102,7 @@ export interface BatchStatusMap {
   "42": BatchStatus;
   "43": BatchStatus;
   "9a": BatchStatus;
-  // PI 4 batches (Roadmap v7)
+  // PI 4 batches (Roadmap v8)
   "19": BatchStatus;
   "40": BatchStatus;
   "35": BatchStatus;
@@ -148,7 +148,7 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "42": "Batch 42 — Tax Rules Framework & Book-to-Tax Adjustment Rules",
   "43": "Batch 43 — Practitioner Book & Reclass Adjustments",
   "9a": "Batch 9A — Data Gateway (IMS, CDS, DUO)",
-  // PI 4 batches (Roadmap v7)
+  // PI 4 batches (Roadmap v8)
   "19": "Batch 19 — Audit Tax-Expense Cross-LOB Outbound",
   "40": "Batch 40 — Client-Level Line Mapping Reuse",
   "35": "Batch 35 — S-Corp Specialization",
@@ -192,7 +192,7 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "42": ["17", "28"],
   "43": ["11"],
   "9a": ["31"],
-  // PI 4 batches (Roadmap v7)
+  // PI 4 batches (Roadmap v8)
   "19": [],
   "40": [],
   "35": [],

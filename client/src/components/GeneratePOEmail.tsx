@@ -155,14 +155,14 @@ function buildEmailHTML(
       <div style="width:36px;height:36px;background:#0f1623;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#059669;font-weight:900;font-size:18px;">D</div>
       <div>
         <div style="font-size:20px;font-weight:800;color:#0f1623;">DCT Platform Delivery Dashboard</div>
-        <div style="font-size:12px;color:#64748b;">RSM · CATT · ${today} · Roadmap v7 · Non-Production Workspace</div>
+        <div style="font-size:12px;color:#64748b;">RSM · CATT · ${today} · Roadmap v8 · Non-Production Workspace</div>
       </div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
       <span style="font-size:11px;font-weight:600;color:white;background:#059669;border-radius:4px;padding:3px 8px;">PI 1–2 Done</span>
       <span style="font-size:11px;font-weight:600;color:white;background:#2563eb;border-radius:4px;padding:3px 8px;">${activeBatches} Active</span>
       <span style="font-size:11px;font-weight:600;color:white;background:#7c3aed;border-radius:4px;padding:3px 8px;">Pilot: Sep 21, 2026</span>
-      <span style="font-size:11px;font-weight:600;color:white;background:#0f1623;border-radius:4px;padding:3px 8px;">RC1 Ready</span>
+      <span style="font-size:11px;font-weight:600;color:white;background:#0f1623;border-radius:4px;padding:3px 8px;">RC-3 Active</span>
     </div>
   </div>
 
