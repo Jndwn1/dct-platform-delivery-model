@@ -114,14 +114,15 @@ export default function UATProcessFlowDiagram() {
           <div style={{
             background: C.blueBg, border: `1px solid ${C.blueBorder}`,
             borderRadius: 10, padding: "12px 10px", marginBottom: 4,
+            overflowX: "auto",
           }}>
             <div style={{ fontSize: 9, fontWeight: 700, color: C.blue, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, textAlign: "center" }}>
               ● HAPPY PATH — Standard UAT Execution
             </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", gap: 0, overflowX: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", flexWrap: "nowrap", gap: 0, minWidth: "max-content", padding: "0 4px" }}>
 
               {/* Step 1 */}
-              <div style={{ ...box(C.white, C.blueBorder, C.navy), minWidth: 110, maxWidth: 130 }}>
+              <div style={{ ...box(C.white, C.blueBorder, C.navy), minWidth: 100, width: 110 }}>
                 <div style={{ fontSize: 16, marginBottom: 4 }}>📋</div>
                 <div style={{ ...label(10, 700, C.blue) }}>Review Authoring Guide</div>
                 <div style={{ ...sublabel }}>Identify MVP worksheets · Confirm readiness</div>
@@ -129,7 +130,7 @@ export default function UATProcessFlowDiagram() {
               {hArrow(C.blue)}
 
               {/* Step 2 */}
-              <div style={{ ...box(C.white, C.blueBorder, C.navy), minWidth: 110, maxWidth: 130 }}>
+              <div style={{ ...box(C.white, C.blueBorder, C.navy), minWidth: 100, width: 110 }}>
                 <div style={{ fontSize: 16, marginBottom: 4 }}>✍️</div>
                 <div style={{ ...label(10, 700, C.blue) }}>Author Approved Data</div>
                 <div style={{ ...sublabel }}>Populate Ready for Authoring worksheets only</div>
@@ -137,7 +138,7 @@ export default function UATProcessFlowDiagram() {
               {hArrow(C.blue)}
 
               {/* Step 3 */}
-              <div style={{ ...box(C.white, C.blueBorder, C.navy), minWidth: 110, maxWidth: 130 }}>
+              <div style={{ ...box(C.white, C.blueBorder, C.navy), minWidth: 100, width: 110 }}>
                 <div style={{ fontSize: 16, marginBottom: 4 }}>⬆️</div>
                 <div style={{ ...label(10, 700, C.blue) }}>Development Loads</div>
                 <div style={{ ...sublabel }}>Load in dependency order · Validate ingestion</div>
@@ -145,7 +146,7 @@ export default function UATProcessFlowDiagram() {
               {hArrow(C.blue)}
 
               {/* Step 4 */}
-              <div style={{ ...box(C.white, C.blueBorder, C.navy), minWidth: 110, maxWidth: 130 }}>
+              <div style={{ ...box(C.white, C.blueBorder, C.navy), minWidth: 100, width: 110 }}>
                 <div style={{ fontSize: 16, marginBottom: 4 }}>🔍</div>
                 <div style={{ ...label(10, 700, C.blue) }}>Business Executes UAT</div>
                 <div style={{ ...sublabel }}>Validate data · Rules · Relationships · Dependencies</div>
@@ -161,7 +162,7 @@ export default function UATProcessFlowDiagram() {
               {hArrow(C.green)}
 
               {/* Step 5 — Sign-off */}
-              <div style={{ ...box(C.greenBg, C.greenBorder, C.green), minWidth: 110, maxWidth: 130 }}>
+              <div style={{ ...box(C.greenBg, C.greenBorder, C.green), minWidth: 100, width: 110 }}>
                 <div style={{ fontSize: 16, marginBottom: 4 }}>✅</div>
                 <div style={{ ...label(10, 700, C.green) }}>Business Sign-off</div>
                 <div style={{ ...sublabel }}>Workbook approved as Production Source of Truth</div>
@@ -169,7 +170,7 @@ export default function UATProcessFlowDiagram() {
               {hArrow(C.green)}
 
               {/* End */}
-              <div style={{ ...box(C.greenBg, C.green, C.green), minWidth: 80, borderRadius: 20, borderWidth: 2 }}>
+              <div style={{ ...box(C.greenBg, C.green, C.green), minWidth: 72, width: 80, borderRadius: 20, borderWidth: 2 }}>
                 <div style={{ ...label(11, 800, C.green) }}>END</div>
                 <div style={{ ...sublabel }}>Production Ready</div>
               </div>
