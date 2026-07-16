@@ -6,6 +6,7 @@ import {
   CheckCircle2, ClipboardList, Database, GitBranch, BookOpen,
   Shield, ArrowDown,
 } from "lucide-react";
+import UATProcessFlowDiagram from "@/components/UATProcessFlowDiagram";
 
 const NAVY   = "#003865";
 const GREEN  = "#059669";
@@ -178,38 +179,7 @@ export default function UATTestingPage() {
             ))}
           </div>
         </div>
-        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.08em" }}>Workbook-Driven UAT Flow</div>
-          <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center" }}>
-            {[
-              { num: 1,  label: "Master Data Authoring Guide",    desc: "Review ownership, readiness, and MVP scope",                     color: NAVY },
-              { num: 2,  label: "Load Order Tab",                 desc: "Identify MVP worksheets and their dependency sequence",           color: NAVY },
-              { num: 3,  label: "Filter to MVP Ready Worksheets", desc: "Scope UAT to worksheets marked Required for MVP = Yes",           color: "#1e40af" },
-              { num: 4,  label: "Business Authors Approved Data", desc: "Populate only worksheets marked Ready for Authoring",            color: "#1e40af" },
-              { num: 5,  label: "Development Loads Workbook",     desc: "Load in dependency order per Load Order tab",                    color: TEAL },
-              { num: 6,  label: "Business Executes Validation",   desc: "Validate loaded data matches approved workbook — in load order", color: TEAL },
-              { num: 7,  label: "Defects Logged",                 desc: "Each defect references Workbook Tab, Row, Object, Expected vs Actual", color: AMBER },
-              { num: 8,  label: "Workbook Updated",               desc: "BA updates workbook; every change triggers impact assessment",   color: AMBER },
-              { num: 9,  label: "Reload Decision",                desc: "BA assesses: Partial / Coordinated Partial / Full Reload",       color: RED },
-              { num: 10, label: "Business Revalidation",          desc: "Revalidate only affected worksheets after reload",               color: PURPLE },
-              { num: 11, label: "Business Sign-off",              desc: "Workbook approved as Production Source of Truth",                color: GREEN },
-            ].map((s, i, arr) => (
-              <div key={s.num} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center" }}>
-                <div style={{ background: s.color, color: "white", borderRadius: 10, padding: "10px 18px", minWidth: 240, textAlign: "center" as const }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.7, letterSpacing: "0.08em", marginBottom: 2 }}>STEP {s.num}</div>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>{s.label}</div>
-                  <div style={{ fontSize: 11, opacity: 0.85, marginTop: 3, lineHeight: 1.4 }}>{s.desc}</div>
-                </div>
-                {i < arr.length - 1 && (
-                  <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", margin: "4px 0" }}>
-                    <div style={{ width: 2, height: 10, background: "#cbd5e1" }} />
-                    <ArrowDown className="w-4 h-4 text-slate-400" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        <UATProcessFlowDiagram />
       </div>
 
       {/* ── Section 03 — UAT Objectives ── */}
