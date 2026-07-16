@@ -182,6 +182,261 @@ export default function UATTestingPage() {
         <UATProcessFlowDiagram />
       </div>
 
+      {/* ── Section 02b — UAT Execution Guide ── */}
+      <div style={{ marginBottom: 36 }}>
+        <SectionHeader num="02b" title="UAT Execution Guide" subtitle="Using the Master Data Workbook — A practical step-by-step guide for Business Users performing UAT." />
+
+        {/* Intro banner */}
+        <div style={{ background: "#eff6ff", border: "1.5px solid #93c5fd", borderRadius: 10, padding: "14px 18px", marginBottom: 20, display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ fontSize: 22, flexShrink: 0 }}>📘</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#1e40af", marginBottom: 4 }}>How to Use the Workbook During UAT</div>
+            <p style={{ fontSize: 12, color: "#1e293b", lineHeight: 1.65, margin: 0 }}>
+              The Approved Master Data Workbook is the single source of truth for all Master Data validation. During UAT, testers do not validate data from memory or documentation. Every validation activity begins with the workbook and ends by confirming the platform matches the approved workbook.
+            </p>
+          </div>
+        </div>
+
+        {/* Two-column layout: steps + checklist panel */}
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+
+          {/* Steps column */}
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" as const, gap: 12 }}>
+
+            {/* Step 1 */}
+            <div style={{ background: "white", border: "1px solid #e2e8f0", borderTop: "3px solid #003865", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#003865", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>1</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#003865" }}>Review the Authoring Guide</div>
+                <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic", marginLeft: 4 }}>Understand what should be tested</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div style={{ background: "#f8fafc", borderRadius: 6, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 6 }}>Review:</div>
+                  {["MVP Scope","Worksheet Readiness","Business Owner","Current Status","Authoring Priority"].map(i => (
+                    <div key={i} style={{ fontSize: 11, color: "#1e293b", display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#003865" }}>•</span>{i}</div>
+                  ))}
+                </div>
+                <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#065f46", marginBottom: 6 }}>Outcome:</div>
+                  <p style={{ fontSize: 11, color: "#1e293b", lineHeight: 1.55, margin: "0 0 6px" }}>Only worksheets marked:</p>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#059669", background: "#dcfce7", borderRadius: 4, padding: "3px 8px", display: "inline-block", marginBottom: 4 }}>Required for MVP = Yes</div>
+                  <div style={{ fontSize: 11, color: "#475569", margin: "2px 0" }}>and</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#059669", background: "#dcfce7", borderRadius: 4, padding: "3px 8px", display: "inline-block" }}>Ready for Authoring</div>
+                  <p style={{ fontSize: 11, color: "#475569", margin: "6px 0 0", lineHeight: 1.4 }}>should be tested unless instructed otherwise.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div style={{ background: "white", border: "1px solid #e2e8f0", borderTop: "3px solid #1d4ed8", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#1d4ed8", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>2</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#1d4ed8" }}>Review the Load Order</div>
+                <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic", marginLeft: 4 }}>Understand the testing sequence</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div style={{ background: "#f8fafc", borderRadius: 6, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 6 }}>Review:</div>
+                  {["Load sequence","Dependencies","Parent-child relationships","Build status","Authoring status"].map(i => (
+                    <div key={i} style={{ fontSize: 11, color: "#1e293b", display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#1d4ed8" }}>•</span>{i}</div>
+                  ))}
+                </div>
+                <div style={{ background: "#eff6ff", border: "1px solid #93c5fd", borderRadius: 6, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>Dependency Example:</div>
+                  {["Tax Forms","Tax Form Lines","Return Templates","Tax Taxonomy Accounts"].map((item, idx, arr) => (
+                    <div key={item} style={{ display: "flex", flexDirection: "column" as const, alignItems: "flex-start" }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#1e40af", background: "#dbeafe", borderRadius: 4, padding: "2px 8px" }}>{item}</div>
+                      {idx < arr.length - 1 && <div style={{ fontSize: 12, color: "#93c5fd", marginLeft: 8 }}>↓</div>}
+                    </div>
+                  ))}
+                  <p style={{ fontSize: 10, color: "#475569", margin: "6px 0 0", lineHeight: 1.4, fontStyle: "italic" }}>Never validate downstream before prerequisite datasets.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div style={{ background: "white", border: "1px solid #e2e8f0", borderTop: "3px solid #0891b2", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#0891b2", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>3</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#0891b2" }}>Validate Workbook Data</div>
+                <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic", marginLeft: 4 }}>Compare Roger directly to the workbook</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+                {[
+                  { check: "Required records exist",     color: "#059669" },
+                  { check: "Values match workbook",      color: "#059669" },
+                  { check: "Reference data is correct",  color: "#059669" },
+                  { check: "Lookup values resolve",      color: "#059669" },
+                  { check: "Required fields populated",  color: "#059669" },
+                  { check: "No unexpected values exist", color: "#059669" },
+                ].map(c => (
+                  <div key={c.check} style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "8px 10px", display: "flex", gap: 6, alignItems: "flex-start" }}>
+                    <span style={{ color: c.color, fontSize: 14, flexShrink: 0 }}>✔</span>
+                    <span style={{ fontSize: 11, color: "#1e293b", lineHeight: 1.4 }}>{c.check}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div style={{ background: "white", border: "1px solid #e2e8f0", borderTop: "3px solid #7c3aed", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#7c3aed", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>4</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#7c3aed" }}>Validate Relationships</div>
+                <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic", marginLeft: 4 }}>UAT is not simply record validation</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div style={{ background: "#f8fafc", borderRadius: 6, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 6 }}>Also validate:</div>
+                  {["Parent-child relationships","Cross worksheet references","Taxonomy relationships","Eligibility relationships","Lookup relationships","Business Rules"].map(i => (
+                    <div key={i} style={{ fontSize: 11, color: "#1e293b", display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#7c3aed" }}>•</span>{i}</div>
+                  ))}
+                </div>
+                <div style={{ background: "#faf5ff", border: "1px solid #c4b5fd", borderRadius: 6, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6d28d9", marginBottom: 6 }}>Dependency Chain:</div>
+                  {["Workbook","Reference Data","Tax Forms","Tax Form Lines","Templates","Business Rules"].map((item, idx, arr) => (
+                    <div key={item} style={{ display: "flex", flexDirection: "column" as const, alignItems: "flex-start" }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#6d28d9", background: "#ede9fe", borderRadius: 4, padding: "2px 8px" }}>{item}</div>
+                      {idx < arr.length - 1 && <div style={{ fontSize: 12, color: "#c4b5fd", marginLeft: 8 }}>↓</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Step 5 */}
+            <div style={{ background: "white", border: "1px solid #e2e8f0", borderTop: "3px solid #0891b2", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#0891b2", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>5</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#0891b2" }}>Validate Roger</div>
+                <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic", marginLeft: 4 }}>Validation extends into the application</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                {["Search","Dropdowns","Filtering","Relationships","Rule execution","Mappings","Screen display","Reference resolution"].map(item => (
+                  <div key={item} style={{ background: "#ecfeff", border: "1px solid #67e8f9", borderRadius: 6, padding: "8px 10px", textAlign: "center" as const }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#0e7490" }}>{item}</div>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 11, color: "#475569", margin: "10px 0 0", lineHeight: 1.5, fontStyle: "italic" }}>The platform should reflect the workbook exactly.</p>
+            </div>
+
+            {/* Step 6 */}
+            <div style={{ background: "#fef2f2", border: "1.5px solid #fca5a5", borderTop: "3px solid #dc2626", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#dc2626", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>6</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#dc2626" }}>Logging Defects</div>
+                <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic", marginLeft: 4 }}>Every defect must reference the workbook</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#7f1d1d", marginBottom: 6 }}>Required defect fields:</div>
+                  {["Workbook Tab","Worksheet Row","Master Data Object","Expected Workbook Value","Actual Roger Value","Screenshots","Dependency Impact","Reload Required (TBD — BA assesses)"].map(f => (
+                    <div key={f} style={{ fontSize: 11, color: "#1e293b", display: "flex", gap: 6, marginBottom: 3, alignItems: "flex-start" }}>
+                      <span style={{ color: "#dc2626", flexShrink: 0 }}>□</span>{f}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                  <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 6, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#dc2626", marginBottom: 4 }}>If workbook is correct and Roger is wrong:</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#dc2626", background: "#fee2e2", borderRadius: 4, padding: "4px 8px", display: "inline-block" }}>→ DEFECT</div>
+                  </div>
+                  <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>If the workbook is incorrect:</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#92400e", background: "#fef3c7", borderRadius: 4, padding: "4px 8px", display: "inline-block" }}>→ APPROVED WORKBOOK CHANGE</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 7 */}
+            <div style={{ background: "white", border: "1px solid #e2e8f0", borderTop: "3px solid #d97706", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#d97706", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>7</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#d97706" }}>After Workbook Changes</div>
+                <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic", marginLeft: 4 }}>Reload process for Business Users</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+                {[
+                  { icon: "⏳", label: "Wait for Development notification" },
+                  { icon: "📋", label: "Review workbook version" },
+                  { icon: "✅", label: "Confirm reload completed" },
+                  { icon: "🔍", label: "Revalidate only affected worksheets" },
+                  { icon: "🔗", label: "Verify downstream dependencies" },
+                  { icon: "▶️", label: "Resume testing" },
+                ].map(s => (
+                  <div key={s.label} style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, padding: "8px 10px", display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>{s.icon}</span>
+                    <span style={{ fontSize: 11, color: "#1e293b", lineHeight: 1.4 }}>{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Step 8 */}
+            <div style={{ background: "#f0fdf4", border: "1.5px solid #86efac", borderTop: "3px solid #059669", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#059669", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>8</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#059669" }}>Business Sign-off</div>
+                <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic", marginLeft: 4 }}>Final approval — Production ready</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                {[
+                  "All MVP worksheets validated",
+                  "Workbook matches Roger",
+                  "Dependencies validated",
+                  "Business Rules verified",
+                  "Reload validation complete",
+                  "Critical defects resolved",
+                  "Workbook approved",
+                  "Production ready",
+                ].map(item => (
+                  <div key={item} style={{ background: "white", border: "1px solid #86efac", borderRadius: 6, padding: "8px 10px", display: "flex", gap: 6, alignItems: "flex-start" }}>
+                    <span style={{ color: "#059669", fontSize: 14, flexShrink: 0 }}>✔</span>
+                    <span style={{ fontSize: 11, color: "#1e293b", lineHeight: 1.4 }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>{/* end steps column */}
+
+          {/* Quick Reference Checklist panel */}
+          <div style={{ width: 200, flexShrink: 0, background: "#f0f4f8", border: "2px solid #003865", borderRadius: 10, padding: "14px 14px", position: "sticky" as const, top: 20 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "#003865", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 12 }}>📋 Quick Reference Checklist</div>
+            {[
+              "Review Authoring Guide",
+              "Review Load Order",
+              "Validate workbook data",
+              "Validate dependencies",
+              "Validate Roger",
+              "Log defects",
+              "Revalidate after reload",
+              "Complete sign-off",
+            ].map((item, idx) => (
+              <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 10 }}>
+                <div style={{ width: 16, height: 16, border: "1.5px solid #003865", borderRadius: 3, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#003865", fontWeight: 700 }}>{idx + 1}</div>
+                <span style={{ fontSize: 11, color: "#1e293b", lineHeight: 1.4 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+
+        </div>{/* end two-column layout */}
+
+        {/* Bottom Best Practice callout */}
+        <div style={{ marginTop: 16, background: "#003865", borderRadius: 10, padding: "14px 20px", display: "flex", gap: 14, alignItems: "flex-start" }}>
+          <div style={{ fontSize: 20, flexShrink: 0, marginTop: 2 }}>💡</div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "white", letterSpacing: "0.06em", textTransform: "uppercase" as const, marginBottom: 5 }}>Best Practice</div>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 1.65, margin: 0 }}>
+              Always validate in workbook load order. Testing downstream worksheets before validating prerequisite reference data may produce <strong style={{ color: "#fbbf24" }}>false defects and inconsistent results</strong>. The workbook — not the application — is the authoritative source of truth. Every validation decision should trace back to an approved workbook entry.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* ── Section 03 — UAT Objectives ── */}
       <div style={{ marginBottom: 36 }}>
         <SectionHeader num="03" title="UAT Objectives" subtitle="UAT validates that the Approved Master Data Workbook was loaded correctly and all downstream dependencies are satisfied." />
