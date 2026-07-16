@@ -484,9 +484,115 @@ export default function UATTestingPage() {
             </div>
           ))}
         </div>
-        <Callout type="governance">
-          <strong>Key Principle:</strong> Business Users validate the workbook, not the platform. If loaded data does not match the workbook, that is a defect. If the workbook is incorrect, that is an Approved Workbook Change — not a defect.
-        </Callout>
+        {/* ── Key Principle: Defect vs Workbook Change governance panel ── */}
+        <div style={{ marginTop: 20 }}>
+          {/* Title */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <span style={{ fontSize: 18 }}>🔒</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#003865" }}>Key Principle</div>
+              <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" as const }}>Governance</div>
+            </div>
+          </div>
+
+          {/* Intro paragraph */}
+          <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, marginBottom: 16, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "12px 16px" }}>
+            During User Acceptance Testing, the <strong>Approved Master Data Workbook</strong> is the authoritative source of truth.
+            Business Users validate that the data loaded into Roger accurately reflects the approved workbook.
+            Use the following rules when determining whether an issue is a defect or a workbook change.
+          </div>
+
+          {/* Two info cards side by side */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
+
+            {/* Software Defect card — green */}
+            <div style={{ background: "#f0fdf4", border: "2px solid #86efac", borderRadius: 10, padding: "16px 18px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 20 }}>✔</span>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#065f46" }}>Software Defect</div>
+              </div>
+              <div style={{ fontSize: 12, color: "#1e293b", lineHeight: 1.6, marginBottom: 10 }}>
+                The Approved Master Data Workbook is correct, but the data displayed in Roger does not match the approved workbook.
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#065f46", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>Examples</div>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#374151", lineHeight: 1.7 }}>
+                <li>Incorrect value loaded</li>
+                <li>Missing record</li>
+                <li>Incorrect relationship</li>
+                <li>Business rule executed incorrectly</li>
+                <li>Data load or processing issue</li>
+              </ul>
+              <div style={{ marginTop: 12, background: "#dcfce7", border: "1px solid #86efac", borderRadius: 6, padding: "8px 12px", fontSize: 12, color: "#065f46", fontWeight: 700 }}>
+                Action: Log a defect and follow the Defect Management process.
+              </div>
+            </div>
+
+            {/* Approved Workbook Change card — gold */}
+            <div style={{ background: "#fffbeb", border: "2px solid #fbbf24", borderRadius: 10, padding: "16px 18px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 20 }}>📝</span>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#92400e" }}>Approved Workbook Change</div>
+              </div>
+              <div style={{ fontSize: 12, color: "#1e293b", lineHeight: 1.6, marginBottom: 10 }}>
+                The data loaded into Roger matches the Approved Master Data Workbook, but the business determines the workbook itself needs to be updated.
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>Examples</div>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#374151", lineHeight: 1.7 }}>
+                <li>Reference data requires correction</li>
+                <li>Business rule changes</li>
+                <li>Taxonomy updates</li>
+                <li>Filing due date changes</li>
+                <li>New master data values</li>
+                <li>Business decision changes</li>
+              </ul>
+              <div style={{ marginTop: 12, background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: 6, padding: "8px 12px", fontSize: 12, color: "#92400e", fontWeight: 700 }}>
+                Action: Update the Approved Master Data Workbook, perform a BA Impact Assessment, determine the reload strategy, execute the reload, and revalidate before UAT resumes.
+              </div>
+            </div>
+          </div>
+
+          {/* Comparison table */}
+          <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
+            <div style={{ background: "#003865", color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, padding: "8px 16px" }}>Quick Reference</div>
+            <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: "#f8fafc" }}>
+                  <th style={{ padding: "10px 14px", textAlign: "left" as const, fontWeight: 700, color: "#374151", borderBottom: "1px solid #e2e8f0" }}>Situation</th>
+                  <th style={{ padding: "10px 14px", textAlign: "left" as const, fontWeight: 700, color: "#374151", borderBottom: "1px solid #e2e8f0" }}>Result</th>
+                  <th style={{ padding: "10px 14px", textAlign: "left" as const, fontWeight: 700, color: "#374151", borderBottom: "1px solid #e2e8f0" }}>Next Step</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  <td style={{ padding: "10px 14px", color: "#1e293b" }}>Roger does not match the Approved Workbook</td>
+                  <td style={{ padding: "10px 14px" }}><span style={{ background: "#dcfce7", color: "#065f46", fontWeight: 700, borderRadius: 4, padding: "2px 8px", fontSize: 11 }}>Software Defect</span></td>
+                  <td style={{ padding: "10px 14px", color: "#374151" }}>Log Defect</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: "10px 14px", color: "#1e293b" }}>Roger matches the Approved Workbook, but the workbook needs to change</td>
+                  <td style={{ padding: "10px 14px" }}><span style={{ background: "#fef3c7", color: "#92400e", fontWeight: 700, borderRadius: 4, padding: "2px 8px", fontSize: 11 }}>Approved Workbook Change</span></td>
+                  <td style={{ padding: "10px 14px", color: "#374151" }}>Follow Change Control Process</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Governance Principle note */}
+          <div style={{ background: "#1e293b", borderRadius: 10, padding: "16px 20px", color: "white" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#94a3b8", marginBottom: 8 }}>Governance Principle</div>
+            <div style={{ fontSize: 13, lineHeight: 1.7, color: "#e2e8f0" }}>
+              The platform is validated against the Approved Master Data Workbook. The workbook is <strong style={{ color: "white" }}>never</strong> changed simply to match the platform.
+            </div>
+            <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ background: "#334155", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#e2e8f0", lineHeight: 1.6 }}>
+                <span style={{ color: "#86efac", fontWeight: 700 }}>If Roger is incorrect</span> — fix the platform.
+              </div>
+              <div style={{ background: "#334155", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#e2e8f0", lineHeight: 1.6 }}>
+                <span style={{ color: "#fbbf24", fontWeight: 700 }}>If the workbook is incorrect</span> — update the workbook through the approved change control process, perform an impact assessment, execute the appropriate reload strategy, and revalidate before continuing UAT.
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── Section 05 — Change Control ── */}
