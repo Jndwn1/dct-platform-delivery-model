@@ -53,6 +53,7 @@ import Glossary from "./pages/discovery/Glossary";
 import DCTOverview from "./pages/discovery/DCTOverview";
 import RogerOverview from "./pages/discovery/RogerOverview";
 import IMSIntegration from "./pages/discovery/GoSystemTax";
+import PDCOverview from "./pages/discovery/PDCOverview";
 import DataGateway from "./pages/discovery/DataGateway";
 import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
 import DiscoveryWorkspace from "./pages/onboarding/DiscoveryWorkspace";
@@ -156,6 +157,7 @@ function Router() {
           <Route path="/discovery/dct-overview" component={DCTOverview} />
           <Route path="/discovery/roger-overview" component={RogerOverview} />
            <Route path="/discovery/gosystem" component={IMSIntegration} />
+           <Route path="/discovery/pdc" component={PDCOverview} />
           <Route path="/discovery/data-gateway" component={DataGateway} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />

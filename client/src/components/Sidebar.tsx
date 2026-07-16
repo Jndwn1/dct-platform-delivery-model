@@ -117,24 +117,42 @@ const BA_ITEMS: NavItem[] = [
   { label: "Integration Simulation",      path: "/integration-simulation",     icon: "🎮", badge: "LIVE",    badgeColor: "#059669" },
 ];
 
-// Discovery Center — BA learning and platform knowledge hub
-const DISCOVERY_ITEMS: NavItem[] = [
-  { label: "Discovery Center",          path: "/discovery",                           icon: "🧭", badge: "NEW",  badgeColor: "#7c3aed" },
-  { label: "Ecosystem Overview",         path: "/discovery/ecosystem",                icon: "◎" },
+// Discovery Center — structured into 5 named groups for navigation hierarchy
+// Group 1: Hub entry point
+const DISCOVERY_HUB_ITEMS: NavItem[] = [
+  { label: "Discovery Center",          path: "/discovery",                           icon: "🧭", badge: "Hub",  badgeColor: "#7c3aed" },
+];
+
+// Group 2: Platform Overview — conceptual foundation (read first)
+const DISCOVERY_OVERVIEW_ITEMS: NavItem[] = [
+  { label: "Ecosystem Overview",         path: "/discovery/ecosystem",                icon: "◎", badge: "Start Here", badgeColor: "#059669" },
   { label: "Platform Responsibilities",  path: "/discovery/platform-responsibilities", icon: "▦" },
   { label: "End-to-End Data Flow",       path: "/discovery/data-flow",                icon: "→" },
   { label: "Data Flow Simulation",       path: "/discovery/simulation",               icon: "🎮", badge: "LIVE", badgeColor: "#059669" },
-  { label: "Integration Architecture",  path: "/discovery/integration-architecture",  icon: "↝" },
-  { label: "BA Requirement Discovery",   path: "/discovery/ba-requirements",          icon: "🔍", badge: "KEY",  badgeColor: "#dc2626" },
-  { label: "Discovery Checklist",        path: "/discovery/checklist",                icon: "☑" },
-  { label: "BA Story Builder",            path: "/discovery/ba-story-builder",         icon: "✍", badge: "NEW", badgeColor: "#7c3aed" },
+];
+
+// Group 3: Platform Services — per-system deep dives
+const DISCOVERY_SERVICES_ITEMS: NavItem[] = [
+  { label: "PDC — Phoenix Data Consolidation", path: "/discovery/pdc",              icon: "P", badge: "NEW", badgeColor: "#1e3a5f" },
   { label: "TDC / DCT Overview",         path: "/discovery/dct-overview",             icon: "T" },
   { label: "Roger Overview",             path: "/discovery/roger-overview",           icon: "R" },
   { label: "IMS Integration",            path: "/discovery/gosystem",                icon: "IMS" },
   { label: "Data Gateway",               path: "/discovery/data-gateway",            icon: "🔀", badge: "NEW", badgeColor: "#0d7d84" },
-  { label: "Glossary",                   path: "/discovery/glossary",                icon: "≡" },
+];
+
+// Group 4: Integration & Architecture
+const DISCOVERY_ARCHITECTURE_ITEMS: NavItem[] = [
+  { label: "Integration Architecture",  path: "/discovery/integration-architecture",  icon: "↝" },
   { label: "Knowledge Graph",             path: "/discovery/knowledge-graph",          icon: "🕸️", badge: "NEW", badgeColor: "#0891b2" },
-  { label: "Provision & State Discovery Hub", path: "/onboarding",                      icon: "🔎", badge: "NEW", badgeColor: "#059669" },
+];
+
+// Group 5: BA Tools & Reference
+const DISCOVERY_TOOLS_ITEMS: NavItem[] = [
+  { label: "BA Requirement Discovery",   path: "/discovery/ba-requirements",          icon: "🔍", badge: "KEY",  badgeColor: "#dc2626" },
+  { label: "Discovery Checklist",        path: "/discovery/checklist",                icon: "☑" },
+  { label: "BA Story Builder",            path: "/discovery/ba-story-builder",         icon: "✍", badge: "NEW", badgeColor: "#7c3aed" },
+  { label: "Glossary",                   path: "/discovery/glossary",                icon: "≡" },
+  { label: "Provision & State Hub",      path: "/onboarding",                         icon: "🔎", badge: "ADV", badgeColor: "#059669" },
 ];
 
 // Platform Governance Tools — platform governance and data integrity
@@ -546,7 +564,24 @@ export default function Sidebar({ activeSection }: SidebarProps) {
           )}
         </div>
 
-        <NavSection title="Discovery Center" items={DISCOVERY_ITEMS} />
+        {/* Discovery Center — 5 grouped sections with hierarchy headers */}
+        <NavSection title="Discovery Center" items={DISCOVERY_HUB_ITEMS} />
+        <div style={{ padding: "4px 12px 2px", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#334155", marginTop: "2px" }}>
+          ─ Platform Overview
+        </div>
+        {DISCOVERY_OVERVIEW_ITEMS.map(item => <NavItem key={item.path + item.label} item={item} />)}
+        <div style={{ padding: "8px 12px 2px", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#334155" }}>
+          ─ Platform Services
+        </div>
+        {DISCOVERY_SERVICES_ITEMS.map(item => <NavItem key={item.path + item.label} item={item} />)}
+        <div style={{ padding: "8px 12px 2px", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#334155" }}>
+          ─ Integration & Architecture
+        </div>
+        {DISCOVERY_ARCHITECTURE_ITEMS.map(item => <NavItem key={item.path + item.label} item={item} />)}
+        <div style={{ padding: "8px 12px 2px", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#334155" }}>
+          ─ BA Tools & Reference
+        </div>
+        {DISCOVERY_TOOLS_ITEMS.map(item => <NavItem key={item.path + item.label} item={item} />)}
         <NavSection title="Business Architecture & Governance" items={BA_ITEMS} />
         <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
         <NavSection title="Platform Governance Tools" items={GOVERNANCE_ITEMS} />
