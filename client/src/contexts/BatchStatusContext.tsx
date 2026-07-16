@@ -309,16 +309,16 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "23": "Not Started",  // B23 — Benchmark & Peer Analytics (Post-MVP, future PI)
 };
 
-const STORAGE_KEY     = "dct_batch_status_v6"; // v6: PI 2 Complete, PI 3 Active (July 2026)
-const AUDITLOG_KEY    = "dct_audit_log_v6";
+const STORAGE_KEY     = "dct_batch_status_v7"; // v7: PI 2 Complete 100%, PI 3 Active — On Hold batches excluded from PI 2 membership
+const AUDITLOG_KEY    = "dct_audit_log_v7";
 const MAX_LOG_ENTRIES = 50;
 
 // ── PI membership ─────────────────────────────────────────────────────────────
 
-// PI_MEMBERSHIP reflects Roadmap v7 (updated June 2026)
+// PI_MEMBERSHIP reflects Roadmap v8 (updated July 2026) — 9-tdc & 12 excluded from PI 2 (On Hold)
 const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
-  pi2:  ["4", "5", "6", "7", "8", "8-pdc", "8-tdc", "9", "9-pdc", "9-tdc", "10", "11", "43", "13", "16", "12"],
+  pi2:  ["4", "5", "6", "7", "8", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16"], // 9-tdc & 12 excluded (On Hold)
   pi3:  ["20", "42", "21", "28", "9a", "31", "17", "26", "29", "39", "33"],
   pi4:  ["19", "40", "35", "26-tdc"],
 };

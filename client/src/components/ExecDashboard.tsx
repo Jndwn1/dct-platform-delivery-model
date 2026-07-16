@@ -224,19 +224,19 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
     },
     {
       pi: "PI 2",
-      status: "Active",
+      status: "Complete",
       pct: pi2Pct,
-      color: "#2563eb",
-      bg: "#eff6ff",
-      border: "#bfdbfe",
+      color: "#059669",
+      bg: "#f0fdf4",
+      border: "#bbf7d0",
     },
     {
       pi: "PI 3",
-      status: "MVP",
+      status: "Active",
       pct: pi3Pct,
-      color: "#d97706",
-      bg: "#fffbeb",
-      border: "#fde68a",
+      color: "#2563eb",
+      bg: "#eff6ff",
+      border: "#bfdbfe",
     },
     {
       pi: "PI 4",
@@ -264,7 +264,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            Platform Intelligence · Roadmap v7
+            Platform Intelligence · Roadmap v8
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
