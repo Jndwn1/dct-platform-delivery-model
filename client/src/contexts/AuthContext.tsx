@@ -17,6 +17,7 @@ export const ALLOWLISTED_USERS: AllowlistedUser[] = [
   { id: "neha-sethi",          name: "Neha Sethi",         role: "Business Analyst"     },
   { id: "krista-gigliotti",    name: "Krista Gigliotti",   role: "Business Analyst"     },
   { id: "courtney-saunders",   name: "Courtney Saunders",  role: "Business Analyst"     },
+  { id: "suvarna-nair",         name: "Suvarna Nair",        role: "QA Director"          },
 ];
 
 type AuthContextType = {
