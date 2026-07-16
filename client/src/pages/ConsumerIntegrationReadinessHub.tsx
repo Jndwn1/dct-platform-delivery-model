@@ -1584,7 +1584,7 @@ export default function ConsumerIntegrationReadinessHub() {
             <div className="flex flex-wrap gap-2 mb-3">
               {[
                 { label: "Stable", color: "#059669", bg: "#d1fae5", desc: "Enterprise-implementation-ready. No breaking changes without versioning." },
-                { label: "MVP", color: "#1e40af", bg: "#dbeafe", desc: "Approved for 9/16 pilot. Stable within MVP scope." },
+                { label: "MVP", color: "#1e40af", bg: "#dbeafe", desc: "Approved for 9/21 pilot. Stable within MVP scope." },
                 { label: "Experimental", color: "#d97706", bg: "#fef3c7", desc: "Subject to change. Do not use for enterprise implementation integrations." },
                 { label: "Future PI", color: "#6b7280", bg: "#f3f4f6", desc: "Not yet available. Planned for post-MVP delivery." },
                 { label: "Internal Only", color: "#dc2626", bg: "#fee2e2", desc: "Not exposed to consumers. DCT internal use only." },
@@ -1717,7 +1717,7 @@ export default function ConsumerIntegrationReadinessHub() {
                   "Which specific stories from B14 and B15 are absorbed into B28? Roadmap v4 names reconciliation formulas and depreciation rule definitions — are these the complete MVP slices?", "Scope Boundary", "PO + Architecture", "High", <Badge label="Open" color="#dc2626" />, "Before B28 batch start"],
                 ["4",
                   <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-B39-MVP</a>,
-                  "B39 (Calculation Report) is promoted to MVP with a hard 9/16 date. Is TDC engineering capacity confirmed for this promotion given existing PI 3 load?", "Resourcing", "PO + Engineering", "Critical", <Badge label="Open" color="#dc2626" />, "PI 3 planning"],
+                  "B39 (Calculation Report) is promoted to MVP with a hard 9/21 date. Is TDC engineering capacity confirmed for this promotion given existing PI 3 load?", "Resourcing", "PO + Engineering", "Critical", <Badge label="Open" color="#dc2626" />, "PI 3 planning"],
                 ["5",
                   <a href="https://dev.azure.com/RSMEquiCo/CATT/_workitems/edit/" target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[#003865] underline hover:text-blue-700" title="Open ADO Feature">F-API-Rev</a>,
                   "Reverse lookup endpoint (EntityId from TaxReadyRecordId) — is this a governance-safe operation or does it violate the forward-only lineage principle?", "Architecture Decision", "Architecture", "Medium", <Badge label="Under Review" color="#d97706" />, "PI 3 planning"],

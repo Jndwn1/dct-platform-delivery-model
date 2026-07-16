@@ -502,7 +502,7 @@ DCT (Data Coordination Technology) is RSM's governed, batch-driven architecture 
 ### Batch Registry Summary
 - **PI 1:** FC, B1, B2, B2A, B3 — Foundation & AI Mapping
 - **PI 2:** B4–B11, B43 — Entity, Workflow & Tax Ready
-- **PI 3 MVP:** B42, B17, B20, B21, B26, B28, B29, B31, B9A, B39, B33 — Target: Sep 16, 2026
+- **PI 3 MVP:** B42, B17, B20, B21, B26, B28, B29, B31, B9A, B39, B33 — Target: Sep 21, 2026
 - **PI 4 / Post-Pilot:** B19, B21-TDC, B26-TDC, B35, B40, B22, B23
 
 ### Key TDC Business Objects

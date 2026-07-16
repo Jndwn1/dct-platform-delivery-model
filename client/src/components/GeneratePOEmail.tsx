@@ -83,7 +83,7 @@ function buildEmailHTML(
           <div style="font-size:11px;color:#64748b;font-weight:600;">Active Batches</div>
         </div>
         <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
-          <div style="font-size:24px;font-weight:800;color:#7c3aed;">Sep 16</div>
+          <div style="font-size:24px;font-weight:800;color:#7c3aed;">Sep 21</div>
           <div style="font-size:11px;color:#64748b;font-weight:600;">Pilot Target</div>
         </div>
       </div>
@@ -161,7 +161,7 @@ function buildEmailHTML(
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
       <span style="font-size:11px;font-weight:600;color:white;background:#059669;border-radius:4px;padding:3px 8px;">PI 1–2 Done</span>
       <span style="font-size:11px;font-weight:600;color:white;background:#2563eb;border-radius:4px;padding:3px 8px;">${activeBatches} Active</span>
-      <span style="font-size:11px;font-weight:600;color:white;background:#7c3aed;border-radius:4px;padding:3px 8px;">Pilot: Sep 16, 2026</span>
+      <span style="font-size:11px;font-weight:600;color:white;background:#7c3aed;border-radius:4px;padding:3px 8px;">Pilot: Sep 21, 2026</span>
       <span style="font-size:11px;font-weight:600;color:white;background:#0f1623;border-radius:4px;padding:3px 8px;">RC1 Ready</span>
     </div>
   </div>

@@ -2176,7 +2176,7 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
               {[
                 { label: "Provision delivered (B19)", date: "Mon 8/3" },
                 { label: "Advisory delivered (B25 TDC)", date: "Fri 8/21" },
-                { label: "MVP-required complete (B16 TDC close)", date: "Fri 9/11 — 3 BD before 9/16" },
+                { label: "MVP-required complete (B16 TDC close)", date: "Fri 9/11 — 3 BD before 9/21" },
                 { label: "Program last close", date: "Tue 9/22" },
               ].map((h, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "5px 0", borderBottom: "1px solid #f1f5f9" }}>

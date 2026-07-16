@@ -675,7 +675,7 @@ export default function Home() {
           }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
             <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>RC-3</div>
-            <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: Sep 16, 2026</div>
+            <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: Sep 21, 2026</div>
           </div>
         </div>
 
@@ -793,7 +793,7 @@ export default function Home() {
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Release Targets</div>
             {[
               { label: "Release Candidate", value: "RC-2",         color: "#059669" },
-              { label: "Target MVP Date",   value: "Sep 16, 2026", color: "#0f1623" },
+              { label: "Target MVP Date",   value: "Sep 21, 2026", color: "#0f1623" },
               { label: "Platform Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
               { label: "PI 3 Queued",          value: `${pi3MvpCount} batches`, color: "#7c3aed" },
             ].map(row => (
@@ -954,7 +954,7 @@ export default function Home() {
 
           {/* B16 Critical-Path Banner */}
           <div style={{ backgroundColor: "#fef2f2", borderRadius: "8px", padding: "12px 16px", borderLeft: "3px solid #dc2626" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>🔴 Critical Path — Must Land Before 9/16 Pilot</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>🔴 Critical Path — Must Land Before 9/21 Pilot</div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
               <span style={{ fontSize: "12px", fontWeight: 800, color: "#dc2626", backgroundColor: "#fee2e2", padding: "2px 7px", borderRadius: "4px", border: "1px solid #fca5a5" }}>B16</span>
               <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Audit Trail &amp; Lineage Governance</span>
@@ -973,7 +973,7 @@ export default function Home() {
               { label: "Platform Completion", value: `${overallPct}%`, ok: overallPct >= 70 },
               { label: "Gates Passed",      value: `${[gates.g1, gates.g2, gates.g3, gates.g4].filter(g => g === "Complete").length} / 4`, ok: [gates.g1, gates.g2].every(g => g === "Complete") },
               { label: "RC Status",         value: "RC-2 On Track",   ok: true },
-              { label: "MVP-Required Close",value: "Sep 16, 2026",    ok: true },
+              { label: "MVP-Required Close",value: "Sep 21, 2026",    ok: true },
             ].map(r => (
               <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "5px" }}>
                 <span style={{ color: "#374151" }}>{r.label}</span>

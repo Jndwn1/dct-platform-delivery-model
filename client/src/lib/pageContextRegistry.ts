@@ -205,7 +205,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     apis: ["GET /api/delivery/pi3/readiness", "GET /api/delivery/critical-path", "GET /api/roger/capability-impact"],
     stories: ["PI3 Readiness Assessment", "Critical Path Analysis", "Roger Capability Mapping"],
     screens: ["PI Readiness Dashboard", "Critical Path Diagram", "Roger Impact Matrix", "Executive KPI Cards", "ADO Review Panel", "Optimization Panel"],
-    businessRules: ["PI3 target: Sep 16, 2026 MVP", "Critical path batches cannot slip without RC impact", "Roger capability requires 7/10 APIs ready for MVP"],
+    businessRules: ["PI3 target: Sep 21, 2026 MVP", "Critical path batches cannot slip without RC impact", "Roger capability requires 7/10 APIs ready for MVP"],
     batches: ["B9", "B38", "B39", "B40", "B41", "B42", "B43"],
     businessObjects: ["PI", "CriticalPath", "RogerCapability", "KPI"],
     integrations: ["Azure DevOps", "GitHub", "Roger UI"],

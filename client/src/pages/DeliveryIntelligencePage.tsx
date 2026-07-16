@@ -75,7 +75,7 @@ const CRITICAL_PATH_NODES: CriticalNode[] = [
   { id: "b28-b29", label: "Workpaper & Return Assembly", sublabel: "B28 + B29 — Provision & Filing", owner: "TDC", batchKey: "28", dependencies: "B26, B43", completionPct: 0, targetDate: "Sep 3" },
   { id: "b39", label: "Calculation Report", sublabel: "B39 — Sign-off & Lineage", owner: "TDC", batchKey: "39", dependencies: "B28", completionPct: 0, targetDate: "Sep 10" },
   { id: "roger", label: "Roger Consumer Ready", sublabel: "All governed contracts live", owner: "Roger", batchKey: "9a", dependencies: "B9A, B42, B43, B39", completionPct: 0, targetDate: "Sep 15" },
-  { id: "pilot", label: "September Pilot", sublabel: "MVP Launch — Sep 16, 2026", owner: "Leadership", batchKey: "39", dependencies: "All MVP batches", completionPct: 0, targetDate: "Sep 16" },
+  { id: "pilot", label: "September Pilot", sublabel: "MVP Launch — Sep 21, 2026", owner: "Leadership", batchKey: "39", dependencies: "All MVP batches", completionPct: 0, targetDate: "Sep 21" },
 ];
 
 // ─── Roger Capability Impact Matrix ──────────────────────────────────────────
@@ -335,7 +335,7 @@ export default function DeliveryIntelligencePage() {
                 { label: `Critical Path: ${criticalPct}%`, color: criticalPct >= 60 ? "#059669" : "#dc2626" },
                 { label: `Gates: ${gatesComplete}/4`, color: gatesComplete >= 3 ? "#059669" : "#d97706" },
                 { label: `Roger: ${rogerReady}/${rogerTotal} Ready`, color: rogerReady >= 8 ? "#059669" : "#d97706" },
-                { label: "Sep 16 MVP Target", color: "#003865" },
+                { label: "Sep 21 MVP Target", color: "#003865" },
               ].map(b => (
                 <span key={b.label} style={{ fontSize: "11px", fontWeight: 600, color: "white", backgroundColor: b.color, borderRadius: "4px", padding: "3px 8px" }}>{b.label}</span>
               ))}
@@ -569,7 +569,7 @@ export default function DeliveryIntelligencePage() {
       ════════════════════════════════════════════════════════════════════════ */}
       {activeSection === "critical-path" && (
         <div>
-          <SectionHeader number="3" id="critical-path" title="Critical Path Dashboard" subtitle="MVP delivery path — every node must close before September 16 pilot start" />
+          <SectionHeader number="3" id="critical-path" title="Critical Path Dashboard" subtitle="MVP delivery path — every node must close before September 21 pilot start" />
 
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0", marginBottom: "24px" }}>
             {criticalNodesWithHealth.map((node, i) => {
@@ -629,7 +629,7 @@ export default function DeliveryIntelligencePage() {
           </div>
 
           <div style={{ backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "12px 16px", fontSize: "12px", color: "#7f1d1d" }}>
-            <strong>Critical Path Rule:</strong> Every node in this chain must reach Complete status before the September 16 pilot start. A slip in any node propagates to all downstream nodes. The Control Panel is the authoritative source for all status values shown above.
+            <strong>Critical Path Rule:</strong> Every node in this chain must reach Complete status before the September 21 pilot start. A slip in any node propagates to all downstream nodes. The Control Panel is the authoritative source for all status values shown above.
           </div>
         </div>
       )}

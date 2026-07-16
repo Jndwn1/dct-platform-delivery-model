@@ -28,7 +28,7 @@ export interface BatchEntry {
   keyOutcomes: string[];  // 2-3 key demo outcomes
   piCommitment?: "Committed" | "Stretch" | "Draft"; // PI 2+ commitment level
   // ── Governance flags (Roadmap v4.0) ──────────────────────────────────────
-  criticalPath?: boolean;       // TRUE = must land before pilot start (9/16)
+  criticalPath?: boolean;       // TRUE = must land before pilot start (9/21)
   criticalPathNote?: string;    // Roadmap-sourced rationale
   splitDelivery?: boolean;      // TRUE = batch has split delivery across PIs
   splitDeliveryNote?: string;   // Describes the split (which stories, which PI)
@@ -356,7 +356,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "Roger and compliance teams can retrieve full audit trail for any engagement",
     ],
     criticalPath: true,
-    criticalPathNote: "Roadmap v4.0 explicit flag: 'CORE MVP GOVERNANCE: The platform's audit defensibility depends on this batch. Must land before pilot start (9/16).' Every state transition, decision, sign-off, and transformation must produce a lineage event. Audit trail records are immutable and append-only.",
+    criticalPathNote: "Roadmap v4.0 explicit flag: 'CORE MVP GOVERNANCE: The platform's audit defensibility depends on this batch. Must land before pilot start (9/21).' Every state transition, decision, sign-off, and transformation must produce a lineage event. Audit trail records are immutable and append-only.",
   },
   {
     id: "B17",
@@ -462,7 +462,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "Client Communication read contract extends Engagement Operations from Batch 12",
     ],
     deferred: true,
-    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / FUTURE PI — Client communication tracking and outstanding item management. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI post-pilot.' Do not include in PI 3 MVP planning or 9/16 pilot scope.",
+    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / FUTURE PI — Client communication tracking and outstanding item management. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI post-pilot.' Do not include in PI 3 MVP planning or 9/21 pilot scope.",
   },
   {
     id: "B23",
@@ -481,7 +481,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "Outlier indicators visible — positions deviating from peer group surfaced",
     ],
     deferred: true,
-    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / DEFERRED — Benchmark and peer analytics against industry peers. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI post-pilot.' Do not include in PI 3 MVP planning or 9/16 pilot scope.",
+    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / DEFERRED — Benchmark and peer analytics against industry peers. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI post-pilot.' Do not include in PI 3 MVP planning or 9/21 pilot scope.",
   },
   {
     id: "B24",
@@ -618,7 +618,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
     status: "Planned",
     area: "TDC",
     storyCount: 4,
-    description: "PROMOTED TO MVP: TDC produces packaged sign-off reports, adjustment reports, and derivation lineage reports formatted for partner review and external audit. Governance-grade derivation report required at 9/16 pilot start.",
+    description: "PROMOTED TO MVP: TDC produces packaged sign-off reports, adjustment reports, and derivation lineage reports formatted for partner review and external audit. Governance-grade derivation report required at 9/21 pilot start.",
     dependencies: ["B28"],
     keyOutcomes: [
       "Packaged sign-off reports immutable and reproducible from same data state",

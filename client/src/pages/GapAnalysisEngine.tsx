@@ -116,7 +116,7 @@ const INTAKE_ENTITIES: IntakeEntity[] = [
       { fieldName: "Tax Year", apiField: "taxYear", required: true, dashboardStatus: "Seed Data", gap: "Hardcoded to 2024 — real tax year scope needs to be confirmed for pilot" },
     ],
     resolutionItems: [
-      { severity: "Critical", item: "Confirm which tax forms are in scope for the 9/16 pilot (1120 only? 1065? 1120S?)", owner: "PO + Tax SME" },
+      { severity: "Critical", item: "Confirm which tax forms are in scope for the 9/21 pilot (1120 only? 1065? 1120S?)", owner: "PO + Tax SME" },
       { severity: "Critical", item: "Validate all line codes and labels against current IRS form publications for TY2024", owner: "Tax Practice SME" },
       { severity: "High", item: "Add Schedule field to dashboard data model — currently no platform destination", owner: "Engineering (B6)" },
       { severity: "Medium", item: "Confirm tax year scope — is TY2024 the only year for pilot or are prior years needed?", owner: "PO" },
@@ -145,7 +145,7 @@ const INTAKE_ENTITIES: IntakeEntity[] = [
     resolutionItems: [
       { severity: "Critical", item: "Add Return Templates to the Data Model page — currently zero dashboard coverage for this entity", owner: "Engineering + BA (B9 PDC)" },
       { severity: "Critical", item: "Define jurisdiction scope for pilot — Federal only? Which states?", owner: "PO + Tax SME" },
-      { severity: "Critical", item: "Confirm return type list with Tax Practice — which return types are in scope for 9/16 pilot?", owner: "Tax Practice SME" },
+      { severity: "Critical", item: "Confirm return type list with Tax Practice — which return types are in scope for 9/21 pilot?", owner: "Tax Practice SME" },
       { severity: "High", item: "Establish template naming convention — no standard defined yet", owner: "PO + Tax SME" },
       { severity: "High", item: "Add Jurisdiction Codes reference table to dashboard (needed as FK by Return Templates, Mapping Rules, Filing Due Dates)", owner: "Engineering" },
     ],
@@ -298,7 +298,7 @@ EXECUTIVE SUMMARY
 ═══════════════════════════════════════════════════════════════
 
 The Master Data Intake workbook defines 8 data entities required to validate
-the DCT Platform architecture for the 9/16 Pilot Start. This report assesses
+the DCT Platform architecture for the 9/21 Pilot Start. This report assesses
 alignment between the intake instrument and the current governance workspace,
 and identifies gaps that must be resolved before SMEs and leadership can begin
 populating reference data in the enterprise implementation outside this workspace.

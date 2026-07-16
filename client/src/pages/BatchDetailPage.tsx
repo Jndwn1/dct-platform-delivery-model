@@ -695,7 +695,7 @@ const BATCH_CONTENT: Record<string, BatchContent> = {
     lead: "TDC Workstream Lead",
     entryCondition: "Batch 28 complete; entity-period in FINALIZED state; sign-off records and adjustment records available",
     exitCondition: "Packaged sign-off reports, adjustment reports, and derivation lineage reports live; Calculation Report read contract published; reports immutable and reproducible",
-    executiveNote: "PROMOTED TO MVP: Promoted from PI 4 per leadership direction. Governance-grade derivation report required at 9/16 pilot start.",
+    executiveNote: "PROMOTED TO MVP: Promoted from PI 4 per leadership direction. Governance-grade derivation report required at 9/21 pilot start.",
     governanceTags: ["TDC", "Read Contract", "MVP Promoted"],
     stories: [
       { title: "Packaged Sign-Off Report", wmbt: "Calculation reports are point-in-time snapshots — a generated report must be immutable and reproducible from the same data state." },
@@ -942,7 +942,7 @@ export default function BatchDetailPage() {
               <div style={{ backgroundColor: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "10px 14px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
                 <span style={{ fontSize: "14px", flexShrink: 0 }}>🔴</span>
                 <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>Critical Path — Must Land Before 9/16 Pilot</div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>Critical Path — Must Land Before 9/21 Pilot</div>
                   <div style={{ fontSize: "12px", color: "#7f1d1d", lineHeight: 1.6 }}>{liveBatch.criticalPathNote}</div>
                 </div>
               </div>

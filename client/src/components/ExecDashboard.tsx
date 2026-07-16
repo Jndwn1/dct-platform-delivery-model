@@ -423,7 +423,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: urgencyColor }}>Pilot Countdown</div>
           <div style={{ fontSize: "36px", fontWeight: 900, color: urgencyColor, lineHeight: 1 }}>{daysRemaining}</div>
           <div style={{ fontSize: "11px", fontWeight: 600, color: urgencyColor }}>days remaining</div>
-          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Target: Sep 16, 2026</div>
+          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Target: Sep 21, 2026</div>
         </div>
 
         {/* Recent Deployments */}

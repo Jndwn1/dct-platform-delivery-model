@@ -391,9 +391,9 @@ const FEATURES: FeatureRow[] = [
   {
     id: "post-mvp-b22", batch: "B22", name: "Client Communication & Outstanding Items — Post-MVP", owner: "PDC", pi: "Post-MVP",
     startDate: "TBD", endDate: "TBD", status: "Planned",
-    batchSummary: "POST-MVP per v4_corrected. Client communication and outstanding items. Parked pending MVP pilot completion (9/16). No active delivery until after pilot.",
+    batchSummary: "POST-MVP per v4_corrected. Client communication and outstanding items. Parked pending MVP pilot completion (9/21). No active delivery until after pilot.",
     governanceFocus: "Post-MVP scope. Parked.",
-    majorDependency: "MVP pilot completion (9/16).",
+    majorDependency: "MVP pilot completion (9/21).",
     readContractImpact: "TBD — Post-MVP.",
     downstreamImpact: "TBD.",
     governance: ["Contract Published"],
@@ -454,7 +454,7 @@ const FEATURES: FeatureRow[] = [
     startDate: "TBD", endDate: "TBD", status: "Planned",
     batchSummary: "POST-MVP per v4_corrected. Benchmark and peer analytics. Parked pending MVP pilot completion.",
     governanceFocus: "Post-MVP scope. Parked.",
-    majorDependency: "MVP pilot completion (9/16).",
+    majorDependency: "MVP pilot completion (9/21).",
     readContractImpact: "TBD — Post-MVP.",
     downstreamImpact: "TBD.",
     governance: ["Contract Published", "Additive-Only"],
@@ -534,11 +534,11 @@ const FEATURES: FeatureRow[] = [
   {
     id: "pi3-b39", batch: "B39", name: "Calculation Report (MVP Promoted)", owner: "TDC", pi: "PI 3",
     startDate: "9/2", endDate: "9/15", status: "Planned",
-    batchSummary: "Calculation report — promoted to MVP per v4_corrected. Must land before 9/16 pilot start. Assembles final calculation output from B29 and B33. TDC governs all calculation report records.",
-    governanceFocus: "Calculation report authority. MVP pilot gate (9/16). Final output lineage.",
+    batchSummary: "Calculation report — promoted to MVP per v4_corrected. Must land before 9/21 pilot start. Assembles final calculation output from B29 and B33. TDC governs all calculation report records.",
+    governanceFocus: "Calculation report authority. MVP pilot gate (9/21). Final output lineage.",
     majorDependency: "B29 TDC Consolidated Return. B33 TDC State Tax.",
     readContractImpact: "Final consumer-facing output. Roger reads via gateway contract.",
-    downstreamImpact: "Roger MVP pilot (9/16 start).",
+    downstreamImpact: "Roger MVP pilot (9/21 start).",
     governance: ["Contract Published", "Lineage Enabled", "Immutable"],
   },
   // ── PI 3 — New MVP Batches ───────────────────────────────────────────────────────────
@@ -560,7 +560,7 @@ const FEATURES: FeatureRow[] = [
     governanceFocus: "Gateway boundary enforcement. External system contracts. Read-only access patterns.",
     majorDependency: "B9 PDC — Roger Gateway. B20 PDC — Firm Governance.",
     readContractImpact: "Roger reads IMS/CDS/DUO data via B9A gateway contracts.",
-    downstreamImpact: "Roger MVP pilot (9/16 start).",
+    downstreamImpact: "Roger MVP pilot (9/21 start).",
     governance: ["Contract Published", "Schema Published", "Read Contract"],
     chainNote: "B9 PDC (PI 2) → B9A Gateway (PI 3): Gateway expands to IMS/CDS/DUO",
   },
@@ -627,7 +627,7 @@ const PI_GROUPS: { label: string; pi: string; color: string; bg: string; border:
     color: "#9f1239",
     bg: "#fff1f2",
     border: "#fecdd3",
-    summary: "B22 PDC (Client Communication), B23 PDC (Benchmark Analytics), B24 TDC (Advisory Reference — superseded by Blue J), B25 TDC (Advisory Detection — superseded by Blue J). Parked pending MVP pilot completion (9/16) or superseded by integration.",
+    summary: "B22 PDC (Client Communication), B23 PDC (Benchmark Analytics), B24 TDC (Advisory Reference — superseded by Blue J), B25 TDC (Advisory Detection — superseded by Blue J). Parked pending MVP pilot completion (9/21) or superseded by integration.",
   },
 ];
 

@@ -636,8 +636,8 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
       "PDC Retention Rules & Access Logging Requirements — not started",
       "PDC Audit Trail Governance Contract — not started",
     ],
-    readiness: "Not Started — PI 2 Stretch. CORE MVP GOVERNANCE: Must land before pilot start (9/16). Every state transition, decision, sign-off, and transformation must produce a lineage event.",
-    poNote: "Batch 16 is the firm's complete event log — every state transition, decision, sign-off, and transformation is captured with retention rules and access logging. Audit trail records are immutable and append-only. CORE MVP GOVERNANCE — must land before 9/16 pilot start. Source: Roadmap v4_corrected.",
+    readiness: "Not Started — PI 2 Stretch. CORE MVP GOVERNANCE: Must land before pilot start (9/21). Every state transition, decision, sign-off, and transformation must produce a lineage event.",
+    poNote: "Batch 16 is the firm's complete event log — every state transition, decision, sign-off, and transformation is captured with retention rules and access logging. Audit trail records are immutable and append-only. CORE MVP GOVERNANCE — must land before 9/21 pilot start. Source: Roadmap v4_corrected.",
   },
   // ── PI 3 MVP ──────────────────────────────────────────────────────────────
   {
@@ -828,8 +828,8 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
       "Derivation Lineage Reports — not started",
       "Governance-Grade Derivation Report — not started",
     ],
-    readiness: "Not Started — PROMOTED TO MVP. Governance-grade derivation report promoted to MVP. Must land before 9/16 pilot start.",
-    poNote: "Batch 39 produces packaged sign-off reports, adjustment reports, and derivation lineage reports formatted for partner review and external audit. Governance-grade derivation report promoted to MVP. PROMOTED from PI 4 to MVP — must land before 9/16 pilot start. Source: Roadmap v4_corrected.",
+    readiness: "Not Started — PROMOTED TO MVP. Governance-grade derivation report promoted to MVP. Must land before 9/21 pilot start.",
+    poNote: "Batch 39 produces packaged sign-off reports, adjustment reports, and derivation lineage reports formatted for partner review and external audit. Governance-grade derivation report promoted to MVP. PROMOTED from PI 4 to MVP — must land before 9/21 pilot start. Source: Roadmap v4_corrected.",
   },
 ];
 

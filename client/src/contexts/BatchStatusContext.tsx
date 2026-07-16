@@ -300,7 +300,7 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "39": "Committed",   // B39 — Calculation Report
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
   // ── PI 4 — Future (Post-Pilot) ───────────────────────────────────────────
-  "19": "Not Started",  // B19 — Audit Tax-Expense Cross-LOB Outbound (9/16–9/28)
+  "19": "Not Started",  // B19 — Audit Tax-Expense Cross-LOB Outbound (9/21–9/28)
   "40": "Not Started",  // B40 — Client-Level Line Mapping Reuse
   "35": "Not Started",  // B35 — S-Corp Specialization
   "26-tdc": "Not Started", // B26 TDC — Entity Constituents & Allocations (TDC)
