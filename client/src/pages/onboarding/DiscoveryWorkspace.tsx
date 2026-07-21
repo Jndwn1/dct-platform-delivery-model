@@ -166,6 +166,274 @@ function ResponsibilityMatrix() {
   );
 }
 
+// ─── NEW SECTION 3: Discovery Workflow ──────────────────────────────────────
+const WORKFLOW_STEPS = [
+  {
+    number: "1",
+    title: "Define the Business Need",
+    icon: "🎯",
+    color: "#0369a1",
+    purpose: "Describe the business capability from the practitioner's perspective.",
+    guidance: "Start by clearly articulating what the business needs to accomplish — not how the platform should implement it. Focus on the practitioner's goal.",
+    examples: [
+      "State Apportionment",
+      "State Taxable Income",
+      "State Adjustments",
+      "Provision Schedules",
+      "Workpapers",
+      "Audit Evidence",
+      "Lineage",
+    ],
+    note: null,
+  },
+  {
+    number: "2",
+    title: "Assess the Current State",
+    icon: "🔍",
+    color: "#065f46",
+    purpose: "Understand how the business capability works today before defining future-state requirements.",
+    guidance: "Discovery begins with evaluating the existing business process and platform capabilities. Do not define new requirements until you understand what already exists.",
+    examples: [
+      "Current business process",
+      "Existing systems involved",
+      "Current user workflow",
+      "Existing platform capabilities",
+      "Current pain points",
+      "Existing data sources",
+      "Existing integrations",
+    ],
+    note: "Current-state assessment should identify existing capabilities before proposing new functionality.",
+  },
+  {
+    number: "3",
+    title: "Review Existing DCT Capabilities",
+    icon: "📋",
+    color: "#1e3a5f",
+    purpose: "Use this Discovery Center and Ask Buddy to determine whether DCT already supports the requested capability.",
+    guidance: "Before documenting any requirement, verify whether DCT already delivers it. Check the Existing DCT Capabilities section and use Ask Buddy to search the knowledge base.",
+    examples: [
+      "Does DCT already support this capability?",
+      "Which Batch delivers it?",
+      "Which APIs already exist?",
+      "Which data model already exists?",
+      "Which business objects already support this capability?",
+      "Can the capability be reused?",
+      "Is this already on the roadmap?",
+    ],
+    note: "If an existing capability satisfies the business need, reference that capability rather than creating a new requirement.",
+  },
+  {
+    number: "4",
+    title: "Classify the Gap",
+    icon: "⚖️",
+    color: "#b45309",
+    purpose: "Determine whether the business need is Covered, Partially Covered, or Net-New.",
+    guidance: "Use the three-tier classification to determine the correct action. Only document requirements for the true gap — not for capabilities that already exist.",
+    examples: [],
+    note: null,
+  },
+  {
+    number: "5",
+    title: "Document Business Requirements",
+    icon: "📝",
+    color: "#7c3aed",
+    purpose: "Only document requirements for the identified business gap.",
+    guidance: "Requirements define WHAT the business needs. They do not include API design, database design, architecture, or implementation approach. DCT determines HOW the platform implements the solution.",
+    examples: [
+      "Business purpose",
+      "User actions",
+      "Functional behavior",
+      "Business rules",
+      "Validation rules",
+      "Exception handling",
+      "Expected outcomes",
+    ],
+    note: null,
+  },
+  {
+    number: "6",
+    title: "DCT Platform Assessment",
+    icon: "🏗️",
+    color: "#be185d",
+    purpose: "Once business discovery is complete, DCT performs platform and technical assessment.",
+    guidance: "DCT validates platform alignment using the completed business discovery artifacts. This step is DCT-owned and occurs after the BA has completed Steps 1–5.",
+    examples: [
+      "Platform Capability Assessment",
+      "Technical Gap Analysis",
+      "Architecture Assessment",
+      "Technical Solution Assessment",
+      "Implementation Planning",
+    ],
+    note: "DCT validates platform alignment using the completed business discovery artifacts.",
+  },
+];
+
+const GAP_CLASSIFICATIONS = [
+  {
+    label: "Covered",
+    color: "#059669",
+    bg: "#f0fdf4",
+    border: "#bbf7d0",
+    definition: "Existing DCT capability satisfies the business need.",
+    action: "Reuse the capability.",
+    icon: "✓",
+  },
+  {
+    label: "Partially Covered",
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
+    definition: "Existing capability requires enhancement.",
+    action: "Document only the enhancement.",
+    icon: "~",
+  },
+  {
+    label: "Net-New",
+    color: "#dc2626",
+    bg: "#fef2f2",
+    border: "#fecaca",
+    definition: "No existing platform capability exists.",
+    action: "Document the new business requirement.",
+    icon: "!",
+  },
+];
+
+function DiscoveryWorkflowSection() {
+  const [activeStep, setActiveStep] = useState<number | null>(null);
+
+  return (
+    <section id="s-workflow" style={{ marginBottom: "48px" }}>
+      <SectionHeading
+        number="↓"
+        title="Discovery Workflow"
+        subtitle="Follow this process before documenting new requirements or creating implementation work."
+      />
+
+      {/* Workflow step cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "28px" }}>
+        {WORKFLOW_STEPS.map((step, idx) => (
+          <div
+            key={step.number}
+            onClick={() => setActiveStep(activeStep === idx ? null : idx)}
+            style={{
+              backgroundColor: "white",
+              border: `2px solid ${activeStep === idx ? step.color : "#e2e8f0"}`,
+              borderRadius: "10px",
+              padding: "16px 18px",
+              cursor: "pointer",
+              transition: "all 0.15s",
+              borderLeft: `4px solid ${step.color}`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+              <div style={{
+                width: "28px", height: "28px", borderRadius: "6px",
+                backgroundColor: step.color, color: "white",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "12px", fontWeight: 800, flexShrink: 0,
+              }}>{step.number}</div>
+              <span style={{ fontSize: "14px" }}>{step.icon}</span>
+              <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", lineHeight: "1.3" }}>{step.title}</span>
+            </div>
+            <p style={{ fontSize: "12px", color: "#475569", margin: 0, lineHeight: "1.5" }}>{step.purpose}</p>
+            {activeStep === idx && (
+              <div style={{ marginTop: "12px", borderTop: "1px solid #f1f5f9", paddingTop: "12px" }}>
+                <p style={{ fontSize: "12px", color: "#334155", margin: "0 0 10px", lineHeight: "1.6" }}>{step.guidance}</p>
+                {step.examples.length > 0 && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: step.color, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "5px" }}>
+                      {step.number === "3" ? "Checklist" : step.number === "5" ? "Requirements Include" : step.number === "6" ? "DCT Performs" : "Examples"}
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: "16px" }}>
+                      {step.examples.map(e => (
+                        <li key={e} style={{ fontSize: "12px", color: "#334155", lineHeight: "1.6" }}>{e}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {step.note && (
+                  <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px", padding: "8px 12px" }}>
+                    <p style={{ fontSize: "11px", color: "#065f46", margin: 0, lineHeight: "1.5" }}>💡 {step.note}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            <div style={{ marginTop: "8px", fontSize: "10px", color: "#94a3b8", textAlign: "right" }}>
+              {activeStep === idx ? "▲ collapse" : "▼ expand"}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Step 4 Gap Classification Table */}
+      <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", marginBottom: "20px" }}>
+        <div style={{ backgroundColor: "#b45309", padding: "12px 18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "18px" }}>⚖️</span>
+            <div>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "white" }}>Step 4 — Gap Classification</div>
+              <div style={{ fontSize: "11px", color: "#fde68a" }}>Use this decision table to classify the gap before documenting requirements.</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0" }}>
+          {GAP_CLASSIFICATIONS.map((g, i) => (
+            <div key={g.label} style={{
+              backgroundColor: g.bg,
+              border: `1px solid ${g.border}`,
+              borderTop: "none",
+              borderLeft: i === 0 ? "none" : `1px solid ${g.border}`,
+              padding: "18px 20px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                <div style={{
+                  width: "26px", height: "26px", borderRadius: "50%",
+                  backgroundColor: g.color, color: "white",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "13px", fontWeight: 800, flexShrink: 0,
+                }}>{g.icon}</div>
+                <span style={{ fontSize: "14px", fontWeight: 800, color: g.color }}>{g.label}</span>
+              </div>
+              <div style={{ marginBottom: "8px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: g.color, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>Definition</div>
+                <p style={{ fontSize: "12px", color: "#334155", margin: 0, lineHeight: "1.5" }}>{g.definition}</p>
+              </div>
+              <div>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: g.color, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>Action</div>
+                <p style={{ fontSize: "12px", color: "#334155", margin: 0, fontWeight: 600, lineHeight: "1.5" }}>{g.action}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Step 5 BA vs DCT ownership callout */}
+      <div style={{ backgroundColor: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "10px", padding: "16px 20px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>📝 Step 5 — BA vs. DCT Ownership</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div style={{ backgroundColor: "white", border: "1px solid #e9d5ff", borderRadius: "8px", padding: "12px 14px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", marginBottom: "6px" }}>✅ Requirements INCLUDE</div>
+            {["Business purpose", "User actions", "Functional behavior", "Business rules", "Validation rules", "Exception handling", "Expected outcomes"].map(i => (
+              <div key={i} style={{ fontSize: "12px", color: "#334155", lineHeight: "1.7" }}>• {i}</div>
+            ))}
+          </div>
+          <div style={{ backgroundColor: "white", border: "1px solid #fecaca", borderRadius: "8px", padding: "12px 14px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#dc2626", marginBottom: "6px" }}>🚫 Requirements do NOT include</div>
+            {["API design", "Database design", "Architecture", "Implementation approach", "Technical solution"].map(i => (
+              <div key={i} style={{ fontSize: "12px", color: "#334155", lineHeight: "1.7" }}>• {i}</div>
+            ))}
+          </div>
+        </div>
+        <div style={{ marginTop: "12px", backgroundColor: "#7c3aed", borderRadius: "8px", padding: "10px 16px" }}>
+          <p style={{ fontSize: "13px", color: "white", margin: 0, fontWeight: 600, lineHeight: "1.5" }}>
+            💡 The Business Analyst defines <strong>WHAT</strong> the business needs. DCT determines <strong>HOW</strong> the platform implements the solution.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── SECTION 3: Existing DCT Capabilities ────────────────────────────────────
 const BATCHES = [
   {
@@ -586,12 +854,26 @@ function CapabilityMappingTable() {
 
 // ─── SECTION 6: Discovery Questions ──────────────────────────────────────────
 const DISCOVERY_QUESTIONS = [
-  { category: "Capability Check", questions: [
-    "Does DCT already support this capability? Which Batch provides it?",
-    "Which APIs are available for this business need?",
-    "Is this capability already on the DCT roadmap (B9A, B16, B28)?",
-    "Is additional functionality required, or does the existing capability satisfy the need?",
+  { category: "Current-State Assessment", questions: [
+    "What is the current business process?",
+    "Which system performs this function today?",
+    "What existing functionality already supports this capability?",
+    "Which platform owns the capability?",
+    "Which data is persisted?",
+    "Which data is calculated?",
+    "Which system is the system of record?",
+    "What business problem is not solved today?",
   ]},
+  { category: "Capability Check", questions: [
+    "Does DCT already support this capability?",
+    "Which existing Batch provides it?",
+    "Which APIs already exist?",
+    "Which existing business objects support it?",
+    "Is the capability Covered, Partially Covered, or Net-New?",
+    "If partially covered, what enhancement is required?",
+    "If Net-New, why can't the existing platform satisfy the requirement?",
+  ]},
+
   { category: "Scope & Requirements", questions: [
     "Would this require new scope beyond B9A, B16, or B28?",
     "Which system owns this capability — PDC, TDC, or the Gateway?",
@@ -648,17 +930,18 @@ type Message = { role: "user" | "assistant"; content: string };
 
 const BUDDY_SUGGESTED = [
   "Does DCT already support this capability?",
-  "What is the gap analysis classification process?",
-  "Which Batch supports State tax data access?",
-  "How does Batch 28 work?",
-  "What does the BA own vs what does DCT own?",
-  "How does the feedback cycle work?",
+  "Which Batch delivers this functionality?",
+  "Which APIs already exist for this need?",
+  "Which business objects support this capability?",
+  "Is this Covered, Partially Covered, or Net-New?",
+  "What existing DCT capabilities can be reused?",
+  "What business information should be documented before engaging DCT?",
 ];
 
 function AskBuddySection() {
   const [messages, setMessages] = useState<Message[]>([{
     role: "assistant",
-    content: "👋 I'm Ask Buddy. I'm pre-loaded with full context for Batch 9A, Batch 16, Batch 28, the Discovery Center, and the DCT architecture.\n\nBefore documenting any new requirement, ask me whether DCT already supports it. I'll check existing capabilities first and classify the gap as Covered, Partially Covered, or Net-New.\n\nRemember: describe what the practitioner needs to do — DCT derives the API from your business intent. There is no endpoint design phase.",
+    content: "👋 I'm Ask Buddy — your discovery guide for the DCT platform.\n\nBefore documenting any new requirement, ask me to determine whether DCT already supports the capability. I will evaluate existing platform capabilities, identify supporting batches, APIs, and business objects, and classify the request as Covered, Partially Covered, or Net-New before new requirements are created.\n\nDescribe the business capability you need — I'll check the DCT knowledge base first.",
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -689,7 +972,7 @@ function AskBuddySection() {
 
   return (
     <section id="s7" style={{ marginBottom: "48px" }}>
-      <SectionHeading number="7" title="Ask Buddy" subtitle="Research existing DCT capabilities before writing requirements. Buddy checks B9A, B16, B28, and the full DCT architecture." />
+      <SectionHeading number="7" title="Ask Buddy" subtitle="Before documenting any new requirement, ask Buddy to determine whether DCT already supports the capability. Buddy guides discovery — not just answers." />
       <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
         {/* Messages */}
         <div style={{ height: "340px", overflowY: "auto", padding: "18px 20px", display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -747,8 +1030,152 @@ function AskBuddySection() {
   );
 }
 
+// ─── FINAL SECTION: Definition of Ready for DCT ─────────────────────────────────
+const READY_CHECKLIST = [
+  { id: "r1",  text: "Business capability defined" },
+  { id: "r2",  text: "Current-state process documented" },
+  { id: "r3",  text: "Existing platform capabilities evaluated" },
+  { id: "r4",  text: "Business gap identified" },
+  { id: "r5",  text: "Functional requirements documented" },
+  { id: "r6",  text: "Business rules documented" },
+  { id: "r7",  text: "Data ownership identified" },
+  { id: "r8",  text: "System of record identified" },
+  { id: "r9",  text: "Existing DCT capabilities referenced" },
+  { id: "r10", text: "New functionality clearly defined" },
+];
+
+function DefinitionOfReadySection() {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  function toggle(id: string) {
+    setChecked(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  const pct = Math.round((checked.size / READY_CHECKLIST.length) * 100);
+  const allDone = checked.size === READY_CHECKLIST.length;
+
+  return (
+    <section id="s-ready" style={{ marginBottom: "48px" }}>
+      <SectionHeading
+        number="✓"
+        title="Definition of Ready for DCT"
+        subtitle="Before engaging DCT for platform assessment, ensure business discovery is complete."
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+        {/* Checklist */}
+        <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
+          <div style={{ backgroundColor: "#0f1623", padding: "14px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "white" }}>✅ Business Discovery Checklist</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: allDone ? "#10b981" : "#fbbf24" }}>
+                {checked.size}/{READY_CHECKLIST.length} complete
+              </div>
+            </div>
+            {/* Progress bar */}
+            <div style={{ height: "6px", backgroundColor: "#1e293b", borderRadius: "3px", marginTop: "10px", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", width: `${pct}%`,
+                backgroundColor: allDone ? "#10b981" : "#f59e0b",
+                borderRadius: "3px", transition: "width 0.3s ease",
+              }} />
+            </div>
+          </div>
+          <div style={{ padding: "16px 20px" }}>
+            {READY_CHECKLIST.map(item => (
+              <div
+                key={item.id}
+                onClick={() => toggle(item.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "12px",
+                  padding: "9px 0",
+                  borderBottom: "1px solid #f1f5f9",
+                  cursor: "pointer",
+                }}
+              >
+                <div style={{
+                  width: "20px", height: "20px", borderRadius: "4px", flexShrink: 0,
+                  border: `2px solid ${checked.has(item.id) ? "#059669" : "#cbd5e1"}`,
+                  backgroundColor: checked.has(item.id) ? "#059669" : "white",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all 0.15s",
+                }}>
+                  {checked.has(item.id) && <span style={{ color: "white", fontSize: "12px", fontWeight: 800 }}>✓</span>}
+                </div>
+                <span style={{
+                  fontSize: "13px",
+                  color: checked.has(item.id) ? "#64748b" : "#1e293b",
+                  textDecoration: checked.has(item.id) ? "line-through" : "none",
+                  lineHeight: "1.4",
+                }}>{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right panel: what happens next + DCT actions */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {/* What DCT does next */}
+          <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "18px 20px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>🏗️ When These Items Are Complete, DCT Performs</div>
+            {[
+              { label: "Platform Capability Assessment", desc: "DCT evaluates whether existing platform capabilities can satisfy the documented business need." },
+              { label: "Technical Gap Analysis", desc: "DCT identifies the technical delta between existing capabilities and the documented requirements." },
+              { label: "Technical Solution Assessment", desc: "DCT proposes the implementation approach aligned to the batch delivery model." },
+              { label: "Implementation Planning", desc: "DCT sequences the work into the appropriate batch and gate framework." },
+            ].map(item => (
+              <div key={item.label} style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+                <div style={{
+                  width: "22px", height: "22px", borderRadius: "50%",
+                  backgroundColor: "#059669", color: "white",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "11px", fontWeight: 800, flexShrink: 0, marginTop: "1px",
+                }}>→</div>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: 700, color: "#065f46", marginBottom: "2px" }}>{item.label}</div>
+                  <p style={{ fontSize: "12px", color: "#166534", margin: 0, lineHeight: "1.5" }}>{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Readiness status callout */}
+          <div style={{
+            backgroundColor: allDone ? "#059669" : "#0f1623",
+            borderRadius: "12px", padding: "18px 20px",
+            transition: "background-color 0.3s ease",
+          }}>
+            <div style={{ fontSize: "14px", fontWeight: 800, color: "white", marginBottom: "8px" }}>
+              {allDone ? "🎉 Ready to Engage DCT" : "🕒 Discovery In Progress"}
+            </div>
+            <p style={{ fontSize: "13px", color: allDone ? "#d1fae5" : "#94a3b8", margin: 0, lineHeight: "1.6" }}>
+              {allDone
+                ? "All business discovery items are complete. You are ready to engage DCT for Platform Capability Assessment, Technical Gap Analysis, Technical Solution Assessment, and Implementation Planning."
+                : `Complete all ${READY_CHECKLIST.length} checklist items before engaging DCT. ${READY_CHECKLIST.length - checked.size} item${READY_CHECKLIST.length - checked.size !== 1 ? "s" : ""} remaining.`
+              }
+            </p>
+          </div>
+
+          {/* Boundary reminder */}
+          <div style={{ backgroundColor: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "10px", padding: "14px 18px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>📝 Ownership Boundary</div>
+            <p style={{ fontSize: "12px", color: "#5b21b6", margin: 0, lineHeight: "1.6" }}>
+              The Business Analyst defines <strong>WHAT</strong> the business needs. DCT determines <strong>HOW</strong> the platform implements the solution. Business discovery artifacts must be complete before DCT begins technical assessment.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Floating Quick Links sidebar ────────────────────────────────────────────
 const QUICK_LINKS = [
+  { label: "Discovery Workflow", href: "#s-workflow", color: "#0369a1", icon: "🔎" },
   { label: "Batch 9A", href: "#s3", color: C.b9a, icon: "🔐" },
   { label: "Batch 16", href: "#s3", color: C.b16, icon: "📋" },
   { label: "Batch 28", href: "#s3", color: C.b28, icon: "📄" },
@@ -758,6 +1185,7 @@ const QUICK_LINKS = [
   { label: "Capability Map", href: "#s5", color: C.slate, icon: "☑" },
   { label: "Discovery Questions", href: "#s6", color: C.slate, icon: "?" },
   { label: "Ask Buddy", href: "#s7", color: C.slate, icon: "🤖" },
+  { label: "Ready for DCT", href: "#s-ready", color: "#059669", icon: "✓" },
 ];
 
 function QuickLinks() {
@@ -831,11 +1259,13 @@ export default function DiscoveryWorkspace() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <WorkstreamOverview />
           <ResponsibilityMatrix />
+          <DiscoveryWorkflowSection />
           <ExistingCapabilities />
           <DataFlowSection />
           <CapabilityMappingTable />
           <DiscoveryQuestionsSection />
           <AskBuddySection />
+          <DefinitionOfReadySection />
         </div>
         {/* Quick links sidebar */}
         <QuickLinks />
