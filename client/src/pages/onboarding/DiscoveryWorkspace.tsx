@@ -1045,6 +1045,16 @@ function AskBuddySection() {
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
+  const INITIAL_MESSAGE: Message = {
+    role: "assistant",
+    content: "👋 I'm Ask Buddy — your discovery guide for the DCT platform.\n\nBefore documenting any new requirement, ask me to determine whether DCT already supports the capability. I will evaluate existing platform capabilities, identify supporting batches, APIs, and business objects, and classify the request as Covered, Partially Covered, or Net-New before new requirements are created.\n\nDescribe the business capability you need — I'll check the DCT knowledge base first.",
+  };
+
+  function clearChat() {
+    setMessages([INITIAL_MESSAGE]);
+    setInput("");
+  }
+
   async function send(text: string) {
     if (!text.trim() || isLoading) return;
     const userMsg: Message = { role: "user", content: text };
@@ -1067,7 +1077,29 @@ function AskBuddySection() {
 
   return (
     <section id="s7" style={{ marginBottom: "48px" }}>
-      <SectionHeading number="7" title="Ask Buddy" subtitle="Before documenting any new requirement, ask Buddy to determine whether DCT already supports the capability. Buddy guides discovery — not just answers." />
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "16px" }}>
+        <div style={{ flex: 1 }}>
+          <SectionHeading number="7" title="Ask Buddy" subtitle="Before documenting any new requirement, ask Buddy to determine whether DCT already supports the capability. Buddy guides discovery — not just answers." />
+        </div>
+        <button
+          onClick={clearChat}
+          title="Clear conversation and start over"
+          style={{
+            marginTop: "4px",
+            display: "flex", alignItems: "center", gap: "5px",
+            fontSize: "11px", fontWeight: 700,
+            padding: "5px 12px", borderRadius: "6px",
+            border: "1px solid #e2e8f0",
+            backgroundColor: "white", color: "#64748b",
+            cursor: "pointer", whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#f8fafc"; (e.currentTarget as HTMLButtonElement).style.color = "#1e293b"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "white"; (e.currentTarget as HTMLButtonElement).style.color = "#64748b"; }}
+        >
+          ↺ Clear Chat
+        </button>
+      </div>
       <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
         {/* Messages */}
         <div style={{ height: "340px", overflowY: "auto", padding: "18px 20px", display: "flex", flexDirection: "column", gap: "12px" }}>
