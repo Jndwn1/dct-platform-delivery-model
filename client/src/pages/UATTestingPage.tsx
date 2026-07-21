@@ -210,14 +210,14 @@ export default function UATTestingPage() {
               </thead>
               <tbody>
                 {[
-                  { milestone: "Finalize Scope",          date: "Jul 20",  status: "🟢", owner: "Jenniver",  risk: "Low",    notes: "Scope confirmed for DCT MVP" },
-                  { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "BA Team",   risk: "Medium", notes: "Business users to be confirmed" },
-                  { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Dev",   risk: "Medium", notes: "RC-3 in progress" },
-                  { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "PDC Team",  risk: "High",   notes: "Dependency on PDC data availability" },
+                  { milestone: "Finalize Scope",          date: "Jul 20",  status: "🟢", owner: "Product Owner(s)",  risk: "Low",    notes: "Scope confirmed for DCT MVP" },
+                  { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "Business / QA",   risk: "Medium", notes: "Business users to be confirmed" },
+                  { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Development",   risk: "Medium", notes: "RC-3 in progress" },
+                  { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "DCT / PDC",  risk: "High",   notes: "Dependency on PDC data availability" },
                   { milestone: "Validation Complete",      date: "Sep 15",  status: "⚪", owner: "QA",        risk: "TBD",    notes: "Pending Dev Complete" },
-                  { milestone: "Environment Ready",        date: "Sep 18",  status: "⚪", owner: "Infra",     risk: "TBD",    notes: "UAT environment provisioning" },
-                  { milestone: "Test Scripts Ready",       date: "Sep 18",  status: "⚪", owner: "QA / BA",   risk: "TBD",    notes: "Workbook-driven scripts" },
-                  { milestone: "Communications Complete",  date: "Sep 18",  status: "⚪", owner: "Jenniver",  risk: "Low",    notes: "Business user notifications" },
+                  { milestone: "Environment Ready",        date: "Sep 18",  status: "⚪", owner: "Infrastructure",     risk: "TBD",    notes: "UAT environment provisioning" },
+                  { milestone: "Test Scripts Ready",       date: "Sep 18",  status: "⚪", owner: "QA",   risk: "TBD",    notes: "Workbook-driven scripts" },
+                  { milestone: "Communications Complete",  date: "Sep 18",  status: "⚪", owner: "Product Owner(s)",  risk: "Low",    notes: "Business user notifications" },
                   { milestone: "UAT Begins",               date: "Sep 21",  status: "⚪", owner: "Business",  risk: "TBD",    notes: "Target launch date" },
                 ].map((r, i) => {
                   const riskColor = r.risk === "High" ? "#fef2f2" : r.risk === "Medium" ? "#fffbeb" : r.risk === "Low" ? "#f0fdf4" : "#f8fafc";
