@@ -799,54 +799,149 @@ function DataFlowSection() {
 }
 
 // ─── SECTION 5: Capability Mapping Table ─────────────────────────────────────
-const CAPABILITY_ROWS = [
-  { need: "Access state tax data", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/state/apportionment/{jurisdiction}", gap: false },
-  { need: "Access provision schedules", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/provision/schedules/{period}", gap: false },
-  { need: "Access workpapers", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/workpapers/{entityId}", gap: false },
-  { need: "Audit trail for tax decisions", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/decisions/{entityId}", gap: false },
-  { need: "Lineage from ERP to output", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/lineage/{entityId}", gap: false },
-  { need: "Decision history & overrides", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/history/{decisionId}", gap: false },
-  { need: "DTA/DTL classification reference data", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/dta-classification/{entityTypeCode}", gap: false },
-  { need: "ETR category reference data", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/etr-category/{entityTypeCode}", gap: false },
-  { need: "Valuation allowance criteria", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/valuation-allowance/{entityTypeCode}", gap: false },
-  { need: "BTP provision outbound (DTA/DTL recon, ETR recon, return-to-provision)", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "POST /api/v1/provision/outbound/btp/{entityId}", gap: false },
-  { need: "Provision compute / recognition rules (UTP, period mismatch, consolidation)", capability: "Not in DCT scope — owned by Provision team & BTP", batch: "—", apis: "Not applicable", gap: true },
-  { need: "Audit export for IMS delivery", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/export/{entityId}", gap: false },
+type StatusType = "Covered" | "Partially Covered" | "Net-New" | "Out of Scope";
+
+const STATUS_CONFIG: Record<StatusType, { dot: string; bg: string; text: string; border: string; label: string }> = {
+  "Covered":          { dot: "🟢", bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", label: "Covered" },
+  "Partially Covered":{ dot: "🟡", bg: "#fffbeb", text: "#92400e", border: "#fde68a", label: "Partially Covered" },
+  "Net-New":          { dot: "🔵", bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe", label: "Net-New" },
+  "Out of Scope":     { dot: "⚪", bg: "#f8fafc", text: "#475569", border: "#e2e8f0", label: "Out of Scope" },
+};
+
+const CAPABILITY_ROWS: { need: string; capability: string; batch: string; apis: string; status: StatusType; action: string }[] = [
+  { need: "Access state tax data", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/state/apportionment/{jurisdiction}", status: "Covered", action: "Reference the existing Gateway capability. Do not create a new requirement unless additional functionality is required." },
+  { need: "Access provision schedules", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/provision/schedules/{period}", status: "Covered", action: "Reference the existing capability. Validate only additional business fields if needed." },
+  { need: "Access workpapers", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/workpapers/{entityId}", status: "Covered", action: "Reuse the existing capability. Document only additional workpaper requirements." },
+  { need: "Audit trail for tax decisions", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/decisions/{entityId}", status: "Covered", action: "Reference Batch 16. Do not create a new audit capability." },
+  { need: "Lineage from ERP to output", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/lineage/{entityId}", status: "Covered", action: "Reuse existing lineage framework. Document only additional lineage requirements if applicable." },
+  { need: "Decision history & overrides", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/history/{decisionId}", status: "Covered", action: "Reference existing audit capability." },
+  { need: "DTA/DTL classification reference data", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/dta-classification/{entityTypeCode}", status: "Covered", action: "Reference existing reference data APIs." },
+  { need: "ETR category reference data", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/etr-category/{entityTypeCode}", status: "Covered", action: "Reference existing reference data APIs." },
+  { need: "Valuation allowance criteria", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/valuation-allowance/{entityTypeCode}", status: "Covered", action: "Reference existing reference data APIs." },
+  { need: "BTP provision outbound (DTA/DTL recon, ETR recon, return-to-provision)", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "POST /api/v1/provision/outbound/btp/{entityId}", status: "Covered", action: "Reuse the existing outbound contract." },
+  { need: "Provision compute / recognition rules (UTP, period mismatch, consolidation)", capability: "Not in DCT scope — owned by Provision team & BTP", batch: "—", apis: "Not applicable", status: "Out of Scope", action: "Document the business requirement and coordinate with the Provision/BTP team. Do not create DCT implementation work." },
+  { need: "Audit export for IMS delivery", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/export/{entityId}", status: "Covered", action: "Reuse the existing Batch 16 capability." },
+];
+
+const LEGEND_ITEMS: { status: StatusType; definition: string; action: string }[] = [
+  { status: "Covered",          definition: "Existing DCT capability satisfies the business need.",  action: "Reference the existing capability." },
+  { status: "Partially Covered",definition: "Existing capability requires enhancement.",              action: "Document only the enhancement." },
+  { status: "Net-New",          definition: "No existing DCT capability exists.",                    action: "Document the complete business requirement." },
+  { status: "Out of Scope",     definition: "Capability belongs to another platform or team.",       action: "Coordinate with the owning team rather than creating DCT implementation work." },
 ];
 
 function CapabilityMappingTable() {
-  const batchColor = (b: string) => b === "B9A" ? C.b9a : b === "B16" ? C.b16 : C.b28;
+  const batchColor = (b: string) => b === "B9A" ? C.b9a : b === "B16" ? C.b16 : b === "—" ? "#94a3b8" : C.b28;
 
   return (
     <section id="s5" style={{ marginBottom: "48px" }}>
-      <SectionHeading number="5" title="How DCT Supports State & Provision" subtitle="Review this table before documenting new requirements. If a capability exists, reference the batch and API rather than creating new scope." />
-      <div style={{ overflowX: "auto", backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px" }}>
+      <SectionHeading
+        number="5"
+        title="How DCT Supports State & Provision"
+        subtitle="Discovery Decision Matrix — Review this matrix before documenting new business requirements."
+      />
+
+      {/* Section description */}
+      <p style={{ fontSize: "13px", color: "#334155", lineHeight: "1.7", marginBottom: "20px", marginTop: "-8px" }}>
+        The purpose of this matrix is to determine whether the requested business capability already exists within DCT, whether an enhancement is required, or whether the capability is outside the DCT platform.
+        Business Analysts should reference existing capabilities whenever possible rather than creating duplicate implementation work.
+      </p>
+
+      {/* Discovery Guidance panel */}
+      <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "16px 20px", marginBottom: "20px", borderLeft: "4px solid #059669" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+          🔎 Discovery Guidance
+        </div>
+        <p style={{ fontSize: "13px", color: "#166534", margin: "0 0 10px", lineHeight: "1.6" }}>
+          Before documenting a new requirement, determine whether DCT already provides the requested capability.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ backgroundColor: "white", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "10px 14px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#059669", marginBottom: "5px" }}>✅ If the capability already exists</div>
+            <ul style={{ margin: 0, paddingLeft: "16px" }}>
+              {["Reference the existing Batch.", "Reference the existing API.", "Document only the business enhancement."].map(t => (
+                <li key={t} style={{ fontSize: "12px", color: "#166534", lineHeight: "1.6" }}>{t}</li>
+              ))}
+            </ul>
+            <p style={{ fontSize: "11px", color: "#065f46", margin: "8px 0 0", fontWeight: 600 }}>Avoid creating duplicate implementation work.</p>
+          </div>
+          <div style={{ backgroundColor: "white", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "10px 14px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", marginBottom: "5px" }}>🔵 If the capability does not exist</div>
+            <p style={{ fontSize: "12px", color: "#1e40af", margin: 0, lineHeight: "1.6" }}>
+              Document the business requirement and identify the capability as <strong>Net-New</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Matrix table */}
+      <div style={{ overflowX: "auto", backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "12px", marginBottom: "20px" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
           <thead>
             <tr style={{ backgroundColor: C.navy }}>
-              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700 }}>Business Need</th>
-              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700 }}>Existing DCT Capability</th>
+              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, minWidth: "160px" }}>Business Need</th>
+              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, minWidth: "180px" }}>Existing DCT Capability</th>
               <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700 }}>Supporting Batch</th>
-              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700 }}>Supporting APIs</th>
-              <th style={{ padding: "10px 14px", textAlign: "center", color: "white", fontWeight: 700 }}>Gap?</th>
+              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, minWidth: "200px" }}>Supporting APIs</th>
+              <th style={{ padding: "10px 14px", textAlign: "center", color: "white", fontWeight: 700, minWidth: "120px" }}>Status</th>
+              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, minWidth: "200px" }}>BA Action</th>
             </tr>
           </thead>
           <tbody>
-            {CAPABILITY_ROWS.map((r, i) => (
-              <tr key={r.need} style={{ backgroundColor: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #e2e8f0" }}>
-                <td style={{ padding: "10px 14px", fontWeight: 600, color: C.navy, verticalAlign: "top" }}>{r.need}</td>
-                <td style={{ padding: "10px 14px", color: "#334155", verticalAlign: "top" }}>{r.capability}</td>
-                <td style={{ padding: "10px 14px", verticalAlign: "top" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 700, backgroundColor: batchColor(r.batch), color: "white", borderRadius: "4px", padding: "2px 8px" }}>{r.batch}</span>
-                </td>
-                <td style={{ padding: "10px 14px", verticalAlign: "top", fontFamily: "monospace", fontSize: "11px", color: "#0f172a" }}>{r.apis}</td>
-                <td style={{ padding: "10px 14px", textAlign: "center", verticalAlign: "top" }}>
-                  <span style={{ fontSize: "12px", fontWeight: 700, color: r.gap ? "#dc2626" : "#059669" }}>{r.gap ? "⚠ Yes" : "✓ No"}</span>
-                </td>
-              </tr>
-            ))}
+            {CAPABILITY_ROWS.map((r, i) => {
+              const sc = STATUS_CONFIG[r.status];
+              return (
+                <tr key={r.need} style={{ backgroundColor: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #e2e8f0" }}>
+                  <td style={{ padding: "10px 14px", fontWeight: 600, color: C.navy, verticalAlign: "top" }}>{r.need}</td>
+                  <td style={{ padding: "10px 14px", color: "#334155", verticalAlign: "top" }}>{r.capability}</td>
+                  <td style={{ padding: "10px 14px", verticalAlign: "top" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, backgroundColor: batchColor(r.batch), color: "white", borderRadius: "4px", padding: "2px 8px" }}>{r.batch}</span>
+                  </td>
+                  <td style={{ padding: "10px 14px", verticalAlign: "top", fontFamily: "monospace", fontSize: "11px", color: "#0f172a" }}>{r.apis}</td>
+                  <td style={{ padding: "10px 14px", textAlign: "center", verticalAlign: "top" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 700, backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.border}`, borderRadius: "5px", padding: "3px 8px", whiteSpace: "nowrap" }}>
+                      {sc.dot} {sc.label}
+                    </span>
+                  </td>
+                  <td style={{ padding: "10px 14px", color: "#334155", verticalAlign: "top", fontSize: "12px", lineHeight: "1.5" }}>{r.action}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+      </div>
+
+      {/* Discovery Decision Legend */}
+      <div style={{ backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "16px 20px", marginBottom: "16px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: C.slate, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>Discovery Decision Legend</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px" }}>
+          {LEGEND_ITEMS.map(item => {
+            const sc = STATUS_CONFIG[item.status];
+            return (
+              <div key={item.status} style={{ backgroundColor: sc.bg, border: `1px solid ${sc.border}`, borderRadius: "8px", padding: "12px 14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+                  <span style={{ fontSize: "14px" }}>{sc.dot}</span>
+                  <span style={{ fontSize: "12px", fontWeight: 800, color: sc.text }}>{sc.label}</span>
+                </div>
+                <p style={{ fontSize: "11px", color: sc.text, margin: "0 0 5px", lineHeight: "1.5" }}>{item.definition}</p>
+                <p style={{ fontSize: "11px", color: sc.text, margin: 0, fontWeight: 600, lineHeight: "1.5" }}>{item.action}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Final reminder */}
+      <div style={{ backgroundColor: C.navy, borderRadius: "10px", padding: "16px 20px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+          💡 Discovery Reminder
+        </div>
+        <p style={{ fontSize: "13px", color: "#e2e8f0", margin: "0 0 6px", fontWeight: 600 }}>
+          Business Analysts define <span style={{ color: "#10b981" }}>WHAT</span> the business needs. DCT determines <span style={{ color: "#10b981" }}>HOW</span> the platform implements the solution.
+        </p>
+        <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0, lineHeight: "1.6" }}>
+          Understanding existing platform capabilities before documenting new requirements reduces duplicate work, accelerates solution assessment, and ensures implementation builds upon the current DCT platform rather than recreating existing functionality.
+        </p>
       </div>
     </section>
   );
