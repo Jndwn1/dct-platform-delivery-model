@@ -162,6 +162,331 @@ export default function UATTestingPage() {
         </div>
       </div>
 
+      {/* ── MVP UAT Readiness Dashboard ── */}
+      <div style={{ marginBottom: 36 }}>
+        <SectionHeader
+          num="MVP"
+          title="MVP UAT Readiness Dashboard"
+          subtitle="Real-time readiness view for the September 21 DCT MVP. Scoped to DCT MVP only — State and Provision are not included."
+        />
+
+        {/* Governance note */}
+        <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderLeft: "4px solid #d97706", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 12, color: "#92400e" }}>
+          <strong>Scope Boundary:</strong> This dashboard tracks the September 21 DCT MVP only. It supplements the existing workbook-driven UAT governance framework and does not replace it. State and Provision readiness are out of scope for this dashboard.
+        </div>
+
+        {/* ── Executive Summary KPI Cards ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Executive Summary</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
+            {[
+              { label: "MVP Target",        value: "Sep 21",    color: NAVY,  sub: "2026" },
+              { label: "Current Batch",     value: "RC-3",      color: "#7c3aed", sub: "PI 3 Active" },
+              { label: "UAT Readiness",     value: "🟡 At Risk", color: AMBER, sub: "As of Jul 21" },
+              { label: "Overall Completion",value: "42%",       color: GREEN, sub: "Across all tracks" },
+              { label: "Last Updated",      value: "Jul 21",    color: SLATE, sub: "2026" },
+              { label: "Owner",             value: "Jenniver",  color: NAVY,  sub: "Sr. BA · CATT" },
+            ].map(k => (
+              <div key={k.label} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px", textAlign: "center" as const }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: k.color, lineHeight: 1.2 }}>{k.value}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.05em", marginTop: 3 }}>{k.label}</div>
+                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>{k.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Leadership Milestones ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Leadership Milestones</div>
+          <div style={{ overflowX: "auto" as const, background: "white", border: "1px solid #e2e8f0", borderRadius: 10 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: NAVY }}>
+                  {["Milestone","Target Date","Status","Owner","Risk","Notes"].map(h => (
+                    <th key={h} style={{ padding: "9px 14px", textAlign: "left" as const, color: "white", fontWeight: 700, whiteSpace: "nowrap" as const }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { milestone: "Finalize Scope",          date: "Jul 20",  status: "🟢", owner: "Jenniver",  risk: "Low",    notes: "Scope confirmed for DCT MVP" },
+                  { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "BA Team",   risk: "Medium", notes: "Business users to be confirmed" },
+                  { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Dev",   risk: "Medium", notes: "RC-3 in progress" },
+                  { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "PDC Team",  risk: "High",   notes: "Dependency on PDC data availability" },
+                  { milestone: "Validation Complete",      date: "Sep 15",  status: "⚪", owner: "QA",        risk: "TBD",    notes: "Pending Dev Complete" },
+                  { milestone: "Environment Ready",        date: "Sep 18",  status: "⚪", owner: "Infra",     risk: "TBD",    notes: "UAT environment provisioning" },
+                  { milestone: "Test Scripts Ready",       date: "Sep 18",  status: "⚪", owner: "QA / BA",   risk: "TBD",    notes: "Workbook-driven scripts" },
+                  { milestone: "Communications Complete",  date: "Sep 18",  status: "⚪", owner: "Jenniver",  risk: "Low",    notes: "Business user notifications" },
+                  { milestone: "UAT Begins",               date: "Sep 21",  status: "⚪", owner: "Business",  risk: "TBD",    notes: "Target launch date" },
+                ].map((r, i) => {
+                  const riskColor = r.risk === "High" ? "#fef2f2" : r.risk === "Medium" ? "#fffbeb" : r.risk === "Low" ? "#f0fdf4" : "#f8fafc";
+                  const riskText  = r.risk === "High" ? "#991b1b" : r.risk === "Medium" ? "#92400e" : r.risk === "Low" ? "#166534" : "#475569";
+                  return (
+                    <tr key={r.milestone} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "9px 14px", fontWeight: 600, color: NAVY }}>{r.milestone}</td>
+                      <td style={{ padding: "9px 14px", color: "#374151", whiteSpace: "nowrap" as const }}>{r.date}</td>
+                      <td style={{ padding: "9px 14px", fontSize: 14 }}>{r.status}</td>
+                      <td style={{ padding: "9px 14px", color: "#374151" }}>{r.owner}</td>
+                      <td style={{ padding: "9px 14px" }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, background: riskColor, color: riskText, borderRadius: 4, padding: "2px 8px" }}>{r.risk}</span>
+                      </td>
+                      <td style={{ padding: "9px 14px", color: SLATE, fontSize: 11 }}>{r.notes}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── MVP Capability Readiness ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>MVP Capability Readiness</div>
+          <div style={{ overflowX: "auto" as const, background: "white", border: "1px solid #e2e8f0", borderRadius: 10 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: NAVY }}>
+                  {["Capability","Batch","Development","QA","Master Data","Ready for UAT","Risk","Dependencies"].map(h => (
+                    <th key={h} style={{ padding: "9px 14px", textAlign: "left" as const, color: "white", fontWeight: 700, whiteSpace: "nowrap" as const }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { cap: "Roger UI — Core Screens",         batch: "B1",  dev: "🟢", qa: "🟢", md: "🟡", uatReady: "🟡", risk: "Medium", dep: "Master Data Load" },
+                  { cap: "Gateway Consumer Access",         batch: "B9A", dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
+                  { cap: "Audit Trail & Lineage",           batch: "B16", dev: "🟡", qa: "⚪", md: "🟢", uatReady: "🔴", risk: "High",   dep: "Dev Complete" },
+                  { cap: "Provision Reference Data",        batch: "B28", dev: "🟡", qa: "⚪", md: "⚪", uatReady: "🔴", risk: "High",   dep: "Dev + MD Load" },
+                  { cap: "TDC Outbound Contract to IMS",    batch: "B28", dev: "🟢", qa: "🟡", md: "🟢", uatReady: "🟡", risk: "Medium", dep: "IMS Endpoint" },
+                  { cap: "Master Data Load (Roger)",        batch: "FC",  dev: "🟢", qa: "🟢", md: "🟡", uatReady: "🟡", risk: "Medium", dep: "Authoring Complete" },
+                ].map((r, i) => (
+                  <tr key={r.cap} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "9px 14px", fontWeight: 600, color: NAVY }}>{r.cap}</td>
+                    <td style={{ padding: "9px 14px" }}><span style={{ fontSize: 11, fontWeight: 700, background: NAVY, color: "white", borderRadius: 4, padding: "2px 8px" }}>{r.batch}</span></td>
+                    <td style={{ padding: "9px 14px", fontSize: 14, textAlign: "center" as const }}>{r.dev}</td>
+                    <td style={{ padding: "9px 14px", fontSize: 14, textAlign: "center" as const }}>{r.qa}</td>
+                    <td style={{ padding: "9px 14px", fontSize: 14, textAlign: "center" as const }}>{r.md}</td>
+                    <td style={{ padding: "9px 14px", fontSize: 14, textAlign: "center" as const }}>{r.uatReady}</td>
+                    <td style={{ padding: "9px 14px" }}><span style={{ fontSize: 11, fontWeight: 700, background: r.risk === "High" ? "#fef2f2" : r.risk === "Medium" ? "#fffbeb" : "#f0fdf4", color: r.risk === "High" ? "#991b1b" : r.risk === "Medium" ? "#92400e" : "#166534", borderRadius: 4, padding: "2px 8px" }}>{r.risk}</span></td>
+                    <td style={{ padding: "9px 14px", color: SLATE, fontSize: 11 }}>{r.dep}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── Environment Readiness ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Environment Readiness</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+            {[
+              { env: "DEV",        deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
+              { env: "QA",         deployment: "🟢", config: "🟢", mdLoaded: "🟡", smoke: "🟡", stable: "🟡" },
+              { env: "UAT",        deployment: "⚪", config: "⚪", mdLoaded: "⚪", smoke: "⚪", stable: "⚪" },
+              { env: "Production", deployment: "⚪", config: "⚪", mdLoaded: "⚪", smoke: "⚪", stable: "⚪" },
+            ].map(e => (
+              <div key={e.env} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+                <div style={{ background: NAVY, padding: "8px 14px", fontSize: 12, fontWeight: 800, color: "white" }}>{e.env}</div>
+                <div style={{ padding: "12px 14px" }}>
+                  {[
+                    ["Deployment",    e.deployment],
+                    ["Configuration", e.config],
+                    ["MD Loaded",     e.mdLoaded],
+                    ["Smoke Tested",  e.smoke],
+                    ["Stable",        e.stable],
+                  ].map(([label, icon]) => (
+                    <div key={String(label)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: "1px solid #f1f5f9", fontSize: 12 }}>
+                      <span style={{ color: "#374151" }}>{label}</span>
+                      <span style={{ fontSize: 14 }}>{icon}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Master Data + Data Readiness side by side ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+
+          {/* Master Data Readiness */}
+          <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+            <div style={{ background: NAVY, padding: "10px 16px", fontSize: 12, fontWeight: 800, color: "white" }}>Master Data Readiness</div>
+            <div style={{ padding: "14px 16px" }}>
+              <div style={{ fontSize: 11, color: SLATE, marginBottom: 12 }}>Source of truth: DCT Master Data Intake Workbook (Load Order tab)</div>
+              {[
+                { label: "Total MVP Worksheets",  value: String(mvpCount),   color: NAVY },
+                { label: "Platform Built",         value: String(builtCount), color: GREEN },
+                { label: "In Development",         value: String(inBuildCount), color: AMBER },
+                { label: "Ready for Authoring",    value: String(readyCount), color: TEAL },
+                { label: "Authoring Complete",     value: "—",  color: SLATE },
+                { label: "Loaded",                 value: "—",  color: SLATE },
+                { label: "Validated",              value: "—",  color: SLATE },
+                { label: "Approved",               value: "—",  color: SLATE },
+              ].map(row => (
+                <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #f1f5f9", fontSize: 12 }}>
+                  <span style={{ color: "#374151" }}>{row.label}</span>
+                  <span style={{ fontWeight: 800, color: row.color, fontSize: 14 }}>{row.value}</span>
+                </div>
+              ))}
+              <div style={{ marginTop: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: SLATE, marginBottom: 4 }}>
+                  <span>Overall Authoring Progress</span>
+                  <span style={{ fontWeight: 700, color: GREEN }}>{Math.round((builtCount / Math.max(mvpCount, 1)) * 100)}%</span>
+                </div>
+                <div style={{ height: 8, background: "#e2e8f0", borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.round((builtCount / Math.max(mvpCount, 1)) * 100)}%`, background: GREEN, borderRadius: 4, transition: "width 0.4s ease" }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Readiness */}
+          <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+            <div style={{ background: NAVY, padding: "10px 16px", fontSize: 12, fontWeight: 800, color: "white" }}>Data Readiness</div>
+            <div style={{ padding: "14px 16px" }}>
+              {[
+                { label: "Roger Master Data",   status: "🟡", owner: "BA Team",  dep: "Authoring" },
+                { label: "Prior Year Data",     status: "🔴", owner: "PDC",      dep: "PDC Delivery" },
+                { label: "Reference Data",      status: "🟢", owner: "TDC",      dep: "None" },
+                { label: "Taxonomy Data",       status: "🟡", owner: "TDC",      dep: "Taxonomy Review" },
+                { label: "Migration Validation",status: "⚪", owner: "QA",       dep: "Data Load" },
+                { label: "Load Validation",     status: "⚪", owner: "QA",       dep: "Data Load" },
+              ].map(row => (
+                <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid #f1f5f9", fontSize: 12 }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: "#1e293b" }}>{row.label}</div>
+                    <div style={{ fontSize: 10, color: SLATE }}>{row.owner} · {row.dep}</div>
+                  </div>
+                  <span style={{ fontSize: 16 }}>{row.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Testing Readiness ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Testing Readiness</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
+            {[
+              { label: "Business Users Identified", status: "🟡", note: "Confirmation pending" },
+              { label: "Access Provisioned",         status: "⚪", note: "Awaiting user list" },
+              { label: "Test Data Ready",            status: "🔴", note: "Dependent on MD load" },
+              { label: "Test Scripts Complete",      status: "🟡", note: "In progress" },
+              { label: "Defect Process Ready",       status: "🟢", note: "Documented in framework" },
+              { label: "Change Control Ready",       status: "🟢", note: "Documented in framework" },
+              { label: "Business Training Complete", status: "⚪", note: "Scheduled for Sep 18" },
+            ].map(item => (
+              <div key={item.label} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 8, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{item.label}</div>
+                  <div style={{ fontSize: 10, color: SLATE, marginTop: 2 }}>{item.note}</div>
+                </div>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{item.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Top Risks ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Top Risks</div>
+          <div style={{ overflowX: "auto" as const, background: "white", border: "1px solid #e2e8f0", borderRadius: 10 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: NAVY }}>
+                  {["#","Risk","Impact","Owner","Mitigation","Target Resolution"].map(h => (
+                    <th key={h} style={{ padding: "9px 14px", textAlign: "left" as const, color: "white", fontWeight: 700 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { n:1,  risk: "Prior Year Data not available by Sep 7",          impact: "🔴 High",   owner: "PDC",       mit: "Escalate to PDC PO; identify fallback dataset",      target: "Aug 28" },
+                  { n:2,  risk: "Audit Trail (B16) development not complete",       impact: "🔴 High",   owner: "DCT Dev",   mit: "Daily stand-up tracking; scope reduction if needed", target: "Aug 28" },
+                  { n:3,  risk: "Business users not confirmed by Aug 10",           impact: "🟡 Medium", owner: "BA Team",   mit: "Escalate to business leadership",                   target: "Aug 10" },
+                  { n:4,  risk: "UAT environment not stable by Sep 18",             impact: "🔴 High",   owner: "Infra",     mit: "Early environment provisioning request",            target: "Sep 7" },
+                  { n:5,  risk: "Master Data authoring not complete by Sep 7",      impact: "🟡 Medium", owner: "BA Team",   mit: "Prioritize MVP worksheets; defer non-MVP",          target: "Sep 7" },
+                  { n:6,  risk: "IMS endpoint not ready for TDC outbound contract", impact: "🟡 Medium", owner: "IMS",       mit: "Stub endpoint for UAT; confirm with IMS team",      target: "Sep 15" },
+                  { n:7,  risk: "Taxonomy data review not complete",                impact: "🟡 Medium", owner: "TDC",       mit: "Schedule taxonomy review by Aug 20",               target: "Aug 20" },
+                  { n:8,  risk: "Test scripts not ready by Sep 18",                 impact: "🟡 Medium", owner: "QA / BA",   mit: "Workbook-driven scripts; begin drafting now",       target: "Sep 15" },
+                  { n:9,  risk: "Business user access not provisioned",             impact: "🟡 Medium", owner: "Infra",     mit: "Submit access requests by Sep 7",                  target: "Sep 7" },
+                  { n:10, risk: "Scope creep — non-MVP items entering UAT",         impact: "🟢 Low",    owner: "Jenniver",  mit: "Enforce scope boundary; refer to Load Order tab",  target: "Ongoing" },
+                ].map((r, i) => (
+                  <tr key={r.n} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "9px 14px", fontWeight: 700, color: SLATE }}>{r.n}</td>
+                    <td style={{ padding: "9px 14px", fontWeight: 600, color: NAVY }}>{r.risk}</td>
+                    <td style={{ padding: "9px 14px", whiteSpace: "nowrap" as const }}>{r.impact}</td>
+                    <td style={{ padding: "9px 14px", color: "#374151" }}>{r.owner}</td>
+                    <td style={{ padding: "9px 14px", color: SLATE, fontSize: 11 }}>{r.mit}</td>
+                    <td style={{ padding: "9px 14px", color: "#374151", whiteSpace: "nowrap" as const }}>{r.target}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── Executive Go / No-Go ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Executive Go / No-Go</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+            {[
+              { label: "Development Complete",  status: "🟡", note: "RC-3 in progress" },
+              { label: "Critical Bugs Closed",   status: "🟡", note: "Monitoring" },
+              { label: "Environment Stable",     status: "⚪", note: "UAT env pending" },
+              { label: "Master Data Loaded",     status: "🟡", note: "Authoring in progress" },
+              { label: "Data Validated",         status: "⚪", note: "Awaiting load" },
+              { label: "Business Users Ready",   status: "🟡", note: "Confirmation pending" },
+              { label: "Test Scripts Ready",     status: "🟡", note: "In progress" },
+              { label: "Support Ready",          status: "⚪", note: "TBD" },
+              { label: "Deployment Ready",       status: "⚪", note: "TBD" },
+              { label: "Business Approval",      status: "⚪", note: "Pending Go/No-Go meeting" },
+            ].map(item => (
+              <div key={item.label} style={{
+                background: item.status === "🟢" ? "#f0fdf4" : item.status === "🟡" ? "#fffbeb" : item.status === "🔴" ? "#fef2f2" : "#f8fafc",
+                border: `1px solid ${item.status === "🟢" ? "#bbf7d0" : item.status === "🟡" ? "#fde68a" : item.status === "🔴" ? "#fecaca" : "#e2e8f0"}`,
+                borderRadius: 8, padding: "12px 14px",
+                display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8,
+              }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{item.label}</div>
+                  <div style={{ fontSize: 10, color: SLATE, marginTop: 2 }}>{item.note}</div>
+                </div>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{item.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Daily Readiness Summary ── */}
+        <div style={{ background: NAVY, borderRadius: 10, padding: "18px 22px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 14 }}>Daily Readiness Summary</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
+            {[
+              { label: "Completed Yesterday",        items: ["Scope boundary confirmed", "Discovery Decision Matrix published", "Ask Buddy 5-step review process deployed"] },
+              { label: "In Progress Today",          items: ["MVP UAT Readiness Dashboard", "RC-3 development", "Master Data authoring"] },
+              { label: "Upcoming This Week",         items: ["Test population identification", "Environment readiness review", "Taxonomy data review scheduling"] },
+              { label: "Current Risks",              items: ["Prior Year Data (PDC)", "B16 Audit Trail development", "Business user confirmation"] },
+              { label: "Leadership Decisions Needed",items: ["Confirm business users by Aug 10", "PDC data availability commitment", "UAT environment provisioning approval"] },
+            ].map(col => (
+              <div key={col.label}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 8 }}>{col.label}</div>
+                <ul style={{ margin: 0, paddingLeft: 16 }}>
+                  {col.items.map(item => (
+                    <li key={item} style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.6, marginBottom: 3 }}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
       {/* ── Section 02 — How the Workbook Drives UAT ── */}
       <div style={{ marginBottom: 36 }}>
         <SectionHeader num="02" title="How the Master Data Workbook Drives UAT" subtitle="Every UAT activity traces back to an entry in the Approved Master Data Workbook." />
