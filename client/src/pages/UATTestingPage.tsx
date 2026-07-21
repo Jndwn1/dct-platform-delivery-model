@@ -212,7 +212,7 @@ export default function UATTestingPage() {
                 {[
                   { milestone: "Finalize Scope",          date: "Jul 20",  status: "🟢", owner: "Product Owner(s)",  risk: "Low",    notes: "Scope confirmed for DCT MVP" },
                   { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "Business / QA",   risk: "Medium", notes: "Business users to be confirmed" },
-                  { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Development",   risk: "Medium", notes: "RC-3 in progress" },
+                  { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Development",   risk: "Medium", notes: "In progress" },
                   { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "DCT / PDC",  risk: "High",   notes: "Dependency on PDC data availability" },
                   { milestone: "Validation Complete",      date: "Sep 15",  status: "⚪", owner: "QA",        risk: "TBD",    notes: "Pending Dev Complete" },
                   { milestone: "Environment Ready",        date: "Sep 18",  status: "⚪", owner: "Infrastructure",     risk: "TBD",    notes: "UAT environment provisioning" },
