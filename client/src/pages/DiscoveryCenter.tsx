@@ -18,6 +18,7 @@ import DataFlowSimulation from "./discovery/DataFlowSimulation";
 import BARequirementDiscovery from "./discovery/BARequirementDiscovery";
 import DiscoveryChecklist from "./discovery/DiscoveryChecklist";
 import Glossary from "./discovery/Glossary";
+import PriorYearMigration from "./discovery/PriorYearMigration";
 
 type DiscoveryPage =
   | "home"
@@ -32,7 +33,8 @@ type DiscoveryPage =
   | "simulation"
   | "ba-discovery"
   | "checklist"
-  | "glossary";
+  | "glossary"
+  | "prior-year-migration";
 
 // ─── Navigation groups ─────────────────────────────────────────────────────────
 const NAV_GROUPS: {
@@ -74,6 +76,7 @@ const NAV_GROUPS: {
       { id: "ba-discovery", label: "BA Requirement Discovery", icon: "🔍", badge: "KEY", badgeColor: "#dc2626" },
       { id: "checklist",    label: "Discovery Checklist",      icon: "☑" },
       { id: "glossary",     label: "Glossary",                 icon: "≡" },
+      { id: "prior-year-migration", label: "Prior Year Migration", icon: "PY", badge: "NEW", badgeColor: "#d97706" },
     ],
   },
 ];
@@ -165,8 +168,9 @@ function renderPage(activePage: DiscoveryPage) {
     case "simulation":       return <DataFlowSimulation />;
     case "ba-discovery":     return <BARequirementDiscovery />;
     case "checklist":        return <DiscoveryChecklist />;
-    case "glossary":         return <Glossary />;
-    default:                 return null;
+    case "glossary":               return <Glossary />;
+    case "prior-year-migration":   return <PriorYearMigration />;
+    default:                       return null;
   }
 }
 

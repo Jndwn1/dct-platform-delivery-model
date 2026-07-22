@@ -56,6 +56,7 @@ import IMSIntegration from "./pages/discovery/GoSystemTax";
 import PDCOverview from "./pages/discovery/PDCOverview";
 import DataGateway from "./pages/discovery/DataGateway";
 import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
+import PriorYearMigration from "./pages/discovery/PriorYearMigration";
 import DiscoveryWorkspace from "./pages/onboarding/DiscoveryWorkspace";
 import LearningCenter from "./pages/LearningCenter";
 import Step1Features from "./pages/onboarding/Step1Features";
@@ -162,6 +163,7 @@ function Router() {
           <Route path="/discovery/data-gateway" component={DataGateway} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />
+          <Route path="/discovery/prior-year-migration" component={PriorYearMigration} />
           {/* UAT Testing */}
           <Route path="/uat-testing" component={UATTestingPage} />
           <Route path="/registry-audit" component={RegistryAudit} />
