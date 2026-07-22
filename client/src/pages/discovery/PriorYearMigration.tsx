@@ -545,27 +545,170 @@ export default function PriorYearMigration() {
         <Callout type="proposed">
           This workflow is <strong>proposed</strong> based on discovery sessions. It has not been finalized. Open questions remain regarding automation level and user interaction requirements. All items marked with ⚠ require a decision before implementation.
         </Callout>
-        <div style={{ background: "#faf5ff", border: "1px solid #d8b4fe", borderRadius: 10, padding: "20px 24px" }}>
-          <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 0 }}>
-            <FlowStep step={1} label="Open Roger Workspace" sub="Entity context established" />
-            <FlowArrow />
-            <FlowStep step={2} label="Select Entity" isUser />
-            <FlowArrow />
-            <FlowStep step={3} label="Retrieve Prior Year Data" sub="Roger calls CEM API" />
-            <FlowArrow />
-            <FlowStep step={4} label="Display available Prior Year Projects" sub="⚠ If multiple exist" />
-            <FlowArrow />
-            <FlowStep step={5} label="User selects Project (if required)" isUser sub="⚠ Open question" />
-            <FlowArrow />
-            <FlowStep step={6} label="Determine Job ID" sub="Derived from selected project" />
-            <FlowArrow />
-            <FlowStep step={7} label="Retrieve DUO commits" sub="via CEM API" />
-            <FlowArrow />
-            <FlowStep step={8} label="User selects Commit" isUser />
-            <FlowArrow />
-            <FlowStep step={9} label="Retrieve CDS mappings" sub="via CEM API" />
-            <FlowArrow />
-            <FlowStep step={10} label="Populate Roger Workspace" sub="DCT persists governed data" />
+
+        {/* Horizontal flow diagram — Row 1: Steps 1–5 */}
+        <div style={{
+          background: "#ffffff",
+          border: "1px solid #d8b4fe",
+          borderRadius: 12,
+          padding: "28px 24px 20px",
+          boxShadow: "0 1px 4px rgba(124,58,237,0.08)",
+          overflowX: "auto" as const,
+        }}>
+
+          {/* Row 1: Steps 1–5 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 0, minWidth: 780, justifyContent: "center", marginBottom: 8 }}>
+
+            {/* Step 1 — System */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#eff6ff", border: "2px solid #1e3a5f", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(30,58,95,0.10)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>🖥️</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, lineHeight: 1.3 }}>Open Roger Workspace</div>
+              <div style={{ fontSize: 10, color: SLATE, marginTop: 4, fontStyle: "italic" }}>System</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5px" }}><div style={{ width: 24, height: 2, background: "#cbd5e1" }} /><div style={{ width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: "7px solid #cbd5e1" }} /></div>
+
+            {/* Step 2 — User */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#fff7ed", border: "2px solid #f97316", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(249,115,22,0.12)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>👤</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#c2410c", lineHeight: 1.3 }}>Select Entity</div>
+              <div style={{ fontSize: 10, color: "#9a3412", marginTop: 4, fontStyle: "italic" }}>User Decision</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5px" }}><div style={{ width: 24, height: 2, background: "#cbd5e1" }} /><div style={{ width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: "7px solid #cbd5e1" }} /></div>
+
+            {/* Step 3 — System */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#eff6ff", border: "2px solid #1e3a5f", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(30,58,95,0.10)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>🔄</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, lineHeight: 1.3 }}>Retrieve Prior-Year Data</div>
+              <div style={{ fontSize: 10, color: SLATE, marginTop: 4, fontStyle: "italic" }}>System</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5px" }}><div style={{ width: 24, height: 2, background: "#cbd5e1" }} /><div style={{ width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: "7px solid #cbd5e1" }} /></div>
+
+            {/* Step 4 — System */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#eff6ff", border: "2px solid #1e3a5f", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(30,58,95,0.10)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>📋</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, lineHeight: 1.3 }}>Display Prior-Year Projects</div>
+              <div style={{ fontSize: 10, color: SLATE, marginTop: 4, fontStyle: "italic" }}>System ⚠</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5px" }}><div style={{ width: 24, height: 2, background: "#cbd5e1" }} /><div style={{ width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: "7px solid #cbd5e1" }} /></div>
+
+            {/* Step 5 — User Decision */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#fff7ed", border: "2px solid #f97316", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(249,115,22,0.12)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>👤</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#c2410c", lineHeight: 1.3 }}>Select Project</div>
+              <div style={{ fontSize: 10, color: "#9a3412", marginTop: 4, fontStyle: "italic" }}>User Decision ⚠</div>
+            </div>
+
+          </div>
+
+          {/* Step labels row 1 */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 0, minWidth: 780, justifyContent: "center", marginBottom: 20 }}>
+            {["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"].map((s, i) => (
+              <div key={s} style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                <div style={{ width: 108, textAlign: "center" as const, fontSize: 10, color: "#94a3b8", fontWeight: 600, letterSpacing: "0.04em" }}>{s}</div>
+                {i < 4 && <div style={{ width: 36 }} />}
+              </div>
+            ))}
+          </div>
+
+          {/* Connector between rows */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 2 }}>
+              <div style={{ width: 2, height: 16, background: "#cbd5e1" }} />
+              <div style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "7px solid #cbd5e1" }} />
+              <div style={{ fontSize: 10, color: "#94a3b8", fontStyle: "italic" }}>continues</div>
+            </div>
+          </div>
+
+          {/* Row 2: Steps 6–10 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 0, minWidth: 780, justifyContent: "center", marginBottom: 8 }}>
+
+            {/* Step 6 — System */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#eff6ff", border: "2px solid #1e3a5f", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(30,58,95,0.10)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>🔍</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, lineHeight: 1.3 }}>Identify Engagement</div>
+              <div style={{ fontSize: 10, color: SLATE, marginTop: 4, fontStyle: "italic" }}>System</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5px" }}><div style={{ width: 24, height: 2, background: "#cbd5e1" }} /><div style={{ width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: "7px solid #cbd5e1" }} /></div>
+
+            {/* Step 7 — System */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#eff6ff", border: "2px solid #1e3a5f", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(30,58,95,0.10)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>🗄️</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, lineHeight: 1.3 }}>Retrieve Available Versions</div>
+              <div style={{ fontSize: 10, color: SLATE, marginTop: 4, fontStyle: "italic" }}>System</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5px" }}><div style={{ width: 24, height: 2, background: "#cbd5e1" }} /><div style={{ width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: "7px solid #cbd5e1" }} /></div>
+
+            {/* Step 8 — User Decision */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#fff7ed", border: "2px solid #f97316", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(249,115,22,0.12)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>✔️</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#c2410c", lineHeight: 1.3 }}>Select Prior-Year Version</div>
+              <div style={{ fontSize: 10, color: "#9a3412", marginTop: 4, fontStyle: "italic" }}>User Decision</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5px" }}><div style={{ width: 24, height: 2, background: "#cbd5e1" }} /><div style={{ width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: "7px solid #cbd5e1" }} /></div>
+
+            {/* Step 9 — System */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#eff6ff", border: "2px solid #1e3a5f", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(30,58,95,0.10)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>⬇️</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, lineHeight: 1.3 }}>Load Prior-Year Data</div>
+              <div style={{ fontSize: 10, color: SLATE, marginTop: 4, fontStyle: "italic" }}>System</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5px" }}><div style={{ width: 24, height: 2, background: "#cbd5e1" }} /><div style={{ width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: "7px solid #cbd5e1" }} /></div>
+
+            {/* Step 10 — Completion */}
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", background: "#f0fdf4", border: "2px solid #059669", borderRadius: 12, padding: "14px 14px", width: 108, minHeight: 90, boxShadow: "0 2px 8px rgba(5,150,105,0.10)", textAlign: "center" as const }}>
+              <span style={{ fontSize: 20, marginBottom: 5 }}>📊</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#065f46", lineHeight: 1.3 }}>Roger Workspace Ready</div>
+              <div style={{ fontSize: 10, color: "#047857", marginTop: 4, fontStyle: "italic" }}>Migration Complete</div>
+            </div>
+
+          </div>
+
+          {/* Step labels row 2 */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 0, minWidth: 780, justifyContent: "center", marginBottom: 16 }}>
+            {["Step 6", "Step 7", "Step 8", "Step 9", "Step 10"].map((s, i) => (
+              <div key={s} style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                <div style={{ width: 108, textAlign: "center" as const, fontSize: 10, color: "#94a3b8", fontWeight: 600, letterSpacing: "0.04em" }}>{s}</div>
+                {i < 4 && <div style={{ width: 36 }} />}
+              </div>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div style={{ display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap" as const, borderTop: "1px solid #f1f5f9", paddingTop: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: SLATE }}>
+              <div style={{ width: 14, height: 14, background: "#fff7ed", border: "2px solid #f97316", borderRadius: 3 }} />
+              <span><strong style={{ color: "#c2410c" }}>Orange</strong> = User Action</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: SLATE }}>
+              <div style={{ width: 14, height: 14, background: "#eff6ff", border: "2px solid #1e3a5f", borderRadius: 3 }} />
+              <span><strong style={{ color: NAVY }}>Navy</strong> = System Process</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: SLATE }}>
+              <div style={{ width: 14, height: 14, background: "#f0fdf4", border: "2px solid #059669", borderRadius: 3 }} />
+              <span><strong style={{ color: "#065f46" }}>Green</strong> = Completion State</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: AMBER }}>
+              <span style={{ fontSize: 13 }}>⚠</span>
+              <span><strong style={{ color: AMBER }}>⚠</strong> = Open Question / Decision Required</span>
+            </div>
+          </div>
+        </div>{/* end flow card */}
+
+        {/* Executive Insight callout */}
+        <div style={{ marginTop: 16, background: "#faf5ff", border: "1px solid #d8b4fe", borderLeft: "4px solid #7c3aed", borderRadius: 8, padding: "16px 20px" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: "#4c1d95", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 14 }}>💡</span> Key Business Observation
+          </div>
+          <div style={{ fontSize: 13, color: "#4c1d95", lineHeight: 1.7 }}>
+            The proposed Roger workflow mirrors the existing Tax Workbooks pattern: <strong>two explicit user decisions</strong> remain (Select Entity and Select Prior-Year Version). All intermediate retrieval and data loading steps are system-automated. Two open questions (⚠) require resolution before implementation can proceed.
           </div>
         </div>
       </div>
