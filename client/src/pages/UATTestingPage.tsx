@@ -220,7 +220,7 @@ export default function UATTestingPage() {
                   { milestone: "Environment Final Check", date: "Sep 18",  status: "⚪", owner: "Infrastructure",     risk: "TBD",    notes: "Final environment validation before UAT" },
                   { milestone: "Test Scripts Ready",       date: "Sep 18",  status: "⚪", owner: "QA",   risk: "TBD",    notes: "Workbook-driven scripts" },
                   { milestone: "Communications Complete",  date: "Sep 18",  status: "⚪", owner: "Product Owner(s)",  risk: "Low",    notes: "Business user notifications" },
-                  { milestone: "UAT Begins",               date: "Sep 21",  status: "⚪", owner: "Business",  risk: "TBD",    notes: "Target launch date" },
+                  { milestone: "UAT Begins",               date: "Sep 8",   status: "⚪", owner: "Business",  risk: "TBD",    notes: "9 business days before Sep 21 go-live" },
                 ].map((r, i) => {
                   const riskColor = r.risk === "High" ? "#fef2f2" : r.risk === "Medium" ? "#fffbeb" : r.risk === "Low" ? "#f0fdf4" : "#f8fafc";
                   const riskText  = r.risk === "High" ? "#991b1b" : r.risk === "Medium" ? "#92400e" : r.risk === "Low" ? "#166534" : "#475569";
