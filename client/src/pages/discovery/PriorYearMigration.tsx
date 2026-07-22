@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { Link } from "wouter";
+import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const NAVY  = "#1e3a5f";
@@ -722,36 +723,28 @@ export default function PriorYearMigration() {
       </div>
 
       {/* ── Ask Buddy Integration ── */}
-      <div style={{ background: NAVY, borderRadius: 10, padding: "18px 22px", marginBottom: 36 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Ask Buddy — Prior Year Migration</div>
-        <div style={{ fontSize: 12, color: "#e2e8f0", marginBottom: 14 }}>Ask Buddy is aware of this page. Try these discovery questions:</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 8 }}>
-          {[
-            "How does Prior Year Migration work?",
-            "How does Roger retrieve Prior Year data?",
-            "What is the relationship between DUO, CDS, Roger, and DCT?",
-            "When is user interaction required during migration?",
-            "What business requirements remain open?",
-            "What responsibilities belong to Roger versus DCT?",
-            "What legacy systems are involved in Prior Year migration?",
-            "What architecture decisions remain outstanding?",
-          ].map(q => (
-            <div key={q} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "8px 12px", fontSize: 11, color: "#e2e8f0", cursor: "default" }}>
-              "{q}"
-            </div>
-          ))}
-        </div>
-      </div>
+      <DiscoveryAskBuddy
+        pagePath="/discovery/prior-year-migration"
+        pageTitle="Prior Year Migration"
+        suggestedQuestions={[
+          "How does Prior Year Migration work?",
+          "How does Roger retrieve Prior Year data?",
+          "What is the relationship between DUO, CDS, Roger, and DCT?",
+          "When is user interaction required during migration?",
+          "What business requirements remain open?",
+          "What responsibilities belong to Roger versus DCT?",
+          "What legacy systems are involved in Prior Year migration?",
+          "What architecture decisions remain outstanding?",
+        ]}
+      />
 
       {/* ── Related Links ── */}
       <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "16px 20px" }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 12 }}>Related Discovery Pages</div>
         <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8 }}>
           {RELATED_LINKS.map(link => (
-            <Link key={link.path} href={link.path}>
-              <a style={{ fontSize: 12, fontWeight: 600, color: NAVY, background: "white", border: "1px solid #e2e8f0", borderRadius: 6, padding: "5px 12px", textDecoration: "none" }}>
-                → {link.label}
-              </a>
+            <Link key={link.path} href={link.path} style={{ fontSize: 12, fontWeight: 600, color: NAVY, background: "white", border: "1px solid #e2e8f0", borderRadius: 6, padding: "5px 12px", textDecoration: "none" }}>
+              → {link.label}
             </Link>
           ))}
         </div>
