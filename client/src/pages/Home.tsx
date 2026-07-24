@@ -926,44 +926,65 @@ export default function Home() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
 
-          {/* Active Batches */}
+          {/* Active Batches — ADO-authoritative as of Jul 24, 2026 */}
           <div style={{ backgroundColor: "#eff6ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #2563eb" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active Batches</div>
-            {activeBatches.map(b => (
-              <div key={b.batch + b.feat} style={{ fontSize: "12px", color: "#1e3a5f", marginBottom: "4px", display: "flex", gap: "6px" }}>
+            {([
+              { batch: "B7",  label: "Client Tax Profile & Eligibility" },
+              { batch: "B8",  label: "Exceptions & Remediation" },
+              { batch: "B10", label: "Return Assembly, Filing & Lineage Closure" },
+              { batch: "B16", label: "Audit Trail & Lineage Governance" },
+              { batch: "B42", label: "Tax Rules Framework & Book-to-Tax Adjustment Rules" },
+              { batch: "B28", label: "Tax Workpapers & Provision Schedules" },
+              { batch: "B29", label: "Consolidated Return Assembly" },
+              { batch: "B17", label: "Decision Support, Overrides, Evidence & Workpapers" },
+            ] as { batch: string; label: string }[]).map(b => (
+              <div key={b.batch} style={{ fontSize: "12px", color: "#1e3a5f", marginBottom: "4px", display: "flex", gap: "6px" }}>
                 <span style={{ fontWeight: 700, minWidth: "36px" }}>{b.batch}</span>
-                <span style={{ color: "#475569" }}>{b.name}</span>
+                <span style={{ color: "#475569" }}>{b.label}</span>
               </div>
             ))}
-            {activeBatches.length === 0 && <div style={{ fontSize: "12px", color: "#94a3b8" }}>No active batches</div>}
-          </div>
-
-          {/* Upcoming Milestones */}
-          <div style={{ backgroundColor: "#faf5ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #7c3aed" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#4c1d95", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🟣 Upcoming Milestones</div>
-            {stretchBatches.map(b => (
-              <div key={b.batch + b.feat} style={{ fontSize: "12px", color: "#4c1d95", marginBottom: "4px", display: "flex", gap: "6px" }}>
-                <span style={{ fontWeight: 700, minWidth: "36px" }}>{b.batch}</span>
-                <span style={{ color: "#6b21a8" }}>{b.name} <span style={{ color: "#94a3b8" }}>({b.startDate}–{b.endDate})</span></span>
-              </div>
-            ))}
-            <div style={{ fontSize: "12px", color: "#4c1d95", marginTop: "6px", paddingTop: "6px", borderTop: "1px solid #e9d5ff" }}>
-              <span style={{ fontWeight: 700 }}>PI 3 MVP</span> — {pi3MvpCount} batches queued · Target Aug–Sep 2026
+            <div style={{ marginTop: "8px", paddingTop: "6px", borderTop: "1px solid #bfdbfe", fontSize: "11px", color: "#2563eb", fontWeight: 600 }}>
+              + 5 non-batch Active features (QA, Env, Roger, Defects, Enhancements)
             </div>
           </div>
 
-          {/* B16 Critical-Path Banner */}
+          {/* Upcoming Milestones — remaining PI 3 batches, primary: B31 */}
+          <div style={{ backgroundColor: "#faf5ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #7c3aed" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#4c1d95", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🟣 Upcoming Milestones</div>
+            {([
+              { batch: "B31 PDC", label: "Legacy Tool Prior Year Ingestion & Housing",  note: "Review Ready — ADO #1390014", primary: true },
+              { batch: "B31 TDC", label: "Legacy Tool Prior Year Data Housing",           note: "Review Ready — ADO #1390267", primary: true },
+              { batch: "B26 PDC", label: "Entity Constituents & Allocations",             note: "Review Ready — ADO #1390005", primary: false },
+              { batch: "B9A",     label: "Data Gateway (IMS, CDS, DUO)",                 note: "Planned — PI 3",              primary: false },
+              { batch: "B39",     label: "Calculation Report",                            note: "Planned — PI 3",              primary: false },
+            ] as { batch: string; label: string; note: string; primary: boolean }[]).map(b => (
+              <div key={b.batch} style={{ fontSize: "12px", marginBottom: "6px" }}>
+                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  <span style={{ fontWeight: 700, minWidth: "52px", color: b.primary ? "#7c3aed" : "#6b21a8" }}>{b.batch}</span>
+                  <span style={{ color: b.primary ? "#4c1d95" : "#6b21a8", fontWeight: b.primary ? 600 : 400 }}>{b.label}</span>
+                </div>
+                <div style={{ fontSize: "10px", color: "#94a3b8", marginLeft: "58px" }}>{b.note}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* B31 Critical-Path Banner */}
           <div style={{ backgroundColor: "#fef2f2", borderRadius: "8px", padding: "12px 16px", borderLeft: "3px solid #dc2626" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>🔴 Critical Path — Must Land Before 9/21 Pilot</div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-              <span style={{ fontSize: "12px", fontWeight: 800, color: "#dc2626", backgroundColor: "#fee2e2", padding: "2px 7px", borderRadius: "4px", border: "1px solid #fca5a5" }}>B16</span>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Audit Trail &amp; Lineage Governance</span>
+              <span style={{ fontSize: "12px", fontWeight: 800, color: "#dc2626", backgroundColor: "#fee2e2", padding: "2px 7px", borderRadius: "4px", border: "1px solid #fca5a5" }}>B31 PDC</span>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Legacy Tool Prior Year Ingestion &amp; Housing</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+              <span style={{ fontSize: "12px", fontWeight: 800, color: "#dc2626", backgroundColor: "#fee2e2", padding: "2px 7px", borderRadius: "4px", border: "1px solid #fca5a5" }}>B31 TDC</span>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Legacy Tool Prior Year Data Housing</span>
             </div>
             <div style={{ fontSize: "11px", color: "#991b1b", lineHeight: "1.5" }}>
-              PDC stories: PI 2 Stretch (6/22–6/30) · TDC stories: PI 3 MVP (7/13–7/21)
+              Status: Review Ready (ADO #1390014, #1390267) · Owner: Abbas, Nasar / Luca, Gary
             </div>
             <div style={{ fontSize: "11px", color: "#b91c1c", marginTop: "4px", fontStyle: "italic" }}>
-              Must complete before pilot start — governance and lineage trail required for audit readiness.
+              Prior year data housing required for rollforward, carryforward, and TB reconciliation before pilot start.
             </div>
           </div>
           {/* Release Readiness */}
