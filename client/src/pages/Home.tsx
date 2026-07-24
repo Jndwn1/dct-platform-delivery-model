@@ -1006,8 +1006,22 @@ export default function Home() {
       </div>
         {/* ── Recently Closed in PI 3 ── */}
         <div style={{ marginTop: "16px" }}>
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
-            ✅ Recently Closed in PI 3
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", flexWrap: "wrap" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              ✅ Recently Closed in PI 3
+            </div>
+            <span style={{
+              fontSize: "11px", fontWeight: 700,
+              color: "#065f46", backgroundColor: "#d1fae5",
+              border: "1px solid #6ee7b7", borderRadius: "12px",
+              padding: "2px 9px", whiteSpace: "nowrap",
+            }}>11 closed this PI</span>
+            <span style={{
+              fontSize: "11px", fontWeight: 700,
+              color: "#047857", backgroundColor: "#a7f3d0",
+              border: "1px solid #34d399", borderRadius: "12px",
+              padding: "2px 9px", whiteSpace: "nowrap",
+            }}>8 this week</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
             {([

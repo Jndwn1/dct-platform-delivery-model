@@ -300,11 +300,12 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "43": "Complete",    // B43 — Practitioner Book & Reclass, currently in flight
   "13": "Complete",    // B13 — Platform Reference & Document Provenance (PI 2 Stretch)
   "12": "On Hold",     // B12 — Engagement Identity (ON HOLD per v7)
-  // ── PI 2 — Active per ADO backlog (not yet Complete) ──────────────────────
+  // ── PI 2/3 — ADO Closed (this PI) ──────────────────────────────────────────
+  "8": "Complete",    // B8 — Exceptions & Remediation (ADO: Closed 7/24/2026)
+  "16": "Complete",   // B16 — Audit Trail & Lineage Governance (ADO: Closed 7/21/2026)
+  // ── PI 2/3 — Active per ADO backlog ──────────────────────────────────────────
   "7": "In Progress",  // B7 — Client Tax Profile & Eligibility (ADO: Active)
-  "8": "In Progress",  // B8 — Exceptions & Remediation (ADO: Active)
   "10": "In Progress", // B10 — Return Assembly, Filing & Lineage Closure (ADO: Active)
-  "16": "In Progress", // B16 — Audit Trail & Lineage Governance (ADO: Active)
   "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (ADO: Active)
   // ── PI 3 — ACTIVE (7/13–9/15) ─────────────────────────────────────────
   "20": "In Progress", // B20 — Firm Governance & Professional Standards
@@ -333,7 +334,7 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "23": "Not Started",  // B23 — Benchmark & Peer Analytics (Post-MVP, future PI)
 };
 
-const STORAGE_KEY     = "dct_batch_status_v7"; // v7: PI 2 Complete 100%, PI 3 Active — On Hold batches excluded from PI 2 membership
+const STORAGE_KEY     = "dct_batch_status_v9"; // v9: B8 + B16 ADO-Closed → Complete (7/21–7/24/2026)
 const AUDITLOG_KEY    = "dct_audit_log_v7";
 const MAX_LOG_ENTRIES = 50;
 
