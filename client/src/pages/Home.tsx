@@ -1011,25 +1011,35 @@ export default function Home() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
             {([
-              { batch: "B43",  label: "Practitioner Book & Reclass Adjustments – Persistence, Ret…", pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary" },
-              { batch: "B8",   label: "Exceptions & Remediation",                                       pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary" },
-              { batch: "B4",   label: "AI Mapping Proposals, Decisions & Governance",                   pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary" },
-              { batch: "B11",  label: "Learning Governance & Model Evolution",                           pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary" },
-              { batch: "B8A",  label: "Exception Capture Wiring",                                       pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary" },
-              { batch: "B5",   label: "Entity Identity & Structure",                                     pi: "PI2", closed: "7/21/2026", owner: "Abbas, Nasar" },
-              { batch: "B2",   label: "Normalization & Firm Financial Taxonomy",                         pi: "PI1", closed: "7/21/2026", owner: "Abbas, Nasar" },
-              { batch: "B16",  label: "Audit Trail & Decision Lineage Governance",                       pi: "PI3", closed: "7/21/2026", owner: "Luca, Gary" },
-              { batch: "—",    label: "DCT AI-Assisted QA Prompt & Validation Framework",               pi: "PI2", closed: "7/16/2026", owner: "Chol, Anubhab" },
-              { batch: "B6",   label: "Practitioner Review, Adjustments & Lock",                        pi: "PI2", closed: "7/16/2026", owner: "Luca, Gary" },
-              { batch: "B3",   label: "Tax Domain Authority & Tax Taxonomy",                             pi: "PI1", closed: "7/9/2026",  owner: "Luca, Gary" },
-            ] as { batch: string; label: string; pi: string; closed: string; owner: string }[]).map(b => (
+              { batch: "B43",  label: "Practitioner Book & Reclass Adjustments – Persistence, Ret…", pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: true },
+              { batch: "B8",   label: "Exceptions & Remediation",                                       pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: true },
+              { batch: "B4",   label: "AI Mapping Proposals, Decisions & Governance",                   pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: true },
+              { batch: "B11",  label: "Learning Governance & Model Evolution",                           pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: true },
+              { batch: "B8A",  label: "Exception Capture Wiring",                                       pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: true },
+              { batch: "B5",   label: "Entity Identity & Structure",                                     pi: "PI2", closed: "7/21/2026", owner: "Abbas, Nasar",  thisWeek: true },
+              { batch: "B2",   label: "Normalization & Firm Financial Taxonomy",                         pi: "PI1", closed: "7/21/2026", owner: "Abbas, Nasar",  thisWeek: true },
+              { batch: "B16",  label: "Audit Trail & Decision Lineage Governance",                       pi: "PI3", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: true },
+              { batch: "—",    label: "DCT AI-Assisted QA Prompt & Validation Framework",               pi: "PI2", closed: "7/16/2026", owner: "Chol, Anubhab", thisWeek: false },
+              { batch: "B6",   label: "Practitioner Review, Adjustments & Lock",                        pi: "PI2", closed: "7/16/2026", owner: "Luca, Gary",    thisWeek: false },
+              { batch: "B3",   label: "Tax Domain Authority & Tax Taxonomy",                             pi: "PI1", closed: "7/9/2026",  owner: "Luca, Gary",    thisWeek: false },
+            ] as { batch: string; label: string; pi: string; closed: string; owner: string; thisWeek: boolean }[]).map(b => (
               <div key={b.batch + b.label} style={{
                 display: "flex", alignItems: "center", gap: "8px",
-                backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+                backgroundColor: b.thisWeek ? "#ecfdf5" : "#f0fdf4",
+                border: b.thisWeek ? "1px solid #6ee7b7" : "1px solid #bbf7d0",
                 borderRadius: "6px", padding: "6px 10px",
+                boxShadow: b.thisWeek ? "0 0 0 1px #a7f3d0" : "none",
               }}>
                 <span style={{ fontSize: "11px", fontWeight: 800, color: "#059669", minWidth: "36px" }}>{b.batch}</span>
                 <span style={{ fontSize: "11px", color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.label}</span>
+                {b.thisWeek && (
+                  <span style={{
+                    fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em",
+                    color: "#065f46", backgroundColor: "#a7f3d0",
+                    border: "1px solid #6ee7b7", borderRadius: "4px",
+                    padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0,
+                  }}>Closed This Week</span>
+                )}
                 <span style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap" }}>{b.pi} · {b.closed}</span>
               </div>
             ))}
