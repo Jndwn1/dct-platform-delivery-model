@@ -107,6 +107,12 @@ export interface BatchStatusMap {
   "40": BatchStatus;
   "35": BatchStatus;
   "26-tdc": BatchStatus;
+  // Non-batch Active MVP Features (ADO: Active)
+  "qa-workstream": BatchStatus;
+  "env-management": BatchStatus;
+  "roger-stabilization": BatchStatus;
+  "platform-defect": BatchStatus;
+  "mvp-enhancements": BatchStatus;
 }
 
 export type BatchKey = keyof BatchStatusMap;
@@ -153,6 +159,12 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "40": "Batch 40 — Client-Level Line Mapping Reuse",
   "35": "Batch 35 — S-Corp Specialization",
   "26-tdc": "Batch 26 | TDC — Entity Constituents & Allocations (TDC — PI 4)",
+  // Non-batch Active MVP Features
+  "qa-workstream": "DCT QA Workstream Separation & Sprint Reporting Governance",
+  "env-management": "TDC Environment Management",
+  "roger-stabilization": "Roger-DCT Integration Stabilization & Follow-up Remediation",
+  "platform-defect": "DCT General Platform Defect Tracking",
+  "mvp-enhancements": "DCT MVP Enhancements",
 };
 
 // ── Dependency map ────────────────────────────────────────────────────────────
@@ -197,6 +209,12 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "40": [],
   "35": [],
   "26-tdc": [],
+  // Non-batch Active MVP Features
+  "qa-workstream": [],
+  "env-management": [],
+  "roger-stabilization": [],
+  "platform-defect": [],
+  "mvp-enhancements": [],
 };
 
 // ── Cascade step definitions ──────────────────────────────────────────────────
@@ -269,36 +287,42 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "2": "Complete",
   "2a": "Complete",
   "3": "Complete",
-  // ── PI 2 — COMPLETE (as of July 2026) ─────────────────────────────────────────
+  // ── PI 2 — Complete (ADO-verified) ─────────────────────────────────────────
   "4": "Complete",
   "5": "Complete",
   "6": "Complete",
-  "7": "Complete",
-  "8": "Complete",
   "8-pdc": "Complete",
   "8-tdc": "Complete",
   "9": "Complete",      // B9 PDC — Roger Gateway delivered
   "9-pdc": "Complete",
   "9-tdc": "On Hold",  // B9 TDC — Rollforward ON HOLD, absorbed by B31
-  "10": "Complete",    // B10 — Return Assembly delivered 6/11
   "11": "Complete",    // B11 — Learning Governance, 6/12–6/22
   "43": "Complete",    // B43 — Practitioner Book & Reclass, currently in flight
-  // ── PI 2 Stretch — Complete ──────────────────────────────────────────────────────────
   "13": "Complete",    // B13 — Platform Reference & Document Provenance (PI 2 Stretch)
-  "16": "Complete",    // B16 PDC+TDC — Audit Trail & Lineage Governance (PI 2 Stretch)
   "12": "On Hold",     // B12 — Engagement Identity (ON HOLD per v7)
+  // ── PI 2 — Active per ADO backlog (not yet Complete) ──────────────────────
+  "7": "In Progress",  // B7 — Client Tax Profile & Eligibility (ADO: Active)
+  "8": "In Progress",  // B8 — Exceptions & Remediation (ADO: Active)
+  "10": "In Progress", // B10 — Return Assembly, Filing & Lineage Closure (ADO: Active)
+  "16": "In Progress", // B16 — Audit Trail & Lineage Governance (ADO: Active)
+  "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (ADO: Active)
   // ── PI 3 — ACTIVE (7/13–9/15) ─────────────────────────────────────────
   "20": "In Progress", // B20 — Firm Governance & Professional Standards
-  "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (6/17–6/25)
   "21": "In Progress", // B21 — Quality Control (PDC MVP)
   "28": "In Progress", // B28 — Tax Workpaper & Provision Schedules
-  "9a": "In Progress", // B9A — Data Gateway (IMS, CDS, DUO)
-  "31": "In Progress", // B31 — Legacy Tool Prior Year Ingestion (PDC + TDC)
+  "9a": "Committed",   // B9A — Data Gateway (IMS, CDS, DUO) (Planned/Committed)
   "17": "In Progress", // B17 — Decision Support — Overrides, Evidence & Workpapers
-  "26": "In Progress", // B26 — Entity Constituents & Allocations (PDC MVP)
-  "29": "Committed",   // B29 — Consolidated Return Assembly
-  "39": "Committed",   // B39 — Calculation Report
+  "29": "Committed",   // B29 — Consolidated Return Assembly (Planned/Committed)
+  "31": "In Review",   // B31 — Legacy Tool Prior Year Ingestion (ADO: Review Ready)
+  "26": "In Review",   // B26 — Entity Constituents & Allocations (ADO: Review Ready)
+  "39": "Committed",   // B39 — Calculation Report (Planned)
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
+  // ── Non-batch Active Features (ADO: Active) ──────────────────────────────
+  "qa-workstream": "In Progress",       // DCT QA Workstream Separation and Sprint Reporting Governance
+  "env-management": "In Progress",      // TDC Environment Management
+  "roger-stabilization": "In Progress", // Roger-DCT Integration Stabilization and Follow-up Remediation
+  "platform-defect": "In Progress",     // DCT General Platform Defect Tracking
+  "mvp-enhancements": "In Progress",    // DCT MVP Enhancements
   // ── PI 4 — Future (Post-Pilot) ───────────────────────────────────────────
   "19": "Not Started",  // B19 — Audit Tax-Expense Cross-LOB Outbound (9/21–9/28)
   "40": "Not Started",  // B40 — Client-Level Line Mapping Reuse
@@ -324,22 +348,32 @@ const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 };
 
 // ── MVP Batch Portfolio — Single Source of Truth ────────────────────────────
-// Authoritative list of 23 numbered DCT Batch Features in PI1+PI2+PI3 MVP scope.
-// Excludes: PI4, post-MVP, On Hold, Stretch (B33), sub-batches (8-pdc, 8-tdc, 9-pdc),
-// and non-numbered features (B43, B13, B16).
-// Validation: 5 (PI1) + 8 (PI2) + 10 (PI3) = 23 ✓
+// 28 MVP-scoped features (ADO-authoritative, July 2026):
+//   PI1 Complete (5): foundation-core, 1, 2, 2a, 3
+//   PI2 Complete (4): 4, 5, 6, 11  (B9 excluded — delivered via B9A sub-batch)
+//   PI2 Active (4):   7, 8, 10, 16  (ADO: Active)
+//   PI3 Active (9):   42, 20, 21, 28, 9a, 17, 29, 31, 26
+//   Planned (1):      39
+//   Non-batch (5):    qa-workstream, env-management, roger-stabilization, platform-defect, mvp-enhancements
+// TOTAL: 5 + 4 + 4 + 9 + 1 + 5 = 28 ✓
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
-  // PI 2 — Complete (8) — numbered DCT Batch Features only; sub-batches roll up
-  "4", "5", "6", "7", "8", "9", "10", "11",
-  // PI 3 — Active (10) — B33 Stretch excluded
-  "20", "42", "21", "28", "9a", "31", "17", "26", "29", "39",
+  // PI 2 — ADO-verified Complete (4): B4, B5, B6, B11 (B9 PDC delivered via B9A; B9 parent excluded)
+  "4", "5", "6", "11",
+  // PI 2 — ADO Active (4): B7, B8, B10, B16
+  "7", "8", "10", "16",
+  // PI 3 — Active (9) — B33 Stretch excluded, B42 included as Active
+  "42", "20", "21", "28", "9a", "17", "29", "31", "26",
+  // Planned (1)
+  "39",
+  // Non-batch Active Features (5) — ADO Active, included in MVP scope
+  "qa-workstream", "env-management", "roger-stabilization", "platform-defect", "mvp-enhancements",
 ];
 
 /** Derive MVP-scoped metrics from live statuses. All dashboard components must use this. */
 export function deriveMvpMetrics(statuses: BatchStatusMap) {
-  const total = MVP_BATCH_KEYS.length; // always 23
+  const total = MVP_BATCH_KEYS.length; // 28: 23 numbered batches + 5 non-batch Active features
   let complete = 0, inDev = 0, inReview = 0, planned = 0;
   for (const k of MVP_BATCH_KEYS) {
     const v = (statuses as unknown as Record<string, string>)[k] ?? "Not Started";

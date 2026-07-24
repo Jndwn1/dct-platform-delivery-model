@@ -187,9 +187,9 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isActive   = (v: string) => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed";
 
-  // ── MVP-scoped metrics (single source of truth — 23 numbered DCT Batch Features) ──
+  // ── MVP-scoped metrics (single source of truth — 28 MVP features) ──
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
-  const totalBatches       = mvp.total;        // 23 MVP batches only
+  const totalBatches       = mvp.total;        // 28 MVP features (23 numbered + 5 non-batch Active)
   const completedCount     = mvp.complete;     // Complete / Delivered / Done
   const activeCount        = mvp.inDev;        // In Progress / Dev
   const inReviewCount      = mvp.inReview;     // In Review / QA states
@@ -336,9 +336,9 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         marginBottom: "14px",
       }}>
         <KPICard
-          title="Total MVP Batches"
+          title="Total MVP Features"
           value={totalBatches}
-          sub="PI1 + PI2 + PI3 MVP scope"
+          sub="23 batches + 5 Active non-batch"
           accent="#1e3a5f"
         />
         <KPICard
@@ -368,7 +368,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="MVP Readiness"
           value={`${platformReadinessPct}%`}
-          sub="Completed MVP Batches ÷ 23"
+          sub="Completed MVP Features ÷ 28"
           accent="#059669"
           badge={platformReadinessPct >= 70 ? "On Track" : "At Risk"}
           badgeColor={platformReadinessPct >= 70 ? "#059669" : "#dc2626"}

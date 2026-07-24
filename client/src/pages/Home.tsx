@@ -514,14 +514,14 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 export default function Home() {
   const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
 
-  // ── MVP-scoped metrics — single source of truth (23 numbered DCT Batch Features) ──
+  // ── MVP-scoped metrics — single source of truth (28 MVP features) ──
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
   const liveComplete  = mvp.complete;      // Complete / Delivered / Done
   const liveDev       = mvp.inDev;         // In Progress / Dev
   const liveInReview  = mvp.inReview;      // In Review / QA states
-  const livePlanned   = mvp.planned;       // Not Started / Committed (0 in MVP scope)
-  const liveTotal     = mvp.total;         // Always 23
-  const overallPct    = mvp.readinessPct;  // complete ÷ 23 × 100
+  const livePlanned   = mvp.planned;       // Not Started / Committed
+  const liveTotal     = mvp.total;         // 28 (23 numbered + 5 non-batch Active features)
+  const overallPct    = mvp.readinessPct;  // complete ÷ 28 × 100
 
   // For backward compat with sections that use pi2Done/pi2Active/pi2Planned names
   const pi2Done    = liveComplete;
@@ -700,7 +700,7 @@ export default function Home() {
             { label: "In Dev",           value: liveDev,       sub: "Active this week",   color: "#60a5fa" },
             { label: "In Review",        value: liveInReview,  sub: "QA / Demo Ready",    color: "#a78bfa" },
             { label: "Planned",          value: livePlanned,   sub: "Not yet started",    color: "#94a3b8" },
-            { label: "Total MVP Batches", value: liveTotal,     sub: "PI1+PI2+PI3 scope",   color: "#fb923c" },
+            { label: "Total MVP Features", value: liveTotal,     sub: "23 batches + 5 non-batch",   color: "#fb923c" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",
