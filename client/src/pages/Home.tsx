@@ -6,7 +6,7 @@
 import React from "react";
 import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
-import { useBatchStatus } from "@/contexts/BatchStatusContext";
+import { useBatchStatus, deriveMvpMetrics } from "@/contexts/BatchStatusContext";
 import ExecDashboard from "@/components/ExecDashboard";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
@@ -514,18 +514,18 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 export default function Home() {
   const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
 
-  // ── Live batch counts derived from BatchStatusContext (Control Panel source of truth) ──
-  const statusValues = useMemo(() => Object.values(statuses as Record<string, string>), [statuses]);
-  const liveComplete = useMemo(() => statusValues.filter(s => s === "Complete" || s === "Delivered").length, [statusValues]);
-  const liveDev = useMemo(() => statusValues.filter(s => s === "In Progress" || s === "Dev" || s === "MVP" || s === "Stretch").length, [statusValues]);
-  const liveInReview = useMemo(() => statusValues.filter(s => s === "In Review" || s === "Ready for QA" || s === "QA In Progress" || s === "Demo Ready").length, [statusValues]);
-  const livePlanned = useMemo(() => statusValues.filter(s => s === "Not Started" || s === "Planned").length, [statusValues]);
-  const liveTotal = statusValues.length;
-  const overallPct = liveTotal > 0 ? Math.round((liveComplete / liveTotal) * 100) : 0;
+  // ── MVP-scoped metrics — single source of truth (23 numbered DCT Batch Features) ──
+  const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
+  const liveComplete  = mvp.complete;      // Complete / Delivered / Done
+  const liveDev       = mvp.inDev;         // In Progress / Dev
+  const liveInReview  = mvp.inReview;      // In Review / QA states
+  const livePlanned   = mvp.planned;       // Not Started / Committed (0 in MVP scope)
+  const liveTotal     = mvp.total;         // Always 23
+  const overallPct    = mvp.readinessPct;  // complete ÷ 23 × 100
 
   // For backward compat with sections that use pi2Done/pi2Active/pi2Planned names
-  const pi2Done = liveComplete;
-  const pi2Active = liveDev;
+  const pi2Done    = liveComplete;
+  const pi2Active  = liveDev;
   const pi2Planned = livePlanned;
 
   // Active batches: derive from context keys that are In Progress / Dev / MVP / Stretch
@@ -700,7 +700,7 @@ export default function Home() {
             { label: "In Dev",           value: liveDev,       sub: "Active this week",   color: "#60a5fa" },
             { label: "In Review",        value: liveInReview,  sub: "QA / Demo Ready",    color: "#a78bfa" },
             { label: "Planned",          value: livePlanned,   sub: "Not yet started",    color: "#94a3b8" },
-            { label: "Total Batches",    value: liveTotal,     sub: "All tracked batches",color: "#fb923c" },
+            { label: "Total MVP Batches", value: liveTotal,     sub: "PI1+PI2+PI3 scope",   color: "#fb923c" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",
@@ -794,8 +794,8 @@ export default function Home() {
             {[
               { label: "Release Candidate", value: "RC-3",         color: "#059669" },
               { label: "Target MVP Date",   value: "Sep 21, 2026", color: "#0f1623" },
-              { label: "Platform Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
-              { label: "PI 3 Queued",          value: `${pi3MvpCount} batches`, color: "#7c3aed" },
+              { label: "MVP Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
+              { label: "In Development",       value: `${liveDev} batches`,     color: "#2563eb" },
             ].map(row => (
               <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
                 <span style={{ fontSize: "12px", color: "#475569" }}>{row.label}</span>

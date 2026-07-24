@@ -323,6 +323,35 @@ const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi4:  ["19", "40", "35", "26-tdc"],
 };
 
+// ── MVP Batch Portfolio — Single Source of Truth ────────────────────────────
+// Authoritative list of 23 numbered DCT Batch Features in PI1+PI2+PI3 MVP scope.
+// Excludes: PI4, post-MVP, On Hold, Stretch (B33), sub-batches (8-pdc, 8-tdc, 9-pdc),
+// and non-numbered features (B43, B13, B16).
+// Validation: 5 (PI1) + 8 (PI2) + 10 (PI3) = 23 ✓
+export const MVP_BATCH_KEYS: BatchKey[] = [
+  // PI 1 — Complete (5)
+  "foundation-core", "1", "2", "2a", "3",
+  // PI 2 — Complete (8) — numbered DCT Batch Features only; sub-batches roll up
+  "4", "5", "6", "7", "8", "9", "10", "11",
+  // PI 3 — Active (10) — B33 Stretch excluded
+  "20", "42", "21", "28", "9a", "31", "17", "26", "29", "39",
+];
+
+/** Derive MVP-scoped metrics from live statuses. All dashboard components must use this. */
+export function deriveMvpMetrics(statuses: BatchStatusMap) {
+  const total = MVP_BATCH_KEYS.length; // always 23
+  let complete = 0, inDev = 0, inReview = 0, planned = 0;
+  for (const k of MVP_BATCH_KEYS) {
+    const v = (statuses as unknown as Record<string, string>)[k] ?? "Not Started";
+    if (v === "Complete" || v === "Delivered" || v === "Done") complete++;
+    else if (v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready") inReview++;
+    else if (v === "In Progress" || v === "Dev" || v === "New") inDev++;
+    else planned++; // Not Started, Committed, MVP, Stretch, On Hold
+  }
+  const readinessPct = Math.round((complete / total) * 100);
+  return { total, complete, inDev, inReview, planned, readinessPct };
+}
+
 // ── Storage helpers ───────────────────────────────────────────────────────────
 
 function loadFromStorage(): BatchStatusMap {

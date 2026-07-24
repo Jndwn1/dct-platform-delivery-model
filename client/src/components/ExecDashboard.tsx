@@ -10,7 +10,7 @@ import { useRef, useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import GeneratePOEmail from "@/components/GeneratePOEmail";
-import { useBatchStatus } from "@/contexts/BatchStatusContext";
+import { useBatchStatus, deriveMvpMetrics } from "@/contexts/BatchStatusContext";
 
 // ─── Batch Calendar PI 2 + PI 3 (mirrors Home.tsx BATCH_CALENDAR_PI23) ─────────
 // This is the single source of truth for all Executive Dashboard KPI calculations.
@@ -187,27 +187,15 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isActive   = (v: string) => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed";
 
-  // Derive live counts from context (all derived from BatchStatusContext — no hardcoded values)
-  const statusValues = useMemo(() => Object.values(statuses), [statuses]);
-  const totalBatches   = statusValues.length;
-  const completedCount = useMemo(() => statusValues.filter(isComplete).length, [statusValues]);
-  const activeCount    = useMemo(() => statusValues.filter(v => v === "In Progress" || v === "Dev").length, [statusValues]);
-  const inReviewCount  = useMemo(() => statusValues.filter(v => v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready").length, [statusValues]);
-  const plannedCount   = useMemo(() => statusValues.filter(v => v === "MVP" || v === "Committed" || v === "Stretch" || v === "Not Started" || v === "Planned").length, [statusValues]);
-  const onHoldCount    = useMemo(() => statusValues.filter(v => v === "On Hold").length, [statusValues]);
-
-  // Platform Readiness — weighted: Complete=100%, In Review=90%, In Progress/MVP/Stretch/Committed=50%, On Hold=25%, Not Started=0%
-  const platformReadinessPct = useMemo(() => {
-    if (totalBatches === 0) return 0;
-    const weightedSum = statusValues.reduce((acc, v) => {
-      if (v === "Complete" || v === "Delivered" || v === "Done") return acc + 100;
-      if (v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready") return acc + 90;
-      if (v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed") return acc + 50;
-      if (v === "On Hold" || v === "Blocked") return acc + 25;
-      return acc; // Not Started / Planned = 0
-    }, 0);
-    return Math.round(weightedSum / totalBatches);
-  }, [statusValues, totalBatches]);
+  // ── MVP-scoped metrics (single source of truth — 23 numbered DCT Batch Features) ──
+  const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
+  const totalBatches       = mvp.total;        // 23 MVP batches only
+  const completedCount     = mvp.complete;     // Complete / Delivered / Done
+  const activeCount        = mvp.inDev;        // In Progress / Dev
+  const inReviewCount      = mvp.inReview;     // In Review / QA states
+  const plannedCount       = mvp.planned;      // Not Started / Committed / etc.
+  const onHoldCount        = 0;                // On Hold excluded from MVP scope
+  const platformReadinessPct = mvp.readinessPct; // complete ÷ 23 × 100 (no weighting)
 
   // Release Candidate — derived from PI completion: PI1+PI2 complete → RC-3 (PI 3 active)
   const releaseCandidateLabel = useMemo(() => {
@@ -319,13 +307,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            Platform Intelligence · Roadmap v8 · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            MVP Delivery Intelligence · PI1 + PI2 + PI3 · 23 Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
           </h2>
           <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px", fontWeight: 500 }}>
-            Real-time delivery status, roadmap alignment, readiness, and governance health.
+            MVP delivery status, batch readiness, and governance health — PI1 + PI2 + PI3 scope only.
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -348,9 +336,9 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         marginBottom: "14px",
       }}>
         <KPICard
-          title="Total Batches"
+          title="Total MVP Batches"
           value={totalBatches}
-          sub="All tracked batches"
+          sub="PI1 + PI2 + PI3 MVP scope"
           accent="#1e3a5f"
         />
         <KPICard
@@ -370,17 +358,17 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
           badgeColor="#2563eb"
         />
         <KPICard
-          title="Planned / Queued"
+          title="Planned"
           value={plannedCount}
-          sub="MVP / Committed / Stretch / Not Started"
+          sub="MVP batches not yet started"
           accent="#94a3b8"
           badge="Upcoming"
           badgeColor="#64748b"
         />
         <KPICard
-          title="Platform Readiness"
+          title="MVP Readiness"
           value={`${platformReadinessPct}%`}
-          sub="Weighted: Complete+Active+Planned"
+          sub="Completed MVP Batches ÷ 23"
           accent="#059669"
           badge={platformReadinessPct >= 70 ? "On Track" : "At Risk"}
           badgeColor={platformReadinessPct >= 70 ? "#059669" : "#dc2626"}
@@ -410,7 +398,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
           <StatusPill
-            label="Roadmap v8 Aligned"
+            label="MVP Scope Aligned"
             indicator="🟢"
             color="#065f46"
             bg="#f0fdf4"
