@@ -1004,6 +1004,37 @@ export default function Home() {
           </div>
         </div>
       </div>
+        {/* ── Recently Closed in PI 3 ── */}
+        <div style={{ marginTop: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+            ✅ Recently Closed in PI 3
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
+            {([
+              { batch: "B43",  label: "Practitioner Book & Reclass Adjustments – Persistence, Ret…", pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary" },
+              { batch: "B8",   label: "Exceptions & Remediation",                                       pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary" },
+              { batch: "B4",   label: "AI Mapping Proposals, Decisions & Governance",                   pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary" },
+              { batch: "B11",  label: "Learning Governance & Model Evolution",                           pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary" },
+              { batch: "B8A",  label: "Exception Capture Wiring",                                       pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary" },
+              { batch: "B5",   label: "Entity Identity & Structure",                                     pi: "PI2", closed: "7/21/2026", owner: "Abbas, Nasar" },
+              { batch: "B2",   label: "Normalization & Firm Financial Taxonomy",                         pi: "PI1", closed: "7/21/2026", owner: "Abbas, Nasar" },
+              { batch: "B16",  label: "Audit Trail & Decision Lineage Governance",                       pi: "PI3", closed: "7/21/2026", owner: "Luca, Gary" },
+              { batch: "—",    label: "DCT AI-Assisted QA Prompt & Validation Framework",               pi: "PI2", closed: "7/16/2026", owner: "Chol, Anubhab" },
+              { batch: "B6",   label: "Practitioner Review, Adjustments & Lock",                        pi: "PI2", closed: "7/16/2026", owner: "Luca, Gary" },
+              { batch: "B3",   label: "Tax Domain Authority & Tax Taxonomy",                             pi: "PI1", closed: "7/9/2026",  owner: "Luca, Gary" },
+            ] as { batch: string; label: string; pi: string; closed: string; owner: string }[]).map(b => (
+              <div key={b.batch + b.label} style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+                borderRadius: "6px", padding: "6px 10px",
+              }}>
+                <span style={{ fontSize: "11px", fontWeight: 800, color: "#059669", minWidth: "36px" }}>{b.batch}</span>
+                <span style={{ fontSize: "11px", color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.label}</span>
+                <span style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap" }}>{b.pi} · {b.closed}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
       {/* ── Roadmap Accuracy Indicator ── */}
       <div style={{
