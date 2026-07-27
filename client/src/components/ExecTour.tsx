@@ -243,9 +243,9 @@ export default function ExecTour({ onClose }: ExecTourProps) {
 
   const cardStyle: React.CSSProperties = {
     position: "fixed",
-    bottom: "32px",
+    top: "72px",
     left: "50%",
-    transform: `translateX(-50%) translateY(${transitioning ? "24px" : "0"})`,
+    transform: `translateX(-50%) translateY(${transitioning ? "-16px" : "0"})`,
     opacity: transitioning ? 0 : 1,
     transition: "opacity 0.28s ease, transform 0.28s ease",
     width: "min(680px, calc(100vw - 48px))",
