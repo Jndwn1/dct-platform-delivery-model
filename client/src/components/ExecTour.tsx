@@ -18,7 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState, useCallback } from "react";
-
+import { useLocation } from "wouter";
 // ── Scene definitions ─────────────────────────────────────────────────────────
 
 export interface TourScene {
@@ -28,6 +28,7 @@ export interface TourScene {
   subtitle: string;
   narration: string;
   valueStatement: string;
+  route: string;       // navigate to this route when scene is shown
   spotlightSelector?: string; // CSS selector to spotlight (optional)
   icon: string;
   accentColor: string;
@@ -43,6 +44,7 @@ export const TOUR_SCENES: TourScene[] = [
       "A guided walk through the DCT Platform's core capabilities — from delivery intelligence to AI-assisted analysis. Each scene explains business value before advancing.",
     valueStatement:
       "The DCT Platform is a governed, AI-enabled operating model for enterprise tax delivery.",
+    route: "/",
     icon: "🎯",
     accentColor: "#1e3a5f",
   },
@@ -55,6 +57,7 @@ export const TOUR_SCENES: TourScene[] = [
       "A single authoritative view of platform readiness — batch completion, gate status, PI progress, and active work, updated in real time from ADO.",
     valueStatement:
       "Eliminates manual status decks. Leadership has an accurate delivery view without waiting for sprint reviews.",
+    route: "/",
     spotlightSelector: "#exec-dashboard-anchor",
     icon: "📊",
     accentColor: "#1e3a5f",
@@ -68,6 +71,7 @@ export const TOUR_SCENES: TourScene[] = [
       "Structured, role-based onboarding covering DCT architecture, batch model, governance rules, and Roger integration — all in business-readable language.",
     valueStatement:
       "Reduces onboarding from weeks to days. New BAs and engineers self-serve platform knowledge without 1:1 walkthroughs.",
+    route: "/learning-center",
     spotlightSelector: "#quick-nav-learning",
     icon: "📚",
     accentColor: "#7c3aed",
@@ -81,6 +85,7 @@ export const TOUR_SCENES: TourScene[] = [
       "The BA's workspace for exploring architecture, data flows, system responsibilities, and integration patterns — with ecosystem maps and requirement discovery tools.",
     valueStatement:
       "Structured exploration before writing requirements reduces rework and misalignment between business intent and technical delivery.",
+    route: "/discovery",
     spotlightSelector: "#quick-nav-discovery",
     icon: "🔭",
     accentColor: "#0369a1",
@@ -94,6 +99,7 @@ export const TOUR_SCENES: TourScene[] = [
       "An AI assistant trained on DCT architecture, batch model, and governance rules. Answers plain-language questions instantly — from batch scope to Roger eligibility outputs.",
     valueStatement:
       "Eliminates documentation searches and architect wait time. Accurate answers available during sprint planning, PI planning, and stakeholder reviews.",
+    route: "/ask-buddy",
     spotlightSelector: "#quick-nav-ask-buddy",
     icon: "🐱",
     accentColor: "#0d9488",
@@ -107,6 +113,7 @@ export const TOUR_SCENES: TourScene[] = [
       "Visual maps of system ownership, data lineage, API contracts, and integration touchpoints — from enterprise architecture to the developer-level API registry.",
     valueStatement:
       "Enables audit readiness and impact analysis. When a batch changes, affected downstream systems and Roger outputs are immediately visible.",
+    route: "/architecture",
     spotlightSelector: "#quick-nav-architecture",
     icon: "🏗️",
     accentColor: "#1e3a5f",
@@ -120,6 +127,7 @@ export const TOUR_SCENES: TourScene[] = [
       "Four delivery gates — Schema Lock, Invariant Lock, Contract Publication, and Lineage Closure — enforced for every batch before it can advance.",
     valueStatement:
       "Replaces informal 'done' criteria with an auditable gate model. Every batch delivery is traceable and compliant with enterprise governance standards.",
+    route: "/gate-status",
     spotlightSelector: "#quick-nav-governance",
     icon: "🔐",
     accentColor: "#065f46",
@@ -133,6 +141,7 @@ export const TOUR_SCENES: TourScene[] = [
       "Upcoming capabilities include consolidated return assembly, state apportionment, S-Corp specialization, and full audit-trail lineage — each scoped and governed through the batch model.",
     valueStatement:
       "Incremental, governed expansion. Each PI adds measurable capability without compromising what has already been delivered.",
+    route: "/batch-calendar",
     spotlightSelector: "#quick-nav-roadmap",
     icon: "🚀",
     accentColor: "#7c3aed",
@@ -146,6 +155,7 @@ export const TOUR_SCENES: TourScene[] = [
       "You've experienced the full DCT Platform: delivery intelligence, structured learning, discovery, AI analysis, architecture traceability, governance, and a governed roadmap.",
     valueStatement:
       "The DCT Platform is RSM's foundation for enterprise tax technology — governed, AI-enabled, API-first, delivering auditable tax intelligence at scale.",
+    route: "/",
     icon: "✅",
     accentColor: "#059669",
   },
@@ -403,6 +413,7 @@ export default function ExecTour({ onClose }: ExecTourProps) {
   const [transitioning, setTransitioning] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
+  const [, navigate] = useLocation();
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const scene = TOUR_SCENES[currentIdx];
@@ -410,9 +421,10 @@ export default function ExecTour({ onClose }: ExecTourProps) {
   const isFinish = scene.step === 8;
   const totalSteps = 7; // scenes 1-7 (excluding welcome and finish)
 
-  // Update spotlight for the current scene (no navigation — tour stays on Home page)
+  // Navigate to the scene's route and update spotlight
   const applyScene = useCallback((idx: number) => {
     const s = TOUR_SCENES[idx];
+    navigate(s.route);
     setTimeout(() => {
       const rect = getSpotlightRect(s.spotlightSelector);
       setSpotlightRect(rect);
@@ -422,7 +434,7 @@ export default function ExecTour({ onClose }: ExecTourProps) {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }, 400);
-  }, []);
+  }, [navigate]);
 
   // Transition to a new scene
   const goTo = useCallback((idx: number) => {

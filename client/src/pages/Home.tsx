@@ -8,7 +8,7 @@ import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
 import { useBatchStatus, deriveMvpMetrics } from "@/contexts/BatchStatusContext";
 import ExecDashboard from "@/components/ExecDashboard";
-import ExecTour from "@/components/ExecTour";
+import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
 // ─── Batch Calendar PI 2 + PI 3 (source of truth for Section 2) ─────────────
@@ -550,7 +550,7 @@ export default function Home() {
     "section-dependencies", "section-failure-modes",
   ];
   const SESSION_KEY = "dct-accordion-state";
-  const [tourOpen, setTourOpen] = useState(false);
+  const { openTour } = useTour();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
     try {
       const saved = sessionStorage.getItem(SESSION_KEY);
@@ -832,7 +832,7 @@ export default function Home() {
           </div>
           {/* ▶️ Experience the BA Operating System — Executive Simulation launcher */}
           <button
-            onClick={() => setTourOpen(true)}
+            onClick={() => openTour()}
             style={{
               display: "inline-flex", alignItems: "center", gap: "8px",
               fontSize: "13px", fontWeight: 800,
@@ -1368,7 +1368,7 @@ export default function Home() {
       </div>
 
       {/* ── Executive Tour Overlay ── */}
-      {tourOpen && <ExecTour onClose={() => setTourOpen(false)} />}
+
     </div>
   );
 }

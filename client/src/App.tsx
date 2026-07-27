@@ -74,6 +74,8 @@ import Header from "./components/Header";
 import { BatchStatusProvider } from "./contexts/BatchStatusContext";
 import { DiscoveryProvider } from "./contexts/DiscoveryContext";
 import { GlobalPageProvider } from "./contexts/GlobalPageContext";
+import { TourProvider, useTour } from "./contexts/TourContext";
+import ExecTour from "./components/ExecTour";
 import ContextAwarenessPanel from "./components/ContextAwarenessPanel";
 
 function Layout({ children }: { children: React.ReactNode }) {
@@ -96,6 +98,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   if (!user) return <LoginPage />;
   return <>{children}</>;
 }
+function GlobalTour() {
+  const { tourOpen, closeTour } = useTour();
+  if (!tourOpen) return null;
+  return <ExecTour onClose={closeTour} />;
+}
+
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
@@ -181,6 +189,7 @@ function Router() {
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>
+        <GlobalTour />
       </Layout>
     </AuthGate>
   );
@@ -191,13 +200,15 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <AuthProvider>
-          <BatchStatusProvider>
+              <BatchStatusProvider>
             <DiscoveryProvider>
               <GlobalPageProvider>
+                <TourProvider>
                 <TooltipProvider>
                   <Toaster />
                   <Router />
                 </TooltipProvider>
+              </TourProvider>
               </GlobalPageProvider>
             </DiscoveryProvider>
           </BatchStatusProvider>
