@@ -42,9 +42,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "Welcome to the DCT BA Operating System",
     subtitle: "A Guided Executive Experience",
     narration:
-      "This simulation will walk you through the DCT Platform's core capabilities — from real-time delivery intelligence to AI-assisted analysis. Each scene explains the business value of a capability before advancing to the next.",
+      "A guided walk through the DCT Platform's core capabilities — from delivery intelligence to AI-assisted analysis. Each scene explains business value before advancing.",
     valueStatement:
-      "The DCT Platform is not just a data system. It is a governed, AI-enabled operating model for enterprise tax delivery.",
+      "The DCT Platform is a governed, AI-enabled operating model for enterprise tax delivery.",
     route: "/",
     icon: "🎯",
     accentColor: "#1e3a5f",
@@ -55,9 +55,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "Executive Delivery Dashboard",
     subtitle: "Scene 1 of 7 — Real-Time Delivery Intelligence",
     narration:
-      "The Executive Dashboard gives leadership a single, authoritative view of platform readiness. Batch completion, gate status, PI progress, and active work are all surfaced here — updated in real time from the ADO backlog.",
+      "A single authoritative view of platform readiness — batch completion, gate status, PI progress, and active work, updated in real time from ADO.",
     valueStatement:
-      "Business Value: Eliminates the need for manual status decks. Leadership always has an accurate, current view of delivery progress without waiting for a sprint review.",
+      "Eliminates manual status decks. Leadership has an accurate delivery view without waiting for sprint reviews.",
     route: "/",
     spotlightSelector: "#exec-dashboard-anchor",
     icon: "📊",
@@ -69,9 +69,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "Platform Learning Center",
     subtitle: "Scene 2 of 7 — Structured Onboarding & Knowledge Transfer",
     narration:
-      "The Learning Center provides structured, role-based onboarding for new team members, architects, and business stakeholders. It covers the DCT architecture, batch model, governance rules, and Roger integration — all in business-readable language.",
+      "Structured, role-based onboarding covering DCT architecture, batch model, governance rules, and Roger integration — all in business-readable language.",
     valueStatement:
-      "Business Value: Reduces onboarding time from weeks to days. New BAs, POs, and engineers can self-serve platform knowledge without requiring 1:1 architecture walkthroughs.",
+      "Reduces onboarding from weeks to days. New BAs and engineers self-serve platform knowledge without 1:1 walkthroughs.",
     route: "/learning-center",
     icon: "📚",
     accentColor: "#7c3aed",
@@ -82,9 +82,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "Discovery Center",
     subtitle: "Scene 3 of 7 — Architecture & Requirements Discovery",
     narration:
-      "The Discovery Center is the BA's primary workspace for understanding platform architecture, data flows, system responsibilities, and integration patterns. It includes ecosystem maps, data flow simulations, and BA requirement discovery tools.",
+      "The BA's workspace for exploring architecture, data flows, system responsibilities, and integration patterns — with ecosystem maps and requirement discovery tools.",
     valueStatement:
-      "Business Value: Gives BAs and architects a structured environment to explore the platform before writing requirements — reducing rework and misalignment between business intent and technical delivery.",
+      "Structured exploration before writing requirements reduces rework and misalignment between business intent and technical delivery.",
     route: "/discovery",
     icon: "🔭",
     accentColor: "#0369a1",
@@ -95,9 +95,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "Ask Buddy — AI-Assisted Analysis",
     subtitle: "Scene 4 of 7 — Conversational Intelligence",
     narration:
-      "Ask Buddy is an AI assistant trained on the DCT platform's architecture, batch model, governance rules, and delivery history. It answers questions in plain language — from 'What does B31 deliver?' to 'Which batches feed Roger's eligibility output?'",
+      "An AI assistant trained on DCT architecture, batch model, and governance rules. Answers plain-language questions instantly — from batch scope to Roger eligibility outputs.",
     valueStatement:
-      "Business Value: Reduces time spent searching documentation or waiting for architect responses. BAs and POs can get accurate, context-aware answers instantly during sprint planning, PI planning, or stakeholder reviews.",
+      "Eliminates documentation searches and architect wait time. Accurate answers available during sprint planning, PI planning, and stakeholder reviews.",
     route: "/ask-buddy",
     icon: "🐱",
     accentColor: "#0d9488",
@@ -108,9 +108,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "Architecture & Traceability",
     subtitle: "Scene 5 of 7 — System Ownership & Data Lineage",
     narration:
-      "The Architecture views provide visual maps of system ownership, data lineage, API contracts, and integration touchpoints. From the enterprise architecture to the developer-level API registry, every layer of the platform is documented and traceable.",
+      "Visual maps of system ownership, data lineage, API contracts, and integration touchpoints — from enterprise architecture to the developer-level API registry.",
     valueStatement:
-      "Business Value: Enables audit readiness, dependency tracking, and impact analysis. When a batch changes, the architecture views immediately show which downstream systems and Roger outputs are affected.",
+      "Enables audit readiness and impact analysis. When a batch changes, affected downstream systems and Roger outputs are immediately visible.",
     route: "/architecture",
     icon: "🏗️",
     accentColor: "#1e3a5f",
@@ -121,9 +121,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "Governance & Gate Verification",
     subtitle: "Scene 6 of 7 — Delivery Integrity & Compliance",
     narration:
-      "The Gate Verification model enforces four delivery gates for every batch: Schema Lock, Invariant Lock, Contract Publication, and Lineage Closure. No batch advances until all gates are verified — ensuring platform integrity at every stage.",
+      "Four delivery gates — Schema Lock, Invariant Lock, Contract Publication, and Lineage Closure — enforced for every batch before it can advance.",
     valueStatement:
-      "Business Value: Replaces informal 'done' criteria with a governed, auditable gate model. Every batch delivery is traceable, repeatable, and compliant with enterprise data governance standards.",
+      "Replaces informal 'done' criteria with an auditable gate model. Every batch delivery is traceable and compliant with enterprise governance standards.",
     route: "/gate-status",
     icon: "🔐",
     accentColor: "#065f46",
@@ -134,9 +134,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "Future Vision — PI 4 & Beyond",
     subtitle: "Scene 7 of 7 — Roadmap & Strategic Direction",
     narration:
-      "Beyond the current PI, the DCT Platform roadmap includes advanced capabilities: consolidated return assembly, state apportionment, S-Corp specialization, and full audit-trail lineage governance. Each capability is scoped, sequenced, and governed through the batch model.",
+      "Upcoming capabilities include consolidated return assembly, state apportionment, S-Corp specialization, and full audit-trail lineage — each scoped and governed through the batch model.",
     valueStatement:
-      "Business Value: The platform is designed for incremental, governed expansion — not big-bang delivery. Each PI adds measurable capability while maintaining the integrity of what has already been delivered.",
+      "Incremental, governed expansion. Each PI adds measurable capability without compromising what has already been delivered.",
     route: "/batch-calendar",
     icon: "🚀",
     accentColor: "#7c3aed",
@@ -147,9 +147,9 @@ export const TOUR_SCENES: TourScene[] = [
     title: "The DCT BA Operating System",
     subtitle: "Closing Summary",
     narration:
-      "You have just experienced the core capabilities of the DCT Platform: real-time delivery intelligence, structured learning, architecture discovery, AI-assisted analysis, traceability, governance, and a governed roadmap for the future.",
+      "You've experienced the full DCT Platform: delivery intelligence, structured learning, discovery, AI analysis, architecture traceability, governance, and a governed roadmap.",
     valueStatement:
-      "The DCT Platform is the foundation for RSM's enterprise tax technology strategy — a governed, AI-enabled, API-first operating model that delivers deterministic, auditable, practitioner-ready tax intelligence at scale.",
+      "The DCT Platform is RSM's foundation for enterprise tax technology — governed, AI-enabled, API-first, delivering auditable tax intelligence at scale.",
     route: "/",
     icon: "✅",
     accentColor: "#059669",
@@ -406,6 +406,7 @@ export default function ExecTour({ onClose }: ExecTourProps) {
   const [showStory, setShowStory] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
   const [, navigate] = useLocation();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -526,14 +527,18 @@ export default function ExecTour({ onClose }: ExecTourProps) {
 
       {/* Narration card */}
       <div style={cardStyle}>
-        {/* Accent header bar */}
-        <div style={{
-          backgroundColor: scene.accentColor,
-          padding: "14px 24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}>
+        {/* Accent header bar — always visible, acts as the minimized state handle */}
+        <div
+          onClick={() => minimized && setMinimized(false)}
+          style={{
+            backgroundColor: scene.accentColor,
+            padding: "14px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            cursor: minimized ? "pointer" : "default",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <span style={{ fontSize: "22px" }}>{scene.icon}</span>
             <div>
@@ -565,6 +570,26 @@ export default function ExecTour({ onClose }: ExecTourProps) {
               ))}
             </div>
           )}
+          {/* Minimize / expand toggle */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setMinimized(m => !m); }}
+            title={minimized ? "Expand narration" : "Minimize narration"}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              borderRadius: "6px",
+              color: "#ffffff",
+              fontSize: "14px",
+              fontWeight: 700,
+              padding: "3px 9px",
+              cursor: "pointer",
+              marginLeft: "8px",
+              flexShrink: 0,
+              lineHeight: 1,
+            }}
+          >
+            {minimized ? "▼" : "▲"}
+          </button>
           {/* Close button */}
           <button
             onClick={onClose}
@@ -577,7 +602,7 @@ export default function ExecTour({ onClose }: ExecTourProps) {
               fontWeight: 700,
               padding: "4px 10px",
               cursor: "pointer",
-              marginLeft: "12px",
+              marginLeft: "4px",
               flexShrink: 0,
             }}
           >
@@ -585,8 +610,11 @@ export default function ExecTour({ onClose }: ExecTourProps) {
           </button>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: "20px 24px" }}>
+        {/* Body — hidden when minimized */}
+        <div style={{
+          padding: "20px 24px",
+          display: minimized ? "none" : "block",
+        }}>
           {/* Step counter */}
           {!isWelcome && !isFinish && (
             <div style={{
