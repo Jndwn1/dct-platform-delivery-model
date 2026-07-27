@@ -135,16 +135,15 @@ export const TOUR_SCENES: TourScene[] = [
   {
     id: "future-vision",
     step: 7,
-    title: "Future Vision — PI 4 & Beyond",
-    subtitle: "Scene 7 of 7 — Roadmap & Strategic Direction",
+    title: "The BA Operating System — A Personal Vision",
+    subtitle: "Scene 7 of 7 — Why I Built This",
     narration:
-      "Upcoming capabilities include consolidated return assembly, state apportionment, S-Corp specialization, and full audit-trail lineage — each scoped and governed through the batch model.",
+      "My vision isn't to build another documentation repository. I wanted to create an AI-enabled operating model that helps every BA deliver consistently, onboard faster, retain institutional knowledge, and spend more time solving business problems instead of searching for information.",
     valueStatement:
-      "Incremental, governed expansion. Each PI adds measurable capability without compromising what has already been delivered.",
-    route: "/batch-calendar",
-    spotlightSelector: "#quick-nav-roadmap",
-    icon: "🚀",
-    accentColor: "#7c3aed",
+      "This BA Operating System standardizes delivery, accelerates onboarding, preserves organizational knowledge, and improves consistency across projects — in one location. This is how and why I created Ask Buddy and the AI-powered BA Operating System.",
+    route: "/",
+    icon: "💡",
+    accentColor: "#059669",
   },
   {
     id: "finish",
