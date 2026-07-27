@@ -8,6 +8,7 @@ import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
 import { useBatchStatus, deriveMvpMetrics } from "@/contexts/BatchStatusContext";
 import ExecDashboard from "@/components/ExecDashboard";
+import ExecTour from "@/components/ExecTour";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
 // ─── Batch Calendar PI 2 + PI 3 (source of truth for Section 2) ─────────────
@@ -549,6 +550,7 @@ export default function Home() {
     "section-dependencies", "section-failure-modes",
   ];
   const SESSION_KEY = "dct-accordion-state";
+  const [tourOpen, setTourOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
     try {
       const saved = sessionStorage.getItem(SESSION_KEY);
@@ -819,9 +821,42 @@ export default function Home() {
         marginTop: "4px",
       }}>
         {/* Header row */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "10px" }}>
-          <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f1623" }}>🧭 Quick Navigation</span>
-          <span style={{ fontSize: "11px", color: "#64748b" }}>Jump directly to any section of the DCT Delivery Model.</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "10px" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+            <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f1623" }}>🧭 Quick Navigation</span>
+            <span style={{ fontSize: "11px", color: "#64748b" }}>Jump directly to any section of the DCT Delivery Model.</span>
+          </div>
+          {/* ▶️ Experience the BA Operating System — Executive Simulation launcher */}
+          <button
+            onClick={() => setTourOpen(true)}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "8px",
+              fontSize: "13px", fontWeight: 800,
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #1e3a5f 0%, #0d9488 100%)",
+              border: "none",
+              borderRadius: "8px",
+              padding: "9px 20px",
+              cursor: "pointer",
+              boxShadow: "0 2px 12px rgba(13,148,136,0.35), 0 1px 4px rgba(0,0,0,0.15)",
+              transition: "all 0.2s ease",
+              whiteSpace: "nowrap",
+              letterSpacing: "0.01em",
+            }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.transform = "translateY(-1px)";
+              el.style.boxShadow = "0 4px 18px rgba(13,148,136,0.45), 0 2px 6px rgba(0,0,0,0.18)";
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.transform = "translateY(0)";
+              el.style.boxShadow = "0 2px 12px rgba(13,148,136,0.35), 0 1px 4px rgba(0,0,0,0.15)";
+            }}
+          >
+            <span style={{ fontSize: "16px" }}>▶️</span>
+            Experience the BA Operating System
+          </button>
         </div>
 
         {/* Navigation links row */}
@@ -1323,11 +1358,13 @@ export default function Home() {
         </div>
       </Accordion>
 
-      {/* ── Governance Notice (Home page only) ── */}
+            {/* ── Governance Notice (Home page only) ── */}
       <div style={{ padding: "0 32px 24px" }}>
         <GovernanceBanner />
       </div>
 
+      {/* ── Executive Tour Overlay ── */}
+      {tourOpen && <ExecTour onClose={() => setTourOpen(false)} />}
     </div>
   );
 }
