@@ -2,14 +2,19 @@
 // ExecTour — Guided Executive Simulation
 // "▶️ Experience the BA Operating System"
 //
-// 8-scene product tour overlay with:
+// Flow:
+//   0. Opening Story — business challenge narrative (pre-tour, full-screen modal)
+//   1. Welcome screen
+//   2–8. Scenes 1–7 (Exec Dashboard → Future Vision)
+//   9. Closing Summary
+//
+// Features:
 //   • Full-screen backdrop + spotlight cutout
-//   • Step indicator (Step N of 8)
+//   • Step indicator (Step N of 7)
 //   • Narration card with business-language description
 //   • Next / Previous / Finish controls
 //   • Keyboard: → next, ← prev, Esc close
 //   • Smooth fade + slide transitions between scenes
-//   • Welcome screen and Closing Summary screen
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -170,6 +175,226 @@ function getSpotlightRect(selector?: string): SpotlightRect | null {
   };
 }
 
+// ── Opening Story Modal ───────────────────────────────────────────────────────
+
+interface OpeningStoryProps {
+  onBegin: () => void;
+  onClose: () => void;
+}
+
+function OpeningStory({ onBegin, onClose }: OpeningStoryProps) {
+  return (
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      backgroundColor: "rgba(10, 15, 28, 0.85)",
+      zIndex: 10000,
+      display: "flex",
+      alignItems: "flex-start",
+      justifyContent: "center",
+      padding: "32px 24px 24px",
+      overflowY: "auto",
+    }}>
+      <div style={{
+        width: "min(780px, calc(100vw - 48px))",
+        backgroundColor: "#ffffff",
+        borderRadius: "18px",
+        boxShadow: "0 32px 80px rgba(0,0,0,0.35), 0 4px 20px rgba(0,0,0,0.15)",
+        border: "2px solid #1e3a5f",
+        overflow: "hidden",
+        marginBottom: "24px",
+      }}>
+        {/* Header */}
+        <div style={{
+          background: "linear-gradient(135deg, #1e3a5f 0%, #0d9488 100%)",
+          padding: "22px 28px",
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: "16px",
+        }}>
+          <div>
+            <div style={{
+              fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.7)",
+              marginBottom: "4px",
+            }}>
+              Before We Begin · Opening Story
+            </div>
+            <div style={{ fontSize: "18px", fontWeight: 800, color: "#ffffff", lineHeight: 1.2 }}>
+              The Business Challenge That Inspired the BA Operating System
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              borderRadius: "6px",
+              color: "#ffffff",
+              fontSize: "13px",
+              fontWeight: 700,
+              padding: "5px 12px",
+              cursor: "pointer",
+              flexShrink: 0,
+              marginTop: "2px",
+            }}
+          >
+            ✕ Exit
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "28px 32px" }}>
+
+          {/* Challenge section */}
+          <div style={{
+            borderLeft: "4px solid #1e3a5f",
+            paddingLeft: "16px",
+            marginBottom: "24px",
+          }}>
+            <div style={{
+              fontSize: "12px", fontWeight: 700, textTransform: "uppercase",
+              letterSpacing: "0.08em", color: "#64748b", marginBottom: "4px",
+            }}>
+              The Business Challenge
+            </div>
+            <p style={{ fontSize: "14px", color: "#1e293b", lineHeight: "1.7", margin: "0 0 12px" }}>
+              Throughout my experience as a Senior Business Analyst, I've consistently observed the same challenge across multiple programs and delivery teams.
+            </p>
+            <p style={{ fontSize: "14px", color: "#1e293b", lineHeight: "1.7", margin: "0 0 12px" }}>
+              Senior Business Analysts are expected to deliver complex initiatives while simultaneously onboarding and mentoring Business Analysts with varying levels of experience. While mentoring is an important part of the role, a significant amount of time is spent teaching foundational Business Analysis skills that could be standardized and supported through better processes, knowledge management, and AI.
+            </p>
+            <p style={{ fontSize: "14px", color: "#1e293b", lineHeight: "1.7", margin: "0 0 14px" }}>
+              Based on my own experience, I estimate that I spend approximately{" "}
+              <strong style={{ color: "#1e3a5f" }}>40–50% of my time</strong> on activities such as:
+            </p>
+            <ul style={{ margin: "0 0 14px", paddingLeft: "20px" }}>
+              {[
+                "Onboarding new Business Analysts to a project and platform",
+                "Teaching Business Analysis fundamentals and best practices",
+                "Coaching Business Analysts on how to write effective user stories and acceptance criteria",
+                "Improving backlog hygiene and work item quality",
+                "Explaining Business Analysis processes and delivery expectations",
+                "Helping team members understand platform architecture, business capabilities, and dependencies",
+                "Answering the same questions repeatedly because knowledge is distributed across documents, Teams conversations, meetings, and subject matter experts",
+              ].map((item, i) => (
+                <li key={i} style={{ fontSize: "13px", color: "#374151", lineHeight: "1.65", marginBottom: "5px" }}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p style={{ fontSize: "14px", color: "#1e293b", lineHeight: "1.7", margin: "0 0 12px" }}>
+              These challenges are not unique to one project. They represent a broader organizational opportunity.
+            </p>
+            <p style={{ fontSize: "14px", color: "#1e293b", lineHeight: "1.7", margin: 0 }}>
+              When experienced Business Analysts spend a significant portion of their time repeatedly transferring foundational knowledge, it reduces the time available for strategic analysis, stakeholder engagement, innovation, and delivering business value.
+            </p>
+          </div>
+
+          {/* Key question callout */}
+          <div style={{
+            backgroundColor: "#eff6ff",
+            border: "1px solid #bfdbfe",
+            borderLeft: "4px solid #2563eb",
+            borderRadius: "8px",
+            padding: "16px 20px",
+            marginBottom: "24px",
+          }}>
+            <p style={{ fontSize: "14px", fontWeight: 700, color: "#1e3a5f", lineHeight: "1.65", margin: 0 }}>
+              "How can we standardize Business Analysis, preserve organizational knowledge, and leverage AI to help every Business Analyst become productive faster while enabling senior Business Analysts to focus on higher-value work?"
+            </p>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "8px 0 0", fontStyle: "italic" }}>
+              That question became the foundation for the Business Analyst Operating System.
+            </p>
+          </div>
+
+          {/* Vision statement */}
+          <div style={{
+            backgroundColor: "#f0fdf4",
+            border: "1px solid #bbf7d0",
+            borderLeft: "4px solid #059669",
+            borderRadius: "8px",
+            padding: "14px 18px",
+            marginBottom: "24px",
+          }}>
+            <p style={{ fontSize: "13px", color: "#065f46", lineHeight: "1.65", margin: 0 }}>
+              <strong>The vision is not to replace Business Analysts.</strong> The vision is to augment them with trusted organizational knowledge, standardized methodologies, guided workflows, reusable assets, and AI-assisted discovery that enables every Business Analyst to work more consistently, collaborate more effectively, and deliver better outcomes.
+            </p>
+          </div>
+
+          {/* Opportunity section */}
+          <div style={{
+            borderLeft: "4px solid #0d9488",
+            paddingLeft: "16px",
+            marginBottom: "28px",
+          }}>
+            <div style={{
+              fontSize: "12px", fontWeight: 700, textTransform: "uppercase",
+              letterSpacing: "0.08em", color: "#64748b", marginBottom: "8px",
+            }}>
+              The Opportunity
+            </div>
+            <p style={{ fontSize: "14px", color: "#1e293b", lineHeight: "1.7", margin: "0 0 10px" }}>
+              Imagine an organization where every Business Analyst:
+            </p>
+            <ul style={{ margin: 0, paddingLeft: "20px" }}>
+              {[
+                "Follows a consistent delivery methodology",
+                "Has immediate access to trusted organizational knowledge",
+                "Learns new platforms in days instead of weeks",
+                "Uses AI to accelerate discovery, documentation, and analysis",
+                "Reuses proven requirements, business rules, and implementation patterns instead of starting from scratch",
+                "Preserves institutional knowledge for future teams rather than allowing it to disappear at the end of each project",
+              ].map((item, i) => (
+                <li key={i} style={{ fontSize: "13px", color: "#374151", lineHeight: "1.65", marginBottom: "5px" }}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Transition CTA */}
+          <div style={{
+            backgroundColor: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: "10px",
+            padding: "18px 22px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}>
+            <p style={{ fontSize: "14px", fontWeight: 600, color: "#1e293b", lineHeight: "1.6", margin: 0, flex: 1, minWidth: "200px" }}>
+              "Let me show you what that experience looks like and how the BA Operating System can transform the way Business Analysts onboard, discover information, collaborate, and deliver value."
+            </p>
+            <button
+              onClick={onBegin}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "8px",
+                fontSize: "14px", fontWeight: 800,
+                color: "#ffffff",
+                background: "linear-gradient(135deg, #1e3a5f 0%, #0d9488 100%)",
+                border: "none",
+                borderRadius: "10px",
+                padding: "12px 26px",
+                cursor: "pointer",
+                boxShadow: "0 3px 14px rgba(13,148,136,0.35)",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: "16px" }}>▶️</span>
+              Begin the Demonstration
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 interface ExecTourProps {
@@ -177,6 +402,8 @@ interface ExecTourProps {
 }
 
 export default function ExecTour({ onClose }: ExecTourProps) {
+  // showStory = true → Opening Story screen; false → guided tour scenes
+  const [showStory, setShowStory] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
@@ -192,7 +419,6 @@ export default function ExecTour({ onClose }: ExecTourProps) {
   const applyScene = useCallback((idx: number) => {
     const s = TOUR_SCENES[idx];
     navigate(s.route);
-    // Give the page a moment to render before computing spotlight
     setTimeout(() => {
       const rect = getSpotlightRect(s.spotlightSelector);
       setSpotlightRect(rect);
@@ -228,8 +454,9 @@ export default function ExecTour({ onClose }: ExecTourProps) {
     applyScene(0);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Keyboard navigation
+  // Keyboard navigation (only active when story is dismissed)
   useEffect(() => {
+    if (showStory) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); goNext(); }
       if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
@@ -237,9 +464,14 @@ export default function ExecTour({ onClose }: ExecTourProps) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [goNext, goPrev, onClose]);
+  }, [showStory, goNext, goPrev, onClose]);
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Opening Story screen ─────────────────────────────────────────────────────
+  if (showStory) {
+    return <OpeningStory onBegin={() => setShowStory(false)} onClose={onClose} />;
+  }
+
+  // ── Tour scenes ──────────────────────────────────────────────────────────────
 
   const cardStyle: React.CSSProperties = {
     position: "fixed",
@@ -265,7 +497,6 @@ export default function ExecTour({ onClose }: ExecTourProps) {
     pointerEvents: "none",
   };
 
-  // Spotlight cutout using SVG mask
   const renderSpotlight = () => {
     if (!spotlightRect) return null;
     const { top, left, width, height } = spotlightRect;
