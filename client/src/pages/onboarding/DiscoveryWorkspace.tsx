@@ -1024,13 +1024,13 @@ function DiscoveryQuestionsSection() {
 type Message = { role: "user" | "assistant"; content: string };
 
 const BUDDY_SUGGESTED = [
-  "Does DCT already support this capability?",
-  "Which Batch delivers this functionality?",
-  "Which APIs already exist for this need?",
-  "Which business objects support this capability?",
-  "Is this Covered, Partially Covered, or Net-New?",
-  "What existing DCT capabilities can be reused?",
-  "What business information should be documented before engaging DCT?",
+  "What does Batch 9A deliver for State and Provision?",
+  "How does Batch 28 support Provision reference data?",
+  "What is the role of Batch 16 in audit trail governance?",
+  "What APIs are available for State and Provision consumers?",
+  "Is this capability Covered, Partially Covered, or Net-New?",
+  "What data does the State workstream need from TDC?",
+  "How does IMS route Provision data to return engines?",
 ];
 
 function AskBuddySection() {
@@ -1065,7 +1065,7 @@ function AskBuddySection() {
       const allMsgs = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
       const result = await chatMutation.mutateAsync({
         messages: allMsgs,
-        discoveryPagePath: "/discovery/ims",
+        discoveryPagePath: "/onboarding",
       });
       setMessages(prev => [...prev, { role: "assistant", content: result.text }]);
     } catch {

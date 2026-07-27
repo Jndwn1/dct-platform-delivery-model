@@ -794,6 +794,91 @@ The Discovery Center is the primary resource for Business Analysts working on th
 8. Use the **Glossary** for any unfamiliar terms
 `,
   },
+
+  // ── Provision & State Discovery Workspace ─────────────────────────────────
+  "/onboarding": {
+    pageTitle: "Provision & State Discovery Workspace",
+    pagePath: "/onboarding",
+    summary: "Discovery workspace for the State and Provision workstreams, covering Batches 9A, 16, and 28 and their governed data access, audit trail, and provision reference data capabilities.",
+    suggestedQuestions: [
+      "What does Batch 9A deliver for the State and Provision workstreams?",
+      "How does Batch 28 support Provision reference data?",
+      "What is the role of Batch 16 in audit trail and lineage governance?",
+      "What data does the State workstream need from PDC and TDC?",
+      "How does the Provision workstream consume governed data from DCT?",
+      "What APIs are available for State and Provision consumers?",
+      "What is already built vs what is net-new for State and Provision?",
+      "How does IMS route State and Provision data to return engines?",
+      "What are the governance boundaries between PDC, TDC, and Provision?",
+      "What acceptance criteria should a BA define for a State workstream story?",
+    ],
+    context: `
+## Provision & State Discovery Workspace — DCT Platform Context
+
+This workspace covers the **State** and **Provision** workstreams and the DCT batches that support them: **Batch 9A**, **Batch 16**, and **Batch 28**.
+
+---
+
+### State Workstream
+- **Purpose:** Manages state income tax compliance and reporting across all jurisdictions where RSM clients operate.
+- **Business Functions:** Apply state tax rules and classifications; compute state apportionment factors; prepare state tax returns and disclosures; ensure compliance with state regulations; provide complete audit trail for regulatory review.
+- **Downstream Consumers:** Roger (practitioner review), IMS (routes governed data to return engines), state filing teams, regulatory reporting.
+- **Key DCT Batches:** B9A (Data Gateway — governed consumer access), B16 (Audit Trail & Lineage Governance), B28 (Provision Reference Data & BTP Outbound Contract).
+- **Data Flow:** TDC computes and classifies state tax data → B9A Gateway exposes governed API → IMS retrieves and routes to return engine (GoSystem, CCH, OIT) → Roger surfaces for practitioner review.
+
+---
+
+### Provision Workstream
+- **Purpose:** Manages tax provision calculations and reporting for financial statement purposes, ensuring accurate deferred tax assets/liabilities and effective tax rate (ETR) computations.
+- **Business Functions:** Compute current and deferred tax provisions; calculate ETR; prepare provision-to-return reconciliations; support financial statement disclosures; provide audit-ready provision data.
+- **Downstream Consumers:** Roger (practitioner review), IMS (provision data routing), external reporting systems.
+- **Key DCT Batches:** B28 (Provision Reference Data & BTP Outbound Contract — primary), B9A (Data Gateway), B16 (Audit Trail).
+- **Data Flow:** PDC normalizes financial data → TDC applies provision tax logic → B28 exposes BTP outbound contract → IMS routes to provision engine → Roger surfaces for review.
+
+---
+
+### Batch 9A — DCT Data Gateway & Governed Consumer Access
+- **Owner:** Abbas, Nasar (PI 3, ADO 1387817)
+- **Status:** Active in ADO (PI 3)
+- **Purpose:** The B9A Gateway is the governed access layer between TDC and all external consumers (IMS, CDS, DUO, Tax Portal). No consumer connects directly to TDC — all access is mediated through B9A.
+- **Key Capabilities:** Governed API endpoints for State and Provision data; consumer contract management; access control and audit logging; payload translation for IMS engine routing.
+- **Boundary Rule:** TDC owns the data; B9A owns the access contract. Consumers cannot bypass the gateway.
+
+---
+
+### Batch 16 — PDC Audit Trail & Lineage Governance
+- **Owner:** Abbas, Nasar (PI 3, ADO 1390258)
+- **Status:** Active in ADO (PI 3) — Critical Path item, must land before 9/21 pilot
+- **Purpose:** Provides complete audit trail and lineage governance for all data flowing through PDC. Ensures every data transformation is traceable, replayable, and auditable for regulatory review.
+- **Key Capabilities:** Immutable audit log of all PDC transformations; lineage closure verification; compliance reporting; integration with TDC decision audit trail.
+- **Business Value:** Eliminates manual audit reconstruction. Regulators and practitioners can trace any output back to its source data and transformation logic.
+
+---
+
+### Batch 28 — TDC Tax Workpapers & Provision Schedules
+- **Owner:** Luca, Gary (PI 3, ADO 1390012)
+- **Status:** Active in ADO (PI 3)
+- **Purpose:** Delivers tax workpaper generation and provision schedule outputs for the Provision workstream. Produces the BTP (Book-to-Tax Provision) outbound contract consumed by IMS and Roger.
+- **Key Capabilities:** Tax workpaper generation; provision schedule computation; BTP outbound contract publication; ETR calculation support; provision-to-return reconciliation data.
+- **Boundary Rule:** TDC owns provision tax logic and workpaper generation. PDC provides normalized financial inputs. Roger consumes the output read-only.
+
+---
+
+### Discovery Principle for This Workspace
+Before documenting any new requirement for the State or Provision workstream, determine whether DCT already supports the capability through B9A, B16, or B28. Classify each requirement as:
+- **Covered:** Fully supported by an existing batch — no new story needed.
+- **Partially Covered:** Supported in part — a gap story or enhancement is appropriate.
+- **Net-New:** Not supported — a new feature or batch is required.
+
+### Governance Boundaries
+- PDC owns financial data normalization — it does not own tax logic.
+- TDC owns all tax decisions, classifications, and provision computations — immutable once locked.
+- B9A Gateway owns consumer access — no consumer bypasses it.
+- Roger is read-only — it consumes governed outputs but cannot write to TDC or PDC.
+- IMS owns engine routing and payload translation — DCT does not connect directly to GoSystem, CCH, or OIT.
+`,
+  },
+
 };
 
 /**
