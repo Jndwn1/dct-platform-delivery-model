@@ -590,8 +590,12 @@ export default function Home() {
     { label: "Architecture Guardrails",id: "section-guardrails",   internal: true },
     { label: "Roger Connection",      id: "section-dependencies",  internal: true },
     { label: "Failure Modes",         id: "section-failure-modes", internal: true },
-    { label: "Ask Buddy",             id: "",                       internal: false, href: "/ask-buddy" },
-    { label: "Batch Delivery Calendar",id: "",                      internal: false, href: "/batch-calendar" },
+    { label: "Ask Buddy",             id: "quick-nav-ask-buddy",    internal: false, href: "/ask-buddy" },
+    { label: "Batch Delivery Calendar",id: "quick-nav-roadmap",       internal: false, href: "/batch-calendar" },
+    { label: "Learning Center",        id: "quick-nav-learning",     internal: false, href: "/learning-center" },
+    { label: "Discovery Center",       id: "quick-nav-discovery",    internal: false, href: "/discovery" },
+    { label: "Architecture",           id: "quick-nav-architecture", internal: false, href: "/architecture" },
+    { label: "Governance",             id: "quick-nav-governance",   internal: false, href: "/gate-status" },
   ];
 
   // Delivery Highlights — derive active/stretch batches by overlaying live context status onto calendar entries
@@ -914,7 +918,7 @@ export default function Home() {
           {quickNavItems.filter(i => !i.internal).map((item, idx, arr) => (
             <React.Fragment key={item.label}>
               <Link href={item.href ?? "/"}>
-                <span style={{
+                <span id={item.id || undefined} style={{
                   display: "inline-flex", alignItems: "center", gap: "3px",
                   fontSize: "12px", fontWeight: 700, color: "#059669",
                   backgroundColor: "#f0fdf4",
