@@ -493,9 +493,10 @@ export default function ExecTour({ onClose }: ExecTourProps) {
   const backdropStyle: React.CSSProperties = {
     position: "fixed",
     inset: 0,
-    backgroundColor: "rgba(10, 15, 28, 0.72)",
+    backgroundColor: minimized ? "rgba(10, 15, 28, 0.12)" : "rgba(10, 15, 28, 0.72)",
     zIndex: 10000,
     pointerEvents: "none",
+    transition: "background-color 0.35s ease",
   };
 
   const renderSpotlight = () => {
@@ -510,7 +511,9 @@ export default function ExecTour({ onClose }: ExecTourProps) {
         height,
         zIndex: 10001,
         borderRadius: "10px",
-        boxShadow: `0 0 0 9999px rgba(10, 15, 28, 0.72), 0 0 0 3px ${scene.accentColor}`,
+        boxShadow: minimized
+          ? `0 0 0 9999px rgba(10, 15, 28, 0.08), 0 0 0 2px ${scene.accentColor}60`
+          : `0 0 0 9999px rgba(10, 15, 28, 0.72), 0 0 0 3px ${scene.accentColor}`,
         pointerEvents: "none",
         transition: "all 0.4s ease",
       }} />
