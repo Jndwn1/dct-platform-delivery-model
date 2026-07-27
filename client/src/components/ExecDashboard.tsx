@@ -125,7 +125,7 @@ function StatusPill({
 
 /** Row 3 — PI progress card */
 function PICard({
-  pi, status, pct, color, bg, border,
+  pi, status, pct, color, bg, border, note,
 }: {
   pi: string;
   status: string;
@@ -133,6 +133,7 @@ function PICard({
   color: string;
   bg: string;
   border: string;
+  note?: string;
 }) {
   return (
     <div style={{
@@ -162,6 +163,20 @@ function PICard({
           transition: "width 0.5s ease",
         }} />
       </div>
+      {note && (
+        <div style={{
+          marginTop: "8px",
+          fontSize: "10px",
+          color: "#92400e",
+          backgroundColor: "#fffbeb",
+          border: "1px solid #fde68a",
+          borderRadius: "5px",
+          padding: "5px 8px",
+          lineHeight: "1.4",
+        }}>
+          ⚠ {note}
+        </div>
+      )}
     </div>
   );
 }
@@ -272,6 +287,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       color: "#059669",
       bg: "#f0fdf4",
       border: "#bbf7d0",
+      note: "QA onboarded late — PI 2 items are currently in QA validation as the team catches up.",
     },
     {
       pi: "PI 3",
