@@ -71,7 +71,8 @@ interface DeploymentRowLike {
   summary?: string | null; relatedBatch?: string | null;
   relatedFeature?: string | null; relatedStory?: string | null;
   adoWorkItemId?: string | null; adoFeatureUrl?: string | null;
-  adoStoryUrl?: string | null; releaseNotesBullets?: string | null;
+  adoStoryUrl?: string | null; adoLinks?: string | null;
+  releaseNotesBullets?: string | null;
   releaseNotesUrl?: string | null;
   swaggerUrl?: string | null; githubReleaseTag?: string | null;
 }
@@ -151,8 +152,83 @@ interface DeploymentRow {
   adoStoryUrl: string | null;
   releaseNotesBullets: string | null;
   githubReleaseTag: string | null;
+  adoLinks: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// --- ADO link type -----------------------------------------------------------
+interface AdoLinkEntry { type: "Feature" | "Story"; label: string; url: string; }
+
+function parseAdoLinks(raw: string | null | undefined): AdoLinkEntry[] {
+  if (!raw) return [];
+  try { return JSON.parse(raw) as AdoLinkEntry[]; } catch { return []; }
+}
+
+// --- AdoLinksEditor ----------------------------------------------------------
+function AdoLinksEditor({ links, onChange }: { links: AdoLinkEntry[]; onChange: (links: AdoLinkEntry[]) => void }) {
+  const fieldStyle: React.CSSProperties = {
+    padding: "5px 8px", fontSize: "11px",
+    border: "1px solid #e2e8f0", borderRadius: "4px",
+    backgroundColor: "#f8fafc", color: "#0f1623", boxSizing: "border-box" as const,
+  };
+
+  const addRow = () => onChange([...links, { type: "Feature", label: "", url: "" }]);
+  const removeRow = (i: number) => onChange(links.filter((_, idx) => idx !== i));
+  const updateRow = (i: number, field: keyof AdoLinkEntry, val: string) =>
+    onChange(links.map((l, idx) => idx === i ? { ...l, [field]: val } : l));
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      {links.map((link, i) => (
+        <div key={i} style={{ display: "grid", gridTemplateColumns: "90px 1fr 1fr 28px", gap: "6px", alignItems: "center" }}>
+          <select
+            style={fieldStyle}
+            value={link.type}
+            onChange={e => updateRow(i, "type", e.target.value)}
+          >
+            <option value="Feature">Feature</option>
+            <option value="Story">Story</option>
+          </select>
+          <input
+            style={{ ...fieldStyle, width: "100%" }}
+            placeholder="Label (e.g. B10 Return Assembly)"
+            value={link.label}
+            onChange={e => updateRow(i, "label", e.target.value)}
+          />
+          <input
+            style={{ ...fieldStyle, width: "100%" }}
+            placeholder="https://dev.azure.com/..."
+            value={link.url}
+            onChange={e => updateRow(i, "url", e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => removeRow(i)}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", padding: "0", display: "flex", alignItems: "center", justifyContent: "center" }}
+            title="Remove"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+      {links.length === 0 && (
+        <div style={{ fontSize: "11px", color: "#94a3b8", fontStyle: "italic" }}>No ADO links added yet.</div>
+      )}
+      <button
+        type="button"
+        onClick={addRow}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: "5px",
+          padding: "5px 10px", backgroundColor: "#eff6ff", color: "#1e40af",
+          border: "1px solid #bfdbfe", borderRadius: "5px",
+          fontSize: "11px", fontWeight: 700, cursor: "pointer", alignSelf: "flex-start",
+        }}
+      >
+        <Plus size={11} /> Add ADO Link
+      </button>
+    </div>
+  );
 }
 
 // --- Style helpers ------------------------------------------------------------
@@ -342,6 +418,39 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
           </div>
         )}
 
+        {/* ADO Links (multi-link) */}
+        {(() => {
+          const links = parseAdoLinks(dep.adoLinks);
+          if (links.length === 0) return null;
+          return (
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>ADO Links</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {links.map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "flex", alignItems: "center", gap: "6px",
+                      fontSize: "12px", textDecoration: "none", padding: "6px 10px",
+                      borderRadius: "5px",
+                      backgroundColor: link.type === "Feature" ? "#eff6ff" : "#f0fdf4",
+                      color: link.type === "Feature" ? "#1e40af" : "#065f46",
+                    }}
+                  >
+                    <Link2 size={12} />
+                    <span style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", opacity: 0.7, marginRight: "2px" }}>{link.type}</span>
+                    {link.label || link.url}
+                    <ExternalLink size={10} style={{ marginLeft: "auto" }} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Links */}
         {(dep.releaseNotesUrl || dep.swaggerUrl || dep.githubReleaseTag) && (
           <div style={{ marginBottom: "20px" }}>
@@ -423,6 +532,7 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
     releaseNotesBullets: "",
     githubReleaseTag: "",
   });
+  const [adoLinks, setAdoLinks] = useState<AdoLinkEntry[]>([]);
 
   const set = (k: string, v: string) => {
     setForm(f => ({ ...f, [k]: v }));
@@ -452,6 +562,7 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
       adoWorkItemId: form.adoWorkItemId || undefined,
       adoFeatureUrl: form.adoFeatureUrl || undefined,
       adoStoryUrl: form.adoStoryUrl || undefined,
+      adoLinks: adoLinks.length > 0 ? JSON.stringify(adoLinks) : undefined,
       releaseNotesBullets: form.releaseNotesBullets || undefined,
       githubReleaseTag: form.githubReleaseTag || undefined,
     });
@@ -583,17 +694,16 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
           />
           <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>One item per line. Used in the wiki entry Release Notes section.</div>
         </div>
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>ADO Links & Integration (Optional)</div>
-        <div>
-          <label style={labelStyle}>ADO Feature URL</label>
-          <input style={fieldStyle} value={form.adoFeatureUrl} onChange={e => set("adoFeatureUrl", e.target.value)} placeholder="https://dev.azure.com/.../workitems/edit/..." />
-          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Populates the ADO Feature link in the wiki entry.</div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>ADO Links (Optional)</div>
+        <div style={{ fontSize: "10px", color: "#64748b", marginBottom: "4px" }}>Add one row per Feature or Story ADO link. Each row has a type, a short label, and the full ADO URL.</div>
+        <div style={{ display: "grid", gridTemplateColumns: "90px 1fr 1fr 28px", gap: "6px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" }}>Type</div>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" }}>Label</div>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" }}>ADO URL</div>
+          <div />
         </div>
-        <div>
-          <label style={labelStyle}>ADO Story / Deployment Story URL</label>
-          <input style={fieldStyle} value={form.adoStoryUrl} onChange={e => set("adoStoryUrl", e.target.value)} placeholder="https://dev.azure.com/.../workitems/edit/..." />
-          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Populates the ADO Deployment Story link in the wiki entry.</div>
-        </div>
+        <AdoLinksEditor links={adoLinks} onChange={setAdoLinks} />
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>Other Integration Fields (Optional)</div>
         <div>
           <label style={labelStyle}>Swagger / API Docs URL</label>
           <input style={fieldStyle} value={form.swaggerUrl} onChange={e => set("swaggerUrl", e.target.value)} placeholder="https://..." />
@@ -658,6 +768,7 @@ function EditDeploymentForm({ dep, onClose, onSaved }: { dep: DeploymentRow; onC
     releaseNotesBullets: dep.releaseNotesBullets ?? "",
     githubReleaseTag: dep.githubReleaseTag ?? "",
   });
+  const [adoLinks, setAdoLinks] = useState<AdoLinkEntry[]>(() => parseAdoLinks(dep.adoLinks));
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
@@ -682,6 +793,7 @@ function EditDeploymentForm({ dep, onClose, onSaved }: { dep: DeploymentRow; onC
       adoWorkItemId: form.adoWorkItemId || undefined,
       adoFeatureUrl: form.adoFeatureUrl || undefined,
       adoStoryUrl: form.adoStoryUrl || undefined,
+      adoLinks: adoLinks.length > 0 ? JSON.stringify(adoLinks) : undefined,
       releaseNotesBullets: form.releaseNotesBullets || undefined,
       githubReleaseTag: form.githubReleaseTag || undefined,
     });
@@ -792,15 +904,16 @@ function EditDeploymentForm({ dep, onClose, onSaved }: { dep: DeploymentRow; onC
           />
           <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>One item per line. Used in the wiki entry Release Notes section.</div>
         </div>
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>ADO Links & Integration</div>
-        <div>
-          <label style={labelStyle}>ADO Feature URL</label>
-          <input style={fieldStyle} value={form.adoFeatureUrl} onChange={e => set("adoFeatureUrl", e.target.value)} placeholder="https://dev.azure.com/.../workitems/edit/..." />
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>ADO Links</div>
+        <div style={{ fontSize: "10px", color: "#64748b", marginBottom: "4px" }}>Add one row per Feature or Story ADO link. Each row has a type, a short label, and the full ADO URL.</div>
+        <div style={{ display: "grid", gridTemplateColumns: "90px 1fr 1fr 28px", gap: "6px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" }}>Type</div>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" }}>Label</div>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" }}>ADO URL</div>
+          <div />
         </div>
-        <div>
-          <label style={labelStyle}>ADO Story / Deployment Story URL</label>
-          <input style={fieldStyle} value={form.adoStoryUrl} onChange={e => set("adoStoryUrl", e.target.value)} placeholder="https://dev.azure.com/.../workitems/edit/..." />
-        </div>
+        <AdoLinksEditor links={adoLinks} onChange={setAdoLinks} />
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>Other Integration Fields</div>
         <div>
           <label style={labelStyle}>Swagger / API Docs URL</label>
           <input style={fieldStyle} value={form.swaggerUrl} onChange={e => set("swaggerUrl", e.target.value)} placeholder="https://..." />
@@ -998,14 +1111,18 @@ export default function DeploymentRegistry() {
       }
 
       // Reference links
-      const hasLinks = r.releaseNotesUrl || r.swaggerUrl || r.adoFeatureUrl || r.adoStoryUrl;
+      const parsedAdoLinks = parseAdoLinks(r.adoLinks);
+      const hasLinks = r.releaseNotesUrl || r.swaggerUrl || r.adoFeatureUrl || r.adoStoryUrl || parsedAdoLinks.length > 0;
       if (hasLinks) {
         lines.push(`**Reference Links**`);
         lines.push(``);
         if (r.releaseNotesUrl) lines.push(`- [Release Notes](${r.releaseNotesUrl})`);
         if (r.swaggerUrl) lines.push(`- [Swagger / API Documentation](${r.swaggerUrl})`);
-        if (r.adoFeatureUrl) lines.push(`- [ADO Feature](${r.adoFeatureUrl})`);
-        if (r.adoStoryUrl) lines.push(`- [ADO Deployment Story](${r.adoStoryUrl})`);
+        parsedAdoLinks.forEach(link => {
+          lines.push(`- [${link.type}: ${link.label || link.url}](${link.url})`);
+        });
+        if (r.adoFeatureUrl && parsedAdoLinks.length === 0) lines.push(`- [ADO Feature](${r.adoFeatureUrl})`);
+        if (r.adoStoryUrl && parsedAdoLinks.length === 0) lines.push(`- [ADO Deployment Story](${r.adoStoryUrl})`);
         lines.push(``);
       } else {
         lines.push(`**Reference Links:** — *(Not applicable — gate closure documentation serves as the authoritative release record)*`);

@@ -208,6 +208,7 @@ export const appRouter = router({
           adoWorkItemId: z.string().optional(),
           adoFeatureUrl: z.string().optional(),
           adoStoryUrl: z.string().optional(),
+          adoLinks: z.string().optional(),
           releaseNotesBullets: z.string().optional(),
           githubReleaseTag: z.string().optional(),
         })
@@ -239,6 +240,7 @@ export const appRouter = router({
           adoWorkItemId: input.adoWorkItemId ?? null,
           adoFeatureUrl: input.adoFeatureUrl ?? null,
           adoStoryUrl: input.adoStoryUrl ?? null,
+          adoLinks: input.adoLinks ?? null,
           releaseNotesBullets: input.releaseNotesBullets ?? null,
           githubReleaseTag: input.githubReleaseTag ?? null,
         });
@@ -277,6 +279,7 @@ export const appRouter = router({
           adoWorkItemId: z.string().optional(),
           adoFeatureUrl: z.string().optional(),
           adoStoryUrl: z.string().optional(),
+          adoLinks: z.string().optional(),
           releaseNotesBullets: z.string().optional(),
           githubReleaseTag: z.string().optional(),
         })
@@ -303,6 +306,7 @@ export const appRouter = router({
           adoWorkItemId: fields.adoWorkItemId ?? null,
           adoFeatureUrl: fields.adoFeatureUrl ?? null,
           adoStoryUrl: fields.adoStoryUrl ?? null,
+          adoLinks: fields.adoLinks ?? null,
           releaseNotesBullets: fields.releaseNotesBullets ?? null,
           githubReleaseTag: fields.githubReleaseTag ?? null,
         }).where(eq(deployments.id, id));

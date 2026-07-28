@@ -79,6 +79,8 @@ export const deployments = mysqlTable("deployments", {
   adoFeatureUrl: varchar("adoFeatureUrl", { length: 1024 }),
   /** ADO Deployment Story work item URL */
   adoStoryUrl: varchar("adoStoryUrl", { length: 1024 }),
+  /** Multiple ADO links — JSON array of {type, label, url} objects. type: "Feature" | "Story" */
+  adoLinks: text("adoLinks"),
   /** Release notes bullet points — one per line, used in wiki entry generation */
   releaseNotesBullets: text("releaseNotesBullets"),
   /** Reserved for future GitHub Releases integration */
