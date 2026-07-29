@@ -59,9 +59,9 @@ The DCT Platform consists of five primary components that work together to deliv
 - **Key APIs consumed:** All TDC read endpoints
 - **Key Batches:** B5 (Entity Identity), B9 (Roger Gateway & Consumer Access Layer), B9A (Data Gateway)
 
-### 5. IMS — Integration & Management System
+### 5. TTT — Tax Translation & Transmission Engine
 - **Role:** Integration broker between DCT/Roger and all downstream return engines (GoSystem, CCH, OIT, future engines). DCT does not integrate directly with any return engine.
-- **Key Principle:** IMS retrieves governed data from TDC via the B9A Gateway and routes it to the appropriate return engine. IMS owns all engine routing, payload translation, and delivery.
+- **Key Principle:** IMS retrieves governed data from TDC via the B9A Gateway and routes it to the appropriate return engine. TTT owns all engine routing, payload translation, and delivery.
 - **Integration:** TDC → B9A Gateway → IMS → Return Engine (GoSystem, CCH, OIT, etc.)
 - **Key Batches:** B9A (Gateway & Governed Access Layer), B16 (Audit Trail & Lineage Governance), B28 (Provision Reference Data & BTP Outbound Contract)
 
@@ -589,17 +589,17 @@ Roger does NOT save data directly. When a practitioner performs an action in Rog
 `,
   },
 
-  // ── IMS — Integration & Management System ────────────────────────────────
+  // ── TTT — Tax Translation & Transmission Engine ────────────────────────────────
   "/discovery/gosystem": {
-    pageTitle: "IMS — Integration & Management System",
+    pageTitle: "TTT — Tax Translation & Transmission Engine",
     pagePath: "/discovery/gosystem",
-    summary: "IMS is the integration broker between DCT/Roger and all downstream return engines. DCT does not integrate directly with any return engine.",
+    summary: "TTT is the translation and transmission engine between DCT/Roger and all downstream return engines. DCT does not integrate directly with any return engine.",
     suggestedQuestions: [
-      "What does IMS do?",
+      "What does TTT do?",
       "How does data get to GoSystem?",
       "Does DCT connect directly to GoSystem?",
-      "What return engines does IMS support?",
-      "What is the IMS architecture boundary?",
+      "What return engines does TTT support?",
+      "What is the TTT architecture boundary?",
       "What data types does IMS support for MVP?",
       "What is out of scope for the IMS MVP?",
       "What is the difference between SUMMARY and DETAIL grain?",
@@ -611,16 +611,16 @@ Roger does NOT save data directly. When a practitioner performs an action in Rog
       "What happens if duplicate descriptions exist in a repeating set?",
     ],
     context: `
-## IMS — Integration & Management System
+## TTT — Tax Translation & Transmission Engine
 
-### What is IMS?
-IMS (Integration & Management System) is the **integration broker** between DCT/Roger and all downstream return engines.
-DCT does not integrate directly with GoSystem, CCH, OIT, or any other return engine — all return engine routing, payload translation, and delivery is owned by IMS.
+### What is TTT?
+TTT (Tax Translation & Transmission Engine) is the **translation and transmission engine** between DCT/Roger and all downstream return engines.
+DCT does not integrate directly with GoSystem, CCH, OIT, or any other return engine — all return engine routing, payload translation, and delivery is owned by TTT.
 
-### Core IMS Architecture Rule
-> "DCT does not connect directly to any return engine. IMS owns all engine routing, payload translation, and delivery. TDC and Roger have no awareness of GoSystem, CCH, OIT, or any other return engine."
+### Core TTT Architecture Rule
+> "DCT does not connect directly to any return engine. TTT owns all engine routing, payload translation, and delivery. TDC and Roger have no awareness of GoSystem, CCH, OIT, or any other return engine."
 
-### IMS Responsibilities
+### TTT Engine Responsibilities
 | Responsibility | Description |
 |---|---|
 | Engine Routing | Determines which return engine receives each payload (GoSystem, CCH, OIT, future) |
@@ -631,11 +631,20 @@ DCT does not integrate directly with GoSystem, CCH, OIT, or any other return eng
 
 ### How Data Reaches a Return Engine (e.g., GoSystem)
 1. TDC finalizes tax-ready data and publishes a downstream event
-2. IMS retrieves the governed payload from TDC via the **B9A Gateway** (as a governed consumer)
-3. IMS performs engine lookup to determine the correct return engine for the entity
-4. IMS translates the payload into the engine-specific format
-5. IMS delivers the translated payload to the return engine (GoSystem, CCH, OIT, etc.)
-6. The return engine confirms receipt — IMS tracks delivery status
+2. TTT retrieves the governed payload from TDC via the **B9A Gateway** (as a governed consumer)
+3. TTT performs engine lookup to determine the correct return engine for the entity
+4. TTT translates the payload into the engine-specific format
+5. TTT delivers the translated payload to the return engine (GoSystem, CCH, OIT, etc.)
+6. The return engine confirms receipt — TTT tracks delivery status
+
+### TTT Engine Behavior Rules
+| Rule | Description |
+|---|---|
+| **Preserve Rule (Write-Forward)** | TTT is a write-forward system, not a synchronization system. It does not own GoS data and will never delete or zero out records it did not create. |
+| **Scalar Line Overwrite** | For single amounts (scalar lines), TTT always overwrites the GoS value with the DCT value, as there is no description-based matching required. |
+| **Full Audit Trail** | All update operations are logged with a timestamp, source (DCT), and matched/added/preserved status for full audit trail support. |
+
+**Governance Note:** The Preserve rule is deliberate — TTT's write-forward design ensures GoSystem data integrity is maintained across all transmission events. TTT never deletes or zeroes out records it did not create.
 
 ### MVP Supported Data Types (Federal Form 1120 — U.S. Income Tax Return for Corporations)
 The MVP delivers end-to-end translation and transmission for **Federal Form 1120** only.

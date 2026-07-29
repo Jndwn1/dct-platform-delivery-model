@@ -137,7 +137,7 @@ const DISCOVERY_SERVICES_ITEMS: NavItem[] = [
   { label: "PDC — Phoenix Data Consolidation", path: "/discovery/pdc",              icon: "P", badge: "NEW", badgeColor: "#1e3a5f" },
   { label: "TDC / DCT Overview",         path: "/discovery/dct-overview",             icon: "T" },
   { label: "Roger Overview",             path: "/discovery/roger-overview",           icon: "R" },
-  { label: "IMS Integration",            path: "/discovery/gosystem",                icon: "IMS" },
+  { label: "TTT Engine",                  path: "/discovery/gosystem",                icon: "TTT" },
   { label: "Data Gateway",               path: "/discovery/data-gateway",            icon: "🔀", badge: "NEW", badgeColor: "#0d7d84" },
 ];
 
