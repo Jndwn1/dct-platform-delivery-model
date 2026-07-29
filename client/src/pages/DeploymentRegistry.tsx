@@ -1065,74 +1065,6 @@ export default function DeploymentRegistry() {
     lines.push(`---`);
     lines.push(``);
 
-    // ── Detail Entries ───────────────────────────────────────────────────────────
-    lines.push(`## Deployment Detail Entries`);
-    lines.push(``);
-
-    sorted.forEach((r, idx) => {
-      const adoIds = r.adoWorkItemId ? r.adoWorkItemId.split(/[,\s]+/).filter(Boolean) : [];
-      const summaryText = r.summary ?? "Deployment details to be documented.";
-
-      lines.push(`### ${idx + 1} — ${r.releaseName}`);
-      lines.push(``);
-      lines.push(`| Attribute | Value |`);
-      lines.push(`|---|---|`);
-      lines.push(`| Deployment Date | ${r.deploymentDate} |`);
-      lines.push(`| Platform | ${r.platform} |`);
-      lines.push(`| Type | ${r.type} |`);
-      lines.push(`| Status | ${r.status} |`);
-      lines.push(`| Deployment Owner | ${r.deploymentOwner} |`);
-      lines.push(`| Product Owner | ${r.productOwner} |`);
-      lines.push(`| Environment | ${r.environment} |`);
-      if (r.relatedBatch) lines.push(`| Related Batch | ${r.relatedBatch} |`);
-      if (adoIds.length > 0) lines.push(`| ADO Work Item | ${adoIds.join(", ")} |`);
-      if (r.githubReleaseTag) lines.push(`| GitHub Release Tag | ${r.githubReleaseTag} |`);
-      lines.push(``);
-      lines.push(`**Summary**`);
-      lines.push(``);
-      lines.push(summaryText);
-      lines.push(``);
-
-      // Release notes bullets
-      if (r.releaseNotesBullets && r.releaseNotesBullets.trim()) {
-        lines.push(`**Release Notes**`);
-        lines.push(``);
-        r.releaseNotesBullets.split("\n").map(b => b.trim()).filter(Boolean).forEach(b => {
-          lines.push(`- ${b}`);
-        });
-        lines.push(``);
-      } else if (r.relatedFeature || r.relatedStory) {
-        lines.push(`**Release Notes**`);
-        lines.push(``);
-        if (r.relatedFeature) lines.push(`- ${r.relatedFeature}`);
-        if (r.relatedBatch) lines.push(`- Related to ${r.relatedBatch}`);
-        if (r.relatedStory) lines.push(`- ${r.relatedStory}`);
-        lines.push(``);
-      }
-
-      // Reference links
-      const parsedAdoLinks = parseAdoLinks(r.adoLinks);
-      const hasLinks = r.releaseNotesUrl || r.swaggerUrl || r.adoFeatureUrl || r.adoStoryUrl || parsedAdoLinks.length > 0;
-      if (hasLinks) {
-        lines.push(`**Reference Links**`);
-        lines.push(``);
-        if (r.releaseNotesUrl) lines.push(`- [Release Notes](${r.releaseNotesUrl})`);
-        if (r.swaggerUrl) lines.push(`- [Swagger / API Documentation](${r.swaggerUrl})`);
-        parsedAdoLinks.forEach(link => {
-          lines.push(`- [${link.type}: ${link.label || link.url}](${link.url})`);
-        });
-        if (r.adoFeatureUrl && parsedAdoLinks.length === 0) lines.push(`- [ADO Feature](${r.adoFeatureUrl})`);
-        if (r.adoStoryUrl && parsedAdoLinks.length === 0) lines.push(`- [ADO Deployment Story](${r.adoStoryUrl})`);
-        lines.push(``);
-      } else {
-        lines.push(`**Reference Links:** — *(Not applicable — gate closure documentation serves as the authoritative release record)*`);
-        lines.push(``);
-      }
-
-      lines.push(`---`);
-      lines.push(``);
-    });
-
     // ── Governance Notes ─────────────────────────────────────────────────────────
     lines.push(`## Governance Notes`);
     lines.push(``);
@@ -1532,7 +1464,7 @@ export default function DeploymentRegistry() {
                 </div>
                 <div>
                   <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Generate Wiki Page</div>
-                  <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} deployment{rows.length !== 1 ? "s" : ""} — full wiki page with summary, table, detail entries, governance notes, and reference links</div>
+                  <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "2px" }}>{rows.length} deployment{rows.length !== 1 ? "s" : ""} — header, overview, summary, registry table, governance notes, and reference links</div>
                 </div>
                 <button onClick={() => setShowWikiModal(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#a7f3d0" }}><X size={18} /></button>
               </div>
@@ -1540,7 +1472,7 @@ export default function DeploymentRegistry() {
             {/* Instructions */}
             <div style={{ padding: "10px 24px", backgroundColor: "#f0fdf4", borderBottom: "1px solid #bbf7d0", flexShrink: 0 }}>
               <div style={{ fontSize: "12px", color: "#065f46", lineHeight: "1.6" }}>
-                <strong>How to use:</strong> Click <em>Copy All Markdown</em> below, then open your ADO wiki page, click Edit, select all existing content, and paste. The page includes a summary KPI table, the full deployment registry table with hyperlinked release notes, individual detail entries for each deployment, governance notes, and reference links — all {rows.length} deployments sorted newest first.
+                <strong>How to use:</strong> Click <em>Copy All Markdown</em> below, then open your ADO wiki page, click Edit, select all existing content, and paste. The page includes the header block, overview, a summary KPI table, the full deployment registry table with hyperlinked release notes, governance notes, and reference links — all {rows.length} deployments sorted newest first.
               </div>
             </div>
             {/* Markdown preview */}
