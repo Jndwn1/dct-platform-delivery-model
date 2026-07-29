@@ -187,10 +187,10 @@ function Diagram1() {
       </div>
       <Arrow label="Outbound Contract via Gateway" />
 
-      {/* IMS */}
+      {/* TTT */}
       <div style={{ display: "flex", justifyContent: "center", marginBottom: "4px" }}>
         <PlatformCard
-          title="IMS Integration Layer"
+          title="TTT Integration Layer"
           color={ORANGE}
           responsibilities={["IRS line translation", "Roll-up", "Engine routing", "Payload delivery"]}
           inputs={["DCT outbound contract", "Approved totals", "Filing Record"]}

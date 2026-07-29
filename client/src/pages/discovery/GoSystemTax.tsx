@@ -455,13 +455,13 @@ export default function GoSystemTax() {
             color: "white", fontWeight: 900, fontSize: "14px",
           }}>TTT</div>
           <div>
-            <h1 style={{ fontSize: "22px", fontWeight: 800, color: NAVY, margin: 0 }}>TTT — Tax Translation & Transmission Engine</h1>
+            <h1 style={{ fontSize: "22px", fontWeight: 800, color: NAVY, margin: 0 }}>TTT — Integration Tax Translation & Transmission Engine Management System</h1>
             <div style={{ fontSize: "11px", color: SLATE }}>Translation & Transmission Engine — Routes governed DCT data to downstream return engines</div>
           </div>
         </div>
         <p style={{ fontSize: "14px", color: "#475569", margin: "10px 0 0", lineHeight: "1.6" }}>
           TTT is the translation and transmission engine between DCT/Roger and all downstream return engines (GoSystem, CCH, OIT, and future engines).
-          DCT does not integrate directly with any return engine — TTT owns all engine routing, payload translation, and delivery.
+          DCT does not integrate directly with any return engine — IMS owns all engine routing, payload translation, and delivery.
           TTT retrieves governed data from TDC via the B9A Gateway and delivers it to the appropriate engine.
         </p>
       </div>
@@ -1014,7 +1014,7 @@ export default function GoSystemTax() {
         marginBottom: "28px", color: "white",
       }}>
         <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#e9d5ff", marginBottom: "8px" }}>
-          TTT Engine's Role in the DCT Architecture
+          IMS Integration's Role in the DCT Architecture
         </div>
         <div style={{ fontSize: "14px", lineHeight: "1.7" }}>
           TTT is the <strong>translation and transmission engine</strong> between DCT and all return engines. It retrieves governed, tax-ready data from TDC via the B9A Gateway, translates it into the format required by the target engine, and delivers it. TTT abstracts all engine-specific knowledge from DCT — TDC and Roger have no awareness of GoSystem, CCH, OIT, or any other return engine.
@@ -1037,15 +1037,15 @@ export default function GoSystemTax() {
           <div style={{ fontSize: "12px", fontWeight: 700, color: "#991b1b", marginBottom: "4px" }}>Architecture Boundary — Important for BAs</div>
           <div style={{ fontSize: "13px", color: "#7f1d1d", lineHeight: "1.6" }}>
             When documenting requirements, do not write stories that assume a direct TDC → GoSystem connection.
-            All return engine integration is owned by TTT. If a business need involves delivering data to GoSystem, CCH, or OIT,
-            the requirement belongs to the TTT engine layer — not to DCT, TDC, or B28.
+            All return engine integration is owned by IMS. If a business need involves delivering data to GoSystem, CCH, or OIT,
+            the requirement belongs to the IMS layer — not to DCT, TDC, or B28.
           </div>
         </div>
       </div>
 
       {/* Responsibilities */}
       <div style={{ marginBottom: "28px" }}>
-        <div style={{ fontSize: "14px", fontWeight: 700, color: NAVY, marginBottom: "14px" }}>TTT Engine Responsibilities</div>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: NAVY, marginBottom: "14px" }}>IMS Integration Responsibilities</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "10px" }}>
           {RESPONSIBILITIES.map(r => (
             <div key={r.title} style={{
@@ -1093,7 +1093,7 @@ export default function GoSystemTax() {
 
       {/* APIs */}
       <div style={{ marginBottom: "28px" }}>
-        <div style={{ fontSize: "14px", fontWeight: 700, color: NAVY, marginBottom: "14px" }}>TTT Engine APIs</div>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: NAVY, marginBottom: "14px" }}>IMS Integration APIs</div>
         <div style={{ backgroundColor: "white", border: `1px solid ${BORDER}`, borderRadius: "10px", overflow: "hidden" }}>
           {APIS.map((api, i) => (
             <div key={api.path} style={{
