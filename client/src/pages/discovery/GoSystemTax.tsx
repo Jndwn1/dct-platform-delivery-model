@@ -962,6 +962,52 @@ export default function GoSystemTax() {
         </div>
       </div>
 
+      {/* ── DCT Data Preparation Rules ── */}
+      <div style={{ marginBottom: "28px" }}>
+        <SectionHeading
+          label="DCT Aggregates and Groups Data Before Sending to TTT"
+          sub="Before transmission, DCT applies four data preparation rules that shape how Roger sign-off data is structured for IMS and TTT."
+        />
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "16px",
+        }}>
+          {[
+            {
+              title: "Aggregated Amounts",
+              body: "Amounts presented as a combined value for sign-off in Roger are sent to IMS as a single amount — no line-level breakdown is transmitted.",
+              accent: BLUE,
+            },
+            {
+              title: "Repeating Amounts",
+              body: "Related amounts signed off separately in Roger are sent to IMS as a set of repeating values, each with a unique description identifying the item.",
+              accent: BLUE,
+            },
+            {
+              title: "Grouped Presentation",
+              body: "DCT presents repeating amounts and activities as grouped data, bundling related items together before transmission rather than sending isolated records.",
+              accent: BLUE,
+            },
+            {
+              title: "Uniqueness Rule",
+              body: "Repeating amounts share the same tax treatment but are reported with unique descriptions. All descriptions within a repeating set must be unique — duplicates are treated as a data quality error.",
+              accent: "#dc2626",
+            },
+          ].map(card => (
+            <div key={card.title} style={{
+              backgroundColor: "white",
+              border: `1px solid ${BORDER}`,
+              borderTop: `3px solid ${card.accent}`,
+              borderRadius: "8px",
+              padding: "16px 18px",
+            }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623", marginBottom: "10px" }}>{card.title}</div>
+              <div style={{ fontSize: "12px", color: "#334155", lineHeight: "1.65" }}>{card.body}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Role in DCT */}
       <div style={{
         backgroundColor: PURPLE, borderRadius: "10px", padding: "16px 20px",

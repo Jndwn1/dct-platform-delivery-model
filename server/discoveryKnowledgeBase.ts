@@ -605,6 +605,10 @@ Roger does NOT save data directly. When a practitioner performs an action in Rog
       "What is the difference between SUMMARY and DETAIL grain?",
       "What form does the MVP support?",
       "What is a Single Activity with Repeating Amounts?",
+      "How does DCT prepare data before sending to TTT?",
+      "What is the Uniqueness Rule for repeating amounts?",
+      "What is Grouped Presentation in DCT?",
+      "What happens if duplicate descriptions exist in a repeating set?",
     ],
     context: `
 ## IMS — Integration & Management System
@@ -648,6 +652,18 @@ TTT (Tax Translation Technology) supports four distinct data value types coverin
 | **Single Activity + Repeating Amounts** | A named activity container holding repeating line arrays | Rental Operations: Storage $6,000; Packaging $2,500 | DETAIL |
 
 **Grain Rule:** The SUMMARY vs. DETAIL assignment per form line is governed by TDC (the Approved Grain Model) — not by IMS. IMS receives the grain as declared and maps it accordingly. IMS never decides or overrides grain.
+
+### DCT Data Preparation Rules (Before Sending to TTT)
+Before transmission, DCT applies four data preparation rules that shape how Roger sign-off data is structured for IMS and TTT:
+
+| Rule | Description |
+|---|---|
+| **Aggregated Amounts** | Amounts presented as a combined value for sign-off in Roger are sent to IMS as a single amount — no line-level breakdown is transmitted. |
+| **Repeating Amounts** | Related amounts signed off separately in Roger are sent to IMS as a set of repeating values, each with a unique description identifying the item. |
+| **Grouped Presentation** | DCT presents repeating amounts and activities as grouped data, bundling related items together before transmission rather than sending isolated records. |
+| **Uniqueness Rule** | Repeating amounts share the same tax treatment but are reported with unique descriptions. All descriptions within a repeating set must be unique — duplicates are treated as a data quality error. |
+
+**Key Governance Point:** The Uniqueness Rule is enforced as a data quality constraint. If duplicate descriptions exist within a repeating set, the record is rejected as a data quality error before transmission to TTT/IMS.
 
 ### Out of Scope for IMS MVP
 The following are explicitly out of scope for the MVP:
