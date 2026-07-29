@@ -609,6 +609,9 @@ Roger does NOT save data directly. When a practitioner performs an action in Rog
       "What is the Uniqueness Rule for repeating amounts?",
       "What is Grouped Presentation in DCT?",
       "What happens if duplicate descriptions exist in a repeating set?",
+      "What is OIT and how does it relate to TTT?",
+      "What return engines does TTT support?",
+      "What is the difference between GoSystem, CCH Axcess, and OIT?",
     ],
     context: `
 ## TTT — Tax Translation & Transmission Engine
@@ -645,6 +648,27 @@ DCT does not integrate directly with GoSystem, CCH, OIT, or any other return eng
 | **Full Audit Trail** | All update operations are logged with a timestamp, source (DCT), and matched/added/preserved status for full audit trail support. |
 
 **Governance Note:** The Preserve rule is deliberate — TTT's write-forward design ensures GoSystem data integrity is maintained across all transmission events. TTT never deletes or zeroes out records it did not create.
+
+### Supported Return Engines
+| Engine | Vendor | Status | Notes |
+|---|---|---|---|
+| GoSystem Tax RS | RSM / Thomson Reuters | MVP | Primary target; Federal Form 1120 |
+| OIT (ONESOURCE Income Tax) | Thomson Reuters | Planned | Enterprise corporate tax compliance engine |
+| CCH Axcess Tax | Wolters Kluwer | Planned | Cloud-based tax compliance platform |
+| Future Engines | TBD | Extensible | Architecture is engine-agnostic |
+
+#### OIT — ONESOURCE Income Tax (Detailed Definition)
+ONESOURCE Income Tax (OIT) is Thomson Reuters' enterprise corporate income tax compliance and provision software. Within the DCT platform architecture, OIT is a supported tax engine that receives governed tax data through the TTT Integration Layer to generate corporate tax returns and related tax outputs. OIT is a **planned integration target** and is architected alongside GoSystem, CCH Axcess, and future tax engines to enable a tax-engine-agnostic platform.
+
+**Purpose in DCT:**
+- Serves as a downstream tax preparation and compliance engine
+- Receives standardized tax data from the TTT Integration Layer
+- Generates corporate income tax returns and related tax deliverables
+- Supports DCT's strategy of separating tax data management from tax return generation
+
+**Key Characteristics:** Vendor: Thomson Reuters | Product: ONESOURCE Income Tax | Role: Enterprise corporate tax compliance and provision engine | Integration: Connected through the TTT Integration Layer | Status: Planned (future integration)
+
+**Related Concepts:** TTT Integration Layer, GoSystem Tax RS, CCH Axcess Tax, Tax Engine, Return Generation, Rollforward, IRS Line Translation, TDC
 
 ### MVP Supported Data Types (Federal Form 1120 — U.S. Income Tax Return for Corporations)
 The MVP delivers end-to-end translation and transmission for **Federal Form 1120** only.
@@ -715,6 +739,9 @@ The following are explicitly out of scope for the MVP:
       "What is Schema Lock?",
       "What is Lineage Closure?",
       "What is an Invariant?",
+      "What is OIT?",
+      "What is ONESOURCE Income Tax?",
+      "What return engines does DCT support?",
     ],
     context: `
 ## DCT Platform Glossary
@@ -748,6 +775,34 @@ The following are explicitly out of scope for the MVP:
 - **EligibilityRecord** — TDC object representing a client's eligibility status for tax filing
 - **NormalizedRecord** — PDC object representing a financial record after Cross-LOB normalization
 - **IngestionJob** — PDC object tracking the status of a file ingestion pipeline run
+
+### Return Engine Definitions
+
+#### OIT — ONESOURCE Income Tax
+ONESOURCE Income Tax (OIT) is Thomson Reuters' enterprise corporate income tax compliance and provision software. Within the DCT platform architecture, OIT is a supported tax engine that receives governed tax data through the TTT Integration Layer to generate corporate tax returns and related tax outputs. OIT is a **planned integration target** and is architected alongside GoSystem, CCH Axcess, and future tax engines to enable a tax-engine-agnostic platform.
+
+**Purpose in DCT:**
+- Serves as a downstream tax preparation and compliance engine
+- Receives standardized tax data from the TTT Integration Layer
+- Generates corporate income tax returns and related tax deliverables
+- Supports DCT's strategy of separating tax data management from tax return generation
+
+**Key Characteristics:**
+| Field | Value |
+|---|---|
+| Vendor | Thomson Reuters |
+| Product | ONESOURCE Income Tax |
+| Role | Enterprise corporate tax compliance and provision engine |
+| Integration | Connected through the TTT Integration Layer |
+| Status | Planned (future integration) |
+
+**Related Concepts:** TTT Integration Layer, GoSystem Tax RS, CCH Axcess Tax, Tax Engine, Return Generation, Rollforward, IRS Line Translation, TDC (Tax Data Consolidation)
+
+#### GoSystem Tax RS
+RSM's primary tax return preparation system. GoSystem is the **MVP integration target** for the TTT Engine (Federal Form 1120 — U.S. Income Tax Return for Corporations). DCT does not connect directly to GoSystem — all routing and translation is handled by TTT.
+
+#### CCH Axcess Tax
+Wolters Kluwer's cloud-based tax compliance platform. CCH Axcess is a **planned integration target** for the TTT Engine, architected alongside GoSystem and OIT to support a tax-engine-agnostic delivery model.
 `,
   },
 
