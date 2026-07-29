@@ -756,7 +756,9 @@ export default function GoSystemTax() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* SECTION 7b — ARCHITECTURE SPECIFICATION (expandable)                  */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      <ArchitectureSpec />
+      <div id="arch-spec-section">
+        <ArchitectureSpec />
+      </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* DIVIDER — existing technical reference below                           */}
@@ -857,10 +859,10 @@ export default function GoSystemTax() {
         <div style={{ backgroundColor: "white", border: `1px solid ${BORDER}`, borderRadius: "10px", overflow: "hidden" }}>
           {/* Table header */}
           <div style={{
-            display: "grid", gridTemplateColumns: "200px 1fr 1fr",
+            display: "grid", gridTemplateColumns: "200px 1fr 1fr 110px",
             backgroundColor: "#0f1623", padding: "10px 16px", gap: "12px",
           }}>
-            {["Data Type", "Description", "Example"].map(h => (
+            {["Data Type", "Description", "Example", "Grain"].map(h => (
               <div key={h} style={{ fontSize: "11px", fontWeight: 700, color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</div>
             ))}
           </div>
@@ -869,25 +871,41 @@ export default function GoSystemTax() {
               type: "Single Amount",
               desc: "A scalar value with no sub-items; represents an aggregated or standalone line",
               example: "Line 1: Gross receipts = $500,000",
+              grain: "SUMMARY",
+              grainColor: "#065f46",
+              grainBg: "#f0fdf4",
+              grainBorder: "#bbf7d0",
             },
             {
               type: "Repeating Amounts",
               desc: "An array of items sharing the same tax treatment, each with a unique description",
               example: "Other Income: Grain Sales $10,000; Feed Sales $20,000",
+              grain: "DETAIL",
+              grainColor: "#1e40af",
+              grainBg: "#eff6ff",
+              grainBorder: "#bfdbfe",
             },
             {
               type: "Single Activity + Single Amounts",
               desc: "A named activity container holding scalar line values",
               example: "Rental Operations: Gross Rent $200,000",
+              grain: "SUMMARY",
+              grainColor: "#065f46",
+              grainBg: "#f0fdf4",
+              grainBorder: "#bbf7d0",
             },
             {
               type: "Single Activity + Repeating Amounts",
               desc: "A named activity container holding repeating line arrays",
               example: "Rental Operations: Storage $6,000; Packaging $2,500",
+              grain: "DETAIL",
+              grainColor: "#1e40af",
+              grainBg: "#eff6ff",
+              grainBorder: "#bfdbfe",
             },
           ].map((row, i) => (
             <div key={row.type} style={{
-              display: "grid", gridTemplateColumns: "200px 1fr 1fr",
+              display: "grid", gridTemplateColumns: "200px 1fr 1fr 110px",
               padding: "12px 16px", gap: "12px",
               borderBottom: i < 3 ? `1px solid #f1f5f9` : "none",
               backgroundColor: i % 2 === 0 ? "white" : "#f8fafc",
@@ -896,8 +914,51 @@ export default function GoSystemTax() {
               <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623" }}>{row.type}</div>
               <div style={{ fontSize: "12px", color: "#334155", lineHeight: "1.5" }}>{row.desc}</div>
               <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{row.example}</div>
+              <div>
+                <span style={{
+                  fontSize: "10px", fontWeight: 700,
+                  backgroundColor: row.grainBg,
+                  color: row.grainColor,
+                  border: `1px solid ${row.grainBorder}`,
+                  borderRadius: "4px", padding: "2px 7px",
+                  letterSpacing: "0.05em",
+                }}>{row.grain}</span>
+              </div>
             </div>
           ))}
+        </div>
+
+        {/* Approved Grain Model callout */}
+        <div style={{
+          marginTop: "10px",
+          backgroundColor: "#f0f4ff", border: `1px solid ${BLUE}`,
+          borderRadius: "8px", padding: "12px 16px",
+          display: "flex", alignItems: "flex-start", gap: "10px",
+        }}>
+          <span style={{ fontSize: "14px", flexShrink: 0 }}>🔗</span>
+          <div style={{ fontSize: "12px", color: "#1e3a5f", lineHeight: "1.6" }}>
+            <strong>Grain is governed by the Approved Grain Model — not by IMS.</strong>{" "}
+            The SUMMARY vs. DETAIL assignment per form line is set inside TDC before data reaches IMS.
+            IMS receives the grain as declared and maps it accordingly — it never decides or overrides grain.{" "}
+            <button
+              onClick={() => {
+                const el = document.getElementById("arch-spec-section");
+                if (el) {
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  // Expand the spec if it has a toggle button
+                  const btn = el.querySelector<HTMLButtonElement>("button");
+                  if (btn) btn.click();
+                }
+              }}
+              style={{
+                background: "none", border: "none", padding: 0,
+                color: BLUE, fontWeight: 700, fontSize: "12px",
+                cursor: "pointer", textDecoration: "underline",
+              }}
+            >
+              Open Architecture Specification → Approved Grain Model
+            </button>
+          </div>
         </div>
       </div>
 

@@ -600,6 +600,11 @@ Roger does NOT save data directly. When a practitioner performs an action in Rog
       "Does DCT connect directly to GoSystem?",
       "What return engines does IMS support?",
       "What is the IMS architecture boundary?",
+      "What data types does IMS support for MVP?",
+      "What is out of scope for the IMS MVP?",
+      "What is the difference between SUMMARY and DETAIL grain?",
+      "What form does the MVP support?",
+      "What is a Single Activity with Repeating Amounts?",
     ],
     context: `
 ## IMS — Integration & Management System
@@ -627,6 +632,31 @@ DCT does not integrate directly with GoSystem, CCH, OIT, or any other return eng
 4. IMS translates the payload into the engine-specific format
 5. IMS delivers the translated payload to the return engine (GoSystem, CCH, OIT, etc.)
 6. The return engine confirms receipt — IMS tracks delivery status
+
+### MVP Supported Data Types (Federal Form 1120 — U.S. Income Tax Return for Corporations)
+The MVP delivers end-to-end translation and transmission for **Federal Form 1120** only.
+Source: Roger (DCT sign-off data — structured tax return amounts collected and approved within the Roger workflow).
+Target: GoSystem (GoS) — the MVP performs a **full data update** to GoSystem for supported lines, not a partial update.
+
+TTT (Tax Translation Technology) supports four distinct data value types covering all tax line structures:
+
+| Data Type | Description | Example | Grain |
+|---|---|---|---|
+| **Single Amount** | A scalar value with no sub-items; represents an aggregated or standalone line | Line 1: Gross receipts = $500,000 | SUMMARY |
+| **Repeating Amounts** | An array of items sharing the same tax treatment, each with a unique description | Other Income: Grain Sales $10,000; Feed Sales $20,000 | DETAIL |
+| **Single Activity + Single Amounts** | A named activity container holding scalar line values | Rental Operations: Gross Rent $200,000 | SUMMARY |
+| **Single Activity + Repeating Amounts** | A named activity container holding repeating line arrays | Rental Operations: Storage $6,000; Packaging $2,500 | DETAIL |
+
+**Grain Rule:** The SUMMARY vs. DETAIL assignment per form line is governed by TDC (the Approved Grain Model) — not by IMS. IMS receives the grain as declared and maps it accordingly. IMS never decides or overrides grain.
+
+### Out of Scope for IMS MVP
+The following are explicitly out of scope for the MVP:
+- Matching of repeating items (stretch goal — may be considered post-MVP)
+- Multi-activity nesting beyond one level
+- Deletion of GoSystem records
+- Partial sign-off workflows
+- Partial data updates to GoSystem
+- Non-1120 form types
 
 ### Governance Rules
 - DCT does NOT integrate directly with any return engine
