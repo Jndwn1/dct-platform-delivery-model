@@ -284,6 +284,286 @@ function ArchitectureSpec() {
   );
 }
 
+// ─── MVP Sample Payload Panel ───────────────────────────────────────────────
+function MvpPayloadPanel() {
+  const [activeTab, setActiveTab] = useState<"single" | "repeating" | "activity_single" | "activity_repeating" | "roadmap">("single");
+  const [showJson, setShowJson] = useState(false);
+
+  const tabs: { key: typeof activeTab; label: string }[] = [
+    { key: "single",             label: "Single Amount" },
+    { key: "repeating",          label: "Repeating Amounts" },
+    { key: "activity_single",    label: "Activity + Single" },
+    { key: "activity_repeating", label: "Activity + Repeating" },
+    { key: "roadmap",            label: "Phase Roadmap" },
+  ];
+
+  const payloads: Record<string, { description: string; grain: string; fields: { name: string; type: string; required: boolean; description: string; example: string }[]; json: string }> = {
+    single: {
+      description: "A scalar value with no sub-items. Represents an aggregated or standalone line. IMS overwrites the GoSystem value with the DCT value — no description-based matching required.",
+      grain: "SUMMARY",
+      fields: [
+        { name: "clientId",    type: "string",  required: true,  description: "Unique client identifier from DCT",                  example: "RSM-001234" },
+        { name: "taxYear",     type: "integer", required: true,  description: "Tax year for the filing",                            example: "2024" },
+        { name: "formType",    type: "string",  required: true,  description: "Tax form type — MVP supports 1120 only",             example: "1120" },
+        { name: "lineCode",    type: "string",  required: true,  description: "IRS line code from the form definition file",        example: "L1a" },
+        { name: "lineLabel",   type: "string",  required: true,  description: "Human-readable line label",                         example: "Gross receipts or sales" },
+        { name: "amount",      type: "decimal", required: true,  description: "Aggregated dollar amount approved in Roger sign-off", example: "500000.00" },
+        { name: "grain",       type: "string",  required: true,  description: "Grain type — SUMMARY or DETAIL",                   example: "SUMMARY" },
+        { name: "sourceSystem",type: "string",  required: true,  description: "Always DCT for IMS-originated payloads",            example: "DCT" },
+        { name: "signOffId",   type: "string",  required: true,  description: "Roger sign-off event ID for audit trail",           example: "SO-20240315-001" },
+        { name: "timestamp",   type: "datetime",required: true,  description: "UTC timestamp of sign-off approval",               example: "2024-03-15T14:32:00Z" },
+      ],
+      json: JSON.stringify({
+        clientId: "RSM-001234", taxYear: 2024, formType: "1120",
+        lineCode: "L1a", lineLabel: "Gross receipts or sales",
+        amount: 500000.00, grain: "SUMMARY",
+        sourceSystem: "DCT", signOffId: "SO-20240315-001",
+        timestamp: "2024-03-15T14:32:00Z",
+      }, null, 2),
+    },
+    repeating: {
+      description: "An array of items sharing the same tax treatment, each with a unique description. All descriptions within the set must be unique — duplicates are treated as a data quality error.",
+      grain: "DETAIL",
+      fields: [
+        { name: "clientId",    type: "string",  required: true,  description: "Unique client identifier from DCT",                  example: "RSM-001234" },
+        { name: "taxYear",     type: "integer", required: true,  description: "Tax year for the filing",                            example: "2024" },
+        { name: "formType",    type: "string",  required: true,  description: "Tax form type — MVP supports 1120 only",             example: "1120" },
+        { name: "lineCode",    type: "string",  required: true,  description: "IRS line code from the form definition file",        example: "L8" },
+        { name: "lineLabel",   type: "string",  required: true,  description: "Human-readable line label",                         example: "Other income" },
+        { name: "grain",       type: "string",  required: true,  description: "Grain type — DETAIL for repeating amounts",         example: "DETAIL" },
+        { name: "items",       type: "array",   required: true,  description: "Array of repeating items — descriptions must be unique", example: "See JSON sample" },
+        { name: "items[].description", type: "string",  required: true, description: "Unique description for this item within the set", example: "Grain Sales" },
+        { name: "items[].amount",      type: "decimal", required: true, description: "Dollar amount for this item",                    example: "10000.00" },
+        { name: "sourceSystem",type: "string",  required: true,  description: "Always DCT for IMS-originated payloads",            example: "DCT" },
+        { name: "signOffId",   type: "string",  required: true,  description: "Roger sign-off event ID for audit trail",           example: "SO-20240315-002" },
+        { name: "timestamp",   type: "datetime",required: true,  description: "UTC timestamp of sign-off approval",               example: "2024-03-15T14:35:00Z" },
+      ],
+      json: JSON.stringify({
+        clientId: "RSM-001234", taxYear: 2024, formType: "1120",
+        lineCode: "L8", lineLabel: "Other income", grain: "DETAIL",
+        items: [
+          { description: "Grain Sales", amount: 10000.00 },
+          { description: "Feed Sales",  amount: 20000.00 },
+          { description: "Equipment Rental", amount: 5000.00 },
+        ],
+        sourceSystem: "DCT", signOffId: "SO-20240315-002",
+        timestamp: "2024-03-15T14:35:00Z",
+      }, null, 2),
+    },
+    activity_single: {
+      description: "A named activity container holding scalar line values. The activity name groups the lines under a single business context — each line within the activity is a single amount.",
+      grain: "SUMMARY",
+      fields: [
+        { name: "clientId",        type: "string",  required: true,  description: "Unique client identifier from DCT",                  example: "RSM-001234" },
+        { name: "taxYear",         type: "integer", required: true,  description: "Tax year for the filing",                            example: "2024" },
+        { name: "formType",        type: "string",  required: true,  description: "Tax form type — MVP supports 1120 only",             example: "1120" },
+        { name: "activityName",    type: "string",  required: true,  description: "Named activity container (single-level only for MVP)", example: "Rental Operations" },
+        { name: "grain",           type: "string",  required: true,  description: "Grain type — SUMMARY for activity + single amounts",  example: "SUMMARY" },
+        { name: "lines",           type: "array",   required: true,  description: "Array of scalar line values within the activity",     example: "See JSON sample" },
+        { name: "lines[].lineCode",type: "string",  required: true,  description: "IRS line code",                                      example: "L2" },
+        { name: "lines[].amount",  type: "decimal", required: true,  description: "Dollar amount for this line",                        example: "200000.00" },
+        { name: "sourceSystem",    type: "string",  required: true,  description: "Always DCT",                                         example: "DCT" },
+        { name: "signOffId",       type: "string",  required: true,  description: "Roger sign-off event ID",                            example: "SO-20240315-003" },
+        { name: "timestamp",       type: "datetime",required: true,  description: "UTC timestamp",                                      example: "2024-03-15T14:40:00Z" },
+      ],
+      json: JSON.stringify({
+        clientId: "RSM-001234", taxYear: 2024, formType: "1120",
+        activityName: "Rental Operations", grain: "SUMMARY",
+        lines: [
+          { lineCode: "L2",  lineLabel: "Gross rents",        amount: 200000.00 },
+          { lineCode: "L3",  lineLabel: "Gross royalties",    amount: 15000.00 },
+          { lineCode: "L26", lineLabel: "Total deductions",   amount: 85000.00 },
+        ],
+        sourceSystem: "DCT", signOffId: "SO-20240315-003",
+        timestamp: "2024-03-15T14:40:00Z",
+      }, null, 2),
+    },
+    activity_repeating: {
+      description: "A named activity container holding repeating line arrays. The activity groups related repeating items — each item within the activity must have a unique description.",
+      grain: "DETAIL",
+      fields: [
+        { name: "clientId",                  type: "string",  required: true,  description: "Unique client identifier from DCT",                       example: "RSM-001234" },
+        { name: "taxYear",                   type: "integer", required: true,  description: "Tax year for the filing",                                 example: "2024" },
+        { name: "formType",                  type: "string",  required: true,  description: "Tax form type — MVP supports 1120 only",                  example: "1120" },
+        { name: "activityName",              type: "string",  required: true,  description: "Named activity container (single-level only for MVP)",    example: "Rental Operations" },
+        { name: "grain",                     type: "string",  required: true,  description: "Grain type — DETAIL for activity + repeating amounts",    example: "DETAIL" },
+        { name: "lines",                     type: "array",   required: true,  description: "Array of repeating line groups within the activity",      example: "See JSON sample" },
+        { name: "lines[].lineCode",          type: "string",  required: true,  description: "IRS line code",                                           example: "L5" },
+        { name: "lines[].items",             type: "array",   required: true,  description: "Repeating items — descriptions must be unique within set", example: "See JSON sample" },
+        { name: "lines[].items[].description",type:"string", required: true,  description: "Unique description for this repeating item",              example: "Storage" },
+        { name: "lines[].items[].amount",    type: "decimal", required: true,  description: "Dollar amount",                                           example: "6000.00" },
+        { name: "sourceSystem",              type: "string",  required: true,  description: "Always DCT",                                              example: "DCT" },
+        { name: "signOffId",                 type: "string",  required: true,  description: "Roger sign-off event ID",                                 example: "SO-20240315-004" },
+        { name: "timestamp",                 type: "datetime",required: true,  description: "UTC timestamp",                                           example: "2024-03-15T14:45:00Z" },
+      ],
+      json: JSON.stringify({
+        clientId: "RSM-001234", taxYear: 2024, formType: "1120",
+        activityName: "Rental Operations", grain: "DETAIL",
+        lines: [{
+          lineCode: "L5", lineLabel: "Other income",
+          items: [
+            { description: "Storage",   amount: 6000.00 },
+            { description: "Packaging", amount: 2500.00 },
+            { description: "Equipment", amount: 1200.00 },
+          ],
+        }],
+        sourceSystem: "DCT", signOffId: "SO-20240315-004",
+        timestamp: "2024-03-15T14:45:00Z",
+      }, null, 2),
+    },
+    roadmap: {
+      description: "", grain: "", fields: [], json: "",
+    },
+  };
+
+  const current = payloads[activeTab];
+
+  const phaseRoadmap = [
+    { phase: "MVP",     active: true,  scope: "Federal 1120, repeating data, single-level activities, Roger → GoS" },
+    { phase: "Phase 2", active: false, scope: "Additional federal forms (1120, 1065, 990), exact description matching, multi-level activity nesting" },
+    { phase: "Phase 3", active: false, scope: "Fuzzy/approximate description matching, conflict resolution workflows" },
+    { phase: "Phase 4", active: false, scope: "Additional downstream consumers beyond GoSystem" },
+    { phase: "Phase 5", active: false, scope: "State form support, multi-jurisdiction transmission" },
+  ];
+
+  return (
+    <div style={{ marginBottom: "28px" }}>
+      <SectionHeading
+        label="MVP Sample Payload — Design Reference"
+        sub="Representative payload schema for Federal Form 1120 (MVP scope only). This is a pre-build design artifact — not a live contract. Scoped to the 4 supported data types: Single Amount, Repeating Amounts, Single Activity + Single Amounts, Single Activity + Repeating Amounts."
+      />
+
+      {/* MVP-only amber banner */}
+      <div style={{
+        backgroundColor: "#fffbeb", border: "1px solid #fde68a",
+        borderRadius: "8px", padding: "10px 16px", marginBottom: "16px",
+        display: "flex", alignItems: "flex-start", gap: "10px",
+      }}>
+        <div style={{ fontSize: "14px", color: "#d97706", flexShrink: 0, marginTop: "1px" }}>⚠</div>
+        <div style={{ fontSize: "12px", color: "#92400e", lineHeight: "1.6" }}>
+          <strong>MVP Scope Only — Federal Form 1120.</strong> This payload schema covers only the 4 data types supported in the MVP. Multi-level activity nesting, additional form types, fuzzy matching, and state forms are out of scope for MVP. See the Phase Roadmap tab for future scope.
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{ display: "flex", gap: "6px", marginBottom: "16px", flexWrap: "wrap" }}>
+        {tabs.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            style={{
+              fontSize: "12px", fontWeight: 600, padding: "6px 14px",
+              borderRadius: "6px", cursor: "pointer", border: "none",
+              backgroundColor: activeTab === t.key ? BLUE : "#f1f5f9",
+              color: activeTab === t.key ? "white" : "#475569",
+              transition: "all 0.15s",
+            }}
+          >{t.label}</button>
+        ))}
+      </div>
+
+      {/* Phase Roadmap tab */}
+      {activeTab === "roadmap" ? (
+        <div style={{ backgroundColor: "white", border: `1px solid ${BORDER}`, borderRadius: "10px", padding: "20px 24px" }}>
+          <div style={{ fontSize: "13px", fontWeight: 700, color: NAVY, marginBottom: "16px" }}>IMS Phase Roadmap — Core Engine → Extended Coverage</div>
+          <div style={{ fontSize: "12px", color: SLATE, marginBottom: "20px" }}>
+            The MVP establishes the core engine. Future phases extend form coverage and matching sophistication. The MVP's form-agnostic JSON envelope and modular matching engine are designed to minimize rework — each new form type requires only a form-specific line definition file.
+          </div>
+          {/* Timeline */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0", overflowX: "auto", paddingBottom: "8px" }}>
+            {phaseRoadmap.map((p, i) => (
+              <div key={p.phase} style={{ display: "flex", alignItems: "flex-start", flex: 1, minWidth: "140px" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+                  <div style={{ fontSize: "12px", fontWeight: 800, color: p.active ? BLUE : NAVY, marginBottom: "10px" }}>{p.phase}</div>
+                  <div style={{
+                    width: "16px", height: "16px", borderRadius: "50%", flexShrink: 0,
+                    backgroundColor: p.active ? BLUE : "#334155",
+                    border: p.active ? `3px solid #bfdbfe` : "none",
+                    zIndex: 1,
+                  }} />
+                  <div style={{ fontSize: "11px", color: "#475569", lineHeight: "1.5", marginTop: "10px", textAlign: "center", padding: "0 6px" }}>{p.scope}</div>
+                </div>
+                {i < phaseRoadmap.length - 1 && (
+                  <div style={{ height: "1px", backgroundColor: "#cbd5e1", flex: "0 0 20px", marginTop: "28px" }} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: "16px", padding: "10px 14px", backgroundColor: "#f0f9ff", borderRadius: "6px", border: "1px solid #bae6fd" }}>
+            <div style={{ fontSize: "11px", color: "#0369a1", lineHeight: "1.6" }}>
+              <strong>Architecture Note:</strong> The MVP's form-agnostic JSON envelope and modular matching engine are designed to minimize rework in subsequent phases. Each new form type requires only a form-specific line definition file — the core translation and transmission pipeline remains unchanged.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ backgroundColor: "white", border: `1px solid ${BORDER}`, borderRadius: "10px", overflow: "hidden" }}>
+          {/* Header */}
+          <div style={{ padding: "14px 20px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+            <div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: NAVY }}>{tabs.find(t => t.key === activeTab)?.label}</div>
+              <div style={{ fontSize: "11px", color: SLATE, marginTop: "2px" }}>{current.description}</div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{
+                fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "4px",
+                backgroundColor: current.grain === "SUMMARY" ? "#dbeafe" : "#dcfce7",
+                color: current.grain === "SUMMARY" ? "#1d4ed8" : "#166534",
+              }}>Grain: {current.grain}</span>
+              <button
+                onClick={() => setShowJson(j => !j)}
+                style={{
+                  fontSize: "11px", fontWeight: 600, padding: "4px 12px",
+                  borderRadius: "5px", cursor: "pointer",
+                  border: `1px solid ${BLUE}`, backgroundColor: showJson ? BLUE : "transparent",
+                  color: showJson ? "white" : BLUE,
+                }}
+              >{showJson ? "Show Field Table" : "Show JSON Sample"}</button>
+            </div>
+          </div>
+
+          {/* Field table */}
+          {!showJson ? (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                <thead>
+                  <tr style={{ backgroundColor: "#f8fafc" }}>
+                    {["Field", "Type", "Req", "Description", "Example"].map(h => (
+                      <th key={h} style={{ padding: "8px 12px", textAlign: "left", fontWeight: 700, color: NAVY, borderBottom: `1px solid ${BORDER}`, whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {current.fields.map((f, i) => (
+                    <tr key={f.name} style={{ backgroundColor: i % 2 === 0 ? "white" : "#f8fafc" }}>
+                      <td style={{ padding: "7px 12px", fontWeight: 600, color: "#1e3a5f", fontFamily: "monospace", whiteSpace: "nowrap" }}>{f.name}</td>
+                      <td style={{ padding: "7px 12px", color: "#7c3aed", fontFamily: "monospace", whiteSpace: "nowrap" }}>{f.type}</td>
+                      <td style={{ padding: "7px 12px", textAlign: "center" }}>
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: f.required ? "#059669" : "#94a3b8" }}>{f.required ? "✓" : "opt"}</span>
+                      </td>
+                      <td style={{ padding: "7px 12px", color: SLATE, lineHeight: "1.5" }}>{f.description}</td>
+                      <td style={{ padding: "7px 12px", color: "#334155", fontFamily: "monospace", fontSize: "11px" }}>{f.example}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={{ padding: "16px 20px" }}>
+              <pre style={{
+                backgroundColor: "#0f172a", color: "#e2e8f0",
+                borderRadius: "8px", padding: "16px 20px",
+                fontSize: "12px", lineHeight: "1.6",
+                overflowX: "auto", margin: 0,
+                fontFamily: "'Courier New', monospace",
+              }}>{current.json}</pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function GoSystemTax() {
   const [gapRows, setGapRows] = useState([
@@ -1007,6 +1287,9 @@ export default function GoSystemTax() {
           ))}
         </div>
       </div>
+
+      {/* ── MVP Sample Payload ── */}
+      <MvpPayloadPanel />
 
       {/* Role in DCT */}
       <div style={{

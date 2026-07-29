@@ -612,9 +612,14 @@ Roger does NOT save data directly. When a practitioner performs an action in Rog
       "What is OIT and how does it relate to IMS?",
       "What return engines does IMS support?",
       "What is the difference between GoSystem, CCH Axcess, and OIT?",
+      "What fields are in the IMS payload?",
+      "What does the MVP payload look like for a single amount?",
+      "What fields are required in the IMS outbound payload?",
+      "What is in scope for the IMS MVP?",
+      "What phases come after the IMS MVP?",
     ],
     context: `
-## IMS — Integration TTT — Tax Translation & Transmission Engine Management System
+## IMS — Integration & Management System
 
 ### What is IMS?
 IMS (Integration & Management System) is the **integration broker** between DCT/Roger and all downstream return engines.
@@ -648,6 +653,43 @@ DCT does not integrate directly with GoSystem, CCH, OIT, or any other return eng
 | **Full Audit Trail** | All update operations are logged with a timestamp, source (DCT), and matched/added/preserved status for full audit trail support. |
 
 **Governance Note:** The Preserve rule is deliberate — IMS's write-forward design ensures GoSystem data integrity is maintained across all transmission events. IMS never deletes or zeroes out records it did not create.
+
+### MVP Sample Payload — Design Reference (Pre-Build)
+This is a representative payload schema for Federal Form 1120 (MVP scope only). Not a live contract.
+
+**Scope:** Federal Form 1120 only. Source: Roger (DCT sign-off data). Target: GoSystem (GoS). Full data update — not a partial update.
+
+**Common Required Fields (all 4 data types):**
+| Field | Type | Description | Example |
+|---|---|---|---|
+| clientId | string | Unique client identifier from DCT | RSM-001234 |
+| taxYear | integer | Tax year for the filing | 2024 |
+| formType | string | MVP supports 1120 only | 1120 |
+| grain | string | SUMMARY or DETAIL | SUMMARY |
+| sourceSystem | string | Always DCT for IMS-originated payloads | DCT |
+| signOffId | string | Roger sign-off event ID for audit trail | SO-20240315-001 |
+| timestamp | datetime | UTC timestamp of sign-off approval | 2024-03-15T14:32:00Z |
+
+**Single Amount payload** (grain: SUMMARY): adds lineCode, lineLabel, amount fields. IMS overwrites GoSystem value — no description matching.
+
+**Repeating Amounts payload** (grain: DETAIL): adds lineCode, lineLabel, items[] array. items[].description must be unique within the set — duplicates are a data quality error.
+
+**Single Activity + Single Amounts payload** (grain: SUMMARY): adds activityName (single-level only for MVP), lines[] array with lineCode and amount per line.
+
+**Single Activity + Repeating Amounts payload** (grain: DETAIL): adds activityName, lines[] array where each line has its own items[] repeating array. All item descriptions must be unique within each line's set.
+
+**Out of scope for MVP:** Matching of repeating items (stretch), multi-level activity nesting, deletion of GoS records, partial sign-off workflows, partial data updates, non-1120 form types.
+
+### IMS Phase Roadmap
+| Phase | Scope |
+|---|---|
+| MVP | Federal 1120, repeating data, single-level activities, Roger → GoS |
+| Phase 2 | Additional federal forms (1120, 1065, 990), exact description matching, multi-level activity nesting |
+| Phase 3 | Fuzzy/approximate description matching, conflict resolution workflows |
+| Phase 4 | Additional downstream consumers beyond GoSystem |
+| Phase 5 | State form support, multi-jurisdiction transmission |
+
+Architecture note: The MVP's form-agnostic JSON envelope and modular matching engine minimize rework. Each new form type requires only a form-specific line definition file — the core translation and transmission pipeline remains unchanged.
 
 ### Supported Return Engines
 | Engine | Vendor | Status | Notes |
