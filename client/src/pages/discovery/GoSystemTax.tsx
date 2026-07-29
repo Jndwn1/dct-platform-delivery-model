@@ -779,6 +779,128 @@ export default function GoSystemTax() {
       {/* EXISTING CONTENT — PRESERVED UNCHANGED                                */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
 
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION — MVP SUPPORTED DATA TYPES                                      */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <div style={{ marginBottom: "28px" }}>
+        <SectionHeading
+          label="MVP Supported Data Types"
+          sub="The MVP delivers end-to-end translation and transmission for Federal Form 1120. TTT supports four distinct data value types covering all tax line structures."
+        />
+
+        {/* Core Parameters + Supported Types side-by-side */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+
+          {/* Core Parameters */}
+          <div style={{
+            backgroundColor: "white", border: `1px solid ${BORDER}`,
+            borderRadius: "10px", padding: "18px 20px",
+            borderTop: "3px solid #1e3a5f",
+          }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>Core Parameters</div>
+            {[
+              { label: "Source", value: "Roger (DCT sign-off data) — structured tax return amounts collected and approved within the Roger workflow" },
+              { label: "Target", value: "GoSystem (GoS) — the downstream tax compliance platform that receives and processes the transmitted data. The MVP performs a full data update to GoSystem for the supported lines, not a partial update" },
+              { label: "Form", value: "Federal Form 1120 — U.S. Income Tax Return for Corporations" },
+            ].map(item => (
+              <div key={item.label} style={{ marginBottom: "12px" }}>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623" }}>{item.label}: </span>
+                <span style={{ fontSize: "12px", color: "#334155", lineHeight: "1.6" }}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Supported Data Types list + Out of Scope */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div style={{
+              backgroundColor: "white", border: `1px solid ${BORDER}`,
+              borderRadius: "10px", padding: "18px 20px",
+              borderTop: "3px solid #059669",
+            }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Supported Data Types</div>
+              {[
+                "Single amounts",
+                "Repeating amounts with descriptions",
+                "Single activity with single amounts",
+                "Single activity with repeating amounts",
+              ].map(item => (
+                <div key={item} style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
+                  <span style={{ color: "#059669", fontSize: "12px", flexShrink: 0, marginTop: "2px" }}>✓</span>
+                  <div style={{ fontSize: "12px", color: "#1e293b" }}>{item}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{
+              backgroundColor: "#fef2f2", border: "1px solid #fecaca",
+              borderRadius: "10px", padding: "16px 18px",
+            }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Out of Scope for MVP</div>
+              {[
+                "Matching of repeating items (stretch goal)",
+                "Multi-activity nesting beyond one level",
+                "Deletion of GoS records",
+                "Partial sign-off workflows",
+                "Partial data updates to GoSystem",
+                "Non-1120 form types",
+              ].map(item => (
+                <div key={item} style={{ display: "flex", gap: "6px", marginBottom: "5px" }}>
+                  <span style={{ color: "#dc2626", fontSize: "12px", flexShrink: 0, marginTop: "2px" }}>✕</span>
+                  <div style={{ fontSize: "12px", color: "#7f1d1d" }}>{item}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Data Type Detail Table */}
+        <div style={{ backgroundColor: "white", border: `1px solid ${BORDER}`, borderRadius: "10px", overflow: "hidden" }}>
+          {/* Table header */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "200px 1fr 1fr",
+            backgroundColor: "#0f1623", padding: "10px 16px", gap: "12px",
+          }}>
+            {["Data Type", "Description", "Example"].map(h => (
+              <div key={h} style={{ fontSize: "11px", fontWeight: 700, color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</div>
+            ))}
+          </div>
+          {[
+            {
+              type: "Single Amount",
+              desc: "A scalar value with no sub-items; represents an aggregated or standalone line",
+              example: "Line 1: Gross receipts = $500,000",
+            },
+            {
+              type: "Repeating Amounts",
+              desc: "An array of items sharing the same tax treatment, each with a unique description",
+              example: "Other Income: Grain Sales $10,000; Feed Sales $20,000",
+            },
+            {
+              type: "Single Activity + Single Amounts",
+              desc: "A named activity container holding scalar line values",
+              example: "Rental Operations: Gross Rent $200,000",
+            },
+            {
+              type: "Single Activity + Repeating Amounts",
+              desc: "A named activity container holding repeating line arrays",
+              example: "Rental Operations: Storage $6,000; Packaging $2,500",
+            },
+          ].map((row, i) => (
+            <div key={row.type} style={{
+              display: "grid", gridTemplateColumns: "200px 1fr 1fr",
+              padding: "12px 16px", gap: "12px",
+              borderBottom: i < 3 ? `1px solid #f1f5f9` : "none",
+              backgroundColor: i % 2 === 0 ? "white" : "#f8fafc",
+              alignItems: "start",
+            }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623" }}>{row.type}</div>
+              <div style={{ fontSize: "12px", color: "#334155", lineHeight: "1.5" }}>{row.desc}</div>
+              <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{row.example}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Role in DCT */}
       <div style={{
         backgroundColor: PURPLE, borderRadius: "10px", padding: "16px 20px",
