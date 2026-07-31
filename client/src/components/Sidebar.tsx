@@ -138,6 +138,7 @@ const DISCOVERY_SERVICES_ITEMS: NavItem[] = [
   { label: "TDC / DCT Overview",         path: "/discovery/dct-overview",             icon: "T" },
   { label: "Roger Overview",             path: "/discovery/roger-overview",           icon: "R" },
   { label: "IMS Integration",            path: "/discovery/gosystem",                icon: "IMS" },
+  { label: "PY Inventory Discovery",      path: "/discovery/prior-year-inventory",    icon: "PY",  badge: "NEW", badgeColor: "#059669" },
   { label: "Data Gateway",               path: "/discovery/data-gateway",            icon: "🔀", badge: "NEW", badgeColor: "#0d7d84" },
 ];
 

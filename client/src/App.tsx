@@ -57,6 +57,7 @@ import PDCOverview from "./pages/discovery/PDCOverview";
 import DataGateway from "./pages/discovery/DataGateway";
 import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
 import PriorYearMigration from "./pages/discovery/PriorYearMigration";
+import PriorYearInventory from "./pages/discovery/PriorYearInventory";
 import DiscoveryWorkspace from "./pages/onboarding/DiscoveryWorkspace";
 import LearningCenter from "./pages/LearningCenter";
 import Step1Features from "./pages/onboarding/Step1Features";
@@ -167,6 +168,7 @@ function Router() {
           <Route path="/discovery/dct-overview" component={DCTOverview} />
           <Route path="/discovery/roger-overview" component={RogerOverview} />
            <Route path="/discovery/gosystem" component={IMSIntegration} />
+           <Route path="/discovery/prior-year-inventory" component={PriorYearInventory} />
            <Route path="/discovery/pdc" component={PDCOverview} />
           <Route path="/discovery/data-gateway" component={DataGateway} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />

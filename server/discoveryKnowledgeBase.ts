@@ -770,6 +770,75 @@ The following are explicitly out of scope for the MVP:
 `,
   },
 
+  // ── Prior Year Inventory Discovery ─────────────────────────────────────────
+  "/discovery/prior-year-inventory": {
+    pageTitle: "Prior Year (PY) Inventory Discovery",
+    pagePath: "/discovery/prior-year-inventory",
+    summary: "Authoritative discovery workspace for all Prior Year data required by DCT. Documents inventory fields, business rules, mapping matrix, open questions, and action items sourced from the PY Inventory spreadsheet, DUO Commit export, and A110 Tax Workbook.",
+    suggestedQuestions: [
+      "What is the Prior Year Inventory?",
+      "What is the source of truth for Prior Year data in DCT?",
+      "What are the four key Prior Year fields confirmed from the DUO Commit?",
+      "What is Business Rule BR-PY-001 about PY Tax Adjustment?",
+      "Where is the Prior Year Tax Balance calculated — Roger or TDC?",
+      "What data does the DUO Commit export contain?",
+      "What is the IMS Export API and how does it relate to Prior Year data?",
+      "What are the open questions for Prior Year discovery?",
+      "Who owns the Prior Year Inventory?",
+      "What is the difference between Prior Year Book Balance and Prior Year Tax Balance?",
+    ],
+    context: `
+## Prior Year (PY) Inventory Discovery
+
+### Purpose
+The Prior Year Inventory is the authoritative source of truth for all Prior Year data required by DCT. This discovery workspace validates inventory fields against source artifacts, defines canonical Prior Year data, documents business rules, and tracks open questions and action items.
+
+### Source Artifacts
+- **Source of Truth:** PY Inventory spreadsheet (twbPriorYearInventory_Revised_Table_IDs.xlsx)
+- **Supporting:** DUO Commit export (TrialBalanceEntities: 82 rows, JournalEntryEntities: 3 rows, DataTransferEntities: 11,012 rows, TWB Version: QA 2.11.31.1, TypeKey: A110)
+- **Supporting:** A110 Tax Workbook (worksheets: T-03.1 Trial Balance, T-35.2 Journal Entries)
+- **Supporting:** IMS Export APIs (XML-configurable, can retrieve PY CCH return data without DUO)
+
+### Confirmed Inventory Fields (from PY Inventory)
+| Inv. ID | Source Table | Worksheet | Source Field | Roger Destination | Status |
+|---------|-------------|-----------|-------------|-------------------|--------|
+| 460 | Tbl_TB | T-03.1 Trial Balance | amountEnding (amountEndingPY) | Prior Year Book Balance | Confirmed |
+| 482 | Tbl_FJE | T-35.2 Journal entries | CY Tax Adjustment | PY Tax Adjustment | Pending |
+| 328 | Tbl_FJE | T-35.2 Journal entries | glAccountName | Client Account Name | Confirmed |
+| 392 | Tbl_TB | T-03.1 Trial Balance | glAccountName | Client Account Name | Confirmed |
+| 391 | Tbl_TB | T-03.1 Trial Balance | glAccountNumber | GL Account Number | Confirmed |
+| 393 | Tbl_TB | T-03.1 Trial Balance | glAccountNumberRSM | RSM Account Number | Confirmed |
+| 394 | Tbl_TB | T-03.1 Trial Balance | glAccountNumberRSMnew | RSM Account Number (New) | Confirmed |
+| 395 | Tbl_TB | T-03.1 Trial Balance | glAccountNameRSM | RSM Account Name | Confirmed |
+| 396 | Tbl_TB | T-03.1 Trial Balance | glEntity | GL Entity | Confirmed |
+
+### Business Rules
+- **BR-PY-001 (PY Tax Adjustment — Approved by Gary Luca):** Store CY Tax Adjustment as PY Tax Adjustment. PY Tax Balance is NOT persisted — it is calculated each time PY values are read from the API. PY Tax Balance = PY Book Balance + Tax Adjustment per TDC Tax Taxonomy Code. Implementation location (Roger vs. TDC/API) TBD by Stephane and Santosh.
+- **BR-PY-002 (PY Book Balance — Confirmed):** PY Book Balance is migrated from the authoritative TWB Commit (amountEnding field from Tbl_TB). No additional calculation required.
+- **BR-PY-003 (Duplicate Field Separation — Complete):** Fields appearing in both Tbl_TB and Tbl_FJE (e.g., glAccountName) must be separated by source table. Inv. IDs 328 (FJE) and 392 (TB) represent the same logical field from different source tables.
+- **BR-PY-004 (IMS Export API — Confirmed):** IMS Export APIs can retrieve PY CCH return data without DUO. Returned data depends on XML configuration. Additional XML configurations can be created as needed.
+
+### Ownership
+- **DCT:** Owns the PY Inventory, canonical data model, mapping crosswalk, business rules, gap analysis, and API contract.
+- **Roger:** Owns Rule Code and Input Code combinations, UI requirements, and Roger business rules.
+- **IMS:** Owns Export APIs, XML configurations, sample payloads, and API documentation.
+
+### Open Questions
+1. What PY tax return data will DCT receive from IMS for CCH returns, and what business rules are required? (Owner: Jenniver/IMS, Status: In Progress)
+2. What is the complete list of non-Trial Balance fields in the DUO Commit requiring PY mapping? (Owner: Jenniver/Krista, Status: In Progress)
+3. Where will the PY Tax Balance calculation be performed — Roger or TDC/API? (Owner: Stephane/Santosh, Status: Pending — Gary Luca confirmed either will work)
+4. Should Group 1 and Group 2 migrate or be derived? (Owner: Jenniver/Gary, Status: Pending)
+5. What Rule Code and Input Code combinations does Roger require per PY field? (Owner: Roger Team/Krista, Status: Open)
+
+### Key Action Items
+- Define Roger PY requirements for IMS XML configuration (High, In Progress, Owner: Roger Team/Jenniver)
+- Continue mapping Trial Balance account fields (High, In Progress, Owner: Jenniver)
+- Identify non-Trial Balance fields requiring review (High, Not Started, Owner: Jenniver)
+- Obtain DUO Commit sample and complete mapping (High, In Progress, Owner: Jenniver)
+- Update PY Tax Adjustment documentation to reflect Gary's decision (High, Not Started, Owner: Jenniver)
+`,
+  },
+
   // ── Glossary ──────────────────────────────────────────────────────────────
   "/discovery/glossary": {
     pageTitle: "Glossary",
