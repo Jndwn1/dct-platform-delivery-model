@@ -3,7 +3,9 @@ import { useAuth, ALLOWLISTED_USERS } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const { signIn } = useAuth();
-  const [selectedId, setSelectedId] = useState(ALLOWLISTED_USERS[0].id);
+  const [selectedId, setSelectedId] = useState(
+    ALLOWLISTED_USERS.find(u => u.id === "jenniver-stafford")?.id ?? ALLOWLISTED_USERS[0].id
+  );
 
   const handleSignIn = () => {
     if (selectedId) signIn(selectedId);
