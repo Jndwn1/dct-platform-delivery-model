@@ -2,7 +2,7 @@
 // DCT Discovery Center — Authoritative Discovery Workspace
 // Source data: twbPriorYearInventory_Revised_Table_IDs.xlsx · A110 Tax Workbook · DUO Commit Export
 
-import { useState } from "react";
+import React, { useState } from "react";
 import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -161,6 +161,15 @@ const BUSINESS_RULES = [
     status: "Confirmed",
     implNotes: "Existing XML configurations are available. Additional configurations can be created based on Roger/DCT requirements. Roger must define required Prior Year fields to determine XML configuration scope.",
   },
+  {
+    id: "BR-PY-005",
+    title: "TDC Code Migration Logic — Legacy Trial Balance Code Translation",
+    description: "Logic must be performed on Prior Year Trial Balance data to migrate from legacy RSM account codes to new TDC Mapping Codes. Reference Document: Trial Balance Code Migration.xlsx (1,249 mapping rows).",
+    source: "Trial Balance Code Migration.xlsx",
+    owner: "DCT / Jenniver",
+    status: "In Progress",
+    implNotes: `Decision tree for TDC Code translation:\n\n1. Is glAccountNumberRSMnew populated in DUO data?\n   YES → Does glAccountNumberRSMnew contain exactly 4 levels?\n     YES → Translate glAccountNumberRSMnew → TDC Code directly.\n     NO (5-level nonstandard code) → Use only the first 4 levels; ignore the 5th level. Then translate to TDC Code.\n   NO → Is glAccountNumberRSM populated in DUO data?\n     YES → Translate glAccountNumberRSM → TDC Code.\n       If glAccountNumberRSM has no corresponding TDC Code → Skip (nonstandard code).\n     NO → Trial Balance data is not in DUO. Proceed with AI mapping rather than PY data.\n\n2. Once translated to TDC Code, layer in Tax Taxonomy metadata:\n   - Financial mapping\n   - Page\n   - Line No & Description\n   - Sub Group`,
+  },
 ];
 
 // ─── Open questions ───────────────────────────────────────────────────────────
@@ -250,6 +259,125 @@ const WORKSTREAMS = [
 ];
 
 // ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Reference Library ────────────────────────────────────────────────────────
+const REUSE_TABLE = [
+  { artifact: "TDC Mapping Migration Business Rules", applicable: "🟡 Partially", category: "Tax Code Migration", owner: "DCT", impact: "Medium", notes: "May help validate tax code translations for Trial Balance accounts." },
+  { artifact: "Trial Balance Code Migration.xlsx", applicable: "🟢 Yes", category: "Tax Code Migration", owner: "DCT / Jenniver", impact: "High", notes: "Useful for mapping legacy Trial Balance codes to TDC Mapping Codes. 1,249 mapping rows." },
+  { artifact: "Data Standardization, Aggregation, and Dataset Rules.docx", applicable: "🟡 Partially", category: "IMS / GoSystem", owner: "IMS", impact: "Medium", notes: "Relevant to IMS output, aggregation, and downstream formatting, but not Prior Year field discovery." },
+  { artifact: "GoSystem Business Rules Lists.xlsx", applicable: "🟡 Partially", category: "IMS / GoSystem", owner: "IMS", impact: "Medium", notes: "Useful for Form Line Codes and M-3 mappings (1,453 Form Line rows, 1,249 Standard Return rows, 1,276 M-3 rows) after Prior Year data has been identified." },
+];
+
+const WORKFLOW_STEPS = [
+  { label: "Prior Year Inventory", sub: "Source of Truth", color: NAVY, badge: "Source of Truth" },
+  { label: "DUO Commit File", sub: "82 TB rows · 3 JE rows", color: "#1e40af", badge: "" },
+  { label: "A110 Tax Workbook", sub: "TWB Tbl_TB · Tbl_FJE", color: "#1d4ed8", badge: "" },
+  { label: "IMS Export API", sub: "XML Config Required", color: "#2563eb", badge: "" },
+  { label: "Roger Rule Code Mapping", sub: "Rule Code + Input Code", color: "#3b82f6", badge: "" },
+];
+
+function ReferenceLibrarySection() {
+  const [filter, setFilter] = useState<{ applicable: string; category: string; impact: string }>({ applicable: "", category: "", impact: "" });
+  const [sortCol, setSortCol] = useState<string>("artifact");
+  const [sortAsc, setSortAsc] = useState(true);
+
+  const filtered = REUSE_TABLE
+    .filter(r =>
+      (!filter.applicable || r.applicable.includes(filter.applicable)) &&
+      (!filter.category || r.category === filter.category) &&
+      (!filter.impact || r.impact === filter.impact)
+    )
+    .sort((a, b) => {
+      const av = (a as Record<string, string>)[sortCol] ?? "";
+      const bv = (b as Record<string, string>)[sortCol] ?? "";
+      return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+
+  const thStyle: React.CSSProperties = { padding: "8px 12px", textAlign: "left", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#fff", background: NAVY, cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" };
+  const tdStyle: React.CSSProperties = { padding: "9px 12px", fontSize: 12, color: "#1e293b", borderBottom: "1px solid #f1f5f9", verticalAlign: "top" };
+
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <SectionHeader num="10" title="Reference Library" subtitle="Supporting documentation for Prior Year discovery — not a replacement for the PY Inventory" />
+      <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "14px 18px", marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, color: "#92400e", fontSize: 13, marginBottom: 6 }}>⚠️ Important — Authoritative Source of Truth</div>
+        <div style={{ fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>The <strong>Prior Year Inventory</strong> remains the authoritative source of truth. The reference documents below should only be used to validate, supplement, or clarify the inventory and should <strong>not replace documented Prior Year requirements</strong>.</div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderTop: `3px solid ${NAVY}`, borderRadius: 8, padding: "16px 18px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 8 }}>Tax Code Migration</div>
+          <div style={{ fontSize: 13, color: "#1e293b", marginBottom: 10, lineHeight: 1.6 }}>Reference documentation for understanding how legacy RSM account codes are translated into TDC Mapping Codes.</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: SLATE, marginBottom: 6 }}>Reference Artifacts</div>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#475569", lineHeight: 1.8 }}>
+            <li>Business Rules: <strong>TDC Mapping Migration</strong> (BR-PY-005)</li>
+            <li><strong>Trial Balance Code Migration.xlsx</strong> — 1,249 mapping rows</li>
+          </ul>
+          <div style={{ marginTop: 10, fontSize: 11, color: "#64748b", fontStyle: "italic" }}>Does not define Prior Year field requirements.</div>
+        </div>
+        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderTop: `3px solid ${GREEN}`, borderRadius: 8, padding: "16px 18px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: GREEN, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 8 }}>IMS / GoSystem Business Rules</div>
+          <div style={{ fontSize: 13, color: "#1e293b", marginBottom: 10, lineHeight: 1.6 }}>Reference documentation for how standardized tax data is prepared and transmitted to IMS and GoSystem.</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: SLATE, marginBottom: 6 }}>Reference Artifacts</div>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#475569", lineHeight: 1.8 }}>
+            <li><strong>Data Standardization, Aggregation, and Dataset Rules.docx</strong></li>
+            <li><strong>GoSystem Business Rules Lists.xlsx</strong> — Form Line Aggregation (1,453 rows), Standard Return Mapping (1,249 rows), M-3 Mapping (1,276 rows)</li>
+          </ul>
+          <div style={{ marginTop: 10, fontSize: 11, color: "#64748b", fontStyle: "italic" }}>Does not define Prior Year inventory requirements.</div>
+        </div>
+      </div>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 12 }}>Potential Reuse Assessment</div>
+        <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" as const }}>
+          {[
+            { label: "Applicable", key: "applicable", options: ["", "🟢 Yes", "🟡 Partially"] },
+            { label: "Category", key: "category", options: ["", "Tax Code Migration", "IMS / GoSystem"] },
+            { label: "Impact", key: "impact", options: ["", "High", "Medium"] },
+          ].map(f => (
+            <select key={f.key} value={(filter as Record<string, string>)[f.key]} onChange={e => setFilter(prev => ({ ...prev, [f.key]: e.target.value }))} style={{ fontSize: 11, padding: "4px 8px", borderRadius: 4, border: "1px solid #cbd5e1", color: NAVY, background: "#fff" }}>
+              <option value="">{f.label}: All</option>
+              {f.options.filter(Boolean).map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+          ))}
+        </div>
+        <div style={{ overflowX: "auto" as const }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
+            <thead><tr>{["artifact", "applicable", "category", "owner", "impact", "notes"].map(col => (<th key={col} style={thStyle} onClick={() => { if (sortCol === col) setSortAsc(!sortAsc); else { setSortCol(col); setSortAsc(true); } }}>{col.charAt(0).toUpperCase() + col.slice(1)} {sortCol === col ? (sortAsc ? "▲" : "▼") : ""}</th>))}</tr></thead>
+            <tbody>{filtered.map((r, i) => (<tr key={i} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc" }}><td style={{ ...tdStyle, fontWeight: 600 }}>{r.artifact}</td><td style={tdStyle}>{r.applicable}</td><td style={tdStyle}>{r.category}</td><td style={tdStyle}>{r.owner}</td><td style={tdStyle}><span style={{ fontSize: 10, fontWeight: 700, borderRadius: 4, padding: "2px 7px", background: r.impact === "High" ? "#f0fdf4" : "#fffbeb", color: r.impact === "High" ? GREEN : "#92400e" }}>{r.impact}</span></td><td style={tdStyle}>{r.notes}</td></tr>))}</tbody>
+          </table>
+        </div>
+      </div>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 12 }}>Discovery Workflow</div>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 0, maxWidth: 340 }}>
+          {WORKFLOW_STEPS.map((step, i) => (
+            <React.Fragment key={i}>
+              <div style={{ background: step.color, color: "#fff", borderRadius: 8, padding: "10px 14px" }}>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{step.label}</div>
+                <div style={{ fontSize: 10, opacity: 0.85, marginTop: 2 }}>{step.sub}</div>
+              </div>
+              {step.badge && <div style={{ fontSize: 10, fontWeight: 700, color: GREEN, background: "#f0fdf4", borderRadius: 4, padding: "2px 8px", alignSelf: "flex-start" as const, marginTop: 2, marginBottom: 2 }}>{step.badge}</div>}
+              {i < WORKFLOW_STEPS.length - 1 && <div style={{ fontSize: 18, color: "#94a3b8", padding: "2px 0 2px 14px" }}>↓</div>}
+            </React.Fragment>
+          ))}
+        </div>
+        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "14px 18px", marginTop: 14, fontSize: 13, color: "#1e293b", lineHeight: 1.7 }}>
+          <strong>Discovery Guidance:</strong> The Prior Year discovery process begins with the <strong>Prior Year Inventory</strong>. Supporting reference documents should be used to validate inventory mappings, understand historical implementation logic, reuse existing business rules, and confirm downstream integration requirements. Supporting documentation should <strong>never replace or supersede the Prior Year Inventory</strong>.
+        </div>
+      </div>
+      <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, padding: "14px 18px" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: GREEN, marginBottom: 10 }}>✅ Recommended Usage</div>
+        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#1e293b", lineHeight: 2 }}>
+          <li>Use the <strong>Prior Year Inventory</strong> as the primary source of truth.</li>
+          <li>Use the <strong>DUO Commit</strong> and <strong>A110 Tax Workbook</strong> to validate inventory mappings.</li>
+          <li>Use the <strong>IMS Export API</strong> documentation to determine available return data.</li>
+          <li>Use the <strong>Tax Code Migration</strong> documentation to understand historical mapping logic (BR-PY-005).</li>
+          <li>Use the <strong>IMS / GoSystem Business Rules</strong> to understand downstream processing and Form Line mapping.</li>
+          <li>Reuse existing business rules where appropriate but validate them against current Prior Year requirements.</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export default function PriorYearInventory() {
   const [activeTab, setActiveTab] = useState<"inventory" | "matrix">("inventory");
 
@@ -601,6 +729,9 @@ export default function PriorYearInventory() {
           Action item header: Priority · Action · Status · Owner · Due Date · Dependencies
         </div>
       </div>
+
+      {/* ── Section 10: Reference Library ── */}
+      <ReferenceLibrarySection />
 
       {/* ── Ask Buddy ── */}
       <DiscoveryAskBuddy pagePath="prior-year-inventory" pageTitle="Prior Year (PY) Inventory Discovery" />

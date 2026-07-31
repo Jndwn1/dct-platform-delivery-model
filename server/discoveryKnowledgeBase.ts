@@ -817,6 +817,7 @@ The Prior Year Inventory is the authoritative source of truth for all Prior Year
 - **BR-PY-002 (PY Book Balance — Confirmed):** PY Book Balance is migrated from the authoritative TWB Commit (amountEnding field from Tbl_TB). No additional calculation required.
 - **BR-PY-003 (Duplicate Field Separation — Complete):** Fields appearing in both Tbl_TB and Tbl_FJE (e.g., glAccountName) must be separated by source table. Inv. IDs 328 (FJE) and 392 (TB) represent the same logical field from different source tables.
 - **BR-PY-004 (IMS Export API — Confirmed):** IMS Export APIs can retrieve PY CCH return data without DUO. Returned data depends on XML configuration. Additional XML configurations can be created as needed.
+- **BR-PY-005 (TDC Code Migration Logic — Reference):** Logic must be performed on Prior Year Trial Balance data to migrate from legacy RSM codes to new TDC mapping codes. Decision tree: (1) If glAccountNumberRSMnew is populated — check if it contains 4 levels. If yes, translate to TDC Code. If no (nonstandard), use only the first 4 levels and ignore the 5th level, then translate. (2) If glAccountNumberRSMnew is NOT populated — check if glAccountNumberRSM is populated. If yes, translate glAccountNumberRSM to TDC Code (if no corresponding TDC Code exists, skip — nonstandard code). If no, Trial Balance data is not in DUO — proceed with AI mapping rather than PY data. (3) Once translated to TDC Code, use Tax Taxonomy mappings to layer in: Financial Mapping, Page, Line No & Description, Sub Group. Reference Document: Trial Balance Code Migration.xlsx (1,249 mapping rows).
 
 ### Ownership
 - **DCT:** Owns the PY Inventory, canonical data model, mapping crosswalk, business rules, gap analysis, and API contract.
@@ -836,6 +837,20 @@ The Prior Year Inventory is the authoritative source of truth for all Prior Year
 - Identify non-Trial Balance fields requiring review (High, Not Started, Owner: Jenniver)
 - Obtain DUO Commit sample and complete mapping (High, In Progress, Owner: Jenniver)
 - Update PY Tax Adjustment documentation to reflect Gary's decision (High, Not Started, Owner: Jenniver)
+
+### Reference Library
+The following reference documents support Prior Year discovery but do NOT replace the PY Inventory as the source of truth.
+
+| Artifact | Applicable | Category | Owner | Impact | Notes |
+|---|---|---|---|---|---|
+| TDC Mapping Migration Business Rules | Partially | Tax Code Migration | DCT | Medium | May help validate tax code translations for Trial Balance accounts |
+| Trial Balance Code Migration.xlsx | Yes | Tax Code Migration | DCT / Jenniver | High | 1,249 mapping rows for legacy RSM codes to TDC Mapping Codes |
+| Data Standardization, Aggregation, and Dataset Rules.docx | Partially | IMS / GoSystem | IMS | Medium | Relevant to IMS output and aggregation, not Prior Year field discovery |
+| GoSystem Business Rules Lists.xlsx | Partially | IMS / GoSystem | IMS | Medium | Form Line Aggregation (1,453 rows), Standard Return Mapping (1,249 rows), M-3 Mapping (1,276 rows) |
+
+**Discovery Workflow:** Prior Year Inventory (Source of Truth) → DUO Commit File (82 TB rows, 3 JE rows) → A110 Tax Workbook (Tbl_TB, Tbl_FJE) → IMS Export API (XML Config Required) → Roger Rule Code Mapping (Rule Code + Input Code)
+
+**Recommended Usage:** Use the PY Inventory as primary source of truth. Use DUO Commit and A110 Tax Workbook to validate inventory mappings. Use IMS Export API documentation to determine available return data. Use Tax Code Migration documentation to understand historical mapping logic (BR-PY-005). Use IMS / GoSystem Business Rules to understand downstream processing and Form Line mapping.
 `,
   },
 
