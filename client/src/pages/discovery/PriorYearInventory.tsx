@@ -297,7 +297,7 @@ function ReferenceLibrarySection() {
 
   return (
     <div style={{ marginBottom: 28 }}>
-      <SectionHeader num="10" title="Reference Library" subtitle="Supporting documentation for Prior Year discovery — not a replacement for the PY Inventory" />
+      <SectionHeader num="11" title="Reference Library" subtitle="Supporting documentation for Prior Year discovery — not a replacement for the PY Inventory" />
       <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "14px 18px", marginBottom: 20 }}>
         <div style={{ fontWeight: 700, color: "#92400e", fontSize: 13, marginBottom: 6 }}>⚠️ Important — Authoritative Source of Truth</div>
         <div style={{ fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>The <strong>Prior Year Inventory</strong> remains the authoritative source of truth. The reference documents below should only be used to validate, supplement, or clarify the inventory and should <strong>not replace documented Prior Year requirements</strong>.</div>
@@ -550,9 +550,70 @@ export default function PriorYearInventory() {
         </div>
       </div>
 
-      {/* ── Section 5: Discovery Workstreams ── */}
+      {/* ── Section 5: Supporting Roger Features ── */}
       <div style={{ marginBottom: 28 }}>
-        <SectionHeader num="5" title="Discovery Workstreams" subtitle="Seven active workstreams — click to expand" />
+        <SectionHeader num="5" title="Supporting Roger Features" subtitle="Three platform features that enable Prior Year data delivery to Roger" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          {/* Feature 1 */}
+          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderTop: `3px solid ${NAVY}`, borderRadius: 8, padding: "18px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: NAVY, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>1</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: NAVY }}>Data Standardization</div>
+            </div>
+            <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.7, marginBottom: 12 }}>Ensures Prior Year financial data from DUO and TWB is normalized to a consistent format before it is persisted in DCT or exposed through APIs. Applies Cross-LOB Taxonomy rules and enforces field-level data quality constraints.</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 6 }}>Key Responsibilities</div>
+            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#374151", lineHeight: 1.7 }}>
+              <li>Normalize amountEnding (PY Book Balance) from Tbl_TB</li>
+              <li>Apply TDC Code migration logic (BR-PY-005)</li>
+              <li>Enforce uniqueness and non-null constraints on key fields</li>
+              <li>Validate glAccountNumberRSMnew level structure (4-level rule)</li>
+            </ul>
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 4, marginTop: 10 }}>
+              {["PDC", "TDC", "BR-PY-005"].map(t => <span key={t} style={{ fontSize: 10, background: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe", borderRadius: 4, padding: "2px 6px", fontWeight: 600 }}>{t}</span>)}
+            </div>
+          </div>
+          {/* Feature 2 */}
+          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderTop: `3px solid ${GREEN}`, borderRadius: 8, padding: "18px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: GREEN, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>2</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: GREEN }}>Trial Balance Aggregation</div>
+            </div>
+            <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.7, marginBottom: 12 }}>Aggregates Prior Year Trial Balance data from Tbl_TB into the DCT canonical model. Handles the 82-row DUO Commit structure, applies TDC Tax Taxonomy mappings (Financial Mapping, Page, Line No &amp; Description, Sub Group), and prepares the aggregated output for Roger consumption.</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 6 }}>Key Responsibilities</div>
+            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#374151", lineHeight: 1.7 }}>
+              <li>Map amountEnding to PY Book Balance (Inv. ID 460)</li>
+              <li>Apply Tax Taxonomy: Financial Mapping, Page, Line No, Sub Group</li>
+              <li>Separate Tbl_TB and Tbl_FJE fields by source (BR-PY-003)</li>
+              <li>Validate 82 TB rows from DUO Commit against PY Inventory</li>
+            </ul>
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 4, marginTop: 10 }}>
+              {["Tbl_TB", "DUO Commit", "BR-PY-002", "BR-PY-003"].map(t => <span key={t} style={{ fontSize: 10, background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0", borderRadius: 4, padding: "2px 6px", fontWeight: 600 }}>{t}</span>)}
+            </div>
+          </div>
+          {/* Feature 3 */}
+          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderTop: `3px solid ${TEAL}`, borderRadius: 8, padding: "18px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: TEAL, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>3</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: TEAL }}>Dataset Framework</div>
+            </div>
+            <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.7, marginBottom: 12 }}>Defines the governed dataset structure that Roger consumes for Prior Year data. Establishes the API contract between DCT and Roger, specifies Rule Code and Input Code combinations, and ensures PY Tax Balance is calculated dynamically (not persisted) per BR-PY-001.</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 6 }}>Key Responsibilities</div>
+            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#374151", lineHeight: 1.7 }}>
+              <li>Define PY API contract: fields, types, and response structure</li>
+              <li>Specify Rule Code + Input Code combinations (Roger-owned)</li>
+              <li>Enforce PY Tax Balance = PY Book Balance + Tax Adjustment (calculated, not stored)</li>
+              <li>Support IMS Export API for CCH PY return data (BR-PY-004)</li>
+            </ul>
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 4, marginTop: 10 }}>
+              {["Roger API", "BR-PY-001", "BR-PY-004", "IMS Export"].map(t => <span key={t} style={{ fontSize: 10, background: "#f0fdfa", color: "#0f766e", border: "1px solid #99f6e4", borderRadius: 4, padding: "2px 6px", fontWeight: 600 }}>{t}</span>)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section 6: Discovery Workstreams ── */}
+      <div style={{ marginBottom: 28 }}>
+        <SectionHeader num="6" title="Discovery Workstreams" subtitle="Seven active workstreams — click to expand" />
         {WORKSTREAMS.map(ws => (
           <ExpandableSection key={ws.id} title={`${ws.id}. ${ws.title}`} subtitle={ws.objective} defaultOpen={ws.id <= 2}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
@@ -574,9 +635,9 @@ export default function PriorYearInventory() {
         ))}
       </div>
 
-      {/* ── Section 6: Cross-Team Deliverable — Mapping Matrix ── */}
+      {/* ── Section 7: Cross-Team Deliverable — Mapping Matrix ── */}
       <div style={{ marginBottom: 28 }}>
-        <SectionHeader num="6" title="Cross-Team Deliverable — Prior Year Mapping Matrix" subtitle="End-to-end traceability: PY Inventory → DUO Commit → TWB → IMS Export → Roger" />
+        <SectionHeader num="7" title="Cross-Team Deliverable — Prior Year Mapping Matrix" subtitle="End-to-end traceability: PY Inventory → DUO Commit → TWB → IMS Export → Roger" />
         <Callout type="info">
           This matrix addresses Krista's request to identify the TWB field from DUO and the corresponding Rule Code and Input Code required by Roger, expanded into a complete traceability matrix across all systems.
         </Callout>
@@ -656,9 +717,9 @@ export default function PriorYearInventory() {
         )}
       </div>
 
-      {/* ── Section 7: Business Rules ── */}
+      {/* ── Section 8: Business Rules ── */}
       <div style={{ marginBottom: 28 }}>
-        <SectionHeader num="7" title="Business Rules" subtitle="Approved and confirmed business rules governing Prior Year data" />
+        <SectionHeader num="8" title="Business Rules" subtitle="Approved and confirmed business rules governing Prior Year data" />
         {BUSINESS_RULES.map(br => (
           <Card key={br.id} accent={br.status === "Approved" ? GREEN : br.status === "Confirmed" ? TEAL : AMBER}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap" as const, gap: 8, marginBottom: 8 }}>
@@ -680,9 +741,9 @@ export default function PriorYearInventory() {
         ))}
       </div>
 
-      {/* ── Section 8: Open Questions ── */}
+      {/* ── Section 9: Open Questions ── */}
       <div style={{ marginBottom: 28 }}>
-        <SectionHeader num="8" title="Open Questions" subtitle="Unresolved questions requiring business or architecture decisions" />
+        <SectionHeader num="9" title="Open Questions" subtitle="Unresolved questions requiring business or architecture decisions" />
         <div style={{ overflowX: "auto" as const }}>
           <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
             <thead>
@@ -710,9 +771,9 @@ export default function PriorYearInventory() {
         </div>
       </div>
 
-      {/* ── Section 9: Action Items ── */}
+      {/* ── Section 10: Action Items ── */}
       <div style={{ marginBottom: 28 }}>
-        <SectionHeader num="9" title="Action Items" subtitle="Tracked actions with priority, status, owner, due date, and dependencies" />
+        <SectionHeader num="10" title="Action Items" subtitle="Tracked actions with priority, status, owner, due date, and dependencies" />
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
           {ACTION_ITEMS.map((item, i) => (
             <div key={i} style={{ display: "grid", gridTemplateColumns: "80px 1fr 100px 100px 100px 1fr", gap: 10, alignItems: "start", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "12px 14px", fontSize: 12 }}>
@@ -730,7 +791,7 @@ export default function PriorYearInventory() {
         </div>
       </div>
 
-      {/* ── Section 10: Reference Library ── */}
+      {/* ── Section 11: Reference Library ── */}
       <ReferenceLibrarySection />
 
       {/* ── Ask Buddy ── */}
