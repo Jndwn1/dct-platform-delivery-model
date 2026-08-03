@@ -26,7 +26,7 @@ export interface BatchEntry {
   description: string;  // One-sentence summary
   dependencies: string[]; // Array of batch IDs this batch depends on
   keyOutcomes: string[];  // 2-3 key demo outcomes
-  piCommitment?: "Committed" | "Stretch" | "Draft"; // PI 2+ commitment level
+  piCommitment?: "Committed" | "Stretch" | "Draft" | "MVP" | "New"; // PI 2+ commitment level
   // ── Governance flags (Roadmap v4.0) ──────────────────────────────────────
   criticalPath?: boolean;       // TRUE = must land before pilot start (9/21)
   criticalPathNote?: string;    // Roadmap-sourced rationale
@@ -563,15 +563,21 @@ const BATCH_REGISTRY: BatchEntry[] = [
     piLabel: "PI 3 — MVP | 7/6 to 9/15",
     status: "Planned",
     area: "TDC",
-    storyCount: 5,
-    description: "TDC handles consolidated C-corp returns end to end. Elimination entities, group-level adjustments, and intercompany elimination workflow modeled as first-class structures.",
-    dependencies: ["B28"],
+    storyCount: 7,
+    description: "TDC governs consolidated C-corp return assembly end to end. Consolidated group membership, elimination entities, group-level and consolidation-scoped adjustments, intercompany elimination workflow, and consolidated return read/write contracts are all modeled as first-class governed structures. Roger consumes consolidated return data exclusively through the Consolidated Return Read Contract.",
+    dependencies: ["B28", "B7"],
     keyOutcomes: [
-      "Elimination entity records distinct from legal entity records",
-      "Intercompany eliminations balanced before assembly proceeds",
+      "Consolidated group membership API live — ConsolidatedGroupId, member entities, and effective date range governed",
+      "Elimination entity records distinct from legal entity records — EliminationEntityId enforced",
+      "Consolidation-scoped adjustments versioned and auditable — no silent modifications after lock",
+      "Intercompany eliminations balanced before assembly proceeds — unbalanced eliminations block assembly gate",
       "Consolidated return assembly gated on all constituent returns in FINALIZED state",
-      "Consolidated Return read contract published for Roger",
+      "Consolidated Return Read Contract published — additive-only, Roger consumes via governed surface",
+      "Consolidated Return Write Contract enforced — PDC and Orchestrator submit via governed write surface only",
     ],
+    piCommitment: "MVP",
+    criticalPath: true,
+    criticalPathNote: "Required for pilot C-corp clients with consolidated group structures. Consolidated Return Read and Write Contracts must be published before pilot start (9/21). Roger cannot surface consolidated return data without this batch.",
   },
   {
     id: "B31",
@@ -666,6 +672,29 @@ const BATCH_REGISTRY: BatchEntry[] = [
     piCommitment: "MVP",
   },
   {
+    id: "B45",
+    name: "Rule Logic Expression Table & Adj. Subtype Domain",
+    fullName: "Rule Logic Expression Table & Adjustment Subtype Domain Expansion",
+    pi: "PI3",
+    piLabel: "PI 3 — Intelligence, Provision & Audit",
+    status: "Planned",
+    area: "TDC",
+    storyCount: 2,
+    description: "TDC moves rule computation logic out of an inline formula on the rule line and into a dedicated Rule Logic Expression table, so a rule's computation can be decomposed into named, composable expressions. An expression references rule inputs by input code, aggregates trial balance inputs by pattern, and may reference other expressions in the same rule and version by expression code. Terminal expressions map to rule lines and produce amounts; intermediate expressions feed other expressions. The expression graph is acyclic. The batch also expands the adjustment subtype domain to the business-approved values from the master workbook, updating the constraint, validation, API, import, export, and reference data paths. Existing rules and records resolve and validate identically after deployment.",
+    dependencies: ["B42", "B43"],
+    keyOutcomes: [
+      "Rule Logic Expression table live — expressions scoped to rule and version, expression codes unique within rule/version, acyclic graph enforced at publish",
+      "Inline line expression field retired — rule line now carries expression code + sign; existing rules migrated as one terminal expression per line with identical resolution",
+      "Intermediate expression values persisted and retrievable by expression code — build-up of terminal amounts visible for audit",
+      "Adjustment Subtype domain expanded to business-approved values — constraint, validation, API, import, export, and reference data updated; existing records unchanged",
+      "Import loads master workbook subtype values without manual substitution — unmapped values fail loudly",
+      "Repeating indicator built and populated as first-class column — expansion-set summation execution deferred to post-MVP",
+    ],
+    piCommitment: "MVP",
+    criticalPath: false,
+    criticalPathNote: "Depends on B42 (Tax Rules Framework) and B43 (Practitioner Book & Reclass Adjustments). Rule Logic Expression Table must be published before Orchestrator can execute rule-driven classification decisions at scale. Adjustment Subtype domain expansion unblocks master workbook import without manual substitution.",
+  },
+  {
     id: "B9A",
     name: "Data Gateway (IMS, CDS, DUO)",
     fullName: "Data Gateway — IMS, CDS, DUO Integration (PI 3 MVP)",
@@ -741,8 +770,8 @@ export const PI_GROUPS: PIGroup[] = [
     id: "PI3",
     label: "PI 3",
     subtitle: "Intelligence, Provision & Audit",
-    // MVP: B42, B17, B20, B21, B26 PDC, B28, B29, B31, B9A, B39 | Stretch: B33
-    batchIds: ["B42", "B17", "B20", "B21", "B26", "B28", "B29", "B31", "B9A", "B39", "B33"],
+    // MVP: B42, B45, B17, B20, B21, B26 PDC, B28, B29, B31, B9A, B39 | Stretch: B33
+    batchIds: ["B42", "B45", "B17", "B20", "B21", "B26", "B28", "B29", "B31", "B9A", "B39", "B33"],
     color: "text-violet-700",
     bgColor: "bg-violet-50",
     borderColor: "border-violet-300",

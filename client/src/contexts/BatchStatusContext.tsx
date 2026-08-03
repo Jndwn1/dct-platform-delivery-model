@@ -101,6 +101,7 @@ export interface BatchStatusMap {
   // New batches from updated calendar
   "42": BatchStatus;
   "43": BatchStatus;
+  "45": BatchStatus;
   "9a": BatchStatus;
   // PI 4 batches (Roadmap v8)
   "19": BatchStatus;
@@ -153,6 +154,7 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "39": "Batch 39 — Calculation Report",
   "42": "Batch 42 — Tax Rules Framework & Book-to-Tax Adjustment Rules",
   "43": "Batch 43 — Practitioner Book & Reclass Adjustments",
+  "45": "Batch 45 — Rule Logic Expression Table & Adjustment Subtype Domain Expansion",
   "9a": "Batch 9A — Data Gateway (IMS, CDS, DUO)",
   // PI 4 batches (Roadmap v8)
   "19": "Batch 19 — Audit Tax-Expense Cross-LOB Outbound",
@@ -203,6 +205,7 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "39": [],
   "42": ["17", "28"],
   "43": ["11"],
+  "45": ["42", "43"],
   "9a": ["31"],
   // PI 4 batches (Roadmap v8)
   "19": [],
@@ -307,6 +310,7 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "7": "In Progress",  // B7 — Client Tax Profile & Eligibility (ADO: Active)
   "10": "In Progress", // B10 — Return Assembly, Filing & Lineage Closure (ADO: Active)
   "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (ADO: Active)
+  "45": "Committed",   // B45 — Rule Logic Expression Table & Adjustment Subtype Domain Expansion (Planned/Committed)
   // ── PI 3 — ACTIVE (7/13–9/15) ─────────────────────────────────────────
   "20": "In Progress", // B20 — Firm Governance & Professional Standards
   "21": "In Progress", // B21 — Quality Control (PDC MVP)
@@ -344,7 +348,7 @@ const MAX_LOG_ENTRIES = 50;
 const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
   pi2:  ["4", "5", "6", "7", "8", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16"], // 9-tdc & 12 excluded (On Hold)
-  pi3:  ["20", "42", "21", "28", "9a", "31", "17", "26", "29", "39", "33"],
+  pi3:  ["20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"],
   pi4:  ["19", "40", "35", "26-tdc"],
 };
 
@@ -356,7 +360,7 @@ const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 //   PI3 Active (9):   42, 20, 21, 28, 9a, 17, 29, 31, 26
 //   Planned (1):      39
 //   Non-batch (5):    qa-workstream, env-management, roger-stabilization, platform-defect, mvp-enhancements
-// TOTAL: 5 + 4 + 4 + 9 + 1 + 5 = 28 ✓
+// TOTAL: 5 + 4 + 4 + 10 + 1 + 5 = 29 ✓ (B45 added to PI3 Active)
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
@@ -364,8 +368,8 @@ export const MVP_BATCH_KEYS: BatchKey[] = [
   "4", "5", "6", "11",
   // PI 2 — ADO Active (4): B7, B8, B10, B16
   "7", "8", "10", "16",
-  // PI 3 — Active (9) — B33 Stretch excluded, B42 included as Active
-  "42", "20", "21", "28", "9a", "17", "29", "31", "26",
+  // PI 3 — Active (10) — B33 Stretch excluded, B42 included as Active, B45 added
+  "42", "45", "20", "21", "28", "9a", "17", "29", "31", "26",
   // Planned (1)
   "39",
   // Non-batch Active Features (5) — ADO Active, included in MVP scope

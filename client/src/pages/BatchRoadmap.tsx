@@ -56,12 +56,13 @@ function batchLabelToContextKey(batch: string, id: string): string | null {
   if (b === "B40") return "40";
   if (b === "B42") return "42";
   if (b === "B43") return "43";
+  if (b === "B45") return "45";
   return null;
 }
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
-type OwnerType = "PDC" | "TDC" | "Platform" | "PDC+TDC";
-type StatusType = "Complete" | "Active" | "Committed" | "Stretch" | "Planned" | "Program Close";
+type OwnerType = "PDC" | "TDC" | "Platform" | "PDC+TDC" | "Gateway";
+type StatusType = "Complete" | "Active" | "Committed" | "Stretch" | "Planned" | "Program Close" | "MVP" | "New";
 
 interface GovernanceIndicator {
   label: string;
@@ -123,6 +124,7 @@ const OWNER_CFG: Record<OwnerType, { color: string; bg: string; border: string }
   "TDC":      { color: "#166534", bg: "#f0fdf4", border: "#bbf7d0" },
   "Platform": { color: "#475569", bg: "#f8fafc", border: "#e2e8f0" },
   "PDC+TDC":  { color: "#3730a3", bg: "#eef2ff", border: "#c7d2fe" },
+  "Gateway":  { color: "#6b21a8", bg: "#f3e8ff", border: "#d8b4fe" },
 };
 
 // ─── CROSS-BATCH DEPENDENCIES ─────────────────────────────────────────────────
@@ -552,6 +554,17 @@ const FEATURES: FeatureRow[] = [
     downstreamImpact: "B28 TDC, Roger UI, Gateway.",
     governance: ["Schema Published", "Contract Published", "Lineage Enabled"],
     chainNote: "B43 TDC (PI 2) → B42 TDC (PI 3): Adjustment records feed rule framework",
+  },
+  {
+    id: "pi3-b45", batch: "B45", name: "Rule Logic Expression Table & Adjustment Subtype Domain Expansion", owner: "TDC", pi: "PI 3",
+    startDate: "7/21", endDate: "7/28", status: "MVP",
+    batchSummary: "TDC moves rule computation logic into a dedicated Rule Logic Expression table, enabling named, composable, auditable expressions. Also expands the Adjustment Subtype domain to business-approved values from the master workbook. Backward compatible — existing rules and records resolve identically.",
+    governanceFocus: "Rule expression immutability. Acyclic expression graph enforcement. Adjustment Subtype domain governed by business-approved master workbook values. No silent substitution.",
+    majorDependency: "B42 TDC (PI 3) — Tax Rules Framework. B43 TDC (PI 2) — Practitioner Adjustments.",
+    readContractImpact: "Roger reads rule expression build-up via B45 contract. Adjustment Subtype reference data available via governed reference API.",
+    downstreamImpact: "Roger UI Filing Review, Adjustments screen, Master Workbook import pipeline.",
+    governance: ["Schema Published", "Contract Published", "Backward Compatible"],
+    chainNote: "B42 TDC (PI 3) → B45 TDC (PI 3): Rule framework extended with expression table",
   },
   {
     id: "pi3-b9a", batch: "B9A", name: "Data Gateway (IMS, CDS, DUO)", owner: "Gateway", pi: "PI 3",

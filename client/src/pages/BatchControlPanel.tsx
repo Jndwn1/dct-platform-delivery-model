@@ -1162,7 +1162,7 @@ const BATCH_KEYS: BatchKey[] = [
   // PI 2 New
   "43",
   // PI 3 — MVP
-  "17","20","21","22","23","26","28","29","9a","31","33","39","42",
+  "17","20","21","22","23","26","28","29","9a","31","33","39","42","45",
 ];
 
 function Badge({ label, bg, text }: { label: string; bg: string; text: string }) {
@@ -1842,6 +1842,7 @@ export default function BatchControlPanel() {
             "12":"PI 2","13":"PI 2 Stretch","16":"PI 2 Stretch",
             "17":"PI 3 MVP","20":"PI 3 MVP","21":"PI 3 MVP","22":"Post-MVP","23":"Post-MVP",
             "26":"PI 3 MVP","28":"PI 3 MVP","29":"PI 3 MVP","31":"PI 3 MVP","33":"PI 3 MVP","39":"MVP Promoted",
+            "42":"PI 3 MVP","45":"PI 3 MVP",
           };
           const DEMO_READY_KEYS = new Set(["foundation-core","1","2","2a","3","4","5","6","7"]);
           const GOV_KEYS = new Set(["3","4","6","7","9","11","12","14","16","24","25"]);

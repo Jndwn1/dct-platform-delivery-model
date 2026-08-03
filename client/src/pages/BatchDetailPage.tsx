@@ -145,7 +145,7 @@ function batchModelIdToContextKey(id: string): BatchKey | null {
   const m = id.match(/^B(\d+[A-Za-z]?)$/);
   if (!m) return null;
   const num = m[1].toLowerCase();
-  const validKeys = ["1","2","2a","3","4","5","6","7","8","9","10","11","43","42","9a"];
+  const validKeys = ["1","2","2a","3","4","5","6","7","8","9","10","11","43","42","45","9a"];
   return validKeys.includes(num) ? num as BatchKey : null;
 }
 
@@ -735,6 +735,23 @@ const BATCH_CONTENT: Record<string, BatchContent> = {
       { title: "Rules Contract Publication", wmbt: "Tax rules framework contract published. Downstream systems consume rules via contract — no direct rule store access permitted." },
     ],
   },
+  B45: {
+    gate: "G3 — Contract Publication",
+    systems: ["TDC", "Roger UI"],
+    lead: "TDC Workstream Lead",
+    entryCondition: "Batch 42 complete; Batch 43 complete; adjustment subtype master workbook values confirmed by business",
+    exitCondition: "Rule Logic Expression table live; inline line expression retired and migrated; intermediate expression values persisted; adjustment subtype domain expanded; master workbook import loads without manual substitution",
+    executiveNote: "Batch 45 (PI 3 MVP): TDC moves rule computation logic into a dedicated Rule Logic Expression table, enabling named, composable, auditable expressions. Also expands the Adjustment Subtype domain to business-approved values from the master workbook. Backward compatible — existing rules and records resolve identically.",
+    governanceTags: ["TDC", "Contract Publication", "PI 3 MVP", "Backward Compatible"],
+    stories: [
+      { title: "Rule Logic Expression Table", wmbt: "The Rule Logic Expression table holds expressions scoped to a rule and version. Expression codes are unique within a rule and version. The expression graph is acyclic — cycle detection rejects cyclic rules at publish." },
+      { title: "Terminal and Intermediate Expressions", wmbt: "A terminal expression maps to one or more rule lines via expression code plus sign. An intermediate expression feeds other expressions and is not referenced by any rule line. Every intermediate must be consumed by at least one other expression." },
+      { title: "Inline Line Expression Retirement & Migration", wmbt: "The inline formula field on the rule line is retired. Existing rules are migrated as one terminal expression per line, preserving sequence and formula, resolving identically after deployment." },
+      { title: "Intermediate Expression Value Persistence", wmbt: "The executor returns a value for every expression. Intermediate values are persisted and retrievable by expression code for audit and review." },
+      { title: "Adjustment Subtype Domain Expansion", wmbt: "The adjustment subtype allowed-value domain is expanded to the business-approved set. Database constraint, validation, API, import, export, and reference data updated. Existing subtype values remain valid." },
+      { title: "Master Workbook Import Without Substitution", wmbt: "The master workbook import loads subtype values without manual manipulation. An unmapped value fails the import loudly rather than being substituted or dropped." },
+    ],
+  },
   B9A: {
     gate: "G3 — Contract Publication",
     systems: ["PDC", "IMS", "CDS", "DUO", "Roger UI"],
@@ -790,7 +807,7 @@ const AREA_HEX: Record<string, { bg: string; text: string }> = {
 };
 
 // ── All batch IDs in order (for prev/next) ────────────────────────────────────
-const ALL_IDS = ["FC", "B1", "B2", "B2A", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "B24", "B25", "B26", "B28", "B29", "B31", "B33", "B39", "MT"];
+const ALL_IDS = ["FC", "B1", "B2", "B2A", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "B24", "B25", "B26", "B28", "B29", "B31", "B33", "B39", "B42", "B45", "MT"];
 
 function batchNavLabel(id: string): string {
   const b = getBatchById(id);
