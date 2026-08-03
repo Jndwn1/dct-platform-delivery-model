@@ -621,6 +621,20 @@ export default function Home() {
       return b.status === "Stretch";
     });
   }, [statuses]);
+  // rcLabel: single computed RC label — same formula as hero banner and ExecDashboard
+  const rcLabel = useMemo(() => {
+    const p1 = piCompletion?.pi1?.pct ?? 0;
+    const p2 = piCompletion?.pi2?.pct ?? 0;
+    const p3 = piCompletion?.pi3?.pct ?? 0;
+    if (p3 >= 100) return "RC-4";
+    if (p2 >= 80 && p3 >= 40) return "RC-3";
+    if (p2 >= 60) return "RC-2";
+    return "RC-1";
+  }, [piCompletion]);
+
+  // programStatus: On Track if readiness ≥ 70%, otherwise At Risk
+  const programOnTrack = overallPct >= 70;
+
   // pi3MvpCount: derive from live context PI3 keys so it reflects control panel updates
   const pi3MvpCount = useMemo(() => {
     const pi3Keys = ["20","42","45","21","28","9a","17","29","31","26","39","33"];
@@ -750,15 +764,16 @@ export default function Home() {
             <div style={{ fontSize: "15px", fontWeight: 800, color: "#0f1623" }}>📋 Executive Status Summary</div>
           </div>
           {/* Overall Status badge */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: "8px",
-            backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
-            borderRadius: "8px", padding: "8px 16px",
-          }}>
-            <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#059669", flexShrink: 0 }} />
+            <div style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              backgroundColor: programOnTrack ? "#f0fdf4" : "#fef2f2",
+              border: `1px solid ${programOnTrack ? "#bbf7d0" : "#fecaca"}`,
+              borderRadius: "8px", padding: "8px 16px",
+            }}>
+              <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: programOnTrack ? "#059669" : "#dc2626", flexShrink: 0 }} />
             <div>
               <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>Overall Program Status</div>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: "#059669" }}>🟢 On Track</div>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: programOnTrack ? "#059669" : "#dc2626" }}>{programOnTrack ? "🟢 On Track" : "🔴 At Risk"}</div>
             </div>
           </div>
         </div>
@@ -806,7 +821,7 @@ export default function Home() {
           <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Release Targets</div>
             {[
-              { label: "Release Candidate", value: "RC-3",         color: "#059669" },
+              { label: "Release Candidate", value: rcLabel,        color: "#059669" },
               { label: "Target MVP Date",   value: "Sep 21, 2026", color: "#0f1623" },
               { label: "MVP Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
               { label: "In Development",       value: `${liveDev} batches`,     color: "#2563eb" },
@@ -1040,7 +1055,7 @@ export default function Home() {
             {[
               { label: "Platform Completion", value: `${overallPct}%`, ok: overallPct >= 70 },
               { label: "Gates Passed",      value: `${[gates.g1, gates.g2, gates.g3, gates.g4].filter(g => g === "Complete").length} / 4`, ok: [gates.g1, gates.g2].every(g => g === "Complete") },
-              { label: "RC Status",         value: "RC-3 On Track",   ok: true },
+              { label: "RC Status",         value: `${rcLabel} ${programOnTrack ? "On Track" : "At Risk"}`, ok: programOnTrack },
               { label: "MVP-Required Close",value: "Sep 21, 2026",    ok: true },
             ].map(r => (
               <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "5px" }}>
