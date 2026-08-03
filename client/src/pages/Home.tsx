@@ -997,7 +997,6 @@ export default function Home() {
               { batch: "B10", label: "Return Assembly, Filing & Lineage Closure" },
               { batch: "B16", label: "Audit Trail & Lineage Governance" },
               { batch: "B42", label: "Tax Rules Framework & Book-to-Tax Adjustment Rules" },
-              { batch: "B45", label: "Rule Logic Expression Table & Adjustment Subtype Domain Expansion" },
               { batch: "B28", label: "Tax Workpapers & Provision Schedules" },
               { batch: "B29", label: "Consolidated Return Assembly" },
               { batch: "B17", label: "Decision Support, Overrides, Evidence & Workpapers" },
