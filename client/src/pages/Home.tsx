@@ -997,9 +997,11 @@ export default function Home() {
               { batch: "B10", label: "Return Assembly, Filing & Lineage Closure" },
               { batch: "B16", label: "Audit Trail & Lineage Governance" },
               { batch: "B42", label: "Tax Rules Framework & Book-to-Tax Adjustment Rules" },
+              { batch: "B45", label: "Rule Logic Expression Table & Adjustment Subtype Domain Expansion" },
               { batch: "B28", label: "Tax Workpapers & Provision Schedules" },
               { batch: "B29", label: "Consolidated Return Assembly" },
               { batch: "B17", label: "Decision Support, Overrides, Evidence & Workpapers" },
+              { batch: "B9A", label: "Data Gateway (IMS, CDS, DUO)" },
             ] as { batch: string; label: string }[]).map(b => (
               <div key={b.batch} style={{ fontSize: "12px", color: "#1e3a5f", marginBottom: "4px", display: "flex", gap: "6px" }}>
                 <span style={{ fontWeight: 700, minWidth: "36px" }}>{b.batch}</span>
@@ -1018,7 +1020,6 @@ export default function Home() {
               { batch: "B31 PDC", label: "Legacy Tool Prior Year Ingestion & Housing",  note: "Review Ready — ADO #1390014", primary: true },
               { batch: "B31 TDC", label: "Legacy Tool Prior Year Data Housing",           note: "Review Ready — ADO #1390267", primary: true },
               { batch: "B26 PDC", label: "Entity Constituents & Allocations",             note: "Review Ready — ADO #1390005", primary: false },
-              { batch: "B9A",     label: "Data Gateway (IMS, CDS, DUO)",                 note: "Planned — PI 3",              primary: false },
               { batch: "B39",     label: "Calculation Report",                            note: "Planned — PI 3",              primary: false },
             ] as { batch: string; label: string; note: string; primary: boolean }[]).map(b => (
               <div key={b.batch} style={{ fontSize: "12px", marginBottom: "6px" }}>
