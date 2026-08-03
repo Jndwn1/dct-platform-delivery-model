@@ -202,15 +202,15 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isActive   = (v: string) => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed";
 
-  // ── MVP-scoped metrics (single source of truth — 28 MVP features) ──
+  // ── MVP-scoped metrics (single source of truth — 29 MVP features) ──
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
-  const totalBatches       = mvp.total;        // 28 MVP features (23 numbered + 5 non-batch Active)
+  const totalBatches       = mvp.total;        // 29 MVP features (24 numbered + 5 non-batch Active)
   const completedCount     = mvp.complete;     // Complete / Delivered / Done
   const activeCount        = mvp.inDev;        // In Progress / Dev
   const inReviewCount      = mvp.inReview;     // In Review / QA states
   const plannedCount       = mvp.planned;      // Not Started / Committed / etc.
   const onHoldCount        = 0;                // On Hold excluded from MVP scope
-  const platformReadinessPct = mvp.readinessPct; // complete ÷ 23 × 100 (no weighting)
+  const platformReadinessPct = mvp.readinessPct; // complete ÷ 29 × 100 (no weighting)
 
   // Release Candidate — derived from PI completion: PI1+PI2 complete → RC-3 (PI 3 active)
   const releaseCandidateLabel = useMemo(() => {
@@ -225,7 +225,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
 
   // Weighted PI 3 progress (per governance spec: Complete=100%, Review=90%, Active=50%, Blocked=25%, Not Started=0%)
   const pi3WeightedPct = useMemo(() => {
-    const pi3Keys = ["20", "42", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
+    const pi3Keys = ["20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
     const vals = pi3Keys.map(k => (statuses as Record<string, string>)[k] ?? "Not Started");
     if (vals.length === 0) return 0;
     const sum = vals.reduce((acc, v) => {
@@ -240,7 +240,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
 
   // PI 3 breakdown for tooltip
   const pi3Breakdown = useMemo(() => {
-    const pi3Keys = ["20", "42", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
+    const pi3Keys = ["20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
     const vals = pi3Keys.map(k => (statuses as Record<string, string>)[k] ?? "Not Started");
     return {
       total: vals.length,
@@ -323,7 +323,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            MVP Delivery Intelligence · PI1 + PI2 + PI3 · 23 Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            MVP Delivery Intelligence · PI1 + PI2 + PI3 · 24 Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
@@ -354,7 +354,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="Total MVP Features"
           value={totalBatches}
-          sub="23 batches + 5 Active non-batch"
+          sub="24 batches + 5 Active non-batch"
           accent="#1e3a5f"
         />
         <KPICard
@@ -384,7 +384,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="MVP Readiness"
           value={`${platformReadinessPct}%`}
-          sub="Completed MVP Features ÷ 28"
+          sub="Completed MVP Features ÷ 29"
           accent="#059669"
           badge={platformReadinessPct >= 70 ? "On Track" : "At Risk"}
           badgeColor={platformReadinessPct >= 70 ? "#059669" : "#dc2626"}

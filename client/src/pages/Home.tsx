@@ -65,6 +65,7 @@ const BATCH_REFERENCE = [
   { pi: "PI 2", status: "Done",      batchNum: "16",  platform: "TDC",      name: "Known Mappings Lookup",                                              whatItDoes: "TDC-side lookup for confirmed mapping decisions.",                                                                                            rogerImpact: "Line Mappings (Stage 2)" },
   { pi: "PI 2", status: "Done",      batchNum: "13",  platform: "TDC",      name: "API Route Standardization",                                          whatItDoes: "Standardizes TDC API routes for governed consumer access.",                                                                                   rogerImpact: "None (infrastructure)" },
   { pi: "PI 3", status: "In Progress", batchNum: "42", platform: "TDC",     name: "Tax Rules Framework (PI 3 continuation)",                            whatItDoes: "Extends book-to-tax adjustment rules for additional scenarios.",                                                                               rogerImpact: "Tax Adjustment (Stage 7)" },
+  { pi: "PI 3", status: "MVP",         batchNum: "45", platform: "TDC",     name: "Rule Logic Expression Table & Adjustment Subtype Domain Expansion",  whatItDoes: "Moves rule computation logic into a dedicated expression table; expands Adjustment Subtype domain to business-approved values.",               rogerImpact: "Filing Review + Adjustments screen + Master Workbook import" },
   { pi: "PI 3", status: "In Progress", batchNum: "17", platform: "PDC",     name: "Many-to-Many Form Line Mapping & Jurisdiction-Aware Derivation",     whatItDoes: "Supports many-to-many form line mappings with jurisdiction-aware tax derivation.",                                                              rogerImpact: "Line Mappings (Stage 2) + Jurisdiction" },
   { pi: "PI 3", status: "In Progress", batchNum: "20",  platform: "TDC",      name: "Apportionment & State Allocation",                                   whatItDoes: "Handles state apportionment and income allocation across jurisdictions.",                                                                     rogerImpact: "State Apportionment" },
   { pi: "PI 3", status: "In Progress", batchNum: "21",  platform: "PDC",      name: "Multi-Entity Consolidation",                                         whatItDoes: "Consolidates financial data across multiple entities for group-level reporting.",                                                              rogerImpact: "Consolidation View" },
@@ -515,14 +516,14 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 export default function Home() {
   const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
 
-  // ── MVP-scoped metrics — single source of truth (28 MVP features) ──
+  // ── MVP-scoped metrics — single source of truth (29 MVP features: 24 numbered + 5 non-batch) ──
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
   const liveComplete  = mvp.complete;      // Complete / Delivered / Done
   const liveDev       = mvp.inDev;         // In Progress / Dev
   const liveInReview  = mvp.inReview;      // In Review / QA states
   const livePlanned   = mvp.planned;       // Not Started / Committed
-  const liveTotal     = mvp.total;         // 28 (23 numbered + 5 non-batch Active features)
-  const overallPct    = mvp.readinessPct;  // complete ÷ 28 × 100
+  const liveTotal     = mvp.total;         // 29 (24 numbered + 5 non-batch Active features)
+  const overallPct    = mvp.readinessPct;  // complete ÷ 29 × 100
 
   // For backward compat with sections that use pi2Done/pi2Active/pi2Planned names
   const pi2Done    = liveComplete;
@@ -620,7 +621,14 @@ export default function Home() {
       return b.status === "Stretch";
     });
   }, [statuses]);
-  const pi3MvpCount = BATCH_CALENDAR_PI23.filter(b => b.pi === "PI 3" && b.status === "MVP").length;
+  // pi3MvpCount: derive from live context PI3 keys so it reflects control panel updates
+  const pi3MvpCount = useMemo(() => {
+    const pi3Keys = ["20","42","45","21","28","9a","17","29","31","26","39","33"];
+    return pi3Keys.filter(k => {
+      const s = (statuses as unknown as Record<string,string>)[k] ?? "Not Started";
+      return s === "MVP" || s === "In Progress" || s === "Committed" || s === "Stretch";
+    }).length;
+  }, [statuses]);
 
   return (
     <div style={{ width: "95%", maxWidth: "1600px", margin: "0 auto", fontFamily: "system-ui, sans-serif", paddingBottom: "40px" }}>
@@ -680,7 +688,7 @@ export default function Home() {
             borderRadius: "10px", padding: "14px 20px", textAlign: "center", minWidth: "180px",
           }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
-            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>RC-3</div>
+            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>{(() => { const p1 = piCompletion?.pi1?.pct ?? 0; const p2 = piCompletion?.pi2?.pct ?? 0; const p3 = piCompletion?.pi3?.pct ?? 0; if (p3 >= 100) return "RC-4"; if (p2 >= 80 && p3 >= 40) return "RC-3"; if (p2 >= 60) return "RC-2"; return "RC-1"; })()}</div>
             <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: Sep 21, 2026</div>
           </div>
         </div>
@@ -706,7 +714,7 @@ export default function Home() {
             { label: "In Dev",           value: liveDev,       sub: "Active this week",   color: "#60a5fa" },
             { label: "In Review",        value: liveInReview,  sub: "QA / Demo Ready",    color: "#a78bfa" },
             { label: "Planned",          value: livePlanned,   sub: "Not yet started",    color: "#94a3b8" },
-            { label: "Total MVP Features", value: liveTotal,     sub: "23 batches + 5 non-batch",   color: "#fb923c" },
+            { label: "Total MVP Features", value: liveTotal,     sub: "24 batches + 5 non-batch",   color: "#fb923c" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",

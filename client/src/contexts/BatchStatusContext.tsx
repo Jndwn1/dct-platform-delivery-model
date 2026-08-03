@@ -353,14 +353,14 @@ const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 };
 
 // ── MVP Batch Portfolio — Single Source of Truth ────────────────────────────
-// 28 MVP-scoped features (ADO-authoritative, July 2026):
+// 29 MVP-scoped features (ADO-authoritative, July 2026 — includes B45):
 //   PI1 Complete (5): foundation-core, 1, 2, 2a, 3
 //   PI2 Complete (4): 4, 5, 6, 11  (B9 excluded — delivered via B9A sub-batch)
 //   PI2 Active (4):   7, 8, 10, 16  (ADO: Active)
-//   PI3 Active (9):   42, 20, 21, 28, 9a, 17, 29, 31, 26
+//   PI3 Active (10):  42, 45, 20, 21, 28, 9a, 17, 29, 31, 26
 //   Planned (1):      39
 //   Non-batch (5):    qa-workstream, env-management, roger-stabilization, platform-defect, mvp-enhancements
-// TOTAL: 5 + 4 + 4 + 10 + 1 + 5 = 29 ✓ (B45 added to PI3 Active)
+// TOTAL: 5 + 4 + 4 + 10 + 1 + 5 = 29 ✓
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
@@ -378,7 +378,7 @@ export const MVP_BATCH_KEYS: BatchKey[] = [
 
 /** Derive MVP-scoped metrics from live statuses. All dashboard components must use this. */
 export function deriveMvpMetrics(statuses: BatchStatusMap) {
-  const total = MVP_BATCH_KEYS.length; // 28: 23 numbered batches + 5 non-batch Active features
+  const total = MVP_BATCH_KEYS.length; // 29: 24 numbered batches + 5 non-batch Active features
   let complete = 0, inDev = 0, inReview = 0, planned = 0;
   for (const k of MVP_BATCH_KEYS) {
     const v = (statuses as unknown as Record<string, string>)[k] ?? "Not Started";
