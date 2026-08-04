@@ -165,16 +165,14 @@ export const appRouter = router({
       };
     }),
 
-    // Get recent deployments for the Executive Dashboard — limit matches all registry records
+    // Get all deployments ordered by date — used by landing page live feed
     recent: publicProcedure.query(async () => {
       const db = await getDb();
       if (!db) return [];
-      const rows = await db
+      return db
         .select()
         .from(deployments)
-        .orderBy(desc(deployments.deploymentDate), desc(deployments.createdAt))
-        .limit(10);
-      return rows;
+        .orderBy(desc(deployments.deploymentDate), desc(deployments.createdAt));
     }),
 
     // Get single deployment by id
