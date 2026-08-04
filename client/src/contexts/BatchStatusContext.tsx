@@ -316,7 +316,7 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "21": "In Progress", // B21 — Quality Control (PDC MVP)
   "28": "In Progress", // B28 — Tax Workpaper & Provision Schedules
   "9a": "Committed",   // B9A — Data Gateway (IMS, CDS, DUO) (Planned/Committed)
-  "17": "In Progress", // B17 — Decision Support — Overrides, Evidence & Workpapers
+  "17": "Complete", // B17 — Decision Support — Overrides, Evidence & Workpapers (Closed 8/4/2026)
   "29": "Committed",   // B29 — Consolidated Return Assembly (Planned/Committed)
   "31": "In Review",   // B31 — Legacy Tool Prior Year Ingestion (ADO: Review Ready)
   "26": "In Review",   // B26 — Entity Constituents & Allocations (ADO: Review Ready)

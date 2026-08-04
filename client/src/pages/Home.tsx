@@ -1077,24 +1077,25 @@ export default function Home() {
               color: "#065f46", backgroundColor: "#d1fae5",
               border: "1px solid #6ee7b7", borderRadius: "12px",
               padding: "2px 9px", whiteSpace: "nowrap",
-            }}>11 closed this PI</span>
+            }}>12 closed this PI</span>
             <span style={{
               fontSize: "11px", fontWeight: 700,
               color: "#047857", backgroundColor: "#a7f3d0",
               border: "1px solid #34d399", borderRadius: "12px",
               padding: "2px 9px", whiteSpace: "nowrap",
-            }}>8 this week</span>
+            }}>1 this week</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
             {([
-              { batch: "B43",  label: "Practitioner Book & Reclass Adjustments – Persistence, Ret…", pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: true },
-              { batch: "B8",   label: "Exceptions & Remediation",                                       pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: true },
-              { batch: "B4",   label: "AI Mapping Proposals, Decisions & Governance",                   pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: true },
-              { batch: "B11",  label: "Learning Governance & Model Evolution",                           pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: true },
-              { batch: "B8A",  label: "Exception Capture Wiring",                                       pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: true },
-              { batch: "B5",   label: "Entity Identity & Structure",                                     pi: "PI2", closed: "7/21/2026", owner: "Abbas, Nasar",  thisWeek: true },
-              { batch: "B2",   label: "Normalization & Firm Financial Taxonomy",                         pi: "PI1", closed: "7/21/2026", owner: "Abbas, Nasar",  thisWeek: true },
-              { batch: "B16",  label: "Audit Trail & Decision Lineage Governance",                       pi: "PI3", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: true },
+              { batch: "B17",  label: "Decision Support, Overrides, Evidence & Workpapers",          pi: "PI3", closed: "8/4/2026",  owner: "Luca, Gary",    thisWeek: true },
+              { batch: "B43",  label: "Practitioner Book & Reclass Adjustments – Persistence, Ret…", pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: false },
+              { batch: "B8",   label: "Exceptions & Remediation",                                       pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: false },
+              { batch: "B4",   label: "AI Mapping Proposals, Decisions & Governance",                   pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: false },
+              { batch: "B11",  label: "Learning Governance & Model Evolution",                           pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: false },
+              { batch: "B8A",  label: "Exception Capture Wiring",                                       pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: false },
+              { batch: "B5",   label: "Entity Identity & Structure",                                     pi: "PI2", closed: "7/21/2026", owner: "Abbas, Nasar",  thisWeek: false },
+              { batch: "B2",   label: "Normalization & Firm Financial Taxonomy",                         pi: "PI1", closed: "7/21/2026", owner: "Abbas, Nasar",  thisWeek: false },
+              { batch: "B16",  label: "Audit Trail & Decision Lineage Governance",                       pi: "PI3", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: false },
               { batch: "—",    label: "DCT AI-Assisted QA Prompt & Validation Framework",               pi: "PI2", closed: "7/16/2026", owner: "Chol, Anubhab", thisWeek: false },
               { batch: "B6",   label: "Practitioner Review, Adjustments & Lock",                        pi: "PI2", closed: "7/16/2026", owner: "Luca, Gary",    thisWeek: false },
               { batch: "B3",   label: "Tax Domain Authority & Tax Taxonomy",                             pi: "PI1", closed: "7/9/2026",  owner: "Luca, Gary",    thisWeek: false },
