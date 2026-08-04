@@ -7,6 +7,7 @@ import React from "react";
 import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
 import { useBatchStatus, deriveMvpMetrics } from "@/contexts/BatchStatusContext";
+import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
 import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
@@ -513,6 +514,86 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Recently Closed — Live from Deployment Registry ────────────────────────
+function RecentlyClosedLive() {
+  const { data: rows = [], isLoading } = trpc.deploymentRegistry.recent.useQuery();
+
+  // Determine "this week" — any deployment dated within the last 7 days
+  const today = new Date();
+  const weekAgo = new Date(today);
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const isThisWeek = (dateStr: string) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    return !isNaN(d.getTime()) && d >= weekAgo;
+  };
+
+  const thisWeekCount = rows.filter(r => isThisWeek(r.deploymentDate)).length;
+
+  return (
+    <div style={{ marginTop: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", flexWrap: "wrap" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          ✅ Recently Deployed
+        </div>
+        <span style={{
+          fontSize: "11px", fontWeight: 700,
+          color: "#065f46", backgroundColor: "#d1fae5",
+          border: "1px solid #6ee7b7", borderRadius: "12px",
+          padding: "2px 9px", whiteSpace: "nowrap",
+        }}>{rows.length} in registry</span>
+        {thisWeekCount > 0 && (
+          <span style={{
+            fontSize: "11px", fontWeight: 700,
+            color: "#047857", backgroundColor: "#a7f3d0",
+            border: "1px solid #34d399", borderRadius: "12px",
+            padding: "2px 9px", whiteSpace: "nowrap",
+          }}>{thisWeekCount} this week</span>
+        )}
+        <span style={{ fontSize: "10px", color: "#94a3b8", marginLeft: "auto" }}>Live · Deployment Registry</span>
+      </div>
+      {isLoading ? (
+        <div style={{ fontSize: "12px", color: "#94a3b8", padding: "8px 0" }}>Loading registry…</div>
+      ) : rows.length === 0 ? (
+        <div style={{ fontSize: "12px", color: "#94a3b8", padding: "8px 0" }}>No deployments recorded yet. Add entries in the Deployment Registry.</div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
+          {rows.map(r => {
+            const week = isThisWeek(r.deploymentDate);
+            return (
+              <div key={r.id} style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                backgroundColor: week ? "#ecfdf5" : "#f0fdf4",
+                border: week ? "1px solid #6ee7b7" : "1px solid #bbf7d0",
+                borderRadius: "6px", padding: "6px 10px",
+                boxShadow: week ? "0 0 0 1px #a7f3d0" : "none",
+              }}>
+                <span style={{ fontSize: "11px", fontWeight: 800, color: "#059669", minWidth: "36px" }}>
+                  {r.relatedBatch ?? r.platform}
+                </span>
+                <span style={{ fontSize: "11px", color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {r.releaseName}
+                </span>
+                {week && (
+                  <span style={{
+                    fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em",
+                    color: "#065f46", backgroundColor: "#a7f3d0",
+                    border: "1px solid #6ee7b7", borderRadius: "4px",
+                    padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0,
+                  }}>This Week</span>
+                )}
+                <span style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap" }}>
+                  {r.platform} · {r.deploymentDate}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
 
@@ -1066,62 +1147,8 @@ export default function Home() {
           </div>
         </div>
       </div>
-        {/* ── Recently Closed in PI 3 ── */}
-        <div style={{ marginTop: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", flexWrap: "wrap" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              ✅ Recently Closed in PI 3
-            </div>
-            <span style={{
-              fontSize: "11px", fontWeight: 700,
-              color: "#065f46", backgroundColor: "#d1fae5",
-              border: "1px solid #6ee7b7", borderRadius: "12px",
-              padding: "2px 9px", whiteSpace: "nowrap",
-            }}>13 closed this PI</span>
-            <span style={{
-              fontSize: "11px", fontWeight: 700,
-              color: "#047857", backgroundColor: "#a7f3d0",
-              border: "1px solid #34d399", borderRadius: "12px",
-              padding: "2px 9px", whiteSpace: "nowrap",
-            }}>2 this week</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
-            {([
-              { batch: "B17",  label: "Decision Support, Overrides, Evidence & Workpapers",          pi: "PI3", closed: "8/4/2026",  owner: "Luca, Gary",    thisWeek: true },
-              { batch: "B43",  label: "Practitioner Book & Reclass Adjustments – Persistence, Ret…", pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: false },
-              { batch: "B8",   label: "Exceptions & Remediation",                                       pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: false },
-              { batch: "B4",   label: "AI Mapping Proposals, Decisions & Governance",                   pi: "PI2", closed: "7/24/2026", owner: "Luca, Gary",    thisWeek: false },
-              { batch: "B11",  label: "Learning Governance & Model Evolution",                           pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: false },
-              { batch: "B8A",  label: "Exception Capture Wiring",                                       pi: "PI2", closed: "7/21/2026", owner: "Luca, Gary",    thisWeek: false },
-              { batch: "B5",   label: "Entity Identity & Structure",                                     pi: "PI2", closed: "7/21/2026", owner: "Abbas, Nasar",  thisWeek: false },
-              { batch: "B2",   label: "Normalization & Firm Financial Taxonomy",                         pi: "PI1", closed: "7/21/2026", owner: "Abbas, Nasar",  thisWeek: false },
-              { batch: "B16",  label: "Audit Trail & Decision Lineage Governance",                       pi: "PI3", closed: "8/4/2026",  owner: "Luca, Gary",    thisWeek: true },
-              { batch: "—",    label: "DCT AI-Assisted QA Prompt & Validation Framework",               pi: "PI2", closed: "7/16/2026", owner: "Chol, Anubhab", thisWeek: false },
-              { batch: "B6",   label: "Practitioner Review, Adjustments & Lock",                        pi: "PI2", closed: "7/16/2026", owner: "Luca, Gary",    thisWeek: false },
-              { batch: "B3",   label: "Tax Domain Authority & Tax Taxonomy",                             pi: "PI1", closed: "7/9/2026",  owner: "Luca, Gary",    thisWeek: false },
-            ] as { batch: string; label: string; pi: string; closed: string; owner: string; thisWeek: boolean }[]).map(b => (
-              <div key={b.batch + b.label} style={{
-                display: "flex", alignItems: "center", gap: "8px",
-                backgroundColor: b.thisWeek ? "#ecfdf5" : "#f0fdf4",
-                border: b.thisWeek ? "1px solid #6ee7b7" : "1px solid #bbf7d0",
-                borderRadius: "6px", padding: "6px 10px",
-                boxShadow: b.thisWeek ? "0 0 0 1px #a7f3d0" : "none",
-              }}>
-                <span style={{ fontSize: "11px", fontWeight: 800, color: "#059669", minWidth: "36px" }}>{b.batch}</span>
-                <span style={{ fontSize: "11px", color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.label}</span>
-                {b.thisWeek && (
-                  <span style={{
-                    fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em",
-                    color: "#065f46", backgroundColor: "#a7f3d0",
-                    border: "1px solid #6ee7b7", borderRadius: "4px",
-                    padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0,
-                  }}>Closed This Week</span>
-                )}
-                <span style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap" }}>{b.pi} · {b.closed}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* ── Recently Closed in PI 3 — LIVE from Deployment Registry ── */}
+        <RecentlyClosedLive />
 
       {/* ── Roadmap Accuracy Indicator ── */}
       <div style={{
