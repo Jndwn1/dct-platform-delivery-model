@@ -514,85 +514,23 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
-// ─── Recently Closed — Live from Deployment Registry ────────────────────────
-function RecentlyClosedLive() {
-  const { data: rows = [], isLoading } = trpc.deploymentRegistry.recent.useQuery();
-
-  // Determine "this week" — any deployment dated within the last 7 days
-  const today = new Date();
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  const isThisWeek = (dateStr: string) => {
-    if (!dateStr) return false;
-    const d = new Date(dateStr);
-    return !isNaN(d.getTime()) && d >= weekAgo;
-  };
-
-  const thisWeekCount = rows.filter(r => isThisWeek(r.deploymentDate)).length;
-
-  return (
-    <div style={{ marginTop: "16px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", flexWrap: "wrap" }}>
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          ✅ Recently Deployed
-        </div>
-        <span style={{
-          fontSize: "11px", fontWeight: 700,
-          color: "#065f46", backgroundColor: "#d1fae5",
-          border: "1px solid #6ee7b7", borderRadius: "12px",
-          padding: "2px 9px", whiteSpace: "nowrap",
-        }}>{rows.length} in registry</span>
-        {thisWeekCount > 0 && (
-          <span style={{
-            fontSize: "11px", fontWeight: 700,
-            color: "#047857", backgroundColor: "#a7f3d0",
-            border: "1px solid #34d399", borderRadius: "12px",
-            padding: "2px 9px", whiteSpace: "nowrap",
-          }}>{thisWeekCount} this week</span>
-        )}
-        <span style={{ fontSize: "10px", color: "#94a3b8", marginLeft: "auto" }}>Live · Deployment Registry</span>
-      </div>
-      {isLoading ? (
-        <div style={{ fontSize: "12px", color: "#94a3b8", padding: "8px 0" }}>Loading registry…</div>
-      ) : rows.length === 0 ? (
-        <div style={{ fontSize: "12px", color: "#94a3b8", padding: "8px 0" }}>No deployments recorded yet. Add entries in the Deployment Registry.</div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
-          {rows.map(r => {
-            const week = isThisWeek(r.deploymentDate);
-            return (
-              <div key={r.id} style={{
-                display: "flex", alignItems: "center", gap: "8px",
-                backgroundColor: week ? "#ecfdf5" : "#f0fdf4",
-                border: week ? "1px solid #6ee7b7" : "1px solid #bbf7d0",
-                borderRadius: "6px", padding: "6px 10px",
-                boxShadow: week ? "0 0 0 1px #a7f3d0" : "none",
-              }}>
-                <span style={{ fontSize: "11px", fontWeight: 800, color: "#059669", minWidth: "36px" }}>
-                  {r.relatedBatch ?? r.platform}
-                </span>
-                <span style={{ fontSize: "11px", color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {r.releaseName}
-                </span>
-                {week && (
-                  <span style={{
-                    fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em",
-                    color: "#065f46", backgroundColor: "#a7f3d0",
-                    border: "1px solid #6ee7b7", borderRadius: "4px",
-                    padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0,
-                  }}>This Week</span>
-                )}
-                <span style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap" }}>
-                  {r.platform} · {r.deploymentDate}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+// ─── Recently Closed in PI 3 (ADO-authoritative, updated Aug 4, 2026) ──────────
+const RECENTLY_CLOSED_PI3 = [
+  // ── This week (Aug 4, 2026) ──
+  { id: "B17", name: "Decision Support, Overrides, Evidence & Workpapers", platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: true },
+  { id: "B16", name: "Audit Trail & Lineage Governance",                   platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: true },
+  // ── Prior week (Jul 21–Jul 31) ──
+  { id: "B9A", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",           platform: "Gateway", closedDate: "Jul 29, 2026", thisWeek: false },
+  { id: "B28", name: "Tax Workpaper & Provision Schedules",                platform: "TDC",     closedDate: "Jul 28, 2026", thisWeek: false },
+  { id: "B31", name: "Legacy Tool Prior Year Ingestion",                   platform: "PDC",     closedDate: "Jul 24, 2026", thisWeek: false },
+  { id: "B20", name: "Firm Governance & Professional Standards",           platform: "PDC",     closedDate: "Jul 24, 2026", thisWeek: false },
+  { id: "B43", name: "Practitioner Book & Reclass Adjustments",            platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
+  { id: "B42", name: "Tax Rules Framework & Book-to-Tax Adjustment Rules", platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
+  { id: "B11", name: "Learning Governance & Model Evolution",              platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
+  { id: "B10", name: "Return Assembly, Filing & Lineage",                  platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
+  { id: "B8",  name: "Exceptions & Remediation",                           platform: "PDC/TDC", closedDate: "Jul 21, 2026", thisWeek: false },
+  { id: "B7",  name: "Client Tax Profile & Eligibility",                   platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
+];
 
 export default function Home() {
   const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
@@ -1147,8 +1085,49 @@ export default function Home() {
           </div>
         </div>
       </div>
-        {/* ── Recently Closed in PI 3 — LIVE from Deployment Registry ── */}
-        <RecentlyClosedLive />
+        {/* ── Recently Closed in PI 3 ── */}
+        <div style={{ marginTop: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", flexWrap: "wrap" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              ✅ Recently Closed in PI 3
+            </div>
+            <span style={{
+              fontSize: "11px", fontWeight: 700,
+              color: "#065f46", backgroundColor: "#d1fae5",
+              border: "1px solid #6ee7b7", borderRadius: "12px",
+              padding: "2px 9px", whiteSpace: "nowrap",
+            }}>2 this week</span>
+            <span style={{
+              fontSize: "11px", fontWeight: 700,
+              color: "#047857", backgroundColor: "#a7f3d0",
+              border: "1px solid #34d399", borderRadius: "12px",
+              padding: "2px 9px", whiteSpace: "nowrap",
+            }}>13 closed this PI</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
+            {RECENTLY_CLOSED_PI3.map(r => (
+              <div key={r.id} style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                backgroundColor: r.thisWeek ? "#ecfdf5" : "#f8fafc",
+                border: r.thisWeek ? "1px solid #6ee7b7" : "1px solid #e2e8f0",
+                borderRadius: "6px", padding: "6px 10px",
+                boxShadow: r.thisWeek ? "0 0 0 1px #a7f3d0" : "none",
+              }}>
+                <span style={{ fontSize: "11px", fontWeight: 800, color: r.thisWeek ? "#059669" : "#475569", minWidth: "36px" }}>{r.id}</span>
+                <span style={{ fontSize: "11px", color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
+                {r.thisWeek && (
+                  <span style={{
+                    fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em",
+                    color: "#065f46", backgroundColor: "#a7f3d0",
+                    border: "1px solid #6ee7b7", borderRadius: "4px",
+                    padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0,
+                  }}>Closed Today</span>
+                )}
+                <span style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap" }}>{r.platform} · {r.closedDate}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
       {/* ── Roadmap Accuracy Indicator ── */}
       <div style={{
