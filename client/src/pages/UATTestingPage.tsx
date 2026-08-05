@@ -425,17 +425,13 @@ export default function UATTestingPage() {
               </thead>
               <tbody>
                 {[
-                  { n:1,  risk: "Prior Year Data not available by Sep 7",          impact: "🔴 High",   owner: "PDC",       mit: "Escalate to PDC PO; identify fallback dataset",      target: "Aug 28" },
-                  { n:2,  risk: "Audit Trail (B16) development not complete",       impact: "🔴 High",   owner: "DCT Dev",   mit: "Daily stand-up tracking; scope reduction if needed", target: "Aug 28" },
-                  { n:3,  risk: "Business users not confirmed by Aug 10",           impact: "🟡 Medium", owner: "BA Team",   mit: "Escalate to business leadership",                   target: "Aug 10" },
-                  { n:4,  risk: "UAT environment not stable by Sep 18",             impact: "🔴 High",   owner: "Infra",     mit: "Early environment provisioning request",            target: "Sep 7" },
-                  { n:5,  risk: "Master Data authoring not complete by Sep 7",      impact: "🟡 Medium", owner: "BA Team",   mit: "Prioritize MVP worksheets; defer non-MVP",          target: "Sep 7" },
-                  { n:6,  risk: "IMS endpoint not ready for TDC outbound contract", impact: "🟡 Medium", owner: "IMS",       mit: "Stub endpoint for UAT; confirm with IMS team",      target: "Sep 15" },
-                  { n:7,  risk: "Taxonomy data review not complete",                impact: "🟡 Medium", owner: "TDC",       mit: "Schedule taxonomy review by Aug 20",               target: "Aug 20" },
-                  { n:8,  risk: "Test scripts not ready by Sep 18",                 impact: "🟡 Medium", owner: "QA / BA",   mit: "Workbook-driven scripts; begin drafting now",       target: "Sep 15" },
-                  { n:9,  risk: "Business user access not provisioned",             impact: "🟡 Medium", owner: "Infra",     mit: "Submit access requests by Sep 7",                  target: "Sep 7" },
-                  { n:10, risk: "Scope creep — non-MVP items entering UAT",         impact: "🟢 Low",    owner: "Jenniver",  mit: "Enforce scope boundary; refer to Load Order tab",  target: "Ongoing" },
-                  { n:11, risk: "Potential overlap between Roger and DCT end-to-end testing", impact: "🟡 Medium", owner: "QA / BA",   mit: "Conduct a joint review of end-to-end scenarios to eliminate duplicate testing and clearly define testing ownership.", target: "Aug 11" },
+                  { n:1,  risk: "Business users not confirmed by Aug 10",           impact: "🟡 Medium", owner: "BA Team",   mit: "Escalate to business leadership",                                                                                      target: "Aug 10" },
+                  { n:2,  risk: "IMS endpoint not ready for TDC outbound contract", impact: "🟡 Medium", owner: "IMS",       mit: "Stub endpoint for UAT; confirm with IMS team",                                                                          target: "Sep 15" },
+                  { n:3,  risk: "Taxonomy data review not complete",                impact: "🟡 Medium", owner: "TDC",       mit: "Schedule taxonomy review by Aug 20",                                                                                   target: "Aug 20" },
+                  { n:4,  risk: "Test scripts not ready by Sep 18",                 impact: "🟡 Medium", owner: "QA / BA",   mit: "Workbook-driven scripts; begin drafting now",                                                                           target: "Sep 15" },
+                  { n:5,  risk: "Business user access not provisioned",             impact: "🟡 Medium", owner: "Infra",     mit: "Submit access requests by Sep 7",                                                                                      target: "Sep 7" },
+                  { n:6,  risk: "Scope creep — non-MVP items entering UAT",         impact: "🟢 Low",    owner: "Jenniver",  mit: "Enforce scope boundary; refer to Load Order tab",                                                                      target: "Ongoing" },
+                  { n:7,  risk: "Potential overlap between Roger and DCT end-to-end testing", impact: "🟡 Medium", owner: "QA / BA",   mit: "Conduct a joint review of end-to-end scenarios to eliminate duplicate testing and clearly define testing ownership.", target: "Aug 11" },
                 ].map((r, i) => (
                   <tr key={r.n} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
                     <td style={{ padding: "9px 14px", fontWeight: 700, color: SLATE }}>{r.n}</td>
