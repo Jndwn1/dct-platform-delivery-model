@@ -480,27 +480,7 @@ export default function UATTestingPage() {
                   "All MVP Capability Readiness rows green",
                 ],
               },
-              {
-                label: "In Progress Today",
-                icon: "🔄",
-                color: "#60a5fa",
-                items: [
-                  "UAT environment provisioning",
-                  "Prior Year Data delivery (PDC)",
-                  "Business user confirmation",
-                  "Test script finalization",
-                ],
-              },
-              {
-                label: "Upcoming This Week",
-                icon: "📅",
-                color: "#a78bfa",
-                items: [
-                  "B29 Consolidated Return Assembly starts Aug 11",
-                  "Taxonomy data review completion",
-                  "UAT environment sign-off",
-                ],
-              },
+
               {
                 label: "Current Risks",
                 icon: "⚠️",
