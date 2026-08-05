@@ -350,8 +350,8 @@ export default function UATTestingPage() {
             <div style={{ background: NAVY, padding: "10px 16px", fontSize: 12, fontWeight: 800, color: "white" }}>Data Readiness</div>
             <div style={{ padding: "14px 16px" }}>
               {[
-                { label: "Roger Master Data",   status: "🟡", owner: "BA Team",  dep: "Authoring" },
-                { label: "Prior Year Data",     status: "🔴", owner: "PDC",      dep: "PDC Delivery" },
+                { label: "Roger Master Data",   status: "🟢", owner: "BA Team",  dep: "Authoring" },
+                { label: "Prior Year Data",     status: "🟡", owner: "PDC",      dep: "PDC Delivery" },
                 { label: "Reference Data",      status: "🟢", owner: "TDC",      dep: "None" },
                 { label: "Taxonomy Data",       status: "🟡", owner: "TDC",      dep: "Taxonomy Review" },
                 { label: "Migration Validation",status: "⚪", owner: "QA",       dep: "Data Load" },
