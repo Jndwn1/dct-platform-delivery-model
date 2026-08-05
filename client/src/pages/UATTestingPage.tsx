@@ -465,21 +465,79 @@ export default function UATTestingPage() {
         </div>
 
         {/* ── Daily Readiness Summary ── */}
-        <div style={{ background: NAVY, borderRadius: 10, padding: "18px 22px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 14 }}>Daily Readiness Summary</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
+        <div style={{ background: NAVY, borderRadius: 10, padding: "20px 24px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 16 }}>Daily Readiness Summary — Aug 5, 2026</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
             {[
-              { label: "Completed Yesterday",        items: ["B17 Decision Support closed (Aug 4)", "B16 Audit Trail & Lineage closed (Aug 4)", "Roger Master Data authoring complete", "All MVP Capability Readiness rows green"] },
-              { label: "In Progress Today",          items: ["UAT environment provisioning", "Prior Year Data delivery (PDC)", "Business user confirmation", "Test script finalization"] },
-              { label: "Upcoming This Week",         items: ["B29 Consolidated Return Assembly starts Aug 11", "Taxonomy data review completion", "UAT environment sign-off"] },
-              { label: "Current Risks",              items: ["Prior Year Data (PDC — in progress)", "Business user confirmation pending", "UAT environment not yet stable"] },
-              { label: "Leadership Decisions Needed",items: ["Confirm business users by Aug 10", "PDC Prior Year Data delivery commitment", "UAT environment provisioning approval"] },
+              {
+                label: "Completed Yesterday",
+                icon: "✅",
+                color: "#10b981",
+                items: [
+                  "B17 Decision Support closed (Aug 4)",
+                  "B16 Audit Trail & Lineage closed (Aug 4)",
+                  "Roger Master Data authoring complete",
+                  "All MVP Capability Readiness rows green",
+                ],
+              },
+              {
+                label: "In Progress Today",
+                icon: "🔄",
+                color: "#60a5fa",
+                items: [
+                  "UAT environment provisioning",
+                  "Prior Year Data delivery (PDC)",
+                  "Business user confirmation",
+                  "Test script finalization",
+                ],
+              },
+              {
+                label: "Upcoming This Week",
+                icon: "📅",
+                color: "#a78bfa",
+                items: [
+                  "B29 Consolidated Return Assembly starts Aug 11",
+                  "Taxonomy data review completion",
+                  "UAT environment sign-off",
+                ],
+              },
+              {
+                label: "Current Risks",
+                icon: "⚠️",
+                color: "#fbbf24",
+                items: [
+                  "Prior Year Data (PDC — in progress)",
+                  "Business user confirmation pending",
+                  "UAT environment not yet stable",
+                ],
+              },
+              {
+                label: "Leadership Decisions Needed",
+                icon: "📌",
+                color: "#f87171",
+                items: [
+                  "Confirm business users by Aug 10",
+                  "PDC Prior Year Data delivery commitment",
+                  "UAT environment provisioning approval",
+                ],
+              },
             ].map(col => (
-              <div key={col.label}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 8 }}>{col.label}</div>
-                <ul style={{ margin: 0, paddingLeft: 16 }}>
+              <div key={col.label} style={{
+                background: "rgba(255,255,255,0.05)",
+                border: `1px solid ${col.color}40`,
+                borderRadius: 8,
+                padding: "14px 16px",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                  <span style={{ fontSize: 14 }}>{col.icon}</span>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: col.color, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>{col.label}</div>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none" }}>
                   {col.items.map(item => (
-                    <li key={item} style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.6, marginBottom: 3 }}>{item}</li>
+                    <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: 7, fontSize: 12, color: "#e2e8f0", lineHeight: 1.6, marginBottom: 6 }}>
+                      <span style={{ color: col.color, fontWeight: 800, flexShrink: 0, marginTop: 1 }}>•</span>
+                      <span>{item}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
