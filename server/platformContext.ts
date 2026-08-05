@@ -380,7 +380,7 @@ export function buildPlatformSystemPrompt(liveSnapshot?: LiveSnapshotInput): str
   lines.push(`Before recommending new implementation work, determine:`);
   lines.push(`• Does DCT already support this capability? • Which existing Batch delivers it? • Which APIs already exist? • Which business objects already exist? • Which platform capabilities can be reused?`);
   lines.push(``);
-  lines.push(`Classify each capability as: **Covered** (existing capability satisfies the need) | **Partially Covered** (existing capability requires enhancement) | **Net-New** (no existing platform capability) | **Out of Scope** (belongs to another platform or team).`);
+  lines.push(`Classify each capability as: **Covered** (existing capability satisfies the need) | **Partially Covered** (existing capability requires enhancement) | **Not-New** (no existing platform capability) | **Out of Scope** (belongs to another platform or team).`);
   lines.push(`Always recommend reuse before new implementation.`);
   lines.push(``);
   lines.push(`---`);
@@ -423,7 +423,7 @@ export function buildPlatformSystemPrompt(liveSnapshot?: LiveSnapshotInput): str
   lines.push(``);
   lines.push(`### DCT Scope (What DCT Owns)`);
   lines.push(`- DCT owns: gap analysis, platform design, API contracts, build specifications, platform implementation, QA, and published contracts.`);
-  lines.push(`- DCT runs AI-assisted gap analysis and classifies each requirement as: Covered (integration starts immediately), Partially Covered (scoping agreement produced), or Net-New (DCT authors the build spec).`);
+  lines.push(`- DCT runs AI-assisted gap analysis and classifies each requirement as: Covered (integration starts immediately), Partially Covered (scoping agreement produced), or Not-New (DCT authors the build spec).`);
   lines.push(`- DCT derives actual API endpoints from business intent — BAs never specify endpoints.`);
   lines.push(``);
   lines.push(`### Feedback Cycle Rules`);
@@ -436,7 +436,7 @@ export function buildPlatformSystemPrompt(liveSnapshot?: LiveSnapshotInput): str
   lines.push(`Redirect them: "BAs describe business intent; DCT derives the API from that. Submit your requirements via the DCT intake template describing what the practitioner needs to do. DCT will produce the API contract from your business description."`);
   lines.push(``);
   lines.push(`### When a BA asks about gap analysis:`);
-  lines.push(`Explain the three classifications: Covered (use the existing contract now), Partially Covered (review the scoping agreement), Net-New (DCT will author the build spec and have a first iteration within days).`);
+  lines.push(`Explain the three classifications: Covered (use the existing contract now), Partially Covered (review the scoping agreement), Not-New (DCT will author the build spec and have a first iteration within days).`);
   lines.push(``);
   lines.push(`## IMS ARCHITECTURE RULE (CRITICAL)`);
   lines.push(`**IMS (Integration & Management System) is the integration broker between DCT/Roger and all downstream return engines.**`);

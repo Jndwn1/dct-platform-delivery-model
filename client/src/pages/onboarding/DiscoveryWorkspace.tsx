@@ -227,7 +227,7 @@ const WORKFLOW_STEPS = [
     title: "Classify the Gap",
     icon: "⚖️",
     color: "#b45309",
-    purpose: "Determine whether the business need is Covered, Partially Covered, or Net-New.",
+    purpose: "Determine whether the business need is Covered, Partially Covered, or Not-New.",
     guidance: "Use the three-tier classification to determine the correct action. Only document requirements for the true gap — not for capabilities that already exist.",
     examples: [],
     note: null,
@@ -288,7 +288,7 @@ const GAP_CLASSIFICATIONS = [
     icon: "~",
   },
   {
-    label: "Net-New",
+    label: "Not-New",
     color: "#dc2626",
     bg: "#fef2f2",
     border: "#fecaca",
@@ -799,12 +799,12 @@ function DataFlowSection() {
 }
 
 // ─── SECTION 5: Capability Mapping Table ─────────────────────────────────────
-type StatusType = "Covered" | "Partially Covered" | "Net-New" | "Out of Scope";
+type StatusType = "Covered" | "Partially Covered" | "Not-New" | "Out of Scope";
 
 const STATUS_CONFIG: Record<StatusType, { dot: string; bg: string; text: string; border: string; label: string }> = {
   "Covered":          { dot: "🟢", bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", label: "Covered" },
   "Partially Covered":{ dot: "🟡", bg: "#fffbeb", text: "#92400e", border: "#fde68a", label: "Partially Covered" },
-  "Net-New":          { dot: "🔵", bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe", label: "Net-New" },
+  "Not-New":          { dot: "🔵", bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe", label: "Not-New" },
   "Out of Scope":     { dot: "⚪", bg: "#f8fafc", text: "#475569", border: "#e2e8f0", label: "Out of Scope" },
 };
 
@@ -826,7 +826,7 @@ const CAPABILITY_ROWS: { need: string; capability: string; batch: string; apis: 
 const LEGEND_ITEMS: { status: StatusType; definition: string; action: string }[] = [
   { status: "Covered",          definition: "Existing DCT capability satisfies the business need.",  action: "Reference the existing capability." },
   { status: "Partially Covered",definition: "Existing capability requires enhancement.",              action: "Document only the enhancement." },
-  { status: "Net-New",          definition: "No existing DCT capability exists.",                    action: "Document the complete business requirement." },
+  { status: "Not-New",          definition: "No existing DCT capability exists.",                    action: "Document the complete business requirement." },
   { status: "Out of Scope",     definition: "Capability belongs to another platform or team.",       action: "Coordinate with the owning team rather than creating DCT implementation work." },
 ];
 
@@ -868,7 +868,7 @@ function CapabilityMappingTable() {
           <div style={{ backgroundColor: "white", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "10px 14px" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", marginBottom: "5px" }}>🔵 If the capability does not exist</div>
             <p style={{ fontSize: "12px", color: "#1e40af", margin: 0, lineHeight: "1.6" }}>
-              Document the business requirement and identify the capability as <strong>Net-New</strong>.
+              Document the business requirement and identify the capability as <strong>Not-New</strong>.
             </p>
           </div>
         </div>
@@ -964,9 +964,9 @@ const DISCOVERY_QUESTIONS = [
     "Which existing Batch provides it?",
     "Which APIs already exist?",
     "Which existing business objects support it?",
-    "Is the capability Covered, Partially Covered, or Net-New?",
+    "Is the capability Covered, Partially Covered, or Not-New?",
     "If partially covered, what enhancement is required?",
-    "If Net-New, why can't the existing platform satisfy the requirement?",
+    "If Not-New, why can't the existing platform satisfy the requirement?",
   ]},
 
   { category: "Scope & Requirements", questions: [
@@ -1028,7 +1028,7 @@ const BUDDY_SUGGESTED = [
   "How does Batch 28 support Provision reference data?",
   "What is the role of Batch 16 in audit trail governance?",
   "What APIs are available for State and Provision consumers?",
-  "Is this capability Covered, Partially Covered, or Net-New?",
+  "Is this capability Covered, Partially Covered, or Not-New?",
   "What data does the State workstream need from TDC?",
   "How does IMS route Provision data to return engines?",
 ];
@@ -1036,7 +1036,7 @@ const BUDDY_SUGGESTED = [
 function AskBuddySection() {
   const [messages, setMessages] = useState<Message[]>([{
     role: "assistant",
-    content: "👋 I'm Ask Buddy — your discovery guide for the DCT platform.\n\nBefore documenting any new requirement, ask me to determine whether DCT already supports the capability. I will evaluate existing platform capabilities, identify supporting batches, APIs, and business objects, and classify the request as Covered, Partially Covered, or Net-New before new requirements are created.\n\nDescribe the business capability you need — I'll check the DCT knowledge base first.",
+    content: "👋 I'm Ask Buddy — your discovery guide for the DCT platform.\n\nBefore documenting any new requirement, ask me to determine whether DCT already supports the capability. I will evaluate existing platform capabilities, identify supporting batches, APIs, and business objects, and classify the request as Covered, Partially Covered, or Not-New before new requirements are created.\n\nDescribe the business capability you need — I'll check the DCT knowledge base first.",
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -1047,7 +1047,7 @@ function AskBuddySection() {
 
   const INITIAL_MESSAGE: Message = {
     role: "assistant",
-    content: "👋 I'm Ask Buddy — your discovery guide for the DCT platform.\n\nBefore documenting any new requirement, ask me to determine whether DCT already supports the capability. I will evaluate existing platform capabilities, identify supporting batches, APIs, and business objects, and classify the request as Covered, Partially Covered, or Net-New before new requirements are created.\n\nDescribe the business capability you need — I'll check the DCT knowledge base first.",
+    content: "👋 I'm Ask Buddy — your discovery guide for the DCT platform.\n\nBefore documenting any new requirement, ask me to determine whether DCT already supports the capability. I will evaluate existing platform capabilities, identify supporting batches, APIs, and business objects, and classify the request as Covered, Partially Covered, or Not-New before new requirements are created.\n\nDescribe the business capability you need — I'll check the DCT knowledge base first.",
   };
 
   function clearChat() {

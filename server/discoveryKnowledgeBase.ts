@@ -374,7 +374,7 @@ BAs describe business intent. DCT owns platform design, gap analysis, build, QA,
 
 **Steps 3–6 (DCT owns):**
 3. **DCT Intake** — DCT receives requirements via the intake template. This is the formal handoff point — DCT takes ownership of platform design.
-4. **Gap Analysis** — DCT runs AI-assisted gap analysis against existing platform contracts. Each requirement is classified as: Covered (integration starts immediately), Partially Covered (scoping agreement produced), or Net-New (DCT authors the build spec).
+4. **Gap Analysis** — DCT runs AI-assisted gap analysis against existing platform contracts. Each requirement is classified as: Covered (integration starts immediately), Partially Covered (scoping agreement produced), or Not-New (DCT authors the build spec).
 5. **Platform Specification** — DCT authors the implementation specification. Requirements plus platform conventions become the build spec, with an explicit assumption list.
 6. **Platform Build** — DCT generates the initial platform build. First built iteration exists within days of clearing gap analysis.
 
@@ -390,8 +390,8 @@ BAs describe business intent. DCT owns platform design, gap analysis, build, QA,
 
 ### Gap Analysis Classifications
 - **Covered** — Capability exists. Integration starts immediately against the existing contract.
-- **Partially Covered** — Scoping agreement produced. Shows what is covered and what is net-new.
-- **Net-New** — DCT authors the build spec. First iteration available within days.
+- **Partially Covered** — Scoping agreement produced. Shows what is covered and what is not-new.
+- **Not-New** — DCT authors the build spec. First iteration available within days.
 
 ### Ownership Boundaries
 **BA owns:** Business requirements, practitioner workflows, business rules, acceptance criteria, validation of business intent, review of DCT-generated assumptions.
@@ -1043,7 +1043,7 @@ The Discovery Center is the primary resource for Business Analysts working on th
       "What data does the State workstream need from PDC and TDC?",
       "How does the Provision workstream consume governed data from DCT?",
       "What APIs are available for State and Provision consumers?",
-      "What is already built vs what is net-new for State and Provision?",
+      "What is already built vs what is not-new for State and Provision?",
       "How does IMS route State and Provision data to return engines?",
       "What are the governance boundaries between PDC, TDC, and Provision?",
       "What acceptance criteria should a BA define for a State workstream story?",
@@ -1104,7 +1104,7 @@ This workspace covers the **State** and **Provision** workstreams and the DCT ba
 Before documenting any new requirement for the State or Provision workstream, determine whether DCT already supports the capability through B9A, B16, or B28. Classify each requirement as:
 - **Covered:** Fully supported by an existing batch — no new story needed.
 - **Partially Covered:** Supported in part — a gap story or enhancement is appropriate.
-- **Net-New:** Not supported — a new feature or batch is required.
+- **Not-New:** Not supported — a new feature or batch is required.
 
 ### Governance Boundaries
 - PDC owns financial data normalization — it does not own tax logic.
