@@ -115,7 +115,7 @@ export default function UATTestingPage() {
 
         {/* Metadata bar */}
         <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 16, marginTop: 12, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 16px", fontSize: 11, color: SLATE }}>
-          {[["Document Owner","Jenniver Stafford"],["Version","3.0"],["Last Updated","July 16, 2026"],["Status","DRAFT"],["Classification","Internal — Confidential"]].map(([l,v]) => (
+          {[["Document Owner","Jenniver Stafford"],["Version","3.1"],["Last Updated","August 5, 2026"],["Status","ACTIVE"],["Classification","Internal — Confidential"]].map(([l,v]) => (
             <div key={l}><span style={{ fontWeight: 600, color: NAVY }}>{l}:</span> <span style={{ color: l === "Status" ? AMBER : "#1e293b", fontWeight: l === "Status" ? 700 : 400 }}>{v}</span></div>
           ))}
         </div>
@@ -181,10 +181,10 @@ export default function UATTestingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
             {[
               { label: "MVP Target",        value: "Sep 21",    color: NAVY,  sub: "2026" },
-              { label: "Current Batch",     value: "RC-3",      color: "#7c3aed", sub: "PI 3 Active" },
-              { label: "UAT Readiness",     value: "🟡 At Risk", color: AMBER, sub: "As of Jul 21" },
-              { label: "Overall Completion",value: "42%",       color: GREEN, sub: "Across all tracks" },
-              { label: "Last Updated",      value: "Jul 21",    color: SLATE, sub: "2026" },
+              { label: "Current Batch",     value: "RC-2",      color: "#7c3aed", sub: "PI 3 Active" },
+              { label: "UAT Readiness",     value: "🟢 On Track", color: GREEN, sub: "As of Aug 5" },
+              { label: "Overall Completion",value: "68%",       color: GREEN, sub: "Across all tracks" },
+              { label: "Last Updated",      value: "Aug 5",     color: SLATE, sub: "2026" },
               { label: "Owner",             value: "Jenniver",  color: NAVY,  sub: "Sr. BA · CATT" },
             ].map(k => (
               <div key={k.label} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px", textAlign: "center" as const }}>
@@ -437,12 +437,12 @@ export default function UATTestingPage() {
           <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Executive Go / No-Go</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
             {[
-              { label: "Development Complete",  status: "🟡", note: "RC-3 in progress" },
-              { label: "Critical Bugs Closed",   status: "🟡", note: "Monitoring" },
-              { label: "Environment Stable",     status: "⚪", note: "UAT env pending" },
-              { label: "Master Data Loaded",     status: "🟡", note: "Authoring in progress" },
-              { label: "Data Validated",         status: "⚪", note: "Awaiting load" },
-              { label: "Business Users Ready",   status: "🟡", note: "Confirmation pending" },
+              { label: "Development Complete",  status: "🟢", note: "B16 & B17 closed Aug 4" },
+              { label: "Critical Bugs Closed",   status: "🟢", note: "No open critical bugs" },
+              { label: "Environment Stable",     status: "🟡", note: "UAT env in progress" },
+              { label: "Master Data Loaded",     status: "🟢", note: "Roger Master Data complete" },
+              { label: "Data Validated",         status: "🟡", note: "Prior Year Data pending" },
+              { label: "Business Users Ready",   status: "🟡", note: "Confirmation in progress" },
               { label: "Test Scripts Ready",     status: "🟡", note: "In progress" },
               { label: "Support Ready",          status: "⚪", note: "TBD" },
               { label: "Deployment Ready",       status: "⚪", note: "TBD" },
@@ -469,11 +469,11 @@ export default function UATTestingPage() {
           <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 14 }}>Daily Readiness Summary</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
             {[
-              { label: "Completed Yesterday",        items: ["Scope boundary confirmed", "Discovery Decision Matrix published", "Ask Buddy 5-step review process deployed"] },
-              { label: "In Progress Today",          items: ["MVP UAT Readiness Dashboard", "RC-3 development", "Master Data authoring"] },
-              { label: "Upcoming This Week",         items: ["Test population identification", "Environment readiness review", "Taxonomy data review scheduling"] },
-              { label: "Current Risks",              items: ["Prior Year Data (PDC)", "B16 Audit Trail development", "Business user confirmation"] },
-              { label: "Leadership Decisions Needed",items: ["Confirm business users by Aug 10", "PDC data availability commitment", "UAT environment provisioning approval"] },
+              { label: "Completed Yesterday",        items: ["B17 Decision Support closed (Aug 4)", "B16 Audit Trail & Lineage closed (Aug 4)", "Roger Master Data authoring complete", "All MVP Capability Readiness rows green"] },
+              { label: "In Progress Today",          items: ["UAT environment provisioning", "Prior Year Data delivery (PDC)", "Business user confirmation", "Test script finalization"] },
+              { label: "Upcoming This Week",         items: ["B29 Consolidated Return Assembly starts Aug 11", "Taxonomy data review completion", "UAT environment sign-off"] },
+              { label: "Current Risks",              items: ["Prior Year Data (PDC — in progress)", "Business user confirmation pending", "UAT environment not yet stable"] },
+              { label: "Leadership Decisions Needed",items: ["Confirm business users by Aug 10", "PDC Prior Year Data delivery commitment", "UAT environment provisioning approval"] },
             ].map(col => (
               <div key={col.label}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 8 }}>{col.label}</div>
