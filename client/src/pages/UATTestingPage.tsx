@@ -260,7 +260,7 @@ export default function UATTestingPage() {
                   { cap: "Gateway Consumer Access",         batch: "B9A", dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
                   { cap: "Audit Trail & Lineage",           batch: "B16", dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
                   { cap: "Provision Reference Data",        batch: "B28", dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟡", risk: "Medium", dep: "UAT Pending" },
-                  { cap: "TDC Outbound Contract to IMS",    batch: "B28", dev: "🟢", qa: "🟡", md: "🟢", uatReady: "🟡", risk: "Medium", dep: "IMS Endpoint" },
+                  { cap: "TDC Outbound Contract to IMS",    batch: "B28", dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
                   { cap: "Master Data Load (Roger)",        batch: "FC",  dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
                 ].map((r, i) => (
                   <tr key={r.cap} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
