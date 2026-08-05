@@ -234,11 +234,11 @@ export default function UATTestingPage() {
                   { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "Business / QA",   risk: "Medium", notes: "Business users to be confirmed" },
                   { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Development",   risk: "Medium", notes: "In progress" },
                   { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "DCT / PDC",  risk: "High",   notes: "Dependency on PDC data availability" },
+                  { milestone: "UAT Begins",               date: "Sep 8",   status: "⚪", owner: "Business",  risk: "TBD",    notes: "9 business days before Sep 21 go-live" },
                   { milestone: "Validation Complete",      date: "Sep 15",  status: "⚪", owner: "QA",        risk: "TBD",    notes: "Pending Dev Complete" },
                   { milestone: "Environment Final Check", date: "Sep 18",  status: "⚪", owner: "Infrastructure",     risk: "TBD",    notes: "Final environment validation before UAT" },
                   { milestone: "Test Scripts Ready",       date: "Sep 18",  status: "⚪", owner: "QA",   risk: "TBD",    notes: "High-level end-to-end test scenarios are being prepared. Detailed workbook-driven test scripts will be finalized following the joint Roger/DCT scenario review." },
                   { milestone: "Communications Complete",  date: "Sep 18",  status: "⚪", owner: "Product Owner(s)",  risk: "Low",    notes: "Business user notifications" },
-                  { milestone: "UAT Begins",               date: "Sep 8",   status: "⚪", owner: "Business",  risk: "TBD",    notes: "9 business days before Sep 21 go-live" },
                 ].map((r, i) => {
                   const riskColor = r.risk === "High" ? "#fef2f2" : r.risk === "Medium" ? "#fffbeb" : r.risk === "Low" ? "#f0fdf4" : "#f8fafc";
                   const riskText  = r.risk === "High" ? "#991b1b" : r.risk === "Medium" ? "#92400e" : r.risk === "Low" ? "#166534" : "#475569";
