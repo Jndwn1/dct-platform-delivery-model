@@ -214,6 +214,24 @@ export default function UATTestingPage() {
           </div>
         </div>
 
+        {/* ── UAT Readiness Timeline Summary ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>UAT Readiness Timeline</div>
+          <div style={{ background: "white", border: "1px solid #e2e8f0", borderLeft: "4px solid #003865", borderRadius: 8, padding: "14px 18px" }}>
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {[
+                "Test scripts completed and approved before business testing begins.",
+                "Business and reference data validated in UAT environment before testing starts.",
+                "Dedicated defect resolution and regression testing window established (Sep 13–16).",
+                "Business validation completed before executive Go/No-Go review.",
+                "Timeline clearly separates readiness, execution, remediation, validation, and deployment activities.",
+              ].map(item => (
+                <li key={item} style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, marginBottom: 4 }}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
         {/* ── Leadership Milestones ── */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Leadership Milestones</div>
@@ -233,14 +251,16 @@ export default function UATTestingPage() {
                   { milestone: "Perf Environment Ready",     date: "Aug 5",   status: "🟢", owner: "Infrastructure",    risk: "Low",    notes: "Performance environment confirmed ready" },
                   { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "Business / QA",   risk: "Medium", notes: "Business users to be confirmed" },
                   { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Development",   risk: "Medium", notes: "In progress" },
-                  { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "DCT / PDC",          risk: "High",   notes: "Dependency on PDC data availability" },
-                  { milestone: "Test Scripts Ready",       date: "Sep 5",   status: "⚪", owner: "QA",                 risk: "TBD",    notes: "Workbook-driven test scripts completed and validated. Business users have approved test scenarios and are prepared to begin User Acceptance Testing." },
-                  { milestone: "Environment Final Check",  date: "Sep 5",   status: "⚪", owner: "Infrastructure",     risk: "TBD",    notes: "Final validation of the UAT environment, integrations, security, reference data, and deployment completed prior to business testing." },
-                  { milestone: "Communications Complete",  date: "Sep 5",   status: "⚪", owner: "Product Owner(s)",   risk: "Low",    notes: "Business users notified of UAT schedule, testing responsibilities, access instructions, and support contacts prior to UAT kickoff." },
-                  { milestone: "UAT Begins",               date: "Sep 8",   status: "⚪", owner: "Business",           risk: "TBD",    notes: "Business-led User Acceptance Testing begins following completion of all UAT readiness activities." },
-                  { milestone: "Validation Complete",      date: "Sep 15",  status: "⚪", owner: "QA",                 risk: "TBD",    notes: "Business validation completed, critical defects resolved or dispositioned, and solution approved for Go/No-Go readiness review." },
-                  { milestone: "Go / No-Go Readiness Review", date: "Sep 18", status: "⚪", owner: "Product Owner(s) / Leadership", risk: "TBD", notes: "Executive review of UAT results, open risks, production readiness, and deployment approval for the Sept. 21 MVP release." },
-                  { milestone: "MVP Go-Live",              date: "Sep 21",  status: "⚪", owner: "Leadership",         risk: "TBD",    notes: "DCT MVP production deployment." },
+                  { milestone: "Test Scripts Ready",              date: "Sep 3",   status: "⚪", owner: "QA",                              risk: "TBD",    notes: "Workbook-driven User Acceptance Test scripts have been completed, reviewed, and approved. Test scenarios support business validation across MVP capabilities." },
+                  { milestone: "Source Data Ready",               date: "Sep 4",   status: "🔴", owner: "DCT / PDC",                       risk: "High",   notes: "Required business, reference, and prior-year data have been loaded and validated within the UAT environment to support end-to-end business testing." },
+                  { milestone: "Environment Final Check",         date: "Sep 5",   status: "⚪", owner: "Infrastructure",                  risk: "TBD",    notes: "Final verification completed for application deployment, integrations, security, configuration, and test data before business testing begins." },
+                  { milestone: "Communications Complete",         date: "Sep 5",   status: "⚪", owner: "Product Owner(s)",                risk: "Low",    notes: "Business users notified of UAT schedule, testing responsibilities, access instructions, and support contacts prior to UAT kickoff." },
+                  { milestone: "UAT Begins",                      date: "Sep 8",   status: "⚪", owner: "Business",                        risk: "TBD",    notes: "Business users begin executing approved User Acceptance Test scripts using validated test data and the production-like UAT environment." },
+                  { milestone: "UAT Execution Complete",          date: "Sep 12",  status: "⚪", owner: "Business / QA",                   risk: "TBD",    notes: "Initial execution of all planned UAT scenarios completed. Defects triaged and prioritized for remediation." },
+                  { milestone: "Defect Resolution & Regression Testing", date: "Sep 13–16", status: "⚪", owner: "DCT Dev / QA",          risk: "TBD",    notes: "Development resolves critical defects, QA performs regression testing, and business users validate corrected functionality prior to production approval." },
+                  { milestone: "Business Validation Complete",    date: "Sep 17",  status: "⚪", owner: "Business",                        risk: "TBD",    notes: "Business stakeholders confirm MVP capabilities satisfy acceptance criteria and approve progression to the executive Go/No-Go review." },
+                  { milestone: "Go / No-Go Readiness Review",     date: "Sep 18",  status: "⚪", owner: "Product Owner(s) / Leadership",   risk: "TBD",    notes: "Executive leadership reviews UAT outcomes, remaining risks, defect status, operational readiness, and deployment criteria before authorizing production release." },
+                  { milestone: "MVP Go-Live",                     date: "Sep 21",  status: "⚪", owner: "Leadership",                      risk: "TBD",    notes: "DCT MVP production deployment." },
                 ].map((r, i) => {
                   const riskColor = r.risk === "High" ? "#fef2f2" : r.risk === "Medium" ? "#fffbeb" : r.risk === "Low" ? "#f0fdf4" : "#f8fafc";
                   const riskText  = r.risk === "High" ? "#991b1b" : r.risk === "Medium" ? "#92400e" : r.risk === "Low" ? "#166534" : "#475569";
