@@ -211,8 +211,8 @@ export default function UATTestingPage() {
               <tbody>
                 {[
                   { milestone: "Finalize Scope",          date: "Jul 20",  status: "🟢", owner: "Product Owner(s)",  risk: "Low",    notes: "Scope confirmed for DCT MVP" },
-                  { milestone: "UAT Environment Ready",      date: "Jul 24",  status: "⚪", owner: "Infrastructure",    risk: "Low",    notes: "UAT environment provisioning" },
-                  { milestone: "Perf Environment Ready",     date: "Jul 31",  status: "⚪", owner: "Infrastructure",    risk: "Low",    notes: "Performance environment provisioning" },
+                  { milestone: "UAT Environment Ready",      date: "Aug 5",   status: "🟢", owner: "Infrastructure",    risk: "Low",    notes: "UAT environment confirmed ready" },
+                  { milestone: "Perf Environment Ready",     date: "Aug 5",   status: "🟢", owner: "Infrastructure",    risk: "Low",    notes: "Performance environment confirmed ready" },
                   { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "Business / QA",   risk: "Medium", notes: "Business users to be confirmed" },
                   { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Development",   risk: "Medium", notes: "In progress" },
                   { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "DCT / PDC",  risk: "High",   notes: "Dependency on PDC data availability" },
@@ -286,7 +286,7 @@ export default function UATTestingPage() {
             {[
               { env: "DEV",        deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
               { env: "QA",         deployment: "🟢", config: "🟢", mdLoaded: "🟡", smoke: "🟡", stable: "🟡" },
-              { env: "UAT",        deployment: "⚪", config: "⚪", mdLoaded: "⚪", smoke: "⚪", stable: "⚪" },
+              { env: "UAT",        deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
               { env: "Production", deployment: "⚪", config: "⚪", mdLoaded: "⚪", smoke: "⚪", stable: "⚪" },
             ].map(e => (
               <div key={e.env} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
@@ -439,7 +439,7 @@ export default function UATTestingPage() {
             {[
               { label: "Development Complete",  status: "🟢", note: "B16 & B17 closed Aug 4" },
               { label: "Critical Bugs Closed",   status: "🟢", note: "No open critical bugs" },
-              { label: "Environment Stable",     status: "🟡", note: "UAT env in progress" },
+              { label: "Environment Stable",     status: "🟢", note: "UAT & Perf ready Aug 5" },
               { label: "Master Data Loaded",     status: "🟢", note: "Roger Master Data complete" },
               { label: "Data Validated",         status: "🟡", note: "Prior Year Data pending" },
               { label: "Business Users Ready",   status: "🟡", note: "Confirmation in progress" },
