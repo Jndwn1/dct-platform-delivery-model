@@ -233,12 +233,14 @@ export default function UATTestingPage() {
                   { milestone: "Perf Environment Ready",     date: "Aug 5",   status: "🟢", owner: "Infrastructure",    risk: "Low",    notes: "Performance environment confirmed ready" },
                   { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "Business / QA",   risk: "Medium", notes: "Business users to be confirmed" },
                   { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Development",   risk: "Medium", notes: "In progress" },
-                  { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "DCT / PDC",  risk: "High",   notes: "Dependency on PDC data availability" },
-                  { milestone: "UAT Begins",               date: "Sep 8",   status: "⚪", owner: "Business",  risk: "TBD",    notes: "9 business days before Sep 21 go-live" },
-                  { milestone: "Validation Complete",      date: "Sep 15",  status: "⚪", owner: "QA",        risk: "TBD",    notes: "Pending Dev Complete" },
-                  { milestone: "Environment Final Check", date: "Sep 18",  status: "⚪", owner: "Infrastructure",     risk: "TBD",    notes: "Final environment validation before UAT" },
-                  { milestone: "Test Scripts Ready",       date: "Sep 18",  status: "⚪", owner: "QA",   risk: "TBD",    notes: "High-level end-to-end test scenarios are being prepared. Detailed workbook-driven test scripts will be finalized following the joint Roger/DCT scenario review." },
-                  { milestone: "Communications Complete",  date: "Sep 18",  status: "⚪", owner: "Product Owner(s)",  risk: "Low",    notes: "Business user notifications" },
+                  { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "DCT / PDC",          risk: "High",   notes: "Dependency on PDC data availability" },
+                  { milestone: "Test Scripts Ready",       date: "Sep 5",   status: "⚪", owner: "QA",                 risk: "TBD",    notes: "Workbook-driven test scripts completed and validated. Business users have approved test scenarios and are prepared to begin User Acceptance Testing." },
+                  { milestone: "Environment Final Check",  date: "Sep 5",   status: "⚪", owner: "Infrastructure",     risk: "TBD",    notes: "Final validation of the UAT environment, integrations, security, reference data, and deployment completed prior to business testing." },
+                  { milestone: "Communications Complete",  date: "Sep 5",   status: "⚪", owner: "Product Owner(s)",   risk: "Low",    notes: "Business users notified of UAT schedule, testing responsibilities, access instructions, and support contacts prior to UAT kickoff." },
+                  { milestone: "UAT Begins",               date: "Sep 8",   status: "⚪", owner: "Business",           risk: "TBD",    notes: "Business-led User Acceptance Testing begins following completion of all UAT readiness activities." },
+                  { milestone: "Validation Complete",      date: "Sep 15",  status: "⚪", owner: "QA",                 risk: "TBD",    notes: "Business validation completed, critical defects resolved or dispositioned, and solution approved for Go/No-Go readiness review." },
+                  { milestone: "Go / No-Go Readiness Review", date: "Sep 18", status: "⚪", owner: "Product Owner(s) / Leadership", risk: "TBD", notes: "Executive review of UAT results, open risks, production readiness, and deployment approval for the Sept. 21 MVP release." },
+                  { milestone: "MVP Go-Live",              date: "Sep 21",  status: "⚪", owner: "Leadership",         risk: "TBD",    notes: "DCT MVP production deployment." },
                 ].map((r, i) => {
                   const riskColor = r.risk === "High" ? "#fef2f2" : r.risk === "Medium" ? "#fffbeb" : r.risk === "Low" ? "#f0fdf4" : "#f8fafc";
                   const riskText  = r.risk === "High" ? "#991b1b" : r.risk === "Medium" ? "#92400e" : r.risk === "Low" ? "#166534" : "#475569";
