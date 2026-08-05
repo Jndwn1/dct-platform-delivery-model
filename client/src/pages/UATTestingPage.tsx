@@ -196,6 +196,24 @@ export default function UATTestingPage() {
           </div>
         </div>
 
+        {/* ── Recent Leadership Decisions ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Recent Leadership Decisions — Aug 5, 2026</div>
+          <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderLeft: "4px solid #059669", borderRadius: 8, padding: "14px 18px" }}>
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {[
+                "QA and Performance environments remain on track.",
+                "High-level end-to-end test scenarios will be available by Friday (Narayana).",
+                "Roger and DCT will jointly review test scenarios to eliminate duplicate testing and clarify ownership.",
+                "Performance testing will initially target 50 concurrent users.",
+                "QA deployment and reference data activities remain on schedule.",
+              ].map(item => (
+                <li key={item} style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, marginBottom: 4 }}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
         {/* ── Leadership Milestones ── */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Leadership Milestones</div>
@@ -218,7 +236,7 @@ export default function UATTestingPage() {
                   { milestone: "Source Data Ready",        date: "Sep 7",   status: "🔴", owner: "DCT / PDC",  risk: "High",   notes: "Dependency on PDC data availability" },
                   { milestone: "Validation Complete",      date: "Sep 15",  status: "⚪", owner: "QA",        risk: "TBD",    notes: "Pending Dev Complete" },
                   { milestone: "Environment Final Check", date: "Sep 18",  status: "⚪", owner: "Infrastructure",     risk: "TBD",    notes: "Final environment validation before UAT" },
-                  { milestone: "Test Scripts Ready",       date: "Sep 18",  status: "⚪", owner: "QA",   risk: "TBD",    notes: "Workbook-driven scripts" },
+                  { milestone: "Test Scripts Ready",       date: "Sep 18",  status: "⚪", owner: "QA",   risk: "TBD",    notes: "High-level end-to-end test scenarios are being prepared. Detailed workbook-driven test scripts will be finalized following the joint Roger/DCT scenario review." },
                   { milestone: "Communications Complete",  date: "Sep 18",  status: "⚪", owner: "Product Owner(s)",  risk: "Low",    notes: "Business user notifications" },
                   { milestone: "UAT Begins",               date: "Sep 8",   status: "⚪", owner: "Business",  risk: "TBD",    notes: "9 business days before Sep 21 go-live" },
                 ].map((r, i) => {
@@ -377,7 +395,7 @@ export default function UATTestingPage() {
               { label: "Business Users Identified", status: "🟡", note: "Confirmation pending" },
               { label: "Access Provisioned",         status: "⚪", note: "Awaiting user list" },
               { label: "Test Data Ready",            status: "🔴", note: "Dependent on MD load" },
-              { label: "Test Scripts Complete",      status: "🟡", note: "In progress" },
+              { label: "Test Scripts Complete",      status: "🟡", note: "High-level end-to-end scenarios are being developed. Workbook-driven validation scripts will be completed following the Roger/DCT scenario review." },
               { label: "Defect Process Ready",       status: "🟢", note: "Documented in framework" },
               { label: "Change Control Ready",       status: "🟢", note: "Documented in framework" },
               { label: "Business Training Complete", status: "⚪", note: "Scheduled for Sep 18" },
@@ -417,6 +435,7 @@ export default function UATTestingPage() {
                   { n:8,  risk: "Test scripts not ready by Sep 18",                 impact: "🟡 Medium", owner: "QA / BA",   mit: "Workbook-driven scripts; begin drafting now",       target: "Sep 15" },
                   { n:9,  risk: "Business user access not provisioned",             impact: "🟡 Medium", owner: "Infra",     mit: "Submit access requests by Sep 7",                  target: "Sep 7" },
                   { n:10, risk: "Scope creep — non-MVP items entering UAT",         impact: "🟢 Low",    owner: "Jenniver",  mit: "Enforce scope boundary; refer to Load Order tab",  target: "Ongoing" },
+                  { n:11, risk: "Potential overlap between Roger and DCT end-to-end testing", impact: "🟡 Medium", owner: "QA / BA",   mit: "Conduct a joint review of end-to-end scenarios to eliminate duplicate testing and clearly define testing ownership.", target: "Aug 11" },
                 ].map((r, i) => (
                   <tr key={r.n} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
                     <td style={{ padding: "9px 14px", fontWeight: 700, color: SLATE }}>{r.n}</td>
@@ -425,6 +444,57 @@ export default function UATTestingPage() {
                     <td style={{ padding: "9px 14px", color: "#374151" }}>{r.owner}</td>
                     <td style={{ padding: "9px 14px", color: SLATE, fontSize: 11 }}>{r.mit}</td>
                     <td style={{ padding: "9px 14px", color: "#374151", whiteSpace: "nowrap" as const }}>{r.target}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── QA Coordination Updates ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>QA Coordination Updates — Aug 5, 2026</div>
+
+          {/* Decisions Made */}
+          <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "16px 20px", marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 10 }}>Decisions Made</div>
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {[
+                "QA and Performance environments remain on schedule.",
+                "Narayana will provide a high-level list of end-to-end test scenarios, including edge and negative cases, by Friday.",
+                "Roger and DCT will conduct a joint review of all test scenarios to eliminate duplicate testing and clarify ownership.",
+                "Initial performance testing will target approximately 50 concurrent users.",
+                "Remaining QA deployment and reference data activities remain on schedule.",
+              ].map(item => (
+                <li key={item} style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, marginBottom: 4 }}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          {/* QA Action Items Table */}
+          <div style={{ overflowX: "auto" as const, background: "white", border: "1px solid #e2e8f0", borderRadius: 10 }}>
+            <div style={{ padding: "10px 16px 0", fontSize: 12, fontWeight: 700, color: NAVY }}>QA Action Items</div>
+            <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: NAVY }}>
+                  {["Area","Owner","Action","Due Date"].map(h => (
+                    <th key={h} style={{ padding: "9px 14px", textAlign: "left" as const, color: "white", fontWeight: 700, whiteSpace: "nowrap" as const }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { area: "QA Testing",      owner: "Narayana",  action: "Prepare and distribute a high-level list of end-to-end test scenarios, including edge and negative cases.",                                                   due: "Friday" },
+                  { area: "Test Coordination", owner: "Aravind",   action: "Schedule the Roger/DCT scenario review meeting and confirm ownership boundaries.",                                                                        due: "Monday" },
+                  { area: "Environment",     owner: "Nasar",     action: "Coordinate QA reference/seed data deployment with Anubhab.",                                                                                                due: "Friday" },
+                  { area: "Deployment",      owner: "Ichhwak",   action: "Deploy remaining TDC and PDC pipelines to the QA environment.",                                                                                            due: "Friday" },
+                  { area: "Performance",     owner: "Stephane",  action: "Confirm the Tax Portal performance testing schedule with Tatiana.",                                                                                         due: "TBD" },
+                ].map((r, i) => (
+                  <tr key={r.area + r.owner} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "9px 14px", fontWeight: 700, color: NAVY, whiteSpace: "nowrap" as const }}>{r.area}</td>
+                    <td style={{ padding: "9px 14px", color: "#374151", whiteSpace: "nowrap" as const }}>{r.owner}</td>
+                    <td style={{ padding: "9px 14px", color: SLATE }}>{r.action}</td>
+                    <td style={{ padding: "9px 14px", color: "#374151", whiteSpace: "nowrap" as const }}>{r.due}</td>
                   </tr>
                 ))}
               </tbody>
