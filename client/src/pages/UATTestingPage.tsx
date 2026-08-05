@@ -256,12 +256,12 @@ export default function UATTestingPage() {
               </thead>
               <tbody>
                 {[
-                  { cap: "Roger UI — Core Screens",         batch: "B1",  dev: "🟢", qa: "🟢", md: "🟡", uatReady: "🟡", risk: "Medium", dep: "Master Data Load" },
+                  { cap: "Roger UI — Core Screens",         batch: "B1",  dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
                   { cap: "Gateway Consumer Access",         batch: "B9A", dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
-                  { cap: "Audit Trail & Lineage",           batch: "B16", dev: "🟡", qa: "⚪", md: "🟢", uatReady: "🔴", risk: "High",   dep: "Dev Complete" },
-                  { cap: "Provision Reference Data",        batch: "B28", dev: "🟡", qa: "⚪", md: "⚪", uatReady: "🔴", risk: "High",   dep: "Dev + MD Load" },
+                  { cap: "Audit Trail & Lineage",           batch: "B16", dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
+                  { cap: "Provision Reference Data",        batch: "B28", dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟡", risk: "Medium", dep: "UAT Pending" },
                   { cap: "TDC Outbound Contract to IMS",    batch: "B28", dev: "🟢", qa: "🟡", md: "🟢", uatReady: "🟡", risk: "Medium", dep: "IMS Endpoint" },
-                  { cap: "Master Data Load (Roger)",        batch: "FC",  dev: "🟢", qa: "🟢", md: "🟡", uatReady: "🟡", risk: "Medium", dep: "Authoring Complete" },
+                  { cap: "Master Data Load (Roger)",        batch: "FC",  dev: "🟢", qa: "🟢", md: "🟢", uatReady: "🟢", risk: "Low",    dep: "None" },
                 ].map((r, i) => (
                   <tr key={r.cap} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
                     <td style={{ padding: "9px 14px", fontWeight: 600, color: NAVY }}>{r.cap}</td>
