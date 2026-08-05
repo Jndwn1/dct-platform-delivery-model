@@ -185,7 +185,7 @@ export default function UATTestingPage() {
               { label: "UAT Readiness",     value: "🟢 On Track", color: GREEN, sub: "As of Aug 5" },
               { label: "Overall Completion",value: "68%",       color: GREEN, sub: "Across all tracks" },
               { label: "Last Updated",      value: "Aug 5",     color: SLATE, sub: "2026" },
-              { label: "Owner",             value: "Jenniver",  color: NAVY,  sub: "Sr. BA · CATT" },
+              { label: "Owner",             value: "Jenniver",  color: NAVY,  sub: "BA Manager · CATT" },
             ].map(k => (
               <div key={k.label} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px", textAlign: "center" as const }}>
                 <div style={{ fontSize: 18, fontWeight: 800, color: k.color, lineHeight: 1.2 }}>{k.value}</div>

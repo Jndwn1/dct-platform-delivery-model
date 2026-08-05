@@ -536,7 +536,7 @@ ${storyContext}`,
 function formatAsAdoComment(answer: string, question: string, adoWorkItem: AdoWorkItem | null, adoId: string | null, timestamp: string): string {
   const storyRef = adoWorkItem ? `Story #${adoWorkItem.id}: ${adoWorkItem.title}` : adoId ? `Story #${adoId}` : "DCT Platform";
   const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  return `=== DCT Platform Governance Copilot (Sr. BA) — ${date} ===
+  return `=== DCT Platform Governance Copilot (BA Manager) — ${date} ===
 
 Reference: ${storyRef}
 Analysis Type: ${question}
@@ -877,7 +877,7 @@ The assistant cannot connect to the AI service right now. This is a browser-side
             <div className="text-sm font-bold flex items-center gap-2">
               Governance Copilot
               <span className="text-xs font-normal bg-blue-500/30 text-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" /> Sr. BA Mode
+                <Sparkles className="w-2.5 h-2.5" /> BA Manager Mode
               </span>
             </div>
             <div className="text-xs text-blue-300 font-normal">

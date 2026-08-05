@@ -113,7 +113,7 @@ const NEXT_ACTIONS_DATA = [
 const HUB_VERSION = "v4.0";
 const HUB_SOURCE  = "DCT_Batch_Roadmap_v4.docx";
 const HUB_UPDATED = "May 26, 2026";
-const HUB_AUTHOR  = "CATT · Sr. BA · Jenniver";
+const HUB_AUTHOR  = "CATT · BA Manager · Jenniver";
 
 // ── Collapsible Section Wrapper ──────────────────────────────────────────────
 function Section({
