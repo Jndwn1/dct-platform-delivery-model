@@ -303,7 +303,7 @@ export default function UATTestingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             {[
               { env: "DEV",        deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
-              { env: "QA",         deployment: "🟢", config: "🟢", mdLoaded: "🟡", smoke: "🟡", stable: "🟡" },
+              { env: "QA",         deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
               { env: "UAT",        deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
               { env: "Production", deployment: "⚪", config: "⚪", mdLoaded: "⚪", smoke: "⚪", stable: "⚪" },
             ].map(e => (
