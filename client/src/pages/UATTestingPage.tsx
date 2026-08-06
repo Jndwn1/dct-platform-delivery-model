@@ -251,6 +251,8 @@ export default function UATTestingPage() {
                   { milestone: "Perf Environment Ready",     date: "Aug 5",   status: "🟢", owner: "Infrastructure",    risk: "Low",    notes: "Performance environment confirmed ready" },
                   { milestone: "Identify Test Population", date: "Aug 10",  status: "🟡", owner: "Business / QA",   risk: "Medium", notes: "Business users to be confirmed" },
                   { milestone: "Development Complete",     date: "Aug 28",  status: "🟡", owner: "DCT Development",   risk: "Medium", notes: "In progress" },
+                  { milestone: "All MVP Code Deployed to QA",    date: "Aug 7",   status: "🟡", owner: "Roger Development / Release Team", risk: "Low",    notes: "Official deployment of the latest MVP code to the QA environment is scheduled for Aug. 7." },
+                  { milestone: "All MVP Code Available in UAT",  date: "TBD",     status: "⚪", owner: "Roger Development / Release Team", risk: "Medium", notes: "UAT environment currently contains a previous deployment. Official deployment of the latest MVP build has not yet been scheduled." },
                   { milestone: "Test Scripts Ready",              date: "Sep 3",   status: "⚪", owner: "QA",                              risk: "TBD",    notes: "Workbook-driven User Acceptance Test scripts have been completed, reviewed, and approved. Test scenarios support business validation across MVP capabilities." },
                   { milestone: "Source Data Ready",               date: "Sep 4",   status: "🔴", owner: "DCT / PDC",                       risk: "High",   notes: "Required business, reference, and prior-year data have been loaded and validated within the UAT environment to support end-to-end business testing." },
                   { milestone: "Environment Final Check",         date: "Sep 5",   status: "⚪", owner: "Infrastructure",                  risk: "TBD",    notes: "Final verification completed for application deployment, integrations, security, configuration, and test data before business testing begins." },
@@ -325,8 +327,8 @@ export default function UATTestingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             {[
               { env: "DEV",        deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
-              { env: "QA",         deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
-              { env: "UAT",        deployment: "🟢", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
+              { env: "QA",         deployment: "🟡", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
+              { env: "UAT",        deployment: "🟡", config: "🟢", mdLoaded: "🟢", smoke: "🟢", stable: "🟢" },
               { env: "Production", deployment: "⚪", config: "⚪", mdLoaded: "⚪", smoke: "⚪", stable: "⚪" },
             ].map(e => (
               <div key={e.env} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
@@ -454,6 +456,7 @@ export default function UATTestingPage() {
                   { n:5,  risk: "Business user access not provisioned",             impact: "🟡 Medium", owner: "Infra",     mit: "Submit access requests by Sep 7",                                                                                      target: "Sep 7" },
                   { n:6,  risk: "Scope creep — non-MVP items entering UAT",         impact: "🟢 Low",    owner: "Jenniver",  mit: "Enforce scope boundary; refer to Load Order tab",                                                                      target: "Ongoing" },
                   { n:7,  risk: "Potential overlap between Roger and DCT end-to-end testing", impact: "🟡 Medium", owner: "QA / BA",   mit: "Conduct a joint review of end-to-end scenarios to eliminate duplicate testing and clearly define testing ownership.", target: "Aug 11" },
+                  { n:8,  risk: "Latest MVP application build not yet officially deployed into UAT", impact: "🟡 Medium", owner: "Roger Development Team", mit: "Schedule and complete official UAT deployment before business testing begins.", target: "Sep 5" },
                 ].map((r, i) => (
                   <tr key={r.n} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
                     <td style={{ padding: "9px 14px", fontWeight: 700, color: SLATE }}>{r.n}</td>
@@ -520,6 +523,38 @@ export default function UATTestingPage() {
           </div>
         </div>
 
+        {/* ── Roger MVP Deployment Readiness ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Roger MVP Deployment Readiness</div>
+          <div style={{ overflowX: "auto" as const, background: "white", border: "1px solid #e2e8f0", borderRadius: 10 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" as const, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: NAVY }}>
+                  {["Milestone","Status","Target Date","Notes"].map(h => (
+                    <th key={h} style={{ padding: "9px 14px", textAlign: "left" as const, color: "white", fontWeight: 700 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { milestone: "Development Environment",   status: "🟢", statusLabel: "Complete",   target: "Complete",  notes: "Current development build available." },
+                  { milestone: "Official QA Deployment",    status: "🟡", statusLabel: "Scheduled",  target: "Aug. 7",    notes: "Latest MVP deployment scheduled." },
+                  { milestone: "Official UAT Deployment",   status: "⚪", statusLabel: "Pending",    target: "TBD",       notes: "Existing deployment may not contain the latest MVP build." },
+                  { milestone: "Business UAT Begins",       status: "⚪", statusLabel: "Planned",    target: "Sep. 8",    notes: "No change." },
+                  { milestone: "MVP Production Release",    status: "⚪", statusLabel: "Planned",    target: "Sep. 21",   notes: "No change." },
+                ].map((r, i) => (
+                  <tr key={r.milestone} style={{ background: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "9px 14px", fontWeight: 600, color: NAVY }}>{r.milestone}</td>
+                    <td style={{ padding: "9px 14px", whiteSpace: "nowrap" as const }}>{r.status} {r.statusLabel}</td>
+                    <td style={{ padding: "9px 14px", color: "#374151", whiteSpace: "nowrap" as const }}>{r.target}</td>
+                    <td style={{ padding: "9px 14px", color: SLATE, fontSize: 11 }}>{r.notes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* ── Executive Go / No-Go ── */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>Executive Go / No-Go</div>
@@ -533,7 +568,7 @@ export default function UATTestingPage() {
               { label: "Business Users Ready",   status: "🟡", note: "Confirmation in progress" },
               { label: "Test Scripts Ready",     status: "🟡", note: "In progress" },
               { label: "Support Ready",          status: "⚪", note: "TBD" },
-              { label: "Deployment Ready",       status: "⚪", note: "TBD" },
+              { label: "Deployment Ready",       status: "🟡", note: "Official QA deployment scheduled Aug. 7. Latest MVP deployment into UAT remains pending scheduling." },
               { label: "Business Approval",      status: "⚪", note: "Pending Go/No-Go meeting" },
             ].map(item => (
               <div key={item.label} style={{
@@ -554,7 +589,7 @@ export default function UATTestingPage() {
 
         {/* ── Daily Readiness Summary ── */}
         <div style={{ background: NAVY, borderRadius: 10, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 16 }}>Daily Readiness Summary — Aug 5, 2026</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 16 }}>Daily Readiness Summary — Aug 6, 2026</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
             {[
               {
@@ -576,7 +611,8 @@ export default function UATTestingPage() {
                 items: [
                   "Prior Year Data (PDC — in progress)",
                   "Business user confirmation pending",
-                  "UAT environment not yet stable",
+                  "Official QA deployment scheduled Aug. 7",
+                  "Latest MVP deployment into UAT still pending scheduling",
                 ],
               },
               {
@@ -586,7 +622,7 @@ export default function UATTestingPage() {
                 items: [
                   "Confirm business users by Aug 10",
                   "PDC Prior Year Data delivery commitment",
-                  "UAT environment provisioning approval",
+                  "Schedule official UAT deployment (latest MVP build)",
                 ],
               },
             ].map(col => (
