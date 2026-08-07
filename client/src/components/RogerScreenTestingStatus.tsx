@@ -1,6 +1,6 @@
 // RogerScreenTestingStatus.tsx
 // Simple Screen Testing Status table for the QA Deployment Registry.
-// Spec: pasted_content_152 — Page/Area, Status, QA Guidance/Notes. No extra columns.
+// Spec: pasted_content_152 / pasted_content_153 — Page/Area, Status, QA Guidance/Notes, Target Date.
 
 import { useState } from "react";
 
@@ -10,6 +10,7 @@ interface ScreenRow {
   page: string;
   status: ScreenStatus;
   notes: string;
+  targetDate: string;
 }
 
 const STATUS_STYLE: Record<ScreenStatus, { bg: string; text: string; border: string; dot: string }> = {
@@ -21,24 +22,24 @@ const STATUS_STYLE: Record<ScreenStatus, { bg: string; text: string; border: str
 };
 
 const INITIAL_SCREENS: ScreenRow[] = [
-  { page: "My Clients",               status: "Partially Ready",  notes: "Entities, deliverables, and average completion are still in progress. Line Mapping is working." },
-  { page: "Return Filings",           status: "Not Ready",        notes: "The screen is functional, but it is not ready for QA testing until deliverable information is available. Current data is not real; Divya is confirming details." },
-  { page: "Return Structure",         status: "Not Ready",        notes: "Return structure, progress bar, issue count, and statutory/client due dates are still being built. This is all dummy data." },
-  { page: "Summary",                  status: "Ready to Test",    notes: "All functionality is ready for QA testing." },
-  { page: "Line Mapping",             status: "Partially Ready",  notes: "A bug affecting reapproval is currently being fixed." },
-  { page: "TB with Line Mapping",     status: "Ready to Test",    notes: "All functionality is ready for QA testing." },
-  { page: "Book Adjustment",          status: "Partially Ready",  notes: "Ready to test except for Add New Account." },
-  { page: "Reclass Adjustment",       status: "Partially Ready",  notes: "Ready to test except for Add New Account." },
-  { page: "Book Return Review",       status: "Partially Ready",  notes: "Ready to test except for PY Final Amount." },
-  { page: "Tax Adjustments",          status: "Not Ready",        notes: "Not ready for QA testing." },
-  { page: "Book to Tax Report",       status: "Partially Ready",  notes: "Ready to test except for PY Final Amount." },
-  { page: "Book to Tax Reconciliation", status: "Not Ready",      notes: "Not ready for QA testing." },
-  { page: "1120 – Page 1 Income",     status: "Ready to Test",    notes: "Ready for QA testing." },
-  { page: "1120 – Page 1 Deductions", status: "Ready to Test",    notes: "Ready for QA testing." },
-  { page: "1120 – Form 1125-A",       status: "Ready to Test",    notes: "Ready for QA testing." },
-  { page: "1120 – Schedule L",        status: "Out of Scope",     notes: "Not in scope; please do not test." },
-  { page: "1120 – Form 4562",         status: "Out of Scope",     notes: "Not in scope; please do not test." },
-  { page: "1120 – Sign-off",          status: "Not Functional",   notes: "Gateway sign-off is not yet functional." },
+  { page: "My Clients",                 status: "Partially Ready",  notes: "Entities, deliverables, and average completion are still in progress. Line Mapping is working.",                                                                                                                     targetDate: "TBD – DCT confirmation required" },
+  { page: "Return Filings",             status: "Not Ready",        notes: "The screen is functional, but it is not ready for QA testing until deliverable information is available. Current data is not real.",                                                                                  targetDate: "TBD" },
+  { page: "Return Structure",           status: "Not Ready",        notes: "Return structure, progress bar, issue count, and statutory/client due dates are still being built. Current data is dummy data.",                                                                                      targetDate: "August 28, 2026 – Consolidations/Eliminations\nPY Data – TBD" },
+  { page: "Summary",                    status: "Ready to Test",    notes: "All functionality is ready for QA testing.",                                                                                                                                                                          targetDate: "Ready" },
+  { page: "Line Mapping",               status: "Partially Ready",  notes: "Mapping Override Policy gate fix deployed August 7, 2026. Mapping overrides should no longer fail because a Mapping Override Policy does not exist. Other identified Line Mapping readiness issues remain outstanding.", targetDate: "Mapping Override Policy Fix – Deployed August 7, 2026\nRemaining items – TBD" },
+  { page: "TB with Line Mapping",       status: "Ready to Test",    notes: "All functionality is ready for QA testing.",                                                                                                                                                                          targetDate: "Ready" },
+  { page: "Book Adjustment",            status: "Partially Ready",  notes: "Ready to test except for Add New Account.",                                                                                                                                                                           targetDate: "Add New Account – TBD" },
+  { page: "Reclass Adjustment",         status: "Partially Ready",  notes: "Ready to test except for Add New Account.",                                                                                                                                                                           targetDate: "Add New Account – TBD" },
+  { page: "Book Return Review",         status: "Partially Ready",  notes: "Ready to test except for PY Final Amount. A manual refresh may currently be required for mapping changes to appear due to a known caching issue.",                                                                    targetDate: "PY Final Amount – TBD\nCaching issue – Under Investigation" },
+  { page: "Tax Adjustments",            status: "Not Ready",        notes: "Not ready for QA testing.",                                                                                                                                                                                           targetDate: "TBD" },
+  { page: "Book to Tax Report",         status: "Partially Ready",  notes: "Ready to test except for PY Final Amount.",                                                                                                                                                                           targetDate: "PY Final Amount – TBD" },
+  { page: "Book to Tax Reconciliation", status: "Not Ready",        notes: "Not ready for QA testing.",                                                                                                                                                                                           targetDate: "TBD" },
+  { page: "1120 – Page 1 Income",       status: "Ready to Test",    notes: "Ready for QA testing.",                                                                                                                                                                                               targetDate: "Ready" },
+  { page: "1120 – Page 1 Deductions",   status: "Ready to Test",    notes: "Ready for QA testing.",                                                                                                                                                                                               targetDate: "Ready" },
+  { page: "1120 – Form 1125-A",         status: "Ready to Test",    notes: "Ready for QA testing.",                                                                                                                                                                                               targetDate: "Ready" },
+  { page: "1120 – Schedule L",          status: "Out of Scope",     notes: "Not in scope; please do not test.",                                                                                                                                                                                   targetDate: "N/A" },
+  { page: "1120 – Form 4562",           status: "Out of Scope",     notes: "Not in scope; please do not test.",                                                                                                                                                                                   targetDate: "N/A" },
+  { page: "1120 – Sign-off",            status: "Not Functional",   notes: "Gateway sign-off is not yet functional.",                                                                                                                                                                             targetDate: "TBD" },
 ];
 
 const ALL_STATUSES: ScreenStatus[] = ["Ready to Test", "Partially Ready", "Not Ready", "Out of Scope", "Not Functional"];
@@ -51,28 +52,20 @@ export default function RogerScreenTestingStatus() {
 
   const counts = {
     total: screens.length,
-    readyToTest: screens.filter(s => s.status === "Ready to Test").length,
+    readyToTest:    screens.filter(s => s.status === "Ready to Test").length,
     partiallyReady: screens.filter(s => s.status === "Partially Ready").length,
-    notReady: screens.filter(s => s.status === "Not Ready").length,
-    outOfScope: screens.filter(s => s.status === "Out of Scope").length,
-    notFunctional: screens.filter(s => s.status === "Not Functional").length,
+    notReady:       screens.filter(s => s.status === "Not Ready").length,
+    outOfScope:     screens.filter(s => s.status === "Out of Scope").length,
+    notFunctional:  screens.filter(s => s.status === "Not Functional").length,
   };
 
   const visible = filter === "All" ? screens : screens.filter(s => s.status === filter);
 
-  const startEdit = (idx: number) => {
-    setEditingIdx(idx);
-    setEditDraft({ ...screens[idx] });
-  };
-
-  const saveEdit = (idx: number) => {
-    setScreens(prev => prev.map((s, i) => i === idx ? { ...s, ...editDraft } as ScreenRow : s));
-    setEditingIdx(null);
-    setEditDraft({});
-  };
+  const startEdit = (idx: number) => { setEditingIdx(idx); setEditDraft({ ...screens[idx] }); };
+  const saveEdit  = (idx: number) => { setScreens(prev => prev.map((s, i) => i === idx ? { ...s, ...editDraft } as ScreenRow : s)); setEditingIdx(null); setEditDraft({}); };
 
   const summaryCards = [
-    { label: "Total Screens / Areas", count: counts.total, bg: "#f8fafc", text: "#1e293b", border: "#e2e8f0" },
+    { label: "Total Screens / Areas", count: counts.total,          bg: "#f8fafc", text: "#1e293b", border: "#e2e8f0" },
     { label: "Ready to Test",         count: counts.readyToTest,    ...STATUS_STYLE["Ready to Test"] },
     { label: "Partially Ready",       count: counts.partiallyReady, ...STATUS_STYLE["Partially Ready"] },
     { label: "Not Ready",             count: counts.notReady,       ...STATUS_STYLE["Not Ready"] },
@@ -111,24 +104,15 @@ export default function RogerScreenTestingStatus() {
       <div style={{ display: "flex", gap: "6px", padding: "10px 16px", borderBottom: "1px solid #f1f5f9", flexWrap: "wrap", alignItems: "center" }}>
         <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginRight: "4px" }}>Filter:</span>
         {(["All", ...ALL_STATUSES] as const).map(s => (
-          <button
-            key={s}
-            onClick={() => setFilter(s)}
-            style={{
-              padding: "3px 10px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, cursor: "pointer",
-              backgroundColor: filter === s ? "#1e3a5f" : "white",
-              color: filter === s ? "white" : "#475569",
-              border: filter === s ? "1px solid #1e3a5f" : "1px solid #e2e8f0",
-            }}
-          >
+          <button key={s} onClick={() => setFilter(s)} style={{ padding: "3px 10px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, cursor: "pointer", backgroundColor: filter === s ? "#1e3a5f" : "white", color: filter === s ? "white" : "#475569", border: filter === s ? "1px solid #1e3a5f" : "1px solid #e2e8f0" }}>
             {s}{s !== "All" && ` (${screens.filter(r => r.status === s).length})`}
           </button>
         ))}
       </div>
 
       {/* Table header */}
-      <div style={{ display: "grid", gridTemplateColumns: "220px 160px 1fr 80px", gap: "0", backgroundColor: "#0f1623", padding: "8px 16px" }}>
-        {["Page / Area", "Status", "QA Guidance / Notes", ""].map((h, i) => (
+      <div style={{ display: "grid", gridTemplateColumns: "200px 150px 1fr 200px 70px", gap: "0", backgroundColor: "#0f1623", padding: "8px 16px" }}>
+        {["Page / Area", "Status", "QA Guidance / Notes", "Target Date", ""].map((h, i) => (
           <div key={i} style={{ fontSize: "9px", fontWeight: 700, color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</div>
         ))}
       </div>
@@ -141,17 +125,13 @@ export default function RogerScreenTestingStatus() {
         const isEditing = editingIdx === realIdx;
         const st = STATUS_STYLE[row.status];
         return (
-          <div key={row.page} style={{ display: "grid", gridTemplateColumns: "220px 160px 1fr 80px", gap: "0", padding: "10px 16px", borderBottom: i < visible.length - 1 ? "1px solid #f1f5f9" : "none", alignItems: "start", backgroundColor: isEditing ? "#f0f9ff" : "transparent" }}>
+          <div key={row.page} style={{ display: "grid", gridTemplateColumns: "200px 150px 1fr 200px 70px", gap: "0", padding: "10px 16px", borderBottom: i < visible.length - 1 ? "1px solid #f1f5f9" : "none", alignItems: "start", backgroundColor: isEditing ? "#f0f9ff" : "transparent" }}>
             {/* Page */}
             <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623", paddingRight: "12px" }}>{row.page}</div>
             {/* Status */}
             <div>
               {isEditing ? (
-                <select
-                  value={editDraft.status ?? row.status}
-                  onChange={e => setEditDraft(d => ({ ...d, status: e.target.value as ScreenStatus }))}
-                  style={{ fontSize: "11px", padding: "4px 6px", border: "1px solid #e2e8f0", borderRadius: "5px", width: "100%" }}
-                >
+                <select value={editDraft.status ?? row.status} onChange={e => setEditDraft(d => ({ ...d, status: e.target.value as ScreenStatus }))} style={{ fontSize: "11px", padding: "4px 6px", border: "1px solid #e2e8f0", borderRadius: "5px", width: "100%" }}>
                   {ALL_STATUSES.map(s => <option key={s}>{s}</option>)}
                 </select>
               ) : (
@@ -164,14 +144,17 @@ export default function RogerScreenTestingStatus() {
             {/* Notes */}
             <div style={{ paddingRight: "12px" }}>
               {isEditing ? (
-                <textarea
-                  value={editDraft.notes ?? row.notes}
-                  onChange={e => setEditDraft(d => ({ ...d, notes: e.target.value }))}
-                  rows={3}
-                  style={{ width: "100%", fontSize: "12px", padding: "5px 8px", border: "1px solid #e2e8f0", borderRadius: "5px", resize: "vertical" }}
-                />
+                <textarea value={editDraft.notes ?? row.notes} onChange={e => setEditDraft(d => ({ ...d, notes: e.target.value }))} rows={3} style={{ width: "100%", fontSize: "12px", padding: "5px 8px", border: "1px solid #e2e8f0", borderRadius: "5px", resize: "vertical" }} />
               ) : (
-                <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5" }}>{row.notes}</div>
+                <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.5", whiteSpace: "pre-line" }}>{row.notes}</div>
+              )}
+            </div>
+            {/* Target Date */}
+            <div style={{ paddingRight: "12px" }}>
+              {isEditing ? (
+                <textarea value={editDraft.targetDate ?? row.targetDate} onChange={e => setEditDraft(d => ({ ...d, targetDate: e.target.value }))} rows={2} style={{ width: "100%", fontSize: "12px", padding: "5px 8px", border: "1px solid #e2e8f0", borderRadius: "5px", resize: "vertical" }} />
+              ) : (
+                <div style={{ fontSize: "11px", color: "#64748b", lineHeight: "1.5", whiteSpace: "pre-line" }}>{row.targetDate}</div>
               )}
             </div>
             {/* Actions */}
