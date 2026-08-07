@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import QABuddyPanel, { type AnalyzedRelease } from "@/components/QABuddyPanel";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import AboutSectionPanel from "@/components/AboutSectionPanel";
+import QAScreenReadinessTracker from "@/components/QAScreenReadinessTracker";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
@@ -477,6 +478,12 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
         <div style={{ fontSize: "11px", color: "#92400e", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "6px", padding: "8px 12px" }}>
           <strong>Governance Note:</strong> This record is part of the DCT Platform non-production governance workspace. All deployment records require formal enterprise implementation outside this workspace.
         </div>
+
+        {/* QA Screen Readiness Tracker */}
+        <QAScreenReadinessTracker
+          deploymentId={dep.deploymentId}
+          deploymentName={dep.releaseName}
+        />
       </div>
     </div>
   );

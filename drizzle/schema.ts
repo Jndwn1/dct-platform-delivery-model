@@ -195,6 +195,20 @@ export const qaScreenRecords = mysqlTable("qa_screen_records", {
   sortOrder: int("sortOrder").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  // QA Screen Readiness Tracker fields
+  readiness: varchar("readiness", { length: 64 }).default("Ready to Test"),
+  qaConfirmation: varchar("qaConfirmation", { length: 64 }).default("Pending Confirmation"),
+  knownIssueFlag: boolean("knownIssueFlag").default(false),
+  knownIssueDescription: text("knownIssueDescription"),
+  knownIssueWorkaround: text("knownIssueWorkaround"),
+  knownIssueInvestigationStatus: varchar("knownIssueInvestigationStatus", { length: 128 }),
+  knownIssueAdoItem: varchar("knownIssueAdoItem", { length: 128 }),
+  releaseNoteStatus: varchar("releaseNoteStatus", { length: 64 }).default("Pending Confirmation"),
+  whatsAvailable: text("whatsAvailable"),
+  whatsNotAvailable: text("whatsNotAvailable"),
+  qaValidationGuidance: text("qaValidationGuidance"),
+  baNotes: text("baNotes"),
+  confirmationHistory: text("confirmationHistory"),
 });
 export type QaScreenRecord = typeof qaScreenRecords.$inferSelect;
 export type InsertQaScreenRecord = typeof qaScreenRecords.$inferInsert;

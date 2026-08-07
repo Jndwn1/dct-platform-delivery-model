@@ -915,9 +915,52 @@ Generate a complete, professional ${input.reportType} formatted for executive co
           isBackendOnly: s.isBackendOnly ?? false,
           screenshotStatus: (s.isBackendOnly ? "Not Required" : "Missing") as string,
           sortOrder: s.sortOrder ?? i,
+          readiness: "Ready to Test",
+          qaConfirmation: "Pending Confirmation",
+          releaseNoteStatus: "Pending Confirmation",
         }));
         await db.insert(qaScreenRecords).values(rows as any);
         return { created: rows.length };
+      }),
+
+    upsertScreen: publicProcedure
+      .input(z.object({
+        deploymentId: z.string(),
+        screenName: z.string(),
+        readiness: z.string().optional(),
+        qaConfirmation: z.string().optional(),
+        knownIssueFlag: z.boolean().optional(),
+        knownIssueDescription: z.string().optional(),
+        knownIssueWorkaround: z.string().optional(),
+        knownIssueInvestigationStatus: z.string().optional(),
+        knownIssueAdoItem: z.string().optional(),
+        releaseNoteStatus: z.string().optional(),
+        whatsAvailable: z.string().optional(),
+        whatsNotAvailable: z.string().optional(),
+        qaValidationGuidance: z.string().optional(),
+        baNotes: z.string().optional(),
+        whatChanged: z.string().optional(),
+        adoItem: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null as any;
+        const { deploymentId, screenName, ...fields } = input;
+        const existing = await db.select({ id: qaScreenRecords.id })
+          .from(qaScreenRecords)
+          .where(eq(qaScreenRecords.deploymentId, deploymentId))
+          .then(rows => rows.find(r => r));
+        // Try to find by screenName
+        const allRows = await db.select().from(qaScreenRecords)
+          .where(eq(qaScreenRecords.deploymentId, deploymentId));
+        const match = allRows.find(r => r.screenName === screenName);
+        if (match) {
+          await db.update(qaScreenRecords).set(fields as any).where(eq(qaScreenRecords.id, match.id));
+          return { id: match.id, action: 'updated' };
+        } else {
+          await db.insert(qaScreenRecords).values({ deploymentId, screenName, ...fields, readiness: fields.readiness ?? 'Ready to Test', qaConfirmation: fields.qaConfirmation ?? 'Pending Confirmation', releaseNoteStatus: fields.releaseNoteStatus ?? 'Pending Confirmation' } as any);
+          return { action: 'created' };
+        }
       }),
 
     update: publicProcedure
@@ -936,6 +979,19 @@ Generate a complete, professional ${input.reportType} formatted for executive co
         validationStatus: z.string().optional(),
         screenshotStatus: z.string().optional(),
         screenshots: z.string().optional(),
+        readiness: z.string().optional(),
+        qaConfirmation: z.string().optional(),
+        knownIssueFlag: z.boolean().optional(),
+        knownIssueDescription: z.string().optional(),
+        knownIssueWorkaround: z.string().optional(),
+        knownIssueInvestigationStatus: z.string().optional(),
+        knownIssueAdoItem: z.string().optional(),
+        releaseNoteStatus: z.string().optional(),
+        whatsAvailable: z.string().optional(),
+        whatsNotAvailable: z.string().optional(),
+        qaValidationGuidance: z.string().optional(),
+        baNotes: z.string().optional(),
+        confirmationHistory: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
