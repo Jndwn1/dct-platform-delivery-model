@@ -14,6 +14,36 @@ import {
   Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Copy, Pencil, Eye, Trash2,
 } from "lucide-react";
 
+// Roger MVP screen list for the Screens multi-select
+const ROGER_SCREENS = [
+  "My Clients Page",
+  "Trial Balance",
+  "Line Mappings",
+  "Book Return Review (BRR)",
+  "Journal Entries",
+  "Master Data",
+  "Prior Year Data",
+  "Sign Off",
+  "Rollforward",
+  "Provision Reference Data",
+  "TDC Outbound to IMS",
+  "Roger UI Core Screens",
+];
+
+// Helper: convert selected screen names → screenChanges JSON
+function screensToJson(names: string[]): string {
+  return JSON.stringify(names.map(n => ({ screenName: n, name: n, whatChanged: "", qaTestInstructions: "", expectedResult: "", knownIssues: "", qaAvailability: "Available" })));
+}
+
+// Helper: extract screen names from screenChanges JSON
+function jsonToScreenNames(json: string | null | undefined): string[] {
+  if (!json) return [];
+  try {
+    const arr = JSON.parse(json) as Array<{ screenName?: string; name?: string }>;
+    return arr.map(s => s.screenName ?? s.name ?? "").filter(Boolean);
+  } catch { return []; }
+}
+
 // --- Wiki entry helper -------------------------------------------------------
 function buildWikiEntry(dep: DeploymentRowLike): string {
   const anchor = dep.releaseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -724,8 +754,33 @@ function CreateDeploymentForm({ onClose, onCreated, prefill, draftForm, draftAdo
         </div>
         <div>
           <label style={labelStyle}>Screen-by-Screen Changes (JSON)</label>
-          <textarea style={{ ...fieldStyle, minHeight: "80px", resize: "vertical", fontFamily: "monospace", fontSize: "11px" }} value={form.screenChanges ?? ""} onChange={e => set("screenChanges", e.target.value)} placeholder={'[{"name":"Screen Name","whatChanged":"...","qaTestInstructions":"...","expectedResult":"...","knownIssues":"","qaAvailability":"Available"}]'} />
-          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Optional: JSON array of screen entries. Each entry: name, whatChanged, qaTestInstructions, expectedResult, knownIssues, qaAvailability.</div>
+          {/* Screens multi-select — replaces raw JSON textarea */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", padding: "8px", border: "1px solid #e2e8f0", borderRadius: "6px", backgroundColor: "#f8fafc", minHeight: "44px" }}>
+            {ROGER_SCREENS.map(screen => {
+              const selected = jsonToScreenNames(form.screenChanges ?? "").includes(screen);
+              return (
+                <button
+                  key={screen}
+                  type="button"
+                  onClick={() => {
+                    const current = jsonToScreenNames(form.screenChanges ?? "");
+                    const next = selected ? current.filter(s => s !== screen) : [...current, screen];
+                    set("screenChanges", screensToJson(next));
+                  }}
+                  style={{
+                    padding: "4px 10px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, cursor: "pointer",
+                    backgroundColor: selected ? "#0369a1" : "white",
+                    color: selected ? "white" : "#475569",
+                    border: selected ? "1px solid #0369a1" : "1px solid #cbd5e1",
+                    transition: "all 0.1s",
+                  }}
+                >
+                  {selected ? "✓ " : ""}{screen}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Click to select all screens included in this deployment. Selected screens appear as blue pills in the registry table.</div>
         </div>
         <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>ADO Links (Optional)</div>
         <div style={{ fontSize: "10px", color: "#64748b", marginBottom: "4px" }}>Add one row per Feature or Story ADO link. Each row has a type, a short label, and the full ADO URL.</div>
@@ -925,6 +980,27 @@ function EditDeploymentForm({ dep, onClose, onSaved }: { dep: DeploymentRow; onC
         <div>
           <label style={labelStyle}>Related Story / Bug</label>
           <input style={fieldStyle} value={form.relatedStory} onChange={e => set("relatedStory", e.target.value)} />
+        </div>
+        <div>
+          <label style={labelStyle}>Screens Included in This Deployment</label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", padding: "8px", border: "1px solid #e2e8f0", borderRadius: "6px", backgroundColor: "#f8fafc", minHeight: "44px" }}>
+            {ROGER_SCREENS.map(screen => {
+              const selected = jsonToScreenNames((form as any).screenChanges ?? "").includes(screen);
+              return (
+                <button key={screen} type="button"
+                  onClick={() => {
+                    const current = jsonToScreenNames((form as any).screenChanges ?? "");
+                    const next = selected ? current.filter((s: string) => s !== screen) : [...current, screen];
+                    set("screenChanges", screensToJson(next));
+                  }}
+                  style={{ padding: "4px 10px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, cursor: "pointer", backgroundColor: selected ? "#0369a1" : "white", color: selected ? "white" : "#475569", border: selected ? "1px solid #0369a1" : "1px solid #cbd5e1" }}
+                >
+                  {selected ? "✓ " : ""}{screen}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Click to select screens included in this deployment.</div>
         </div>
         <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>Release Notes</div>
         <div>
@@ -1368,7 +1444,7 @@ export default function QADeploymentRegistry() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 90px",
+          gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 130px",
           gap: "0",
           backgroundColor: "#0f1623", padding: "10px 16px",
         }}>
@@ -1394,7 +1470,7 @@ export default function QADeploymentRegistry() {
               key={row.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 90px",
+                gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 130px",
                 gap: "0",
                 padding: "10px 16px",
                 borderBottom: idx < rows.length - 1 ? "1px solid #f1f5f9" : "none",
