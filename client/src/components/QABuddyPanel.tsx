@@ -141,7 +141,7 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
       display: "flex", flexDirection: "column", overflowY: "hidden",
     }}>
       {/* Header */}
-      <div style={{ backgroundColor: "#0f1623", padding: "18px 22px", flexShrink: 0 }}>
+      {!inline && <div style={{ backgroundColor: "#0f1623", padding: "18px 22px", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <div style={{ fontSize: "15px", fontWeight: 700, color: "white", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -170,7 +170,23 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
             }} />
           ))}
         </div>
-      </div>
+      </div>}
+      {/* Inline step indicator (shown when header is hidden) */}
+      {inline && (
+        <div style={{ display: "flex", gap: "4px", padding: "10px 22px 0", backgroundColor: "#0f1623" }}>
+          {[
+            { id: "input", label: "1. Notes" },
+            { id: "analyzing", label: "2. Analyze" },
+            { id: "preview", label: "3. Review" },
+            { id: "approved", label: "4. Approve" },
+          ].map(s => (
+            <div key={s.id} style={{
+              flex: 1, height: "4px", borderRadius: "2px",
+              backgroundColor: step === s.id ? "#7c3aed" : (["analyzing", "preview", "approved"].indexOf(step) > ["analyzing", "preview", "approved"].indexOf(s.id) || step === "approved") ? "#059669" : "rgba(255,255,255,0.15)",
+            }} />
+          ))}
+        </div>
+      )}
 
       {/* Body */}
       <div style={{ flex: 1, overflowY: "auto", padding: "20px 22px" }}>
