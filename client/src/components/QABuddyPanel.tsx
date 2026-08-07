@@ -67,7 +67,7 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
         releaseName: data.releaseName ?? "Not Provided",
         deploymentDate: data.deploymentDate ?? "Not Provided",
         platform: data.platform ?? "Roger",
-        type: data.type ?? "Feature",
+        type: data.type ?? "",
         deploymentOwner: data.deploymentOwner ?? "Not Provided",
         productOwner: data.productOwner ?? "Not Provided",
         adoItem: data.adoItems ?? data.adoItem ?? "Not Provided",

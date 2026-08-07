@@ -463,7 +463,7 @@ function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => 
     deploymentOwner: "",
     productOwner: "",
     platform: "TDC" as PlatformValue,
-    type: "Feature" as TypeValue,
+    type: (prefill?.type as TypeValue) ?? "" as TypeValue,
     status: "Planned" as DeploymentStatus,
     releaseNotesUrl: "",
     swaggerUrl: "",
@@ -610,6 +610,7 @@ function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => 
           <div>
             <label style={labelStyle}>Type *</label>
             <select style={fieldStyle} value={form.type} onChange={e => set("type", e.target.value)}>
+              <option value="">— Select Type —</option>
               {["Batch","Feature","Bug","Technical Story","Hotfix"].map(t => <option key={t}>{t}</option>)}
             </select>
           </div>
