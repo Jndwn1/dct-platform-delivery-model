@@ -8,7 +8,7 @@ import { trpc } from "@/lib/trpc";
 import QABuddyPanel, { type AnalyzedRelease } from "@/components/QABuddyPanel";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import AboutSectionPanel from "@/components/AboutSectionPanel";
-import QAScreenReadinessTracker from "@/components/QAScreenReadinessTracker";
+import RogerScreenTestingStatus from "@/components/RogerScreenTestingStatus";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
@@ -1447,7 +1447,7 @@ export default function QADeploymentRegistry() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 130px",
+          gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 150px",
           gap: "0",
           backgroundColor: "#0f1623", padding: "10px 16px",
         }}>
@@ -1473,7 +1473,7 @@ export default function QADeploymentRegistry() {
               key={row.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 130px",
+                gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 150px",
                 gap: "0",
                 padding: "10px 16px",
                 borderBottom: idx < rows.length - 1 ? "1px solid #f1f5f9" : "none",
@@ -1538,11 +1538,7 @@ export default function QADeploymentRegistry() {
       )}
 
       {/* QA Screen Readiness Tracker — always visible below the deployment table */}
-      <QAScreenReadinessTracker
-        deploymentId={rows[0]?.deploymentId ?? ""}
-        deploymentName={rows[0]?.releaseName}
-        allDeployments={rows.map(r => ({ deploymentId: r.deploymentId, releaseName: r.releaseName }))}
-      />
+      <RogerScreenTestingStatus />
 
 
             {/* -- Release Notes Preview Modal -- */}
