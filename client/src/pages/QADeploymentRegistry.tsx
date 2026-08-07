@@ -10,7 +10,7 @@ import AboutSectionPanel from "@/components/AboutSectionPanel";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
-  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Mail, Copy, Pencil,
+  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Copy, Pencil, Eye,
 } from "lucide-react";
 
 // --- Wiki entry helper -------------------------------------------------------
@@ -77,51 +77,6 @@ interface DeploymentRowLike {
   swaggerUrl?: string | null; githubReleaseTag?: string | null;
 }
 
-// --- Email helper ------------------------------------------------------------
-const PO_EMAIL_KEY = "qa_deploy_po_email";
-const CC_EMAIL_KEY = "qa_deploy_cc_email";
-
-function buildDeploymentEmail(dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null; }, poEmail: string, ccEmail?: string) {
-  const subject = encodeURIComponent(`[QA Deployment] Deployment Notification - ${dep.releaseName} (${dep.deploymentId})`);
-  const lines: string[] = [];
-  lines.push(`Hi ${dep.productOwner},`);
-  lines.push("");
-  lines.push(`A new deployment has been recorded in the QA Deployment Registry.`);
-  lines.push("");
-  lines.push(`-----------------------------------------`);
-  lines.push(`DEPLOYMENT SUMMARY`);
-  lines.push(`-----------------------------------------`);
-  lines.push(`Release Name:       ${dep.releaseName}`);
-  lines.push(`Deployment ID:      ${dep.deploymentId}`);
-  lines.push(`Date:               ${dep.deploymentDate}`);
-  lines.push(`Platform:           ${dep.platform}`);
-  lines.push(`Type:               ${dep.type}`);
-  lines.push(`Status:             ${dep.status}`);
-  lines.push(`Environment:        ${dep.environment}`);
-  lines.push(`Deployment Owner:   ${dep.deploymentOwner}`);
-  if (dep.relatedBatch) lines.push(`Related Batch:      ${dep.relatedBatch}`);
-  if (dep.relatedFeature) lines.push(`Related Feature:    ${dep.relatedFeature}`);
-  if (dep.adoWorkItemId) lines.push(`ADO Work Item:      ${dep.adoWorkItemId}`);
-  if (dep.summary) {
-    lines.push("");
-    lines.push(`-----------------------------------------`);
-    lines.push(`NOTES`);
-    lines.push(`-----------------------------------------`);
-    lines.push(dep.summary);
-  }
-  lines.push("");
-  lines.push(`-----------------------------------------`);
-  lines.push(`This notification was generated from the DCT Platform QA Deployment Registry.`);
-  lines.push(`For questions, contact the CATT BA Manager.`);
-  lines.push("");
-  lines.push(`Thank you,`);
-  lines.push(`CATT BA Manager - DCT Platform Delivery`);
-  const body = encodeURIComponent(lines.join("\n"));
-  let mailto = `mailto:${poEmail}?subject=${subject}&body=${body}`;
-  if (ccEmail) mailto += `&cc=${encodeURIComponent(ccEmail)}`;
-  return mailto;
-}
-
 // --- Types --------------------------------------------------------------------
 type DeploymentType = "All" | "Batch" | "Bug" | "Technical Story" | "Feature" | "Hotfix";
 type PlatformFilter = "All" | "Roger" | "PDC" | "TDC" | "Platform" | "Both";
@@ -153,6 +108,17 @@ interface DeploymentRow {
   releaseNotesBullets: string | null;
   githubReleaseTag: string | null;
   adoLinks: string | null;
+  screenChanges: string | null;
+  whatChanged: string | null;
+  qaTestInstructions: string | null;
+  expectedResults: string | null;
+  knownIssues: string | null;
+  backendChanges: string | null;
+  validationStatus: string | null;
+  validatedBy: string | null;
+  validationDate: string | null;
+  validationNotes: string | null;
+  releaseNotesStatus: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -476,26 +442,7 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
           </div>
         )}
 
-        {/* Email to PO */}
-        <div style={{ marginBottom: "20px" }}>
-          <button
-            onClick={() => { window.location.href = buildDeploymentEmail(dep, dep.productOwner.includes("@") ? dep.productOwner : ""); }}
-            style={{
-              display: "flex", alignItems: "center", gap: "8px", width: "100%",
-              padding: "10px 14px", backgroundColor: "#0f1623", color: "#ffffff",
-              border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            <Mail size={14} />
-            Email Deployment Notification to PO
-          </button>
-          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "5px", paddingLeft: "2px" }}>
-            Opens your email client with deployment details pre-filled. Enter the PO email address in the To field if not auto-populated.
-          </div>
-        </div>
-
-        {/* Governance note */}
+                {/* Governance note */}
         <div style={{ fontSize: "11px", color: "#92400e", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "6px", padding: "8px 12px" }}>
           <strong>Governance Note:</strong> This record is part of the DCT Platform non-production governance workspace. All deployment records require formal enterprise implementation outside this workspace.
         </div>
@@ -506,17 +453,14 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
 // --- Create form ---------------------------------------------------------------
 function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void }) {
   const createMutation = trpc.qaDeploymentRegistry.create.useMutation({
-    onSuccess: (result) => { onCreated({ ...(result as any), poEmail: formRef.current?.poEmail, ccEmail: formRef.current?.ccEmail }); },
+    onSuccess: (result) => { onCreated(result as any); },
   });
-  const formRef = { current: null as null | { poEmail: string; ccEmail: string } };
 
   const [form, setForm] = useState({
     releaseName: "",
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
     productOwner: "",
-    poEmail: (typeof window !== "undefined" && localStorage.getItem(PO_EMAIL_KEY)) || "Stephane.Lacombe@rsmus.com",
-    ccEmail: (typeof window !== "undefined" && localStorage.getItem(CC_EMAIL_KEY)) || "Jenniver.Stafford@rsmus.com",
     platform: "TDC" as PlatformValue,
     type: "Feature" as TypeValue,
     status: "Planned" as DeploymentStatus,
@@ -532,17 +476,23 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
     adoStoryUrl: "",
     releaseNotesBullets: "",
     githubReleaseTag: "",
+    whatChanged: "",
+    qaTestInstructions: "",
+    expectedResults: "",
+    knownIssues: "",
+    backendChanges: "",
+    validationStatus: "Pending",
+    validatedBy: "",
+    validationDate: "",
+    validationNotes: "",
+    releaseNotesStatus: "Draft",
+    screenChanges: "",
   });
   const [adoLinks, setAdoLinks] = useState<AdoLinkEntry[]>([]);
 
   const set = (k: string, v: string) => {
     setForm(f => ({ ...f, [k]: v }));
-    if (k === "poEmail") localStorage.setItem(PO_EMAIL_KEY, v);
-    if (k === "ccEmail") localStorage.setItem(CC_EMAIL_KEY, v);
   };
-
-  // Keep formRef in sync so onSuccess can read email fields after mutation
-  formRef.current = { poEmail: form.poEmail, ccEmail: form.ccEmail };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -566,6 +516,17 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
       adoLinks: adoLinks.length > 0 ? JSON.stringify(adoLinks) : undefined,
       releaseNotesBullets: form.releaseNotesBullets || undefined,
       githubReleaseTag: form.githubReleaseTag || undefined,
+      screenChanges: form.screenChanges || undefined,
+      whatChanged: form.whatChanged || undefined,
+      qaTestInstructions: form.qaTestInstructions || undefined,
+      expectedResults: form.expectedResults || undefined,
+      knownIssues: form.knownIssues || undefined,
+      backendChanges: form.backendChanges || undefined,
+      validationStatus: form.validationStatus || undefined,
+      validatedBy: form.validatedBy || undefined,
+      validationDate: form.validationDate || undefined,
+      validationNotes: form.validationNotes || undefined,
+      releaseNotesStatus: form.releaseNotesStatus || undefined,
     });
   };
 
@@ -629,30 +590,6 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div>
-            <label style={labelStyle}>PO Email Address</label>
-            <input
-              type="email"
-              style={fieldStyle}
-              value={form.poEmail}
-              onChange={e => set("poEmail", e.target.value)}
-              placeholder="e.g. Stephane.Lacombe@rsmus.com"
-            />
-            <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Saved automatically for future deployments.</div>
-          </div>
-          <div>
-            <label style={labelStyle}>CC Email Address</label>
-            <input
-              type="email"
-              style={fieldStyle}
-              value={form.ccEmail}
-              onChange={e => set("ccEmail", e.target.value)}
-              placeholder="e.g. Jenniver.Stafford@rsmus.com"
-            />
-            <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Saved automatically for future deployments.</div>
-          </div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-          <div>
             <label style={labelStyle}>Platform *</label>
             <select style={fieldStyle} value={form.platform} onChange={e => set("platform", e.target.value)}>
               {["PDC","TDC","Platform","Both"].map(p => <option key={p}>{p}</option>)}
@@ -694,6 +631,61 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
             placeholder={"Enter one bullet per line, e.g.:\nKnown Mappings Lookup now returns stable identifiers\nJurisdiction-aware derivation logic added\nBug 1401152 resolved"}
           />
           <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>One item per line. Used in the wiki entry Release Notes section.</div>
+        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "2px solid #7c3aed", paddingTop: "12px" }}>QA Release Documentation</div>
+        <div style={{ fontSize: "10px", color: "#64748b", marginBottom: "4px" }}>Capture screen-by-screen changes, testing instructions, and validation status for the QA release notes.</div>
+        <div>
+          <label style={labelStyle}>What Changed (Overall Summary)</label>
+          <textarea style={{ ...fieldStyle, minHeight: "80px", resize: "vertical" }} value={form.whatChanged ?? ""} onChange={e => set("whatChanged", e.target.value)} placeholder="High-level summary of what changed in this deployment..." />
+        </div>
+        <div>
+          <label style={labelStyle}>What QA Should Test</label>
+          <textarea style={{ ...fieldStyle, minHeight: "80px", resize: "vertical" }} value={form.qaTestInstructions ?? ""} onChange={e => set("qaTestInstructions", e.target.value)} placeholder="Overall testing instructions for QA team..." />
+        </div>
+        <div>
+          <label style={labelStyle}>Expected Results</label>
+          <textarea style={{ ...fieldStyle, minHeight: "60px", resize: "vertical" }} value={form.expectedResults ?? ""} onChange={e => set("expectedResults", e.target.value)} placeholder="Expected behavior after this deployment..." />
+        </div>
+        <div>
+          <label style={labelStyle}>Known Issues / Limitations</label>
+          <textarea style={{ ...fieldStyle, minHeight: "60px", resize: "vertical" }} value={form.knownIssues ?? ""} onChange={e => set("knownIssues", e.target.value)} placeholder="Any known issues or limitations in this release..." />
+        </div>
+        <div>
+          <label style={labelStyle}>Backend / API Changes</label>
+          <textarea style={{ ...fieldStyle, minHeight: "60px", resize: "vertical" }} value={form.backendChanges ?? ""} onChange={e => set("backendChanges", e.target.value)} placeholder="Describe any backend or API changes..." />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={labelStyle}>Validation Status</label>
+            <select style={fieldStyle} value={form.validationStatus ?? "Pending"} onChange={e => set("validationStatus", e.target.value)}>
+              {["Pending", "In Progress", "Complete", "Blocked"].map(s => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Release Notes Status</label>
+            <select style={fieldStyle} value={form.releaseNotesStatus ?? "Draft"} onChange={e => set("releaseNotesStatus", e.target.value)}>
+              {["Draft", "Pending Validation", "Ready", "Published"].map(s => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={labelStyle}>Validated By</label>
+            <input style={fieldStyle} value={form.validatedBy ?? ""} onChange={e => set("validatedBy", e.target.value)} placeholder="e.g. Mohan / Ichhwak" />
+          </div>
+          <div>
+            <label style={labelStyle}>Validation Date</label>
+            <input type="date" style={fieldStyle} value={form.validationDate ?? ""} onChange={e => set("validationDate", e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>Validation Notes</label>
+          <textarea style={{ ...fieldStyle, minHeight: "60px", resize: "vertical" }} value={form.validationNotes ?? ""} onChange={e => set("validationNotes", e.target.value)} placeholder="Notes from validation testing..." />
+        </div>
+        <div>
+          <label style={labelStyle}>Screen-by-Screen Changes (JSON)</label>
+          <textarea style={{ ...fieldStyle, minHeight: "80px", resize: "vertical", fontFamily: "monospace", fontSize: "11px" }} value={form.screenChanges ?? ""} onChange={e => set("screenChanges", e.target.value)} placeholder={'[{"name":"Screen Name","whatChanged":"...","qaTestInstructions":"...","expectedResult":"...","knownIssues":"","qaAvailability":"Available"}]'} />
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Optional: JSON array of screen entries. Each entry: name, whatChanged, qaTestInstructions, expectedResult, knownIssues, qaAvailability.</div>
         </div>
         <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>ADO Links (Optional)</div>
         <div style={{ fontSize: "10px", color: "#64748b", marginBottom: "4px" }}>Add one row per Feature or Story ADO link. Each row has a type, a short label, and the full ADO URL.</div>
@@ -965,8 +957,8 @@ export default function QADeploymentRegistry() {
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [editDep, setEditDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
   const [showWikiModal, setShowWikiModal] = useState(false);
+  const [showReleaseNotesPreview, setShowReleaseNotesPreview] = useState(false);
   const [wikiCopied, setWikiCopied] = useState(false);
   const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; ccEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
 
@@ -1256,19 +1248,20 @@ export default function QADeploymentRegistry() {
         >
           <FileText size={12} />Generate Wiki
         </button>
-        {/* Email to PO button */}
+        {/* Preview Release Notes button */}
         <button
-          onClick={() => setShowEmailModal(true)}
+          onClick={() => setShowReleaseNotesPreview(true)}
           style={{
             display: "flex", alignItems: "center", gap: "6px",
-            padding: "6px 14px", backgroundColor: "#1e3a5f", color: "#ffffff",
+            padding: "6px 14px", backgroundColor: "#7c3aed", color: "#ffffff",
             border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
             cursor: "pointer", whiteSpace: "nowrap",
           }}
+          title="Preview release notes from deployment records"
         >
-          <Mail size={12} />Email to PO
+          <Eye size={12} />Preview Release Notes
         </button>
-        {/* Create button */}
+                {/* Create button */}
         <button
           onClick={() => setShowCreate(true)}
           style={{
@@ -1344,108 +1337,119 @@ export default function QADeploymentRegistry() {
         </div>
       )}
 
-      {/* -- Standalone Email to PO modal -- */}
-      {showEmailModal && (() => {
-        const poEmail = (typeof window !== "undefined" && localStorage.getItem(PO_EMAIL_KEY)) || "Stephane.Lacombe@rsmus.com";
-        const ccEmail = (typeof window !== "undefined" && localStorage.getItem(CC_EMAIL_KEY)) || "Jenniver.Stafford@rsmus.com";
-        const subject = encodeURIComponent(`[DCT Platform] Deployment Registry Summary - ${rows.length} Deployment${rows.length !== 1 ? "s" : ""} on Record`);
-        const lines: string[] = [];
-        lines.push(`Hi ${rows[0]?.productOwner ?? "Stephane"},`);
-        lines.push("");
-        lines.push(`This is a summary of the current DCT Platform Deployment Registry.`);
-        lines.push("");
-        lines.push(`-----------------------------------------`);
-        lines.push(`DEPLOYMENT REGISTRY SUMMARY`);
-        lines.push(`-----------------------------------------`);
-        lines.push(`Total Deployments:    ${rows.length}`);
-        lines.push(`PDC Deployments:      ${rows.filter(r => r.platform === "PDC").length}`);
-        lines.push(`TDC Deployments:      ${rows.filter(r => r.platform === "TDC").length}`);
-        lines.push(`Deployed:             ${rows.filter(r => r.status === "Deployed").length}`);
-        lines.push("");
-        lines.push(`-----------------------------------------`);
-        lines.push(`DEPLOYMENT RECORDS`);
-        lines.push(`-----------------------------------------`);
-        rows.forEach((r, i) => {
-          lines.push(`${i + 1}. ${r.releaseName}`);
-          lines.push(`   Date: ${r.deploymentDate} | Platform: ${r.platform} | Type: ${r.type} | Status: ${r.status}`);
-          lines.push(`   Owner: ${r.deploymentOwner} | PO: ${r.productOwner}`);
-          lines.push("");
-        });
-        lines.push(`-----------------------------------------`);
-        lines.push(`This summary was generated from the DCT Platform Gate Verification Dashboard.`);
-        lines.push(`For questions, contact the CATT BA Manager.`);
-        lines.push("");
-        lines.push(`Thank you,`);
-        lines.push(`CATT BA Manager - DCT Platform Delivery`);
-        const body = encodeURIComponent(lines.join("\n"));
-        let mailto = `mailto:${poEmail}?subject=${subject}&body=${body}`;
-        if (ccEmail) mailto += `&cc=${encodeURIComponent(ccEmail)}`;
-        return (
-          <>
-            <div onClick={() => setShowEmailModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", zIndex: 40 }} />
-            <div style={{
-              position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-              width: "480px", backgroundColor: "#ffffff", borderRadius: "12px",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.2)", zIndex: 50, overflow: "hidden",
-            }}>
-              <div style={{ backgroundColor: "#1e3a5f", padding: "20px 24px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Mail size={16} color="white" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Email Deployment Registry to PO</div>
-                    <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>Opens Outlook with {rows.length} deployment{rows.length !== 1 ? "s" : ""} pre-filled</div>
-                  </div>
-                  <button onClick={() => setShowEmailModal(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}><X size={16} /></button>
+
+            {/* -- Release Notes Preview Modal -- */}
+      {showReleaseNotesPreview && (
+        <>
+          <div onClick={() => setShowReleaseNotesPreview(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 40 }} />
+          <div style={{
+            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            width: "820px", maxWidth: "95vw", backgroundColor: "#ffffff", borderRadius: "12px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.25)", zIndex: 50, overflow: "hidden",
+            display: "flex", flexDirection: "column", maxHeight: "85vh",
+          }}>
+            <div style={{ backgroundColor: "#7c3aed", padding: "20px 24px", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>QA Release Notes Preview</div>
+                  <div style={{ fontSize: "11px", color: "#e9d5ff", marginTop: "2px" }}>Generated from deployment records — {rows.length} deployment{rows.length !== 1 ? "s" : ""}</div>
                 </div>
-              </div>
-              <div style={{ padding: "24px" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
-                  <div style={{ backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>To (Product Owner)</div>
-                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f1623" }}>{poEmail}</div>
-                  </div>
-                  <div style={{ backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>CC (BA)</div>
-                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f1623" }}>{ccEmail}</div>
-                  </div>
-                </div>
-                <div style={{ fontSize: "12px", color: "#475569", marginBottom: "16px", lineHeight: "1.6", backgroundColor: "#f0f9ff", borderRadius: "6px", padding: "10px 12px", border: "1px solid #bae6fd" }}>
-                  <strong>Subject:</strong> [DCT Platform] Deployment Registry Summary - {rows.length} Deployment{rows.length !== 1 ? "s" : ""} on Record
-                </div>
-                <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "16px", backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px", maxHeight: "120px", overflowY: "auto", fontFamily: "monospace", lineHeight: "1.6", whiteSpace: "pre-wrap" }}>
-                  {lines.slice(0, 12).join("\n")}{lines.length > 12 ? "\n..." : ""}
-                </div>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button
-                    onClick={() => { window.location.href = mailto; setShowEmailModal(false); }}
-                    style={{
-                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                      padding: "10px 16px", backgroundColor: "#1e3a5f", color: "#ffffff",
-                      border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 700, cursor: "pointer",
-                    }}
-                  >
-                    <Mail size={14} /> Send Email
-                  </button>
-                  <button
-                    onClick={() => setShowEmailModal(false)}
-                    style={{
-                      padding: "10px 16px", backgroundColor: "#f1f5f9", color: "#475569",
-                      border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer",
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-                <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "8px", textAlign: "center" }}>
-                  Opens your email client (Outlook) with all fields pre-filled. To/CC addresses are saved from your last Create Deployment form.
-                </div>
+                <button onClick={() => setShowReleaseNotesPreview(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#e9d5ff" }}><X size={18} /></button>
               </div>
             </div>
-          </>
-        );
-      })()}
+            <div style={{ padding: "24px", overflowY: "auto", flex: 1 }}>
+              {rows.filter(r => r.whatChanged || r.qaTestInstructions || r.screenChanges).length === 0 ? (
+                <div style={{ textAlign: "center", color: "#94a3b8", padding: "40px 0" }}>
+                  <div style={{ fontSize: "14px", marginBottom: "8px" }}>No release documentation yet</div>
+                  <div style={{ fontSize: "12px" }}>Add What Changed, QA Test Instructions, or Screen Changes to your deployment records to generate release notes.</div>
+                </div>
+              ) : rows.filter(r => r.whatChanged || r.qaTestInstructions || r.screenChanges).map(dep => (
+                <div key={dep.id} style={{ marginBottom: "32px", borderBottom: "1px solid #e2e8f0", paddingBottom: "24px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f1623" }}>{dep.releaseName}</div>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#7c3aed", backgroundColor: "#f5f3ff", borderRadius: "4px", padding: "2px 6px" }}>{dep.deploymentId}</span>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", backgroundColor: "#f8fafc", borderRadius: "4px", padding: "2px 6px" }}>{dep.deploymentDate}</span>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: dep.releaseNotesStatus === "Published" ? "#059669" : dep.releaseNotesStatus === "Ready" ? "#2563eb" : dep.releaseNotesStatus === "Pending Validation" ? "#d97706" : "#94a3b8", backgroundColor: dep.releaseNotesStatus === "Published" ? "#f0fdf4" : dep.releaseNotesStatus === "Ready" ? "#eff6ff" : dep.releaseNotesStatus === "Pending Validation" ? "#fffbeb" : "#f8fafc", borderRadius: "4px", padding: "2px 6px" }}>{dep.releaseNotesStatus ?? "Draft"}</span>
+                  </div>
+                  {dep.whatChanged && (
+                    <div style={{ marginBottom: "12px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>What Changed</div>
+                      <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6", backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px" }}>{dep.whatChanged}</div>
+                    </div>
+                  )}
+                  {dep.qaTestInstructions && (
+                    <div style={{ marginBottom: "12px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>What QA Should Test</div>
+                      <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6", backgroundColor: "#f0f9ff", borderRadius: "6px", padding: "10px 12px", border: "1px solid #bae6fd" }}>{dep.qaTestInstructions}</div>
+                    </div>
+                  )}
+                  {dep.expectedResults && (
+                    <div style={{ marginBottom: "12px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Expected Results</div>
+                      <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6", backgroundColor: "#f0fdf4", borderRadius: "6px", padding: "10px 12px", border: "1px solid #bbf7d0" }}>{dep.expectedResults}</div>
+                    </div>
+                  )}
+                  {dep.knownIssues && (
+                    <div style={{ marginBottom: "12px" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Known Issues / Limitations</div>
+                      <div style={{ fontSize: "13px", color: "#7f1d1d", lineHeight: "1.6", backgroundColor: "#fef2f2", borderRadius: "6px", padding: "10px 12px", border: "1px solid #fecaca" }}>{dep.knownIssues}</div>
+                    </div>
+                  )}
+                  {dep.screenChanges && (() => {
+                    try {
+                      const screens = JSON.parse(dep.screenChanges) as Array<{name: string; whatChanged?: string; qaTestInstructions?: string; expectedResult?: string; knownIssues?: string; qaAvailability?: string}>;
+                      if (screens.length === 0) return null;
+                      return (
+                        <div style={{ marginBottom: "12px" }}>
+                          <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>Screen-by-Screen Changes</div>
+                          {screens.map((s, i) => (
+                            <div key={i} style={{ marginBottom: "12px", border: "1px solid #e2e8f0", borderRadius: "6px", overflow: "hidden" }}>
+                              <div style={{ backgroundColor: "#0f1623", padding: "8px 12px", fontSize: "12px", fontWeight: 700, color: "#ffffff" }}>{s.name}</div>
+                              <div style={{ padding: "12px" }}>
+                                {s.whatChanged && <div style={{ marginBottom: "8px" }}><span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>What Changed: </span><span style={{ fontSize: "12px", color: "#1e293b" }}>{s.whatChanged}</span></div>}
+                                {s.qaTestInstructions && <div style={{ marginBottom: "8px" }}><span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>QA Test: </span><span style={{ fontSize: "12px", color: "#1e293b" }}>{s.qaTestInstructions}</span></div>}
+                                {s.expectedResult && <div style={{ marginBottom: "8px" }}><span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Expected: </span><span style={{ fontSize: "12px", color: "#059669" }}>{s.expectedResult}</span></div>}
+                                {s.knownIssues && <div style={{ marginBottom: "8px" }}><span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Known Issues: </span><span style={{ fontSize: "12px", color: "#dc2626" }}>{s.knownIssues}</span></div>}
+                                {s.qaAvailability && <div><span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>QA Availability: </span><span style={{ fontSize: "12px", fontWeight: 700, color: s.qaAvailability === "Available" ? "#059669" : s.qaAvailability === "Not Available" ? "#dc2626" : "#d97706" }}>{s.qaAvailability}</span></div>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    } catch { return null; }
+                  })()}
+                  <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                    <span style={{ fontSize: "10px", color: "#64748b" }}>Validation: <strong>{dep.validationStatus ?? "Pending"}</strong></span>
+                    {dep.validatedBy && <span style={{ fontSize: "10px", color: "#64748b" }}>· By: <strong>{dep.validatedBy}</strong></span>}
+                    {dep.validationDate && <span style={{ fontSize: "10px", color: "#64748b" }}>· Date: <strong>{dep.validationDate}</strong></span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e8f0", display: "flex", gap: "10px", flexShrink: 0 }}>
+              <button
+                onClick={() => {
+                  const lines: string[] = ["# QA Release Notes", "", `Generated: ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`, ""];
+                  rows.filter(r => r.whatChanged || r.qaTestInstructions || r.screenChanges).forEach(dep => {
+                    lines.push(`## ${dep.releaseName}`);
+                    lines.push(`**Deployment ID:** ${dep.deploymentId} | **Date:** ${dep.deploymentDate} | **Status:** ${dep.releaseNotesStatus ?? "Draft"}`);
+                    if (dep.whatChanged) { lines.push(""); lines.push("### What Changed"); lines.push(dep.whatChanged); }
+                    if (dep.qaTestInstructions) { lines.push(""); lines.push("### What QA Should Test"); lines.push(dep.qaTestInstructions); }
+                    if (dep.expectedResults) { lines.push(""); lines.push("### Expected Results"); lines.push(dep.expectedResults); }
+                    if (dep.knownIssues) { lines.push(""); lines.push("### Known Issues"); lines.push(dep.knownIssues); }
+                    lines.push(""); lines.push("---"); lines.push("");
+                  });
+                  navigator.clipboard.writeText(lines.join("\n"));
+                }}
+                style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 16px", backgroundColor: "#7c3aed", color: "#ffffff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}
+              >
+                <Copy size={14} /> Copy Release Notes Markdown
+              </button>
+              <button onClick={() => setShowReleaseNotesPreview(false)} style={{ padding: "10px 16px", backgroundColor: "#f1f5f9", color: "#475569", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>Close</button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* -- Generate Wiki Modal -- */}
       {showWikiModal && (
@@ -1511,68 +1515,8 @@ export default function QADeploymentRegistry() {
         </>
       )}
 
-      {/* -- Post-create email prompt -- */}
-      {justCreated && (
-        <>
-          <div
-            onClick={() => setJustCreated(null)}
-            style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", zIndex: 40 }}
-          />
-          <div style={{
-            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-            width: "460px", backgroundColor: "#ffffff", borderRadius: "12px",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.2)", zIndex: 50, overflow: "hidden",
-          }}>
-            <div style={{ backgroundColor: "#0f1623", padding: "20px 24px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#059669", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <CheckCircle2 size={18} color="white" />
-                </div>
-                <div>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>Deployment Created</div>
-                  <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{justCreated.deploymentId}</div>
-                </div>
-                <button onClick={() => setJustCreated(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#64748b" }}><X size={16} /></button>
-              </div>
-            </div>
-            <div style={{ padding: "24px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 600, color: "#0f1623", marginBottom: "4px" }}>{justCreated.releaseName}</div>
-              <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "20px" }}>
-                {justCreated.platform} · {justCreated.type} · {justCreated.deploymentDate}
-              </div>
-              <div style={{ fontSize: "12px", color: "#475569", marginBottom: "16px", lineHeight: "1.6", backgroundColor: "#f8fafc", borderRadius: "6px", padding: "10px 12px" }}>
-                Would you like to notify <strong>{justCreated.productOwner}</strong> (Product Owner) about this deployment?
-              </div>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  onClick={() => { window.location.href = buildDeploymentEmail(justCreated, justCreated.poEmail ?? "", justCreated.ccEmail); setJustCreated(null); }}
-                  style={{
-                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                    padding: "10px 16px", backgroundColor: "#0f1623", color: "#ffffff",
-                    border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  <Mail size={14} /> Email to PO
-                </button>
-                <button
-                  onClick={() => setJustCreated(null)}
-                  style={{
-                    padding: "10px 16px", backgroundColor: "#f1f5f9", color: "#475569",
-                    border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer",
-                  }}
-                >
-                  Skip
-                </button>
-              </div>
-              <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "8px", textAlign: "center" }}>
-                Opens your email client with deployment details pre-filled.
-              </div>
-            </div>
-          </div>
-        </>
-      )}
 
-      {/* -- Detail drawer -- */}
+            {/* -- Detail drawer -- */}
       {selectedDep && (
         <>
           <div

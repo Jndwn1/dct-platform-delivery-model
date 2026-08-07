@@ -121,6 +121,18 @@ export const qaDeployments = mysqlTable("qa_deployments", {
   adoLinks: text("adoLinks"),
   releaseNotesBullets: text("releaseNotesBullets"),
   githubReleaseTag: varchar("githubReleaseTag", { length: 128 }),
+  /** QA release documentation fields */
+  screenChanges: text("screenChanges"),
+  whatChanged: text("whatChanged"),
+  qaTestInstructions: text("qaTestInstructions"),
+  expectedResults: text("expectedResults"),
+  knownIssues: text("knownIssues"),
+  backendChanges: text("backendChanges"),
+  validationStatus: varchar("validationStatus", { length: 32 }).default("Pending"),
+  validatedBy: varchar("validatedBy", { length: 128 }),
+  validationDate: varchar("validationDate", { length: 16 }),
+  validationNotes: text("validationNotes"),
+  releaseNotesStatus: varchar("releaseNotesStatus", { length: 32 }).default("Draft"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
