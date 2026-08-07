@@ -497,15 +497,14 @@ Also output:
 
 IMPORTANT: Only mark functionality as "Available in QA" when the deployment notes explicitly confirm it is included. Do not assume planned functionality has been deployed.
 
-Return ONLY valid JSON matching this schema: { releaseName, summary, knownLimitations, dependencies, qaConsiderations, screens: Array<{screenName, releaseStatus, changeType, whatChanged, newFunctionality, fixesIncluded, qaValidationGuidance, knownLimitations, functionalityNotIncluded, dependencies, adoWorkItems}> }`;
+Return ONLY valid JSON matching this schema: { releaseName, summary, knownLimitations, dependencies, qaConsiderations, screens: Array<{screenName, releaseStatus, changeType, whatChanged, newFunctionality, fixesIncluded, qaValidationGuidance, knownLimitations, functionalityNotIncluded, dependencies, adoWorkItems}> }
+IMPORTANT: Your entire response must be ONLY a raw JSON object. No markdown, no code fences, no explanation. Start with { and end with }.`;
         const response = await invokeLLM({
           messages: [
             { role: "system", content: systemPrompt as string },
             { role: "user", content: `Analyze these deployment notes and generate structured release notes:
-
 ${input.notes}` as string },
           ],
-          response_format: { type: "json_object" },
         });
         const content = response.choices[0]?.message?.content;
         try { return JSON.parse(typeof content === "string" ? content : JSON.stringify(content)); }
@@ -986,7 +985,9 @@ Generate a complete, professional ${input.reportType} formatted for executive co
       .mutation(async ({ input }) => {
         const systemPrompt = `You are a QA Release Notes Analyst for the Roger/DCT platform. Analyze the supplied deployment notes and extract structured release information.
 
-Return ONLY valid JSON matching this EXACT structure:
+IMPORTANT: Your entire response must be ONLY a raw JSON object. No markdown, no code fences, no explanation text. Start your response with { and end with }.
+
+Return JSON matching this EXACT structure:
 {
   "releaseName": "infer from context, e.g. Roger QA - My Clients",
   "deploymentDate": "today date in YYYY-MM-DD format",
@@ -1027,10 +1028,27 @@ CRITICAL RULES:
             { role: "system" as const, content: systemPrompt as string },
             { role: "user" as const, content: String(input.notes) },
           ],
-          response_format: { type: "json_object" },
         });
-        const content = response.choices?.[0]?.message?.content ?? "{}";
-        try { return JSON.parse(typeof content === "string" ? content : JSON.stringify(content)); } catch { return { error: "Failed to parse", raw: String(content) }; }
+        const rawContent = response.choices?.[0]?.message?.content;
+        console.log("[analyzeNotes] content type:", typeof rawContent, "preview:", String(rawContent ?? "").slice(0, 300));
+        let parsed: any = {};
+        try {
+          if (typeof rawContent === "string" && rawContent.trim()) {
+            // Strip markdown code fences if present
+            const stripped = rawContent.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
+            parsed = JSON.parse(stripped);
+          } else if (rawContent && typeof rawContent === "object") {
+            parsed = rawContent as any;
+          } else {
+            console.error("[analyzeNotes] Empty or null content from LLM");
+            parsed = { error: "LLM returned empty response" };
+          }
+        } catch (e) {
+          console.error("[analyzeNotes] Parse error:", e, "raw:", String(rawContent ?? "").slice(0, 500));
+          parsed = { error: "Failed to parse LLM response", raw: String(rawContent ?? "").slice(0, 200) };
+        }
+        console.log("[analyzeNotes] result keys:", Object.keys(parsed));
+        return parsed;
       }),
   }),
 });
