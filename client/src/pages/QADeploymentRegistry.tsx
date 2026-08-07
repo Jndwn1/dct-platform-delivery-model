@@ -1369,11 +1369,11 @@ export default function QADeploymentRegistry() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "110px 1fr 120px 80px 130px 130px 110px",
+          gridTemplateColumns: "110px 1fr 120px 80px 130px 130px 110px 90px",
           gap: "0",
           backgroundColor: "#0f1623", padding: "10px 16px",
         }}>
-          {["Deployment Date","Release Name","Type","Platform","Deployment Owner","Product Owner","Status"].map(h => (
+          {["Deployment Date","Release Name","Type","Platform","Deployment Owner","Product Owner","Status","Actions"].map(h => (
             <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</div>
           ))}
         </div>
@@ -1393,27 +1393,48 @@ export default function QADeploymentRegistry() {
           rows.map((row, idx) => (
             <div
               key={row.id}
-              onClick={() => setSelectedDep(row as DeploymentRow)}
               style={{
                 display: "grid",
-                gridTemplateColumns: "110px 1fr 120px 80px 130px 130px 110px",
+                gridTemplateColumns: "110px 1fr 120px 80px 130px 130px 110px 90px",
                 gap: "0",
                 padding: "10px 16px",
                 borderBottom: idx < rows.length - 1 ? "1px solid #f1f5f9" : "none",
-                cursor: "pointer",
+                cursor: "default",
                 backgroundColor: selectedDep?.id === row.id ? "#f0f9ff" : "transparent",
                 transition: "background-color 0.1s",
               }}
-              onMouseEnter={e => { if (selectedDep?.id !== row.id) (e.currentTarget as HTMLElement).style.backgroundColor = "#f8fafc"; }}
-              onMouseLeave={e => { if (selectedDep?.id !== row.id) (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
             >
-              <div style={{ fontSize: "12px", color: "#475569", fontWeight: 600, paddingTop: "2px" }}>{row.deploymentDate}</div>
-              <div style={{ fontSize: "12px", color: "#0f1623", fontWeight: 600, lineHeight: "1.4", paddingRight: "12px" }}>{row.releaseName}</div>
+              <div onClick={() => setSelectedDep(row as DeploymentRow)} style={{ fontSize: "12px", color: "#475569", fontWeight: 600, paddingTop: "2px", cursor: "pointer" }}>{row.deploymentDate}</div>
+              <div onClick={() => setSelectedDep(row as DeploymentRow)} style={{ fontSize: "12px", color: "#0f1623", fontWeight: 600, lineHeight: "1.4", paddingRight: "12px", cursor: "pointer" }}>{row.releaseName}</div>
               <div><TypeBadge type={row.type as TypeValue} /></div>
               <div style={{ fontSize: "11px", fontWeight: 700, color: PLATFORM_COLOR[row.platform as PlatformValue] ?? "#64748b" }}>{row.platform}</div>
               <div style={{ fontSize: "11px", color: "#475569" }}>{row.deploymentOwner}</div>
               <div style={{ fontSize: "11px", color: "#475569" }}>{row.productOwner}</div>
               <div><StatusBadge status={row.status as DeploymentStatus} /></div>
+              {/* Inline Edit / Delete actions */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }} onClick={e => e.stopPropagation()}>
+                <button
+                  title="Edit deployment"
+                  onClick={() => setEditDep(row as DeploymentRow)}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "4px 8px", backgroundColor: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", borderRadius: "5px", fontSize: "11px", fontWeight: 600, cursor: "pointer" }}
+                >
+                  <Pencil size={11} /> Edit
+                </button>
+                {confirmDeleteId === row.id ? (
+                  <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                    <button onClick={() => deleteMutation.mutate({ id: row.id })} style={{ padding: "4px 7px", backgroundColor: "#dc2626", color: "white", border: "none", borderRadius: "4px", fontSize: "10px", fontWeight: 700, cursor: "pointer" }}>Yes</button>
+                    <button onClick={() => setConfirmDeleteId(null)} style={{ padding: "4px 7px", backgroundColor: "#f1f5f9", color: "#475569", border: "1px solid #e2e8f0", borderRadius: "4px", fontSize: "10px", cursor: "pointer" }}>No</button>
+                  </div>
+                ) : (
+                  <button
+                    title="Delete deployment"
+                    onClick={() => setConfirmDeleteId(row.id)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "4px 8px", backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", borderRadius: "5px", fontSize: "11px", fontWeight: 600, cursor: "pointer" }}
+                  >
+                    <Trash2 size={11} /> Del
+                  </button>
+                )}
+              </div>
             </div>
           ))
         )}
