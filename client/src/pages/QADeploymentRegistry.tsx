@@ -635,6 +635,11 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
         <div style={{ fontSize: "11px", fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "2px solid #7c3aed", paddingTop: "12px" }}>QA Release Documentation</div>
         <div style={{ fontSize: "10px", color: "#64748b", marginBottom: "4px" }}>Capture screen-by-screen changes, testing instructions, and validation status for the QA release notes.</div>
         <div>
+          <label style={labelStyle}>Screen Updated</label>
+          <input style={fieldStyle} value={(form as any).screenUpdated ?? ""} onChange={e => set("screenUpdated" as any, e.target.value)} placeholder="e.g. Roger Dashboard, Trial Balance Grid, No UI / Backend Change" />
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "3px" }}>Enter the screen(s) affected. Use commas for multiple screens, or "No UI / Backend Change" for API-only changes.</div>
+        </div>
+        <div>
           <label style={labelStyle}>What Changed (Overall Summary)</label>
           <textarea style={{ ...fieldStyle, minHeight: "80px", resize: "vertical" }} value={form.whatChanged ?? ""} onChange={e => set("whatChanged", e.target.value)} placeholder="High-level summary of what changed in this deployment..." />
         </div>
@@ -1117,20 +1122,7 @@ export default function QADeploymentRegistry() {
   return (
     <div style={{ padding: "28px 32px", maxWidth: "1200px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
       {/* -- About This Section panel -- */}
-      <AboutSectionPanel
-        section="BA & Requirements"
-        purpose="The BA & Requirements section contains the business requirements, feature definitions, user stories, acceptance criteria, scope decisions, backlog planning, and delivery documentation used to guide DCT development. This area serves as the source of truth for what the platform is expected to deliver and how business needs are translated into technical solutions."
-        whenToUse={[
-          "Understanding feature scope",
-          "Reviewing requirements",
-          "Researching business decisions",
-          "Reviewing acceptance criteria",
-          "Understanding delivery plans",
-          "Investigating backlog items",
-        ]}
-        whoUsesIt={["Business Analysts", "Product Owners", "Developers", "QA Engineers", "Architects"]}
-        askBuddyPrompt="I am currently viewing the BA & Requirements section of the DCT Platform. Please explain what this section contains, the key artifacts available, the most important features and requirements currently in scope, and where I should go next based on my role."
-      />
+      {/* Context panel hidden per user request */}
       {/* -- Page header -- */}
       <div style={{ marginBottom: "24px", borderBottom: "2px solid #e2e8f0", paddingBottom: "18px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>

@@ -3,6 +3,7 @@
 // NON-PRODUCTION ARCHITECTURE REFERENCE
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { Copy, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import { trpc } from "@/lib/trpc";
@@ -17,6 +18,7 @@ interface Message {
   timestamp: Date;
   capability?: string;
   sources?: string[];
+  copied?: boolean;
 }
 
 interface Capability {
@@ -1067,6 +1069,27 @@ export default function AskBuddy() {
                         {src}
                       </span>
                     ))}
+                    {msg.role === "buddy" && (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(msg.text);
+                          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, copied: true } : m));
+                          setTimeout(() => setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, copied: false } : m)), 2000);
+                        }}
+                        title="Copy release notes"
+                        style={{
+                          display: "flex", alignItems: "center", gap: "3px",
+                          background: msg.copied ? "#f0fdf4" : "#f8fafc",
+                          border: `1px solid ${msg.copied ? "#86efac" : "#e2e8f0"}`,
+                          borderRadius: "4px", padding: "2px 7px",
+                          fontSize: "0.62rem", fontWeight: 600,
+                          color: msg.copied ? "#059669" : "#64748b",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {msg.copied ? <><Check size={10} /> Copied</> : <><Copy size={10} /> Copy</>}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
