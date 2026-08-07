@@ -1162,8 +1162,8 @@ export default function QADeploymentRegistry() {
   };
 
   const handleCreated = () => {
-    utils.deploymentRegistry.list.invalidate();
-    utils.deploymentRegistry.summary.invalidate();
+    utils.qaDeploymentRegistry.list.invalidate();
+    utils.qaDeploymentRegistry.summary.invalidate();
   };
 
   const handleSaved = () => {
