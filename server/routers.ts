@@ -7,7 +7,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { integrationQuestions, deployments, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
+import { integrationQuestions, deployments, deploymentScreens, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
 import { storagePut } from "./storage";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 
@@ -210,6 +210,23 @@ export const appRouter = router({
           adoLinks: z.string().optional(),
           releaseNotesBullets: z.string().optional(),
           githubReleaseTag: z.string().optional(),
+          knownLimitations: z.string().optional(),
+          dependencies: z.string().optional(),
+          qaConsiderations: z.string().optional(),
+          screens: z.array(z.object({
+            screenName: z.string(),
+            releaseStatus: z.enum(["Available in QA", "Partially Available", "Not Included in This Deployment"]).optional(),
+            changeType: z.string().optional(),
+            whatChanged: z.string().optional(),
+            newFunctionality: z.string().optional(),
+            fixesIncluded: z.string().optional(),
+            qaValidationGuidance: z.string().optional(),
+            knownLimitations: z.string().optional(),
+            functionalityNotIncluded: z.string().optional(),
+            dependencies: z.string().optional(),
+            adoWorkItems: z.string().optional(),
+            notes: z.string().optional(),
+          })).optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -242,7 +259,31 @@ export const appRouter = router({
           adoLinks: input.adoLinks ?? null,
           releaseNotesBullets: input.releaseNotesBullets ?? null,
           githubReleaseTag: input.githubReleaseTag ?? null,
+          knownLimitations: input.knownLimitations ?? null,
+          dependencies: input.dependencies ?? null,
+          qaConsiderations: input.qaConsiderations ?? null,
         });
+        // Insert screen records if provided
+        if (input.screens && input.screens.length > 0) {
+          await db.insert(deploymentScreens).values(
+            input.screens.map((s, i) => ({
+              deploymentId,
+              screenName: s.screenName,
+              releaseStatus: (s.releaseStatus ?? "Available in QA") as "Available in QA" | "Partially Available" | "Not Included in This Deployment",
+              changeType: s.changeType ?? null,
+              whatChanged: s.whatChanged ?? null,
+              newFunctionality: s.newFunctionality ?? null,
+              fixesIncluded: s.fixesIncluded ?? null,
+              qaValidationGuidance: s.qaValidationGuidance ?? null,
+              knownLimitations: s.knownLimitations ?? null,
+              functionalityNotIncluded: s.functionalityNotIncluded ?? null,
+              dependencies: s.dependencies ?? null,
+              adoWorkItems: s.adoWorkItems ?? null,
+              notes: s.notes ?? null,
+              sortOrder: i,
+            }))
+          );
+        }
         return { success: true, deploymentId };
       }),
 
@@ -281,6 +322,23 @@ export const appRouter = router({
           adoLinks: z.string().optional(),
           releaseNotesBullets: z.string().optional(),
           githubReleaseTag: z.string().optional(),
+          knownLimitations: z.string().optional(),
+          dependencies: z.string().optional(),
+          qaConsiderations: z.string().optional(),
+          screens: z.array(z.object({
+            screenName: z.string(),
+            releaseStatus: z.enum(["Available in QA", "Partially Available", "Not Included in This Deployment"]).optional(),
+            changeType: z.string().optional(),
+            whatChanged: z.string().optional(),
+            newFunctionality: z.string().optional(),
+            fixesIncluded: z.string().optional(),
+            qaValidationGuidance: z.string().optional(),
+            knownLimitations: z.string().optional(),
+            functionalityNotIncluded: z.string().optional(),
+            dependencies: z.string().optional(),
+            adoWorkItems: z.string().optional(),
+            notes: z.string().optional(),
+          })).optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -308,7 +366,37 @@ export const appRouter = router({
           adoLinks: fields.adoLinks ?? null,
           releaseNotesBullets: fields.releaseNotesBullets ?? null,
           githubReleaseTag: fields.githubReleaseTag ?? null,
+          knownLimitations: fields.knownLimitations ?? null,
+          dependencies: fields.dependencies ?? null,
+          qaConsiderations: fields.qaConsiderations ?? null,
         }).where(eq(deployments.id, id));
+        // Update screen records if provided
+        if (fields.screens) {
+          await db.delete(deploymentScreens).where(eq(deploymentScreens.deploymentId, (await db.select({ deploymentId: deployments.deploymentId }).from(deployments).where(eq(deployments.id, id)))[0]?.deploymentId ?? ""));
+          if (fields.screens.length > 0) {
+            const dep = await db.select({ deploymentId: deployments.deploymentId }).from(deployments).where(eq(deployments.id, id));
+            if (dep[0]) {
+              await db.insert(deploymentScreens).values(
+                fields.screens.map((s, i) => ({
+                  deploymentId: dep[0].deploymentId,
+                  screenName: s.screenName,
+                  releaseStatus: (s.releaseStatus ?? "Available in QA") as "Available in QA" | "Partially Available" | "Not Included in This Deployment",
+                  changeType: s.changeType ?? null,
+                  whatChanged: s.whatChanged ?? null,
+                  newFunctionality: s.newFunctionality ?? null,
+                  fixesIncluded: s.fixesIncluded ?? null,
+                  qaValidationGuidance: s.qaValidationGuidance ?? null,
+                  knownLimitations: s.knownLimitations ?? null,
+                  functionalityNotIncluded: s.functionalityNotIncluded ?? null,
+                  dependencies: s.dependencies ?? null,
+                  adoWorkItems: s.adoWorkItems ?? null,
+                  notes: s.notes ?? null,
+                  sortOrder: i,
+                }))
+              );
+            }
+          }
+        }
         return { success: true };
       }),
 
@@ -320,6 +408,108 @@ export const appRouter = router({
         if (!db) return { success: false };
       await db.delete(deployments).where(eq(deployments.id, input.id));
         return { success: true };
+      }),
+  }),
+
+  deploymentScreens: router({
+    listByDeployment: publicProcedure
+      .input(z.object({ deploymentId: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(deploymentScreens).where(eq(deploymentScreens.deploymentId, input.deploymentId)).orderBy(deploymentScreens.sortOrder);
+      }),
+    update: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        screenName: z.string().optional(),
+        releaseStatus: z.enum(["Available in QA", "Partially Available", "Not Included in This Deployment"]).optional(),
+        changeType: z.string().optional(),
+        whatChanged: z.string().optional(),
+        newFunctionality: z.string().optional(),
+        fixesIncluded: z.string().optional(),
+        qaValidationGuidance: z.string().optional(),
+        knownLimitations: z.string().optional(),
+        functionalityNotIncluded: z.string().optional(),
+        dependencies: z.string().optional(),
+        adoWorkItems: z.string().optional(),
+        notes: z.string().optional(),
+        screenshots: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        const { id, ...fields } = input;
+        await db.update(deploymentScreens).set(fields as any).where(eq(deploymentScreens.id, id));
+        return { success: true };
+      }),
+    uploadScreenshot: publicProcedure
+      .input(z.object({ screenId: z.number(), fileBase64: z.string(), fileName: z.string(), mimeType: z.string() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false, url: "" };
+        const buffer = Buffer.from(input.fileBase64, "base64");
+        const key = `deployment-screens/${Date.now()}-${input.fileName}`;
+        const { url } = await storagePut(key, buffer, input.mimeType);
+        const rows = await db.select().from(deploymentScreens).where(eq(deploymentScreens.id, input.screenId));
+        if (rows[0]) {
+          const existing = rows[0].screenshots ? JSON.parse(rows[0].screenshots) : [];
+          existing.push({ url, caption: input.fileName });
+          await db.update(deploymentScreens).set({ screenshots: JSON.stringify(existing) }).where(eq(deploymentScreens.id, input.screenId));
+        }
+        return { success: true, url };
+      }),
+    delete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.delete(deploymentScreens).where(eq(deploymentScreens.id, input.id));
+        return { success: true };
+      }),
+  }),
+
+  deploymentRegistryBuddy: router({
+    analyzeNotes: publicProcedure
+      .input(z.object({ notes: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const systemPrompt = `You are a QA Release Notes Analyst for the DCT Platform. Analyze the provided deployment notes and generate structured release notes organized by affected application screen.
+
+For each affected screen, output:
+- screenName: string (use the Roger MVP screen list when applicable: My Clients Page, Return Filing Page, Return Structure Summary, Line Mapping, Book/Reclass Adjustments, Book Return Review, Tax Adjustment, Book-to-Tax Report, Book-to-Tax Reconciliation, 1120 Form, Sign Off)
+- releaseStatus: "Available in QA" | "Partially Available" | "Not Included in This Deployment"
+- changeType: string (Enhancement | Bug Fix | New Feature | Configuration | Backend)
+- whatChanged: string
+- newFunctionality: string (or "None" if not applicable)
+- fixesIncluded: string (or "None" if not applicable)
+- qaValidationGuidance: string
+- knownLimitations: string (or "None identified")
+- functionalityNotIncluded: string (or "None")
+- dependencies: string (or "None")
+- adoWorkItems: string (ADO IDs/titles if mentioned, or "")
+
+Also output:
+- releaseName: string (suggested deployment name)
+- summary: string (1-2 sentence overall summary)
+- knownLimitations: string (overall known limitations)
+- dependencies: string (overall dependencies)
+- qaConsiderations: string (overall QA testing guidance)
+
+IMPORTANT: Only mark functionality as "Available in QA" when the deployment notes explicitly confirm it is included. Do not assume planned functionality has been deployed.
+
+Return ONLY valid JSON matching this schema: { releaseName, summary, knownLimitations, dependencies, qaConsiderations, screens: Array<{screenName, releaseStatus, changeType, whatChanged, newFunctionality, fixesIncluded, qaValidationGuidance, knownLimitations, functionalityNotIncluded, dependencies, adoWorkItems}> }`;
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt as string },
+            { role: "user", content: `Analyze these deployment notes and generate structured release notes:
+
+${input.notes}` as string },
+          ],
+          response_format: { type: "json_object" },
+        });
+        const content = response.choices[0]?.message?.content;
+        try { return JSON.parse(typeof content === "string" ? content : JSON.stringify(content)); }
+        catch { return { error: "Failed to parse response", raw: content }; }
       }),
   }),
 

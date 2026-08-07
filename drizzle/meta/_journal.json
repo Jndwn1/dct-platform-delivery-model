@@ -64,6 +64,13 @@
       "when": 1786116473334,
       "tag": "0008_big_longshot",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1786119391596,
+      "tag": "0009_talented_shadowcat",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import AboutSectionPanel from "@/components/AboutSectionPanel";
+import DeploymentBuddyPanel, { type AnalyzedDeployment } from "@/components/DeploymentBuddyPanel";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
@@ -503,14 +504,14 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
   );
 }
 // --- Create form ---------------------------------------------------------------
-function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void }) {
+function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void; prefill?: AnalyzedDeployment | null }) {
   const createMutation = trpc.deploymentRegistry.create.useMutation({
     onSuccess: (result) => { onCreated({ ...(result as any), poEmail: formRef.current?.poEmail, ccEmail: formRef.current?.ccEmail }); },
   });
   const formRef = { current: null as null | { poEmail: string; ccEmail: string } };
 
-  const [form, setForm] = useState({
-    releaseName: "",
+  const [form, setForm] = useState(() => ({
+    releaseName: prefill?.releaseName ?? "",
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
     productOwner: "",
@@ -519,20 +520,50 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
     platform: "TDC" as PlatformValue,
     type: "Feature" as TypeValue,
     status: "Planned" as DeploymentStatus,
-    summary: "",
+    summary: prefill?.summary ?? "",
     releaseNotesUrl: "",
     swaggerUrl: "",
     relatedBatch: "",
     relatedFeature: "",
     relatedStory: "",
-    environment: "Production",
+    environment: "QA",
     adoWorkItemId: "",
     adoFeatureUrl: "",
     adoStoryUrl: "",
     releaseNotesBullets: "",
     githubReleaseTag: "",
-  });
+    knownLimitations: prefill?.knownLimitations ?? "",
+    dependencies: prefill?.dependencies ?? "",
+    qaConsiderations: prefill?.qaConsiderations ?? "",
+  }));
   const [adoLinks, setAdoLinks] = useState<AdoLinkEntry[]>([]);
+  const [screens, setScreens] = useState<Array<{
+    screenName: string;
+    releaseStatus: "Available in QA" | "Partially Available" | "Not Included in This Deployment";
+    changeType: string;
+    whatChanged: string;
+    newFunctionality: string;
+    fixesIncluded: string;
+    qaValidationGuidance: string;
+    knownLimitations: string;
+    functionalityNotIncluded: string;
+    dependencies: string;
+    adoWorkItems: string;
+    notes: string;
+  }>>(() => prefill?.screens.map(s => ({
+    screenName: s.screenName,
+    releaseStatus: s.releaseStatus ?? "Available in QA",
+    changeType: s.changeType ?? "Enhancement",
+    whatChanged: s.whatChanged ?? "",
+    newFunctionality: s.newFunctionality ?? "None",
+    fixesIncluded: s.fixesIncluded ?? "None",
+    qaValidationGuidance: s.qaValidationGuidance ?? "",
+    knownLimitations: s.knownLimitations ?? "None identified",
+    functionalityNotIncluded: s.functionalityNotIncluded ?? "None",
+    dependencies: s.dependencies ?? "None",
+    adoWorkItems: s.adoWorkItems ?? "",
+    notes: "",
+  })) ?? []);
 
   const set = (k: string, v: string) => {
     setForm(f => ({ ...f, [k]: v }));
@@ -565,6 +596,10 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
       adoLinks: adoLinks.length > 0 ? JSON.stringify(adoLinks) : undefined,
       releaseNotesBullets: form.releaseNotesBullets || undefined,
       githubReleaseTag: form.githubReleaseTag || undefined,
+      knownLimitations: form.knownLimitations || undefined,
+      dependencies: form.dependencies || undefined,
+      qaConsiderations: form.qaConsiderations || undefined,
+      screens: screens.length > 0 ? screens : undefined,
     });
   };
 
@@ -600,6 +635,17 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
       </div>
 
       <form onSubmit={handleSubmit} style={{ padding: "24px", flex: 1, display: "flex", flexDirection: "column", gap: "14px" }}>
+        {prefill && (
+          <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px 14px" }}>
+            <span style={{ fontSize: "16px" }}>🐱</span>
+            <div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#065f46" }}>Release Details Imported from Ask Buddy</div>
+              <div style={{ fontSize: "11px", color: "#047857", marginTop: "2px" }}>{prefill.screens.length} screen(s) identified · Review and confirm all fields before saving</div>
+            </div>
+          </div>
+        )}
+        {/* ── Section 1: Deployment Information ── */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.06em" }}>Deployment Information</div>
         <div>
           <label style={labelStyle}>Release Name *</label>
           <input required style={fieldStyle} value={form.releaseName} onChange={e => set("releaseName", e.target.value)} placeholder="e.g. Batch 10 Return Assembly, Filing & Lineage Closure" />
@@ -668,6 +714,69 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
           <label style={labelStyle}>Summary</label>
           <textarea style={{ ...fieldStyle, minHeight: "80px", resize: "vertical" }} value={form.summary} onChange={e => set("summary", e.target.value)} placeholder="Describe what was deployed and any key notes..." />
         </div>
+        {/* ── Release Summary section ── */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "2px solid #1e3a5f", paddingTop: "12px", marginTop: "4px" }}>Release Summary</div>
+        <div>
+          <label style={labelStyle}>Known Limitations</label>
+          <textarea style={{ ...fieldStyle, minHeight: "60px", resize: "vertical" }} value={form.knownLimitations} onChange={e => set("knownLimitations", e.target.value)} placeholder="List any known limitations or issues..." />
+        </div>
+        <div>
+          <label style={labelStyle}>Dependencies</label>
+          <textarea style={{ ...fieldStyle, minHeight: "60px", resize: "vertical" }} value={form.dependencies} onChange={e => set("dependencies", e.target.value)} placeholder="List any dependencies required for this deployment..." />
+        </div>
+        <div>
+          <label style={labelStyle}>QA Considerations</label>
+          <textarea style={{ ...fieldStyle, minHeight: "60px", resize: "vertical" }} value={form.qaConsiderations} onChange={e => set("qaConsiderations", e.target.value)} placeholder="Specific QA testing guidance and considerations..." />
+        </div>
+
+        {/* ── Affected Screens section ── */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "2px solid #1e3a5f", paddingTop: "12px", marginTop: "4px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.06em" }}>Affected Screens ({screens.length})</div>
+          <button
+            type="button"
+            onClick={() => setScreens(prev => [...prev, { screenName: "", releaseStatus: "Available in QA", changeType: "Enhancement", whatChanged: "", newFunctionality: "None", fixesIncluded: "None", qaValidationGuidance: "", knownLimitations: "None identified", functionalityNotIncluded: "None", dependencies: "None", adoWorkItems: "", notes: "" }])}
+            style={{ fontSize: "10px", padding: "3px 10px", backgroundColor: "#1e3a5f", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+          >+ Add Screen</button>
+        </div>
+        {screens.length === 0 && (
+          <div style={{ fontSize: "11px", color: "#94a3b8", fontStyle: "italic", padding: "8px 0" }}>No screens added. Click "+ Add Screen" or use Ask Buddy to auto-populate from deployment notes.</div>
+        )}
+        {screens.map((screen, i) => (
+          <div key={i} style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "12px", marginBottom: "8px", backgroundColor: "#f8fafc" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+              <select
+                value={["My Clients Page","Return Filing Page","Return Structure Summary","Line Mapping","Book/Reclass Adjustments","Book Return Review","Tax Adjustment","Book-to-Tax Report","Book-to-Tax Reconciliation","1120 Form","Sign Off"].includes(screen.screenName) ? screen.screenName : "__custom__"}
+                onChange={e => { if (e.target.value !== "__custom__") { const s = [...screens]; s[i] = { ...s[i], screenName: e.target.value }; setScreens(s); } }}
+                style={{ ...fieldStyle, flex: 1 }}
+              >
+                <option value="__custom__">Custom / Other Screen</option>
+                {["My Clients Page","Return Filing Page","Return Structure Summary","Line Mapping","Book/Reclass Adjustments","Book Return Review","Tax Adjustment","Book-to-Tax Report","Book-to-Tax Reconciliation","1120 Form","Sign Off"].map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <select
+                value={screen.releaseStatus}
+                onChange={e => { const s = [...screens]; s[i] = { ...s[i], releaseStatus: e.target.value as any }; setScreens(s); }}
+                style={{ ...fieldStyle, width: "180px" }}
+              >
+                <option>Available in QA</option>
+                <option>Partially Available</option>
+                <option>Not Included in This Deployment</option>
+              </select>
+              <button type="button" onClick={() => setScreens(prev => prev.filter((_, idx) => idx !== i))} style={{ padding: "4px 8px", backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", borderRadius: "4px", cursor: "pointer", fontSize: "11px" }}>✕</button>
+            </div>
+            {!["My Clients Page","Return Filing Page","Return Structure Summary","Line Mapping","Book/Reclass Adjustments","Book Return Review","Tax Adjustment","Book-to-Tax Report","Book-to-Tax Reconciliation","1120 Form","Sign Off"].includes(screen.screenName) && (
+              <input value={screen.screenName} onChange={e => { const s = [...screens]; s[i] = { ...s[i], screenName: e.target.value }; setScreens(s); }} placeholder="Enter screen name" style={{ ...fieldStyle, marginBottom: "8px" }} />
+            )}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              <div><label style={labelStyle}>What Changed</label><textarea value={screen.whatChanged} onChange={e => { const s = [...screens]; s[i] = { ...s[i], whatChanged: e.target.value }; setScreens(s); }} rows={2} style={{ ...fieldStyle, resize: "vertical" }} /></div>
+              <div><label style={labelStyle}>New Functionality</label><textarea value={screen.newFunctionality} onChange={e => { const s = [...screens]; s[i] = { ...s[i], newFunctionality: e.target.value }; setScreens(s); }} rows={2} style={{ ...fieldStyle, resize: "vertical" }} /></div>
+              <div><label style={labelStyle}>Fixes Included</label><textarea value={screen.fixesIncluded} onChange={e => { const s = [...screens]; s[i] = { ...s[i], fixesIncluded: e.target.value }; setScreens(s); }} rows={2} style={{ ...fieldStyle, resize: "vertical" }} /></div>
+              <div><label style={labelStyle}>QA Validation Guidance</label><textarea value={screen.qaValidationGuidance} onChange={e => { const s = [...screens]; s[i] = { ...s[i], qaValidationGuidance: e.target.value }; setScreens(s); }} rows={2} style={{ ...fieldStyle, resize: "vertical" }} /></div>
+            </div>
+            <div style={{ marginTop: "8px" }}><label style={labelStyle}>Known Limitations</label><input value={screen.knownLimitations} onChange={e => { const s = [...screens]; s[i] = { ...s[i], knownLimitations: e.target.value }; setScreens(s); }} style={fieldStyle} /></div>
+            <div style={{ marginTop: "8px" }}><label style={labelStyle}>Related ADO Work Items</label><input value={screen.adoWorkItems} onChange={e => { const s = [...screens]; s[i] = { ...s[i], adoWorkItems: e.target.value }; setScreens(s); }} placeholder="e.g. #12345, #67890" style={fieldStyle} /></div>
+          </div>
+        ))}
+
         <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", borderTop: "1px solid #e2e8f0", paddingTop: "12px" }}>Relationships</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div>
@@ -964,6 +1073,9 @@ export default function DeploymentRegistry() {
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [editDep, setEditDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showBuddy, setShowBuddy] = useState(false);
+  const [buddyPrefill, setBuddyPrefill] = useState<AnalyzedDeployment | null>(null);
+  const [previewDep, setPreviewDep] = useState<typeof rows[0] | null>(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showWikiModal, setShowWikiModal] = useState(false);
   const [wikiCopied, setWikiCopied] = useState(false);
@@ -1242,6 +1354,33 @@ export default function DeploymentRegistry() {
           </select>
         </div>
 
+        {/* Ask Buddy — QA Release Notes */}
+        <button
+          onClick={() => setShowBuddy(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            padding: "6px 14px", backgroundColor: "#7c3aed", color: "#ffffff",
+            border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
+            cursor: "pointer", whiteSpace: "nowrap", marginLeft: "auto",
+          }}
+          title="Use Ask Buddy to generate QA release notes from deployment notes"
+        >
+          🐱 Ask Buddy
+        </button>
+        {/* Preview Release Notes button */}
+        {selectedDep && (
+          <button
+            onClick={() => setPreviewDep(selectedDep as any)}
+            style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "6px 14px", backgroundColor: "#1e3a5f", color: "#ffffff",
+              border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
+              cursor: "pointer", whiteSpace: "nowrap",
+            }}
+          >
+            📋 Preview Release Notes
+          </button>
+        )}
         {/* Generate Wiki button */}
         <button
           onClick={() => setShowWikiModal(true)}
@@ -1286,11 +1425,11 @@ export default function DeploymentRegistry() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "110px 1fr 120px 80px 130px 130px 110px",
+          gridTemplateColumns: "100px 1fr 100px 70px 80px 110px 110px 70px 100px",
           gap: "0",
           backgroundColor: "#0f1623", padding: "10px 16px",
         }}>
-          {["Deployment Date","Release Name","Type","Platform","Deployment Owner","Product Owner","Status"].map(h => (
+          {["Date","Release Name","Type","Platform","Environment","Deployment Owner","Product Owner","Screens","Status"].map(h => (
             <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</div>
           ))}
         </div>
@@ -1313,7 +1452,7 @@ export default function DeploymentRegistry() {
               onClick={() => setSelectedDep(row as DeploymentRow)}
               style={{
                 display: "grid",
-                gridTemplateColumns: "110px 1fr 120px 80px 130px 130px 110px",
+                gridTemplateColumns: "100px 1fr 100px 70px 80px 110px 110px 70px 100px",
                 gap: "0",
                 padding: "10px 16px",
                 borderBottom: idx < rows.length - 1 ? "1px solid #f1f5f9" : "none",
@@ -1324,12 +1463,14 @@ export default function DeploymentRegistry() {
               onMouseEnter={e => { if (selectedDep?.id !== row.id) (e.currentTarget as HTMLElement).style.backgroundColor = "#f8fafc"; }}
               onMouseLeave={e => { if (selectedDep?.id !== row.id) (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"; }}
             >
-              <div style={{ fontSize: "12px", color: "#475569", fontWeight: 600, paddingTop: "2px" }}>{row.deploymentDate}</div>
+              <div style={{ fontSize: "11px", color: "#475569", fontWeight: 600, paddingTop: "2px" }}>{row.deploymentDate}</div>
               <div style={{ fontSize: "12px", color: "#0f1623", fontWeight: 600, lineHeight: "1.4", paddingRight: "12px" }}>{row.releaseName}</div>
               <div><TypeBadge type={row.type as TypeValue} /></div>
               <div style={{ fontSize: "11px", fontWeight: 700, color: PLATFORM_COLOR[row.platform as PlatformValue] ?? "#64748b" }}>{row.platform}</div>
+              <div style={{ fontSize: "11px", color: "#475569" }}>{(row as any).environment ?? "Production"}</div>
               <div style={{ fontSize: "11px", color: "#475569" }}>{row.deploymentOwner}</div>
               <div style={{ fontSize: "11px", color: "#475569" }}>{row.productOwner}</div>
+              <div style={{ fontSize: "11px", color: "#64748b", textAlign: "center" }}>—</div>
               <div><StatusBadge status={row.status as DeploymentStatus} /></div>
             </div>
           ))
@@ -1593,6 +1734,146 @@ export default function DeploymentRegistry() {
         </>
       )}
 
+      {/* -- Ask Buddy Panel -- */}
+      {showBuddy && (
+        <DeploymentBuddyPanel
+          onApprove={(release: AnalyzedDeployment) => {
+            setBuddyPrefill(release);
+            setShowBuddy(false);
+            setShowCreate(true);
+          }}
+          onClose={() => setShowBuddy(false)}
+        />
+      )}
+      {/* -- Release Notes Preview Modal -- */}
+      {previewDep && (
+        <>
+          <div onClick={() => setPreviewDep(null)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", zIndex: 60 }} />
+          <div style={{
+            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            width: "820px", maxWidth: "95vw", maxHeight: "90vh", backgroundColor: "#ffffff",
+            borderRadius: "12px", boxShadow: "0 24px 80px rgba(0,0,0,0.3)", zIndex: 70,
+            display: "flex", flexDirection: "column", overflow: "hidden",
+          }}>
+            {/* Header */}
+            <div style={{ backgroundColor: "#1e3a5f", padding: "18px 24px", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "15px", fontWeight: 700, color: "white" }}>Release Notes Preview</div>
+                  <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>{previewDep.releaseName} · {previewDep.deploymentDate} · {(previewDep as any).environment ?? "Production"}</div>
+                </div>
+                <button onClick={() => setPreviewDep(null)} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "18px" }}>✕</button>
+              </div>
+            </div>
+            {/* Body */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+              {/* Release summary */}
+              {(previewDep as any).summary && (
+                <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>Release Summary</div>
+                  <div style={{ fontSize: "13px", color: "#1e293b", lineHeight: "1.6" }}>{(previewDep as any).summary}</div>
+                  {(previewDep as any).knownLimitations && (
+                    <div style={{ marginTop: "10px", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "6px", padding: "8px 12px" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#92400e" }}>Known Limitations: </span>
+                      <span style={{ fontSize: "11px", color: "#78350f" }}>{(previewDep as any).knownLimitations}</span>
+                    </div>
+                  )}
+                  {(previewDep as any).qaConsiderations && (
+                    <div style={{ marginTop: "8px", backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "6px", padding: "8px 12px" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#0369a1" }}>QA Considerations: </span>
+                      <span style={{ fontSize: "11px", color: "#0c4a6e" }}>{(previewDep as any).qaConsiderations}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Screen cards */}
+              {(() => {
+                let screens: any[] = [];
+                try { screens = JSON.parse((previewDep as any).screenChanges || "[]"); } catch { screens = []; }
+                if (screens.length === 0) {
+                  return (
+                    <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>
+                      <div style={{ fontSize: "32px", marginBottom: "12px" }}>📋</div>
+                      <div style={{ fontSize: "14px", fontWeight: 600, color: "#64748b" }}>No screen-level release notes</div>
+                      <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>Use Ask Buddy to generate screen-by-screen release notes for this deployment.</div>
+                    </div>
+                  );
+                }
+                const STATUS_COLOR: Record<string, { bg: string; text: string; border: string }> = {
+                  "Available in QA":                 { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0" },
+                  "Partially Available":             { bg: "#fffbeb", text: "#92400e", border: "#fde68a" },
+                  "Not Included in This Deployment": { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
+                };
+                return screens.map((screen: any, i: number) => {
+                  const sc = STATUS_COLOR[screen.releaseStatus] ?? STATUS_COLOR["Available in QA"];
+                  return (
+                    <div key={i} style={{ border: `1px solid ${sc.border}`, borderRadius: "8px", marginBottom: "12px", overflow: "hidden" }}>
+                      <div style={{ backgroundColor: sc.bg, padding: "10px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: sc.text, flex: 1 }}>{i + 1}. {screen.screenName}</span>
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: sc.text, backgroundColor: "white", border: `1px solid ${sc.border}`, borderRadius: "4px", padding: "2px 8px" }}>{screen.releaseStatus}</span>
+                      </div>
+                      <div style={{ padding: "14px 16px", backgroundColor: "white" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                          {screen.whatChanged && (
+                            <div>
+                              <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>What Changed</div>
+                              <div style={{ fontSize: "12px", color: "#1e293b", lineHeight: "1.5" }}>{screen.whatChanged}</div>
+                            </div>
+                          )}
+                          {screen.newFunctionality && screen.newFunctionality !== "None" && (
+                            <div>
+                              <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>New Functionality</div>
+                              <div style={{ fontSize: "12px", color: "#1e293b", lineHeight: "1.5" }}>{screen.newFunctionality}</div>
+                            </div>
+                          )}
+                          {screen.fixesIncluded && screen.fixesIncluded !== "None" && (
+                            <div>
+                              <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>Fixes Included</div>
+                              <div style={{ fontSize: "12px", color: "#1e293b", lineHeight: "1.5" }}>{screen.fixesIncluded}</div>
+                            </div>
+                          )}
+                          {screen.qaValidationGuidance && (
+                            <div>
+                              <div style={{ fontSize: "10px", fontWeight: 700, color: "#0369a1", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "3px" }}>QA Validation</div>
+                              <div style={{ fontSize: "12px", color: "#0c4a6e", lineHeight: "1.5" }}>{screen.qaValidationGuidance}</div>
+                            </div>
+                          )}
+                        </div>
+                        {screen.knownLimitations && screen.knownLimitations !== "None identified" && (
+                          <div style={{ marginTop: "10px", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "4px", padding: "6px 10px" }}>
+                            <span style={{ fontSize: "10px", fontWeight: 700, color: "#92400e" }}>Known Limitations: </span>
+                            <span style={{ fontSize: "11px", color: "#78350f" }}>{screen.knownLimitations}</span>
+                          </div>
+                        )}
+                        {screen.adoWorkItems && (
+                          <div style={{ marginTop: "8px", fontSize: "11px", color: "#64748b" }}>
+                            <strong>ADO:</strong> {screen.adoWorkItems}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "14px 24px", borderTop: "1px solid #e2e8f0", flexShrink: 0, display: "flex", gap: "10px", alignItems: "center" }}>
+              <button
+                onClick={() => { setPreviewDep(null); setEditDep(previewDep as any); }}
+                style={{ padding: "9px 16px", fontSize: "12px", backgroundColor: "#f1f5f9", color: "#374151", border: "1px solid #e2e8f0", borderRadius: "6px", cursor: "pointer" }}
+              >← Back to Edit</button>
+              <button
+                onClick={() => { setPreviewDep(null); setShowWikiModal(true); }}
+                style={{ padding: "9px 16px", fontSize: "12px", backgroundColor: "#065f46", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: 700 }}
+              >📄 Generate Wiki</button>
+              <button
+                onClick={() => setPreviewDep(null)}
+                style={{ marginLeft: "auto", padding: "9px 20px", fontSize: "12px", fontWeight: 700, backgroundColor: "#1e3a5f", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}
+              >✅ Publish Release Notes</button>
+            </div>
+          </div>
+        </>
+      )}
       {/* -- Create form drawer -- */}
       {showCreate && (
         <>
@@ -1600,7 +1881,7 @@ export default function DeploymentRegistry() {
             onClick={() => setShowCreate(false)}
             style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 40 }}
           />
-          <CreateDeploymentForm onClose={() => setShowCreate(false)} onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); }} />
+          <CreateDeploymentForm onClose={() => { setShowCreate(false); setBuddyPrefill(null); }} onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); setBuddyPrefill(null); }} prefill={buddyPrefill} />
         </>
       )}
     </div>

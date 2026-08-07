@@ -85,12 +85,47 @@ export const deployments = mysqlTable("deployments", {
   releaseNotesBullets: text("releaseNotesBullets"),
   /** Reserved for future GitHub Releases integration */
   githubReleaseTag: varchar("githubReleaseTag", { length: 128 }),
+  /** Known limitations for this deployment */
+  knownLimitations: text("knownLimitations"),
+  /** Dependencies required for this deployment */
+  dependencies: text("dependencies"),
+  /** QA-specific considerations and testing guidance */
+  qaConsiderations: text("qaConsiderations"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Deployment = typeof deployments.$inferSelect;
 export type InsertDeployment = typeof deployments.$inferInsert;
+
+// ─── Deployment Screens ──────────────────────────────────────────────────────
+/**
+ * Per-screen release notes for a deployment.
+ * Linked to the deployments table via deploymentId.
+ */
+export const deploymentScreens = mysqlTable("deployment_screens", {
+  id: int("id").autoincrement().primaryKey(),
+  deploymentId: varchar("deploymentId", { length: 32 }).notNull(),
+  screenName: varchar("screenName", { length: 256 }).notNull(),
+  releaseStatus: mysqlEnum("releaseStatus", ["Available in QA", "Partially Available", "Not Included in This Deployment"]).notNull().default("Available in QA"),
+  changeType: varchar("changeType", { length: 64 }),
+  whatChanged: text("whatChanged"),
+  newFunctionality: text("newFunctionality"),
+  fixesIncluded: text("fixesIncluded"),
+  qaValidationGuidance: text("qaValidationGuidance"),
+  knownLimitations: text("knownLimitations"),
+  functionalityNotIncluded: text("functionalityNotIncluded"),
+  dependencies: text("dependencies"),
+  adoWorkItems: text("adoWorkItems"),
+  notes: text("notes"),
+  /** JSON array of {url, caption} screenshot objects */
+  screenshots: text("screenshots"),
+  sortOrder: int("sortOrder").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DeploymentScreen = typeof deploymentScreens.$inferSelect;
+export type InsertDeploymentScreen = typeof deploymentScreens.$inferInsert;
 
 // ─── QA Deployment Registry ──────────────────────────────────────────────────
 /**
