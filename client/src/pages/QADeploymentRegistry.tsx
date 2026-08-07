@@ -1369,11 +1369,11 @@ export default function QADeploymentRegistry() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "110px 1fr 120px 80px 130px 130px 110px 90px",
+          gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 90px",
           gap: "0",
           backgroundColor: "#0f1623", padding: "10px 16px",
         }}>
-          {["Deployment Date","Release Name","Type","Platform","Deployment Owner","Product Owner","Status","Actions"].map(h => (
+          {["Deployment Date","Release Name","Type","Platform","Deployment Owner","Product Owner","Status","Screens","Actions"].map(h => (
             <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</div>
           ))}
         </div>
@@ -1395,7 +1395,7 @@ export default function QADeploymentRegistry() {
               key={row.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "110px 1fr 120px 80px 130px 130px 110px 90px",
+                gridTemplateColumns: "100px 1fr 110px 70px 120px 120px 100px 160px 90px",
                 gap: "0",
                 padding: "10px 16px",
                 borderBottom: idx < rows.length - 1 ? "1px solid #f1f5f9" : "none",
@@ -1411,6 +1411,18 @@ export default function QADeploymentRegistry() {
               <div style={{ fontSize: "11px", color: "#475569" }}>{row.deploymentOwner}</div>
               <div style={{ fontSize: "11px", color: "#475569" }}>{row.productOwner}</div>
               <div><StatusBadge status={row.status as DeploymentStatus} /></div>
+              {/* Screens column */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "3px", alignItems: "flex-start", paddingRight: "8px" }}>
+                {(() => {
+                  const screens: { screenName?: string; name?: string }[] = row.screenChanges ? (() => { try { return JSON.parse(row.screenChanges); } catch { return []; } })() : [];
+                  if (screens.length === 0) return <span style={{ fontSize: "10px", color: "#94a3b8" }}>—</span>;
+                  return screens.map((s, i) => (
+                    <span key={i} style={{ fontSize: "10px", fontWeight: 600, backgroundColor: "#f0f9ff", color: "#0369a1", border: "1px solid #bae6fd", borderRadius: "4px", padding: "2px 6px", whiteSpace: "nowrap" }}>
+                      {s.screenName ?? s.name ?? "Screen"}
+                    </span>
+                  ));
+                })()}
+              </div>
               {/* Inline Edit / Delete actions */}
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }} onClick={e => e.stopPropagation()}>
                 <button
