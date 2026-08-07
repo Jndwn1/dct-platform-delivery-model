@@ -1,7 +1,7 @@
 // QABuddyPanel — Simple Ask Buddy chat for QA Release Notes
 // BA pastes DEV/QA notes → Ask Buddy returns formatted release notes → BA copies into Create Deployment
 import { useState, useRef } from "react";
-import { Upload, Loader2, Copy, Check, RotateCcw } from "lucide-react";
+import { Upload, Loader2, Copy, Check, RotateCcw, Download } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 // Keep AnalyzedRelease exported so QADeploymentRegistry doesn't break on import
@@ -70,6 +70,25 @@ export default function QABuddyPanel({ onClose, inline }: QABuddyPanelProps) {
 
   const handleReset = () => {
     setNotes(""); setResponse(""); setError(""); setStep("input");
+  };
+
+  const handleDownloadMarkdown = () => {
+    // Build a clean filename from the first heading or fallback
+    const firstLine = response.split("\n").find(l => l.trim().length > 0) ?? "QA Release Notes";
+    const safeName = firstLine
+      .replace(/^[#*\s]+/, "")
+      .replace(/[^a-zA-Z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "_")
+      .slice(0, 60);
+    const filename = `QA_Release_Notes_${safeName || "export"}_${new Date().toISOString().slice(0, 10)}.md`;
+    const blob = new Blob([response], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -150,16 +169,22 @@ export default function QABuddyPanel({ onClose, inline }: QABuddyPanelProps) {
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 700, color: "#059669" }}>✅ QA Release Notes Ready</div>
-                <button onClick={handleCopy}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", border: "1px solid #059669", borderRadius: "6px", background: copied ? "#059669" : "white", color: copied ? "white" : "#059669", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
-                  {copied ? <><Check size={13} /> Copied!</> : <><Copy size={13} /> Copy Release Notes</>}
-                </button>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button onClick={handleCopy}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 12px", border: "1px solid #059669", borderRadius: "6px", background: copied ? "#059669" : "white", color: copied ? "white" : "#059669", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+                    {copied ? <><Check size={13} /> Copied!</> : <><Copy size={13} /> Copy</>}
+                  </button>
+                  <button onClick={handleDownloadMarkdown}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 12px", border: "1px solid #1e3a5f", borderRadius: "6px", background: "white", color: "#1e3a5f", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+                    <Download size={13} /> Download .md
+                  </button>
+                </div>
               </div>
               <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "16px", fontSize: "12px", color: "#1e293b", lineHeight: "1.8", whiteSpace: "pre-wrap", maxHeight: "440px", overflowY: "auto" }}>
                 {response}
               </div>
               <div style={{ marginTop: "12px", padding: "10px 14px", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", fontSize: "11px", color: "#92400e" }}>
-                <strong>Next step:</strong> Copy the release notes above, then click <strong>+ Create Deployment</strong> below to add a new registry entry. Paste the relevant sections into the Summary and Release Notes fields.
+                <strong>Next step:</strong> Copy or download the release notes above. Attach the <strong>.md file</strong> to your team email, or paste the content into the <strong>Create Deployment</strong> form below.
               </div>
             </div>
           )}
