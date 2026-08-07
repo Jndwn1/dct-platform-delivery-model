@@ -40,7 +40,6 @@ import GapAnalysisEngine from "./pages/GapAnalysisEngine";
 import DeploymentRegistry from "./pages/DeploymentRegistry";
 import QADeploymentRegistry from "./pages/QADeploymentRegistry";
 import QAReleaseSim from "./pages/QAReleaseSim";
-import QAReleasePrepPage from "./pages/QAReleasePrepPage";
 import DeliveryIntelligencePage from "./pages/DeliveryIntelligencePage";
 // Discovery Center
 import DiscoveryCenter from "./pages/DiscoveryCenter";
@@ -159,7 +158,6 @@ function Router() {
           <Route path="/deployment-registry" component={DeploymentRegistry} />
           <Route path="/qa-deployment-registry" component={QADeploymentRegistry} />
           <Route path="/qa-release-sim" component={QAReleaseSim} />
-          <Route path="/qa-release-prep" component={QAReleasePrepPage} />
           <Route path="/delivery-intelligence" component={DeliveryIntelligencePage} />
           {/* Discovery Center */}
           <Route path="/discovery" component={DiscoveryCenter} />

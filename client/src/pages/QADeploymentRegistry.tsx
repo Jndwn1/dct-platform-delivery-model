@@ -479,11 +479,6 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
           <strong>Governance Note:</strong> This record is part of the DCT Platform non-production governance workspace. All deployment records require formal enterprise implementation outside this workspace.
         </div>
 
-        {/* QA Screen Readiness Tracker */}
-        <QAScreenReadinessTracker
-          deploymentId={dep.deploymentId}
-          deploymentName={dep.releaseName}
-        />
       </div>
     </div>
   );
@@ -1539,6 +1534,14 @@ export default function QADeploymentRegistry() {
         <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "8px", textAlign: "right" }}>
           Showing {rows.length} deployment{rows.length !== 1 ? "s" : ""}
         </div>
+      )}
+
+      {/* QA Screen Readiness Tracker — shown below table when a deployment is selected */}
+      {selectedDep && (
+        <QAScreenReadinessTracker
+          deploymentId={selectedDep.deploymentId}
+          deploymentName={selectedDep.releaseName}
+        />
       )}
 
 
