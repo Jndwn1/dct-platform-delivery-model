@@ -37,7 +37,8 @@ export interface AnalyzedRelease {
 
 interface QABuddyPanelProps {
   onApprove: (release: AnalyzedRelease) => void;
-  onClose: () => void;
+  onClose?: () => void;
+  inline?: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -157,7 +158,7 @@ function ScreenCard({ screen, index, onChange, onRemove }: {
 }
 
 // ── Main Panel ────────────────────────────────────────────────────────────────
-export default function QABuddyPanel({ onApprove, onClose }: QABuddyPanelProps) {
+export default function QABuddyPanel({ onApprove, onClose, inline = false }: QABuddyPanelProps) {
   const [step, setStep] = useState<"input" | "analyzing" | "preview" | "approved">("input");
   const [notes, setNotes] = useState("");
   const [release, setRelease] = useState<AnalyzedRelease | null>(null);
@@ -244,9 +245,10 @@ export default function QABuddyPanel({ onApprove, onClose }: QABuddyPanelProps) 
 
   return (
     <div style={{
-      position: "fixed", top: 0, right: 0, bottom: 0, width: "600px",
-      backgroundColor: "#ffffff", borderLeft: "1px solid #e2e8f0",
-      boxShadow: "-4px 0 24px rgba(0,0,0,0.14)", zIndex: 60,
+      position: inline ? "relative" : "fixed",
+      ...(inline ? {} : { top: 0, right: 0, bottom: 0, width: "600px", boxShadow: "-4px 0 24px rgba(0,0,0,0.14)", zIndex: 60, borderLeft: "1px solid #e2e8f0" }),
+      ...(inline ? { border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" } : {}),
+      backgroundColor: "#ffffff",
       display: "flex", flexDirection: "column", overflowY: "hidden",
     }}>
       {/* Header */}
@@ -263,7 +265,7 @@ export default function QABuddyPanel({ onApprove, onClose }: QABuddyPanelProps) 
               {step === "approved" && "Approved — ready to create deployment"}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b" }}><X size={18} /></button>
+          {!inline && onClose && <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b" }}><X size={18} /></button>}
         </div>
         {/* Step indicator */}
         <div style={{ display: "flex", gap: "4px", marginTop: "12px" }}>

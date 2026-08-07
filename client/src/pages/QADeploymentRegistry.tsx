@@ -974,7 +974,7 @@ export default function QADeploymentRegistry() {
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [editDep, setEditDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [showBuddy, setShowBuddy] = useState(false);
+  const [showBuddy, setShowBuddy] = useState(true);
   const [buddyPrefill, setBuddyPrefill] = useState<AnalyzedRelease | null>(null);
   const [showWikiModal, setShowWikiModal] = useState(false);
   const [showReleaseNotesPreview, setShowReleaseNotesPreview] = useState(false);
@@ -1150,10 +1150,10 @@ export default function QADeploymentRegistry() {
             </div>
             <div>
               <h1 style={{ fontSize: "20px", fontWeight: 800, color: "#0f1623", margin: 0, lineHeight: 1 }}>
-                Deployment Registry
+                QA Release Notes &amp; Deployment Registry
               </h1>
               <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
-                Track deployment history, release ownership, release notes, and production availability
+                Prepare QA release notes with Ask Buddy, then create and track deployment records in one place
               </div>
             </div>
           </div>
@@ -1183,6 +1183,33 @@ export default function QADeploymentRegistry() {
         <SummaryCard label="Open Rollback Candidates" value={summary.rollbackCandidates} color="#dc2626" icon={<RotateCcw size={14} />} />
       </div>
 
+      {/* -- Ask Buddy Inline Panel -- */}
+      <div style={{ marginBottom: "20px" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", padding: "10px 14px", backgroundColor: "#0f1623", borderRadius: showBuddy ? "8px 8px 0 0" : "8px", color: "white" }}
+          onClick={() => setShowBuddy(b => !b)}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "16px" }}>🐱</span>
+            <div>
+              <div style={{ fontSize: "13px", fontWeight: 700 }}>Ask Buddy — Prepare QA Release Notes</div>
+              <div style={{ fontSize: "11px", color: "#94a3b8" }}>Paste or upload DEV/QA notes to generate structured release notes, then create a deployment record</div>
+            </div>
+          </div>
+          <span style={{ fontSize: "12px", color: "#94a3b8" }}>{showBuddy ? "▲ Collapse" : "▼ Expand"}</span>
+        </div>
+        {showBuddy && (
+          <div style={{ border: "1px solid #0f1623", borderTop: "none", borderRadius: "0 0 8px 8px", overflow: "hidden" }}>
+            <QABuddyPanel
+              inline
+              onApprove={(release: AnalyzedRelease) => {
+                setBuddyPrefill(release);
+                setShowCreate(true);
+              }}
+            />
+          </div>
+        )}
+      </div>
       {/* -- Search, filters, create -- */}
       <div style={{
         display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap", alignItems: "center",
@@ -1241,19 +1268,7 @@ export default function QADeploymentRegistry() {
           </select>
         </div>
 
-        {/* Ask Buddy — QA Release Notes */}
-        <button
-          onClick={() => setShowBuddy(true)}
-          style={{
-            display: "flex", alignItems: "center", gap: "6px",
-            padding: "6px 14px", backgroundColor: "#7c3aed", color: "#ffffff",
-            border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
-            cursor: "pointer", whiteSpace: "nowrap",
-          }}
-          title="Use Ask Buddy to generate QA release notes from DEV/QA notes"
-        >
-          🐱 Ask Buddy
-        </button>
+
         {/* Generate Wiki button */}
         <button
           onClick={() => setShowWikiModal(true)}
@@ -1558,16 +1573,7 @@ export default function QADeploymentRegistry() {
       )}
 
       {/* -- Ask Buddy Panel -- */}
-      {showBuddy && (
-        <QABuddyPanel
-          onApprove={(release: AnalyzedRelease) => {
-            setBuddyPrefill(release);
-            setShowBuddy(false);
-            setShowCreate(true);
-          }}
-          onClose={() => setShowBuddy(false)}
-        />
-      )}
+
       {/* -- Create form drawer -- */}
       {showCreate && (
         <>
