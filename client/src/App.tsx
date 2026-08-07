@@ -38,6 +38,7 @@ import IntegrationSimulation from "./pages/IntegrationSimulation";
 import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadinessHub";
 import GapAnalysisEngine from "./pages/GapAnalysisEngine";
 import DeploymentRegistry from "./pages/DeploymentRegistry";
+import QADeploymentRegistry from "./pages/QADeploymentRegistry";
 import DeliveryIntelligencePage from "./pages/DeliveryIntelligencePage";
 // Discovery Center
 import DiscoveryCenter from "./pages/DiscoveryCenter";
@@ -154,6 +155,7 @@ function Router() {
           <Route path="/classification-walkthrough" component={ClassificationWalkthroughPage} />
           <Route path="/gap-analysis" component={GapAnalysisEngine} />
           <Route path="/deployment-registry" component={DeploymentRegistry} />
+          <Route path="/qa-deployment-registry" component={QADeploymentRegistry} />
           <Route path="/delivery-intelligence" component={DeliveryIntelligencePage} />
           {/* Discovery Center */}
           <Route path="/discovery" component={DiscoveryCenter} />

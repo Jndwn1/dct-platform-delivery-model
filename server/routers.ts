@@ -7,7 +7,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { integrationQuestions, deployments, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
+import { integrationQuestions, deployments, qaDeployments, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 
 export const appRouter = router({
@@ -317,9 +317,45 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const db = await getDb();
         if (!db) return { success: false };
-        await db.delete(deployments).where(eq(deployments.id, input.id));
+      await db.delete(deployments).where(eq(deployments.id, input.id));
         return { success: true };
       }),
+  }),
+
+  qaDeploymentRegistry: router({
+    list: publicProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          type: z.enum(["All", "Batch", "Bug", "Technical Story", "Feature", "Hotfix"]).optional(),
+          platform: z.enum(["All", "Roger", "PDC", "TDC", "Platform", "Both"]).optional(),
+          sortBy: z.enum(["deploymentDate", "releaseName", "deploymentOwner"]).optional(),
+        }).optional()
+      )
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        const rows = await db.select().from(qaDeployments).orderBy(desc(qaDeployments.deploymentDate), desc(qaDeployments.createdAt));
+        let result = rows;
+        if (input?.search) { const q = input.search.toLowerCase(); result = result.filter((r) => r.releaseName.toLowerCase().includes(q) || r.deploymentOwner.toLowerCase().includes(q) || (r.relatedBatch ?? "").toLowerCase().includes(q) || (r.relatedFeature ?? "").toLowerCase().includes(q)); }
+        if (input?.type && input.type !== "All") { result = result.filter((r) => r.type === input.type); }
+        if (input?.platform && input.platform !== "All") { result = result.filter((r) => r.platform === input.platform); }
+        if (input?.sortBy === "releaseName") { result = result.sort((a, b) => a.releaseName.localeCompare(b.releaseName)); }
+        else if (input?.sortBy === "deploymentOwner") { result = result.sort((a, b) => a.deploymentOwner.localeCompare(b.deploymentOwner)); }
+        return result;
+      }),
+    getByBatch: publicProcedure.input(z.object({ batchId: z.string() })).query(async ({ input }) => { const db = await getDb(); if (!db) return []; return db.select().from(qaDeployments).where(eq(qaDeployments.relatedBatch, input.batchId)).orderBy(desc(qaDeployments.deploymentDate)); }),
+    summary: publicProcedure.query(async () => { const db = await getDb(); if (!db) return { total: 0, roger: 0, pdc: 0, tdc: 0, rollbackCandidates: 0 }; const all = await db.select().from(qaDeployments); return { total: all.length, roger: all.filter((r) => r.platform === "Roger").length, pdc: all.filter((r) => r.platform === "PDC").length, tdc: all.filter((r) => r.platform === "TDC").length, rollbackCandidates: all.filter((r) => r.status === "Rolled Back" || r.status === "In Progress").length }; }),
+    recent: publicProcedure.query(async () => { const db = await getDb(); if (!db) return []; return db.select().from(qaDeployments).orderBy(desc(qaDeployments.deploymentDate), desc(qaDeployments.createdAt)); }),
+    getById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => { const db = await getDb(); if (!db) return null; const rows = await db.select().from(qaDeployments).where(eq(qaDeployments.id, input.id)); return rows[0] ?? null; }),
+    create: publicProcedure
+      .input(z.object({ releaseName: z.string().min(1), deploymentDate: z.string().min(1), deploymentOwner: z.string().min(1), productOwner: z.string().min(1), platform: z.enum(["Roger", "PDC", "TDC", "Platform", "Both"]), type: z.enum(["Batch", "Feature", "Bug", "Technical Story", "Hotfix"]), status: z.enum(["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).optional(), summary: z.string().optional(), releaseNotesUrl: z.string().optional(), swaggerUrl: z.string().optional(), relatedBatch: z.string().optional(), relatedFeature: z.string().optional(), relatedStory: z.string().optional(), environment: z.string().optional(), adoWorkItemId: z.string().optional(), adoFeatureUrl: z.string().optional(), adoStoryUrl: z.string().optional(), adoLinks: z.string().optional(), releaseNotesBullets: z.string().optional(), githubReleaseTag: z.string().optional() }))
+      .mutation(async ({ input }) => { const db = await getDb(); if (!db) return { success: false }; const dateStr = input.deploymentDate.replace(/-/g, "").slice(0, 8); const existing = await db.select().from(qaDeployments); const seq = String(existing.length + 1).padStart(3, "0"); const deploymentId = `QADEP-${dateStr.slice(0,4)}-${dateStr.slice(4,8)}-${seq}`; await db.insert(qaDeployments).values({ deploymentId, releaseName: input.releaseName, deploymentDate: input.deploymentDate, deploymentOwner: input.deploymentOwner, productOwner: input.productOwner, platform: input.platform, type: input.type, status: input.status ?? "Planned", summary: input.summary ?? null, releaseNotesUrl: input.releaseNotesUrl ?? null, swaggerUrl: input.swaggerUrl ?? null, relatedBatch: input.relatedBatch ?? null, relatedFeature: input.relatedFeature ?? null, relatedStory: input.relatedStory ?? null, environment: input.environment ?? "QA", adoWorkItemId: input.adoWorkItemId ?? null, adoFeatureUrl: input.adoFeatureUrl ?? null, adoStoryUrl: input.adoStoryUrl ?? null, adoLinks: input.adoLinks ?? null, releaseNotesBullets: input.releaseNotesBullets ?? null, githubReleaseTag: input.githubReleaseTag ?? null }); return { success: true, deploymentId }; }),
+    updateStatus: publicProcedure.input(z.object({ id: z.number(), status: z.enum(["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]) })).mutation(async ({ input }) => { const db = await getDb(); if (!db) return { success: false }; await db.update(qaDeployments).set({ status: input.status }).where(eq(qaDeployments.id, input.id)); return { success: true }; }),
+    update: publicProcedure
+      .input(z.object({ id: z.number(), releaseName: z.string().min(1), deploymentDate: z.string().min(1), deploymentOwner: z.string().min(1), productOwner: z.string().min(1), platform: z.enum(["Roger", "PDC", "TDC", "Platform", "Both"]), type: z.enum(["Batch", "Feature", "Bug", "Technical Story", "Hotfix"]), status: z.enum(["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).optional(), summary: z.string().optional(), releaseNotesUrl: z.string().optional(), swaggerUrl: z.string().optional(), relatedBatch: z.string().optional(), relatedFeature: z.string().optional(), relatedStory: z.string().optional(), environment: z.string().optional(), adoWorkItemId: z.string().optional(), adoFeatureUrl: z.string().optional(), adoStoryUrl: z.string().optional(), adoLinks: z.string().optional(), releaseNotesBullets: z.string().optional(), githubReleaseTag: z.string().optional() }))
+      .mutation(async ({ input }) => { const db = await getDb(); if (!db) return { success: false }; const { id, ...fields } = input; await db.update(qaDeployments).set({ releaseName: fields.releaseName, deploymentDate: fields.deploymentDate, deploymentOwner: fields.deploymentOwner, productOwner: fields.productOwner, platform: fields.platform, type: fields.type, status: fields.status ?? "Planned", summary: fields.summary ?? null, releaseNotesUrl: fields.releaseNotesUrl ?? null, swaggerUrl: fields.swaggerUrl ?? null, relatedBatch: fields.relatedBatch ?? null, relatedFeature: fields.relatedFeature ?? null, relatedStory: fields.relatedStory ?? null, environment: fields.environment ?? "QA", adoWorkItemId: fields.adoWorkItemId ?? null, adoFeatureUrl: fields.adoFeatureUrl ?? null, adoStoryUrl: fields.adoStoryUrl ?? null, adoLinks: fields.adoLinks ?? null, releaseNotesBullets: fields.releaseNotesBullets ?? null, githubReleaseTag: fields.githubReleaseTag ?? null }).where(eq(qaDeployments.id, id)); return { success: true }; }),
+    delete: publicProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => { const db = await getDb(); if (!db) return { success: false }; await db.delete(qaDeployments).where(eq(qaDeployments.id, input.id)); return { success: true }; }),
   }),
 
   integrationHub: router({
@@ -637,5 +673,4 @@ Generate a complete, professional ${input.reportType} formatted for executive co
   }),
 });
 export type AppRouter = typeof appRouter;
-
 

@@ -91,6 +91,42 @@ export const deployments = mysqlTable("deployments", {
 
 export type Deployment = typeof deployments.$inferSelect;
 export type InsertDeployment = typeof deployments.$inferInsert;
+
+// ─── QA Deployment Registry ──────────────────────────────────────────────────
+/**
+ * QA Deployment Registry — tracks deployments into the QA environment for Roger and DCT.
+ * Separate from the DCT Deployment Registry; records here represent QA environment deployments only.
+ */
+export const qaDeployments = mysqlTable("qa_deployments", {
+  id: int("id").autoincrement().primaryKey(),
+  /** QADEP-YYYY-MMDD-NNN format identifier */
+  deploymentId: varchar("deploymentId", { length: 32 }).notNull().unique(),
+  releaseName: varchar("releaseName", { length: 512 }).notNull(),
+  deploymentDate: varchar("deploymentDate", { length: 16 }).notNull(),
+  deploymentOwner: varchar("deploymentOwner", { length: 128 }).notNull(),
+  productOwner: varchar("productOwner", { length: 128 }).notNull(),
+  platform: mysqlEnum("qa_platform", ["Roger", "PDC", "TDC", "Platform", "Both"]).notNull(),
+  type: mysqlEnum("qa_type", ["Batch", "Feature", "Bug", "Technical Story", "Hotfix"]).notNull(),
+  status: mysqlEnum("qa_status", ["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).default("Planned").notNull(),
+  summary: text("summary"),
+  releaseNotesUrl: varchar("releaseNotesUrl", { length: 1024 }),
+  swaggerUrl: varchar("swaggerUrl", { length: 1024 }),
+  relatedBatch: varchar("relatedBatch", { length: 32 }),
+  relatedFeature: varchar("relatedFeature", { length: 256 }),
+  relatedStory: varchar("relatedStory", { length: 256 }),
+  environment: varchar("environment", { length: 64 }).default("QA").notNull(),
+  adoWorkItemId: varchar("adoWorkItemId", { length: 32 }),
+  adoFeatureUrl: varchar("adoFeatureUrl", { length: 1024 }),
+  adoStoryUrl: varchar("adoStoryUrl", { length: 1024 }),
+  adoLinks: text("adoLinks"),
+  releaseNotesBullets: text("releaseNotesBullets"),
+  githubReleaseTag: varchar("githubReleaseTag", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type QaDeployment = typeof qaDeployments.$inferSelect;
+export type InsertQaDeployment = typeof qaDeployments.$inferInsert;
 // ─── UAT Test Cases ──────────────────────────────────────────────────────────
 export const uatTestCases = mysqlTable("uat_test_cases", {
   id: int("id").autoincrement().primaryKey(),
