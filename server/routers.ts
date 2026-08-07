@@ -984,41 +984,44 @@ Generate a complete, professional ${input.reportType} formatted for executive co
     analyzeNotes: publicProcedure
       .input(z.object({ notes: z.string() }))
       .mutation(async ({ input }) => {
-        const systemPrompt = `You are a QA Release Notes Analyst for the DCT platform. Analyze the supplied DEV/QA deployment notes and generate structured release notes organized by affected Roger screen.
+        const systemPrompt = `You are a QA Release Notes Analyst for the Roger/DCT platform. Analyze the supplied deployment notes and extract structured release information.
 
-Return ONLY valid JSON matching this EXACT structure — field names must match exactly:
+Return ONLY valid JSON matching this EXACT structure:
 {
-  "releaseName": "infer from context or use TBD",
+  "releaseName": "infer from context, e.g. Roger QA - My Clients",
+  "deploymentDate": "today date in YYYY-MM-DD format",
+  "environment": "QA",
+  "platform": "Roger",
+  "type": "Feature | Bug | Technical Story | Hotfix | Batch",
+  "deploymentOwner": "if mentioned, else Not Provided",
+  "productOwner": "if mentioned, else Not Provided",
+  "adoItems": "comma-separated list of ADO Feature/Story IDs if mentioned, else Not Provided",
   "summary": "1-2 sentence overall release summary",
-  "knownLimitations": "overall known limitations, or None",
-  "dependencies": "overall dependencies, or None",
-  "qaConsiderations": "overall QA considerations, or None",
+  "knownLimitations": "overall known limitations explicitly stated, else Not Provided",
+  "dependencies": "dependencies explicitly stated, else Not Provided",
   "screens": [
     {
-      "screenName": "exact Roger screen name",
-      "releaseStatus": "Available in QA | Partially Available | Not Included in This Deployment",
-      "changeType": "New | Enhanced | Updated | Fixed | Configuration",
-      "whatChanged": "bullet list of what changed on this screen",
-      "newFunctionality": "new capabilities now available in QA, or None",
-      "fixesIncluded": "defects or bugs fixed, or None",
-      "qaValidationGuidance": "specific testable steps QA should perform to validate this screen",
-      "knownLimitations": "limitations specific to this screen, or None identified",
-      "functionalityNotIncluded": "functionality explicitly NOT included in this deployment, or None",
-      "dependencies": "dependencies affecting this screen, or None",
-      "adoWorkItems": "ADO feature/story IDs if provided, or TBD"
+      "screenName": "Roger screen name from: My Clients Page, Return Filing Page, Return Structure Summary, Line Mapping, Book/Reclass Adjustments, Book Return Review, Tax Adjustment, Book-to-Tax Report, Book-to-Tax Reconciliation, 1120 Form, Sign Off, or Other",
+      "capabilities": [
+        {
+          "name": "short capability name, e.g. Entity Count",
+          "whatChanged": "1-2 sentence description of what this capability does or what changed",
+          "qaValidation": "specific testable step QA should perform to validate this capability",
+          "adoItem": "specific ADO story/feature ID for this capability, or Not Provided"
+        }
+      ]
     }
   ]
 }
-
 CRITICAL RULES:
-1. Use ONLY information explicitly stated in the notes. Never invent or assume functionality.
-2. releaseStatus MUST be exactly one of: "Available in QA", "Partially Available", "Not Included in This Deployment".
-3. Set releaseStatus to "Partially Available" when some functionality is available and some is not.
-4. Populate qaValidationGuidance with specific testable validation steps (e.g. "Verify Entity Count is displayed and represents the entities associated with the client").
-5. Populate functionalityNotIncluded with any functionality explicitly called out as NOT available in this deployment.
-6. Populate knownLimitations with any limitations explicitly stated in the notes.
-7. Populate whatChanged with a clear summary of all items mentioned as now available or changed.
-8. Return ONLY valid JSON. No markdown, no explanation, no code fences.`;
+1. Extract EVERY individual capability or functionality item as a separate entry in capabilities[].
+2. Include ALL capabilities mentioned - both available AND unavailable ones. Never omit any.
+3. Use ONLY information explicitly stated in the notes. Never invent or assume.
+4. For capabilities explicitly stated as NOT available or NOT confirmed, still include them in capabilities[] - the BA will mark their confirmation status.
+5. qaValidation must be a specific testable step (e.g. "Verify Entity Count displays and accurately represents the entities associated with the client").
+6. adoItems at the top level should list ALL ADO references. adoItem per capability should be the most specific reference for that item.
+7. Return ONLY valid JSON. No markdown, no explanation, no code fences.
+8. Platform must always be "Roger". Environment must always be "QA".`;
         const response = await invokeLLM({
           messages: [
             { role: "system" as const, content: systemPrompt as string },
