@@ -462,7 +462,7 @@ function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => 
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
     productOwner: "",
-    platform: "TDC" as PlatformValue,
+    platform: (prefill?.platform as PlatformValue) ?? "Roger" as PlatformValue,
     type: (prefill?.type as TypeValue) ?? "" as TypeValue,
     status: "Planned" as DeploymentStatus,
     releaseNotesUrl: "",

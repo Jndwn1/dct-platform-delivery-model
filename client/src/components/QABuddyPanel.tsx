@@ -180,7 +180,10 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
       </div>}
       {/* Inline step indicator (shown when header is hidden) */}
       {inline && (
-        <div style={{ display: "flex", gap: "4px", padding: "10px 22px 0", backgroundColor: "#0f1623" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "10px 22px 0", backgroundColor: "#0f1623" }}>
+          {step !== "input" && (
+            <button onClick={() => { setStep("input"); setNotes(""); setRelease(null); setSelectedScreen(""); setError(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "10px", fontWeight: 600, padding: "0 8px 0 0", whiteSpace: "nowrap", flexShrink: 0 }} title="Start Over">↺ Start Over</button>
+          )}
           {[
             { id: "input", label: "1. Notes" },
             { id: "analyzing", label: "2. Analyze" },
@@ -367,6 +370,11 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
         {step === "analyzing" && (
           <div style={{ display: "flex", justifyContent: "center" }}>
             <button onClick={() => setStep("input")} style={{ padding: "10px 16px", backgroundColor: "white", color: "#64748b", border: "1px solid #e2e8f0", borderRadius: "7px", fontSize: "12px", cursor: "pointer" }}>Cancel Analysis</button>
+          </div>
+        )}
+        {step === "approved" && (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <button onClick={() => { setStep("input"); setNotes(""); setRelease(null); setSelectedScreen(""); setError(""); }} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 20px", backgroundColor: "#f8fafc", color: "#475569", border: "1px solid #e2e8f0", borderRadius: "7px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>↺ Reset &amp; Analyze New Notes</button>
           </div>
         )}
       </div>
