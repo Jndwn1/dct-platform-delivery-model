@@ -1605,7 +1605,7 @@ export default function QADeploymentRegistry() {
             onClick={() => setShowCreate(false)}
             style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 40 }}
           />
-          <CreateDeploymentForm onClose={() => { setShowCreate(false); setBuddyPrefill(null); }} onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); setBuddyPrefill(null); }} prefill={buddyPrefill} />
+          <CreateDeploymentForm key={buddyPrefill ? `prefill-${buddyPrefill.releaseName}` : "empty"} onClose={() => { setShowCreate(false); setBuddyPrefill(null); }} onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); setBuddyPrefill(null); }} prefill={buddyPrefill} />
         </>
       )}
     </div>
