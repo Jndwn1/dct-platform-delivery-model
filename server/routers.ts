@@ -532,7 +532,8 @@ ${input.notes}` as string },
         if (input?.platform && input.platform !== "All") { result = result.filter((r) => r.platform === input.platform); }
         if (input?.sortBy === "releaseName") { result = result.sort((a, b) => a.releaseName.localeCompare(b.releaseName)); }
         else if (input?.sortBy === "deploymentOwner") { result = result.sort((a, b) => a.deploymentOwner.localeCompare(b.deploymentOwner)); }
-        return result;
+        // Coerce id to number — TiDB returns bigint as string which breaks client-side comparisons
+        return result.map(r => ({ ...r, id: Number(r.id) }));
       }),
     getByBatch: publicProcedure.input(z.object({ batchId: z.string() })).query(async ({ input }) => { const db = await getDb(); if (!db) return []; return db.select().from(qaDeployments).where(eq(qaDeployments.relatedBatch, input.batchId)).orderBy(desc(qaDeployments.deploymentDate)); }),
     summary: publicProcedure.query(async () => { const db = await getDb(); if (!db) return { total: 0, roger: 0, pdc: 0, tdc: 0, rollbackCandidates: 0 }; const all = await db.select().from(qaDeployments); return { total: all.length, roger: all.filter((r) => r.platform === "Roger").length, pdc: all.filter((r) => r.platform === "PDC").length, tdc: all.filter((r) => r.platform === "TDC").length, rollbackCandidates: all.filter((r) => r.status === "Rolled Back" || r.status === "In Progress").length }; }),
