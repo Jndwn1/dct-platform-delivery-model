@@ -1073,6 +1073,7 @@ export default function QADeploymentRegistry() {
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("All");
   const [sortBy, setSortBy] = useState<SortBy>("deploymentDate");
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
+  const [drawerDep, setDrawerDep] = useState<DeploymentRow | null>(null);
   const [editDep, setEditDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showBuddy, setShowBuddy] = useState(true);
@@ -1481,8 +1482,8 @@ export default function QADeploymentRegistry() {
                 transition: "background-color 0.1s",
               }}
             >
-              <div onClick={() => setSelectedDep(row as DeploymentRow)} style={{ fontSize: "12px", color: "#475569", fontWeight: 600, paddingTop: "2px", cursor: "pointer" }}>{row.deploymentDate}</div>
-              <div onClick={() => setSelectedDep(row as DeploymentRow)} style={{ fontSize: "12px", color: "#0f1623", fontWeight: 600, lineHeight: "1.4", paddingRight: "12px", cursor: "pointer" }}>{row.releaseName}</div>
+              <div onClick={() => setSelectedDep(prev => prev?.id === row.id ? null : row as DeploymentRow)} style={{ fontSize: "12px", color: "#475569", fontWeight: 600, paddingTop: "2px", cursor: "pointer" }}>{row.deploymentDate}</div>
+              <div onClick={() => setSelectedDep(prev => prev?.id === row.id ? null : row as DeploymentRow)} style={{ fontSize: "12px", color: "#0f1623", fontWeight: 600, lineHeight: "1.4", paddingRight: "12px", cursor: "pointer" }}>{row.releaseName}</div>
               <div><TypeBadge type={row.type as TypeValue} /></div>
               <div style={{ fontSize: "11px", fontWeight: 700, color: PLATFORM_COLOR[row.platform as PlatformValue] ?? "#64748b" }}>{row.platform}</div>
               <div style={{ fontSize: "11px", color: "#475569" }}>{row.deploymentOwner}</div>
@@ -1723,14 +1724,14 @@ export default function QADeploymentRegistry() {
       )}
 
 
-            {/* -- Detail drawer -- */}
-      {selectedDep && (
+            {/* -- Detail drawer -- opened via drawerDep only */}
+      {drawerDep && (
         <>
           <div
-            onClick={() => setSelectedDep(null)}
+            onClick={() => setDrawerDep(null)}
             style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 40 }}
           />
-          <DetailDrawer dep={selectedDep} onClose={() => setSelectedDep(null)} onEdit={(dep) => { setSelectedDep(null); setEditDep(dep); }} />
+          <DetailDrawer dep={drawerDep} onClose={() => setDrawerDep(null)} onEdit={(dep) => { setDrawerDep(null); setEditDep(dep); }} />
         </>
       )}
 
