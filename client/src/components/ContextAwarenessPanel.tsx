@@ -84,7 +84,7 @@ export default function ContextAwarenessPanel() {
   const [panelOpen, setPanelOpen] = useState(true);
 
   // Don't render on sign-in or 404 pages
-  if (currentPath === "/signin" || currentPath === "/404") return null;
+  if (currentPath === "/signin" || currentPath === "/404" || currentPath === "/qa-deployment-registry") return null;
 
   // Collapsed tab (always visible)
   if (!panelOpen) {
