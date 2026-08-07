@@ -80,29 +80,30 @@ export default function QABuddyPanel({ onClose, inline }: QABuddyPanelProps) {
       display: "flex", flexDirection: "column" as any,
       fontFamily: "system-ui, sans-serif",
     }}>
-      {/* Header */}
-      <div style={{ backgroundColor: "#0f1623", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: inline ? "pointer" : "default", flexShrink: 0 }}
-        onClick={inline ? () => setCollapsed(c => !c) : undefined}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ fontSize: "20px" }}>🐱</span>
-          <div>
-            <div style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>Ask Buddy — Prepare QA Release Notes</div>
-            <div style={{ fontSize: "11px", color: "#94a3b8" }}>Paste DEV/QA notes → get formatted release notes to copy into Create Deployment</div>
+      {/* Header — only shown when NOT inline (inline mode uses the outer wrapper's header) */}
+      {!inline && (
+        <div style={{ backgroundColor: "#0f1623", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "20px" }}>🐱</span>
+            <div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>Ask Buddy — Prepare QA Release Notes</div>
+              <div style={{ fontSize: "11px", color: "#94a3b8" }}>Paste DEV/QA notes → get formatted release notes to copy into Create Deployment</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {onClose && <button onClick={onClose} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "20px", lineHeight: 1 }}>×</button>}
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {step !== "input" && (
-            <button onClick={(e) => { e.stopPropagation(); handleReset(); }}
-              style={{ background: "none", border: "1px solid #475569", borderRadius: "5px", color: "#94a3b8", fontSize: "11px", padding: "3px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
-              <RotateCcw size={11} /> Start Over
-            </button>
-          )}
-          {inline
-            ? <span style={{ color: "#94a3b8", fontSize: "11px" }}>{collapsed ? "▼ Expand" : "▲ Collapse"}</span>
-            : onClose && <button onClick={onClose} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "20px", lineHeight: 1 }}>×</button>
-          }
+      )}
+      {/* Inline: show Start Over button in a slim bar when not on input step */}
+      {inline && step !== "input" && (
+        <div style={{ backgroundColor: "#1e293b", padding: "6px 14px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+          <button onClick={handleReset}
+            style={{ background: "none", border: "1px solid #475569", borderRadius: "5px", color: "#94a3b8", fontSize: "11px", padding: "3px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
+            <RotateCcw size={11} /> Start Over
+          </button>
         </div>
-      </div>
+      )}
 
       {/* Body */}
       {!collapsed && (
