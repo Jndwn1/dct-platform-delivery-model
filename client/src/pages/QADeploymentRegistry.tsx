@@ -505,17 +505,16 @@ function CreateDeploymentForm({ onClose, onCreated, prefill, draftForm, draftAdo
   const form = localForm as typeof defaultForm;
   const adoLinks = localAdoLinks;
 
+  // Sync to parent AFTER render to avoid setState-during-render error
+  useEffect(() => { onDraftChange?.(localForm); }, [localForm]);
+  useEffect(() => { onDraftAdoChange?.(localAdoLinks); }, [localAdoLinks]);
+
   const set = (k: string, v: string) => {
-    setLocalForm(f => {
-      const next = { ...f, [k]: v };
-      onDraftChange?.(next);
-      return next;
-    });
+    setLocalForm(f => ({ ...f, [k]: v }));
   };
 
   const setAdoLinks = (links: AdoLinkEntry[]) => {
     setLocalAdoLinks(links);
-    onDraftAdoChange?.(links);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
