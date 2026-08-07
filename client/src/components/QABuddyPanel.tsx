@@ -77,12 +77,19 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
           platform: s.platform ?? "Roger",
           component: s.component ?? "",
           changeType: s.changeType ?? "New",
-          whatChanged: s.whatChanged ?? "Not Provided",
+          // Handle both old flat format and new capabilities[] format from updated LLM prompt
+          whatChanged: s.whatChanged ?? (Array.isArray(s.capabilities) && s.capabilities.length > 0
+            ? s.capabilities.map((c: any) => `• ${c.name}: ${c.whatChanged ?? ""}`).join("\n")
+            : "Not Provided"),
           availableInQa: s.availableInQa ?? "Partial",
-          qaTestInstructions: s.qaTestInstructions ?? "Not Provided",
-          expectedResult: s.expectedResult ?? "Not Provided",
-          knownIssues: s.knownIssues ?? "Not Provided",
-          adoItem: s.adoItem ?? "Not Provided",
+          qaTestInstructions: s.qaTestInstructions ?? (Array.isArray(s.capabilities) && s.capabilities.length > 0
+            ? s.capabilities.map((c: any) => `• ${c.name}: ${c.qaValidation ?? c.qaTestInstructions ?? ""}`).join("\n")
+            : "Not Provided"),
+          expectedResult: s.expectedResult ?? (Array.isArray(s.capabilities) && s.capabilities.length > 0
+            ? s.capabilities.map((c: any) => c.expectedResult ?? "").filter(Boolean).join("\n")
+            : "Not Provided"),
+          knownIssues: s.knownIssues ?? s.knownLimitations ?? "Not Provided",
+          adoItem: (() => { const capAdos = Array.isArray(s.capabilities) ? s.capabilities.map((c: any) => c.adoItem ?? "").filter((v: string) => v && v !== "Not Provided").join(", ") : ""; return s.adoItem || s.adoItems || capAdos || "Not Provided"; })(),
           validationStatus: s.validationStatus ?? "Not Started",
           isBackendOnly: s.isBackendOnly ?? false,
         })),

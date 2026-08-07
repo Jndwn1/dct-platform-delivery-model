@@ -11,7 +11,7 @@ import AboutSectionPanel from "@/components/AboutSectionPanel";
 import {
   Rocket, Bug, Wrench, Layers, Search, Plus, X, ExternalLink,
   ChevronDown, ChevronUp, Calendar, User, Package, FileText,
-  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Copy, Pencil, Eye,
+  Link2, AlertTriangle, CheckCircle2, Clock, RotateCcw, Activity, Copy, Pencil, Eye, Trash2,
 } from "lucide-react";
 
 // --- Wiki entry helper -------------------------------------------------------
@@ -980,9 +980,18 @@ export default function QADeploymentRegistry() {
   const [showReleaseNotesPreview, setShowReleaseNotesPreview] = useState(false);
   const [wikiCopied, setWikiCopied] = useState(false);
   const [justCreated, setJustCreated] = useState<{ releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; ccEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const utils = trpc.useUtils();
 
+  const deleteMutation = trpc.qaDeploymentRegistry.delete.useMutation({
+    onSuccess: () => {
+      utils.qaDeploymentRegistry.list.invalidate();
+      utils.qaDeploymentRegistry.summary.invalidate();
+      setConfirmDeleteId(null);
+      setSelectedDep(null);
+    },
+  });
   const { data: summaryData } = trpc.qaDeploymentRegistry.summary.useQuery();
   const { data: rows = [], isLoading } = trpc.qaDeploymentRegistry.list.useQuery({
     search: search || undefined,
@@ -1295,7 +1304,21 @@ export default function QADeploymentRegistry() {
         >
           <Eye size={12} />Preview Release Notes
         </button>
-                {/* Create button */}
+                {/* Delete button */}
+        {selectedDep && (
+          confirmDeleteId === selectedDep.id ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "11px", color: "#dc2626", fontWeight: 600 }}>Delete?</span>
+              <button onClick={() => deleteMutation.mutate({ id: selectedDep.id })} style={{ padding: "6px 12px", backgroundColor: "#dc2626", color: "white", border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>Confirm</button>
+              <button onClick={() => setConfirmDeleteId(null)} style={{ padding: "6px 12px", backgroundColor: "#f8fafc", color: "#475569", border: "1px solid #e2e8f0", borderRadius: "6px", fontSize: "11px", cursor: "pointer" }}>Cancel</button>
+            </div>
+          ) : (
+            <button onClick={() => setConfirmDeleteId(selectedDep.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", borderRadius: "6px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>
+              <Trash2 size={12} /> Delete
+            </button>
+          )
+        )}
+        {/* Create button */}
         <button
           onClick={() => setShowCreate(true)}
           style={{
