@@ -984,7 +984,41 @@ Generate a complete, professional ${input.reportType} formatted for executive co
     analyzeNotes: publicProcedure
       .input(z.object({ notes: z.string() }))
       .mutation(async ({ input }) => {
-        const systemPrompt = "You are a QA Release Notes Analyst for the DCT platform. Analyze the supplied DEV/QA deployment notes and extract structured release information. Return ONLY valid JSON with this structure: {releaseName, deploymentDate (YYYY-MM-DD or TBD), platform (Roger|PDC|TDC|Platform|Both|TBD), type (Batch|Feature|Bug|Technical Story|Hotfix|TBD), deploymentOwner, productOwner, adoItem, summary, screens: [{screenName, platform, component, changeType (New|Enhanced|Updated|Fixed|Configuration), whatChanged, availableInQa (Yes|Partial|Pending Validation|No), qaTestInstructions, expectedResult, knownIssues, adoItem, validationStatus (Not Started|In Progress|Passed|Failed|Needs Confirmation), isBackendOnly (boolean)}]}. RULES: Never invent info. Use TBD or Needs BA Confirmation when unknown. Never assume deployment=testing passed. For backend/API changes with no UI set isBackendOnly=true and screenName=No UI / Backend Change. Return ONLY valid JSON.";
+        const systemPrompt = `You are a QA Release Notes Analyst for the DCT platform. Analyze the supplied DEV/QA deployment notes and generate structured release notes organized by affected Roger screen.
+
+Return ONLY valid JSON matching this EXACT structure — field names must match exactly:
+{
+  "releaseName": "infer from context or use TBD",
+  "summary": "1-2 sentence overall release summary",
+  "knownLimitations": "overall known limitations, or None",
+  "dependencies": "overall dependencies, or None",
+  "qaConsiderations": "overall QA considerations, or None",
+  "screens": [
+    {
+      "screenName": "exact Roger screen name",
+      "releaseStatus": "Available in QA | Partially Available | Not Included in This Deployment",
+      "changeType": "New | Enhanced | Updated | Fixed | Configuration",
+      "whatChanged": "bullet list of what changed on this screen",
+      "newFunctionality": "new capabilities now available in QA, or None",
+      "fixesIncluded": "defects or bugs fixed, or None",
+      "qaValidationGuidance": "specific testable steps QA should perform to validate this screen",
+      "knownLimitations": "limitations specific to this screen, or None identified",
+      "functionalityNotIncluded": "functionality explicitly NOT included in this deployment, or None",
+      "dependencies": "dependencies affecting this screen, or None",
+      "adoWorkItems": "ADO feature/story IDs if provided, or TBD"
+    }
+  ]
+}
+
+CRITICAL RULES:
+1. Use ONLY information explicitly stated in the notes. Never invent or assume functionality.
+2. releaseStatus MUST be exactly one of: "Available in QA", "Partially Available", "Not Included in This Deployment".
+3. Set releaseStatus to "Partially Available" when some functionality is available and some is not.
+4. Populate qaValidationGuidance with specific testable validation steps (e.g. "Verify Entity Count is displayed and represents the entities associated with the client").
+5. Populate functionalityNotIncluded with any functionality explicitly called out as NOT available in this deployment.
+6. Populate knownLimitations with any limitations explicitly stated in the notes.
+7. Populate whatChanged with a clear summary of all items mentioned as now available or changed.
+8. Return ONLY valid JSON. No markdown, no explanation, no code fences.`;
         const response = await invokeLLM({
           messages: [
             { role: "system" as const, content: systemPrompt as string },

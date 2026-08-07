@@ -167,7 +167,30 @@ export default function DeploymentBuddyPanel({
   const analyzeMutation = trpc.deploymentRegistryBuddy.analyzeNotes.useMutation({
     onSuccess: (data: any) => {
       if (data?.screens) {
-        setAnalyzed(data as AnalyzedDeployment);
+        // Normalize field names — map any legacy LLM field names to the expected schema
+        const normalizedScreens = (data.screens as any[]).map((s: any) => ({
+          screenName:               s.screenName ?? s.screen ?? "",
+          releaseStatus:            (["Available in QA", "Partially Available", "Not Included in This Deployment"].includes(s.releaseStatus))
+                                      ? s.releaseStatus
+                                      : (s.availableInQa === "Yes" ? "Available in QA" : s.availableInQa === "Partial" ? "Partially Available" : "Not Included in This Deployment"),
+          changeType:               s.changeType ?? "Enhanced",
+          whatChanged:              s.whatChanged ?? s.what_changed ?? "",
+          newFunctionality:         s.newFunctionality ?? s.new_functionality ?? "None",
+          fixesIncluded:            s.fixesIncluded ?? s.fixes_included ?? s.defectsFixes ?? "None",
+          qaValidationGuidance:     s.qaValidationGuidance ?? s.qaTestInstructions ?? s.qa_validation ?? "",
+          knownLimitations:         s.knownLimitations ?? s.knownIssues ?? s.known_limitations ?? "None identified",
+          functionalityNotIncluded: s.functionalityNotIncluded ?? s.notIncluded ?? s.functionality_not_included ?? "None",
+          dependencies:             s.dependencies ?? "None",
+          adoWorkItems:             s.adoWorkItems ?? s.adoItem ?? s.ado_work_items ?? "TBD",
+        }));
+        setAnalyzed({
+          releaseName:      data.releaseName ?? "TBD",
+          summary:          data.summary ?? "",
+          knownLimitations: data.knownLimitations ?? data.knownIssues ?? "None",
+          dependencies:     data.dependencies ?? "None",
+          qaConsiderations: data.qaConsiderations ?? "",
+          screens:          normalizedScreens,
+        });
         setStep("review");
       }
     },
