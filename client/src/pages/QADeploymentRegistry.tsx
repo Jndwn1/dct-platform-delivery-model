@@ -452,12 +452,20 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
   );
 }
 // --- Create form ---------------------------------------------------------------
-function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void; prefill?: import('@/components/QABuddyPanel').AnalyzedRelease | null }) {
+function CreateDeploymentForm({ onClose, onCreated, prefill, draftForm, draftAdoLinks, onDraftChange, onDraftAdoChange }: {
+  onClose: () => void;
+  onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void;
+  prefill?: import('@/components/QABuddyPanel').AnalyzedRelease | null;
+  draftForm?: Record<string, string> | null;
+  draftAdoLinks?: AdoLinkEntry[];
+  onDraftChange?: (form: Record<string, string>) => void;
+  onDraftAdoChange?: (links: AdoLinkEntry[]) => void;
+}) {
   const createMutation = trpc.qaDeploymentRegistry.create.useMutation({
     onSuccess: (result) => { onCreated(result as any); },
   });
 
-  const [form, setForm] = useState(() => ({
+  const defaultForm = {
     releaseName: prefill?.releaseName ?? "",
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
@@ -488,11 +496,26 @@ function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => 
     releaseNotesStatus: "Draft",
     screenChanges: prefill ? JSON.stringify(prefill.screens) : "",
     summary: prefill?.summary ?? "",
-  }));
-  const [adoLinks, setAdoLinks] = useState<AdoLinkEntry[]>([]);
+  };
+
+  // Use parent-lifted draft state if provided, otherwise fall back to local state
+  const [localForm, setLocalForm] = useState<Record<string, string>>(() => draftForm ?? defaultForm as unknown as Record<string, string>);
+  const [localAdoLinks, setLocalAdoLinks] = useState<AdoLinkEntry[]>(() => draftAdoLinks ?? []);
+
+  const form = localForm as typeof defaultForm;
+  const adoLinks = localAdoLinks;
 
   const set = (k: string, v: string) => {
-    setForm(f => ({ ...f, [k]: v }));
+    setLocalForm(f => {
+      const next = { ...f, [k]: v };
+      onDraftChange?.(next);
+      return next;
+    });
+  };
+
+  const setAdoLinks = (links: AdoLinkEntry[]) => {
+    setLocalAdoLinks(links);
+    onDraftAdoChange?.(links);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -674,7 +697,7 @@ function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => 
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div>
-            <label style={labelStyle}>Validation Status</label>
+            <label style={labelStyle}>QA Sign-Off Status <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 400 }}>(Has QA confirmed this deployment?)</span></label>
             <select style={fieldStyle} value={form.validationStatus ?? "Pending"} onChange={e => set("validationStatus", e.target.value)}>
               {["Pending", "In Progress", "Complete", "Blocked"].map(s => <option key={s}>{s}</option>)}
             </select>
@@ -744,7 +767,7 @@ function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => 
             {createMutation.isPending ? "Creating..." : "Create Deployment"}
           </button>
           <button type="button" onClick={onClose} style={{ padding: "9px 16px", backgroundColor: "#f1f5f9", color: "#475569", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
-            Cancel
+            Discard &amp; Close
           </button>
         </div>
       </form>
@@ -977,6 +1000,9 @@ export default function QADeploymentRegistry() {
   const [showCreate, setShowCreate] = useState(false);
   const [showBuddy, setShowBuddy] = useState(true);
   const [buddyPrefill, setBuddyPrefill] = useState<AnalyzedRelease | null>(null);
+  // Draft form state lifted to page level so it survives panel open/close
+  const [draftForm, setDraftForm] = useState<Record<string, string> | null>(null);
+  const [draftAdoLinks, setDraftAdoLinks] = useState<AdoLinkEntry[]>([]);
   const [showWikiModal, setShowWikiModal] = useState(false);
   const [showReleaseNotesPreview, setShowReleaseNotesPreview] = useState(false);
   const [wikiCopied, setWikiCopied] = useState(false);
@@ -1608,10 +1634,19 @@ export default function QADeploymentRegistry() {
       {showCreate && (
         <>
           <div
-            onClick={() => setShowCreate(false)}
+            onClick={() => {/* backdrop does not close — use X or Discard & Close */}}
             style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 40 }}
           />
-          <CreateDeploymentForm key={buddyPrefill ? `prefill-${buddyPrefill.releaseName}` : "empty"} onClose={() => { setShowCreate(false); setBuddyPrefill(null); }} onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); setBuddyPrefill(null); }} prefill={buddyPrefill} />
+          <CreateDeploymentForm
+            key={buddyPrefill ? `prefill-${buddyPrefill.releaseName}` : "empty"}
+            onClose={() => { setShowCreate(false); setBuddyPrefill(null); setDraftForm(null); setDraftAdoLinks([]); }}
+            onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); setBuddyPrefill(null); setDraftForm(null); setDraftAdoLinks([]); }}
+            prefill={buddyPrefill}
+            draftForm={draftForm}
+            draftAdoLinks={draftAdoLinks}
+            onDraftChange={setDraftForm}
+            onDraftAdoChange={setDraftAdoLinks}
+          />
         </>
       )}
     </div>
