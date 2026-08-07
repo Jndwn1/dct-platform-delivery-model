@@ -985,6 +985,13 @@ export default function QADeploymentRegistry() {
 
   const utils = trpc.useUtils();
 
+  // Open Create form after buddyPrefill state is committed (avoids React batching timing issue)
+  useEffect(() => {
+    if (buddyPrefill) {
+      setShowCreate(true);
+    }
+  }, [buddyPrefill]);
+
   const deleteMutation = trpc.qaDeploymentRegistry.delete.useMutation({
     onSuccess: () => {
       utils.qaDeploymentRegistry.list.invalidate();
@@ -1214,7 +1221,6 @@ export default function QADeploymentRegistry() {
               inline
               onApprove={(release: AnalyzedRelease) => {
                 setBuddyPrefill(release);
-                setShowCreate(true);
               }}
             />
           </div>
