@@ -7,7 +7,8 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { integrationQuestions, deployments, qaDeployments, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
+import { integrationQuestions, deployments, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
+import { storagePut } from "./storage";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 
 export const appRouter = router({
@@ -625,7 +626,7 @@ Be concise, professional, and enterprise-ready in your responses.`;
 
         const response = await invokeLLM({
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system" as const, content: systemPrompt as string },
             { role: "user", content: input.question },
           ],
         });
@@ -663,7 +664,7 @@ Generate a complete, professional ${input.reportType} formatted for executive co
 
         const response = await invokeLLM({
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system" as const, content: systemPrompt as string },
             { role: "user", content: `Generate the ${input.reportType} now.` },
           ],
         });
@@ -671,5 +672,140 @@ Generate a complete, professional ${input.reportType} formatted for executive co
         return { report };
       }),
   }),
+
+  // ─── QA Screen Records ─────────────────────────────────────────────────────
+  qaScreenRecords: router({
+    listByDeployment: publicProcedure
+      .input(z.object({ deploymentId: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null as any;
+        return db.select().from(qaScreenRecords)
+          .where(eq(qaScreenRecords.deploymentId, input.deploymentId))
+          .orderBy(qaScreenRecords.sortOrder, qaScreenRecords.id);
+      }),
+
+    bulkCreate: publicProcedure
+      .input(z.object({
+        deploymentId: z.string(),
+        screens: z.array(z.object({
+          screenName: z.string(),
+          platform: z.string().optional(),
+          component: z.string().optional(),
+          changeType: z.string().optional(),
+          whatChanged: z.string().optional(),
+          availableInQa: z.string().optional(),
+          qaTestInstructions: z.string().optional(),
+          expectedResult: z.string().optional(),
+          knownIssues: z.string().optional(),
+          adoItem: z.string().optional(),
+          validationStatus: z.string().optional(),
+          isBackendOnly: z.boolean().optional(),
+          sortOrder: z.number().optional(),
+        })),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null as any;
+        await db.delete(qaScreenRecords).where(eq(qaScreenRecords.deploymentId, input.deploymentId));
+        if (input.screens.length === 0) return { created: 0 };
+        const rows = input.screens.map((s, i) => ({
+          deploymentId: input.deploymentId,
+          screenName: s.screenName,
+          platform: s.platform ?? "Roger",
+          component: s.component ?? null,
+          changeType: s.changeType ?? "Updated",
+          whatChanged: s.whatChanged ?? null,
+          availableInQa: s.availableInQa ?? "Pending Validation",
+          qaTestInstructions: s.qaTestInstructions ?? null,
+          expectedResult: s.expectedResult ?? null,
+          knownIssues: s.knownIssues ?? null,
+          adoItem: s.adoItem ?? null,
+          validationStatus: s.validationStatus ?? "Not Started",
+          isBackendOnly: s.isBackendOnly ?? false,
+          screenshotStatus: (s.isBackendOnly ? "Not Required" : "Missing") as string,
+          sortOrder: s.sortOrder ?? i,
+        }));
+        await db.insert(qaScreenRecords).values(rows as any);
+        return { created: rows.length };
+      }),
+
+    update: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        screenName: z.string().optional(),
+        platform: z.string().optional(),
+        component: z.string().optional(),
+        changeType: z.string().optional(),
+        whatChanged: z.string().optional(),
+        availableInQa: z.string().optional(),
+        qaTestInstructions: z.string().optional(),
+        expectedResult: z.string().optional(),
+        knownIssues: z.string().optional(),
+        adoItem: z.string().optional(),
+        validationStatus: z.string().optional(),
+        screenshotStatus: z.string().optional(),
+        screenshots: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null as any;
+        const { id, ...fields } = input;
+        await db.update(qaScreenRecords).set(fields as any).where(eq(qaScreenRecords.id, id));
+        return { success: true };
+      }),
+
+    delete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null as any;
+        await db.delete(qaScreenRecords).where(eq(qaScreenRecords.id, input.id));
+        return { success: true };
+      }),
+
+    uploadScreenshot: publicProcedure
+      .input(z.object({
+        screenRecordId: z.number(),
+        deploymentId: z.string(),
+        fileName: z.string(),
+        fileDataBase64: z.string(),
+        mimeType: z.string().default("image/png"),
+        title: z.string().optional(),
+        caption: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null as any;
+        const buffer = Buffer.from(input.fileDataBase64, "base64");
+        const key = `qa-screenshots/${input.deploymentId}/${input.screenRecordId}-${Date.now()}-${input.fileName}`;
+        const { url } = await storagePut(key, buffer, input.mimeType);
+        const [record] = await db.select({ screenshots: qaScreenRecords.screenshots })
+          .from(qaScreenRecords).where(eq(qaScreenRecords.id, input.screenRecordId));
+        const existing = record?.screenshots ? JSON.parse(record.screenshots) : [];
+        const updated = [...existing, { url, title: input.title ?? "", caption: input.caption ?? "", notes: input.notes ?? "" }];
+        await db.update(qaScreenRecords)
+          .set({ screenshots: JSON.stringify(updated), screenshotStatus: "Uploaded" })
+          .where(eq(qaScreenRecords.id, input.screenRecordId));
+        return { url, screenshots: updated };
+      }),
+
+    analyzeNotes: publicProcedure
+      .input(z.object({ notes: z.string() }))
+      .mutation(async ({ input }) => {
+        const systemPrompt = "You are a QA Release Notes Analyst for the DCT platform. Analyze the supplied DEV/QA deployment notes and extract structured release information. Return ONLY valid JSON with this structure: {releaseName, deploymentDate (YYYY-MM-DD or TBD), platform (Roger|PDC|TDC|Platform|Both|TBD), type (Batch|Feature|Bug|Technical Story|Hotfix|TBD), deploymentOwner, productOwner, adoItem, summary, screens: [{screenName, platform, component, changeType (New|Enhanced|Updated|Fixed|Configuration), whatChanged, availableInQa (Yes|Partial|Pending Validation|No), qaTestInstructions, expectedResult, knownIssues, adoItem, validationStatus (Not Started|In Progress|Passed|Failed|Needs Confirmation), isBackendOnly (boolean)}]}. RULES: Never invent info. Use TBD or Needs BA Confirmation when unknown. Never assume deployment=testing passed. For backend/API changes with no UI set isBackendOnly=true and screenName=No UI / Backend Change. Return ONLY valid JSON.";
+        const response = await invokeLLM({
+          messages: [
+            { role: "system" as const, content: systemPrompt as string },
+            { role: "user" as const, content: String(input.notes) },
+          ],
+          response_format: { type: "json_object" },
+        });
+        const content = response.choices?.[0]?.message?.content ?? "{}";
+        try { return JSON.parse(typeof content === "string" ? content : JSON.stringify(content)); } catch { return { error: "Failed to parse", raw: String(content) }; }
+      }),
+  }),
 });
+// ─── qaScreenRecords router is defined inside appRouter above ───────────────
 export type AppRouter = typeof appRouter;

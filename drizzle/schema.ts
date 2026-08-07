@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -139,6 +139,30 @@ export const qaDeployments = mysqlTable("qa_deployments", {
 
 export type QaDeployment = typeof qaDeployments.$inferSelect;
 export type InsertQaDeployment = typeof qaDeployments.$inferInsert;
+// ─── QA Screen Records ───────────────────────────────────────────────────────
+export const qaScreenRecords = mysqlTable("qa_screen_records", {
+  id: int("id").autoincrement().primaryKey(),
+  deploymentId: varchar("deploymentId", { length: 32 }).notNull(), // FK to qa_deployments.deploymentId
+  screenName: varchar("screenName", { length: 256 }).notNull(),
+  platform: varchar("platform", { length: 64 }).default("Roger"),
+  component: varchar("component", { length: 256 }),
+  changeType: varchar("changeType", { length: 64 }).default("Updated"), // New / Enhanced / Updated / Fixed / Configuration
+  whatChanged: text("whatChanged"),
+  availableInQa: varchar("availableInQa", { length: 64 }).default("Pending Validation"), // Yes / Partial / Pending Validation / No
+  qaTestInstructions: text("qaTestInstructions"),
+  expectedResult: text("expectedResult"),
+  knownIssues: text("knownIssues"),
+  adoItem: varchar("adoItem", { length: 128 }),
+  validationStatus: varchar("validationStatus", { length: 64 }).default("Not Started"),
+  isBackendOnly: boolean("isBackendOnly").default(false), // true = No UI / Backend Change
+  screenshotStatus: varchar("screenshotStatus", { length: 32 }).default("Missing"), // Missing / Uploaded / Not Required
+  screenshots: text("screenshots"), // JSON array of { url, title, caption, notes }
+  sortOrder: int("sortOrder").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type QaScreenRecord = typeof qaScreenRecords.$inferSelect;
+export type InsertQaScreenRecord = typeof qaScreenRecords.$inferInsert;
 // ─── UAT Test Cases ──────────────────────────────────────────────────────────
 export const uatTestCases = mysqlTable("uat_test_cases", {
   id: int("id").autoincrement().primaryKey(),

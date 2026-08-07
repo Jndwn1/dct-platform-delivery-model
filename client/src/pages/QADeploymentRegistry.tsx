@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------------
 import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
+import QABuddyPanel, { type AnalyzedRelease } from "@/components/QABuddyPanel";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import AboutSectionPanel from "@/components/AboutSectionPanel";
 import {
@@ -451,20 +452,19 @@ function DetailDrawer({ dep, onClose, onEdit }: { dep: DeploymentRow; onClose: (
   );
 }
 // --- Create form ---------------------------------------------------------------
-function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void }) {
+function CreateDeploymentForm({ onClose, onCreated, prefill }: { onClose: () => void; onCreated: (dep: { releaseName: string; deploymentId: string; deploymentDate: string; deploymentOwner: string; productOwner: string; poEmail?: string; platform: string; type: string; status: string; environment: string; summary?: string | null; relatedBatch?: string | null; relatedFeature?: string | null; adoWorkItemId?: string | null }) => void; prefill?: import('@/components/QABuddyPanel').AnalyzedRelease | null }) {
   const createMutation = trpc.qaDeploymentRegistry.create.useMutation({
     onSuccess: (result) => { onCreated(result as any); },
   });
 
-  const [form, setForm] = useState({
-    releaseName: "",
+  const [form, setForm] = useState(() => ({
+    releaseName: prefill?.releaseName ?? "",
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
     productOwner: "",
     platform: "TDC" as PlatformValue,
     type: "Feature" as TypeValue,
     status: "Planned" as DeploymentStatus,
-    summary: "",
     releaseNotesUrl: "",
     swaggerUrl: "",
     relatedBatch: "",
@@ -476,18 +476,19 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
     adoStoryUrl: "",
     releaseNotesBullets: "",
     githubReleaseTag: "",
-    whatChanged: "",
-    qaTestInstructions: "",
-    expectedResults: "",
-    knownIssues: "",
+    whatChanged: prefill?.screens.map(s => `${s.screenName}: ${s.whatChanged}`).join("\n\n") ?? "",
+    qaTestInstructions: prefill?.screens.map(s => `${s.screenName}: ${s.qaTestInstructions}`).join("\n\n") ?? "",
+    expectedResults: prefill?.screens.map(s => `${s.screenName}: ${s.expectedResult}`).join("\n\n") ?? "",
+    knownIssues: prefill?.screens.filter(s => s.knownIssues && s.knownIssues !== "None identified").map(s => `${s.screenName}: ${s.knownIssues}`).join("\n\n") ?? "",
     backendChanges: "",
     validationStatus: "Pending",
     validatedBy: "",
     validationDate: "",
     validationNotes: "",
     releaseNotesStatus: "Draft",
-    screenChanges: "",
-  });
+    screenChanges: prefill ? JSON.stringify(prefill.screens) : "",
+    summary: prefill?.summary ?? "",
+  }));
   const [adoLinks, setAdoLinks] = useState<AdoLinkEntry[]>([]);
 
   const set = (k: string, v: string) => {
@@ -563,6 +564,17 @@ function CreateDeploymentForm({ onClose, onCreated }: { onClose: () => void; onC
 
       <form onSubmit={handleSubmit} style={{ padding: "24px", flex: 1, display: "flex", flexDirection: "column", gap: "14px" }}>
         <div>
+          {prefill && (
+            <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px 14px", marginBottom: "16px" }}>
+              <span style={{ fontSize: "16px" }}>🐱</span>
+              <div>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#065f46" }}>Release Details Imported from Ask Buddy</div>
+                <div style={{ fontSize: "11px", color: "#047857", marginTop: "2px" }}>
+                  {prefill.screens.length} screen(s) identified · Review and confirm all fields before saving
+                </div>
+              </div>
+            </div>
+          )}
           <label style={labelStyle}>Release Name *</label>
           <input required style={fieldStyle} value={form.releaseName} onChange={e => set("releaseName", e.target.value)} placeholder="e.g. Batch 10 Return Assembly, Filing & Lineage Closure" />
         </div>
@@ -962,6 +974,8 @@ export default function QADeploymentRegistry() {
   const [selectedDep, setSelectedDep] = useState<DeploymentRow | null>(null);
   const [editDep, setEditDep] = useState<DeploymentRow | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showBuddy, setShowBuddy] = useState(false);
+  const [buddyPrefill, setBuddyPrefill] = useState<AnalyzedRelease | null>(null);
   const [showWikiModal, setShowWikiModal] = useState(false);
   const [showReleaseNotesPreview, setShowReleaseNotesPreview] = useState(false);
   const [wikiCopied, setWikiCopied] = useState(false);
@@ -1227,6 +1241,19 @@ export default function QADeploymentRegistry() {
           </select>
         </div>
 
+        {/* Ask Buddy — QA Release Notes */}
+        <button
+          onClick={() => setShowBuddy(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            padding: "6px 14px", backgroundColor: "#7c3aed", color: "#ffffff",
+            border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
+            cursor: "pointer", whiteSpace: "nowrap",
+          }}
+          title="Use Ask Buddy to generate QA release notes from DEV/QA notes"
+        >
+          🐱 Ask Buddy
+        </button>
         {/* Generate Wiki button */}
         <button
           onClick={() => setShowWikiModal(true)}
@@ -1530,6 +1557,17 @@ export default function QADeploymentRegistry() {
         </>
       )}
 
+      {/* -- Ask Buddy Panel -- */}
+      {showBuddy && (
+        <QABuddyPanel
+          onApprove={(release: AnalyzedRelease) => {
+            setBuddyPrefill(release);
+            setShowBuddy(false);
+            setShowCreate(true);
+          }}
+          onClose={() => setShowBuddy(false)}
+        />
+      )}
       {/* -- Create form drawer -- */}
       {showCreate && (
         <>
@@ -1537,7 +1575,7 @@ export default function QADeploymentRegistry() {
             onClick={() => setShowCreate(false)}
             style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 40 }}
           />
-          <CreateDeploymentForm onClose={() => setShowCreate(false)} onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); }} />
+          <CreateDeploymentForm onClose={() => { setShowCreate(false); setBuddyPrefill(null); }} onCreated={(dep) => { handleCreated(); setShowCreate(false); setJustCreated(dep); setBuddyPrefill(null); }} prefill={buddyPrefill} />
         </>
       )}
     </div>

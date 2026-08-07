@@ -1,0 +1,22 @@
+CREATE TABLE `qa_screen_records` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`deploymentId` varchar(32) NOT NULL,
+	`screenName` varchar(256) NOT NULL,
+	`platform` varchar(64) DEFAULT 'Roger',
+	`component` varchar(256),
+	`changeType` varchar(64) DEFAULT 'Updated',
+	`whatChanged` text,
+	`availableInQa` varchar(64) DEFAULT 'Pending Validation',
+	`qaTestInstructions` text,
+	`expectedResult` text,
+	`knownIssues` text,
+	`adoItem` varchar(128),
+	`validationStatus` varchar(64) DEFAULT 'Not Started',
+	`isBackendOnly` boolean DEFAULT false,
+	`screenshotStatus` varchar(32) DEFAULT 'Missing',
+	`screenshots` text,
+	`sortOrder` int DEFAULT 0,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `qa_screen_records_id` PRIMARY KEY(`id`)
+);
