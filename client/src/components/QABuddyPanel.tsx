@@ -2,8 +2,7 @@
 // Workflow: Paste/Upload Notes → LLM Analysis → Preview per-screen cards → Edit → Approve → Auto-populate Create Deployment
 import { useState, useRef } from "react";
 import {
-  Upload, FileText, Loader2, CheckCircle2, AlertTriangle, Edit2,
-  Trash2, Plus, ChevronDown, ChevronUp, X, Info,
+  Upload, FileText, Loader2, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, X,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -41,118 +40,13 @@ interface QABuddyPanelProps {
   inline?: boolean;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const NEEDS_REVIEW = ["TBD", "Needs BA Confirmation", "Pending Deployment", "Pending Validation", "Conflicting Information"];
-
-function needsReview(val: string) {
-  return NEEDS_REVIEW.some(k => val?.toUpperCase().includes(k.toUpperCase()));
-}
-
-function FieldValue({ label, value, onEdit }: { label: string; value: string; onEdit: (v: string) => void }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-  const flag = needsReview(value);
+// ── Read-only field display ───────────────────────────────────────────────────
+function ReadField({ label, value }: { label: string; value: string }) {
+  if (!value || value === "Not Provided") return null;
   return (
     <div style={{ marginBottom: "8px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
-        <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
-        {flag && <span style={{ fontSize: "9px", fontWeight: 700, color: "#d97706", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "3px", padding: "1px 5px" }}>⚠ Needs Review</span>}
-        <button onClick={() => { setDraft(value); setEditing(e => !e); }} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: "1px 4px" }}>
-          <Edit2 size={10} />
-        </button>
-      </div>
-      {editing ? (
-        <div style={{ display: "flex", gap: "6px" }}>
-          <textarea
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            style={{ flex: 1, fontSize: "12px", padding: "6px 8px", border: "1px solid #7c3aed", borderRadius: "5px", resize: "vertical", minHeight: "60px" }}
-          />
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <button onClick={() => { onEdit(draft); setEditing(false); }} style={{ fontSize: "10px", padding: "4px 8px", backgroundColor: "#7c3aed", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Save</button>
-            <button onClick={() => setEditing(false)} style={{ fontSize: "10px", padding: "4px 8px", backgroundColor: "#f1f5f9", color: "#64748b", border: "1px solid #e2e8f0", borderRadius: "4px", cursor: "pointer" }}>Cancel</button>
-          </div>
-        </div>
-      ) : (
-        <div style={{
-          fontSize: "12px", color: flag ? "#92400e" : "#1e293b",
-          backgroundColor: flag ? "#fffbeb" : "#f8fafc",
-          border: `1px solid ${flag ? "#fde68a" : "#e2e8f0"}`,
-          borderRadius: "5px", padding: "6px 10px", lineHeight: "1.5",
-        }}>
-          {value || <span style={{ color: "#94a3b8", fontStyle: "italic" }}>Not provided</span>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ScreenCard({ screen, index, onChange, onRemove }: {
-  screen: AnalyzedScreen;
-  index: number;
-  onChange: (updated: AnalyzedScreen) => void;
-  onRemove: () => void;
-}) {
-  const [open, setOpen] = useState(true);
-  const set = (key: keyof AnalyzedScreen, val: string | boolean) =>
-    onChange({ ...screen, [key]: val });
-
-  const hasFlags = [screen.whatChanged, screen.availableInQa, screen.qaTestInstructions, screen.expectedResult, screen.knownIssues, screen.adoItem]
-    .some(v => needsReview(String(v)));
-
-  return (
-    <div style={{ border: `2px solid ${hasFlags ? "#fde68a" : "#e2e8f0"}`, borderRadius: "10px", marginBottom: "12px", overflow: "hidden" }}>
-      <div
-        style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", backgroundColor: screen.isBackendOnly ? "#f0f9ff" : "#f8fafc", cursor: "pointer" }}
-        onClick={() => setOpen(o => !o)}
-      >
-        <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: screen.isBackendOnly ? "#0284c7" : "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "white", flexShrink: 0 }}>{index + 1}</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>{screen.screenName}</div>
-          <div style={{ fontSize: "10px", color: "#64748b" }}>{screen.platform} · {screen.changeType} {screen.isBackendOnly ? "· Backend Only" : ""}</div>
-        </div>
-        {hasFlags && <span style={{ fontSize: "9px", fontWeight: 700, color: "#d97706", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "3px", padding: "2px 6px" }}>⚠ Review Needed</span>}
-        <div style={{ display: "flex", gap: "6px" }}>
-          <span style={{ fontSize: "10px", fontWeight: 700, color: screen.availableInQa === "Yes" ? "#059669" : screen.availableInQa === "No" ? "#dc2626" : "#d97706", backgroundColor: screen.availableInQa === "Yes" ? "#f0fdf4" : screen.availableInQa === "No" ? "#fef2f2" : "#fffbeb", border: "1px solid currentColor", borderRadius: "4px", padding: "2px 7px" }}>{screen.availableInQa}</span>
-          <button onClick={e => { e.stopPropagation(); onRemove(); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", padding: "2px" }}><Trash2 size={14} /></button>
-          {open ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
-        </div>
-      </div>
-      {open && (
-        <div style={{ padding: "16px", backgroundColor: "white" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-            <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", display: "block", marginBottom: "3px" }}>Platform</label>
-              <select value={screen.platform} onChange={e => set("platform", e.target.value)} style={{ width: "100%", fontSize: "12px", padding: "5px 8px", border: "1px solid #e2e8f0", borderRadius: "5px" }}>
-                {["Roger", "PDC", "TDC", "Integration", "Both"].map(p => <option key={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", display: "block", marginBottom: "3px" }}>Change Type</label>
-              <select value={screen.changeType} onChange={e => set("changeType", e.target.value)} style={{ width: "100%", fontSize: "12px", padding: "5px 8px", border: "1px solid #e2e8f0", borderRadius: "5px" }}>
-                {["New", "Enhanced", "Updated", "Fixed", "Configuration"].map(t => <option key={t}>{t}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", display: "block", marginBottom: "3px" }}>Available in QA</label>
-              <select value={screen.availableInQa} onChange={e => set("availableInQa", e.target.value)} style={{ width: "100%", fontSize: "12px", padding: "5px 8px", border: "1px solid #e2e8f0", borderRadius: "5px" }}>
-                {["Yes", "Partial", "Pending Validation", "No"].map(v => <option key={v}>{v}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", display: "block", marginBottom: "3px" }}>Validation Status</label>
-              <select value={screen.validationStatus} onChange={e => set("validationStatus", e.target.value)} style={{ width: "100%", fontSize: "12px", padding: "5px 8px", border: "1px solid #e2e8f0", borderRadius: "5px" }}>
-                {["Not Started", "In Progress", "Passed", "Failed", "Needs Confirmation"].map(v => <option key={v}>{v}</option>)}
-              </select>
-            </div>
-          </div>
-          <FieldValue label="What Changed" value={screen.whatChanged} onEdit={v => set("whatChanged", v)} />
-          <FieldValue label="What QA Should Test" value={screen.qaTestInstructions} onEdit={v => set("qaTestInstructions", v)} />
-          <FieldValue label="Expected Result" value={screen.expectedResult} onEdit={v => set("expectedResult", v)} />
-          <FieldValue label="Known Issues / Limitations" value={screen.knownIssues} onEdit={v => set("knownIssues", v)} />
-          <FieldValue label="Related ADO Item" value={screen.adoItem} onEdit={v => set("adoItem", v)} />
-        </div>
-      )}
+      <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "3px" }}>{label}</div>
+      <div style={{ fontSize: "12px", color: "#1e293b", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "5px", padding: "7px 10px", lineHeight: "1.6", whiteSpace: "pre-wrap" }}>{value}</div>
     </div>
   );
 }
@@ -163,31 +57,32 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
   const [notes, setNotes] = useState("");
   const [release, setRelease] = useState<AnalyzedRelease | null>(null);
   const [error, setError] = useState("");
+  const [selectedScreen, setSelectedScreen] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const analyzeMutation = trpc.qaScreenRecords.analyzeNotes.useMutation({
     onSuccess: (data: any) => {
       if (data?.error) { setError("Analysis failed: " + data.error); setStep("input"); return; }
       setRelease({
-        releaseName: data.releaseName ?? "TBD",
-        deploymentDate: data.deploymentDate ?? "TBD",
-        platform: data.platform ?? "TBD",
-        type: data.type ?? "TBD",
-        deploymentOwner: data.deploymentOwner ?? "TBD",
-        productOwner: data.productOwner ?? "TBD",
-        adoItem: data.adoItem ?? "TBD",
+        releaseName: data.releaseName ?? "Not Provided",
+        deploymentDate: data.deploymentDate ?? "Not Provided",
+        platform: data.platform ?? "Roger",
+        type: data.type ?? "Feature",
+        deploymentOwner: data.deploymentOwner ?? "Not Provided",
+        productOwner: data.productOwner ?? "Not Provided",
+        adoItem: data.adoItems ?? data.adoItem ?? "Not Provided",
         summary: data.summary ?? "",
         screens: (data.screens ?? []).map((s: any) => ({
-          screenName: s.screenName ?? "Needs BA Confirmation",
+          screenName: s.screenName ?? "",
           platform: s.platform ?? "Roger",
-          component: s.component ?? "TBD",
-          changeType: s.changeType ?? "Updated",
-          whatChanged: s.whatChanged ?? "TBD",
-          availableInQa: s.availableInQa ?? "Pending Validation",
-          qaTestInstructions: s.qaTestInstructions ?? "TBD",
-          expectedResult: s.expectedResult ?? "TBD",
-          knownIssues: s.knownIssues ?? "None identified",
-          adoItem: s.adoItem ?? "TBD",
+          component: s.component ?? "",
+          changeType: s.changeType ?? "New",
+          whatChanged: s.whatChanged ?? "Not Provided",
+          availableInQa: s.availableInQa ?? "Partial",
+          qaTestInstructions: s.qaTestInstructions ?? "Not Provided",
+          expectedResult: s.expectedResult ?? "Not Provided",
+          knownIssues: s.knownIssues ?? "Not Provided",
+          adoItem: s.adoItem ?? "Not Provided",
           validationStatus: s.validationStatus ?? "Not Started",
           isBackendOnly: s.isBackendOnly ?? false,
         })),
@@ -236,12 +131,6 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
       }],
     });
   };
-
-  const totalFlags = release?.screens.filter(s =>
-    [s.whatChanged, s.availableInQa, s.qaTestInstructions, s.expectedResult, s.knownIssues, s.adoItem].some(v => needsReview(String(v)))
-  ).length ?? 0;
-
-  const summaryFlags = release ? [release.releaseName, release.deploymentDate, release.platform, release.deploymentOwner, release.productOwner].filter(v => needsReview(v)).length : 0;
 
   return (
     <div style={{
@@ -331,61 +220,92 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
           </div>
         )}
 
-        {/* Step 3 — Preview */}
+        {/* Step 3 — Preview (read-only Deployment Summary + Screen selector) */}
         {step === "preview" && release && (
           <div>
-            {(totalFlags > 0 || summaryFlags > 0) && (
-              <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "12px 14px", marginBottom: "16px" }}>
-                <AlertTriangle size={16} color="#d97706" style={{ flexShrink: 0, marginTop: "1px" }} />
-                <div>
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#92400e" }}>{totalFlags + summaryFlags} field(s) require BA review</div>
-                  <div style={{ fontSize: "11px", color: "#92400e", marginTop: "2px" }}>Fields marked ⚠ contain TBD or Needs BA Confirmation. Review and correct before approving.</div>
-                </div>
-              </div>
-            )}
-
-            {/* Deployment Summary */}
+            {/* Deployment Summary — read-only, Buddy-generated */}
             <div style={{ border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
-              <div style={{ backgroundColor: "#f8fafc", padding: "12px 16px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ backgroundColor: "#f0fdf4", padding: "10px 16px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "8px" }}>
+                <CheckCircle2 size={14} color="#059669" />
                 <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>Deployment Summary</span>
-                {summaryFlags > 0 && <span style={{ fontSize: "9px", fontWeight: 700, color: "#d97706", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "3px", padding: "2px 6px" }}>⚠ {summaryFlags} fields need review</span>}
+                <span style={{ fontSize: "10px", color: "#059669", fontWeight: 600, marginLeft: "auto" }}>Auto-populated by Ask Buddy</span>
               </div>
-              <div style={{ padding: "14px 16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                {[
-                  { label: "Release Name", key: "releaseName" as const },
-                  { label: "Deployment Date", key: "deploymentDate" as const },
-                  { label: "Platform", key: "platform" as const },
-                  { label: "Type", key: "type" as const },
-                  { label: "Deployment Owner", key: "deploymentOwner" as const },
-                  { label: "Product Owner", key: "productOwner" as const },
-                  { label: "ADO Item", key: "adoItem" as const },
-                ].map(f => (
-                  <div key={f.key} style={{ gridColumn: f.key === "releaseName" ? "1 / -1" : undefined }}>
-                    <FieldValue
-                      label={f.label}
-                      value={release[f.key]}
-                      onEdit={v => setRelease({ ...release, [f.key]: v })}
-                    />
+              <div style={{ padding: "14px 16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <ReadField label="Release Name" value={release.releaseName} />
+                </div>
+                <ReadField label="Deployment Date" value={release.deploymentDate} />
+                <ReadField label="Platform" value={release.platform} />
+                <ReadField label="Type" value={release.type} />
+                <ReadField label="Deployment Owner" value={release.deploymentOwner} />
+                <ReadField label="Product Owner" value={release.productOwner} />
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <ReadField label="ADO Items" value={release.adoItem} />
+                </div>
+                {release.summary && (
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <ReadField label="Release Summary" value={release.summary} />
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
-            {/* Screens */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f1623" }}>Screens / Capabilities ({release.screens.length})</div>
-              <button onClick={addScreen} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", fontWeight: 600, color: "#7c3aed", background: "none", border: "1px solid #7c3aed", borderRadius: "5px", padding: "4px 10px", cursor: "pointer" }}>
-                <Plus size={12} /> Add Screen
-              </button>
-            </div>
-            {release.screens.map((screen, i) => (
-              <ScreenCard key={i} screen={screen} index={i} onChange={s => updateScreen(i, s)} onRemove={() => removeScreen(i)} />
-            ))}
-            {release.screens.length === 0 && (
-              <div style={{ textAlign: "center", padding: "24px", color: "#64748b", fontSize: "12px", border: "1px dashed #e2e8f0", borderRadius: "8px" }}>
-                No screens identified. Click "Add Screen" to add one manually.
+            {/* Screen selector — REQUIRED BA interaction */}
+            <div style={{ border: "2px solid #1e3a5f", borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
+              <div style={{ backgroundColor: "#1e3a5f", padding: "10px 16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>Screen / Capability</span>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#fbbf24", backgroundColor: "rgba(251,191,36,0.15)", border: "1px solid #fbbf24", borderRadius: "3px", padding: "1px 6px", marginLeft: "auto" }}>REQUIRED</span>
               </div>
-            )}
+              <div style={{ padding: "14px 16px" }}>
+                <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "8px" }}>
+                  {release.screens[0]?.screenName ? (
+                    <span>Ask Buddy suggests: <strong style={{ color: "#1e3a5f" }}>{release.screens[0].screenName}</strong> — confirm or select the correct Roger screen below.</span>
+                  ) : (
+                    <span>Select the Roger screen this deployment affects.</span>
+                  )}
+                </div>
+                <select
+                  value={selectedScreen}
+                  onChange={e => setSelectedScreen(e.target.value)}
+                  style={{ width: "100%", fontSize: "13px", padding: "9px 12px", border: `2px solid ${selectedScreen ? "#059669" : "#e2e8f0"}`, borderRadius: "7px", backgroundColor: "white", color: "#0f1623", fontWeight: selectedScreen ? 600 : 400 }}
+                >
+                  <option value="">Select Roger Screen ▼</option>
+                  {["My Clients Page", "Return Filing Page", "Return Structure Summary", "Line Mapping", "Book/Reclass Adjustments", "Book Return Review", "Tax Adjustment", "Book-to-Tax Report", "Book-to-Tax Reconciliation", "1120 Form", "Sign Off", "Other"].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                {selectedScreen && release.screens[0] && (
+                  <div style={{ marginTop: "14px", border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+                    <div style={{ backgroundColor: "#f8fafc", padding: "8px 14px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#0f1623" }}>{selectedScreen}</span>
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "1px 7px", borderRadius: "4px", color: release.screens[0].availableInQa === "Yes" ? "#065f46" : release.screens[0].availableInQa === "No" ? "#991b1b" : "#92400e", backgroundColor: release.screens[0].availableInQa === "Yes" ? "#f0fdf4" : release.screens[0].availableInQa === "No" ? "#fef2f2" : "#fffbeb" }}>
+                        {release.screens[0].availableInQa === "Yes" ? "Available in QA" : release.screens[0].availableInQa === "No" ? "Not Available" : "Partially Available"}
+                      </span>
+                    </div>
+                    <div style={{ padding: "12px 14px" }}>
+                      {release.screens[0].whatChanged && release.screens[0].whatChanged !== "Not Provided" && (
+                        <ReadField label="What Changed" value={release.screens[0].whatChanged} />
+                      )}
+                      {release.screens[0].qaTestInstructions && release.screens[0].qaTestInstructions !== "Not Provided" && (
+                        <ReadField label="What QA Should Test" value={release.screens[0].qaTestInstructions} />
+                      )}
+                      {release.screens[0].expectedResult && release.screens[0].expectedResult !== "Not Provided" && (
+                        <ReadField label="Expected Results" value={release.screens[0].expectedResult} />
+                      )}
+                      {release.screens[0].knownIssues && release.screens[0].knownIssues !== "Not Provided" && (
+                        <ReadField label="Known Issues / Limitations" value={release.screens[0].knownIssues} />
+                      )}
+                      {release.screens[0].adoItem && release.screens[0].adoItem !== "Not Provided" && (
+                        <ReadField label="ADO Items" value={release.screens[0].adoItem} />
+                      )}
+                      <div style={{ marginTop: "10px", padding: "8px 10px", backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "6px", fontSize: "11px", color: "#0369a1" }}>
+                        📷 Screenshot: <em>Awaiting BA Upload — can be added after deployment record is created</em>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -416,7 +336,7 @@ export default function QABuddyPanel({ onApprove, onClose, inline = false }: QAB
               const draft = { ...release, releaseName: release.releaseName, deploymentDate: release.deploymentDate };
               localStorage.setItem("qa_buddy_draft", JSON.stringify(draft));
             }} style={{ padding: "10px 16px", backgroundColor: "white", color: "#475569", border: "1px solid #e2e8f0", borderRadius: "7px", fontSize: "12px", cursor: "pointer" }}>Save Draft</button>
-            <button onClick={() => { setStep("approved"); setTimeout(() => { onApprove(release); }, 800); }} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "11px 20px", backgroundColor: "#059669", color: "white", border: "none", borderRadius: "7px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={() => { if (!selectedScreen) return; const approved = { ...release, screens: release.screens.map((s, i) => i === 0 ? { ...s, screenName: selectedScreen } : s) }; setStep("approved"); setTimeout(() => { onApprove(approved); }, 800); }} disabled={!selectedScreen} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "11px 20px", backgroundColor: selectedScreen ? "#059669" : "#e2e8f0", color: selectedScreen ? "white" : "#94a3b8", border: "none", borderRadius: "7px", fontSize: "13px", fontWeight: 700, cursor: selectedScreen ? "pointer" : "not-allowed" }}>
               <CheckCircle2 size={16} /> Approve &amp; Create Deployment
             </button>
           </div>
