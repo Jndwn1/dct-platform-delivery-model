@@ -59,7 +59,13 @@ export default function RogerScreenTestingStatus() {
     notFunctional:  screens.filter(s => s.status === "Not Functional").length,
   };
 
-  const visible = filter === "All" ? screens : screens.filter(s => s.status === filter);
+  const sortToBottom = (rows: ScreenRow[]) => {
+    const active = rows.filter(r => r.status !== "Out of Scope" && r.status !== "Not Functional");
+    const outOfScope = rows.filter(r => r.status === "Out of Scope");
+    const notFunctional = rows.filter(r => r.status === "Not Functional");
+    return [...active, ...outOfScope, ...notFunctional];
+  };
+  const visible = filter === "All" ? sortToBottom(screens) : screens.filter(s => s.status === filter);
 
   const startEdit = (idx: number) => { setEditingIdx(idx); setEditDraft({ ...screens[idx] }); };
   const saveEdit  = (idx: number) => { setScreens(prev => prev.map((s, i) => i === idx ? { ...s, ...editDraft } as ScreenRow : s)); setEditingIdx(null); setEditDraft({}); };
