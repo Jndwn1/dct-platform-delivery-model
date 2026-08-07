@@ -1167,9 +1167,8 @@ export default function QADeploymentRegistry() {
   };
 
   const handleSaved = () => {
-    utils.deploymentRegistry.list.invalidate();
-    utils.deploymentRegistry.summary.invalidate();
-    // Refresh selectedDep if it was the one being edited
+    utils.qaDeploymentRegistry.list.invalidate();
+    utils.qaDeploymentRegistry.summary.invalidate();
     setSelectedDep(null);
   };
 
