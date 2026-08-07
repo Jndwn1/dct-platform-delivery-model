@@ -1537,13 +1537,12 @@ export default function QADeploymentRegistry() {
         </div>
       )}
 
-      {/* QA Screen Readiness Tracker — shown below table when a deployment is selected */}
-      {selectedDep && (
-        <QAScreenReadinessTracker
-          deploymentId={selectedDep.deploymentId}
-          deploymentName={selectedDep.releaseName}
-        />
-      )}
+      {/* QA Screen Readiness Tracker — always visible below the deployment table */}
+      <QAScreenReadinessTracker
+        deploymentId={rows[0]?.deploymentId ?? ""}
+        deploymentName={rows[0]?.releaseName}
+        allDeployments={rows.map(r => ({ deploymentId: r.deploymentId, releaseName: r.releaseName }))}
+      />
 
 
             {/* -- Release Notes Preview Modal -- */}

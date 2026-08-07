@@ -272,12 +272,24 @@ function AddScreenForm({ deploymentId, onAdded }: { deploymentId: string; onAdde
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function QAScreenReadinessTracker({ deploymentId, deploymentName }: { deploymentId: string; deploymentName?: string }) {
+interface TrackerProps {
+  deploymentId: string;
+  deploymentName?: string;
+  allDeployments?: { deploymentId: string; releaseName: string }[];
+}
+
+export default function QAScreenReadinessTracker({ deploymentId: initialId, deploymentName: initialName, allDeployments = [] }: TrackerProps) {
+  const [activeId, setActiveId] = useState(initialId || (allDeployments[0]?.deploymentId ?? ""));
+  const activeName = allDeployments.find(d => d.deploymentId === activeId)?.releaseName ?? initialName;
+
   const utils = trpc.useUtils();
-  const { data: records = [], isLoading } = trpc.qaScreenRecords.listByDeployment.useQuery({ deploymentId });
+  const { data: records = [], isLoading } = trpc.qaScreenRecords.listByDeployment.useQuery(
+    { deploymentId: activeId },
+    { enabled: !!activeId }
+  );
 
   const updateMutation = trpc.qaScreenRecords.update.useMutation({
-    onSuccess: () => utils.qaScreenRecords.listByDeployment.invalidate({ deploymentId }),
+    onSuccess: () => utils.qaScreenRecords.listByDeployment.invalidate({ deploymentId: activeId }),
   });
 
   const handleUpdate = (id: number, fields: Partial<ScreenRecord>) => {
@@ -311,10 +323,23 @@ export default function QAScreenReadinessTracker({ deploymentId, deploymentName 
       <div style={{ backgroundColor: "#0f1623", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "white" }}>QA Screen Readiness Tracker</div>
-          {deploymentName && <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>{deploymentName}</div>}
+          {activeName && <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>{activeName}</div>}
         </div>
-        <div style={{ fontSize: "11px", color: "#64748b", backgroundColor: "#1e293b", padding: "4px 10px", borderRadius: "4px" }}>
-          {records.length} screen{records.length !== 1 ? "s" : ""} tracked
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {allDeployments.length > 1 && (
+            <select
+              value={activeId}
+              onChange={e => setActiveId(e.target.value)}
+              style={{ fontSize: "11px", padding: "4px 8px", borderRadius: "4px", border: "1px solid #334155", backgroundColor: "#1e293b", color: "white" }}
+            >
+              {allDeployments.map(d => (
+                <option key={d.deploymentId} value={d.deploymentId}>{d.releaseName}</option>
+              ))}
+            </select>
+          )}
+          <div style={{ fontSize: "11px", color: "#64748b", backgroundColor: "#1e293b", padding: "4px 10px", borderRadius: "4px" }}>
+            {records.length} screen{records.length !== 1 ? "s" : ""} tracked
+          </div>
         </div>
       </div>
 
@@ -354,7 +379,7 @@ export default function QAScreenReadinessTracker({ deploymentId, deploymentName 
       )}
 
       {/* Add screen */}
-      <AddScreenForm deploymentId={deploymentId} onAdded={() => utils.qaScreenRecords.listByDeployment.invalidate({ deploymentId })} />
+      <AddScreenForm deploymentId={activeId} onAdded={() => utils.qaScreenRecords.listByDeployment.invalidate({ deploymentId: activeId })} />
     </div>
   );
 }
