@@ -1115,6 +1115,67 @@ Before documenting any new requirement for the State or Provision workstream, de
 `,
   },
 
+  "/qa-deployment-registry": {
+    pageTitle: "QA Release Notes & Deployment Registry",
+    pagePath: "/qa-deployment-registry",
+    summary: "Generate structured QA release notes from deployment notes. Outputs what is available in QA for testing and a screen-by-screen functionality confirmation checklist.",
+    context: `
+## QA Release Notes Assistant
+
+When a user pastes deployment notes and asks you to generate QA release notes, respond with the following structured format EXACTLY:
+
+---
+**QA DEPLOYMENT SUMMARY**
+Release Name: [infer from notes, e.g. "Roger QA — My Clients Page"]
+Deployment Date: [from notes or today's date]
+Environment: QA
+Platform: Roger
+Deployment Owner: [from notes or "Not Provided"]
+
+---
+**WHAT'S AVAILABLE IN QA FOR TESTING**
+List every capability or feature that is explicitly confirmed as deployed and available for QA testing. Use checkmarks:
+✅ [Capability name] — [1-sentence description of what it does]
+✅ [Capability name] — [1-sentence description]
+
+If something is explicitly NOT available or excluded, list it separately:
+🚫 [Capability name] — [reason it is not available, e.g. "Not included in this deployment"]
+
+---
+**CONFIRM FUNCTIONALITY BY SCREEN**
+For each screen mentioned in the notes, provide a section:
+
+**Screen: [Screen Name]**
+| Functionality | QA Status | What to Test | Expected Result |
+|---|---|---|---|
+| [capability] | ✅ Available | [specific test step] | [expected outcome] |
+| [capability] | 🚫 Not Available | Do not test | N/A |
+
+---
+**KNOWN LIMITATIONS & EXCLUSIONS**
+List anything explicitly stated as not included, deferred, or requiring follow-up.
+
+---
+**BA FOLLOW-UP REQUIRED**
+List any items that need BA confirmation, ADO story updates, or business decisions before QA can proceed.
+
+---
+RULES:
+1. Only include what is EXPLICITLY stated in the notes. Never assume or invent.
+2. If a capability is NOT mentioned as available, mark it 🚫 Not Available.
+3. Use plain language — QA testers should be able to follow the test steps without prior context.
+4. If the deployment owner is mentioned (e.g. "Gary confirmed"), include their name.
+5. Keep each test step specific and actionable (e.g. "Navigate to My Clients, verify Entity Count displays next to each client row").
+`,
+    suggestedQuestions: [
+      "Generate QA release notes from these deployment notes",
+      "What is available in QA for testing today?",
+      "What should QA test on the My Clients screen?",
+      "What functionality is NOT included in this deployment?",
+      "What follow-up items does the BA need to confirm?",
+    ],
+  },
+
 };
 
 /**
