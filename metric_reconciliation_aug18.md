@@ -8,9 +8,9 @@ This reconciliation establishes one governed delivery model for the DCT dashboar
 
 | Measure | Governing source | Rule applied |
 |---|---|---|
-| Portfolio scope | August 18 DCT delivery reconciliation | 27 MVP batches and 32 MVP features, including five non-batch MVP features |
+| Portfolio scope | Current ADO-backed MVP reconciliation | 23 governed MVP batches and 28 MVP features, including five non-batch MVP features |
 | Portfolio delivery status | Governed delivery reconciliation | Mutually exclusive: Complete, In Development, In Review, or Planned |
-| ADO activity | Current ADO work item extract | Displayed separately; active ADO work does not automatically mean delivery is in development |
+| ADO activity and lifecycle | Current ADO work item extract | Active maps to In Development; Review Ready maps to In Review; records outside those statuses are the approved Complete MVP population |
 | QA validation | QA readiness tracking | Displayed separately from PI delivery completion |
 | Historical PI3 closure | July 28 PI3 baseline plus later completions | Historical aggregate is preserved without inventing an unnamed capability |
 | Program health | Governance assessment | Sep. 21 MVP Pilot remains On Track; RC-3 is governance-based |
@@ -19,21 +19,21 @@ This reconciliation establishes one governed delivery model for the DCT dashboar
 
 | Population | Total | Complete | In Development | In Review | Planned | Completion / Readiness |
 |---|---:|---:|---:|---:|---:|---:|
-| Batch delivery | 27 | 22 | 3 | 2 | 0 | 81% |
+| Batch delivery | 23 | 15 | 6 | 2 | 0 | 65% |
 | Non-batch MVP features | 5 | 0 | 5 | 0 | 0 | 0% |
-| Overall MVP portfolio | 32 | 22 | 8 | 2 | 0 | 69% |
+| Overall MVP portfolio | 28 | 15 | 11 | 2 | 0 | 54% |
 
-The active ADO feature list contains six batch features—B7, B10, B42, B45, B28, and B9A—and five non-batch features. Their ADO activity is retained for traceability, but B7, B10, and B42 count as **Complete** in governed portfolio delivery. B45, B28, and B9A count as **In Development**. The two B31 records count as **In Review**.
+The current ADO feature list contains six active batch features—B7, B10, B42, B45, B28, and B9A—and five active non-batch features. These eleven records count as **In Development**. The two B31 records count as **In Review**. The four historical split records B8-PDC, B8-TDC, B9, and B9-PDC remain available for lineage but are excluded from the current MVP lifecycle population.
 
 ## PI and QA Reconciliation
 
 | Dimension | PI1 | PI2 | PI3 | Interpretation |
 |---|---:|---:|---:|---|
-| Delivery completion | 100% | 100% | 38% | PI completion measures governed delivery scope only |
+| Delivery completion | 100% | 70% | 38% | PI completion is derived from the current ADO-backed MVP feature records in each PI |
 | QA validation progress | 100% | 86% | Not reported | QA validation is not a substitute for delivery completion |
-| Program / pilot status | Complete | Complete | Active | Overall program status remains **On Track** for Sep. 21 |
+| Program / pilot status | Complete | In Development | In Development | Overall program status remains **On Track** for Sep. 21 |
 
-PI2 delivery is therefore shown as **Complete**, with a separate 86% QA validation indicator and a late-QA-onboarding note. The dashboard does not call the program At Risk merely because a delivery completion percentage is below an arbitrary threshold.
+PI2 delivery is shown at **70% Complete**, with a separate 86% QA validation indicator and a late-QA-onboarding note. The dashboard does not call the program At Risk merely because a delivery completion percentage is below an arbitrary threshold.
 
 ## PI3 Historical Closure Reconciliation
 
@@ -56,4 +56,4 @@ PI2 delivery is therefore shown as **Complete**, with a separate 86% QA validati
 1. The shared delivery model supplies Batch Delivery, Overall MVP, PI completion, ADO activity, historical closure, QA, and Release Candidate values.
 2. Platform Home, Executive Dashboard, Batch Control Panel, Delivery Intelligence, and UAT Release Candidate views consume shared governed values rather than independent KPI formulas.
 3. The Batch Control Panel displays ADO Activity separately from Portfolio Delivery and includes the historical PI3 baseline and QA context.
-4. Regression coverage validates the 27/32 portfolio, 22/8/2/0 MVP buckets, 22/3/2/0 batch buckets, PI2 delivery completion, PI3 delivery completion, and historical closure baseline.
+4. Regression coverage validates the 23/28 portfolio, 15/11/2/0 MVP buckets, 15/6/2/0 batch buckets, ADO-backed PI2 and PI3 delivery completion, and the historical closure baseline.

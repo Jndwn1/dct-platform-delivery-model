@@ -56,3 +56,9 @@
 - [x] Update Delivery Intelligence to consume the August 18 governed portfolio, historical PI3 closure, QA, and program-health model
 - [x] Verify Delivery Intelligence metric and program-status evidence against the shared reconciliation model
 - [x] Replace the stale global sidebar activity caption with the governed current ADO pipeline summary
+- [x] Audit the existing 27-batch metric records and identify the four records excluded from the authoritative 23-batch MVP scope
+- [x] Define the authoritative 23-batch plus 5 non-batch MVP population and derive all current-state lifecycle buckets from ADO-backed records
+- [x] Update dashboard totals, readiness, PI progress, release candidate, Executive Status, Control Panel, tables, filters, and recent activity from the corrected shared model
+- [x] Add 28-feature reconciliation warnings and regression coverage for dynamic ADO-backed status bucket totals
+- [x] Align Platform Home batch-timeline labels that still show historical B9, B11, B16, B17, and B31 lifecycle states with the current governed ADO model
+- [x] Replace static PI increment labels so PI1, PI2, and PI3 cards reflect the current MVP scope and derived delivery status

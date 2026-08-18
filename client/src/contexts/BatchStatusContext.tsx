@@ -369,24 +369,21 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
 // PI_MEMBERSHIP reflects Roadmap v8 (updated July 2026) — 9-tdc & 12 excluded from PI 2 (On Hold)
 export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
-  pi2:  ["4", "5", "6", "7", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16", "42"], // Current ADO: B7, B10, B42 Active
+  pi2:  ["4", "5", "6", "7", "10", "11", "43", "13", "16", "42"], // Current ADO: B7, B10, B42 Active
   pi3:  ["8", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A Active; B31 Review Ready
   pi4:  ["19", "40", "35", "26-tdc"],
 };
 
-// ── MVP Batch Portfolio — Single Source of Truth ────────────────────────────
-// 32 MVP-scoped delivery items in the supplied current ADO Active / Review Ready pipeline:
-//   PI1 Complete (5): foundation-core, 1, 2, 2a, 3
-//   PI2 Complete (11): 4, 5, 6, 8-pdc, 8-tdc, 9, 9-pdc, 11, 43, 13, 16
-//   PI2 Active (3):    7, 10, 42
-//   PI3 Complete (3):  8, 17, 29 (B8 + B29 closed Aug 11) | Active (3): 45, 28, 9a | Review Ready (2): B31 PDC, B31 TDC
-//   Non-batch (5):    qa-workstream, env-management, roger-stabilization, platform-defect, mvp-enhancements
-// TOTAL: 5 + 11 + 3 + 8 + 5 = 32 ✓ | Complete: 19 | Readiness: 59%
+// ── MVP Portfolio — Single Source of Truth ──────────────────────────────────
+// Authoritative current MVP scope: 23 batch features + 5 non-batch MVP features = 28.
+// The four historical split records B8-PDC, B8-TDC, B9, and B9-PDC are retained
+// for lineage and API traceability but excluded from current MVP lifecycle metrics.
+// Current ADO lifecycle: 15 Complete, 11 In Development, 2 In Review, 0 Planned.
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
-  // PI 2 — ADO-verified Complete (11)
-  "4", "5", "6", "8-pdc", "8-tdc", "9", "9-pdc", "11", "43", "13", "16",
+  // PI 2 — current MVP scope: seven complete + three active
+  "4", "5", "6", "11", "43", "13", "16",
   // PI 2 — Current ADO Active (3)
   "7", "10", "42",
   // PI 3 — B8 + B29 closed Aug 11; remaining delivery portfolio
@@ -395,10 +392,10 @@ export const MVP_BATCH_KEYS: BatchKey[] = [
   "qa-workstream", "env-management", "roger-stabilization", "platform-defect", "mvp-enhancements",
 ];
 
-/** The 27 current ADO-backed batch delivery features. Non-batch MVP features are intentionally excluded. */
+/** The 23 current MVP batch features. Non-batch MVP features are intentionally excluded. */
 export const BATCH_DELIVERY_KEYS: BatchKey[] = [
   "foundation-core", "1", "2", "2a", "3",
-  "4", "5", "6", "8-pdc", "8-tdc", "9", "9-pdc", "11", "43", "13", "16",
+  "4", "5", "6", "11", "43", "13", "16",
   "7", "10", "42",
   "8", "45", "28", "9a", "17", "29", "31",
 ];
@@ -436,10 +433,6 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "B4", statusKey: "4", adoId: "1349156", featureName: BATCH_LABELS["4"], batchNumber: "B4", classification: "Batch", pi: "PI2" },
   { id: "B5", statusKey: "5", adoId: "1355868", featureName: BATCH_LABELS["5"], batchNumber: "B5", classification: "Batch", pi: "PI2" },
   { id: "B6", statusKey: "6", adoId: "1350255", featureName: BATCH_LABELS["6"], batchNumber: "B6", classification: "Batch", pi: "PI2" },
-  { id: "B8-PDC", statusKey: "8-pdc", adoId: noAdo, featureName: BATCH_LABELS["8-pdc"], batchNumber: "B8", classification: "Batch", pi: "PI2" },
-  { id: "B8-TDC", statusKey: "8-tdc", adoId: noAdo, featureName: BATCH_LABELS["8-tdc"], batchNumber: "B8", classification: "Batch", pi: "PI2" },
-  { id: "B9", statusKey: "9", adoId: noAdo, featureName: BATCH_LABELS["9"], batchNumber: "B9", classification: "Batch", pi: "PI2" },
-  { id: "B9-PDC", statusKey: "9-pdc", adoId: noAdo, featureName: BATCH_LABELS["9-pdc"], batchNumber: "B9", classification: "Batch", pi: "PI2" },
   { id: "B10", statusKey: "10", adoId: "1349599", featureName: BATCH_LABELS["10"], batchNumber: "B10", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
   { id: "B11", statusKey: "11", adoId: noAdo, featureName: BATCH_LABELS["11"], batchNumber: "B11", classification: "Batch", pi: "PI2" },
   { id: "B43", statusKey: "43", adoId: noAdo, featureName: BATCH_LABELS["43"], batchNumber: "B43", classification: "Batch", pi: "PI2" },
@@ -484,20 +477,13 @@ export const DASHBOARD_REPORTING_DATE = "2026-08-18";
 export const DASHBOARD_REPORTING_WEEK_START = "2026-08-17";
 export const DASHBOARD_REPORTING_WEEK_END = "2026-08-23";
 
-/** Current governed portfolio status overrides, sourced from the August 18 reconciliation. */
-export const GOVERNED_PORTFOLIO_STATUS: Partial<Record<DeliveryMetricRecord["id"], PortfolioDeliveryStatus>> = {
-  // PI2 delivery is complete although its ADO work items remain active.
-  B7: "Complete",
-  B10: "Complete",
-  B42: "Complete",
-  // PI3 delivery remains in development.
-  B45: "In Development",
-  B28: "In Development",
-  B9A: "In Development",
-  // Two ADO records for B31 are review-ready and count independently.
-  "B31-PDC": "In Review",
-  "B31-TDC": "In Review",
-};
+/**
+ * ADO is the authority for current lifecycle. The supplied source explicitly
+ * identifies Active and Review Ready features; records outside those buckets
+ * are the approved completed MVP population. No dashboard-entered status can
+ * move a current ADO feature into Active, Review, or Planned.
+ */
+export const GOVERNED_PORTFOLIO_STATUS: Partial<Record<DeliveryMetricRecord["id"], PortfolioDeliveryStatus>> = {};
 
 export interface DeliveryReconciliationRecord {
   batch: string;
@@ -536,7 +522,10 @@ export const GOVERNED_PROGRAM_HEALTH = {
 } as const;
 
 export function getPortfolioDeliveryStatus(record: DeliveryMetricRecord, statuses: BatchStatusMap): PortfolioDeliveryStatus {
-  return GOVERNED_PORTFOLIO_STATUS[record.id] ?? classifyDeliveryStatus(statuses[record.statusKey]);
+  if (record.sourceStatusLabel === "Active") return "In Development";
+  if (record.sourceStatusLabel === "Review Ready") return "In Review";
+  if (record.sourceStatusLabel === "Planned") return "Planned";
+  return GOVERNED_PORTFOLIO_STATUS[record.id] ?? "Complete";
 }
 
 export function getAdoActivityStatus(record: DeliveryMetricRecord): AdoActivityStatus {

@@ -28,34 +28,34 @@ describe("PI3 closure status model", () => {
     expect(contextToDctStatus(DEFAULT_STATUS["29"])).toBe("CLOSED");
   });
 
-  it("reports the authoritative August 18 MVP portfolio and 69 percent feature readiness", () => {
+  it("reports the authoritative 28-feature MVP portfolio and 54 percent feature readiness", () => {
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
-      total: 32,
-      complete: 22,
-      inDev: 8,
+      total: 28,
+      complete: 15,
+      inDev: 11,
       inReview: 2,
       planned: 0,
-      readinessPct: 69,
+      readinessPct: 54,
     });
   });
 
   it("keeps Batch Delivery separate from the five non-batch MVP features", () => {
     expect(deriveBatchMetrics(DEFAULT_STATUS)).toMatchObject({
-      total: 27,
-      complete: 22,
-      inDev: 3,
+      total: 23,
+      complete: 15,
+      inDev: 6,
       inReview: 2,
       planned: 0,
-      readinessPct: 81,
+      readinessPct: 65,
       reconciles: true,
     });
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
-      total: 32,
-      complete: 22,
-      inDev: 8,
+      total: 28,
+      complete: 15,
+      inDev: 11,
       inReview: 2,
       planned: 0,
-      readinessPct: 69,
+      readinessPct: 54,
       reconciles: true,
     });
   });
@@ -75,7 +75,7 @@ describe("PI3 closure status model", () => {
     expect(deriveBatchMetrics(DEFAULT_STATUS).planned).toBe(0);
   });
 
-  it("keeps ADO activity distinct from the governed portfolio development count", () => {
+  it("derives current development directly from all qualifying ADO Active MVP features", () => {
     const activeBatchKeys = BATCH_DELIVERY_RECORDS
       .filter(record => record.sourceStatusLabel === "Active")
       .map(record => record.statusKey)
@@ -83,8 +83,8 @@ describe("PI3 closure status model", () => {
 
     expect(activeBatchKeys).toEqual(["10", "28", "42", "45", "7", "9a"]);
     expect(NON_BATCH_MVP_RECORDS).toHaveLength(5);
-    expect(deriveBatchMetrics(DEFAULT_STATUS).inDev).toBe(3);
-    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(8);
+    expect(deriveBatchMetrics(DEFAULT_STATUS).inDev).toBe(6);
+    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(11);
   });
 
   it("keeps the Executive calendar aligned to the supplied ADO Active and Review Ready classifications", () => {
@@ -106,13 +106,13 @@ describe("PI3 closure status model", () => {
     expect(HISTORICAL_ADO_EXCLUDED_BATCH_IDS).toEqual(["B20", "B21", "B39"]);
   });
 
-  it("retains the 22 governed completed batch records without equating ADO activity to delivery status", () => {
-    expect(deriveBatchMetrics(DEFAULT_STATUS).complete).toBe(22);
+  it("limits the current completed bucket to the 15 ADO-backed completed batch features", () => {
+    expect(deriveBatchMetrics(DEFAULT_STATUS).complete).toBe(15);
   });
 
   it("derives PI2 and PI3 completion from the authoritative membership lists", () => {
     expect(derivePICompletion(DEFAULT_STATUS)).toMatchObject({
-      pi2: { total: 14, complete: 14, pct: 100 },
+      pi2: { total: 10, complete: 7, pct: 70 },
       pi3: { total: 8, complete: 3, pct: 38 },
     });
   });

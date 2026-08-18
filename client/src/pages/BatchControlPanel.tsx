@@ -1799,7 +1799,7 @@ export default function BatchControlPanel() {
         )}
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-5">
-          <strong>Governed reconciliation applied:</strong> ADO activity is displayed separately from portfolio delivery. B7, B10, and B42 have active ADO work but count as <strong>Complete</strong> for governed delivery; B45, B28, and B9A are <strong>In Development</strong>; B31 has two <strong>Review Ready</strong> records. B39, B20, and B21 are excluded from the current portfolio. The prior 23-complete display did not retain a record-level calculation snapshot.
+          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from ADO-backed records. The six active batch features—B7, B10, B42, B45, B28, and B9A—count as <strong>In Development</strong>; the five active non-batch MVP features also count as <strong>In Development</strong>; B31 has two <strong>Review Ready</strong> records. B39, B20, B21, B26, and historical split records are excluded from the current 23-batch MVP scope. The prior 23-complete display did not retain a record-level calculation snapshot.
         </div>
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-5">
@@ -1808,7 +1808,7 @@ export default function BatchControlPanel() {
 
         <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
-            { label: "Batch Delivery", metric: batchMetrics, note: "27 current ADO-backed batch features" },
+            { label: "Batch Delivery", metric: batchMetrics, note: "23 governed MVP batch features" },
             { label: "Non-Batch MVP", metric: nonBatchMetrics, note: "5 current ADO Active features; excluded from Batch counts" },
             { label: "Overall MVP Delivery", metric: mvpMetrics, note: "Batch + non-batch MVP features" },
           ].map(({ label, metric, note }) => (
