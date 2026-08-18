@@ -13,7 +13,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Link } from "wouter";
 import {
   useBatchStatus, BATCH_DELIVERY_RECORDS, MVP_DELIVERY_RECORDS, NON_BATCH_MVP_RECORDS,
-  classifyDeliveryStatus, deriveBatchMetrics, deriveDeliveryMetrics, deriveMvpMetrics,
+  buildDeliveryReconciliationDataset, classifyDeliveryStatus, deriveBatchMetrics, deriveDeliveryMetrics, deriveMvpMetrics, getAdoActivityStatus, getPortfolioDeliveryStatus, GOVERNED_PROGRAM_HEALTH, PI3_HISTORICAL_COMPLETION_BASELINE, PI3_POST_BASELINE_CLOSURES,
   STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
 } from "@/contexts/BatchStatusContext";
@@ -1243,13 +1243,15 @@ export default function BatchControlPanel() {
   const mvpMetrics = deriveMvpMetrics(statuses);
   const nonBatchMetrics = deriveDeliveryMetrics(statuses, NON_BATCH_MVP_RECORDS);
   const [metricFilter, setMetricFilter] = useState<"All" | "Complete" | "In Development" | "In Review" | "Planned">("All");
+  const reconciliationRows = useMemo(() => buildDeliveryReconciliationDataset(statuses), [statuses]);
   const metricRows = useMemo(() => MVP_DELIVERY_RECORDS.map(record => {
     const sourceStatus = statuses[record.statusKey];
-    const dashboardStatus = classifyDeliveryStatus(sourceStatus);
+    const dashboardStatus = getPortfolioDeliveryStatus(record, statuses);
     return {
       ...record,
       sourceStatus,
       dashboardStatus,
+      adoActivity: getAdoActivityStatus(record),
       includedInBatchesComplete: record.classification === "Batch" && dashboardStatus === "Complete",
       includedInMvpComplete: dashboardStatus === "Complete",
     };
@@ -1797,7 +1799,11 @@ export default function BatchControlPanel() {
         )}
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-5">
-          <strong>Current ADO classification applied:</strong> B45 and B9A are Active and included in <strong>In Development</strong>. B39, B20, and B21 are not in the supplied current ADO pipeline and are excluded from this executive metric population. The prior 23-complete display did not retain a record-level calculation snapshot; the current population is fully traceable in the table below.
+          <strong>Governed reconciliation applied:</strong> ADO activity is displayed separately from portfolio delivery. B7, B10, and B42 have active ADO work but count as <strong>Complete</strong> for governed delivery; B45, B28, and B9A are <strong>In Development</strong>; B31 has two <strong>Review Ready</strong> records. B39, B20, and B21 are excluded from the current portfolio. The prior 23-complete display did not retain a record-level calculation snapshot.
+        </div>
+
+        <div className="mx-5 mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-5">
+          <strong>Historical PI3 closure baseline:</strong> {PI3_HISTORICAL_COMPLETION_BASELINE.cumulativeComplete} items complete as of Jul 28, plus {PI3_POST_BASELINE_CLOSURES.length} post-baseline closures. QA validation is separate: PI2 delivery is complete with {GOVERNED_PROGRAM_HEALTH.qaValidationProgress.PI2}% QA validation progress; program health is <strong>{GOVERNED_PROGRAM_HEALTH.programStatus}</strong> for the Sep 21 pilot.
         </div>
 
         <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1827,7 +1833,7 @@ export default function BatchControlPanel() {
           <table className="w-full min-w-[1280px] text-left text-xs">
             <thead className="bg-[#1e3a5f] text-white">
               <tr>
-                {["ADO ID", "Feature name", "Batch", "Classification", "PI", "Owner", "ADO / source status", "Dashboard status", "In Batches Complete", "In MVP Complete"].map(column => (
+                {["ADO ID", "Feature name", "Batch", "Classification", "PI", "Owner", "ADO activity", "Portfolio delivery", "In Batches Complete", "In MVP Complete"].map(column => (
                   <th key={column} className="px-3 py-2.5 font-bold whitespace-nowrap">{column}</th>
                 ))}
               </tr>
@@ -1841,7 +1847,7 @@ export default function BatchControlPanel() {
                   <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.classification}</td>
                   <td className="px-3 py-2 text-slate-700">{row.pi}</td>
                   <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.owner ?? "Not present in current source"}</td>
-                  <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.sourceStatusLabel ?? row.sourceStatus}</td>
+                  <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.adoActivity}</td>
                   <td className="px-3 py-2"><span className={`inline-flex px-2 py-0.5 rounded-full font-bold ${row.dashboardStatus === "Complete" ? "bg-emerald-100 text-emerald-700" : row.dashboardStatus === "In Review" ? "bg-violet-100 text-violet-700" : row.dashboardStatus === "In Development" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"}`}>{row.dashboardStatus}</span></td>
                   <td className="px-3 py-2 text-center font-bold">{row.includedInBatchesComplete ? "Yes" : "No"}</td>
                   <td className="px-3 py-2 text-center font-bold">{row.includedInMvpComplete ? "Yes" : "No"}</td>

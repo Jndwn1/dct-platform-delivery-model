@@ -16,8 +16,7 @@
 
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { BATCH_DELIVERY_RECORDS, classifyDeliveryStatus, deriveBatchMetrics, deriveMvpMetrics, useBatchStatus } from "@/contexts/BatchStatusContext";
-import { BATCH_REGISTRY } from "@/lib/batchModel";
+import { BATCH_DELIVERY_RECORDS, GOVERNED_PROGRAM_HEALTH, PI3_HISTORICAL_COMPLETION_BASELINE, PI3_POST_BASELINE_CLOSURES, deriveBatchMetrics, deriveMvpMetrics, getPortfolioDeliveryStatus, useBatchStatus } from "@/contexts/BatchStatusContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -214,16 +213,16 @@ export default function DeliveryIntelligencePage() {
     : null;
 
   // ── Derive live batch status helper ──
-  const liveStatus = (key: string): string => (statuses as Record<string, string>)[key] ?? "Planned";
+  const liveStatus = (key: string): string => (statuses as unknown as Record<string, string>)[key] ?? "Planned";
   const isComplete = (key: string) => ["Complete", "Delivered"].includes(liveStatus(key));
   const isActive = (key: string) => ["In Progress", "Dev", "MVP", "Stretch"].includes(liveStatus(key));
   const isBlocked = (key: string) => liveStatus(key) === "Blocked";
 
   // ── PI3 batch counts ──
   const pi3Records = BATCH_DELIVERY_RECORDS.filter(record => record.pi === "PI3");
-  const pi3Complete = useMemo(() => pi3Records.filter(record => classifyDeliveryStatus(statuses[record.statusKey]) === "Complete").length, [statuses]);
-  const pi3Active = useMemo(() => pi3Records.filter(record => classifyDeliveryStatus(statuses[record.statusKey]) === "In Development").length, [statuses]);
-  const pi3Review = useMemo(() => pi3Records.filter(record => classifyDeliveryStatus(statuses[record.statusKey]) === "In Review").length, [statuses]);
+  const pi3Complete = useMemo(() => pi3Records.filter(record => getPortfolioDeliveryStatus(record, statuses) === "Complete").length, [statuses]);
+  const pi3Active = useMemo(() => pi3Records.filter(record => getPortfolioDeliveryStatus(record, statuses) === "In Development").length, [statuses]);
+  const pi3Review = useMemo(() => pi3Records.filter(record => getPortfolioDeliveryStatus(record, statuses) === "In Review").length, [statuses]);
   const pi3Blocked = useMemo(() => pi3Records.filter(record => isBlocked(record.statusKey)).length, [statuses]);
   const pi3Planned = pi3Records.length - pi3Complete - pi3Active - pi3Review - pi3Blocked;
   const pi3Pct = Math.round((pi3Complete / pi3Records.length) * 100);
@@ -287,12 +286,12 @@ export default function DeliveryIntelligencePage() {
   const totalBatches = batchMetrics.total;
   const totalComplete = batchMetrics.complete;
   const totalActive = mvpMetrics.inDev;
-  const totalBlocked = Object.values(statuses as Record<string, string>).filter(s => s === "Blocked").length;
+  const totalBlocked = Object.values(statuses as unknown as Record<string, string>).filter(s => s === "Blocked").length;
 
   const backlogHealth: Health = pi3Pct >= 60 ? "Green" : pi3Pct >= 30 ? "Yellow" : "Red";
   const dependencyHealth: Health = pi3Blocked === 0 ? "Green" : pi3Blocked <= 2 ? "Yellow" : "Red";
   const capacityHealth: Health = pi3Active >= 2 && pi3Active <= 5 ? "Green" : "Yellow";
-  const releaseHealth: Health = criticalPct >= 70 ? "Green" : criticalPct >= 40 ? "Yellow" : "Red";
+  const releaseHealth: Health = GOVERNED_PROGRAM_HEALTH.programStatus === "On Track" ? "Green" : "Yellow";
   const riskHealth: Health = pi3Blocked === 0 ? "Green" : pi3Blocked <= 1 ? "Yellow" : "Red";
 
   // ── Section nav ──
@@ -334,7 +333,9 @@ export default function DeliveryIntelligencePage() {
             </div>
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "8px" }}>
               {[
-                { label: `PI3: ${pi3Pct}% Complete`, color: pi3Pct >= 60 ? "#059669" : "#d97706" },
+                { label: `PI3 Delivery: ${pi3Pct}% Complete`, color: pi3Pct >= 60 ? "#059669" : "#d97706" },
+                { label: `${PI3_HISTORICAL_COMPLETION_BASELINE.cumulativeComplete + PI3_POST_BASELINE_CLOSURES.length} Historical PI3 Closures`, color: "#059669" },
+                { label: `${GOVERNED_PROGRAM_HEALTH.releaseCandidate} · ${GOVERNED_PROGRAM_HEALTH.programStatus}`, color: "#003865" },
                 { label: `Critical Path: ${criticalPct}%`, color: criticalPct >= 60 ? "#059669" : "#dc2626" },
                 { label: `Gates: ${gatesComplete}/4`, color: gatesComplete >= 3 ? "#059669" : "#d97706" },
                 { label: `Roger: ${rogerReady}/${rogerTotal} Ready`, color: rogerReady >= 8 ? "#059669" : "#d97706" },
@@ -410,6 +411,9 @@ export default function DeliveryIntelligencePage() {
                 </div>
               ))}
             </div>
+            <div style={{ fontSize: "11px", color: "#475569", flex: "1 1 100%" }}>
+              Historical closure reporting is separate: {PI3_HISTORICAL_COMPLETION_BASELINE.cumulativeComplete} items were complete as of Jul 28, with {PI3_POST_BASELINE_CLOSURES.length} later closures. PI2 delivery is complete; QA validation progress is {GOVERNED_PROGRAM_HEALTH.qaValidationProgress.PI2}% following late QA onboarding.
+            </div>
           </div>
 
           {/* Five Readiness Dimensions */}
@@ -451,11 +455,12 @@ export default function DeliveryIntelligencePage() {
               title="Release Readiness"
               health={releaseHealth}
               metrics={[
-                { label: "MVP Progress", value: `${criticalPct}%` },
+                { label: "Pilot Program Status", value: GOVERNED_PROGRAM_HEALTH.programStatus },
+                { label: "Release Candidate", value: GOVERNED_PROGRAM_HEALTH.releaseCandidate },
+                { label: "PI2 QA Validation", value: `${GOVERNED_PROGRAM_HEALTH.qaValidationProgress.PI2}%` },
                 { label: "Critical Path Closed", value: `${criticalComplete}/${criticalKeys.length}` },
                 { label: "Roger Readiness", value: `${rogerReady}/${rogerTotal} APIs` },
-                { label: "Gateway Readiness", value: isComplete("9a") ? "Ready" : "Pending B9A" },
-                { label: "PI Confidence", value: criticalPct >= 70 ? "High" : criticalPct >= 40 ? "Medium" : "Low" },
+                { label: "PI Confidence", value: "Governance-managed" },
               ]}
             />
             <ReadinessDimension

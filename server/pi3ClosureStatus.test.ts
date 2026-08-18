@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_STATUS,
   BATCH_DELIVERY_RECORDS,
+  buildDeliveryReconciliationDataset,
+  GOVERNED_PROGRAM_HEALTH,
   NON_BATCH_MVP_RECORDS,
+  PI3_HISTORICAL_COMPLETION_BASELINE,
+  PI3_POST_BASELINE_CLOSURES,
   PI_MEMBERSHIP,
   contextToDctStatus,
   deriveBatchMetrics,
@@ -24,34 +28,34 @@ describe("PI3 closure status model", () => {
     expect(contextToDctStatus(DEFAULT_STATUS["29"])).toBe("CLOSED");
   });
 
-  it("reports the supplied ADO pipeline population and 59 percent MVP readiness", () => {
+  it("reports the authoritative August 18 MVP portfolio and 69 percent feature readiness", () => {
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 32,
-      complete: 19,
-      inDev: 11,
+      complete: 22,
+      inDev: 8,
       inReview: 2,
       planned: 0,
-      readinessPct: 59,
+      readinessPct: 69,
     });
   });
 
   it("keeps Batch Delivery separate from the five non-batch MVP features", () => {
     expect(deriveBatchMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 27,
-      complete: 19,
-      inDev: 6,
+      complete: 22,
+      inDev: 3,
       inReview: 2,
       planned: 0,
-      readinessPct: 70,
+      readinessPct: 81,
       reconciles: true,
     });
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 32,
-      complete: 19,
-      inDev: 11,
+      complete: 22,
+      inDev: 8,
       inReview: 2,
       planned: 0,
-      readinessPct: 59,
+      readinessPct: 69,
       reconciles: true,
     });
   });
@@ -71,15 +75,16 @@ describe("PI3 closure status model", () => {
     expect(deriveBatchMetrics(DEFAULT_STATUS).planned).toBe(0);
   });
 
-  it("preserves the exact ADO Active population of six batch features plus five non-batch MVP features", () => {
+  it("keeps ADO activity distinct from the governed portfolio development count", () => {
     const activeBatchKeys = BATCH_DELIVERY_RECORDS
-      .filter(record => DEFAULT_STATUS[record.statusKey] === "In Progress")
+      .filter(record => record.sourceStatusLabel === "Active")
       .map(record => record.statusKey)
       .sort();
 
     expect(activeBatchKeys).toEqual(["10", "28", "42", "45", "7", "9a"]);
     expect(NON_BATCH_MVP_RECORDS).toHaveLength(5);
-    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(11);
+    expect(deriveBatchMetrics(DEFAULT_STATUS).inDev).toBe(3);
+    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(8);
   });
 
   it("keeps the Executive calendar aligned to the supplied ADO Active and Review Ready classifications", () => {
@@ -101,17 +106,22 @@ describe("PI3 closure status model", () => {
     expect(HISTORICAL_ADO_EXCLUDED_BATCH_IDS).toEqual(["B20", "B21", "B39"]);
   });
 
-  it("keeps the 19 current completed records in the shared status map after B10 is reclassified Active", () => {
-    const completed = Object.values(DEFAULT_STATUS).filter(
-      status => status === "Complete" || status === "Delivered" || status === "Done",
-    );
-    expect(completed).toHaveLength(19);
+  it("retains the 22 governed completed batch records without equating ADO activity to delivery status", () => {
+    expect(deriveBatchMetrics(DEFAULT_STATUS).complete).toBe(22);
   });
 
   it("derives PI2 and PI3 completion from the authoritative membership lists", () => {
     expect(derivePICompletion(DEFAULT_STATUS)).toMatchObject({
-      pi2: { total: 14, complete: 11, pct: 79 },
+      pi2: { total: 14, complete: 14, pct: 100 },
       pi3: { total: 8, complete: 3, pct: 38 },
     });
+  });
+
+  it("preserves the July 28 PI3 historical baseline and post-baseline closure history", () => {
+    expect(PI3_HISTORICAL_COMPLETION_BASELINE).toMatchObject({ asOf: "2026-07-28", cumulativeComplete: 11, reportingWeekComplete: 8 });
+    expect(PI3_POST_BASELINE_CLOSURES.map(item => item.completionDate)).toEqual(["2026-08-04", "2026-08-11"]);
+    expect(GOVERNED_PROGRAM_HEALTH).toMatchObject({ programStatus: "On Track", releaseCandidate: "RC-3" });
+    const dataset = buildDeliveryReconciliationDataset(DEFAULT_STATUS);
+    expect(dataset.every(record => !(record.includedInThisWeek && record.originalCompletionDate === "2026-08-11"))).toBe(true);
   });
 });

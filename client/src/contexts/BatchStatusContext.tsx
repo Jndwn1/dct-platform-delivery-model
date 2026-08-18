@@ -472,6 +472,108 @@ export const MVP_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
 
 export type DeliveryMetricBucket = "Complete" | "In Development" | "In Review" | "Planned";
 
+/**
+ * August 18 governed portfolio status. It is intentionally separate from ADO
+ * activity: active ADO work can exist after governed delivery is complete.
+ */
+export type PortfolioDeliveryStatus = DeliveryMetricBucket;
+export type AdoActivityStatus = "Active ADO work exists" | "No active ADO work";
+export type QAValidationStatus = "Not Started" | "In Validation" | "Review Ready" | "Validated" | "Not Reported";
+
+export const DASHBOARD_REPORTING_DATE = "2026-08-18";
+export const DASHBOARD_REPORTING_WEEK_START = "2026-08-17";
+export const DASHBOARD_REPORTING_WEEK_END = "2026-08-23";
+
+/** Current governed portfolio status overrides, sourced from the August 18 reconciliation. */
+export const GOVERNED_PORTFOLIO_STATUS: Partial<Record<DeliveryMetricRecord["id"], PortfolioDeliveryStatus>> = {
+  // PI2 delivery is complete although its ADO work items remain active.
+  B7: "Complete",
+  B10: "Complete",
+  B42: "Complete",
+  // PI3 delivery remains in development.
+  B45: "In Development",
+  B28: "In Development",
+  B9A: "In Development",
+  // Two ADO records for B31 are review-ready and count independently.
+  "B31-PDC": "In Review",
+  "B31-TDC": "In Review",
+};
+
+export interface DeliveryReconciliationRecord {
+  batch: string;
+  pi: "PI1" | "PI2" | "PI3";
+  mvp: boolean;
+  portfolioStatus: PortfolioDeliveryStatus;
+  adoActivity: AdoActivityStatus;
+  originalCompletionDate: string | null;
+  latestDeploymentDate: string | null;
+  qaStatus: QAValidationStatus;
+  includedInCurrentCompleteCount: boolean;
+  includedInPi3CumulativeClosed: boolean;
+  includedInThisWeek: boolean;
+}
+
+/** July 28 PI3 reporting baseline; aggregate count is preserved without inventing an unnamed eleventh record. */
+export const PI3_HISTORICAL_COMPLETION_BASELINE = {
+  asOf: "2026-07-28",
+  cumulativeComplete: 11,
+  reportingWeekComplete: 8,
+  namedCapabilities: ["B43", "B8", "B4", "B11", "B8A", "B5", "B2", "B16", "B6", "B3"],
+} as const;
+
+/** Legitimate PI3 completions after the July 28 historical baseline. */
+export const PI3_POST_BASELINE_CLOSURES = [
+  { id: "B17", batch: "B17", name: "Decision Support, Overrides, Evidence & Workpapers", platform: "TDC", completionDate: "2026-08-04", latestDeploymentDate: "2026-08-04", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "B29", batch: "B29", name: "Consolidated Return Assembly", platform: "TDC", completionDate: "2026-08-11", latestDeploymentDate: "2026-08-11", qaStatus: "In Validation" as QAValidationStatus },
+] as const;
+
+export const GOVERNED_PROGRAM_HEALTH = {
+  pilotTargetDate: "2026-09-21",
+  programStatus: "On Track" as const,
+  releaseCandidate: "RC-3" as const,
+  qaValidationProgress: { PI1: 100, PI2: 86, PI3: null as number | null },
+  rationale: "QA onboarding occurred late; delivery remains on pace for the September 21 MVP Pilot.",
+} as const;
+
+export function getPortfolioDeliveryStatus(record: DeliveryMetricRecord, statuses: BatchStatusMap): PortfolioDeliveryStatus {
+  return GOVERNED_PORTFOLIO_STATUS[record.id] ?? classifyDeliveryStatus(statuses[record.statusKey]);
+}
+
+export function getAdoActivityStatus(record: DeliveryMetricRecord): AdoActivityStatus {
+  return record.sourceStatusLabel === "Active" ? "Active ADO work exists" : "No active ADO work";
+}
+
+export function isInDashboardReportingWeek(date: string): boolean {
+  return date >= DASHBOARD_REPORTING_WEEK_START && date <= DASHBOARD_REPORTING_WEEK_END;
+}
+
+export function getPi3CumulativeCompleted(): number {
+  return PI3_HISTORICAL_COMPLETION_BASELINE.cumulativeComplete + PI3_POST_BASELINE_CLOSURES.length;
+}
+
+/** Reconciliation dataset used by governance validation and dashboard audit views. */
+export function buildDeliveryReconciliationDataset(statuses: BatchStatusMap): DeliveryReconciliationRecord[] {
+  return BATCH_DELIVERY_RECORDS.map(record => {
+    const postBaseline = PI3_POST_BASELINE_CLOSURES.find(item => item.id === record.id || item.batch === record.batchNumber);
+    const baselineNamed = PI3_HISTORICAL_COMPLETION_BASELINE.namedCapabilities.includes(record.id as never)
+      || PI3_HISTORICAL_COMPLETION_BASELINE.namedCapabilities.includes(record.batchNumber as never);
+    const portfolioStatus = getPortfolioDeliveryStatus(record, statuses);
+    return {
+      batch: record.batchNumber,
+      pi: record.pi,
+      mvp: true,
+      portfolioStatus,
+      adoActivity: getAdoActivityStatus(record),
+      originalCompletionDate: postBaseline?.completionDate ?? (baselineNamed ? `On or before ${PI3_HISTORICAL_COMPLETION_BASELINE.asOf}` : null),
+      latestDeploymentDate: postBaseline?.latestDeploymentDate ?? null,
+      qaStatus: postBaseline?.qaStatus ?? (portfolioStatus === "In Review" ? "Review Ready" : portfolioStatus === "Complete" ? "Validated" : "Not Reported"),
+      includedInCurrentCompleteCount: portfolioStatus === "Complete",
+      includedInPi3CumulativeClosed: Boolean(postBaseline) || (record.pi === "PI3" && baselineNamed),
+      includedInThisWeek: Boolean(postBaseline && isInDashboardReportingWeek(postBaseline.completionDate)),
+    };
+  });
+}
+
 export interface DeliveryMetrics {
   total: number;
   complete: number;
@@ -493,7 +595,7 @@ export function classifyDeliveryStatus(status: BatchStatus | "In Review" | undef
 export function deriveDeliveryMetrics(statuses: BatchStatusMap, records: DeliveryMetricRecord[]): DeliveryMetrics {
   let complete = 0, inDev = 0, inReview = 0, planned = 0;
   for (const record of records) {
-    const bucket = classifyDeliveryStatus(statuses[record.statusKey]);
+    const bucket = getPortfolioDeliveryStatus(record, statuses);
     if (bucket === "Complete") complete++;
     else if (bucket === "In Development") inDev++;
     else if (bucket === "In Review") inReview++;
@@ -641,7 +743,7 @@ export function derivePICompletion(statuses: BatchStatusMap): PICompletion {
   const allComplete = all.filter(k => isDelivered(statuses[k])).length;
   const calcMetricRecords = (pi: "PI1" | "PI2" | "PI3") => {
     const records = BATCH_DELIVERY_RECORDS.filter(record => record.pi === pi);
-    const complete = records.filter(record => isDelivered(statuses[record.statusKey])).length;
+    const complete = records.filter(record => getPortfolioDeliveryStatus(record, statuses) === "Complete").length;
     const total = records.length;
     return { total, complete, pct: total ? Math.round((complete / total) * 100) : 0 };
   };
@@ -654,12 +756,9 @@ export function derivePICompletion(statuses: BatchStatusMap): PICompletion {
   };
 }
 
-/** One Release Candidate classification shared by the Platform and Executive dashboards. */
-export function deriveReleaseCandidate(piCompletion: PICompletion): "RC-1" | "RC-2" | "RC-3" | "RC-4" {
-  if (piCompletion.pi3.pct >= 100) return "RC-4";
-  if (piCompletion.pi2.pct >= 80 && piCompletion.pi3.pct >= 40) return "RC-3";
-  if (piCompletion.pi2.pct >= 60) return "RC-2";
-  return "RC-1";
+/** One governance-based Release Candidate classification shared by all dashboards. */
+export function deriveReleaseCandidate(_piCompletion?: PICompletion): typeof GOVERNED_PROGRAM_HEALTH.releaseCandidate {
+  return GOVERNED_PROGRAM_HEALTH.releaseCandidate;
 }
 
 function deriveUnlocked(prev: BatchStatusMap, next: BatchStatusMap): BatchKey[] {

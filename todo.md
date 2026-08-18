@@ -48,3 +48,11 @@
 - [x] Generate a line-level occurrence audit and browser-verify all routed status-bearing views
 - [x] Browser-verify the current scope labels on Batch Delivery Calendar and Delivery Intelligence
 - [x] Replace the stale Delivery Highlights Active Batches display list with the authoritative Active ADO batch records, including B42, B28, and B45
+- [x] Build and validate the August 18 reconciliation dataset for 27 MVP batches, 32 MVP features, and the July 28 PI3 historical completion baseline
+- [x] Separate portfolio delivery status, ADO activity, QA validation, and pilot readiness in the governed shared delivery model
+- [x] Correct Recently Closed in PI3, dynamic reporting-week labels, PI delivery progress, and readiness/program-status logic
+- [x] Update Platform Home, Executive Dashboard, Batch Control Panel, and Delivery Intelligence from the shared model without independent hard-coded totals
+- [x] Add reconciliation tests and deliver a before-and-after metric summary with source rules
+- [x] Update Delivery Intelligence to consume the August 18 governed portfolio, historical PI3 closure, QA, and program-health model
+- [x] Verify Delivery Intelligence metric and program-status evidence against the shared reconciliation model
+- [x] Replace the stale global sidebar activity caption with the governed current ADO pipeline summary

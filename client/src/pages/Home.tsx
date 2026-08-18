@@ -6,7 +6,21 @@
 import React from "react";
 import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
-import { BATCH_DELIVERY_RECORDS, MVP_DELIVERY_RECORDS, useBatchStatus, classifyDeliveryStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
+import {
+  BATCH_DELIVERY_RECORDS,
+  DASHBOARD_REPORTING_DATE,
+  GOVERNED_PROGRAM_HEALTH,
+  MVP_DELIVERY_RECORDS,
+  PI3_HISTORICAL_COMPLETION_BASELINE,
+  PI3_POST_BASELINE_CLOSURES,
+  useBatchStatus,
+  classifyDeliveryStatus,
+  deriveBatchMetrics,
+  deriveMvpMetrics,
+  deriveReleaseCandidate,
+  getPi3CumulativeCompleted,
+  isInDashboardReportingWeek,
+} from "@/contexts/BatchStatusContext";
 import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
 import { useTour } from "@/contexts/TourContext";
@@ -515,15 +529,6 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
-// ─── Recently Closed in PI 3 (ADO-authoritative, updated Aug 11, 2026) ─────────
-const RECENTLY_CLOSED_PI3 = [
-  // ── This week (Aug 11, 2026) ──
-  { id: "B8",  name: "Exceptions & Remediation",                            platform: "PDC/TDC", closedDate: "Aug 11, 2026", thisWeek: true },
-  { id: "B29", name: "Consolidated Return Assembly",                        platform: "TDC",     closedDate: "Aug 11, 2026", thisWeek: true },
-  // ── Prior week (Aug 4, 2026) ──
-  { id: "B17", name: "Decision Support, Overrides, Evidence & Workpapers", platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: false },
-  { id: "B16", name: "Audit Trail & Lineage Governance",                   platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: false },
-];
 
 export default function Home() {
   const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
@@ -538,7 +543,9 @@ export default function Home() {
   const batchTotal    = batch.total;
   const batchPct      = batch.readinessPct;
   const overallPct    = mvp.readinessPct;
-  const pi3Closed     = piCompletion?.pi3?.complete ?? 0;
+  const pi3Closed = getPi3CumulativeCompleted();
+  const recentlyClosedPi3 = PI3_POST_BASELINE_CLOSURES;
+  const closedThisWeek = recentlyClosedPi3.filter(item => isInDashboardReportingWeek(item.completionDate));
 
   // For backward compat with sections that use pi2Done/pi2Active/pi2Planned names
   const pi2Done    = batchComplete;
@@ -641,17 +648,8 @@ export default function Home() {
   // rcLabel: one shared Release Candidate classification across all dashboards
   const rcLabel = useMemo(() => deriveReleaseCandidate(piCompletion), [piCompletion]);
 
-  // programStatus: On Track if readiness ≥ 70%, otherwise At Risk
-  const programOnTrack = overallPct >= 70;
-
-  // pi3MvpCount: derive from live context PI3 keys so it reflects control panel updates
-  const pi3MvpCount = useMemo(() => {
-    const pi3Keys = ["8","20","42","45","21","28","9a","17","29","31","26","39","33"];
-    return pi3Keys.filter(k => {
-      const s = (statuses as unknown as Record<string,string>)[k] ?? "Not Started";
-      return s === "MVP" || s === "In Progress" || s === "Committed" || s === "Stretch";
-    }).length;
-  }, [statuses]);
+  // Program health is governance-based; it is not derived from raw completion percentage.
+  const programOnTrack = GOVERNED_PROGRAM_HEALTH.programStatus === "On Track";
 
   return (
     <div style={{ width: "95%", maxWidth: "1600px", margin: "0 auto", fontFamily: "system-ui, sans-serif", paddingBottom: "40px" }}>
@@ -702,7 +700,7 @@ export default function Home() {
                 borderRadius: "20px", padding: "3px 10px",
               }}>● ACTIVE — PI 3</span>
               <span style={{ fontSize: "11px", color: "#94a3b8" }}>PI 2 Complete · PI 3 Active · Jul–Sep 2026</span>
-              <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · Last refresh: {new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
+              <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date(`${DASHBOARD_REPORTING_DATE}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · Last refresh: {new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
             </div>
           </div>
           {/* Release Candidate Status */}
@@ -994,7 +992,7 @@ export default function Home() {
             <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "2px" }}>This Week</div>
             <div style={{ fontSize: "16px", fontWeight: 800, color: "#0f1623" }}>Delivery Highlights</div>
           </div>
-          <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600 }}>Week of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+          <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600 }}>Reporting period ending {new Date(`${DASHBOARD_REPORTING_DATE}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
 
@@ -1075,26 +1073,32 @@ export default function Home() {
               color: "#065f46", backgroundColor: "#d1fae5",
               border: "1px solid #6ee7b7", borderRadius: "12px",
               padding: "2px 9px", whiteSpace: "nowrap",
-            }}>2 this week</span>
+            }}>{closedThisWeek.length} this week</span>
             <span style={{
               fontSize: "11px", fontWeight: 700,
               color: "#047857", backgroundColor: "#a7f3d0",
               border: "1px solid #34d399", borderRadius: "12px",
               padding: "2px 9px", whiteSpace: "nowrap",
-            }}>{pi3Closed} closed in PI 3</span>
+            }}>{pi3Closed} cumulative closed in PI 3</span>
+          </div>
+          <div style={{ fontSize: "11px", color: "#475569", marginBottom: "8px" }}>
+            Historical reconciliation baseline: {PI3_HISTORICAL_COMPLETION_BASELINE.cumulativeComplete} PI3 items complete as of Jul 28, plus {recentlyClosedPi3.length} legitimate completions after the baseline. Reporting week: Aug 17–23, 2026.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
-            {RECENTLY_CLOSED_PI3.map(r => (
+            {recentlyClosedPi3.map(r => {
+              const closedToday = String(r.completionDate) === DASHBOARD_REPORTING_DATE;
+              const closedInWeek = isInDashboardReportingWeek(r.completionDate);
+              return (
               <div key={r.id} style={{
                 display: "flex", alignItems: "center", gap: "8px",
-                backgroundColor: r.thisWeek ? "#ecfdf5" : "#f8fafc",
-                border: r.thisWeek ? "1px solid #6ee7b7" : "1px solid #e2e8f0",
+                backgroundColor: closedInWeek ? "#ecfdf5" : "#f8fafc",
+                border: closedInWeek ? "1px solid #6ee7b7" : "1px solid #e2e8f0",
                 borderRadius: "6px", padding: "6px 10px",
-                boxShadow: r.thisWeek ? "0 0 0 1px #a7f3d0" : "none",
+                boxShadow: closedInWeek ? "0 0 0 1px #a7f3d0" : "none",
               }}>
-                <span style={{ fontSize: "11px", fontWeight: 800, color: r.thisWeek ? "#059669" : "#475569", minWidth: "36px" }}>{r.id}</span>
+                <span style={{ fontSize: "11px", fontWeight: 800, color: closedInWeek ? "#059669" : "#475569", minWidth: "36px" }}>{r.id}</span>
                 <span style={{ fontSize: "11px", color: "#1e293b", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
-                {r.thisWeek && (
+                {closedToday && (
                   <span style={{
                     fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em",
                     color: "#065f46", backgroundColor: "#a7f3d0",
@@ -1102,9 +1106,11 @@ export default function Home() {
                     padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0,
                   }}>Closed Today</span>
                 )}
-                <span style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap" }}>{r.platform} · {r.closedDate}</span>
+                {closedInWeek && !closedToday && <span style={{ fontSize: "9px", fontWeight: 700, color: "#065f46", whiteSpace: "nowrap" }}>Closed This Week</span>}
+                <span style={{ fontSize: "10px", color: "#64748b", whiteSpace: "nowrap" }}>{r.platform} · {new Date(`${r.completionDate}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
 

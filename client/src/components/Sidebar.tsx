@@ -595,7 +595,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
       <div style={{ borderTopWidth: "1px", borderTopColor: "#1e2a3a", padding: "10px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
           <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#10b981", flexShrink: 0 }} />
-          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Platform Active · PI 1–2 Done · B42/B43 Active</span>
+          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Current ADO Pipeline · 11 Active · 2 Review Ready</span>
         </div>
         <div style={{ fontSize: "10px", color: "#475569", marginBottom: "6px" }}>DCT — Data Consolidation Team</div>
         <button

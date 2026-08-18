@@ -10,7 +10,7 @@ import { useRef, useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import GeneratePOEmail from "@/components/GeneratePOEmail";
-import { BATCH_DELIVERY_RECORDS, NON_BATCH_MVP_RECORDS, useBatchStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
+import { BATCH_DELIVERY_RECORDS, GOVERNED_PROGRAM_HEALTH, NON_BATCH_MVP_RECORDS, useBatchStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
 
 // ─── Batch Calendar PI 2 + PI 3 (mirrors Home.tsx BATCH_CALENDAR_PI23) ─────────
 // This is the single source of truth for all Executive Dashboard KPI calculations.
@@ -219,10 +219,8 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   const urgencyBg = daysRemaining <= 30 ? "#fef2f2" : daysRemaining <= 60 ? "#fffbeb" : "#f0fdf4";
   const urgencyBorder = daysRemaining <= 30 ? "#fecaca" : daysRemaining <= 60 ? "#fde68a" : "#bbf7d0";
 
-  // ── PI progress derived from piCompletion (live context) ──
-  // piCompletion has shape { pi1: { total, complete, pct }, pi2: { ... }, pi3: { ... } }
+  // PI delivery progress is governed separately from QA validation progress.
   const pi2Pct = piCompletion?.pi2?.pct ?? 0;
-  // PI progress is the reconciled completed-feature percentage from the shared membership lists.
   const pi3Pct = piCompletion?.pi3?.pct ?? 0;
 
   // Last updated label
@@ -246,7 +244,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       color: "#059669",
       bg: "#f0fdf4",
       border: "#bbf7d0",
-      note: "QA onboarded late — PI 2 items are currently in QA validation as the team catches up.",
+      note: `PI Delivery Complete · QA Validation Progress ${GOVERNED_PROGRAM_HEALTH.qaValidationProgress.PI2}% — QA onboarded late.`,
     },
     {
       pi: "PI 3",
@@ -327,7 +325,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="Batches In Development"
           value={batch.inDev}
-          sub="Active ADO pipeline"
+          sub="Governed portfolio delivery"
           accent="#2563eb"
           badge="In Flight"
           badgeColor="#2563eb"
@@ -353,8 +351,8 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
           value={`${batch.readinessPct}%`}
           sub={`${batch.complete} completed batches ÷ ${batch.total}`}
           accent="#059669"
-          badge={batch.readinessPct >= 70 ? "On Track" : "At Risk"}
-          badgeColor={batch.readinessPct >= 70 ? "#059669" : "#d97706"}
+          badge="Delivery Completion"
+          badgeColor="#059669"
         />
         <KPICard
           title="Total MVP Features"
@@ -367,13 +365,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
           value={`${mvp.readinessPct}%`}
           sub={`${mvp.complete} completed MVP features ÷ ${mvp.total}`}
           accent="#059669"
-          badge={mvp.readinessPct >= 70 ? "On Track" : "At Risk"}
-          badgeColor={mvp.readinessPct >= 70 ? "#059669" : "#d97706"}
+          badge="Feature Completion"
+          badgeColor="#059669"
         />
         <KPICard
           title="Release Candidate"
           value={releaseCandidateLabel}
-          sub="Derived from PI completion"
+          sub={`${GOVERNED_PROGRAM_HEALTH.programStatus} · governance assessment`}
           accent="#1e3a5f"
           badge="Active"
           badgeColor="#1e3a5f"
