@@ -537,14 +537,15 @@ const RECENTLY_CLOSED_PI3 = [
 export default function Home() {
   const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
 
-  // ── MVP-scoped metrics — single source of truth (29 MVP features: 24 numbered + 5 non-batch) ──
+  // ── MVP-scoped metrics — single source of truth (35 delivery items: 30 numbered + 5 non-batch) ──
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
   const liveComplete  = mvp.complete;      // Complete / Delivered / Done
   const liveDev       = mvp.inDev;         // In Progress / Dev
   const liveInReview  = mvp.inReview;      // In Review / QA states
   const livePlanned   = mvp.planned;       // Not Started / Committed
-  const liveTotal     = mvp.total;         // 29 (24 numbered + 5 non-batch Active features)
-  const overallPct    = mvp.readinessPct;  // complete ÷ 29 × 100
+  const liveTotal     = mvp.total;         // 35 (30 numbered + 5 non-batch active features)
+  const overallPct    = mvp.readinessPct;  // complete ÷ 35 × 100
+  const pi3Closed     = piCompletion?.pi3?.complete ?? 0;
 
   // For backward compat with sections that use pi2Done/pi2Active/pi2Planned names
   const pi2Done    = liveComplete;
@@ -1102,7 +1103,7 @@ export default function Home() {
               color: "#047857", backgroundColor: "#a7f3d0",
               border: "1px solid #34d399", borderRadius: "12px",
               padding: "2px 9px", whiteSpace: "nowrap",
-            }}>13 closed this PI</span>
+            }}>{pi3Closed} closed in PI 3</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
             {RECENTLY_CLOSED_PI3.map(r => (

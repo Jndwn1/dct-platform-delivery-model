@@ -308,7 +308,7 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "16": "Complete",   // B16 — Audit Trail & Lineage Governance (ADO: Closed 7/21/2026)
   // ── PI 2/3 — Active per ADO backlog ──────────────────────────────────────────
   "7": "In Progress",  // B7 — Client Tax Profile & Eligibility (ADO: Active)
-  "10": "In Progress", // B10 — Return Assembly, Filing & Lineage Closure (ADO: Active)
+  "10": "Complete",    // B10 — Return Assembly, Filing & Lineage Closure (closed Jul 21, 2026)
   "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (ADO: Active)
   "45": "Committed",   // B45 — Rule Logic Expression Table & Adjustment Subtype Domain Expansion (Planned/Committed)
   // ── PI 3 — ACTIVE (7/13–9/15) ─────────────────────────────────────────
@@ -342,8 +342,27 @@ const STORAGE_KEY     = "dct_batch_status_v9"; // Existing Control Panel selecti
 const AUDITLOG_KEY    = "dct_audit_log_v7";
 const MAX_LOG_ENTRIES = 50;
 const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
-  "8": "Complete",
+  // Preserve historical, ADO-verified closures when an older browser-stored Control Panel state loads.
+  "foundation-core": "Complete",
+  "1": "Complete",
+  "2": "Complete",
+  "2a": "Complete",
+  "3": "Complete",
+  "4": "Complete",
+  "5": "Complete",
+  "6": "Complete",
+  "8-pdc": "Complete",
+  "8-tdc": "Complete",
+  "9": "Complete",
+  "9-pdc": "Complete",
+  "10": "Complete",
+  "11": "Complete",
+  "13": "Complete",
+  "16": "Complete",
+  "17": "Complete",
   "29": "Complete",
+  "43": "Complete",
+  "8": "Complete",
 };
 
 // ── PI membership ─────────────────────────────────────────────────────────────
@@ -357,21 +376,21 @@ export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 };
 
 // ── MVP Batch Portfolio — Single Source of Truth ────────────────────────────
-// 29 MVP-scoped features (ADO-authoritative, July 2026 — includes B45):
+// 35 MVP-scoped delivery items (ADO-authoritative, August 2026 — includes B45):
 //   PI1 Complete (5): foundation-core, 1, 2, 2a, 3
-//   PI2 Complete (4): 4, 5, 6, 11  (B9 excluded — delivered via B9A sub-batch)
-//   PI2 Active (3):   7, 10, 16
-//   PI3 Complete (2): 8, 29 (closed Aug 11) | Active (8): 42, 45, 20, 21, 28, 9a, 17, 31, 26
+//   PI2 Complete (12): 4, 5, 6, 8-pdc, 8-tdc, 9, 9-pdc, 10, 11, 43, 13, 16
+//   PI2 Active (1):    7
+//   PI3 Complete (3):  8, 17, 29 (B8 + B29 closed Aug 11) | Active (8): 42, 45, 20, 21, 28, 9a, 31, 26
 //   Planned (1):      39
 //   Non-batch (5):    qa-workstream, env-management, roger-stabilization, platform-defect, mvp-enhancements
-// TOTAL: 5 + 4 + 4 + 10 + 1 + 5 = 29 ✓
+// TOTAL: 5 + 12 + 1 + 11 + 1 + 5 = 35 ✓ | Complete: 20 | Readiness: 57%
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
-  // PI 2 — ADO-verified Complete (4): B4, B5, B6, B11 (B9 PDC delivered via B9A; B9 parent excluded)
-  "4", "5", "6", "11",
-  // PI 2 — Active (3): B7, B10, B16
-  "7", "10", "16",
+  // PI 2 — ADO-verified Complete (12)
+  "4", "5", "6", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16",
+  // PI 2 — Active (1)
+  "7",
   // PI 3 — B8 + B29 closed Aug 11; remaining delivery portfolio
   "8", "42", "45", "20", "21", "28", "9a", "17", "29", "31", "26",
   // Planned (1)
@@ -382,7 +401,7 @@ export const MVP_BATCH_KEYS: BatchKey[] = [
 
 /** Derive MVP-scoped metrics from live statuses. All dashboard components must use this. */
 export function deriveMvpMetrics(statuses: BatchStatusMap) {
-  const total = MVP_BATCH_KEYS.length; // 29: 24 numbered batches + 5 non-batch Active features
+  const total = MVP_BATCH_KEYS.length; // 35: 30 numbered delivery items + 5 non-batch active features
   let complete = 0, inDev = 0, inReview = 0, planned = 0;
   for (const k of MVP_BATCH_KEYS) {
     const v = (statuses as unknown as Record<string, string>)[k] ?? "Not Started";
@@ -509,7 +528,7 @@ function deriveAllReadiness(statuses: BatchStatusMap): DerivedReadiness {
   };
 }
 
-function derivePICompletion(statuses: BatchStatusMap): PICompletion {
+export function derivePICompletion(statuses: BatchStatusMap): PICompletion {
   const calc = (keys: BatchKey[]) => {
     const total    = keys.length;
     const complete = keys.filter(k => isDelivered(statuses[k])).length;

@@ -12,7 +12,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import {
-  useBatchStatus, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
+  useBatchStatus, deriveMvpMetrics, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
 } from "@/contexts/BatchStatusContext";
 import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send, Download, FileSpreadsheet, FileJson, AlignLeft, Filter } from "lucide-react";
@@ -1237,6 +1237,7 @@ function GateStatusBadge({ status }: { status: "Complete" | "In Progress" | "Loc
 
 export default function BatchControlPanel() {
   const { statuses, setStatus, resetAll, gates, lastUpdated, syncLog, clearSyncLog, unlockedBatches, piCompletion, cascade } = useBatchStatus();
+  const mvpMetrics = deriveMvpMetrics(statuses);
   const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
   const [poSummaryCopied, setPoSummaryCopied] = useState(false);
   const [poSummaryGeneratedAt, setPoSummaryGeneratedAt] = useState<string | null>(null);
@@ -1742,12 +1743,13 @@ export default function BatchControlPanel() {
       )}
 
       {/* ── Summary Stats ── */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { count: complete,  label: "Complete",   bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
           { count: dev,       label: "In Dev",      bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700" },
           { count: inReview,  label: "In Review",   bg: "bg-violet-50",  border: "border-violet-200",  text: "text-violet-700" },
           { count: planned,   label: "Planned",     bg: "bg-slate-50",   border: "border-slate-200",   text: "text-slate-600" },
+          { count: `${mvpMetrics.readinessPct}%`, label: "MVP Readiness", bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
         ].map(s => (
           <div key={s.label} className={`${s.bg} border ${s.border} rounded-xl p-4 text-center`}>
             <div className={`text-3xl font-bold ${s.text}`}>{s.count}</div>

@@ -38,7 +38,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     businessObjects: ["Batch", "Gate", "PI", "Release Candidate"],
     integrations: ["BatchStatusContext", "Azure DevOps", "GitHub"],
     lastUpdated: "2026-08-11",
-    lastChange: "Batch 8 and Batch 29 closed in PI3 on August 11; delivery highlights, active batches, recently closed batches, and readiness metrics were refreshed.",
+    lastChange: "Batch 8 and Batch 29 closed in PI3 on August 11; the delivery portfolio now reports 20 completed items and 57% MVP readiness, with PI2 and PI3 metrics derived from their authoritative memberships.",
   },
 
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     businessObjects: ["Batch", "Gate", "RogerAPI", "PICompletion"],
     integrations: ["BatchStatusContext", "DiscoveryContext", "Azure DevOps"],
     lastUpdated: "2026-08-11",
-    lastChange: "Batch 8 and Batch 29 are recorded as PI3 closures on August 11, including Control Panel, API coverage, and Roger readiness rollups.",
+    lastChange: "Batch 8 and Batch 29 are recorded as PI3 closures on August 11. Control Panel rollups align to 20 completed delivery items and the authoritative PI2 and PI3 completion calculations.",
   },
 
   // ─── BATCH DETAIL ────────────────────────────────────────────────────────────

@@ -202,15 +202,15 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isActive   = (v: string) => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed";
 
-  // ── MVP-scoped metrics (single source of truth — 29 MVP features) ──
+  // ── MVP-scoped metrics (single source of truth — 35 delivery items) ──
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
-  const totalBatches       = mvp.total;        // 29 MVP features (24 numbered + 5 non-batch Active)
+  const totalBatches       = mvp.total;        // 35 delivery items (30 numbered + 5 non-batch active)
   const completedCount     = mvp.complete;     // Complete / Delivered / Done
   const activeCount        = mvp.inDev;        // In Progress / Dev
   const inReviewCount      = mvp.inReview;     // In Review / QA states
   const plannedCount       = mvp.planned;      // Not Started / Committed / etc.
   const onHoldCount        = 0;                // On Hold excluded from MVP scope
-  const platformReadinessPct = mvp.readinessPct; // complete ÷ 29 × 100 (no weighting)
+  const platformReadinessPct = mvp.readinessPct; // complete ÷ 35 × 100 (no weighting)
 
   // Release Candidate — derived from PI completion: PI1+PI2 complete → RC-3 (PI 3 active)
   const releaseCandidateLabel = useMemo(() => {
