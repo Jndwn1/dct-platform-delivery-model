@@ -1416,10 +1416,10 @@ export default function BatchControlPanel() {
     }
   };
 
-  const complete = batchMetrics.complete;
-  const dev = batchMetrics.inDev;
-  const inReview = batchMetrics.inReview;
-  const planned = batchMetrics.planned;
+  const complete = mvpMetrics.complete;
+  const dev = mvpMetrics.inDev;
+  const inReview = mvpMetrics.inReview;
+  const planned = mvpMetrics.planned;
 
   const advanceAll = () => {
     BATCH_KEYS.forEach(k => {
@@ -1767,11 +1767,11 @@ export default function BatchControlPanel() {
       {/* ── Summary Stats ── */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { count: complete,  label: "Complete",   bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
-          { count: dev,       label: "In Dev",      bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700" },
-          { count: inReview,  label: "In Review",   bg: "bg-violet-50",  border: "border-violet-200",  text: "text-violet-700" },
-          { count: planned,   label: "Planned",     bg: "bg-slate-50",   border: "border-slate-200",   text: "text-slate-600" },
-          { count: `${batchMetrics.readinessPct}%`, label: "Batch Readiness", bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
+          { count: complete,  label: "MVP Complete",   bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
+          { count: dev,       label: "MVP Active",     bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700" },
+          { count: inReview,  label: "MVP In Review",  bg: "bg-violet-50",  border: "border-violet-200",  text: "text-violet-700" },
+          { count: planned,   label: "MVP Planned",    bg: "bg-slate-50",   border: "border-slate-200",   text: "text-slate-600" },
+          { count: `${mvpMetrics.readinessPct}%`, label: "MVP Readiness", bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
         ].map(s => (
           <div key={s.label} className={`${s.bg} border ${s.border} rounded-xl p-4 text-center`}>
             <div className={`text-3xl font-bold ${s.text}`}>{s.count}</div>

@@ -748,11 +748,11 @@ export default function Home() {
         {/* KPI row */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px", marginTop: "20px", position: "relative" }}>
           {[
-            { label: "Batches Complete", value: batchComplete, sub: "Batch delivery only", color: "#34d399" },
-            { label: "Batches In Dev",   value: batchDev,      sub: "Active / in development", color: "#60a5fa" },
-            { label: "Batches In Review", value: batchInReview, sub: "Review Ready",       color: "#a78bfa" },
-            { label: "Batches Planned",  value: batchPlanned,  sub: "Not Started only",   color: "#94a3b8" },
-            { label: "Total MVP Features", value: mvp.total,     sub: `${batchTotal} batch + 5 non-batch`, color: "#fb923c" },
+            { label: "MVP Features Complete", value: mvp.complete, sub: "ADO-backed lifecycle", color: "#34d399" },
+            { label: "MVP Features Active", value: mvp.inDev, sub: "11 Active ADO features", color: "#60a5fa" },
+            { label: "MVP Features In Review", value: mvp.inReview, sub: "2 Review Ready", color: "#a78bfa" },
+            { label: "MVP Features Planned", value: mvp.planned, sub: "Not Started only", color: "#94a3b8" },
+            { label: "Total MVP Features", value: mvp.total, sub: `${batchTotal} batch + 5 non-batch`, color: "#fb923c" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",

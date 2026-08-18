@@ -466,6 +466,22 @@ export const MVP_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
 export type DeliveryMetricBucket = "Complete" | "In Development" | "In Review" | "Planned";
 
 /**
+ * User-confirmed ADO baseline. This is the only approved primary MVP KPI
+ * population until the business owner supplies a new ADO baseline.
+ */
+export const LOCKED_MVP_BASELINE = {
+  asOf: "2026-08-18",
+  totalFeatures: 28,
+  batchFeatures: 23,
+  nonBatchFeatures: 5,
+  complete: 15,
+  active: 11,
+  inReview: 2,
+  planned: 0,
+  readinessPct: 54,
+} as const;
+
+/**
  * August 18 governed portfolio status. It is intentionally separate from ADO
  * activity: active ADO work can exist after governed delivery is complete.
  */
@@ -509,8 +525,9 @@ export const PI3_HISTORICAL_COMPLETION_BASELINE = {
 
 /** Legitimate PI3 completions after the July 28 historical baseline. */
 export const PI3_POST_BASELINE_CLOSURES = [
+  { id: "B16", batch: "B16", name: "Audit Trail & Lineage Governance", platform: "PDC", completionDate: "2026-08-04", latestDeploymentDate: "2026-08-04", qaStatus: "In Validation" as QAValidationStatus },
   { id: "B17", batch: "B17", name: "Decision Support, Overrides, Evidence & Workpapers", platform: "TDC", completionDate: "2026-08-04", latestDeploymentDate: "2026-08-04", qaStatus: "In Validation" as QAValidationStatus },
-  { id: "B29", batch: "B29", name: "Consolidated Return Assembly", platform: "TDC", completionDate: "2026-08-11", latestDeploymentDate: "2026-08-11", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "B29", batch: "B29", name: "Prior-Year Migration", platform: "TDC", completionDate: "2026-08-11", latestDeploymentDate: "2026-08-11", qaStatus: "In Validation" as QAValidationStatus },
 ] as const;
 
 export const GOVERNED_PROGRAM_HEALTH = {
@@ -606,6 +623,16 @@ export function deriveBatchMetrics(statuses: BatchStatusMap) {
 /** Overall MVP delivery metrics. Includes batch and non-batch MVP features. */
 export function deriveMvpMetrics(statuses: BatchStatusMap) {
   return deriveDeliveryMetrics(statuses, MVP_DELIVERY_RECORDS);
+}
+
+/** Prevents a future dashboard refresh from silently drifting from the locked baseline. */
+export function matchesLockedMvpBaseline(metrics: DeliveryMetrics): boolean {
+  return metrics.total === LOCKED_MVP_BASELINE.totalFeatures
+    && metrics.complete === LOCKED_MVP_BASELINE.complete
+    && metrics.inDev === LOCKED_MVP_BASELINE.active
+    && metrics.inReview === LOCKED_MVP_BASELINE.inReview
+    && metrics.planned === LOCKED_MVP_BASELINE.planned
+    && metrics.readinessPct === LOCKED_MVP_BASELINE.readinessPct;
 }
 
 // ── Storage helpers ───────────────────────────────────────────────────────────

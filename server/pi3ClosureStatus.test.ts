@@ -4,6 +4,8 @@ import {
   BATCH_DELIVERY_RECORDS,
   buildDeliveryReconciliationDataset,
   GOVERNED_PROGRAM_HEALTH,
+  LOCKED_MVP_BASELINE,
+  matchesLockedMvpBaseline,
   NON_BATCH_MVP_RECORDS,
   PI3_HISTORICAL_COMPLETION_BASELINE,
   PI3_POST_BASELINE_CLOSURES,
@@ -37,6 +39,21 @@ describe("PI3 closure status model", () => {
       planned: 0,
       readinessPct: 54,
     });
+  });
+
+  it("matches the user-confirmed locked MVP baseline", () => {
+    const metrics = deriveMvpMetrics(DEFAULT_STATUS);
+    expect(LOCKED_MVP_BASELINE).toMatchObject({
+      totalFeatures: 28,
+      batchFeatures: 23,
+      nonBatchFeatures: 5,
+      complete: 15,
+      active: 11,
+      inReview: 2,
+      planned: 0,
+      readinessPct: 54,
+    });
+    expect(matchesLockedMvpBaseline(metrics)).toBe(true);
   });
 
   it("keeps Batch Delivery separate from the five non-batch MVP features", () => {
@@ -119,7 +136,11 @@ describe("PI3 closure status model", () => {
 
   it("preserves the July 28 PI3 historical baseline and post-baseline closure history", () => {
     expect(PI3_HISTORICAL_COMPLETION_BASELINE).toMatchObject({ asOf: "2026-07-28", cumulativeComplete: 11, reportingWeekComplete: 8 });
-    expect(PI3_POST_BASELINE_CLOSURES.map(item => item.completionDate)).toEqual(["2026-08-04", "2026-08-11"]);
+    expect(PI3_POST_BASELINE_CLOSURES).toMatchObject([
+      { id: "B16", platform: "PDC", name: "Audit Trail & Lineage Governance", completionDate: "2026-08-04" },
+      { id: "B17", platform: "TDC", name: "Decision Support, Overrides, Evidence & Workpapers", completionDate: "2026-08-04" },
+      { id: "B29", platform: "TDC", name: "Prior-Year Migration", completionDate: "2026-08-11" },
+    ]);
     expect(GOVERNED_PROGRAM_HEALTH).toMatchObject({ programStatus: "On Track", releaseCandidate: "RC-3" });
     const dataset = buildDeliveryReconciliationDataset(DEFAULT_STATUS);
     expect(dataset.every(record => !(record.includedInThisWeek && record.originalCompletionDate === "2026-08-11"))).toBe(true);

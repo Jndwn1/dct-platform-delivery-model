@@ -57,3 +57,9 @@ PI2 delivery is shown at **70% Complete**, with a separate 86% QA validation ind
 2. Platform Home, Executive Dashboard, Batch Control Panel, Delivery Intelligence, and UAT Release Candidate views consume shared governed values rather than independent KPI formulas.
 3. The Batch Control Panel displays ADO Activity separately from Portfolio Delivery and includes the historical PI3 baseline and QA context.
 4. Regression coverage validates the 23/28 portfolio, 15/11/2/0 MVP buckets, 15/6/2/0 batch buckets, ADO-backed PI2 and PI3 delivery completion, and the historical closure baseline.
+
+## Browser Verification — Locked Baseline
+
+The Platform Home primary KPI row and the Batch Control Panel primary summary were reviewed after the baseline lock. Both display **28 total MVP features**, **15 Complete**, **11 Active**, **2 In Review**, and **0 Planned**. Delivery Intelligence separately displays the PI3 subset of the same model: 3 Complete, 3 Active batch features, and 2 Review Ready records; it also identifies the 11-feature overall Active ADO population as a separate platform measure.
+
+The rendered Executive Delivery Dashboard was also verified after the baseline lock. Its four primary lifecycle KPI cards display **15 MVP Features Complete**, **11 MVP Features Active**, **2 MVP Features In Review**, and **0 MVP Features Planned**, with ADO-backed lifecycle context on each card.

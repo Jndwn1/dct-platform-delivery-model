@@ -205,7 +205,6 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // ── Separate Batch Delivery and Overall MVP Delivery metrics ──
   const batch = useMemo(() => deriveBatchMetrics(statuses), [statuses]);
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
-  const totalBatches = batch.total;
   const totalMvpFeatures = mvp.total;
 
   const releaseCandidateLabel = useMemo(() => deriveReleaseCandidate(piCompletion), [piCompletion]);
@@ -309,63 +308,49 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         marginBottom: "14px",
       }}>
         <KPICard
-          title="Total Batches"
-          value={totalBatches}
-          sub="Batch delivery only"
+          title="Total MVP Features"
+          value={totalMvpFeatures}
+          sub="23 batch + 5 non-batch"
           accent="#1e3a5f"
         />
         <KPICard
-          title="Batches Complete"
-          value={batch.complete}
-          sub="Batch delivery only"
+          title="MVP Features Complete"
+          value={mvp.complete}
+          sub="ADO-backed lifecycle"
           accent="#059669"
           badge="Done"
           badgeColor="#059669"
         />
         <KPICard
-          title="Batches In Development"
-          value={batch.inDev}
-          sub="Governed portfolio delivery"
+          title="MVP Features Active"
+          value={mvp.inDev}
+          sub="11 Active ADO features"
           accent="#2563eb"
           badge="In Flight"
           badgeColor="#2563eb"
         />
         <KPICard
-          title="Batches In Review"
-          value={batch.inReview}
-          sub="Review Ready"
+          title="MVP Features In Review"
+          value={mvp.inReview}
+          sub="2 Review Ready"
           accent="#7c3aed"
           badge="Review"
           badgeColor="#7c3aed"
         />
         <KPICard
-          title="Batches Planned"
-          value={batch.planned}
+          title="MVP Features Planned"
+          value={mvp.planned}
           sub="Authoritative Not Started only"
           accent="#94a3b8"
           badge="Upcoming"
           badgeColor="#64748b"
         />
         <KPICard
-          title="Batch Readiness"
-          value={`${batch.readinessPct}%`}
-          sub={`${batch.complete} completed batches ÷ ${batch.total}`}
-          accent="#059669"
-          badge="Delivery Completion"
-          badgeColor="#059669"
-        />
-        <KPICard
-          title="Total MVP Features"
-          value={totalMvpFeatures}
-          sub={`${batch.total} batch + 5 non-batch`}
-          accent="#1e3a5f"
-        />
-        <KPICard
           title="Overall MVP Readiness"
           value={`${mvp.readinessPct}%`}
-          sub={`${mvp.complete} completed MVP features ÷ ${mvp.total}`}
+          sub={`${mvp.complete} complete MVP features ÷ ${mvp.total}`}
           accent="#059669"
-          badge="Feature Completion"
+          badge="Delivery Completion"
           badgeColor="#059669"
         />
         <KPICard

@@ -6,7 +6,7 @@ import { useState, useRef, useCallback } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { trpc } from "@/lib/trpc";
-import { deriveReleaseCandidate, useBatchStatus } from "@/contexts/BatchStatusContext";
+import { deriveMvpMetrics, deriveReleaseCandidate, useBatchStatus } from "@/contexts/BatchStatusContext";
 
 // ─── Batch data type ──────────────────────────────────────────────────────────
 interface BatchRow {
@@ -43,6 +43,7 @@ function buildEmailHTML(
   recentDeployments: Array<{ releaseName: string; deploymentDate: string; status: string }>,
   piStats: { pi: string; total: number; done: number; active: number }[],
   releaseCandidate: string,
+  mvp: { total: number; complete: number; inDev: number; inReview: number; planned: number; readinessPct: number },
 ): string {
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
@@ -50,7 +51,7 @@ function buildEmailHTML(
   const filteredBatches = batches.filter(b => b.pi === "PI 1" || b.pi === "PI 2" || b.pi === "PI 3");
   const totalBatches = filteredBatches.length;
   const doneBatches = filteredBatches.filter(b => b.status === "Done" || b.status === "Complete").length;
-  const activeBatches = filteredBatches.filter(b => b.status === "In Progress").length;
+  const activeBatches = mvp.inDev;
 
   // Group filtered batches by PI
   const piGroups: Record<string, BatchRow[]> = {};
@@ -67,22 +68,26 @@ function buildEmailHTML(
   const pi3Done = pi3Batches.filter(b => b.status === "Done" || b.status === "Complete").length;
   const pi2Pct = pi2Batches.length > 0 ? Math.round((pi2Done / pi2Batches.length) * 100) : 0;
   const pi3Pct = pi3Batches.length > 0 ? Math.round((pi3Done / pi3Batches.length) * 100) : 0;
-  const overallPct = totalBatches > 0 ? Math.round((doneBatches / totalBatches) * 100) : 0;
+  const overallPct = mvp.readinessPct;
 
   const kpiCard = `
     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
         <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
           <div style="font-size:24px;font-weight:800;color:#059669;">${overallPct}%</div>
-          <div style="font-size:11px;color:#64748b;font-weight:600;">Overall Progress</div>
+          <div style="font-size:11px;color:#64748b;font-weight:600;">Overall MVP Readiness</div>
         </div>
         <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
-          <div style="font-size:24px;font-weight:800;color:#0f1623;">${doneBatches}</div>
-          <div style="font-size:11px;color:#64748b;font-weight:600;">Batches Complete</div>
+          <div style="font-size:24px;font-weight:800;color:#0f1623;">${mvp.complete}</div>
+          <div style="font-size:11px;color:#64748b;font-weight:600;">MVP Features Complete</div>
         </div>
         <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
           <div style="font-size:24px;font-weight:800;color:#2563eb;">${activeBatches}</div>
-          <div style="font-size:11px;color:#64748b;font-weight:600;">Active Batches</div>
+          <div style="font-size:11px;color:#64748b;font-weight:600;">MVP Features Active</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+          <div style="font-size:24px;font-weight:800;color:#7c3aed;">${mvp.inReview}</div>
+          <div style="font-size:11px;color:#64748b;font-weight:600;">MVP Features In Review</div>
         </div>
         <div style="text-align:center;padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
           <div style="font-size:24px;font-weight:800;color:#7c3aed;">Sep 21</div>
@@ -162,7 +167,7 @@ function buildEmailHTML(
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
       <span style="font-size:11px;font-weight:600;color:white;background:#059669;border-radius:4px;padding:3px 8px;">PI 1–2 Done</span>
-      <span style="font-size:11px;font-weight:600;color:white;background:#2563eb;border-radius:4px;padding:3px 8px;">${activeBatches} Active</span>
+      <span style="font-size:11px;font-weight:600;color:white;background:#2563eb;border-radius:4px;padding:3px 8px;">${activeBatches} Active MVP Features</span>
       <span style="font-size:11px;font-weight:600;color:white;background:#7c3aed;border-radius:4px;padding:3px 8px;">Pilot: Sep 21, 2026</span>
       <span style="font-size:11px;font-weight:600;color:white;background:#0f1623;border-radius:4px;padding:3px 8px;">${releaseCandidate} Active</span>
     </div>
@@ -212,7 +217,8 @@ interface GeneratePOEmailProps {
 }
 
 export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEmailProps) {
-  const { piCompletion } = useBatchStatus();
+  const { piCompletion, statuses } = useBatchStatus();
+  const mvp = deriveMvpMetrics(statuses);
   const releaseCandidate = deriveReleaseCandidate(piCompletion);
   const [open, setOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -254,11 +260,11 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
       }
     }
 
-    const html = buildEmailHTML(batches, imgDataUrl, recentDeployments as Array<{ releaseName: string; deploymentDate: string; status: string }>, piStats, releaseCandidate);
+    const html = buildEmailHTML(batches, imgDataUrl, recentDeployments as Array<{ releaseName: string; deploymentDate: string; status: string }>, piStats, releaseCandidate, mvp);
     setEmailHTML(html);
     setGenerating(false);
     setOpen(true);
-  }, [dashboardRef, batches, recentDeployments, piStats]);
+  }, [dashboardRef, batches, recentDeployments, piStats, mvp]);
 
   const handleCopy = useCallback(async () => {
     if (!emailHTML) return;
