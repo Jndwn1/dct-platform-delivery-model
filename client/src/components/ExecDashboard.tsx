@@ -221,6 +221,8 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // PI delivery progress is governed separately from QA validation progress.
   const pi2Pct = piCompletion?.pi2?.pct ?? 0;
   const pi3Pct = piCompletion?.pi3?.pct ?? 0;
+  const pi3Complete = piCompletion?.pi3?.complete ?? 0;
+  const pi3Total = piCompletion?.pi3?.total ?? 0;
 
   // Last updated label
   const lastUpdatedLabel = lastUpdated
@@ -247,11 +249,12 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
     },
     {
       pi: "PI 3",
-      status: "Active",
+      status: `Active · ${pi3Complete}/${pi3Total}`,
       pct: pi3Pct,
       color: "#2563eb",
       bg: "#eff6ff",
       border: "#bfdbfe",
+      note: "Current ADO PI3 scope: 3 Active batch features and 2 B31 Review Ready records are included in the denominator.",
     },
     {
       pi: "PI 4",

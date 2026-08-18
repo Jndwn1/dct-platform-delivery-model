@@ -19,10 +19,12 @@ import { BATCH_CALENDAR_PI23 } from "../client/src/components/ExecDashboard";
 import { HISTORICAL_ADO_EXCLUDED_BATCH_IDS } from "../client/src/pages/BatchDetailPage";
 
 describe("PI3 closure status model", () => {
-  it("records Batch 8 and Batch 29 as closed PI3 batches", () => {
+  it("records Batch 16 and Batch 29 as closed PI3 batches while retaining Batch 8 as a closed PI2 batch", () => {
     expect(DEFAULT_STATUS["8"]).toBe("Complete");
+    expect(DEFAULT_STATUS["16"]).toBe("Complete");
     expect(DEFAULT_STATUS["29"]).toBe("Complete");
-    expect(PI_MEMBERSHIP.pi3).toEqual(expect.arrayContaining(["8", "29"]));
+    expect(PI_MEMBERSHIP.pi2).toEqual(expect.arrayContaining(["8"]));
+    expect(PI_MEMBERSHIP.pi3).toEqual(expect.arrayContaining(["16", "29"]));
   });
 
   it("maps both closures to the platform closed status", () => {
@@ -132,6 +134,8 @@ describe("PI3 closure status model", () => {
       pi2: { total: 10, complete: 7, pct: 70 },
       pi3: { total: 8, complete: 3, pct: 38 },
     });
+    expect(BATCH_DELIVERY_RECORDS.find(record => record.id === "B8")?.pi).toBe("PI2");
+    expect(BATCH_DELIVERY_RECORDS.find(record => record.id === "B16")?.pi).toBe("PI3");
   });
 
   it("preserves the July 28 PI3 historical baseline and post-baseline closure history", () => {

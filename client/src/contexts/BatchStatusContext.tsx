@@ -369,8 +369,8 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
 // PI_MEMBERSHIP reflects Roadmap v8 (updated July 2026) — 9-tdc & 12 excluded from PI 2 (On Hold)
 export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
-  pi2:  ["4", "5", "6", "7", "10", "11", "43", "13", "16", "42"], // Current ADO: B7, B10, B42 Active
-  pi3:  ["8", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A Active; B31 Review Ready
+  pi2:  ["4", "5", "6", "7", "8", "10", "11", "43", "13", "42"], // Current ADO: B7, B10, B42 Active
+  pi3:  ["16", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A Active; B31 Review Ready
   pi4:  ["19", "40", "35", "26-tdc"],
 };
 
@@ -437,9 +437,9 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "B11", statusKey: "11", adoId: noAdo, featureName: BATCH_LABELS["11"], batchNumber: "B11", classification: "Batch", pi: "PI2" },
   { id: "B43", statusKey: "43", adoId: noAdo, featureName: BATCH_LABELS["43"], batchNumber: "B43", classification: "Batch", pi: "PI2" },
   { id: "B13", statusKey: "13", adoId: noAdo, featureName: BATCH_LABELS["13"], batchNumber: "B13", classification: "Batch", pi: "PI2" },
-  { id: "B16", statusKey: "16", adoId: "1390258", featureName: BATCH_LABELS["16"], batchNumber: "B16", classification: "Batch", pi: "PI2" },
+  { id: "B16", statusKey: "16", adoId: "1390258", featureName: BATCH_LABELS["16"], batchNumber: "B16", classification: "Batch", pi: "PI3" },
   { id: "B7", statusKey: "7", adoId: "1354322", featureName: BATCH_LABELS["7"], batchNumber: "B7", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
-  { id: "B8", statusKey: "8", adoId: noAdo, featureName: BATCH_LABELS["8"], batchNumber: "B8", classification: "Batch", pi: "PI3" },
+  { id: "B8", statusKey: "8", adoId: noAdo, featureName: BATCH_LABELS["8"], batchNumber: "B8", classification: "Batch", pi: "PI2" },
   { id: "B17", statusKey: "17", adoId: noAdo, featureName: BATCH_LABELS["17"], batchNumber: "B17", classification: "Batch", pi: "PI3" },
   { id: "B29A", statusKey: "29", adoId: noAdo, featureName: BATCH_LABELS["29"], batchNumber: "B29A", classification: "Batch", pi: "PI3" },
   { id: "B42", statusKey: "42", adoId: "1402117", featureName: BATCH_LABELS["42"], batchNumber: "B42", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
