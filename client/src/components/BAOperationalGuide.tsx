@@ -74,7 +74,7 @@ const GUIDE_CARDS: GuideCard[] = [
     metricKey: "activeBatches",
     healthColor: "yellow",
     explanation:
-      "An Active batch is currently in delivery — stories are in progress, engineering is building, and gates are being worked toward. Active batches have not yet passed all four gate conditions. The current active batch is B8 (Exceptions & Remediation). Multiple batches can be Active simultaneously within a PI if they have no blocking dependencies on each other.",
+      "An Active batch is currently in delivery — stories are in progress, engineering is building, and gates are being worked toward. Active batches have not yet passed all four gate conditions. Batch 8 (Exceptions & Remediation) closed in PI3 on August 11, 2026; use the Control Panel for the current active batch list. Multiple batches can be Active simultaneously within a PI if they have no blocking dependencies on each other.",
     whyItMatters:
       "Active batches represent the current delivery risk surface. Every active batch is a potential blocker for downstream Roger readiness, PI demo commitments, and contract publication. BAs must monitor active batches weekly to catch dependency conflicts before they become sprint blockers.",
     baInterpretation:

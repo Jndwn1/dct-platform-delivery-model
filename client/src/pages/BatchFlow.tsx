@@ -13,7 +13,7 @@ const BATCH_OPTIONS = [
   { id: "5", label: "Batch 5 — Entity Identity & Structure", status: "Planned" },
   { id: "6", label: "Batch 6 — Practitioner Review, Adjustments & Lock", status: "Planned" },
   { id: "7", label: "Batch 7 — Client Tax Profile & Eligibility", status: "Planned" },
-  { id: "8", label: "Batch 8 — Exceptions & Remediation", status: "Planned" },
+  { id: "8", label: "Batch 8 — Exceptions & Remediation", status: "Done" },
   { id: "9", label: "Batch 9 — Roger Gateway & Governed Consumer Access Layer (PDC)", status: "Planned" },
   { id: "10", label: "Batch 10 — Return Assembly, Filing & Lineage Closure", status: "Done" },
   { id: "43", label: "Batch 43 — Practitioner Book & Reclass Adjustments (TDC)", status: "New" },

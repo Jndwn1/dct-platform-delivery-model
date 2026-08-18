@@ -83,7 +83,7 @@ const ROGER_DATA_POINTS_STATIC = [
   { dataPoint: "Review Task State and Adjustment Lifecycle", batch: "6", system: "TDC", apiEndpoint: "/api/v1/review-tasks", owner: "TDC" },
   { dataPoint: "Tax-Ready Records (Locked, Derived)", batch: "6", system: "TDC", apiEndpoint: "/api/v1/tax-ready-records", owner: "TDC" },
   { dataPoint: "Eligibility Status and Rule Reasoning", batch: "7", system: "TDC", apiEndpoint: "/api/v1/eligibility", owner: "TDC" },
-  { dataPoint: "Exception Status (Ingestion, Mapping, Workflow)", batch: "8", system: "PDC+TDC", apiEndpoint: "— In Progress", owner: "PDC+TDC" },
+  { dataPoint: "Exception Status (Ingestion, Mapping, Workflow)", batch: "8", system: "PDC+TDC", apiEndpoint: "/api/v1/exception-records", owner: "PDC+TDC" },
 ];
 
 // ── Helper components ────────────────────────────────────────────────────────
@@ -985,7 +985,7 @@ export default function IntegrationAlignmentHub() {
               batch: `Batch ${d.batch}`,
               availability: d.apiEndpoint === '— In Progress' ? 'In Progress' : 'Available',
               apiEndpoint: d.apiEndpoint,
-              notes: d.apiEndpoint === '— In Progress' ? 'Active delivery — B8 in progress' : 'Delivered',
+              notes: d.apiEndpoint === '— In Progress' ? 'Awaiting current delivery confirmation' : 'Delivered',
               owner: d.owner,
               adoStories: [],
             }))}

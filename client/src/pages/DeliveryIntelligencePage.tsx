@@ -220,7 +220,7 @@ export default function DeliveryIntelligencePage() {
   const isBlocked = (key: string) => liveStatus(key) === "Blocked";
 
   // ── PI3 batch counts ──
-  const pi3Keys = ["9a", "42", "43", "17", "20", "21", "26", "28", "29", "39", "31", "33"];
+  const pi3Keys = ["8", "9a", "42", "43", "17", "20", "21", "26", "28", "29", "39", "31", "33"];
   const pi3Complete = useMemo(() => pi3Keys.filter(k => isComplete(k)).length, [statuses]);
   const pi3Active = useMemo(() => pi3Keys.filter(k => isActive(k)).length, [statuses]);
   const pi3Blocked = useMemo(() => pi3Keys.filter(k => isBlocked(k)).length, [statuses]);

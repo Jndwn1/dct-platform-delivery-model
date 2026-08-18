@@ -37,7 +37,8 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["All batches (B1–B43+)"],
     businessObjects: ["Batch", "Gate", "PI", "Release Candidate"],
     integrations: ["BatchStatusContext", "Azure DevOps", "GitHub"],
-    lastUpdated: "2026-07-16",
+    lastUpdated: "2026-08-11",
+    lastChange: "Batch 8 and Batch 29 closed in PI3 on August 11; delivery highlights, active batches, recently closed batches, and readiness metrics were refreshed.",
   },
 
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────
@@ -53,7 +54,8 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "B24", "B25", "B26", "B27", "B28", "B29", "B30", "B31", "B32", "B33", "B34", "B35", "B36", "B37", "B38", "B39", "B40", "B41", "B42", "B43"],
     businessObjects: ["Batch", "Gate", "RogerAPI", "PICompletion"],
     integrations: ["BatchStatusContext", "DiscoveryContext", "Azure DevOps"],
-    lastUpdated: "2026-07-16",
+    lastUpdated: "2026-08-11",
+    lastChange: "Batch 8 and Batch 29 are recorded as PI3 closures on August 11, including Control Panel, API coverage, and Roger readiness rollups.",
   },
 
   // ─── BATCH DETAIL ────────────────────────────────────────────────────────────

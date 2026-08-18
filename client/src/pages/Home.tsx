@@ -38,7 +38,7 @@ const BATCH_CALENDAR_PI23 = [
   { pi: "PI 3", status: "MVP",         batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
   { pi: "PI 3", status: "MVP",         batch: "B39",   feat: "TDC",     name: "Calculation Report",                                                startDate: "Fri 7/31",  endDate: "Mon 8/10",  whatItDoes: "Produces the packaged, partner-ready calculation and sign-off report.",                                                                         rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
   { pi: "PI 3", status: "MVP",         batch: "B20",   feat: "PDC",     name: "Firm Governance & Professional Standards",                          startDate: "Thu 7/23",  endDate: "Fri 7/31",  whatItDoes: "Holds firm governance and professional standards that gate sign-off.",                                                                          rogerImpact: "None: gates sign-off, no new screen" },
-  { pi: "PI 3", status: "MVP",         batch: "B29",   feat: "TDC",     name: "Consolidated Return Assembly",                                      startDate: "Tue 8/11",  endDate: "Wed 8/19",  whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                                rogerImpact: "High: consolidated / multi-entity views + Form 1120" },
+  { pi: "PI 3", status: "Done",        batch: "B29",   feat: "TDC",     name: "Consolidated Return Assembly",                                      startDate: "Tue 8/11",  endDate: "Tue 8/11",  whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                                rogerImpact: "High: consolidated / multi-entity views + Form 1120" },
   { pi: "PI 3", status: "MVP",         batch: "B21",   feat: "PDC",     name: "Quality Control Standards",                                        startDate: "Mon 8/3",   endDate: "Tue 8/11",  whatItDoes: "Holds quality-control review standards and concurring-partner rules.",                                                                          rogerImpact: "None: reference only, no new screen" },
   { pi: "PI 3", status: "MVP",         batch: "B17",   feat: "TDC",     name: "Decision Support, Overrides, Evidence & Workpapers",               startDate: "Thu 8/20",  endDate: "Fri 8/28",  whatItDoes: "Adds override policies, evidence on decisions, and workpaper lock to snapshot.",                                                                rogerImpact: "Med: wire evidence / override / lock into review screens" },
   { pi: "PI 3", status: "MVP",         batch: "B26",   feat: "PDC",     name: "Entity Constituents & Allocations",                                 startDate: "Wed 8/12",  endDate: "Thu 8/20",  whatItDoes: "Models sub-entities (divisions, branches) and inter-entity allocations.",                                                                       rogerImpact: "None: structure only in MVP" },
@@ -72,7 +72,7 @@ const BATCH_REFERENCE = [
   { pi: "PI 3", status: "In Progress", batchNum: "21",  platform: "PDC",      name: "Multi-Entity Consolidation",                                         whatItDoes: "Consolidates financial data across multiple entities for group-level reporting.",                                                              rogerImpact: "Consolidation View" },
   { pi: "PI 3", status: "In Progress", batchNum: "26",  platform: "PDC",      name: "Known Mappings — Confirmed Classification Retrieval",                whatItDoes: "Retrieves and surfaces confirmed classification decisions for practitioner review.",                                                             rogerImpact: "Line Mappings (Stage 2)" },
   { pi: "PI 3", status: "In Progress", batchNum: "28",  platform: "TDC",      name: "Deferred Tax & Temporary Differences",                               whatItDoes: "Computes deferred tax assets/liabilities and temporary differences.",                                                                         rogerImpact: "Deferred Tax" },
-  { pi: "PI 3", status: "Planned",   batchNum: "29",  platform: "TDC",      name: "Credits & Incentives",                                               whatItDoes: "Identifies and applies eligible tax credits and incentives.",                                                                                 rogerImpact: "Credits & Incentives" },
+  { pi: "PI 3", status: "Done",      batchNum: "29",  platform: "TDC",      name: "Consolidated Return Assembly",                                      whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                             rogerImpact: "Consolidated / multi-entity views + Form 1120" },
   { pi: "PI 3", status: "In Progress", batchNum: "31",  platform: "TDC",      name: "Partnership K-1 & Pass-Through Allocation",                          whatItDoes: "Handles K-1 income allocation and pass-through entity tax treatment.",                                                                         rogerImpact: "K-1 / Pass-Through" },
   { pi: "PI 3", status: "In Progress", batchNum: "9A",  platform: "Gateway",  name: "Roger Gateway — Extended Consumer Contracts",                        whatItDoes: "Extends the Roger Gateway with additional governed consumer contracts.",                                                                       rogerImpact: "Gateway Expansion" },
   { pi: "PI 3", status: "Planned",   batchNum: "39",  platform: "TDC",      name: "International Tax — GILTI, FDII, BEAT",                              whatItDoes: "Computes international tax provisions including GILTI, FDII, and BEAT.",                                                                      rogerImpact: "International Tax" },
@@ -514,11 +514,14 @@ function Accordion({ id, title, subtitle, accent, children, defaultOpen = false,
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
-// ─── Recently Closed in PI 3 (ADO-authoritative, updated Aug 4, 2026) ──────────
+// ─── Recently Closed in PI 3 (ADO-authoritative, updated Aug 11, 2026) ─────────
 const RECENTLY_CLOSED_PI3 = [
-  // ── This week (Aug 4, 2026) ──
-  { id: "B17", name: "Decision Support, Overrides, Evidence & Workpapers", platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: true },
-  { id: "B16", name: "Audit Trail & Lineage Governance",                   platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: true },
+  // ── This week (Aug 11, 2026) ──
+  { id: "B8",  name: "Exceptions & Remediation",                            platform: "PDC/TDC", closedDate: "Aug 11, 2026", thisWeek: true },
+  { id: "B29", name: "Consolidated Return Assembly",                        platform: "TDC",     closedDate: "Aug 11, 2026", thisWeek: true },
+  // ── Prior week (Aug 4, 2026) ──
+  { id: "B17", name: "Decision Support, Overrides, Evidence & Workpapers", platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: false },
+  { id: "B16", name: "Audit Trail & Lineage Governance",                   platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: false },
   // ── Prior week (Jul 21–Jul 31) ──
   { id: "B9A", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",           platform: "Gateway", closedDate: "Jul 29, 2026", thisWeek: false },
   { id: "B28", name: "Tax Workpaper & Provision Schedules",                platform: "TDC",     closedDate: "Jul 28, 2026", thisWeek: false },
@@ -528,7 +531,6 @@ const RECENTLY_CLOSED_PI3 = [
   { id: "B42", name: "Tax Rules Framework & Book-to-Tax Adjustment Rules", platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
   { id: "B11", name: "Learning Governance & Model Evolution",              platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
   { id: "B10", name: "Return Assembly, Filing & Lineage",                  platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
-  { id: "B8",  name: "Exceptions & Remediation",                           platform: "PDC/TDC", closedDate: "Jul 21, 2026", thisWeek: false },
   { id: "B7",  name: "Client Tax Profile & Eligibility",                   platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
 ];
 
@@ -656,7 +658,7 @@ export default function Home() {
 
   // pi3MvpCount: derive from live context PI3 keys so it reflects control panel updates
   const pi3MvpCount = useMemo(() => {
-    const pi3Keys = ["20","42","45","21","28","9a","17","29","31","26","39","33"];
+    const pi3Keys = ["8","20","42","45","21","28","9a","17","29","31","26","39","33"];
     return pi3Keys.filter(k => {
       const s = (statuses as unknown as Record<string,string>)[k] ?? "Not Started";
       return s === "MVP" || s === "In Progress" || s === "Committed" || s === "Stretch";
@@ -1007,17 +1009,15 @@ export default function Home() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
 
-          {/* Active Batches — ADO-authoritative as of Jul 24, 2026 */}
+          {/* Active Batches — PI3 closures recorded Aug 11, 2026 */}
           <div style={{ backgroundColor: "#eff6ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #2563eb" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active Batches</div>
             {([
               { batch: "B7",  label: "Client Tax Profile & Eligibility" },
-              { batch: "B8",  label: "Exceptions & Remediation" },
               { batch: "B10", label: "Return Assembly, Filing & Lineage Closure" },
               { batch: "B16", label: "Audit Trail & Lineage Governance" },
               { batch: "B42", label: "Tax Rules Framework & Book-to-Tax Adjustment Rules" },
               { batch: "B28", label: "Tax Workpapers & Provision Schedules" },
-              { batch: "B29", label: "Consolidated Return Assembly" },
               { batch: "B17", label: "Decision Support, Overrides, Evidence & Workpapers" },
               { batch: "B9A", label: "Data Gateway (IMS, CDS, DUO)" },
             ] as { batch: string; label: string }[]).map(b => (

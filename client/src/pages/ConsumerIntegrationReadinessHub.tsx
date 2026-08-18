@@ -101,7 +101,7 @@ const OPEN_ADRS_DATA = [
 const NEXT_ACTIONS_DATA = [
   { action: "Request FirmTaxonomyId payload from Orchestrator",    owner: "Orchestrator Team", status: "In Progress", impact: "High",     adoRef: "#1370843" },
   { action: "Resolve role assignment ownership for Work Queue",     owner: "Architecture",      status: "Open",        impact: "Critical", adoRef: "—" },
-  { action: "Publish B8 Exception Record Read Contract (G3)",       owner: "PDC BA",            status: "In Progress", impact: "High",     adoRef: "#B8" },
+  { action: "Confirm B8 Exception Record Read Contract (G3)",       owner: "PDC BA",            status: "Complete",    impact: "High",     adoRef: "#B8" },
   { action: "Finalize Gateway routing strategy (ADR-03)",           owner: "Architecture",      status: "Open",        impact: "Critical", adoRef: "—" },
   { action: "Normalize tax_year field naming across TDC contracts", owner: "TDC BA",            status: "Open",        impact: "Medium",   adoRef: "#1349152" },
   { action: "Add PeriodStart/PeriodEnd to Swagger schema",          owner: "PDC BA",            status: "Open",        impact: "Medium",   adoRef: "—" },
@@ -1608,7 +1608,7 @@ export default function ConsumerIntegrationReadinessHub() {
                 ["GET /api/v1/tax-form-lines", "TDC", <Badge label="MVP" color="#003865" />, "Stable within MVP", "Yes", "PI 2/3", "Form line derivation from TaxReadyRecordId."],
                 ["POST /api/v1/review-tasks", "TDC", <Badge label="MVP" color="#003865" />, "Stable within MVP", "Yes", "PI 2", "Review task creation and assignment."],
                 ["GET /api/v1/exceptions", "TDC+PDC", <Badge label="MVP" color="#003865" />, "Stable within MVP", "Yes", "PI 2 (B8)", "Exception identification surface."],
-                ["POST /api/v1/remedy-actions", "TDC", <Badge label="MVP" color="#003865" />, "In progress", "Pending", "PI 2 (B8)", "Remediation workflow — in progress."],
+                ["POST /api/v1/remedy-actions", "TDC", <Badge label="MVP" color="#003865" />, "Stable within MVP", "Yes", "PI 3 (B8)", "Remediation workflow — Batch 8 closed August 11, 2026."],
                 ["GET /api/v1/gateway/ims/*", "PDC Gateway", <Badge label="MVP" color="#003865" />, "In progress", "Pending", "PI 2 (B9)", "IMS pass-through via Ocelot. B9 in progress."],
                 ["GET /api/v1/gateway/cem/*", "PDC Gateway", <Badge label="MVP" color="#003865" />, "In progress", "Pending", "PI 2 (B9)", "CEM pass-through via Ocelot. B9 in progress."],
                 ["GET /api/v1/gateway/tim/*", "PDC Gateway", <Badge label="MVP" color="#003865" />, "In progress", "Pending", "PI 2 (B9)", "TIM pass-through via Ocelot. B9 in progress."],

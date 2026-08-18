@@ -40,7 +40,7 @@ const BATCH_CALENDAR_PI23: Array<{
   { pi: "PI 3", status: "MVP",         batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
   { pi: "PI 3", status: "MVP",         batch: "B39",   feat: "TDC",     name: "Calculation Report",                                                startDate: "Fri 7/31",  endDate: "Mon 8/10",  whatItDoes: "Produces the packaged, partner-ready calculation and sign-off report.",                                                                         rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
   { pi: "PI 3", status: "MVP",         batch: "B20",   feat: "PDC",     name: "Firm Governance & Professional Standards",                          startDate: "Thu 7/23",  endDate: "Fri 7/31",  whatItDoes: "Holds firm governance and professional standards that gate sign-off.",                                                                          rogerImpact: "None: gates sign-off, no new screen" },
-  { pi: "PI 3", status: "MVP",         batch: "B29",   feat: "TDC",     name: "Consolidated Return Assembly",                                      startDate: "Tue 8/11",  endDate: "Wed 8/19",  whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                                rogerImpact: "High: consolidated / multi-entity views + Form 1120" },
+  { pi: "PI 3", status: "Done",        batch: "B29",   feat: "TDC",     name: "Consolidated Return Assembly",                                      startDate: "Tue 8/11",  endDate: "Tue 8/11",  whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                                rogerImpact: "High: consolidated / multi-entity views + Form 1120" },
   { pi: "PI 3", status: "MVP",         batch: "B21",   feat: "PDC",     name: "Quality Control Standards",                                        startDate: "Mon 8/3",   endDate: "Tue 8/11",  whatItDoes: "Holds quality-control review standards and concurring-partner rules.",                                                                          rogerImpact: "None: reference only, no new screen" },
   { pi: "PI 3", status: "MVP",         batch: "B17",   feat: "TDC",     name: "Decision Support, Overrides, Evidence & Workpapers",               startDate: "Thu 8/20",  endDate: "Fri 8/28",  whatItDoes: "Adds override policies, evidence on decisions, and workpaper lock to snapshot.",                                                                rogerImpact: "Med: wire evidence / override / lock into review screens" },
   { pi: "PI 3", status: "MVP",         batch: "B26",   feat: "PDC",     name: "Entity Constituents & Allocations",                                 startDate: "Wed 8/12",  endDate: "Thu 8/20",  whatItDoes: "Models sub-entities (divisions, branches) and inter-entity allocations.",                                                                       rogerImpact: "None: structure only in MVP" },
@@ -225,7 +225,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
 
   // Weighted PI 3 progress (per governance spec: Complete=100%, Review=90%, Active=50%, Blocked=25%, Not Started=0%)
   const pi3WeightedPct = useMemo(() => {
-    const pi3Keys = ["20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
+    const pi3Keys = ["8", "20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
     const vals = pi3Keys.map(k => (statuses as Record<string, string>)[k] ?? "Not Started");
     if (vals.length === 0) return 0;
     const sum = vals.reduce((acc, v) => {
@@ -240,7 +240,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
 
   // PI 3 breakdown for tooltip
   const pi3Breakdown = useMemo(() => {
-    const pi3Keys = ["20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
+    const pi3Keys = ["8", "20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
     const vals = pi3Keys.map(k => (statuses as Record<string, string>)[k] ?? "Not Started");
     return {
       total: vals.length,

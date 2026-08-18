@@ -471,7 +471,8 @@ function generateDemoSummary(d: ReturnType<typeof analyzePageData>): GeneratedSu
       items: [
         "FC + B1 + B3: Delivered — Foundation Core, File Ingestion, Tax Domain Authority",
         "B2 + B2A + B4: In Progress — Normalization, Contract Enforcement, AI Mapping",
-        "B5–B8: Not Started — Entity Identity, Practitioner Review, Client Profile, Exceptions",
+        "B5–B7: Not Started — Entity Identity, Practitioner Review, Client Profile",
+        "B8 + B29: Closed — PI3 closures recorded August 11, 2026",
         "B10+: Future-State — TIM integration, DMS, Return Assembly, IMS outbound",
       ],
     },

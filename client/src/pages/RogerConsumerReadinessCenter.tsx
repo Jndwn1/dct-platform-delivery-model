@@ -111,7 +111,7 @@ const ENDPOINT_MATRIX = [
   { batch: "B7",  api: "Entity Finalization State",    path: "GET /api/v1/entity-finalization",                 purpose: "Finalization state for entity and tax year",               capability: "Show finalization status in Roger",                    status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
   { batch: "B7",  api: "Tax Profile Determinations",   path: "GET /api/v1/tax-profile-determinations",          purpose: "Tax profile determinations for entity scope",              capability: "Show client tax profile context in Roger",             status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
   { batch: "B7",  api: "Controlled Group Determinations", path: "GET /api/v1/controlled-group-determinations", purpose: "Active controlled-group determinations for entity",        capability: "Show controlled group context in Roger",               status: "Consumer Ready" as ReadinessStatus,     data: "Real Data" as DataStatus,  govStatus: "G3 Contract Published",      blockers: "None",                                                  owner: "TDC",  swaggerSource: "TDC" },
-  { batch: "B8",  api: "Exception Records (TDC Read)",  path: "GET /api/v1/TdcExceptionsRead",                   purpose: "Read exception records (TDC read contract)",               capability: "View exception records in Roger",                      status: "Draft Contract" as ReadinessStatus,     data: "None" as DataStatus,       govStatus: "In Development",             blockers: "Contract not yet published — B8 gate not passed",       owner: "TDC",  swaggerSource: "TDC" },
+  { batch: "B8",  api: "Exception Records (TDC Read)",  path: "GET /api/v1/TdcExceptionsRead",                   purpose: "Read exception records (TDC read contract)",               capability: "View exception records in Roger",                      status: "Delivered" as ReadinessStatus,          data: "Real Data" as DataStatus,  govStatus: "PI3 Closed — Aug 11, 2026",    blockers: "None recorded for the PI3 closure",                    owner: "TDC",  swaggerSource: "TDC" },
   { batch: "B9",  api: "Gateway Read Contract (IMS/CEM/TIM pass-through)", path: "GET /api/v1/gateway/* (Ocelot)",         purpose: "Roger and all consumers call the gateway — not underlying systems directly",  capability: "Roger accesses IMS/CEM/TIM data via governed gateway pass-through",  status: "Future State" as ReadinessStatus,       data: "None" as DataStatus,       govStatus: "Planned — PI 2 Stretch",         blockers: "B9 PDC not started — Gateway Read Contract not yet published",            owner: "PDC",  swaggerSource: "N/A" },
   { batch: "B10", api: "Return Assembly & Lineage",    path: "GET /api/v1/return-assembly (planned)",           purpose: "Assembled return with lineage trace",                      capability: "View assembled return in Roger",                       status: "Future State" as ReadinessStatus,       data: "None" as DataStatus,       govStatus: "Planned — PI 3",             blockers: "Not yet in scope",                                      owner: "TDC",  swaggerSource: "N/A" },
 ];
@@ -127,7 +127,7 @@ const SCREEN_DEPENDENCIES = [
   { screen: "Upload Experience", apis: ["File Ingestion Status", "Lineage Anchor"],                                                 readiness: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus,  risks: "None" },
   { screen: "Entity Review",     apis: ["Entity Identity & Structure", "FirmTaxonomyId Enforcement"],                               readiness: "Partial Data" as ReadinessStatus,   data: "Partial" as DataStatus,    risks: "FirmTaxonomyId not yet returned by Orchestrator [WARNING]" },
   { screen: "Tax Mapping",       apis: ["Tax Form Templates", "AI Mapping Proposals", "Client Tax Profile"],                        readiness: "Consumer Ready" as ReadinessStatus, data: "Real Data" as DataStatus,  risks: "Tax Form Templates are Orchestrator-facing only — Roger reads via TDC Read Contract" },
-  { screen: "Exception Mgmt",    apis: ["Exception Record", "Remedy Action", "Re-ingestion Trigger"],                               readiness: "Blocked" as ReadinessStatus,        data: "None" as DataStatus,       risks: "All B8 APIs in Draft Contract state. Roger cannot consume until G3 gate passed [BLOCKING]" },
+  { screen: "Exception Mgmt",    apis: ["Exception Record", "Remedy Action", "Re-ingestion Trigger"],                               readiness: "Delivered" as ReadinessStatus,      data: "Real Data" as DataStatus,  risks: "Batch 8 PI3 closure recorded August 11, 2026." },
 ];
 
 // Section 4 — Consumer vs Platform Readiness
@@ -142,7 +142,7 @@ const CONSUMER_VS_PLATFORM = [
   { capability: "Client Tax Profile",       platformExists: true,  rogerConsumable: true,  reason: "Published Read Contract. Tax year, jurisdiction, filing status available." },
   { capability: "Exception Record",         platformExists: false, rogerConsumable: false, reason: "In development. Draft contract only. Roger cannot consume until G3 gate passed." },
   { capability: "Remedy Action",            platformExists: false, rogerConsumable: false, reason: "In development. Depends on Exception Record contract publication." },
-  { capability: "Re-ingestion Trigger",     platformExists: false, rogerConsumable: false, reason: "Not yet designed. Blocked until B8 exception flow is complete." },
+  { capability: "Re-ingestion Trigger",     platformExists: true,  rogerConsumable: true,  reason: "Batch 8 PI3 closure recorded August 11, 2026." },
   { capability: "Rollforward / Prior Year", platformExists: false, rogerConsumable: false, reason: "Planned for PI 3. Not yet in scope." },
 ];
 
@@ -169,7 +169,7 @@ const GOVERNANCE_OWNERSHIP = [
   { domain: "Tax Mapping",          owner: "TDC",          accessType: "Read Contract",   notes: "TDC owns tax mapping rules and AI proposals. Roger reads only." },
   { domain: "Lineage",              owner: "PDC",          accessType: "Read Contract",   notes: "PDC owns lineage. Roger does not own lineage governance." },
   { domain: "Work Queue Data",      owner: "Unresolved",   accessType: "Pending",         notes: "Role assignment ownership not yet defined. Governance decision pending." },
-  { domain: "Exception Records",    owner: "PDC",          accessType: "In Development",  notes: "PDC owns exception records. Roger will consume via B8 Read Contract." },
+  { domain: "Exception Records",    owner: "PDC",          accessType: "Read Contract",    notes: "PDC owns exception records. Batch 8 PI3 closure recorded August 11, 2026." },
   { domain: "Rollforward Data",     owner: "PDC",          accessType: "Future State",    notes: "Planned for PI 3. Roger will consume via future Read Contract." },
 ];
 
@@ -177,7 +177,7 @@ const GOVERNANCE_OWNERSHIP = [
 const INTEGRATION_RISKS = [
   { id: "IR-01", title: "FirmTaxonomyId Missing from Orchestrator",    level: "High" as RiskLevel,     category: "Payload Gap",          description: "Orchestrator is not returning FirmTaxonomyId in normalized records. Roger Adjustments and Entity Review screens depend on this field.", resolution: "Orchestrator team to add FirmTaxonomyId to payload. ADO #1370843.", screens: ["Adjustments", "Entity Review"] },
   { id: "IR-02", title: "Role Assignment Ownership Unresolved",        level: "Critical" as RiskLevel, category: "Governance Gap",        description: "Work Queue API exists but no team has been assigned ownership of role assignment logic. Roger cannot consume without governance approval.", resolution: "Governance decision required: PDC vs TDC vs Roger ownership. Escalate to architecture.", screens: ["Work Queue"] },
-  { id: "IR-03", title: "B8 Exception APIs Not Yet Published",         level: "High" as RiskLevel,     category: "Contract Gap",          description: "Exception Record, Remedy Action, and Re-ingestion Trigger are in draft. Roger Exception Management screen is fully blocked.", resolution: "B8 must pass G3 Contract Publication gate before Roger can consume.", screens: ["Exception Mgmt"] },
+  { id: "IR-03", title: "B8 Exception APIs — PI3 Closure Recorded",    level: "Low" as RiskLevel,      category: "Contract Gap",          description: "Batch 8 closure is recorded for August 11, 2026; monitor the released exception, remedy-action, and re-ingestion surfaces through normal governance review.", resolution: "Validate ongoing consumer contract alignment through the Control Panel.", screens: ["Exception Mgmt"] },
   { id: "IR-04", title: "tax_year Field Naming Inconsistency",         level: "Medium" as RiskLevel,   category: "Contract Instability",  description: "tax_year uses camelCase in some endpoints and snake_case in others. Roger UI must not hardcode field names until contract is stabilized.", resolution: "Normalize to snake_case across all TDC contracts. ADO #1349152.", screens: ["Tax Mapping", "Filing Review"] },
   { id: "IR-05", title: "PeriodStart/End Not Referenced in Swagger",   level: "Medium" as RiskLevel,   category: "Swagger Gap",           description: "PeriodStart and PeriodEnd fields are in the data model but not referenced in Swagger schema. Roger cannot rely on these fields.", resolution: "Add PeriodStart/PeriodEnd to Swagger schema for lineage endpoints.", screens: ["Upload Experience", "Entity Review"] },
   { id: "IR-06", title: "Read/Write Contract Distinction Missing",     level: "Medium" as RiskLevel,   category: "Governance Gap",        description: "Some endpoints do not clearly distinguish Read Contract from Write Contract. Roger must only consume Read Contracts.", resolution: "Architect to add Read/Write distinction to all published contracts.", screens: ["All screens"] },
@@ -195,7 +195,7 @@ const DEMO_READINESS = [
   { capability: "Entity Identity",           demoReady: "Demo Ready" as DemoStatus,    prodReady: "Production Ready" as DemoStatus, notes: "Real data. EntityId stable." },
   { capability: "Work Queue",                demoReady: "Mocked" as DemoStatus,        prodReady: "Conceptual" as DemoStatus,       notes: "Mock data. Role assignment governance pending." },
   { capability: "Client Tax Profile",        demoReady: "Demo Ready" as DemoStatus,    prodReady: "Production Ready" as DemoStatus, notes: "Real data. Tax year, jurisdiction available." },
-  { capability: "Exception Management",      demoReady: "Conceptual" as DemoStatus,    prodReady: "Conceptual" as DemoStatus,       notes: "B8 in development. Not available for demo." },
+  { capability: "Exception Management",      demoReady: "Demo Ready" as DemoStatus,    prodReady: "Production Ready" as DemoStatus,  notes: "Batch 8 PI3 closure recorded August 11, 2026." },
   { capability: "Rollforward / Prior Year",  demoReady: "Conceptual" as DemoStatus,    prodReady: "Conceptual" as DemoStatus,       notes: "Planned PI 3. Not yet in scope." },
 ];
 
@@ -213,7 +213,7 @@ const OPEN_ADRS = [
 const NEXT_ACTIONS = [
   { action: "Request FirmTaxonomyId payload from Orchestrator",  owner: "Orchestrator Team", status: "In Progress", impact: "High",   adoRef: "#1370843" },
   { action: "Resolve role assignment ownership for Work Queue",   owner: "Architecture",      status: "Open",        impact: "Critical", adoRef: "—" },
-  { action: "Publish B8 Exception Record Read Contract (G3)",     owner: "PDC BA",            status: "In Progress", impact: "High",   adoRef: "#B8" },
+  { action: "Confirm B8 Exception Record Read Contract (G3)",     owner: "PDC BA",            status: "Complete",    impact: "High",   adoRef: "#B8" },
   { action: "Finalize Gateway routing strategy (ADR-03)",         owner: "Architecture",      status: "Open",        impact: "Critical", adoRef: "—" },
   { action: "Normalize tax_year field naming across TDC contracts", owner: "TDC BA",          status: "Open",        impact: "Medium", adoRef: "#1349152" },
   { action: "Add PeriodStart/PeriodEnd to Swagger schema",        owner: "PDC BA",            status: "Open",        impact: "Medium", adoRef: "—" },

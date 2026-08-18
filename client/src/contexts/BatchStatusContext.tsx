@@ -283,7 +283,7 @@ export type SyncLogEntry = AuditLogEntry;
 
 // DEFAULT_STATUS reflects Roadmap v8 (updated July 2026)
 // PI 1 — Complete | PI 2 — COMPLETE (July 2026) | PI 3 — ACTIVE (7/13–9/15) | PI 4 — Future
-const DEFAULT_STATUS: BatchStatusMap = {
+export const DEFAULT_STATUS: BatchStatusMap = {
   // ── PI 1 — Complete ──────────────────────────────────────────────────────
   "foundation-core": "Complete",
   "1": "Complete",
@@ -303,8 +303,8 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "43": "Complete",    // B43 — Practitioner Book & Reclass, currently in flight
   "13": "Complete",    // B13 — Platform Reference & Document Provenance (PI 2 Stretch)
   "12": "On Hold",     // B12 — Engagement Identity (ON HOLD per v7)
-  // ── PI 2/3 — ADO Closed (this PI) ──────────────────────────────────────────
-  "8": "Complete",    // B8 — Exceptions & Remediation (ADO: Closed 7/24/2026)
+  // ── PI 3 — ADO Closed (Aug 11, 2026) ───────────────────────────────────────
+  "8": "Complete",    // B8 — Exceptions & Remediation (Closed in PI3 on Aug 11, 2026)
   "16": "Complete",   // B16 — Audit Trail & Lineage Governance (ADO: Closed 7/21/2026)
   // ── PI 2/3 — Active per ADO backlog ──────────────────────────────────────────
   "7": "In Progress",  // B7 — Client Tax Profile & Eligibility (ADO: Active)
@@ -317,7 +317,7 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "28": "In Progress", // B28 — Tax Workpaper & Provision Schedules
   "9a": "Committed",   // B9A — Data Gateway (IMS, CDS, DUO) (Planned/Committed)
   "17": "Complete", // B17 — Decision Support — Overrides, Evidence & Workpapers (Closed 8/4/2026)
-  "29": "Committed",   // B29 — Consolidated Return Assembly (Planned/Committed)
+  "29": "Complete",    // B29 — Consolidated Return Assembly (Closed in PI3 on Aug 11, 2026)
   "31": "In Review",   // B31 — Legacy Tool Prior Year Ingestion (ADO: Review Ready)
   "26": "In Review",   // B26 — Entity Constituents & Allocations (ADO: Review Ready)
   "39": "Committed",   // B39 — Calculation Report (Planned)
@@ -338,17 +338,21 @@ const DEFAULT_STATUS: BatchStatusMap = {
   "23": "Not Started",  // B23 — Benchmark & Peer Analytics (Post-MVP, future PI)
 };
 
-const STORAGE_KEY     = "dct_batch_status_v9"; // v9: B8 + B16 ADO-Closed → Complete (7/21–7/24/2026)
+const STORAGE_KEY     = "dct_batch_status_v9"; // Existing Control Panel selections remain persisted
 const AUDITLOG_KEY    = "dct_audit_log_v7";
 const MAX_LOG_ENTRIES = 50;
+const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
+  "8": "Complete",
+  "29": "Complete",
+};
 
 // ── PI membership ─────────────────────────────────────────────────────────────
 
 // PI_MEMBERSHIP reflects Roadmap v8 (updated July 2026) — 9-tdc & 12 excluded from PI 2 (On Hold)
-const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
+export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
-  pi2:  ["4", "5", "6", "7", "8", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16"], // 9-tdc & 12 excluded (On Hold)
-  pi3:  ["20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"],
+  pi2:  ["4", "5", "6", "7", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16"], // 9-tdc & 12 excluded (On Hold)
+  pi3:  ["8", "20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"],
   pi4:  ["19", "40", "35", "26-tdc"],
 };
 
@@ -356,8 +360,8 @@ const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 // 29 MVP-scoped features (ADO-authoritative, July 2026 — includes B45):
 //   PI1 Complete (5): foundation-core, 1, 2, 2a, 3
 //   PI2 Complete (4): 4, 5, 6, 11  (B9 excluded — delivered via B9A sub-batch)
-//   PI2 Active (4):   7, 8, 10, 16  (ADO: Active)
-//   PI3 Active (10):  42, 45, 20, 21, 28, 9a, 17, 29, 31, 26
+//   PI2 Active (3):   7, 10, 16
+//   PI3 Complete (2): 8, 29 (closed Aug 11) | Active (8): 42, 45, 20, 21, 28, 9a, 17, 31, 26
 //   Planned (1):      39
 //   Non-batch (5):    qa-workstream, env-management, roger-stabilization, platform-defect, mvp-enhancements
 // TOTAL: 5 + 4 + 4 + 10 + 1 + 5 = 29 ✓
@@ -366,10 +370,10 @@ export const MVP_BATCH_KEYS: BatchKey[] = [
   "foundation-core", "1", "2", "2a", "3",
   // PI 2 — ADO-verified Complete (4): B4, B5, B6, B11 (B9 PDC delivered via B9A; B9 parent excluded)
   "4", "5", "6", "11",
-  // PI 2 — ADO Active (4): B7, B8, B10, B16
-  "7", "8", "10", "16",
-  // PI 3 — Active (10) — B33 Stretch excluded, B42 included as Active, B45 added
-  "42", "45", "20", "21", "28", "9a", "17", "29", "31", "26",
+  // PI 2 — Active (3): B7, B10, B16
+  "7", "10", "16",
+  // PI 3 — B8 + B29 closed Aug 11; remaining delivery portfolio
+  "8", "42", "45", "20", "21", "28", "9a", "17", "29", "31", "26",
   // Planned (1)
   "39",
   // Non-batch Active Features (5) — ADO Active, included in MVP scope
@@ -405,10 +409,12 @@ function loadFromStorage(): BatchStatusMap {
           valid[k as BatchKey] = v as BatchStatus;
         }
       }
-      return { ...DEFAULT_STATUS, ...valid };
+      // Preserve all saved Control Panel selections while applying the two
+      // authoritative PI3 closure updates recorded on August 11, 2026.
+      return { ...DEFAULT_STATUS, ...valid, ...REQUIRED_CLOSURE_STATUSES };
     }
   } catch { /* ignore */ }
-  return { ...DEFAULT_STATUS };
+  return { ...DEFAULT_STATUS, ...REQUIRED_CLOSURE_STATUSES };
 }
 
 function saveToStorage(map: BatchStatusMap) {
