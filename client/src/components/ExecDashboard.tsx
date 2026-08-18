@@ -10,11 +10,11 @@ import { useRef, useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import GeneratePOEmail from "@/components/GeneratePOEmail";
-import { useBatchStatus, deriveMvpMetrics } from "@/contexts/BatchStatusContext";
+import { BATCH_DELIVERY_RECORDS, NON_BATCH_MVP_RECORDS, useBatchStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
 
 // ─── Batch Calendar PI 2 + PI 3 (mirrors Home.tsx BATCH_CALENDAR_PI23) ─────────
 // This is the single source of truth for all Executive Dashboard KPI calculations.
-const BATCH_CALENDAR_PI23: Array<{
+export const BATCH_CALENDAR_PI23: Array<{
   pi: string; status: string; batch: string; feat: string; name: string;
   startDate: string; endDate: string; whatItDoes: string; rogerImpact: string;
 }> = [
@@ -23,11 +23,11 @@ const BATCH_CALENDAR_PI23: Array<{
   { pi: "PI 2", status: "Done",        batch: "B5",    feat: "PDC",     name: "Entity Identity & Structure",                                       startDate: "Wed 4/22",  endDate: "Thu 4/30",  whatItDoes: "Gives every client and entity a permanent identity and access scope.",                                                                          rogerImpact: "Client / entity selection" },
   { pi: "PI 2", status: "Done",        batch: "B6",    feat: "TDC",     name: "Practitioner Review & Lock",                                        startDate: "Wed 4/22",  endDate: "Thu 4/30",  whatItDoes: "Practitioners review, decide, and lock mappings; decisions are immutable.",                                                                     rogerImpact: "Review & lock" },
   { pi: "PI 2", status: "Done",        batch: "B2A",   feat: "PDC",     name: "Orchestrator Classification Result & Contract Enforcement",          startDate: "Wed 4/29",  endDate: "Mon 5/9",   whatItDoes: "Enforces the orchestrator's classification result and contract at intake.",                                                                      rogerImpact: "None (behind the scenes)" },
-  { pi: "PI 2", status: "Done",        batch: "B7",    feat: "TDC",     name: "Client Tax Profile & Eligibility",                                  startDate: "Fri 5/1",   endDate: "Mon 5/11",  whatItDoes: "Holds the client tax profile and determines which rules apply.",                                                                               rogerImpact: "Eligibility" },
+  { pi: "PI 2", status: "In Progress",        batch: "B7",    feat: "TDC",     name: "Client Tax Profile & Eligibility",                                  startDate: "Fri 5/1",   endDate: "Mon 5/11",  whatItDoes: "Holds the client tax profile and determines which rules apply.",                                                                               rogerImpact: "Eligibility" },
   { pi: "PI 2", status: "Done",        batch: "B8",    feat: "PDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces cross-LOB ingestion and data exceptions for remediation.",                                                                             rogerImpact: "Exceptions surfacing" },
   { pi: "PI 2", status: "Done",        batch: "B8",    feat: "TDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces tax-side exceptions for remediation.",                                                                                               rogerImpact: "Exceptions surfacing" },
   { pi: "PI 2", status: "Done",        batch: "B9",    feat: "Gateway", name: "Roger Gateway & Governed Consumer Access Layer",                    startDate: "Thu 5/21",  endDate: "Tue 6/2",   whatItDoes: "Governed gateway exposing approved upstream data to consumers.",                                                                               rogerImpact: "None (gateway)" },
-  { pi: "PI 2", status: "Done",        batch: "B10",   feat: "TDC",     name: "Return Assembly, Filing & Lineage",                                 startDate: "Wed 6/3",   endDate: "Fri 6/5",   whatItDoes: "Assembles the return, creates the immutable filing record, anchors lineage.",                                                                    rogerImpact: "Form 1120 / filing (stage 10)" },
+  { pi: "PI 2", status: "In Progress",        batch: "B10",   feat: "TDC",     name: "Return Assembly, Filing & Lineage",                                 startDate: "Wed 6/3",   endDate: "Fri 6/5",   whatItDoes: "Assembles the return, creates the immutable filing record, anchors lineage.",                                                                    rogerImpact: "Form 1120 / filing (stage 10)" },
   { pi: "PI 2", status: "Done",        batch: "B43",   feat: "TDC",     name: "Practitioner Book & Reclass Adjustments",                           startDate: "Wed 6/10",  endDate: "Tue 6/16",  whatItDoes: "Persists practitioner book and reclass adjustments as a multi-line model.",                                                                 rogerImpact: "High: Book Adjustment & Reclass Adjustment (stages 4-5)" },
   { pi: "PI 2", status: "In Progress", batch: "B9",    feat: "Gateway", name: "Roger Gateway - TDC Integration Endpoints",                         startDate: "Wed 6/17",  endDate: "Fri 6/19",  whatItDoes: "Extends the governed gateway to TDC consumers.",                                                                                              rogerImpact: "None (gateway)" },
   { pi: "PI 2", status: "In Progress", batch: "B11",   feat: "TDC",     name: "Learning Governance & Model Evolution",                             startDate: "Wed 6/17",  endDate: "Thu 6/25",  whatItDoes: "Captures learning from real decisions under consent; governs model evolution.",                                                                 rogerImpact: "None (behind the scenes)" },
@@ -35,16 +35,16 @@ const BATCH_CALENDAR_PI23: Array<{
   { pi: "PI 2", status: "Stretch",     batch: "B16",   feat: "PDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 6/22",  endDate: "Tue 6/30",  whatItDoes: "Records the cross-LOB audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
   // ── PI 3 ──
   { pi: "PI 3", status: "MVP",         batch: "B16",   feat: "TDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 7/13",  endDate: "Tue 7/21",  whatItDoes: "Records the tax-side audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
-  { pi: "PI 3", status: "MVP",         batch: "B31",   feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
-  { pi: "PI 3", status: "MVP",         batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
-  { pi: "PI 3", status: "MVP",         batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
-  { pi: "PI 3", status: "MVP",         batch: "B39",   feat: "TDC",     name: "Calculation Report",                                                startDate: "Fri 7/31",  endDate: "Mon 8/10",  whatItDoes: "Produces the packaged, partner-ready calculation and sign-off report.",                                                                         rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
-  { pi: "PI 3", status: "MVP",         batch: "B20",   feat: "PDC",     name: "Firm Governance & Professional Standards",                          startDate: "Thu 7/23",  endDate: "Fri 7/31",  whatItDoes: "Holds firm governance and professional standards that gate sign-off.",                                                                          rogerImpact: "None: gates sign-off, no new screen" },
+  { pi: "PI 3", status: "Review Ready", batch: "B31",  feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
+  { pi: "PI 3", status: "In Progress",         batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
+  { pi: "PI 3", status: "In Progress",         batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline",         batch: "B39",   feat: "TDC",     name: "Calculation Report",                                                startDate: "Fri 7/31",  endDate: "Mon 8/10",  whatItDoes: "Produces the packaged, partner-ready calculation and sign-off report.",                                                                         rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline",         batch: "B20",   feat: "PDC",     name: "Firm Governance & Professional Standards",                          startDate: "Thu 7/23",  endDate: "Fri 7/31",  whatItDoes: "Holds firm governance and professional standards that gate sign-off.",                                                                          rogerImpact: "None: gates sign-off, no new screen" },
   { pi: "PI 3", status: "Done",        batch: "B29",   feat: "TDC",     name: "Consolidated Return Assembly",                                      startDate: "Tue 8/11",  endDate: "Tue 8/11",  whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                                rogerImpact: "High: consolidated / multi-entity views + Form 1120" },
-  { pi: "PI 3", status: "MVP",         batch: "B21",   feat: "PDC",     name: "Quality Control Standards",                                        startDate: "Mon 8/3",   endDate: "Tue 8/11",  whatItDoes: "Holds quality-control review standards and concurring-partner rules.",                                                                          rogerImpact: "None: reference only, no new screen" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline",         batch: "B21",   feat: "PDC",     name: "Quality Control Standards",                                        startDate: "Mon 8/3",   endDate: "Tue 8/11",  whatItDoes: "Holds quality-control review standards and concurring-partner rules.",                                                                          rogerImpact: "None: reference only, no new screen" },
   { pi: "PI 3", status: "MVP",         batch: "B17",   feat: "TDC",     name: "Decision Support, Overrides, Evidence & Workpapers",               startDate: "Thu 8/20",  endDate: "Fri 8/28",  whatItDoes: "Adds override policies, evidence on decisions, and workpaper lock to snapshot.",                                                                rogerImpact: "Med: wire evidence / override / lock into review screens" },
   { pi: "PI 3", status: "MVP",         batch: "B26",   feat: "PDC",     name: "Entity Constituents & Allocations",                                 startDate: "Wed 8/12",  endDate: "Thu 8/20",  whatItDoes: "Models sub-entities (divisions, branches) and inter-entity allocations.",                                                                       rogerImpact: "None: structure only in MVP" },
-  { pi: "PI 3", status: "MVP",         batch: "B31",   feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
+  { pi: "PI 3", status: "Review Ready", batch: "B31",  feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
   { pi: "PI 3", status: "Stretch",     batch: "B33",   feat: "TDC",     name: "State Reference, Apportionment, Payments, NOL/Credit, Forms, TX Franchise", startDate: "Thu 9/10", endDate: "Fri 9/18", whatItDoes: "Adds state apportionment, nexus, payments, NOL/credit, forms, TX franchise.", rogerImpact: "High (stretch): state screens" },
 ];
 
@@ -202,54 +202,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isActive   = (v: string) => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed";
 
-  // ── MVP-scoped metrics (single source of truth — 35 delivery items) ──
+  // ── Separate Batch Delivery and Overall MVP Delivery metrics ──
+  const batch = useMemo(() => deriveBatchMetrics(statuses), [statuses]);
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
-  const totalBatches       = mvp.total;        // 35 delivery items (30 numbered + 5 non-batch active)
-  const completedCount     = mvp.complete;     // Complete / Delivered / Done
-  const activeCount        = mvp.inDev;        // In Progress / Dev
-  const inReviewCount      = mvp.inReview;     // In Review / QA states
-  const plannedCount       = mvp.planned;      // Not Started / Committed / etc.
-  const onHoldCount        = 0;                // On Hold excluded from MVP scope
-  const platformReadinessPct = mvp.readinessPct; // complete ÷ 35 × 100 (no weighting)
+  const totalBatches = batch.total;
+  const totalMvpFeatures = mvp.total;
 
-  // Release Candidate — derived from PI completion: PI1+PI2 complete → RC-3 (PI 3 active)
-  const releaseCandidateLabel = useMemo(() => {
-    const pi1Pct = piCompletion?.pi1?.pct ?? 0;
-    const pi2Pct = piCompletion?.pi2?.pct ?? 0;
-    const pi3Pct = piCompletion?.pi3?.pct ?? 0;
-    if (pi3Pct >= 100) return "RC-4";
-    if (pi1Pct >= 100 && pi2Pct >= 100) return "RC-3"; // PI 1 + PI 2 complete, PI 3 active
-    if (pi1Pct >= 100) return "RC-2"; // PI 1 complete, PI 2 active
-    return "RC-1";
-  }, [piCompletion]);
-
-  // Weighted PI 3 progress (per governance spec: Complete=100%, Review=90%, Active=50%, Blocked=25%, Not Started=0%)
-  const pi3WeightedPct = useMemo(() => {
-    const pi3Keys = ["8", "20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
-    const vals = pi3Keys.map(k => (statuses as Record<string, string>)[k] ?? "Not Started");
-    if (vals.length === 0) return 0;
-    const sum = vals.reduce((acc, v) => {
-      if (v === "Complete" || v === "Delivered" || v === "Done") return acc + 100;
-      if (v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready") return acc + 90;
-      if (v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed") return acc + 50;
-      if (v === "On Hold" || v === "Blocked") return acc + 25;
-      return acc;
-    }, 0);
-    return Math.round(sum / vals.length);
-  }, [statuses]);
-
-  // PI 3 breakdown for tooltip
-  const pi3Breakdown = useMemo(() => {
-    const pi3Keys = ["8", "20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"] as const;
-    const vals = pi3Keys.map(k => (statuses as Record<string, string>)[k] ?? "Not Started");
-    return {
-      total: vals.length,
-      complete: vals.filter(v => v === "Complete" || v === "Delivered" || v === "Done").length,
-      inReview: vals.filter(v => v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready").length,
-      active: vals.filter(v => v === "In Progress" || v === "Dev" || v === "MVP" || v === "Stretch" || v === "Committed").length,
-      remaining: vals.filter(v => v === "Not Started" || v === "Planned").length,
-    };
-  }, [statuses]);
+  const releaseCandidateLabel = useMemo(() => deriveReleaseCandidate(piCompletion), [piCompletion]);
 
   // Pilot countdown — MVP target Sep 21, 2026
   const PILOT_DATE = new Date("2026-09-21T00:00:00");
@@ -263,8 +222,8 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   // ── PI progress derived from piCompletion (live context) ──
   // piCompletion has shape { pi1: { total, complete, pct }, pi2: { ... }, pi3: { ... } }
   const pi2Pct = piCompletion?.pi2?.pct ?? 0;
-  // pi3Pct uses weighted execution model instead of simple isDelivered count
-  const pi3Pct = pi3WeightedPct;
+  // PI progress is the reconciled completed-feature percentage from the shared membership lists.
+  const pi3Pct = piCompletion?.pi3?.pct ?? 0;
 
   // Last updated label
   const lastUpdatedLabel = lastUpdated
@@ -323,19 +282,19 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            MVP Delivery Intelligence · PI1 + PI2 + PI3 · 24 Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            MVP Delivery Intelligence · PI1 + PI2 + PI3 · {BATCH_DELIVERY_RECORDS.length} Current Batch Features + {NON_BATCH_MVP_RECORDS.length} Non-Batch MVP Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
           </h2>
           <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px", fontWeight: 500 }}>
-            MVP delivery status, batch readiness, and governance health — PI1 + PI2 + PI3 scope only.
+            Separate Batch Delivery and Overall MVP Delivery metrics with governed status traceability.
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#059669" }} />
-            <span style={{ fontSize: "11px", fontWeight: 700, color: "#059669" }}>Live · Derived from Batch Calendar</span>
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#059669" }}>Live · Derived from shared delivery model</span>
           </div>
           <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap" }}>
             Last synced: {lastUpdatedLabel}
@@ -352,50 +311,64 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         marginBottom: "14px",
       }}>
         <KPICard
-          title="Total MVP Features"
+          title="Total Batches"
           value={totalBatches}
-          sub="24 batches + 5 Active non-batch"
+          sub="Batch delivery only"
           accent="#1e3a5f"
         />
         <KPICard
-          title="Completed"
-          value={completedCount}
-          sub="Marked complete"
+          title="Batches Complete"
+          value={batch.complete}
+          sub="Batch delivery only"
           accent="#059669"
           badge="Done"
           badgeColor="#059669"
         />
         <KPICard
-          title="Active"
-          value={activeCount}
-          sub="In Dev this sprint"
+          title="Batches In Development"
+          value={batch.inDev}
+          sub="Active ADO pipeline"
           accent="#2563eb"
           badge="In Flight"
           badgeColor="#2563eb"
         />
         <KPICard
-          title="Planned"
-          value={plannedCount}
-          sub="MVP batches not yet started"
+          title="Batches In Review"
+          value={batch.inReview}
+          sub="Review Ready"
+          accent="#7c3aed"
+          badge="Review"
+          badgeColor="#7c3aed"
+        />
+        <KPICard
+          title="Batches Planned"
+          value={batch.planned}
+          sub="Authoritative Not Started only"
           accent="#94a3b8"
           badge="Upcoming"
           badgeColor="#64748b"
         />
         <KPICard
-          title="MVP Readiness"
-          value={`${platformReadinessPct}%`}
-          sub="Completed MVP Features ÷ 29"
+          title="Batch Readiness"
+          value={`${batch.readinessPct}%`}
+          sub={`${batch.complete} completed batches ÷ ${batch.total}`}
           accent="#059669"
-          badge={platformReadinessPct >= 70 ? "On Track" : "At Risk"}
-          badgeColor={platformReadinessPct >= 70 ? "#059669" : "#dc2626"}
+          badge={batch.readinessPct >= 70 ? "On Track" : "At Risk"}
+          badgeColor={batch.readinessPct >= 70 ? "#059669" : "#d97706"}
         />
         <KPICard
-          title="In Review"
-          value={inReviewCount}
-          sub="QA / Demo Ready"
-          accent="#7c3aed"
-          badge="Review"
-          badgeColor="#7c3aed"
+          title="Total MVP Features"
+          value={totalMvpFeatures}
+          sub={`${batch.total} batch + 5 non-batch`}
+          accent="#1e3a5f"
+        />
+        <KPICard
+          title="Overall MVP Readiness"
+          value={`${mvp.readinessPct}%`}
+          sub={`${mvp.complete} completed MVP features ÷ ${mvp.total}`}
+          accent="#059669"
+          badge={mvp.readinessPct >= 70 ? "On Track" : "At Risk"}
+          badgeColor={mvp.readinessPct >= 70 ? "#059669" : "#d97706"}
         />
         <KPICard
           title="Release Candidate"

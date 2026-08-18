@@ -932,8 +932,8 @@ export default function BatchRoadmap() {
             Last updated: May 12, 2026 · Reference: DCT Batch Roadmap (Architecture Visualization — Non-Production)
           </div>
           <div style={{ fontSize: "10px", color: "#64748b", fontStyle: "italic", marginTop: "4px" }}>
-            Authoritative scope: Batch delivery schedule, epic mapping &amp; PI planning ·{" "}
-            <a href="/" style={{ color: "#93c5fd", textDecoration: "underline" }}>← Platform Home</a>
+            Historical planning scope: batch delivery schedule, epic mapping &amp; PI planning. Current ADO pipeline status is maintained on{" "}
+            <a href="/" style={{ color: "#93c5fd", textDecoration: "underline" }}>Platform Home</a>.
           </div>
         </div>
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
@@ -943,7 +943,7 @@ export default function BatchRoadmap() {
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "20px", fontWeight: 800, color: "#60a5fa" }}>{activeFeatures}</div>
-            <div style={{ fontSize: "10px", color: "#94a3b8" }}>Active Features</div>
+            <div style={{ fontSize: "10px", color: "#94a3b8" }}>Historical Active Features</div>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "20px", fontWeight: 800, color: "white" }}>{totalFeatures}</div>

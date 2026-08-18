@@ -16,7 +16,7 @@
 
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { useBatchStatus } from "@/contexts/BatchStatusContext";
+import { BATCH_DELIVERY_RECORDS, classifyDeliveryStatus, deriveBatchMetrics, deriveMvpMetrics, useBatchStatus } from "@/contexts/BatchStatusContext";
 import { BATCH_REGISTRY } from "@/lib/batchModel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -42,14 +42,14 @@ interface DependencyRow {
 const PI3_DEPENDENCY_DATA: DependencyRow[] = [
   { batch: "B9A", name: "Data Gateway (IMS, CDS, DUO)", owner: "PDC", blockedBy: "B9", enables: "Gateway, Roger", rogerImpact: "Gateway delivery status", criticalPath: true, eta: "Jul 15", batchKey: "9a" },
   { batch: "B42", name: "Tax Rules Framework & Book-to-Tax Rules", owner: "TDC", blockedBy: "B3, B6", enables: "B43, Roger Mapping", rogerImpact: "Line mapping context, rules surface", criticalPath: true, eta: "Jul 23", batchKey: "42" },
-  { batch: "B43", name: "Practitioner Book & Reclass Adjustments", owner: "TDC", blockedBy: "B6, B10", enables: "B39, Roger Adjustments", rogerImpact: "Adjustment summary read contract", criticalPath: true, eta: "Aug 6", batchKey: "43" },
-  { batch: "B17", name: "Practitioner Review & Lock", owner: "TDC", blockedBy: "B4", enables: "B20, Roger Lock", rogerImpact: "Review task list, lock status", criticalPath: true, eta: "Jul 6", batchKey: "17" },
-  { batch: "B20", name: "Workflow Orchestration & Period Management", owner: "PDC+TDC", blockedBy: "B17", enables: "B21, B28", rogerImpact: "Period status, workflow state", criticalPath: true, eta: "Jul 15", batchKey: "20" },
-  { batch: "B21", name: "Quality Control (PDC MVP)", owner: "PDC", blockedBy: "B20", enables: "B26, B28", rogerImpact: "QC status surface", criticalPath: true, eta: "Jul 23", batchKey: "21" },
+  { batch: "B43", name: "Practitioner Book & Reclass Adjustments", owner: "TDC", blockedBy: "B6, B10", enables: "Historical B39, Roger Adjustments", rogerImpact: "Adjustment summary read contract", criticalPath: true, eta: "Aug 6", batchKey: "43" },
+  { batch: "B17", name: "Practitioner Review & Lock", owner: "TDC", blockedBy: "B4", enables: "Historical B20, Roger Lock", rogerImpact: "Review task list, lock status", criticalPath: true, eta: "Jul 6", batchKey: "17" },
+  { batch: "B20", name: "Historical planning reference — Workflow Orchestration & Period Management", owner: "PDC+TDC", blockedBy: "B17", enables: "Historical B21, B28", rogerImpact: "Historical period-status planning reference", criticalPath: false, eta: "Jul 15", batchKey: "20" },
+  { batch: "B21", name: "Historical planning reference — Quality Control (PDC MVP)", owner: "PDC", blockedBy: "Historical B20", enables: "B26, B28", rogerImpact: "Historical QC planning reference", criticalPath: false, eta: "Jul 23", batchKey: "21" },
   { batch: "B26", name: "Entity Constituents & Allocations (PDC)", owner: "PDC", blockedBy: "B5, B21", enables: "B28, Roger Consolidation", rogerImpact: "Consolidation detail, entity structure", criticalPath: true, eta: "Aug 6", batchKey: "26" },
-  { batch: "B28", name: "Tax Workpaper & Provision Schedules", owner: "TDC", blockedBy: "B26", enables: "B29, B33, B39", rogerImpact: "Workpaper access, provision schedules", criticalPath: true, eta: "Aug 20", batchKey: "28" },
-  { batch: "B29", name: "Consolidated Return Assembly", owner: "TDC", blockedBy: "B28", enables: "B39, Filing & Signoff", rogerImpact: "Return assembly status, filing readiness", criticalPath: true, eta: "Sep 3", batchKey: "29" },
-  { batch: "B39", name: "Calculation Report", owner: "TDC", blockedBy: "B28", enables: "Filing, Pilot", rogerImpact: "Sign-off reports, derivation lineage", criticalPath: true, eta: "Sep 10", batchKey: "39" },
+  { batch: "B28", name: "Tax Workpaper & Provision Schedules", owner: "TDC", blockedBy: "B26", enables: "B29, B33, Historical B39", rogerImpact: "Workpaper access, provision schedules", criticalPath: true, eta: "Aug 20", batchKey: "28" },
+  { batch: "B29", name: "Consolidated Return Assembly", owner: "TDC", blockedBy: "B28", enables: "Historical B39, Filing & Signoff", rogerImpact: "Return assembly status, filing readiness", criticalPath: true, eta: "Sep 3", batchKey: "29" },
+  { batch: "B39", name: "Historical planning reference — Calculation Report", owner: "TDC", blockedBy: "B28", enables: "Filing, Pilot", rogerImpact: "Historical sign-off report planning reference", criticalPath: false, eta: "Sep 10", batchKey: "39" },
   { batch: "B31", name: "Legacy Tool Prior Year Ingestion", owner: "PDC+TDC", blockedBy: "B9", enables: "B33, Rollforward", rogerImpact: "Prior year data surface", criticalPath: false, eta: "Aug 20", batchKey: "31" },
   { batch: "B33", name: "State Tax (Apportionment, NOL, Forms)", owner: "TDC", blockedBy: "B28", enables: "Pilot (Final TDC)", rogerImpact: "State tax read contract", criticalPath: false, eta: "Sep 15", batchKey: "33" },
 ];
@@ -220,12 +220,13 @@ export default function DeliveryIntelligencePage() {
   const isBlocked = (key: string) => liveStatus(key) === "Blocked";
 
   // ── PI3 batch counts ──
-  const pi3Keys = ["8", "9a", "42", "43", "17", "20", "21", "26", "28", "29", "39", "31", "33"];
-  const pi3Complete = useMemo(() => pi3Keys.filter(k => isComplete(k)).length, [statuses]);
-  const pi3Active = useMemo(() => pi3Keys.filter(k => isActive(k)).length, [statuses]);
-  const pi3Blocked = useMemo(() => pi3Keys.filter(k => isBlocked(k)).length, [statuses]);
-  const pi3Planned = pi3Keys.length - pi3Complete - pi3Active - pi3Blocked;
-  const pi3Pct = Math.round((pi3Complete / pi3Keys.length) * 100);
+  const pi3Records = BATCH_DELIVERY_RECORDS.filter(record => record.pi === "PI3");
+  const pi3Complete = useMemo(() => pi3Records.filter(record => classifyDeliveryStatus(statuses[record.statusKey]) === "Complete").length, [statuses]);
+  const pi3Active = useMemo(() => pi3Records.filter(record => classifyDeliveryStatus(statuses[record.statusKey]) === "In Development").length, [statuses]);
+  const pi3Review = useMemo(() => pi3Records.filter(record => classifyDeliveryStatus(statuses[record.statusKey]) === "In Review").length, [statuses]);
+  const pi3Blocked = useMemo(() => pi3Records.filter(record => isBlocked(record.statusKey)).length, [statuses]);
+  const pi3Planned = pi3Records.length - pi3Complete - pi3Active - pi3Review - pi3Blocked;
+  const pi3Pct = Math.round((pi3Complete / pi3Records.length) * 100);
 
   // ── Critical path completion ──
   const criticalKeys = ["9a", "42", "43", "17", "20", "21", "26", "28", "29", "39"];
@@ -281,9 +282,11 @@ export default function DeliveryIntelligencePage() {
   }, [statuses]);
 
   // ── Readiness dimension metrics ──
-  const totalBatches = Object.keys(statuses).length;
-  const totalComplete = Object.values(statuses as Record<string, string>).filter(s => ["Complete", "Delivered"].includes(s)).length;
-  const totalActive = Object.values(statuses as Record<string, string>).filter(s => ["In Progress", "Dev", "MVP", "Stretch"].includes(s)).length;
+  const batchMetrics = deriveBatchMetrics(statuses);
+  const mvpMetrics = deriveMvpMetrics(statuses);
+  const totalBatches = batchMetrics.total;
+  const totalComplete = batchMetrics.complete;
+  const totalActive = mvpMetrics.inDev;
   const totalBlocked = Object.values(statuses as Record<string, string>).filter(s => s === "Blocked").length;
 
   const backlogHealth: Health = pi3Pct >= 60 ? "Green" : pi3Pct >= 30 ? "Yellow" : "Red";
@@ -386,8 +389,8 @@ export default function DeliveryIntelligencePage() {
           <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "16px 20px", marginBottom: "24px", display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: "200px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                <span style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em" }}>PI3 Delivery Progress</span>
-                <span style={{ fontSize: "13px", fontWeight: 800, color: "#059669" }}>{pi3Pct}% ({pi3Complete}/{pi3Keys.length} batches)</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em" }}>PI3 Batch Delivery Progress</span>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#059669" }}>{pi3Pct}% ({pi3Complete}/{pi3Records.length} PI3 batch records)</span>
               </div>
               <div style={{ height: "10px", backgroundColor: "#d1fae5", borderRadius: "5px", overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${pi3Pct}%`, backgroundColor: "#059669", borderRadius: "5px", transition: "width 0.4s ease" }} />
@@ -396,7 +399,8 @@ export default function DeliveryIntelligencePage() {
             <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
               {[
                 { label: "Complete", value: pi3Complete, color: "#059669" },
-                { label: "Active", value: pi3Active, color: "#2563eb" },
+                { label: "Active Batch Features", value: pi3Active, color: "#2563eb" },
+                { label: "Review Ready", value: pi3Review, color: "#7c3aed" },
                 { label: "Blocked", value: pi3Blocked, color: "#dc2626" },
                 { label: "Planned", value: pi3Planned, color: "#94a3b8" },
               ].map(s => (
@@ -415,7 +419,7 @@ export default function DeliveryIntelligencePage() {
               health={backlogHealth}
               metrics={[
                 { label: "PI3 Batches Complete", value: pi3Complete },
-                { label: "PI3 Batches Active", value: pi3Active },
+                { label: "PI3 Active Batch Features", value: pi3Active },
                 { label: "Critical Path Batches Done", value: criticalComplete },
                 { label: "Critical Path %", value: `${criticalPct}%` },
                 { label: "Gate Compliance", value: `${gatesComplete}/4 Gates` },
@@ -436,11 +440,11 @@ export default function DeliveryIntelligencePage() {
               title="Capacity Readiness"
               health={capacityHealth}
               metrics={[
-                { label: "Active Batches (Platform)", value: totalActive },
-                { label: "PI3 Active Batches", value: pi3Active },
+                { label: "Active MVP Features (Platform)", value: totalActive },
+                { label: "PI3 Active Batch Features", value: pi3Active },
                 { label: "Planned (Not Started)", value: pi3Planned },
                 { label: "Capacity Risk", value: pi3Active > 5 ? "High" : pi3Active > 3 ? "Medium" : "Low" },
-                { label: "Sprint Allocation", value: "PI3 Jul–Sep 2026" },
+                { label: "Batch Allocation", value: "PI3 Jul–Sep 2026" },
               ]}
             />
             <ReadinessDimension
@@ -710,7 +714,7 @@ export default function DeliveryIntelligencePage() {
             {[
               { label: "Batches Complete", value: totalComplete, sub: "All PIs", color: "#059669", bg: "#f0fdf4", border: "#86efac" },
               { label: "Batches Active", value: totalActive, sub: "In Dev / Review", color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" },
-              { label: "PI3 Complete", value: pi3Complete, sub: `of ${pi3Keys.length} PI3 batches`, color: "#059669", bg: "#f0fdf4", border: "#86efac" },
+              { label: "PI3 Complete", value: pi3Complete, sub: `of ${pi3Records.length} current ADO records`, color: "#059669", bg: "#f0fdf4", border: "#86efac" },
               { label: "Critical Path", value: `${criticalPct}%`, sub: `${criticalComplete}/${criticalKeys.length} nodes`, color: criticalPct >= 70 ? "#059669" : "#d97706", bg: criticalPct >= 70 ? "#f0fdf4" : "#fefce8", border: criticalPct >= 70 ? "#86efac" : "#fde047" },
               { label: "Blocked Batches", value: totalBlocked, sub: "Require action", color: totalBlocked === 0 ? "#059669" : "#dc2626", bg: totalBlocked === 0 ? "#f0fdf4" : "#fef2f2", border: totalBlocked === 0 ? "#86efac" : "#fca5a5" },
               { label: "Roger Readiness", value: `${rogerReady}/${rogerTotal}`, sub: "APIs consumer-ready", color: rogerReady >= 8 ? "#059669" : "#d97706", bg: rogerReady >= 8 ? "#f0fdf4" : "#fefce8", border: rogerReady >= 8 ? "#86efac" : "#fde047" },

@@ -7,6 +7,7 @@ import {
   Shield, ArrowDown,
 } from "lucide-react";
 import UATProcessFlowDiagram from "@/components/UATProcessFlowDiagram";
+import { deriveReleaseCandidate, useBatchStatus } from "@/contexts/BatchStatusContext";
 
 const NAVY   = "#003865";
 const GREEN  = "#059669";
@@ -91,6 +92,8 @@ function Callout({ type, children }: { type: "info" | "warning" | "governance" |
 }
 
 export default function UATTestingPage() {
+  const { piCompletion } = useBatchStatus();
+  const releaseCandidate = deriveReleaseCandidate(piCompletion);
   const [showAllWorksheets, setShowAllWorksheets] = useState(false);
 
   const mvpCount     = MVP_WORKSHEETS.length;
@@ -181,7 +184,7 @@ export default function UATTestingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
             {[
               { label: "MVP Target",        value: "Sep 21",    color: NAVY,  sub: "2026" },
-              { label: "Current Batch",     value: "RC-2",      color: "#7c3aed", sub: "PI 3 Active" },
+              { label: "Current Batch",     value: releaseCandidate, color: "#7c3aed", sub: "PI 3 Active" },
               { label: "UAT Readiness",     value: "🟢 On Track", color: GREEN, sub: "As of Aug 5" },
               { label: "Overall Completion",value: "68%",       color: GREEN, sub: "Across all tracks" },
               { label: "Last Updated",      value: "Aug 5",     color: SLATE, sub: "2026" },

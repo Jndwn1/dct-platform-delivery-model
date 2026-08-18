@@ -6,6 +6,7 @@ import { useState, useRef, useCallback } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { trpc } from "@/lib/trpc";
+import { deriveReleaseCandidate, useBatchStatus } from "@/contexts/BatchStatusContext";
 
 // ─── Batch data type ──────────────────────────────────────────────────────────
 interface BatchRow {
@@ -40,7 +41,8 @@ function buildEmailHTML(
   batches: BatchRow[],
   _dashboardImgDataUrl: string | null,
   recentDeployments: Array<{ releaseName: string; deploymentDate: string; status: string }>,
-  piStats: { pi: string; total: number; done: number; active: number }[]
+  piStats: { pi: string; total: number; done: number; active: number }[],
+  releaseCandidate: string,
 ): string {
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
@@ -162,7 +164,7 @@ function buildEmailHTML(
       <span style="font-size:11px;font-weight:600;color:white;background:#059669;border-radius:4px;padding:3px 8px;">PI 1–2 Done</span>
       <span style="font-size:11px;font-weight:600;color:white;background:#2563eb;border-radius:4px;padding:3px 8px;">${activeBatches} Active</span>
       <span style="font-size:11px;font-weight:600;color:white;background:#7c3aed;border-radius:4px;padding:3px 8px;">Pilot: Sep 21, 2026</span>
-      <span style="font-size:11px;font-weight:600;color:white;background:#0f1623;border-radius:4px;padding:3px 8px;">RC-3 Active</span>
+      <span style="font-size:11px;font-weight:600;color:white;background:#0f1623;border-radius:4px;padding:3px 8px;">${releaseCandidate} Active</span>
     </div>
   </div>
 
@@ -210,6 +212,8 @@ interface GeneratePOEmailProps {
 }
 
 export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEmailProps) {
+  const { piCompletion } = useBatchStatus();
+  const releaseCandidate = deriveReleaseCandidate(piCompletion);
   const [open, setOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [emailHTML, setEmailHTML] = useState<string | null>(null);
@@ -250,7 +254,7 @@ export default function GeneratePOEmail({ dashboardRef, batches }: GeneratePOEma
       }
     }
 
-    const html = buildEmailHTML(batches, imgDataUrl, recentDeployments as Array<{ releaseName: string; deploymentDate: string; status: string }>, piStats);
+    const html = buildEmailHTML(batches, imgDataUrl, recentDeployments as Array<{ releaseName: string; deploymentDate: string; status: string }>, piStats, releaseCandidate);
     setEmailHTML(html);
     setGenerating(false);
     setOpen(true);

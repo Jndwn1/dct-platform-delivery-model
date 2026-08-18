@@ -2188,12 +2188,12 @@ CATT Sr. Business Analyst — DCT Platform Delivery`;
             {/* Counts */}
             <div>
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e40af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px", borderBottom: "1px solid #dbeafe", paddingBottom: "4px" }}>
-                Status Counts
+                Historical Planning Baseline
               </div>
               {[
                 { status: "Done", count: "10", detail: "B4, B5, B6, B2A, B7, B8 PDC, B8 TDC, B9 PDC, B10, B43", color: "#059669", bg: "#dcfce7" },
                 { status: "In Progress", count: "3", detail: "B9 Gateway, B11 TDC, B42 TDC — active this week", color: "#1e40af", bg: "#dbeafe" },
-                { status: "MVP", count: "11", detail: "PI 3 planned scope — B16, B31 PDC, B28, B9a, B39, B20, B29, B21, B17, B26, B31 TDC", color: "#7c3aed", bg: "#ede9fe" },
+                { status: "Baseline MVP", count: "11", detail: "Historical PI3 planning scope — not the current ADO pipeline. See the Platform Dashboard for 11 Active / 2 Review Ready.", color: "#7c3aed", bg: "#ede9fe" },
                 { status: "Stretch", count: "2", detail: "B16 PDC (PI 2), B33 TDC (PI 3) — opportunistic, non-blocking", color: "#ea580c", bg: "#ffedd5" },
               ].map((c, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "5px 0", borderBottom: "1px solid #f1f5f9" }}>

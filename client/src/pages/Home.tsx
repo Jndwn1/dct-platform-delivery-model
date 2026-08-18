@@ -6,7 +6,7 @@
 import React from "react";
 import { Link } from "wouter";
 import { useState, useMemo, useCallback } from "react";
-import { useBatchStatus, deriveMvpMetrics } from "@/contexts/BatchStatusContext";
+import { BATCH_DELIVERY_RECORDS, MVP_DELIVERY_RECORDS, useBatchStatus, classifyDeliveryStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
 import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
 import { useTour } from "@/contexts/TourContext";
@@ -21,11 +21,11 @@ const BATCH_CALENDAR_PI23 = [
   { pi: "PI 2", status: "Done",        batch: "B5",    feat: "PDC",     name: "Entity Identity & Structure",                                       startDate: "Wed 4/22",  endDate: "Thu 4/30",  whatItDoes: "Gives every client and entity a permanent identity and access scope.",                                                                          rogerImpact: "Client / entity selection" },
   { pi: "PI 2", status: "Done",        batch: "B6",    feat: "TDC",     name: "Practitioner Review & Lock",                                        startDate: "Wed 4/22",  endDate: "Thu 4/30",  whatItDoes: "Practitioners review, decide, and lock mappings; decisions are immutable.",                                                                     rogerImpact: "Review & lock" },
   { pi: "PI 2", status: "Done",        batch: "B2A",   feat: "PDC",     name: "Orchestrator Classification Result & Contract Enforcement",          startDate: "Wed 4/29",  endDate: "Mon 5/9",   whatItDoes: "Enforces the orchestrator's classification result and contract at intake.",                                                                      rogerImpact: "None (behind the scenes)" },
-  { pi: "PI 2", status: "Done",        batch: "B7",    feat: "TDC",     name: "Client Tax Profile & Eligibility",                                  startDate: "Fri 5/1",   endDate: "Mon 5/11",  whatItDoes: "Holds the client tax profile and determines which rules apply.",                                                                               rogerImpact: "Eligibility" },
+  { pi: "PI 2", status: "In Progress", batch: "B7",    feat: "TDC",     name: "Client Tax Profile & Eligibility",                                  startDate: "Fri 5/1",   endDate: "Mon 5/11",  whatItDoes: "Holds the client tax profile and determines which rules apply.",                                                                               rogerImpact: "Eligibility" },
   { pi: "PI 2", status: "Done",        batch: "B8",    feat: "PDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces cross-LOB ingestion and data exceptions for remediation.",                                                                             rogerImpact: "Exceptions surfacing" },
   { pi: "PI 2", status: "Done",        batch: "B8",    feat: "TDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces tax-side exceptions for remediation.",                                                                                               rogerImpact: "Exceptions surfacing" },
   { pi: "PI 2", status: "Done",        batch: "B9",    feat: "Gateway", name: "Roger Gateway & Governed Consumer Access Layer",                    startDate: "Thu 5/21",  endDate: "Tue 6/2",   whatItDoes: "Governed gateway exposing approved upstream data to consumers.",                                                                               rogerImpact: "None (gateway)" },
-  { pi: "PI 2", status: "Done",        batch: "B10",   feat: "TDC",     name: "Return Assembly, Filing & Lineage",                                 startDate: "Wed 6/3",   endDate: "Fri 6/5",   whatItDoes: "Assembles the return, creates the immutable filing record, anchors lineage.",                                                                    rogerImpact: "Form 1120 / filing (stage 10)" },
+  { pi: "PI 2", status: "In Progress", batch: "B10",   feat: "TDC",     name: "Return Assembly, Filing & Lineage",                                 startDate: "Wed 6/3",   endDate: "Fri 6/5",   whatItDoes: "Assembles the return, creates the immutable filing record, anchors lineage.",                                                                    rogerImpact: "Form 1120 / filing (stage 10)" },
   { pi: "PI 2", status: "Done",        batch: "B43",   feat: "TDC",     name: "Practitioner Book & Reclass Adjustments",                           startDate: "Wed 6/10",  endDate: "Tue 6/16",  whatItDoes: "Persists practitioner book and reclass adjustments as a multi-line model.",                                                                 rogerImpact: "High: Book Adjustment & Reclass Adjustment (stages 4-5)" },
   { pi: "PI 2", status: "In Progress", batch: "B9",    feat: "Gateway", name: "Roger Gateway - TDC Integration Endpoints",                         startDate: "Wed 6/17",  endDate: "Fri 6/19",  whatItDoes: "Extends the governed gateway to TDC consumers.",                                                                                              rogerImpact: "None (gateway)" },
   { pi: "PI 2", status: "In Progress", batch: "B11",   feat: "TDC",     name: "Learning Governance & Model Evolution",                             startDate: "Wed 6/17",  endDate: "Thu 6/25",  whatItDoes: "Captures learning from real decisions under consent; governs model evolution.",                                                                 rogerImpact: "None (behind the scenes)" },
@@ -34,12 +34,12 @@ const BATCH_CALENDAR_PI23 = [
   // ── PI 3 ──
   { pi: "PI 3", status: "MVP",         batch: "B16",   feat: "TDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 7/13",  endDate: "Tue 7/21",  whatItDoes: "Records the tax-side audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
   { pi: "PI 3", status: "MVP",         batch: "B31",   feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
-  { pi: "PI 3", status: "MVP",         batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
-  { pi: "PI 3", status: "MVP",         batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
-  { pi: "PI 3", status: "MVP",         batch: "B39",   feat: "TDC",     name: "Calculation Report",                                                startDate: "Fri 7/31",  endDate: "Mon 8/10",  whatItDoes: "Produces the packaged, partner-ready calculation and sign-off report.",                                                                         rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
-  { pi: "PI 3", status: "MVP",         batch: "B20",   feat: "PDC",     name: "Firm Governance & Professional Standards",                          startDate: "Thu 7/23",  endDate: "Fri 7/31",  whatItDoes: "Holds firm governance and professional standards that gate sign-off.",                                                                          rogerImpact: "None: gates sign-off, no new screen" },
+  { pi: "PI 3", status: "In Progress", batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
+  { pi: "PI 3", status: "In Progress", batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline", batch: "B39", feat: "TDC", name: "Calculation Report", startDate: "Fri 7/31", endDate: "Mon 8/10", whatItDoes: "Historical portfolio item; not present in the supplied current ADO Active or Review Ready extract.", rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline", batch: "B20", feat: "PDC", name: "Firm Governance & Professional Standards", startDate: "Thu 7/23", endDate: "Fri 7/31", whatItDoes: "Historical portfolio item; not present in the supplied current ADO Active or Review Ready extract.", rogerImpact: "None: gates sign-off, no new screen" },
   { pi: "PI 3", status: "Done",        batch: "B29",   feat: "TDC",     name: "Consolidated Return Assembly",                                      startDate: "Tue 8/11",  endDate: "Tue 8/11",  whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                                rogerImpact: "High: consolidated / multi-entity views + Form 1120" },
-  { pi: "PI 3", status: "MVP",         batch: "B21",   feat: "PDC",     name: "Quality Control Standards",                                        startDate: "Mon 8/3",   endDate: "Tue 8/11",  whatItDoes: "Holds quality-control review standards and concurring-partner rules.",                                                                          rogerImpact: "None: reference only, no new screen" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline", batch: "B21", feat: "PDC", name: "Quality Control Standards", startDate: "Mon 8/3", endDate: "Tue 8/11", whatItDoes: "Historical portfolio item; not present in the supplied current ADO Active or Review Ready extract.", rogerImpact: "None: reference only, no new screen" },
   { pi: "PI 3", status: "MVP",         batch: "B17",   feat: "TDC",     name: "Decision Support, Overrides, Evidence & Workpapers",               startDate: "Thu 8/20",  endDate: "Fri 8/28",  whatItDoes: "Adds override policies, evidence on decisions, and workpaper lock to snapshot.",                                                                rogerImpact: "Med: wire evidence / override / lock into review screens" },
   { pi: "PI 3", status: "MVP",         batch: "B26",   feat: "PDC",     name: "Entity Constituents & Allocations",                                 startDate: "Wed 8/12",  endDate: "Thu 8/20",  whatItDoes: "Models sub-entities (divisions, branches) and inter-entity allocations.",                                                                       rogerImpact: "None: structure only in MVP" },
   { pi: "PI 3", status: "MVP",         batch: "B31",   feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
@@ -68,14 +68,14 @@ const BATCH_REFERENCE = [
   { pi: "PI 3", status: "In Progress", batchNum: "42", platform: "TDC",     name: "Tax Rules Framework (PI 3 continuation)",                            whatItDoes: "Extends book-to-tax adjustment rules for additional scenarios.",                                                                               rogerImpact: "Tax Adjustment (Stage 7)" },
   { pi: "PI 3", status: "MVP",         batchNum: "45", platform: "TDC",     name: "Rule Logic Expression Table & Adjustment Subtype Domain Expansion",  whatItDoes: "Moves rule computation logic into a dedicated expression table; expands Adjustment Subtype domain to business-approved values.",               rogerImpact: "Filing Review + Adjustments screen + Master Workbook import" },
   { pi: "PI 3", status: "In Progress", batchNum: "17", platform: "PDC",     name: "Many-to-Many Form Line Mapping & Jurisdiction-Aware Derivation",     whatItDoes: "Supports many-to-many form line mappings with jurisdiction-aware tax derivation.",                                                              rogerImpact: "Line Mappings (Stage 2) + Jurisdiction" },
-  { pi: "PI 3", status: "In Progress", batchNum: "20",  platform: "TDC",      name: "Apportionment & State Allocation",                                   whatItDoes: "Handles state apportionment and income allocation across jurisdictions.",                                                                     rogerImpact: "State Apportionment" },
-  { pi: "PI 3", status: "In Progress", batchNum: "21",  platform: "PDC",      name: "Multi-Entity Consolidation",                                         whatItDoes: "Consolidates financial data across multiple entities for group-level reporting.",                                                              rogerImpact: "Consolidation View" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline", batchNum: "20", platform: "TDC", name: "Apportionment & State Allocation", whatItDoes: "Historical portfolio item; excluded from the supplied current ADO Active and Review Ready extract.", rogerImpact: "State Apportionment" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline", batchNum: "21", platform: "PDC", name: "Multi-Entity Consolidation", whatItDoes: "Historical portfolio item; excluded from the supplied current ADO Active and Review Ready extract.", rogerImpact: "Consolidation View" },
   { pi: "PI 3", status: "In Progress", batchNum: "26",  platform: "PDC",      name: "Known Mappings — Confirmed Classification Retrieval",                whatItDoes: "Retrieves and surfaces confirmed classification decisions for practitioner review.",                                                             rogerImpact: "Line Mappings (Stage 2)" },
   { pi: "PI 3", status: "In Progress", batchNum: "28",  platform: "TDC",      name: "Deferred Tax & Temporary Differences",                               whatItDoes: "Computes deferred tax assets/liabilities and temporary differences.",                                                                         rogerImpact: "Deferred Tax" },
   { pi: "PI 3", status: "Done",      batchNum: "29",  platform: "TDC",      name: "Consolidated Return Assembly",                                      whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                             rogerImpact: "Consolidated / multi-entity views + Form 1120" },
   { pi: "PI 3", status: "In Progress", batchNum: "31",  platform: "TDC",      name: "Partnership K-1 & Pass-Through Allocation",                          whatItDoes: "Handles K-1 income allocation and pass-through entity tax treatment.",                                                                         rogerImpact: "K-1 / Pass-Through" },
   { pi: "PI 3", status: "In Progress", batchNum: "9A",  platform: "Gateway",  name: "Roger Gateway — Extended Consumer Contracts",                        whatItDoes: "Extends the Roger Gateway with additional governed consumer contracts.",                                                                       rogerImpact: "Gateway Expansion" },
-  { pi: "PI 3", status: "Planned",   batchNum: "39",  platform: "TDC",      name: "International Tax — GILTI, FDII, BEAT",                              whatItDoes: "Computes international tax provisions including GILTI, FDII, and BEAT.",                                                                      rogerImpact: "International Tax" },
+  { pi: "PI 3", status: "Out of Current ADO Pipeline", batchNum: "39", platform: "TDC", name: "International Tax — GILTI, FDII, BEAT", whatItDoes: "Historical portfolio item; excluded from the supplied current ADO Active and Review Ready extract.", rogerImpact: "International Tax" },
   { pi: "PI 3", status: "Stretch",   batchNum: "33",  platform: "TDC",      name: "S-Corp & Flow-Through Specialization",                               whatItDoes: "S-Corp and flow-through entity tax specialization.",                                                                                         rogerImpact: "S-Corp / Flow-Through" },
   { pi: "PI 4", status: "Planned",   batchNum: "19",  platform: "TDC",      name: "Estimated Tax & Safe Harbor",                                        whatItDoes: "Manages estimated tax payments and safe harbor calculations.",                                                                                rogerImpact: "Estimated Tax" },
   { pi: "PI 4", status: "Planned",   batchNum: "21",  platform: "TDC",      name: "Multi-Entity Consolidation (TDC)",                                   whatItDoes: "TDC-side consolidation for group-level tax reporting.",                                                                                      rogerImpact: "Consolidation View" },
@@ -270,6 +270,7 @@ function BatchReferenceGuide() {
     Done:           { bg: "#f0fdf4", text: "#059669", border: "#bbf7d0" },
     "In Progress":  { bg: "#eff6ff", text: "#2563eb", border: "#bfdbfe" },
     MVP:            { bg: "#faf5ff", text: "#7c3aed", border: "#e9d5ff" },
+    "Out of Current ADO Pipeline": { bg: "#f8fafc", text: "#64748b", border: "#cbd5e1" },
     Stretch:        { bg: "#fff7ed", text: "#b45309", border: "#fde68a" },
     "On Hold":      { bg: "#f8fafc", text: "#64748b", border: "#e2e8f0" },
   };
@@ -522,41 +523,33 @@ const RECENTLY_CLOSED_PI3 = [
   // ── Prior week (Aug 4, 2026) ──
   { id: "B17", name: "Decision Support, Overrides, Evidence & Workpapers", platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: false },
   { id: "B16", name: "Audit Trail & Lineage Governance",                   platform: "TDC", closedDate: "Aug 4, 2026", thisWeek: false },
-  // ── Prior week (Jul 21–Jul 31) ──
-  { id: "B9A", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",           platform: "Gateway", closedDate: "Jul 29, 2026", thisWeek: false },
-  { id: "B28", name: "Tax Workpaper & Provision Schedules",                platform: "TDC",     closedDate: "Jul 28, 2026", thisWeek: false },
-  { id: "B31", name: "Legacy Tool Prior Year Ingestion",                   platform: "PDC",     closedDate: "Jul 24, 2026", thisWeek: false },
-  { id: "B20", name: "Firm Governance & Professional Standards",           platform: "PDC",     closedDate: "Jul 24, 2026", thisWeek: false },
-  { id: "B43", name: "Practitioner Book & Reclass Adjustments",            platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
-  { id: "B42", name: "Tax Rules Framework & Book-to-Tax Adjustment Rules", platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
-  { id: "B11", name: "Learning Governance & Model Evolution",              platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
-  { id: "B10", name: "Return Assembly, Filing & Lineage",                  platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
-  { id: "B7",  name: "Client Tax Profile & Eligibility",                   platform: "TDC",     closedDate: "Jul 21, 2026", thisWeek: false },
 ];
 
 export default function Home() {
   const { statuses, gates, piCompletion, lastUpdated } = useBatchStatus();
 
-  // ── MVP-scoped metrics — single source of truth (35 delivery items: 30 numbered + 5 non-batch) ──
+  // ── Separate Batch Delivery and Overall MVP Delivery metrics ──────────────────
+  const batch = useMemo(() => deriveBatchMetrics(statuses), [statuses]);
   const mvp = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
-  const liveComplete  = mvp.complete;      // Complete / Delivered / Done
-  const liveDev       = mvp.inDev;         // In Progress / Dev
-  const liveInReview  = mvp.inReview;      // In Review / QA states
-  const livePlanned   = mvp.planned;       // Not Started / Committed
-  const liveTotal     = mvp.total;         // 35 (30 numbered + 5 non-batch active features)
-  const overallPct    = mvp.readinessPct;  // complete ÷ 35 × 100
+  const batchComplete = batch.complete;
+  const batchDev      = batch.inDev;
+  const batchInReview = batch.inReview;
+  const batchPlanned  = batch.planned;
+  const batchTotal    = batch.total;
+  const batchPct      = batch.readinessPct;
+  const overallPct    = mvp.readinessPct;
   const pi3Closed     = piCompletion?.pi3?.complete ?? 0;
 
   // For backward compat with sections that use pi2Done/pi2Active/pi2Planned names
-  const pi2Done    = liveComplete;
-  const pi2Active  = liveDev;
-  const pi2Planned = livePlanned;
+  const pi2Done    = batchComplete;
+  const pi2Active  = batchDev;
+  const pi2Planned = batchPlanned;
 
   // Active batches: derive from context keys that are In Progress / Dev / MVP / Stretch
   // Map context keys back to calendar entries for display
   const ctxActiveKeys = useMemo(() => {
-    return Object.entries(statuses as Record<string, string>)
-      .filter(([, s]) => s === "In Progress" || s === "Dev" || s === "MVP" || s === "Stretch")
+    return Object.entries(statuses as unknown as Record<string, string>)
+      .filter(([, s]) => classifyDeliveryStatus(s as never) === "In Development")
       .map(([k]) => k);
   }, [statuses]);
 
@@ -621,38 +614,25 @@ export default function Home() {
     { label: "Governance",             id: "quick-nav-governance",   internal: false, href: "/gate-status" },
   ];
 
-  // Delivery Highlights — derive active/stretch batches by overlaying live context status onto calendar entries
+  // Delivery Highlights — derive active features from the authoritative ADO-backed metric records.
   // Context key format: "foundation-core" for FC, numeric string for B1/B2/etc., "2a" for B2A
   const ctxKeyForBatch = (batchStr: string): string => {
     if (batchStr === "FC") return "foundation-core";
     return batchStr.replace(/^B/, "").toLowerCase();
   };
-  const activeBatches = useMemo(() => {
-    return BATCH_CALENDAR_PI23.filter(b => {
-      const key = ctxKeyForBatch(b.batch);
-      const liveStatus = (statuses as Record<string, string>)[key];
-      if (liveStatus) return liveStatus === "In Progress" || liveStatus === "Dev" || liveStatus === "MVP";
-      return b.status === "In Progress";
-    });
+  const activeAdoFeatures = useMemo(() => {
+    return MVP_DELIVERY_RECORDS.filter(record => classifyDeliveryStatus(statuses[record.statusKey]) === "In Development");
   }, [statuses]);
   const stretchBatches = useMemo(() => {
     return BATCH_CALENDAR_PI23.filter(b => {
       const key = ctxKeyForBatch(b.batch);
-      const liveStatus = (statuses as Record<string, string>)[key];
+      const liveStatus = (statuses as unknown as Record<string, string>)[key];
       if (liveStatus) return liveStatus === "Stretch";
       return b.status === "Stretch";
     });
   }, [statuses]);
-  // rcLabel: single computed RC label — same formula as hero banner and ExecDashboard
-  const rcLabel = useMemo(() => {
-    const p1 = piCompletion?.pi1?.pct ?? 0;
-    const p2 = piCompletion?.pi2?.pct ?? 0;
-    const p3 = piCompletion?.pi3?.pct ?? 0;
-    if (p3 >= 100) return "RC-4";
-    if (p2 >= 80 && p3 >= 40) return "RC-3";
-    if (p2 >= 60) return "RC-2";
-    return "RC-1";
-  }, [piCompletion]);
+  // rcLabel: one shared Release Candidate classification across all dashboards
+  const rcLabel = useMemo(() => deriveReleaseCandidate(piCompletion), [piCompletion]);
 
   // programStatus: On Track if readiness ≥ 70%, otherwise At Risk
   const programOnTrack = overallPct >= 70;
@@ -724,7 +704,7 @@ export default function Home() {
             borderRadius: "10px", padding: "14px 20px", textAlign: "center", minWidth: "180px",
           }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
-            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>{(() => { const p1 = piCompletion?.pi1?.pct ?? 0; const p2 = piCompletion?.pi2?.pct ?? 0; const p3 = piCompletion?.pi3?.pct ?? 0; if (p3 >= 100) return "RC-4"; if (p2 >= 80 && p3 >= 40) return "RC-3"; if (p2 >= 60) return "RC-2"; return "RC-1"; })()}</div>
+            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>{rcLabel}</div>
             <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: Sep 21, 2026</div>
           </div>
         </div>
@@ -733,7 +713,7 @@ export default function Home() {
         <div style={{ marginTop: "24px", position: "relative" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Platform Readiness
+              Overall MVP Readiness
               {lastUpdatedLabel && <span style={{ fontWeight: 400, color: "#64748b", marginLeft: "8px", textTransform: "none", letterSpacing: 0 }}>· synced {lastUpdatedLabel}</span>}
             </span>
             <span style={{ fontSize: "13px", fontWeight: 800, color: "#34d399" }}>{overallPct}% Complete</span>
@@ -746,11 +726,11 @@ export default function Home() {
         {/* KPI row */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px", marginTop: "20px", position: "relative" }}>
           {[
-            { label: "Batches Complete", value: liveComplete,  sub: "Marked complete",    color: "#34d399" },
-            { label: "In Dev",           value: liveDev,       sub: "Active this week",   color: "#60a5fa" },
-            { label: "In Review",        value: liveInReview,  sub: "QA / Demo Ready",    color: "#a78bfa" },
-            { label: "Planned",          value: livePlanned,   sub: "Not yet started",    color: "#94a3b8" },
-            { label: "Total MVP Features", value: liveTotal,     sub: "24 batches + 5 non-batch",   color: "#fb923c" },
+            { label: "Batches Complete", value: batchComplete, sub: "Batch delivery only", color: "#34d399" },
+            { label: "Batches In Dev",   value: batchDev,      sub: "Active / in development", color: "#60a5fa" },
+            { label: "Batches In Review", value: batchInReview, sub: "Review Ready",       color: "#a78bfa" },
+            { label: "Batches Planned",  value: batchPlanned,  sub: "Not Started only",   color: "#94a3b8" },
+            { label: "Total MVP Features", value: mvp.total,     sub: `${batchTotal} batch + 5 non-batch`, color: "#fb923c" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",
@@ -826,11 +806,11 @@ export default function Home() {
           <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Batch Portfolio</div>
             {[
-              { label: "Total Batches",  value: liveTotal,     color: "#0f1623" },
-              { label: "Complete",       value: liveComplete,  color: "#059669" },
-              { label: "In Dev",         value: liveDev,       color: "#2563eb" },
-              { label: "In Review",      value: liveInReview,  color: "#7c3aed" },
-              { label: "Planned",        value: livePlanned,   color: "#94a3b8" },
+              { label: "Total Batches",  value: batchTotal,     color: "#0f1623" },
+              { label: "Complete",       value: batchComplete,  color: "#059669" },
+              { label: "In Dev",         value: batchDev,       color: "#2563eb" },
+              { label: "In Review",      value: batchInReview,  color: "#7c3aed" },
+              { label: "Planned",        value: batchPlanned,   color: "#94a3b8" },
             ].map(row => (
               <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
                 <span style={{ fontSize: "12px", color: "#475569" }}>{row.label}</span>
@@ -845,8 +825,9 @@ export default function Home() {
             {[
               { label: "Release Candidate", value: rcLabel,        color: "#059669" },
               { label: "Target MVP Date",   value: "Sep 21, 2026", color: "#0f1623" },
-              { label: "MVP Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#dc2626" },
-              { label: "In Development",       value: `${liveDev} batches`,     color: "#2563eb" },
+              { label: "Batch Readiness", value: `${batchPct}%`, color: batchPct >= 70 ? "#059669" : "#d97706" },
+              { label: "Overall MVP Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#d97706" },
+              { label: "MVP In Development", value: `${mvp.inDev} features`, color: "#2563eb" },
             ].map(row => (
               <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
                 <span style={{ fontSize: "12px", color: "#475569" }}>{row.label}</span>
@@ -1010,25 +991,17 @@ export default function Home() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
 
-          {/* Active Batches — PI3 closures recorded Aug 11, 2026 */}
+          {/* Active ADO features — current pipeline source */}
           <div style={{ backgroundColor: "#eff6ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #2563eb" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active Batches</div>
-            {([
-              { batch: "B7",  label: "Client Tax Profile & Eligibility" },
-              { batch: "B10", label: "Return Assembly, Filing & Lineage Closure" },
-              { batch: "B16", label: "Audit Trail & Lineage Governance" },
-              { batch: "B42", label: "Tax Rules Framework & Book-to-Tax Adjustment Rules" },
-              { batch: "B28", label: "Tax Workpapers & Provision Schedules" },
-              { batch: "B17", label: "Decision Support, Overrides, Evidence & Workpapers" },
-              { batch: "B9A", label: "Data Gateway (IMS, CDS, DUO)" },
-            ] as { batch: string; label: string }[]).map(b => (
-              <div key={b.batch} style={{ fontSize: "12px", color: "#1e3a5f", marginBottom: "4px", display: "flex", gap: "6px" }}>
-                <span style={{ fontWeight: 700, minWidth: "36px" }}>{b.batch}</span>
-                <span style={{ color: "#475569" }}>{b.label}</span>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active ADO Features ({activeAdoFeatures.length})</div>
+            {activeAdoFeatures.map(feature => (
+              <div key={feature.id} style={{ fontSize: "12px", color: "#1e3a5f", marginBottom: "4px", display: "flex", gap: "6px" }}>
+                <span style={{ fontWeight: 700, minWidth: "54px" }}>{feature.batchNumber === "Non-Batch" ? "MVP" : feature.batchNumber}</span>
+                <span style={{ color: "#475569" }}>{feature.featureName}</span>
               </div>
             ))}
             <div style={{ marginTop: "8px", paddingTop: "6px", borderTop: "1px solid #bfdbfe", fontSize: "11px", color: "#2563eb", fontWeight: 600 }}>
-              + 5 non-batch Active features (QA, Env, Roger, Defects, Enhancements)
+              Source: current ADO Active pipeline · 6 batch features + 5 non-batch MVP features
             </div>
           </div>
 
@@ -1038,8 +1011,6 @@ export default function Home() {
             {([
               { batch: "B31 PDC", label: "Legacy Tool Prior Year Ingestion & Housing",  note: "Review Ready — ADO #1390014", primary: true },
               { batch: "B31 TDC", label: "Legacy Tool Prior Year Data Housing",           note: "Review Ready — ADO #1390267", primary: true },
-              { batch: "B26 PDC", label: "Entity Constituents & Allocations",             note: "Review Ready — ADO #1390005", primary: false },
-              { batch: "B39",     label: "Calculation Report",                            note: "Planned — PI 3",              primary: false },
             ] as { batch: string; label: string; note: string; primary: boolean }[]).map(b => (
               <div key={b.batch} style={{ fontSize: "12px", marginBottom: "6px" }}>
                 <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>

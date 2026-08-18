@@ -808,6 +808,7 @@ const AREA_HEX: Record<string, { bg: string; text: string }> = {
 
 // ── All batch IDs in order (for prev/next) ────────────────────────────────────
 const ALL_IDS = ["FC", "B1", "B2", "B2A", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20", "B21", "B22", "B23", "B24", "B25", "B26", "B28", "B29", "B31", "B33", "B39", "B42", "B45", "MT"];
+export const HISTORICAL_ADO_EXCLUDED_BATCH_IDS = ["B20", "B21", "B39"] as const;
 
 function batchNavLabel(id: string): string {
   const b = getBatchById(id);
@@ -850,6 +851,7 @@ export default function BatchDetailPage() {
   const piHex = PI_HEX[liveBatch.pi] ?? PI_HEX.Parallel;
   const areaHex = AREA_HEX[liveBatch.area] ?? AREA_HEX.Platform;
   const piGroup = PI_GROUPS.find(g => g.batchIds.includes(batchId));
+  const isHistoricalPlanningReference = HISTORICAL_ADO_EXCLUDED_BATCH_IDS.includes(batchId as typeof HISTORICAL_ADO_EXCLUDED_BATCH_IDS[number]);
 
   const completionPct = liveBatch.status === "Complete" ? 100 : liveBatch.status === "Review" ? 75 : liveBatch.status === "Dev" ? 50 : 0;
 
@@ -881,6 +883,15 @@ export default function BatchDetailPage() {
         border: "1px solid #e2e8f0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
         padding: "20px 24px", marginBottom: "16px",
       }}>
+        {isHistoricalPlanningReference && (
+          <div style={{
+            marginBottom: "14px", padding: "9px 12px", borderRadius: "8px",
+            backgroundColor: "#f8fafc", border: "1px solid #cbd5e1",
+            color: "#475569", fontSize: "12px", lineHeight: "1.5",
+          }}>
+            <strong>Historical planning reference.</strong> This batch is retained for architecture and dependency traceability, but it is not included in the current ADO Active or Review Ready pipeline. See the Platform Dashboard for the current delivery population.
+          </div>
+        )}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* PI badge */}

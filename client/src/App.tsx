@@ -33,6 +33,7 @@ import BatchDeliveryReviewModel from "./pages/BatchDeliveryReviewModel";
 import AskBuddy from "./pages/AskBuddy";
 import RogerMappingPage from "./pages/RogerMappingPage";
 import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
+import BatchRoadmap from "./pages/BatchRoadmap";
 import BatchDetailPage from "./pages/BatchDetailPage";
 import IntegrationSimulation from "./pages/IntegrationSimulation";
 import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadinessHub";
@@ -116,6 +117,7 @@ function Router() {
           {/* Core platform */}
           <Route path="/" component={Home} />
           <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
+          <Route path="/batch-roadmap" component={BatchRoadmap} />
           <Route path="/gate-status" component={GateStatus} />
           <Route path="/touchpoints" component={TouchpointsPage} />
           <Route path="/agent-hub" component={AgentHub} />

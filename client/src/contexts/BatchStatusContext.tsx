@@ -308,19 +308,19 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "16": "Complete",   // B16 — Audit Trail & Lineage Governance (ADO: Closed 7/21/2026)
   // ── PI 2/3 — Active per ADO backlog ──────────────────────────────────────────
   "7": "In Progress",  // B7 — Client Tax Profile & Eligibility (ADO: Active)
-  "10": "Complete",    // B10 — Return Assembly, Filing & Lineage Closure (closed Jul 21, 2026)
+  "10": "In Progress", // B10 — Return Assembly, Filing & Lineage Closure (ADO Active 1349599)
   "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (ADO: Active)
-  "45": "Committed",   // B45 — Rule Logic Expression Table & Adjustment Subtype Domain Expansion (Planned/Committed)
+  "45": "In Progress", // B45 — Rule Logic Expression Table & Adjustment Subtype Domain Expansion (ADO Active)
   // ── PI 3 — ACTIVE (7/13–9/15) ─────────────────────────────────────────
-  "20": "In Progress", // B20 — Firm Governance & Professional Standards
-  "21": "In Progress", // B21 — Quality Control (PDC MVP)
+  "20": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
+  "21": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
   "28": "In Progress", // B28 — Tax Workpaper & Provision Schedules
-  "9a": "Committed",   // B9A — Data Gateway (IMS, CDS, DUO) (Planned/Committed)
+  "9a": "In Progress", // B9A — Data Gateway (IMS, CDS, DUO) (ADO Active)
   "17": "Complete", // B17 — Decision Support — Overrides, Evidence & Workpapers (Closed 8/4/2026)
   "29": "Complete",    // B29 — Consolidated Return Assembly (Closed in PI3 on Aug 11, 2026)
-  "31": "In Review",   // B31 — Legacy Tool Prior Year Ingestion (ADO: Review Ready)
-  "26": "In Review",   // B26 — Entity Constituents & Allocations (ADO: Review Ready)
-  "39": "Committed",   // B39 — Calculation Report (Planned)
+  "31": "Ready for QA", // B31 — Legacy Tool Prior Year Ingestion & Housing (ADO: Review Ready)
+  "26": "Ready for QA", // B26 — Entity Constituents & Allocations (ADO: Review Ready)
+  "39": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
   // ── Non-batch Active Features (ADO: Active) ──────────────────────────────
   "qa-workstream": "In Progress",       // DCT QA Workstream Separation and Sprint Reporting Governance
@@ -355,7 +355,6 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
   "8-tdc": "Complete",
   "9": "Complete",
   "9-pdc": "Complete",
-  "10": "Complete",
   "11": "Complete",
   "13": "Complete",
   "16": "Complete",
@@ -370,48 +369,152 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
 // PI_MEMBERSHIP reflects Roadmap v8 (updated July 2026) — 9-tdc & 12 excluded from PI 2 (On Hold)
 export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
-  pi2:  ["4", "5", "6", "7", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16"], // 9-tdc & 12 excluded (On Hold)
-  pi3:  ["8", "20", "42", "45", "21", "28", "9a", "31", "17", "26", "29", "39", "33"],
+  pi2:  ["4", "5", "6", "7", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16", "42"], // Current ADO: B7, B10, B42 Active
+  pi3:  ["8", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A Active; B31 Review Ready
   pi4:  ["19", "40", "35", "26-tdc"],
 };
 
 // ── MVP Batch Portfolio — Single Source of Truth ────────────────────────────
-// 35 MVP-scoped delivery items (ADO-authoritative, August 2026 — includes B45):
+// 32 MVP-scoped delivery items in the supplied current ADO Active / Review Ready pipeline:
 //   PI1 Complete (5): foundation-core, 1, 2, 2a, 3
-//   PI2 Complete (12): 4, 5, 6, 8-pdc, 8-tdc, 9, 9-pdc, 10, 11, 43, 13, 16
-//   PI2 Active (1):    7
-//   PI3 Complete (3):  8, 17, 29 (B8 + B29 closed Aug 11) | Active (8): 42, 45, 20, 21, 28, 9a, 31, 26
-//   Planned (1):      39
+//   PI2 Complete (11): 4, 5, 6, 8-pdc, 8-tdc, 9, 9-pdc, 11, 43, 13, 16
+//   PI2 Active (3):    7, 10, 42
+//   PI3 Complete (3):  8, 17, 29 (B8 + B29 closed Aug 11) | Active (3): 45, 28, 9a | Review Ready (2): B31 PDC, B31 TDC
 //   Non-batch (5):    qa-workstream, env-management, roger-stabilization, platform-defect, mvp-enhancements
-// TOTAL: 5 + 12 + 1 + 11 + 1 + 5 = 35 ✓ | Complete: 20 | Readiness: 57%
+// TOTAL: 5 + 11 + 3 + 8 + 5 = 32 ✓ | Complete: 19 | Readiness: 59%
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
-  // PI 2 — ADO-verified Complete (12)
-  "4", "5", "6", "8-pdc", "8-tdc", "9", "9-pdc", "10", "11", "43", "13", "16",
-  // PI 2 — Active (1)
-  "7",
+  // PI 2 — ADO-verified Complete (11)
+  "4", "5", "6", "8-pdc", "8-tdc", "9", "9-pdc", "11", "43", "13", "16",
+  // PI 2 — Current ADO Active (3)
+  "7", "10", "42",
   // PI 3 — B8 + B29 closed Aug 11; remaining delivery portfolio
-  "8", "42", "45", "20", "21", "28", "9a", "17", "29", "31", "26",
-  // Planned (1)
-  "39",
+  "8", "45", "28", "9a", "17", "29", "31",
   // Non-batch Active Features (5) — ADO Active, included in MVP scope
   "qa-workstream", "env-management", "roger-stabilization", "platform-defect", "mvp-enhancements",
 ];
 
-/** Derive MVP-scoped metrics from live statuses. All dashboard components must use this. */
-export function deriveMvpMetrics(statuses: BatchStatusMap) {
-  const total = MVP_BATCH_KEYS.length; // 35: 30 numbered delivery items + 5 non-batch active features
+/** The 27 current ADO-backed batch delivery features. Non-batch MVP features are intentionally excluded. */
+export const BATCH_DELIVERY_KEYS: BatchKey[] = [
+  "foundation-core", "1", "2", "2a", "3",
+  "4", "5", "6", "8-pdc", "8-tdc", "9", "9-pdc", "11", "43", "13", "16",
+  "7", "10", "42",
+  "8", "45", "28", "9a", "17", "29", "31",
+];
+
+/** The five active MVP features that are not architectural batches. */
+export const NON_BATCH_MVP_KEYS: BatchKey[] = [
+  "qa-workstream", "env-management", "roger-stabilization", "platform-defect", "mvp-enhancements",
+];
+
+export interface DeliveryMetricRecord {
+  id: string;
+  statusKey: BatchKey;
+  adoId: string;
+  featureName: string;
+  batchNumber: string;
+  classification: "Batch" | "Non-Batch MVP";
+  pi: "PI1" | "PI2" | "PI3";
+  owner?: string;
+  sourceStatusLabel?: string;
+}
+
+const noAdo = "Not present in current source";
+
+/**
+ * Authoritative executive metric population. Each entry is one ADO-facing feature;
+ * B31 is intentionally represented by its two Review Ready records. This prevents
+ * parent/sub-track duplication from inflating Batch Delivery counts.
+ */
+export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
+  { id: "FC", statusKey: "foundation-core", adoId: "N/A — foundation", featureName: BATCH_LABELS["foundation-core"], batchNumber: "FC", classification: "Batch", pi: "PI1" },
+  { id: "B1", statusKey: "1", adoId: noAdo, featureName: BATCH_LABELS["1"], batchNumber: "B1", classification: "Batch", pi: "PI1" },
+  { id: "B2", statusKey: "2", adoId: noAdo, featureName: BATCH_LABELS["2"], batchNumber: "B2", classification: "Batch", pi: "PI1" },
+  { id: "B2A", statusKey: "2a", adoId: "1370843", featureName: BATCH_LABELS["2a"], batchNumber: "B2A", classification: "Batch", pi: "PI1" },
+  { id: "B3", statusKey: "3", adoId: "1349152", featureName: BATCH_LABELS["3"], batchNumber: "B3", classification: "Batch", pi: "PI1" },
+  { id: "B4", statusKey: "4", adoId: "1349156", featureName: BATCH_LABELS["4"], batchNumber: "B4", classification: "Batch", pi: "PI2" },
+  { id: "B5", statusKey: "5", adoId: "1355868", featureName: BATCH_LABELS["5"], batchNumber: "B5", classification: "Batch", pi: "PI2" },
+  { id: "B6", statusKey: "6", adoId: "1350255", featureName: BATCH_LABELS["6"], batchNumber: "B6", classification: "Batch", pi: "PI2" },
+  { id: "B8-PDC", statusKey: "8-pdc", adoId: noAdo, featureName: BATCH_LABELS["8-pdc"], batchNumber: "B8", classification: "Batch", pi: "PI2" },
+  { id: "B8-TDC", statusKey: "8-tdc", adoId: noAdo, featureName: BATCH_LABELS["8-tdc"], batchNumber: "B8", classification: "Batch", pi: "PI2" },
+  { id: "B9", statusKey: "9", adoId: noAdo, featureName: BATCH_LABELS["9"], batchNumber: "B9", classification: "Batch", pi: "PI2" },
+  { id: "B9-PDC", statusKey: "9-pdc", adoId: noAdo, featureName: BATCH_LABELS["9-pdc"], batchNumber: "B9", classification: "Batch", pi: "PI2" },
+  { id: "B10", statusKey: "10", adoId: "1349599", featureName: BATCH_LABELS["10"], batchNumber: "B10", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B11", statusKey: "11", adoId: noAdo, featureName: BATCH_LABELS["11"], batchNumber: "B11", classification: "Batch", pi: "PI2" },
+  { id: "B43", statusKey: "43", adoId: noAdo, featureName: BATCH_LABELS["43"], batchNumber: "B43", classification: "Batch", pi: "PI2" },
+  { id: "B13", statusKey: "13", adoId: noAdo, featureName: BATCH_LABELS["13"], batchNumber: "B13", classification: "Batch", pi: "PI2" },
+  { id: "B16", statusKey: "16", adoId: "1390258", featureName: BATCH_LABELS["16"], batchNumber: "B16", classification: "Batch", pi: "PI2" },
+  { id: "B7", statusKey: "7", adoId: "1354322", featureName: BATCH_LABELS["7"], batchNumber: "B7", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B8", statusKey: "8", adoId: noAdo, featureName: BATCH_LABELS["8"], batchNumber: "B8", classification: "Batch", pi: "PI3" },
+  { id: "B17", statusKey: "17", adoId: noAdo, featureName: BATCH_LABELS["17"], batchNumber: "B17", classification: "Batch", pi: "PI3" },
+  { id: "B29A", statusKey: "29", adoId: noAdo, featureName: BATCH_LABELS["29"], batchNumber: "B29A", classification: "Batch", pi: "PI3" },
+  { id: "B42", statusKey: "42", adoId: "1402117", featureName: BATCH_LABELS["42"], batchNumber: "B42", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B45", statusKey: "45", adoId: "1444477", featureName: BATCH_LABELS["45"], batchNumber: "B45", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B28", statusKey: "28", adoId: "1390012", featureName: BATCH_LABELS["28"], batchNumber: "B28", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B9A", statusKey: "9a", adoId: "1387817", featureName: BATCH_LABELS["9a"], batchNumber: "B9A", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Active" },
+  { id: "B31-PDC", statusKey: "31", adoId: "1390014", featureName: "Batch 31 | PDC — Legacy Tool Prior Year Ingestion & Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Review Ready" },
+  { id: "B31-TDC", statusKey: "31", adoId: "1390267", featureName: "Batch 31 | TDC — Legacy Tool Prior Year Data Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Review Ready" },
+];
+
+export const NON_BATCH_MVP_RECORDS: DeliveryMetricRecord[] = [
+  { id: "mvp-enhancements", statusKey: "mvp-enhancements", adoId: "1418018", featureName: BATCH_LABELS["mvp-enhancements"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Lacombe, Stephane", sourceStatusLabel: "Active" },
+  { id: "qa-workstream", statusKey: "qa-workstream", adoId: "1408161", featureName: BATCH_LABELS["qa-workstream"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Kalakonda, Aravind", sourceStatusLabel: "Active" },
+  { id: "platform-defect", statusKey: "platform-defect", adoId: "1403709", featureName: BATCH_LABELS["platform-defect"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Stafford, Jenniver", sourceStatusLabel: "Active" },
+  { id: "env-management", statusKey: "env-management", adoId: "1436035", featureName: BATCH_LABELS["env-management"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "roger-stabilization", statusKey: "roger-stabilization", adoId: "1395518", featureName: BATCH_LABELS["roger-stabilization"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+];
+
+export const MVP_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
+  ...BATCH_DELIVERY_RECORDS,
+  ...NON_BATCH_MVP_RECORDS,
+];
+
+export type DeliveryMetricBucket = "Complete" | "In Development" | "In Review" | "Planned";
+
+export interface DeliveryMetrics {
+  total: number;
+  complete: number;
+  inDev: number;
+  inReview: number;
+  planned: number;
+  readinessPct: number;
+  reconciles: boolean;
+}
+
+/** Classifies a status into exactly one executive metric bucket. */
+export function classifyDeliveryStatus(status: BatchStatus | "In Review" | undefined): DeliveryMetricBucket {
+  if (status === "Complete" || status === "Delivered" || status === "Done") return "Complete";
+  if (status === "In Review" || status === "Ready for QA" || status === "QA In Progress" || status === "Demo Ready") return "In Review";
+  if (status === "Not Started" || status === "On Hold" || status === "Post-MVP") return "Planned";
+  return "In Development"; // Active, In Progress, Dev, Committed, MVP, Stretch, New, Blocked
+}
+
+export function deriveDeliveryMetrics(statuses: BatchStatusMap, records: DeliveryMetricRecord[]): DeliveryMetrics {
   let complete = 0, inDev = 0, inReview = 0, planned = 0;
-  for (const k of MVP_BATCH_KEYS) {
-    const v = (statuses as unknown as Record<string, string>)[k] ?? "Not Started";
-    if (v === "Complete" || v === "Delivered" || v === "Done") complete++;
-    else if (v === "In Review" || v === "Ready for QA" || v === "QA In Progress" || v === "Demo Ready") inReview++;
-    else if (v === "In Progress" || v === "Dev" || v === "New") inDev++;
-    else planned++; // Not Started, Committed, MVP, Stretch, On Hold
+  for (const record of records) {
+    const bucket = classifyDeliveryStatus(statuses[record.statusKey]);
+    if (bucket === "Complete") complete++;
+    else if (bucket === "In Development") inDev++;
+    else if (bucket === "In Review") inReview++;
+    else planned++;
   }
-  const readinessPct = Math.round((complete / total) * 100);
-  return { total, complete, inDev, inReview, planned, readinessPct };
+  const total = records.length;
+  return {
+    total, complete, inDev, inReview, planned,
+    readinessPct: total ? Math.round((complete / total) * 100) : 0,
+    reconciles: complete + inDev + inReview + planned === total,
+  };
+}
+
+/** Batch-only delivery metrics. Never includes non-batch MVP features. */
+export function deriveBatchMetrics(statuses: BatchStatusMap) {
+  return deriveDeliveryMetrics(statuses, BATCH_DELIVERY_RECORDS);
+}
+
+/** Overall MVP delivery metrics. Includes batch and non-batch MVP features. */
+export function deriveMvpMetrics(statuses: BatchStatusMap) {
+  return deriveDeliveryMetrics(statuses, MVP_DELIVERY_RECORDS);
 }
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
@@ -536,13 +639,27 @@ export function derivePICompletion(statuses: BatchStatusMap): PICompletion {
   };
   const all = Object.keys(statuses) as BatchKey[];
   const allComplete = all.filter(k => isDelivered(statuses[k])).length;
+  const calcMetricRecords = (pi: "PI1" | "PI2" | "PI3") => {
+    const records = BATCH_DELIVERY_RECORDS.filter(record => record.pi === pi);
+    const complete = records.filter(record => isDelivered(statuses[record.statusKey])).length;
+    const total = records.length;
+    return { total, complete, pct: total ? Math.round((complete / total) * 100) : 0 };
+  };
   return {
-    pi1: calc(PI_MEMBERSHIP.pi1),
-    pi2: calc(PI_MEMBERSHIP.pi2),
-    pi3: calc(PI_MEMBERSHIP.pi3),
+    pi1: calcMetricRecords("PI1"),
+    pi2: calcMetricRecords("PI2"),
+    pi3: calcMetricRecords("PI3"),
     pi4: calc(PI_MEMBERSHIP.pi4),
     overall: { total: all.length, complete: allComplete, pct: Math.round((allComplete / all.length) * 100) },
   };
+}
+
+/** One Release Candidate classification shared by the Platform and Executive dashboards. */
+export function deriveReleaseCandidate(piCompletion: PICompletion): "RC-1" | "RC-2" | "RC-3" | "RC-4" {
+  if (piCompletion.pi3.pct >= 100) return "RC-4";
+  if (piCompletion.pi2.pct >= 80 && piCompletion.pi3.pct >= 40) return "RC-3";
+  if (piCompletion.pi2.pct >= 60) return "RC-2";
+  return "RC-1";
 }
 
 function deriveUnlocked(prev: BatchStatusMap, next: BatchStatusMap): BatchKey[] {

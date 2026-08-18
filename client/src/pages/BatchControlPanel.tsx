@@ -9,10 +9,12 @@
 //   5. PO Status Summary (copy-ready)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Link } from "wouter";
 import {
-  useBatchStatus, deriveMvpMetrics, STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
+  useBatchStatus, BATCH_DELIVERY_RECORDS, MVP_DELIVERY_RECORDS, NON_BATCH_MVP_RECORDS,
+  classifyDeliveryStatus, deriveBatchMetrics, deriveDeliveryMetrics, deriveMvpMetrics,
+  STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
 } from "@/contexts/BatchStatusContext";
 import { CheckCircle2, Clock, Circle, Lock, Shield, Link2, FileText, RotateCcw, Zap, Copy, Check, ChevronDown, ChevronUp, ClipboardCopy, Bug, Activity, Send, Download, FileSpreadsheet, FileJson, AlignLeft, Filter } from "lucide-react";
@@ -1237,7 +1239,25 @@ function GateStatusBadge({ status }: { status: "Complete" | "In Progress" | "Loc
 
 export default function BatchControlPanel() {
   const { statuses, setStatus, resetAll, gates, lastUpdated, syncLog, clearSyncLog, unlockedBatches, piCompletion, cascade } = useBatchStatus();
+  const batchMetrics = deriveBatchMetrics(statuses);
   const mvpMetrics = deriveMvpMetrics(statuses);
+  const nonBatchMetrics = deriveDeliveryMetrics(statuses, NON_BATCH_MVP_RECORDS);
+  const [metricFilter, setMetricFilter] = useState<"All" | "Complete" | "In Development" | "In Review" | "Planned">("All");
+  const metricRows = useMemo(() => MVP_DELIVERY_RECORDS.map(record => {
+    const sourceStatus = statuses[record.statusKey];
+    const dashboardStatus = classifyDeliveryStatus(sourceStatus);
+    return {
+      ...record,
+      sourceStatus,
+      dashboardStatus,
+      includedInBatchesComplete: record.classification === "Batch" && dashboardStatus === "Complete",
+      includedInMvpComplete: dashboardStatus === "Complete",
+    };
+  }), [statuses]);
+  const visibleMetricRows = metricFilter === "All"
+    ? metricRows
+    : metricRows.filter(row => row.dashboardStatus === metricFilter);
+  const reconciles = batchMetrics.reconciles && nonBatchMetrics.reconciles && mvpMetrics.reconciles;
   const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
   const [poSummaryCopied, setPoSummaryCopied] = useState(false);
   const [poSummaryGeneratedAt, setPoSummaryGeneratedAt] = useState<string | null>(null);
@@ -1394,10 +1414,10 @@ export default function BatchControlPanel() {
     }
   };
 
-  const complete   = BATCH_KEYS.filter(k => statuses[k] === "Complete" || statuses[k] === "Delivered" || statuses[k] === "Done").length;
-  const dev        = BATCH_KEYS.filter(k => statuses[k] === "In Progress" || statuses[k] === "Blocked" || statuses[k] === "MVP" || statuses[k] === "Stretch" || statuses[k] === "Committed" || statuses[k] === "New").length;
-  const inReview   = BATCH_KEYS.filter(k => statuses[k] === "Ready for QA" || statuses[k] === "QA In Progress" || statuses[k] === "Demo Ready").length;
-  const planned    = BATCH_KEYS.filter(k => statuses[k] === "Not Started" || statuses[k] === "On Hold" || statuses[k] === "Post-MVP").length;
+  const complete = batchMetrics.complete;
+  const dev = batchMetrics.inDev;
+  const inReview = batchMetrics.inReview;
+  const planned = batchMetrics.planned;
 
   const advanceAll = () => {
     BATCH_KEYS.forEach(k => {
@@ -1749,13 +1769,87 @@ export default function BatchControlPanel() {
           { count: dev,       label: "In Dev",      bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700" },
           { count: inReview,  label: "In Review",   bg: "bg-violet-50",  border: "border-violet-200",  text: "text-violet-700" },
           { count: planned,   label: "Planned",     bg: "bg-slate-50",   border: "border-slate-200",   text: "text-slate-600" },
-          { count: `${mvpMetrics.readinessPct}%`, label: "MVP Readiness", bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
+          { count: `${batchMetrics.readinessPct}%`, label: "Batch Readiness", bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
         ].map(s => (
           <div key={s.label} className={`${s.bg} border ${s.border} rounded-xl p-4 text-center`}>
             <div className={`text-3xl font-bold ${s.text}`}>{s.count}</div>
             <div className={`text-xs font-semibold mt-0.5 ${s.text}`}>{s.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* ── Metric Reconciliation & Traceability ── */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-bold text-slate-900">Executive Metric Traceability</div>
+            <div className="text-xs text-slate-500 mt-0.5">Every dashboard count is derived from one record in one mutually exclusive status bucket.</div>
+          </div>
+          <div className={`text-xs font-bold px-3 py-1.5 rounded-full ${reconciles ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+            {reconciles ? "✓ Data Reconciliation Passed" : "⚠ Data Reconciliation Warning"}
+          </div>
+        </div>
+
+        {!reconciles && (
+          <div className="mx-5 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-800">
+            Data Reconciliation Warning: status buckets do not equal their total population. Review the records below before relying on executive metrics.
+          </div>
+        )}
+
+        <div className="mx-5 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-5">
+          <strong>Current ADO classification applied:</strong> B45 and B9A are Active and included in <strong>In Development</strong>. B39, B20, and B21 are not in the supplied current ADO pipeline and are excluded from this executive metric population. The prior 23-complete display did not retain a record-level calculation snapshot; the current population is fully traceable in the table below.
+        </div>
+
+        <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { label: "Batch Delivery", metric: batchMetrics, note: "27 current ADO-backed batch features" },
+            { label: "Non-Batch MVP", metric: nonBatchMetrics, note: "5 current ADO Active features; excluded from Batch counts" },
+            { label: "Overall MVP Delivery", metric: mvpMetrics, note: "Batch + non-batch MVP features" },
+          ].map(({ label, metric, note }) => (
+            <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="text-xs font-bold text-slate-800">{label}</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">{note}</div>
+              <div className="mt-2 text-sm font-bold text-slate-900">{metric.complete} Complete · {metric.inDev} In Dev · {metric.inReview} In Review · {metric.planned} Planned</div>
+              <div className="mt-1 text-xs text-slate-600">{metric.total} total · {metric.readinessPct}% readiness</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="px-5 pb-3 flex flex-wrap gap-2">
+          {(["All", "Complete", "In Development", "In Review", "Planned"] as const).map(filter => (
+            <button key={filter} onClick={() => setMetricFilter(filter)} className={`px-3 py-1.5 rounded-md text-xs font-semibold border ${metricFilter === filter ? "bg-[#1e3a5f] text-white border-[#1e3a5f]" : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"}`}>
+              {filter === "All" ? `All (${metricRows.length})` : `${filter} (${metricRows.filter(row => row.dashboardStatus === filter).length})`}
+            </button>
+          ))}
+        </div>
+
+        <div className="overflow-x-auto border-t border-slate-200">
+          <table className="w-full min-w-[1280px] text-left text-xs">
+            <thead className="bg-[#1e3a5f] text-white">
+              <tr>
+                {["ADO ID", "Feature name", "Batch", "Classification", "PI", "Owner", "ADO / source status", "Dashboard status", "In Batches Complete", "In MVP Complete"].map(column => (
+                  <th key={column} className="px-3 py-2.5 font-bold whitespace-nowrap">{column}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {visibleMetricRows.map(row => (
+                <tr key={row.id} className="hover:bg-slate-50">
+                  <td className="px-3 py-2 text-slate-600 font-mono">{row.adoId}</td>
+                  <td className="px-3 py-2 text-slate-800 font-semibold max-w-[260px]">{row.featureName}</td>
+                  <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.batchNumber}</td>
+                  <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.classification}</td>
+                  <td className="px-3 py-2 text-slate-700">{row.pi}</td>
+                  <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.owner ?? "Not present in current source"}</td>
+                  <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{row.sourceStatusLabel ?? row.sourceStatus}</td>
+                  <td className="px-3 py-2"><span className={`inline-flex px-2 py-0.5 rounded-full font-bold ${row.dashboardStatus === "Complete" ? "bg-emerald-100 text-emerald-700" : row.dashboardStatus === "In Review" ? "bg-violet-100 text-violet-700" : row.dashboardStatus === "In Development" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"}`}>{row.dashboardStatus}</span></td>
+                  <td className="px-3 py-2 text-center font-bold">{row.includedInBatchesComplete ? "Yes" : "No"}</td>
+                  <td className="px-3 py-2 text-center font-bold">{row.includedInMvpComplete ? "Yes" : "No"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* ── Discovery Center Context Panel (auto-updates when Discovery pages are open) ── */}

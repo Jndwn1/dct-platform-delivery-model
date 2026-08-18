@@ -17,3 +17,33 @@
 - [x] Reconcile the completed-batch total to the expected 20 and correct PI2, PI3, and MVP readiness metrics across dashboard and Control Panel views
 - [x] Verify and align Batch Control Panel rollups with 20 complete, PI2 12/13, PI3 3/13, and 57% MVP readiness
 - [x] Re-run the full Vitest suite and TypeScript baseline after final metric reconciliation
+- [x] Audit the current dashboard metric populations, status buckets, and Release Candidate sources
+- [x] Create mutually exclusive Batch Delivery and Overall MVP Feature metric populations from the authoritative application data
+- [x] Add Control Panel record-level metric traceability and reconciliation warnings
+- [x] Align DCT Platform Dashboard, Executive Delivery Dashboard, and Control Panel labels and Release Candidate value
+- [x] Validate and report every metric population, including the prior over-count and planned-record causes
+- [x] Identify the exact three historical records behind the 23-complete display from a preserved source, or document the verified unavailability of that source
+- [x] Update the validation summary with the verified historical completed-count cause
+- [x] Map the 11 ADO Active features from the supplied source to batch and non-batch metric records with IDs and owners
+- [x] Update all dashboard Active counts and Control Panel traceability to reflect the 11 ADO Active features or a clearly labeled PI3 batch-only subset
+- [x] Verify the revised Batch Delivery and Overall MVP rollups reconcile after the Active population update
+- [x] Replace conflicting B10, B20, B21, and B39 pipeline classifications with the supplied ADO Active population and PI assignments
+- [x] Add supplied ADO IDs and owners to all 11 Active and 2 Review Ready metric-traceability records
+- [x] Remove stale B20, B21, and B39 current-pipeline labels from all user-facing portfolio views
+- [x] Re-verify scoped dashboard values: 11 Active / 2 Review Ready overall versus 3 Active / 2 Review Ready for the PI3 batch-only subset
+- [x] Update ExecDashboard calendar rows for B10, B20, B21, B28, B31, B39, and B9A to match the current ADO pipeline
+- [x] Verify all user-facing metric surfaces use either the 11 Active / 2 Review Ready overall source or the explicitly labeled PI3 batch-only subset
+- [x] Align Delivery Intelligence PI3 activity and planned calculations with the current ADO-backed metric records
+- [x] Set both B31 Executive Dashboard calendar records to Review Ready and verify every current-pipeline calendar label
+- [x] Label PI3 batch-only counts separately from the 11-feature overall ADO Active population
+- [x] Add direct regression coverage for the Executive calendar classification mapping and validate all dashboard evidence
+- [x] Document the overall-versus-PI3 metric scope contract and capture final browser evidence for each user-facing view
+- [x] Inventory all user-facing B20, B21, and B39 references and classify each as current ADO status or historical planning context
+- [x] Label unresolved roadmap and consumer-readiness references as historical planning context when they are excluded from current ADO status
+- [x] Produce a complete reference-audit matrix for every B20, B21, and B39 occurrence and verify all routable user-facing views
+- [x] Restore the Batch Roadmap route so its historical planning scope can be verified in the application
+- [x] Individually classify every source file containing B20, B21, or B39 and record browser evidence for each affected routed view
+- [x] Add a visible Consumer Integration scope notice distinguishing historical roadmap questions from the current ADO pipeline
+- [x] Enumerate every B20, B21, and B39 occurrence and map each to a scoped classification with evidence
+- [x] Generate a line-level occurrence audit and browser-verify all routed status-bearing views
+- [x] Browser-verify the current scope labels on Batch Delivery Calendar and Delivery Intelligence
