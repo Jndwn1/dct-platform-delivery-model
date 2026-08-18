@@ -67,11 +67,11 @@
 - [x] Obtain business-owner confirmation of the single metric baseline before changing dashboard numbers again
 - [x] Apply the minimum confirmed source-of-truth correction only after the user supplies the required ADO baseline values
 - [x] Map the user-confirmed 11 Active and 2 In Review records to the shared 28-feature MVP model
-- [ ] Lock all dashboard metric consumers to 28 total features, 11 Active, and 2 In Review from the supplied ADO baseline
-- [ ] Verify the locked baseline across Platform Home, Executive Dashboard, Control Panel, and Delivery Intelligence
+- [x] Lock all dashboard metric consumers to 28 total features, 11 Active, and 2 In Review from the supplied ADO baseline
+- [x] Verify the locked baseline across Platform Home, Executive Dashboard, Control Panel, and Delivery Intelligence
 - [x] Save a durable conflict inventory and authoritative baseline decision table for all metric labels and calculation rules
-- [ ] Audit remaining metric consumers and export surfaces, including PO email, for the locked 28-feature baseline
+- [x] Audit remaining metric consumers and export surfaces, including PO email, for the locked 28-feature baseline
 - [x] Perform explicit post-change Executive Dashboard verification and record the evidence
-- [ ] Save a complete metric-consumer and export-surface audit with each source rule
-- [ ] Perform and record explicit rendered verification of Control Panel and Delivery Intelligence against the locked baseline
+- [x] Save a complete metric-consumer and export-surface audit with each source rule
+- [x] Perform and record explicit rendered verification of Control Panel and Delivery Intelligence against the locked baseline
 - [x] Populate the landing-page Recently Closed in PI3 list from the supplied ADO closed-record extract using exact closure dates
