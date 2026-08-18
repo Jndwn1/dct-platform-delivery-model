@@ -47,3 +47,4 @@
 - [x] Enumerate every B20, B21, and B39 occurrence and map each to a scoped classification with evidence
 - [x] Generate a line-level occurrence audit and browser-verify all routed status-bearing views
 - [x] Browser-verify the current scope labels on Batch Delivery Calendar and Delivery Intelligence
+- [x] Replace the stale Delivery Highlights Active Batches display list with the authoritative Active ADO batch records, including B42, B28, and B45

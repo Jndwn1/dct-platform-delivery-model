@@ -614,15 +614,22 @@ export default function Home() {
     { label: "Governance",             id: "quick-nav-governance",   internal: false, href: "/gate-status" },
   ];
 
-  // Delivery Highlights — derive active features from the authoritative ADO-backed metric records.
+  // Delivery Highlights — active ADO work is sourced from the supplied ADO pipeline,
+  // not client-side Control Panel selections. This keeps B42, B28, and B45 visible.
   // Context key format: "foundation-core" for FC, numeric string for B1/B2/etc., "2a" for B2A
   const ctxKeyForBatch = (batchStr: string): string => {
     if (batchStr === "FC") return "foundation-core";
     return batchStr.replace(/^B/, "").toLowerCase();
   };
   const activeAdoFeatures = useMemo(() => {
-    return MVP_DELIVERY_RECORDS.filter(record => classifyDeliveryStatus(statuses[record.statusKey]) === "In Development");
-  }, [statuses]);
+    return MVP_DELIVERY_RECORDS.filter(record => record.sourceStatusLabel === "Active");
+  }, []);
+  const activeAdoBatchFeatures = useMemo(() => {
+    return activeAdoFeatures.filter(feature => feature.classification === "Batch");
+  }, [activeAdoFeatures]);
+  const activeAdoNonBatchFeatures = useMemo(() => {
+    return activeAdoFeatures.filter(feature => feature.classification === "Non-Batch MVP");
+  }, [activeAdoFeatures]);
   const stretchBatches = useMemo(() => {
     return BATCH_CALENDAR_PI23.filter(b => {
       const key = ctxKeyForBatch(b.batch);
@@ -991,17 +998,17 @@ export default function Home() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
 
-          {/* Active ADO features — current pipeline source */}
+          {/* Active ADO batch features — current pipeline source */}
           <div style={{ backgroundColor: "#eff6ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #2563eb" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active ADO Features ({activeAdoFeatures.length})</div>
-            {activeAdoFeatures.map(feature => (
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active ADO Batch Features ({activeAdoBatchFeatures.length})</div>
+            {activeAdoBatchFeatures.map(feature => (
               <div key={feature.id} style={{ fontSize: "12px", color: "#1e3a5f", marginBottom: "4px", display: "flex", gap: "6px" }}>
-                <span style={{ fontWeight: 700, minWidth: "54px" }}>{feature.batchNumber === "Non-Batch" ? "MVP" : feature.batchNumber}</span>
+                <span style={{ fontWeight: 700, minWidth: "54px" }}>{feature.batchNumber}</span>
                 <span style={{ color: "#475569" }}>{feature.featureName}</span>
               </div>
             ))}
             <div style={{ marginTop: "8px", paddingTop: "6px", borderTop: "1px solid #bfdbfe", fontSize: "11px", color: "#2563eb", fontWeight: 600 }}>
-              Source: current ADO Active pipeline · 6 batch features + 5 non-batch MVP features
+              + {activeAdoNonBatchFeatures.length} non-batch Active features (MVP Enhancements, QA, Defects, Environment, Roger stabilization)
             </div>
           </div>
 
