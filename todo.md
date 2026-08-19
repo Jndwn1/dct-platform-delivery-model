@@ -80,3 +80,4 @@
 - [x] Surface the shared Roger MVP Screen Testing Status model in the DCT Delivery Model landing page and verify synchronized metrics
 - [x] Integrate Rule Processing to TDC Posting discovery findings across Provision & State, Decision Log, and End-to-End Data Flow without new navigation
 - [x] Add the explicit Confirmed and Requires Clarification discovery-status breakdown and a verified existing decision-log entry for Rule Processing to TDC Posting
+- [x] Roll back unsupported Rule Processing to TDC Posting conclusions while preserving only clearly labeled demo observations and all unrelated DCT content
