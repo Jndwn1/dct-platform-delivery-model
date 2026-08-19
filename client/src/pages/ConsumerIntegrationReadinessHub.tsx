@@ -25,6 +25,7 @@ import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import AboutSectionPanel from "@/components/AboutSectionPanel";
 import { GovernanceStatusBar } from "@/components/GovernanceStatusBar";
+import { MULTI_ENTITY_TDC_PERSISTENCE_DECISION, MULTI_ENTITY_TDC_PERSISTENCE_NEXT_ACTION } from "@/lib/multiEntityTdcPersistenceDecision";
 import {
   ChevronDown, ChevronUp, Shield, Link2, Database, AlertTriangle,
   CheckCircle2, Clock, Circle, FileText, Zap, Eye, Lock, Users, Printer, Mail, Copy, X,
@@ -96,6 +97,7 @@ const OPEN_ADRS_DATA = [
   { id: "ADR-04", title: "Role Assignment Ownership",          status: "Open" as AdrStatus,      impact: "Critical", blocking: "Work Queue",                 description: "Which team owns role assignment logic for practitioner work queue?" },
   { id: "ADR-05", title: "Event-Driven Synchronization",       status: "Open" as AdrStatus,      impact: "Medium",   blocking: "Dashboard, Work Queue",      description: "Should Roger UI use polling or event-driven updates for real-time data?" },
   { id: "ADR-06", title: "Additive-Only Contract Enforcement", status: "In Review" as AdrStatus, impact: "Medium",   blocking: "All contracts",              description: "Process for enforcing additive-only constraint across all published contracts." },
+  MULTI_ENTITY_TDC_PERSISTENCE_DECISION,
 ];
 
 const NEXT_ACTIONS_DATA = [
@@ -107,6 +109,7 @@ const NEXT_ACTIONS_DATA = [
   { action: "Add PeriodStart/PeriodEnd to Swagger schema",          owner: "PDC BA",            status: "Open",        impact: "Medium",   adoRef: "—" },
   { action: "Provision Roger auth against PDC/TDC in UAT",          owner: "Platform Team",     status: "Open",        impact: "High",     adoRef: "—" },
   { action: "Add Read/Write contract distinction to all contracts",  owner: "Architecture",      status: "Open",        impact: "Medium",   adoRef: "—" },
+  MULTI_ENTITY_TDC_PERSISTENCE_NEXT_ACTION,
 ];
 
 // ── Version metadata ─────────────────────────────────────────────────────────
@@ -561,6 +564,10 @@ function CommandCenterPanel() {
                     <Chip label={a.impact} type={a.impact === "Critical" ? "Blocking" : a.impact === "High" ? "Warning" : "Partial"} />
                   </div>
                   <p style={{ fontSize: "12px", color: "#475569", margin: "0 0 4px" }}>{a.description}</p>
+                  {"statusDetail" in a && <p style={{ fontSize: "11px", color: "#92400e", margin: "0 0 4px", fontWeight: 700 }}>Status detail: {a.statusDetail}</p>}
+                  {"clarifications" in a && <ul style={{ margin: "0 0 5px", paddingLeft: "18px" }}>{a.clarifications.map(question => <li key={question} style={{ fontSize: "11px", color: "#475569", lineHeight: "1.45", marginBottom: "3px" }}>{question}</li>)}</ul>}
+                  {"dctImpact" in a && <p style={{ fontSize: "11px", color: "#92400e", margin: "0 0 4px" }}><strong>DCT impact:</strong> {a.dctImpact}</p>}
+                  {"related" in a && <p style={{ fontSize: "10px", color: "#64748b", margin: "0 0 4px" }}><strong>Related:</strong> {a.related}</p>}
                   <p style={{ fontSize: "11px", color: "#dc2626", margin: 0 }}>Blocking: {a.blocking}</p>
                 </div>
               ))}
@@ -1894,7 +1901,7 @@ export default function ConsumerIntegrationReadinessHub() {
             <table className="w-full text-xs border-collapse">
               <thead>
                 <tr className="bg-[#003865] text-white">
-                  {["ID","Title","Status","Impact","Blocking","Description"].map(h => (
+                  {["ID","Title","Status","Impact","Blocking","Description / Clarification Required"].map(h => (
                     <th key={h} className="px-3 py-2 text-left font-semibold whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -1907,10 +1914,10 @@ export default function ConsumerIntegrationReadinessHub() {
                     <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
                       <td className="px-3 py-2 font-mono font-bold text-[#003865]">{adr.id}</td>
                       <td className="px-3 py-2 font-semibold text-slate-800 whitespace-nowrap">{adr.title}</td>
-                      <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: stColor.bg, color: stColor.text }}>{adr.status}</span></td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: stColor.bg, color: stColor.text }}>{adr.status}</span>{"statusDetail" in adr && <div className="text-[10px] font-semibold text-amber-800 mt-1">{adr.statusDetail}</div>}</td>
                       <td className="px-3 py-2 whitespace-nowrap"><span className="text-xs font-bold" style={{ color: impColor }}>{adr.impact}</span></td>
                       <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{adr.blocking}</td>
-                      <td className="px-3 py-2 text-slate-600">{adr.description}</td>
+                      <td className="px-3 py-2 text-slate-600"><p className="m-0 mb-1">{adr.description}</p>{"clarifications" in adr && <ul className="m-0 mb-1 pl-4 list-disc">{adr.clarifications.map(question => <li key={question} className="mb-1">{question}</li>)}</ul>}{"dctImpact" in adr && <p className="m-0 mb-1 text-amber-800"><strong>DCT impact:</strong> {adr.dctImpact}</p>}{"related" in adr && <p className="m-0 text-slate-500"><strong>Related:</strong> {adr.related}</p>}</td>
                     </tr>
                   );
                 })}

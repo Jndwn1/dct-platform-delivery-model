@@ -81,3 +81,4 @@
 - [x] Integrate Rule Processing to TDC Posting discovery findings across Provision & State, Decision Log, and End-to-End Data Flow without new navigation
 - [x] Add the explicit Confirmed and Requires Clarification discovery-status breakdown and a verified existing decision-log entry for Rule Processing to TDC Posting
 - [x] Roll back unsupported Rule Processing to TDC Posting conclusions while preserving only clearly labeled demo observations and all unrelated DCT content
+- [x] Add the Multi-Entity Rule Evaluation versus TDC Persistence open decision to the Consumer Integration Readiness Hub with derived counters
