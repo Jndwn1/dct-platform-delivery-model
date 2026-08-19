@@ -78,3 +78,5 @@
 - [x] Trace and correct the inconsistent PI3 percentage and non-reconciling metric cards shown in the dashboard screenshot
 - [x] Update Roger Screen Testing Status with authoritative lifecycle, QA readiness, dependency, Dev/QA/UAT date, and milestone data
 - [x] Surface the shared Roger MVP Screen Testing Status model in the DCT Delivery Model landing page and verify synchronized metrics
+- [x] Integrate Rule Processing to TDC Posting discovery findings across Provision & State, Decision Log, and End-to-End Data Flow without new navigation
+- [x] Add the explicit Confirmed and Requires Clarification discovery-status breakdown and a verified existing decision-log entry for Rule Processing to TDC Posting

@@ -282,12 +282,13 @@ export default function IntegrationArchitecture() {
             <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f1623", marginBottom: "6px" }}>Open Decisions</div>
             <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "12px" }}>Items requiring future agreement or implementation — not yet in the build.</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[
-                { id: "OD-1", title: "Destination Return Locator (locatorId)", detail: "Not in payload today. DCT position: user intent selected in Roger and carried explicitly, not inferred by IMS.", status: "Open" },
-                { id: "OD-2", title: "Confirm IMS Owns Roll-Up", detail: "IMS must explicitly own roll-up from line-per-record to per-form-line totals. Must not fall through the gap.", status: "Open" },
-                { id: "OD-3", title: "Per-Line Error Response Contract", detail: "Structure for IMS to return per-line results (returnLineId + failure reason) back to TDC. Not yet defined.", status: "Open" },
-                { id: "OD-4", title: "Activity / Sub-Entity Differentiation", detail: "Not in outbound payload. Out of MVP scope. Requirements still owed.", status: "Out of Scope (MVP)" },
-              ].map(od => (
+                {[
+                  { id: "OD-1", title: "Destination Return Locator (locatorId)", detail: "Not in payload today. DCT position: user intent selected in Roger and carried explicitly, not inferred by IMS.", status: "Open" },
+                  { id: "OD-2", title: "Confirm IMS Owns Roll-Up", detail: "IMS must explicitly own roll-up from line-per-record to per-form-line totals. Must not fall through the gap.", status: "Open" },
+                  { id: "OD-3", title: "Per-Line Error Response Contract", detail: "Structure for IMS to return per-line results (returnLineId + failure reason) back to TDC. Not yet defined.", status: "Open" },
+                  { id: "OD-4", title: "Activity / Sub-Entity Differentiation", detail: "Not in outbound payload. Out of MVP scope. Requirements still owed.", status: "Out of Scope (MVP)" },
+                  { id: "OD-5", title: "Rule Processing → TDC Persistence Structure", detail: "Roger supports multi-entity rule evaluation and indicates eligible posts create DRAFT adjustments in TDC. Confirm whether each rule/entity result is a separate request, a collection, or another payload structure; confirm the persisted fields, No Adjustment and Skipped behavior, duplicate handling, and partial-failure behavior. Do not infer that TDC lacks multi-entity processing.", status: "Open" },
+                ].map(od => (
                 <div key={od.id} style={{ display: "flex", alignItems: "flex-start", gap: "12px", backgroundColor: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
                   <div style={{ fontSize: "10px", fontWeight: 700, backgroundColor: od.status === "Open" ? "#fef3c7" : "#f1f5f9", color: od.status === "Open" ? "#92400e" : "#64748b", padding: "2px 6px", borderRadius: "4px", whiteSpace: "nowrap", alignSelf: "flex-start" }}>{od.id}</div>
                   <div style={{ flex: 1 }}>

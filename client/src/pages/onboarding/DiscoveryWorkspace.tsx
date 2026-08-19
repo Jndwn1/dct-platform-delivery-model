@@ -6,6 +6,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import RuleProcessingTdcPosting from "@/components/RuleProcessingTdcPosting";
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 const C = {
@@ -1309,6 +1310,7 @@ const QUICK_LINKS = [
   { label: "Workstream Overview", href: "#s1", color: C.slate, icon: "◎" },
   { label: "Responsibilities", href: "#s2", color: C.slate, icon: "▦" },
   { label: "Data Flow", href: "#s4", color: C.slate, icon: "→" },
+  { label: "Rule Posting", href: "#s-rule-posting", color: C.green, icon: "⚖" },
   { label: "Capability Map", href: "#s5", color: C.slate, icon: "☑" },
   { label: "Discovery Questions", href: "#s6", color: C.slate, icon: "?" },
   { label: "Ask Buddy", href: "#s7", color: C.slate, icon: "🤖" },
@@ -1389,6 +1391,7 @@ export default function DiscoveryWorkspace() {
           <DiscoveryWorkflowSection />
           <ExistingCapabilities />
           <DataFlowSection />
+          <RuleProcessingTdcPosting />
           <CapabilityMappingTable />
           <DiscoveryQuestionsSection />
           <AskBuddySection />

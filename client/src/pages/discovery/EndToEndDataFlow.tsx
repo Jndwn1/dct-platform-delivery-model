@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DiscoveryAskBuddy from "@/components/DiscoveryAskBuddy";
+import { RULE_POSTING_FLOW, RULE_POSTING_VALIDATION } from "@/lib/ruleProcessingTdcPosting";
 
 
 interface FlowStep {
@@ -53,6 +54,16 @@ const FLOW_STEPS: FlowStep[] = [
     description: "Roger loads the tax-ready data via TDC APIs and presents it to the tax professional for review, editing, and approval.",
     steps: ["Load data via TDC Read APIs", "Display accounts and mappings", "Practitioner reviews data", "Practitioner edits account (if needed)", "Creates adjustment with memo", "Approves reviewed items", "Calls TDC Update API", "Changes persisted back to TDC"],
     output: "Practitioner decisions → TDC (persisted)",
+  },
+  {
+    id: "rule-posting",
+    system: "Roger → TDC (Discovery / Validation)",
+    systemColor: "#7c3aed",
+    systemBg: "#faf5ff",
+    title: "Rule Processing & Draft Posting",
+    description: "Roger supports multi-entity rule evaluation. In the demonstrated example, 2 rules across 4 entities produced 8 rule-results. Roger indicates that each posted eligible result creates a DRAFT adjustment in TDC; the exact TDC persistence and payload structure remains open for confirmation.",
+    steps: [...RULE_POSTING_FLOW],
+    output: "Eligible result → TDC DRAFT Adjustment → retrieve / display in Roger",
   },
   {
     id: "tdc2",
@@ -199,6 +210,12 @@ export default function EndToEndDataFlow() {
             </div>
           );
         })}
+      </div>
+
+      <div style={{ marginTop: "20px", padding: "16px 20px", backgroundColor: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "10px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 800, color: "#5b21b6", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>Rule Processing → TDC Posting · DCT Validation</div>
+        <div style={{ fontSize: "12px", color: "#5b21b6", marginBottom: "9px", lineHeight: "1.5" }}><strong>Calculated ≠ Posted ≠ Persisted.</strong> A Roger result may be calculated or displayed without being stored as a TDC adjustment. The detailed Rule Processing discovery item in the Provision & State Hub contains the open persistence questions.</div>
+        <ul style={{ margin: 0, paddingLeft: "18px", columns: 2, columnGap: "28px" }}>{RULE_POSTING_VALIDATION.map(item => <li key={item} style={{ fontSize: "11px", color: "#475569", lineHeight: "1.5", marginBottom: "6px", breakInside: "avoid" }}>{item}</li>)}</ul>
       </div>
 
       {/* Summary */}
