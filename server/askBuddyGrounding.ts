@@ -90,13 +90,11 @@ function detectBatchConflicts(question: string, liveSnapshot?: LiveSnapshotInput
   }];
 }
 
-export function buildBuddyGrounding(question: string, currentPagePath?: string, liveSnapshot?: LiveSnapshotInput): BuddyGrounding {
+export function buildBuddyGrounding(question: string, _currentPagePath?: string, liveSnapshot?: LiveSnapshotInput): BuddyGrounding {
   const checkedAt = new Date().toISOString();
   const queryTokens = tokens(question);
   const selected = new Map<string, BuddySource>();
   const add = (source: BuddySource | null) => { if (source) selected.set(source.id, source); };
-
-  if (currentPagePath) add(pageSource(currentPagePath));
 
   if (DELIVERY_TERMS.test(question) && liveSnapshot) {
     add(toSource("live-control-panel", "Control Panel / ADO-derived delivery status", "/control-panel", "Authoritative for current delivery and status", liveSnapshot.asOf, "Current"));
@@ -134,7 +132,7 @@ export function buildBuddyGrounding(question: string, currentPagePath?: string, 
 
   const evidenceBlock = `
 ## Grounded Evidence Packet
-The current page provides context only; search the broader DCT platform evidence below before answering.
+Entry-page context may supplement the explanation only after the authoritative answer is established. It must never change the facts, source precedence, cited primary evidence, ownership, metric calculation, or no-assumption behavior below.
 
 ### Sources consulted
 ${sourceLines}

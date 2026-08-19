@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Upload, Loader2, Copy, Check, RotateCcw, Download } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { appendSharedBuddyConversation } from "@/lib/askBuddyConversation";
 
 // Keep AnalyzedRelease exported so QADeploymentRegistry doesn't break on import
 export interface AnalyzedScreen {
@@ -35,6 +36,10 @@ export default function QABuddyPanel({ onClose, inline }: QABuddyPanelProps) {
   const chatMutation = trpc.askBuddy.chat.useMutation({
     onSuccess: (data: any) => {
       setResponse(data.text ?? "No response received.");
+      appendSharedBuddyConversation([
+        { id: `qa-request-${Date.now()}`, role: "user", content: "Requested QA release-note analysis in the QA Deployment Registry.", createdAt: new Date().toISOString() },
+        { id: `qa-response-${Date.now()}`, role: "assistant", content: data.text ?? "No response received.", createdAt: new Date().toISOString(), sources: data.sources, status: data.status, knowledgeCheckedAt: data.knowledgeCheckedAt },
+      ]);
       setStep("result");
     },
     onError: (err: any) => {

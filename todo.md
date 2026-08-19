@@ -83,3 +83,10 @@
 - [x] Roll back unsupported Rule Processing to TDC Posting conclusions while preserving only clearly labeled demo observations and all unrelated DCT content
 - [x] Add the Multi-Entity Rule Evaluation versus TDC Persistence open decision to the Consumer Integration Readiness Hub with derived counters
 - [x] Upgrade Ask Buddy with platform-wide grounded knowledge, source authority, freshness, evidence links, conflict handling, and discovery-status safeguards
+- [x] Centralize Ask Buddy facts and conversation state across all platform entry points so page context cannot alter authoritative answers
+- [x] Add a governed Data Mapping Assistant workspace with artifact intake, evidence-based statuses, review actions, validation, and safe mapping output
+- [x] Extend shared Ask Buddy conversation and evidence behavior to specialized QA and deployment Buddy panels
+- [x] Implement approved crosswalk, historical confirmed-mapping, source-precedence, and freshness checks or remove unsupported precedence claims
+- [x] Browser-verify governed mapping intake, mapping session, BA review, readiness calculation, and safe CSV export end to end
+- [x] Validate the mapping workflow with the supplied sample Master Data only, retaining an explicit non-authoritative label and not promoting it as current source of truth
+- [x] Validate the mapping workflow against the supplied authoritative Prior Year Inventory while retaining the Master Data artifact as sample only

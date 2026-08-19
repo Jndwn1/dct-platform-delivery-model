@@ -38,4 +38,10 @@ describe("Ask Buddy grounded platform knowledge", () => {
     expect(answer).toContain("### Sources Used");
     expect(answer).toContain("Knowledge checked:");
   });
+
+  it("uses the same authoritative source set regardless of the entry page", () => {
+    const fromOverview = buildBuddyGrounding("What is the current status of Batch 45?", "/discovery/dct-overview", liveSnapshot);
+    const fromRoger = buildBuddyGrounding("What is the current status of Batch 45?", "/discovery/roger-overview", liveSnapshot);
+    expect(fromOverview.sources.map(source => source.id)).toEqual(fromRoger.sources.map(source => source.id));
+  });
 });

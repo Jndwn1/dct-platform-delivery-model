@@ -6,6 +6,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Copy, Check, ExternalLink, ShieldCheck } from "lucide-react";
 import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
+import DataMappingWorkspace from "@/components/DataMappingWorkspace";
+import { readSharedBuddyConversation, subscribeSharedBuddyConversation, writeSharedBuddyConversation } from "@/lib/askBuddyConversation";
 import { trpc } from "@/lib/trpc";
 import { useBatchStatus, buildLiveSnapshot } from "@/contexts/BatchStatusContext";
 
@@ -381,6 +383,21 @@ const CAPABILITIES: Capability[] = [
       "Are there conflicting requirements?",
     ],
   },
+  {
+    id: "mapping",
+    icon: "🧩",
+    label: "Data Mapping Assistant",
+    color: "#1e3a5f",
+    bg: "#eff6ff",
+    border: "#93c5fd",
+    description: "Compare Master Data and Prior Year Inventory artifacts, return only evidence-based Input Code mappings, and route unresolved items for review.",
+    sampleQuestions: [
+      "Upload Master Data and Prior Year Inventory",
+      "Map the Input Codes",
+      "Show unresolved mapping exceptions",
+      "Is this mapping exercise ready?",
+    ],
+  },
 ];
 
 // ─── KNOWLEDGE SOURCES ───────────────────────────────────────────────────────
@@ -411,16 +428,11 @@ export default function AskBuddy() {
     [statuses, gates, piCompletion, lastUpdated]
   );
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "buddy",
-      text: "Hi, I'm Ask Buddy — the DCT Discovery intelligence assistant. I use current platform evidence across delivery, Discovery, architecture, governance, requirements, QA, and registered API documentation. I do not fill Discovery gaps with assumptions.",
-      timestamp: new Date(),
-      capability: "welcome",
-      sources: [],
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const shared = readSharedBuddyConversation();
+    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+    return [{ id: "welcome", role: "buddy", text: "Hi, I'm Ask Buddy — the DCT Discovery intelligence assistant. I use current platform evidence across delivery, Discovery, architecture, governance, requirements, QA, and registered API documentation. I do not fill Discovery gaps with assumptions.", timestamp: new Date(), capability: "welcome", sources: [] }];
+  });
   const [input, setInput] = useState(initialPrompt);
   const [activeCapability, setActiveCapability] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -446,6 +458,21 @@ export default function AskBuddy() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    writeSharedBuddyConversation(messages.filter(message => !message.id.startsWith("tour-")).map(message => ({ id: message.id, role: message.role === "buddy" ? "assistant" : "user", content: message.text, createdAt: message.timestamp.toISOString(), sources: message.sources as unknown[], status: message.answerStatus, knowledgeCheckedAt: message.knowledgeCheckedAt })));
+  }, [messages]);
+
+  useEffect(() => subscribeSharedBuddyConversation(() => {
+    const shared = readSharedBuddyConversation();
+    if (!shared.length) return;
+    setMessages(current => {
+      const currentIds = current.map(message => message.id).join("|");
+      const sharedIds = shared.map(message => message.id).join("|");
+      if (currentIds === sharedIds) return current;
+      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+    });
+  }), []);
 
   // Keyboard shortcuts for tour navigation
   useEffect(() => {
@@ -1035,6 +1062,7 @@ export default function AskBuddy() {
 
         {/* ── Center: Chat Panel ── */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+          {activeCapability === "mapping" ? <DataMappingWorkspace /> : <>
           <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderLeft: "4px solid #1e3a5f", borderRadius: 8, padding: "0.65rem 0.85rem", marginBottom: "0.75rem", display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
             <ShieldCheck size={17} color="#1e3a5f" style={{ marginTop: 1, flexShrink: 0 }} />
             <div style={{ color: "#1e3a5f", fontSize: "0.75rem", lineHeight: 1.45 }}><strong>Governance guardrail:</strong> Buddy answers from DCT Platform evidence. Buddy does not fill Discovery gaps with assumptions.</div>
@@ -1253,6 +1281,7 @@ export default function AskBuddy() {
               </button>
             ))}
           </div>
+          </>}
         </div>
 
         {/* ── Right: Data Sources Panel ── */}

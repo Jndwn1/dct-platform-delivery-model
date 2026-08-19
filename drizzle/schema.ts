@@ -1,4 +1,4 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, mediumtext, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -295,3 +295,49 @@ export const askBuddyAudits = mysqlTable("ask_buddy_audits", {
 
 export type AskBuddyAudit = typeof askBuddyAudits.$inferSelect;
 export type InsertAskBuddyAudit = typeof askBuddyAudits.$inferInsert;
+
+// ─── Governed Data Mapping Assistant ─────────────────────────────────────────
+export const mappingArtifacts = mysqlTable("mapping_artifacts", {
+  id: int("id").autoincrement().primaryKey(),
+  artifactType: mysqlEnum("artifactType", ["Master Data", "Prior Year Inventory", "Approved Crosswalk", "Other"]).notNull(),
+  sourceType: mysqlEnum("sourceType", ["Upload", "Platform Registered"]).notNull().default("Upload"),
+  fileName: varchar("fileName", { length: 512 }).notNull(),
+  versionLabel: varchar("versionLabel", { length: 256 }).notNull(),
+  mimeType: varchar("mimeType", { length: 128 }).notNull(),
+  storageUrl: varchar("storageUrl", { length: 1024 }).notNull(),
+  fieldsJson: mediumtext("fieldsJson").notNull(),
+  uploadedBy: varchar("uploadedBy", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export const mappingSessions = mysqlTable("mapping_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  masterArtifactId: int("masterArtifactId").notNull(),
+  priorArtifactId: int("priorArtifactId").notNull(),
+  readiness: varchar("readiness", { length: 32 }).notNull().default("NOT READY"),
+  exceptionsJson: text("exceptionsJson").notNull(),
+  createdBy: varchar("createdBy", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export const mappingResults = mysqlTable("mapping_results", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  originalMasterField: varchar("originalMasterField", { length: 512 }).notNull(),
+  priorInventoryField: varchar("priorInventoryField", { length: 512 }),
+  inputCode: varchar("inputCode", { length: 256 }).notNull().default("Not Confirmed"),
+  ruleCode: varchar("ruleCode", { length: 256 }).notNull().default("Not Confirmed"),
+  status: mysqlEnum("mappingStatus", ["Confirmed", "Candidate", "Ambiguous", "No Match", "Conflict"]).notNull(),
+  confidence: int("confidence").notNull().default(0),
+  evidenceJson: text("evidenceJson").notNull(),
+  reason: text("reason").notNull(),
+  selectedMapping: varchar("selectedMapping", { length: 512 }),
+  reviewStatus: mysqlEnum("reviewStatus", ["Unreviewed", "Confirmed", "Rejected", "Needs SME Review"]).notNull().default("Unreviewed"),
+  reviewedBy: varchar("reviewedBy", { length: 128 }),
+  reviewedAt: timestamp("reviewedAt"),
+  reviewNotes: text("reviewNotes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type MappingArtifact = typeof mappingArtifacts.$inferSelect;
+export type MappingSession = typeof mappingSessions.$inferSelect;
+export type MappingResult = typeof mappingResults.$inferSelect;

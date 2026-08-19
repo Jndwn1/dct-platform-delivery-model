@@ -8,9 +8,10 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
+import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks, mappingArtifacts, mappingResults, mappingSessions } from "../drizzle/schema";
 import { storagePut } from "./storage";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
+import { createMappingCandidates, mappingReadiness, parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -68,12 +69,12 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const currentPagePath = input.currentPagePath ?? input.discoveryPagePath;
-        const discoveryBlock = currentPagePath
-          ? buildDiscoveryContextBlock(currentPagePath)
-          : "";
         const question = [...input.messages].reverse().find((message) => message.role === "user")?.content ?? "";
         const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot);
-        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + discoveryBlock + grounding.evidenceBlock + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
+        const entryContext = currentPagePath
+          ? `\n\nEntry-page context: ${currentPagePath}. This is a navigation cue only. Do not use it as a factual source or allow it to alter the authoritative answer. You may add a brief optional page-relevance sentence only after answering from the central evidence layer.`
+          : "";
+        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + grounding.evidenceBlock + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
 
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
@@ -128,6 +129,144 @@ export const appRouter = router({
           knowledgeCheckedAt: grounding.checkedAt,
           latestSource: grounding.latestSource,
         };
+      }),
+  }),
+
+  dataMapping: router({
+    listArtifacts: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt));
+    }),
+    uploadArtifact: publicProcedure
+      .input(z.object({
+        artifactType: z.enum(["Master Data", "Prior Year Inventory", "Approved Crosswalk", "Other"]),
+        fileName: z.string().min(1).max(512),
+        versionLabel: z.string().min(1).max(256),
+        mimeType: z.string().min(1).max(128),
+        fileBase64: z.string().min(1),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!/\.(xlsx|xls|csv)$/i.test(input.fileName)) throw new Error("Upload an Excel (.xlsx/.xls) or CSV artifact.");
+        const encoded = input.fileBase64.replace(/^data:[^;]+;base64,/, "");
+        const buffer = Buffer.from(encoded, "base64");
+        if (buffer.length > 10 * 1024 * 1024) throw new Error("Artifacts must be 10 MB or smaller.");
+        const parsed = parseArtifactBuffer(buffer, input.fileName, input.versionLabel);
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const stored = await storagePut(`data-mapping/${Date.now()}-${safeName}`, buffer, input.mimeType);
+        const db = await getDb();
+        if (!db) throw new Error("The governed mapping store is unavailable. Please try again.");
+        await db.insert(mappingArtifacts).values({
+          artifactType: input.artifactType,
+          sourceType: "Upload",
+          fileName: input.fileName,
+          versionLabel: input.versionLabel,
+          mimeType: input.mimeType,
+          storageUrl: stored.url,
+          fieldsJson: JSON.stringify(parsed.fields),
+          uploadedBy: ctx.user?.name ?? null,
+        });
+        const [artifact] = await db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.id)).limit(1);
+        return { artifact, fieldCount: parsed.fields.length };
+      }),
+    createSession: publicProcedure
+      .input(z.object({ masterArtifactId: z.number().int().positive(), priorArtifactId: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error("The governed mapping store is unavailable. Please try again.");
+        const [master] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.masterArtifactId)).limit(1);
+        const [prior] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.priorArtifactId)).limit(1);
+        if (!master || !prior) throw new Error("Select both a Master Data artifact and a Prior Year Inventory artifact.");
+        if (master.artifactType !== "Master Data" || prior.artifactType !== "Prior Year Inventory") throw new Error("The selected artifacts do not match the required mapping roles.");
+        const allArtifacts = await db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt));
+        const latestCrosswalk = allArtifacts.find(artifact => artifact.artifactType === "Approved Crosswalk");
+        const historicalResults = await db.select().from(mappingResults).where(eq(mappingResults.reviewStatus, "Confirmed"));
+        const historicalConfirmed = historicalResults.filter(result => result.inputCode !== "Not Confirmed").map(result => ({ originalField: result.originalMasterField, inputCode: result.inputCode, ruleCode: result.ruleCode === "Not Confirmed" ? undefined : result.ruleCode, worksheet: "Historical Confirmed Mapping", rowNumber: result.id }));
+        const candidates = createMappingCandidates(
+          JSON.parse(master.fieldsJson) as ArtifactField[],
+          JSON.parse(prior.fieldsJson) as ArtifactField[],
+          { approvedCrosswalk: latestCrosswalk ? JSON.parse(latestCrosswalk.fieldsJson) as ArtifactField[] : [], historicalConfirmed, approvedCrosswalkLabel: latestCrosswalk ? `Approved Crosswalk ${latestCrosswalk.fileName} (${latestCrosswalk.versionLabel})` : undefined },
+        );
+        const calculatedReadiness = mappingReadiness(candidates);
+        const sampleMaster = /\b(sample|illustrative|non-authoritative)\b/i.test(master.versionLabel);
+        const readiness = sampleMaster
+          ? { ...calculatedReadiness, readiness: "NOT READY" as const, exceptions: { ...calculatedReadiness.exceptions, nonAuthoritativeMaster: 1 }, unresolved: calculatedReadiness.unresolved + 1 }
+          : calculatedReadiness;
+        const newestMaster = allArtifacts.find(artifact => artifact.artifactType === "Master Data");
+        const newestPrior = allArtifacts.find(artifact => artifact.artifactType === "Prior Year Inventory");
+        const staleSelections = [newestMaster && newestMaster.id !== master.id ? "Master Data" : null, newestPrior && newestPrior.id !== prior.id ? "Prior Year Inventory" : null].filter(Boolean);
+        await db.insert(mappingSessions).values({
+          masterArtifactId: master.id,
+          priorArtifactId: prior.id,
+          readiness: readiness.readiness,
+          exceptionsJson: JSON.stringify(readiness.exceptions),
+          createdBy: ctx.user?.name ?? null,
+        });
+        const [session] = await db.select().from(mappingSessions).orderBy(desc(mappingSessions.id)).limit(1);
+        if (!session) throw new Error("Unable to create mapping session.");
+        await db.insert(mappingResults).values(candidates.map(candidate => ({
+          sessionId: session.id,
+          originalMasterField: candidate.masterField.originalField,
+          priorInventoryField: candidate.priorField?.originalField ?? null,
+          inputCode: candidate.inputCode,
+          ruleCode: candidate.ruleCode,
+          status: candidate.status,
+          confidence: candidate.confidence,
+          evidenceJson: JSON.stringify(candidate.evidence),
+          reason: candidate.reason,
+        })));
+        return { session, readiness, sourceGovernance: { masterAuthority: sampleMaster ? "Sample / non-authoritative — mapping output is validation only" : "Authoritative / source label supplied", approvedCrosswalk: latestCrosswalk ? `${latestCrosswalk.fileName} · ${latestCrosswalk.versionLabel}` : "Not registered", historicalConfirmedCount: historicalConfirmed.length, staleSelections }, results: await db.select().from(mappingResults).where(eq(mappingResults.sessionId, session.id)).orderBy(mappingResults.originalMasterField) };
+      }),
+    getSession: publicProcedure
+      .input(z.object({ sessionId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null;
+        const [session] = await db.select().from(mappingSessions).where(eq(mappingSessions.id, input.sessionId)).limit(1);
+        if (!session) return null;
+        const [master] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, session.masterArtifactId)).limit(1);
+        const [prior] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, session.priorArtifactId)).limit(1);
+        const results = await db.select().from(mappingResults).where(eq(mappingResults.sessionId, session.id)).orderBy(mappingResults.originalMasterField);
+        const allArtifacts = await db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt));
+        const latestCrosswalk = allArtifacts.find(artifact => artifact.artifactType === "Approved Crosswalk");
+        const confirmedHistorical = await db.select().from(mappingResults).where(eq(mappingResults.reviewStatus, "Confirmed"));
+        const newestMaster = allArtifacts.find(artifact => artifact.artifactType === "Master Data");
+        const newestPrior = allArtifacts.find(artifact => artifact.artifactType === "Prior Year Inventory");
+        const staleSelections = [newestMaster && newestMaster.id !== master?.id ? "Master Data" : null, newestPrior && newestPrior.id !== prior?.id ? "Prior Year Inventory" : null].filter(Boolean);
+        const sampleMaster = /\b(sample|illustrative|non-authoritative)\b/i.test(master?.versionLabel ?? "");
+        return { session, master, prior, results, sourceGovernance: { masterAuthority: sampleMaster ? "Sample / non-authoritative — mapping output is validation only" : "Authoritative / source label supplied", approvedCrosswalk: latestCrosswalk ? `${latestCrosswalk.fileName} · ${latestCrosswalk.versionLabel}` : "Not registered", historicalConfirmedCount: confirmedHistorical.filter(result => result.inputCode !== "Not Confirmed").length, staleSelections } };
+      }),
+    reviewResult: publicProcedure
+      .input(z.object({
+        resultId: z.number().int().positive(),
+        action: z.enum(["Confirm Mapping", "Reject Mapping", "Needs SME Review", "Add Discovery Question"]),
+        reviewNotes: z.string().max(4000).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error("The governed mapping store is unavailable. Please try again.");
+        const [result] = await db.select().from(mappingResults).where(eq(mappingResults.id, input.resultId)).limit(1);
+        if (!result) throw new Error("Mapping result not found.");
+        if (input.action === "Confirm Mapping" && (result.inputCode === "Not Confirmed" || result.status !== "Confirmed")) {
+          throw new Error("Only a result with authoritative confirmed Input Code evidence can be confirmed.");
+        }
+        const reviewStatus = input.action === "Confirm Mapping" ? "Confirmed" : input.action === "Reject Mapping" ? "Rejected" : "Needs SME Review";
+        await db.update(mappingResults).set({ reviewStatus, reviewedBy: ctx.user?.name ?? null, reviewedAt: new Date(), reviewNotes: input.reviewNotes ?? null }).where(eq(mappingResults.id, input.resultId));
+        if (input.action === "Add Discovery Question") {
+          await db.insert(integrationQuestions).values({ topic: "data-mapping", question: `Mapping review: ${result.originalMasterField} — ${input.reviewNotes || result.reason}`, status: "open", owner: "TBD" });
+        }
+        return { success: true };
+      }),
+    exportSession: publicProcedure
+      .input(z.object({ sessionId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("The governed mapping store is unavailable. Please try again.");
+        const results = await db.select().from(mappingResults).where(eq(mappingResults.sessionId, input.sessionId)).orderBy(mappingResults.originalMasterField);
+        const header = ["Original Master Data Field", "Prior Year Inventory Field", "Confirmed Input Code", "Confirmed Rule Code", "Mapping Status", "Confidence", "Mapping Evidence", "Review Status", "Review Notes"];
+        const esc = (value: string | null) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+        const csv = [header.map(esc).join(","), ...results.map(result => [result.originalMasterField, result.priorInventoryField, result.inputCode, result.ruleCode, result.status, String(result.confidence), result.evidenceJson, result.reviewStatus, result.reviewNotes].map(esc).join(","))].join("\n");
+        return { csv, fileName: `dct-governed-mapping-review-${input.sessionId}.csv` };
       }),
   }),
 

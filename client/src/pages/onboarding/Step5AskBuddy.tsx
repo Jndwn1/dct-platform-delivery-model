@@ -5,6 +5,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { appendSharedBuddyConversation } from "@/lib/askBuddyConversation";
 import { markStepComplete } from "./OnboardingHub";
 
 const SUGGESTED_QUESTIONS = [
@@ -60,7 +61,9 @@ export default function Step5AskBuddy() {
   async function sendMessage(text: string) {
     if (!text.trim() || isLoading) return;
     const userMsg: Message = { role: "user", content: text };
+    const userMessageId = `onboarding-user-${Date.now()}`;
     setMessages(prev => [...prev, userMsg]);
+    appendSharedBuddyConversation([{ id: userMessageId, role: "user", content: text, createdAt: new Date().toISOString() }]);
     setInput("");
     setIsLoading(true);
     setQuestionsAsked(prev => prev + 1);
@@ -72,6 +75,7 @@ export default function Step5AskBuddy() {
               discoveryPagePath: "/discovery/ims",
       });
       setMessages(prev => [...prev, { role: "assistant", content: result.text }]);
+      appendSharedBuddyConversation([{ id: `onboarding-assistant-${Date.now()}`, role: "assistant", content: result.text, createdAt: new Date().toISOString(), sources: result.sources, status: result.status, knowledgeCheckedAt: result.knowledgeCheckedAt }]);
     } catch {
       setMessages(prev => [...prev, {
         role: "assistant",

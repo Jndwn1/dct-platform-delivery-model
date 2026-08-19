@@ -6,6 +6,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { appendSharedBuddyConversation } from "@/lib/askBuddyConversation";
 import RuleProcessingTdcPosting from "@/components/RuleProcessingTdcPosting";
 
 // ─── Color palette ────────────────────────────────────────────────────────────
@@ -1059,6 +1060,7 @@ function AskBuddySection() {
   async function send(text: string) {
     if (!text.trim() || isLoading) return;
     const userMsg: Message = { role: "user", content: text };
+    appendSharedBuddyConversation([{ id: `workspace-user-${Date.now()}`, role: "user", content: text, createdAt: new Date().toISOString() }]);
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
@@ -1069,6 +1071,7 @@ function AskBuddySection() {
         discoveryPagePath: "/onboarding",
       });
       setMessages(prev => [...prev, { role: "assistant", content: result.text }]);
+      appendSharedBuddyConversation([{ id: `workspace-assistant-${Date.now()}`, role: "assistant", content: result.text, createdAt: new Date().toISOString(), sources: result.sources, status: result.status, knowledgeCheckedAt: result.knowledgeCheckedAt }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "I'm having trouble connecting right now. Please try again." }]);
     } finally {

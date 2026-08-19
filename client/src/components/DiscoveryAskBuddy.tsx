@@ -7,8 +7,10 @@ import { useState, useRef, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useBatchStatus } from "@/contexts/BatchStatusContext";
 import { Streamdown } from "streamdown";
+import { readSharedBuddyConversation, subscribeSharedBuddyConversation, writeSharedBuddyConversation } from "@/lib/askBuddyConversation";
 
 interface Message {
+  id: string;
   role: "user" | "assistant";
   content: string;
   sources?: Array<{ id: string; label: string; path: string; authority: string; lastUpdated: string; artifactStatus: string }>;
@@ -107,7 +109,7 @@ const DEFAULT_QUESTIONS: Record<string, string[]> = {
 
 export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuestions }: DiscoveryAskBuddyProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => readSharedBuddyConversation().map(message => ({ id: message.id, role: message.role, content: message.content, sources: message.sources as Message["sources"], status: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt })));
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +141,7 @@ export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuesti
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
-    const userMsg: Message = { role: "user", content: text.trim() };
+    const userMsg: Message = { id: `user-${Date.now()}`, role: "user", content: text.trim() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
@@ -153,9 +155,9 @@ export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuesti
           capability: "discovery",
           liveSnapshot: buildSnapshot(),
       });
-      setMessages(prev => [...prev, { role: "assistant", content: result.text, sources: result.sources, status: result.status, knowledgeCheckedAt: result.knowledgeCheckedAt }]);
+      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: result.text, sources: result.sources, status: result.status, knowledgeCheckedAt: result.knowledgeCheckedAt }]);
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "I encountered an error. Please try again." }]);
+      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: "I encountered an error. Please try again." }]);
     } finally {
       setIsTyping(false);
     }
@@ -178,11 +180,20 @@ export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuesti
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Reset conversation when page changes
   useEffect(() => {
-    setMessages([]);
-    setInput("");
-  }, [pagePath]);
+    const next = messages.map(message => ({ id: message.id, role: message.role, content: message.content, createdAt: new Date().toISOString(), sources: message.sources, status: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+    const current = readSharedBuddyConversation();
+    if (JSON.stringify(current.map(message => ({ id: message.id, role: message.role, content: message.content }))) !== JSON.stringify(next.map(message => ({ id: message.id, role: message.role, content: message.content })))) writeSharedBuddyConversation(next);
+  }, [messages]);
+
+  useEffect(() => subscribeSharedBuddyConversation(() => {
+    const shared = readSharedBuddyConversation();
+    if (!shared.length) return;
+    setMessages(current => {
+      if (current.map(message => message.id).join("|") === shared.map(message => message.id).join("|")) return current;
+      return shared.map(message => ({ id: message.id, role: message.role, content: message.content, sources: message.sources as Message["sources"], status: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+    });
+  }), []);
 
   return (
     <>
@@ -352,7 +363,7 @@ export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuesti
               <>
                 {messages.map((msg, i) => (
                   <div
-                    key={i}
+                    key={msg.id}
                     style={{
                       marginBottom: "10px",
                       display: "flex",
