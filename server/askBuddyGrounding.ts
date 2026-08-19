@@ -3,6 +3,7 @@ import { DISCOVERY_KNOWLEDGE_BASE } from "./discoveryKnowledgeBase";
 import { PAGE_CONTEXT_REGISTRY, resolvePageContext } from "../client/src/lib/pageContextRegistry";
 import { MULTI_ENTITY_TDC_PERSISTENCE_DECISION } from "../client/src/lib/multiEntityTdcPersistenceDecision";
 import type { LiveSnapshotInput } from "./platformContext";
+import type { MasterDataSource } from "./masterDataRegistry";
 
 export type BuddyAnswerStatus = "Confirmed" | "Open" | "Conflict" | "Missing";
 
@@ -90,7 +91,7 @@ function detectBatchConflicts(question: string, liveSnapshot?: LiveSnapshotInput
   }];
 }
 
-export function buildBuddyGrounding(question: string, _currentPagePath?: string, liveSnapshot?: LiveSnapshotInput): BuddyGrounding {
+export function buildBuddyGrounding(question: string, _currentPagePath?: string, liveSnapshot?: LiveSnapshotInput, masterDataSource?: MasterDataSource | null): BuddyGrounding {
   const checkedAt = new Date().toISOString();
   const queryTokens = tokens(question);
   const selected = new Map<string, BuddySource>();
@@ -109,6 +110,8 @@ export function buildBuddyGrounding(question: string, _currentPagePath?: string,
   if (DECISION_TERMS.test(question) || /\bb45\b|batch 45/i.test(question)) {
     add(toSource("consumer-adr-07", "Consumer Integration ADR-07", "/consumer-integration-hub#s15", "Open architecture decision", "2026-08-19", "Open"));
   }
+
+  if (masterDataSource) add(masterDataSource);
 
   for (const [path] of Object.entries(PAGE_CONTEXT_REGISTRY)) {
     if (selected.size >= 6) break;

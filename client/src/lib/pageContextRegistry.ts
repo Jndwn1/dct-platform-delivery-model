@@ -835,6 +835,23 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     lastChange: "Gate Status page registered in context registry",
   },
 
+  // ─── DISCOVERY: MASTER DATA & GOVERNANCE ─────────────────────────────────────
+  "/discovery/master-data-governance": {
+    pageTitle: "Master Data & Governance",
+    pageIcon: "MD",
+    description: "Workbook-backed DCT Master Data source governance, active-domain lifecycle, load posture, and traceability.",
+    features: ["Authoritative Master Data Source", "Active vs Historical Tabs", "Domain Inventory", "Load Status", "Master Data Lifecycle", "Source Traceability"],
+    apis: ["Governed Master Data artifact registry", "Ask Buddy Master Data evidence lookup"],
+    stories: ["Register Authoritative Master Data", "Validate Master Data Load", "Review Master Data Change", "Trace Master Data Source"],
+    screens: ["Master Data Governance Overview", "Domain Table", "Lifecycle Flow", "Load & Change Status", "Governance Rules"],
+    businessRules: ["Active tabs in DCT_Master_Data_Intake.xlsx are authoritative", "Tabs explicitly labeled OLD are historical only", "Historical values cannot override current values", "Missing relationships and source conflicts require review rather than inference"],
+    batches: ["FC", "B2", "B3", "B7", "B28", "B42"],
+    businessObjects: ["MasterDataArtifact", "PdcFirmTaxonomy", "TdcTaxonomyAccount", "AdjustmentRule", "AdjustmentRuleInput", "AdjustmentRuleLine", "EligibilityTierCondition"],
+    integrations: ["PDC", "TDC", "Roger", "Ask Buddy", "Data Mapping Assistant"],
+    lastUpdated: "2026-08-19",
+    lastChange: "Authoritative Master Data workbook governance page registered",
+  },
+
 };
 
 // ─── Registry Manifest ───────────────────────────────────────────────────────

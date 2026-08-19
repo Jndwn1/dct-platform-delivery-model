@@ -90,3 +90,11 @@
 - [x] Browser-verify governed mapping intake, mapping session, BA review, readiness calculation, and safe CSV export end to end
 - [x] Validate the mapping workflow with the supplied sample Master Data only, retaining an explicit non-authoritative label and not promoting it as current source of truth
 - [x] Validate the mapping workflow against the supplied authoritative Prior Year Inventory while retaining the Master Data artifact as sample only
+- [x] Analyze DCT_Master_Data_Intake.xlsx and classify active authoritative tabs versus historical old tabs
+- [x] Create Discovery Center Master Data & Governance page with workbook-backed domains, load status, lifecycle, governance, and source traceability
+- [x] Register DCT_Master_Data_Intake.xlsx as the authoritative Master Data source for Ask Buddy and governed mapping while excluding historical old tabs
+- [x] Add contextual navigation and validate conflict-safe Master Data answers and mapping behavior
+- [x] Use exact historical-tab detection so only tabs explicitly labeled old are excluded from current Master Data evidence
+- [x] Retain active Master Data domains with nonstandard headers in the workbook-backed governance inventory
+- [x] Run and browser-verify a governed mapping session using DCT_Master_Data_Intake.xlsx to confirm active tabs are used and OLD tabs are excluded
+- [x] Record authoritative Master Data mapping-session evidence, including selected source, results, and historical-tab exclusion

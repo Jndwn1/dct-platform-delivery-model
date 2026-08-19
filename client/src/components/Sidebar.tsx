@@ -136,6 +136,7 @@ const DISCOVERY_OVERVIEW_ITEMS: NavItem[] = [
 // Group 3: Platform Services — per-system deep dives
 const DISCOVERY_SERVICES_ITEMS: NavItem[] = [
   { label: "PDC — Phoenix Data Consolidation", path: "/discovery/pdc",              icon: "P", badge: "NEW", badgeColor: "#1e3a5f" },
+  { label: "Master Data & Governance",   path: "/discovery/master-data-governance", icon: "MD", badge: "SoT", badgeColor: "#047857" },
   { label: "TDC / DCT Overview",         path: "/discovery/dct-overview",             icon: "T" },
   { label: "Roger Overview",             path: "/discovery/roger-overview",           icon: "R" },
   { label: "IMS Integration",            path: "/discovery/gosystem",                icon: "IMS" },

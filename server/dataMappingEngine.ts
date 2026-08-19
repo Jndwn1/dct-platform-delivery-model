@@ -19,6 +19,12 @@ export interface ParsedArtifact {
   fields: ArtifactField[];
 }
 
+export const DOMAIN_METADATA_PREFIX = "__DOMAIN_METADATA__:";
+
+export function isMappableArtifactField(field: ArtifactField) {
+  return !field.originalField.startsWith(DOMAIN_METADATA_PREFIX);
+}
+
 export interface MappingCandidate {
   masterField: ArtifactField;
   priorField?: ArtifactField;
@@ -55,10 +61,16 @@ export function parseArtifactBuffer(buffer: Buffer, fileName: string, versionLab
   const fields: ArtifactField[] = [];
 
   workbook.SheetNames.forEach((worksheet) => {
+    if (/(^|[^a-z])old([^a-z]|$)/i.test(worksheet) || /(on hold|not generated)/i.test(worksheet)) return;
     const sheet = workbook.Sheets[worksheet];
-    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
     const headerRows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "" });
-    const headers = (headerRows[0] ?? []).map(value => String(value).trim()).filter(Boolean);
+    const headerIndex = headerRows.slice(0, 25).reduce((best, row, index) => {
+      const values = row.map(value => String(value).trim()).filter(Boolean);
+      const score = values.filter(value => /field|attribute|column|code|name|description|label|type|line|rule|account|criteria/i.test(value)).length;
+      return score > best.score ? { index, score } : best;
+    }, { index: 0, score: 0 }).index;
+    const headers = (headerRows[headerIndex] ?? []).map(value => String(value).trim()).filter(Boolean);
+    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { range: headerIndex, defval: "" });
     const fieldHeader = headerFor(headers, [/^field$/, /field name/, /source field/, /attribute/, /column name/, /^name$/, /account.?code/, /account.?name/, /taxonomy.?code/, /form.?code/, /line.?code/, /rule.?code/, /template.?code/, /concept.?code/, /criteria.?code/]);
     const descriptionHeader = headerFor(headers, [/description/, /business meaning/, /definition/]);
     const inputHeader = headerFor(headers, [/input.?code/, /^input$/]);
@@ -66,9 +78,11 @@ export function parseArtifactBuffer(buffer: Buffer, fileName: string, versionLab
     const typeHeader = headerFor(headers, [/data.?type/, /^type$/]);
     const taxHeader = headerFor(headers, [/tax.?form/, /tax.?line/, /tax.?context/, /jurisdiction/, /entity/]);
 
+    let mappableFieldCount = 0;
     rows.forEach((row, rowIndex) => {
       const originalField = String(fieldHeader ? row[fieldHeader] : "").trim();
       if (!originalField) return;
+      mappableFieldCount += 1;
       fields.push({
         originalField,
         businessMeaning: descriptionHeader ? String(row[descriptionHeader] || "").trim() || undefined : undefined,
@@ -77,13 +91,21 @@ export function parseArtifactBuffer(buffer: Buffer, fileName: string, versionLab
         dataType: typeHeader ? String(row[typeHeader] || "").trim() || undefined : undefined,
         taxContext: taxHeader ? String(row[taxHeader] || "").trim() || undefined : undefined,
         worksheet,
-        rowNumber: rowIndex + 2,
+        rowNumber: rowIndex + headerIndex + 2,
       });
     });
 
     // A simple header-only source is still preserved and evaluated without manufacturing a mapping.
     if (rows.length === 0) {
       headers.forEach((originalField, index) => fields.push({ originalField, worksheet, rowNumber: 1, businessMeaning: undefined, inputCode: undefined, ruleCode: undefined, dataType: undefined, taxContext: undefined }));
+    }
+    if (mappableFieldCount === 0 && rows.length > 0) {
+      fields.push({
+        originalField: `${DOMAIN_METADATA_PREFIX}${worksheet}`,
+        worksheet,
+        rowNumber: headerIndex + 1,
+        businessMeaning: "Active workbook domain retained for governance inventory; no standardized field header was identified.",
+      });
     }
   });
 

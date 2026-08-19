@@ -11,7 +11,8 @@ import { getDb } from "./db";
 import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks, mappingArtifacts, mappingResults, mappingSessions } from "../drizzle/schema";
 import { storagePut } from "./storage";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
-import { createMappingCandidates, mappingReadiness, parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
+import { createMappingCandidates, isMappableArtifactField, mappingReadiness, parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
+import { buildMasterDataEvidence, isMasterDataQuestion, MASTER_DATA_ANSWER_FALLBACK, selectAuthoritativeMasterDataArtifact } from "./masterDataRegistry";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -70,11 +71,14 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const currentPagePath = input.currentPagePath ?? input.discoveryPagePath;
         const question = [...input.messages].reverse().find((message) => message.role === "user")?.content ?? "";
-        const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot);
+        const db = await getDb();
+        const masterArtifacts = db ? await db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt)) : [];
+        const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
+        const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
         const entryContext = currentPagePath
           ? `\n\nEntry-page context: ${currentPagePath}. This is a navigation cue only. Do not use it as a factual source or allow it to alter the authoritative answer. You may add a brief optional page-relevance sentence only after answering from the central evidence layer.`
           : "";
-        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + grounding.evidenceBlock + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
+        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + grounding.evidenceBlock + masterEvidence.evidenceBlock + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
 
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
@@ -85,8 +89,10 @@ export const appRouter = router({
         ];
 
         let responseText: string;
-        if (!grounding.hasSufficientEvidence) {
-          responseText = buildInsufficientEvidenceResponse(grounding);
+        if (!grounding.hasSufficientEvidence || (isMasterDataQuestion(question) && !masterEvidence.hasEvidence)) {
+          responseText = isMasterDataQuestion(question) && !masterEvidence.hasEvidence
+            ? `${MASTER_DATA_ANSWER_FALLBACK}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`
+            : buildInsufficientEvidenceResponse(grounding);
         } else {
           const result = await invokeLLM({ messages: llmMessages });
           const choice = result.choices[0];
@@ -104,7 +110,6 @@ export const appRouter = router({
         }
 
         const text = appendBuddyProvenance(responseText, grounding);
-        const db = await getDb();
         if (db) {
           try {
             await db.insert(askBuddyAudits).values({
@@ -183,8 +188,8 @@ export const appRouter = router({
         const historicalResults = await db.select().from(mappingResults).where(eq(mappingResults.reviewStatus, "Confirmed"));
         const historicalConfirmed = historicalResults.filter(result => result.inputCode !== "Not Confirmed").map(result => ({ originalField: result.originalMasterField, inputCode: result.inputCode, ruleCode: result.ruleCode === "Not Confirmed" ? undefined : result.ruleCode, worksheet: "Historical Confirmed Mapping", rowNumber: result.id }));
         const candidates = createMappingCandidates(
-          JSON.parse(master.fieldsJson) as ArtifactField[],
-          JSON.parse(prior.fieldsJson) as ArtifactField[],
+          (JSON.parse(master.fieldsJson) as ArtifactField[]).filter(isMappableArtifactField),
+          (JSON.parse(prior.fieldsJson) as ArtifactField[]).filter(isMappableArtifactField),
           { approvedCrosswalk: latestCrosswalk ? JSON.parse(latestCrosswalk.fieldsJson) as ArtifactField[] : [], historicalConfirmed, approvedCrosswalkLabel: latestCrosswalk ? `Approved Crosswalk ${latestCrosswalk.fileName} (${latestCrosswalk.versionLabel})` : undefined },
         );
         const calculatedReadiness = mappingReadiness(candidates);

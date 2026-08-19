@@ -61,6 +61,7 @@ import DataGateway from "./pages/discovery/DataGateway";
 import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
 import PriorYearMigration from "./pages/discovery/PriorYearMigration";
 import PriorYearInventory from "./pages/discovery/PriorYearInventory";
+import MasterDataGovernance from "./pages/discovery/MasterDataGovernance";
 import DiscoveryWorkspace from "./pages/onboarding/DiscoveryWorkspace";
 import LearningCenter from "./pages/LearningCenter";
 import Step1Features from "./pages/onboarding/Step1Features";
@@ -176,6 +177,7 @@ function Router() {
            <Route path="/discovery/gosystem" component={IMSIntegration} />
            <Route path="/discovery/prior-year-inventory" component={PriorYearInventory} />
            <Route path="/discovery/pdc" component={PDCOverview} />
+          <Route path="/discovery/master-data-governance" component={MasterDataGovernance} />
           <Route path="/discovery/data-gateway" component={DataGateway} />
           <Route path="/discovery/ba-story-builder" component={BAStoryBuilder} />
            <Route path="/discovery/knowledge-graph" component={KnowledgeGraphPage} />

@@ -1176,6 +1176,30 @@ RULES:
     ],
   },
 
+  "/discovery/master-data-governance": {
+    pageTitle: "Master Data & Governance",
+    pagePath: "/discovery/master-data-governance",
+    summary: "Workbook-backed governance for DCT Master Data. Active tabs in DCT_Master_Data_Intake.xlsx are authoritative; tabs explicitly labeled OLD are historical reference only.",
+    context: `
+## Master Data & Governance
+
+The authoritative source for current DCT Master Data values is **DCT_Master_Data_Intake.xlsx**. Use current active tabs only. Tabs explicitly labeled **OLD** are historical reference and must not be used for current processing, mapping, configuration, or a current-state answer.
+
+The workbook governs PDC Firm Taxonomy, TDC Tax Taxonomy Accounts, Adjustment Rules, Adjustment Rule Inputs, Adjustment Rule Lines, Eligibility Tier Conditions, and other reference domains. Workbook presence does not by itself prove a platform load; use **Requires Verification** when a load record is unavailable.
+
+Do not infer relationships or Input Codes from similar descriptions. If the authoritative active-tab evidence does not establish a relationship, say: "The authoritative Master Data Intake workbook does not currently provide enough information to determine this." Then identify the missing evidence when known.
+
+For the active adjustment-rule inventory, no color indicates previously loaded, orange requires load verification, red indicates supporting information is incomplete, and yellow indicates an updated value or account mapping that needs review or alignment. Updated adjustment rule lines include MP-02, MP-06, MP-07, and MP-08.
+`,
+    suggestedQuestions: [
+      "Which Master Data source is authoritative?",
+      "Is the OLD PDC Firm Taxonomy current?",
+      "What does the Adjustment Rule Lines tab govern?",
+      "Can this Input Code mapping be confirmed from active Master Data?",
+      "What is the current load status of a Master Data change?",
+    ],
+  },
+
 };
 
 /**
