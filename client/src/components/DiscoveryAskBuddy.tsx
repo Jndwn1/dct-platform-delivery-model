@@ -11,6 +11,9 @@ import { Streamdown } from "streamdown";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  sources?: Array<{ id: string; label: string; path: string; authority: string; lastUpdated: string; artifactStatus: string }>;
+  status?: "Confirmed" | "Open" | "Conflict" | "Missing";
+  knowledgeCheckedAt?: string;
 }
 
 interface DiscoveryAskBuddyProps {
@@ -145,10 +148,12 @@ export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuesti
     try {
       const result = await chatMutation.mutateAsync({
         messages: newMessages,
-        discoveryPagePath: pagePath,
-        liveSnapshot: buildSnapshot(),
+          discoveryPagePath: pagePath,
+          currentPagePath: pagePath,
+          capability: "discovery",
+          liveSnapshot: buildSnapshot(),
       });
-      setMessages(prev => [...prev, { role: "assistant", content: result.text }]);
+      setMessages(prev => [...prev, { role: "assistant", content: result.text, sources: result.sources, status: result.status, knowledgeCheckedAt: result.knowledgeCheckedAt }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "I encountered an error. Please try again." }]);
     } finally {
@@ -249,7 +254,7 @@ export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuesti
               <div>
                 <div style={{ color: "#fff", fontWeight: 700, fontSize: "14px", lineHeight: 1 }}>Ask Buddy</div>
                 <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "11px", marginTop: "2px" }}>
-                  Context: <strong style={{ color: "#fff" }}>{pageTitle}</strong>
+                  Context: <strong style={{ color: "#fff" }}>{pageTitle}</strong> · platform-wide evidence checked
                 </div>
               </div>
             </div>
@@ -303,7 +308,7 @@ export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuesti
           }}>
             <span>🧭</span>
             <span>
-              Ask Buddy automatically knows you are viewing <strong>{pageTitle}</strong>. Ask anything about this page.
+              <strong>{pageTitle}</strong> provides context. Buddy checks broader DCT Platform evidence and does not fill Discovery gaps with assumptions.
             </span>
           </div>
 
@@ -368,7 +373,14 @@ export default function DiscoveryAskBuddy({ pagePath, pageTitle, suggestedQuesti
                       border: msg.role === "assistant" ? "1px solid #e2e8f0" : "none",
                     }}>
                       {msg.role === "assistant" ? (
-                        <Streamdown>{msg.content}</Streamdown>
+                        <>
+                          <Streamdown>{msg.content}</Streamdown>
+                          {(msg.sources?.length || msg.status || msg.knowledgeCheckedAt) && <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "7px", paddingTop: "7px", borderTop: "1px solid #e2e8f0" }}>
+                            {msg.sources?.map((source) => <a key={source.id} href={source.path} title={`${source.authority} · ${source.lastUpdated}`} style={{ fontSize: "10px", fontWeight: 600, color: source.artifactStatus === "Open" ? "#92400e" : "#047857", background: source.artifactStatus === "Open" ? "#fffbeb" : "#f0fdf4", border: `1px solid ${source.artifactStatus === "Open" ? "#fde68a" : "#86efac"}`, borderRadius: 3, padding: "2px 5px", textDecoration: "none" }}>↗ {source.label}</a>)}
+                            {msg.status && <span style={{ fontSize: "10px", color: msg.status === "Confirmed" ? "#047857" : "#92400e", fontWeight: 700 }}>Status: {msg.status}</span>}
+                            {msg.knowledgeCheckedAt && <span style={{ fontSize: "10px", color: "#64748b" }}>Checked {new Date(msg.knowledgeCheckedAt).toLocaleString()}</span>}
+                          </div>}
+                        </>
                       ) : (
                         msg.content
                       )}

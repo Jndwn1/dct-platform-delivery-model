@@ -82,3 +82,4 @@
 - [x] Add the explicit Confirmed and Requires Clarification discovery-status breakdown and a verified existing decision-log entry for Rule Processing to TDC Posting
 - [x] Roll back unsupported Rule Processing to TDC Posting conclusions while preserving only clearly labeled demo observations and all unrelated DCT content
 - [x] Add the Multi-Entity Rule Evaluation versus TDC Persistence open decision to the Consumer Integration Readiness Hub with derived counters
+- [x] Upgrade Ask Buddy with platform-wide grounded knowledge, source authority, freshness, evidence links, conflict handling, and discovery-status safeguards

@@ -3,11 +3,12 @@ import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM } from "./_core/llm";
 import { buildPlatformSystemPrompt } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
+import { appendBuddyProvenance, buildBuddyGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { integrationQuestions, deployments, deploymentScreens, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
+import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks } from "../drizzle/schema";
 import { storagePut } from "./storage";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 
@@ -37,6 +38,10 @@ export const appRouter = router({
           ),
           // Optional: current Discovery Center page path for context-aware responses
           discoveryPagePath: z.string().optional(),
+          // Current platform page provides context but does not restrict platform-wide evidence retrieval
+          currentPagePath: z.string().optional(),
+          // Selected assistant changes analysis style, not the sources available to Buddy
+          capability: z.string().optional(),
           // Live batch snapshot from the client's BatchStatusContext
           liveSnapshot: z.object({
             asOf: z.string(),
@@ -62,10 +67,13 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const discoveryBlock = input.discoveryPagePath
-          ? buildDiscoveryContextBlock(input.discoveryPagePath)
+        const currentPagePath = input.currentPagePath ?? input.discoveryPagePath;
+        const discoveryBlock = currentPagePath
+          ? buildDiscoveryContextBlock(currentPagePath)
           : "";
-        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + discoveryBlock;
+        const question = [...input.messages].reverse().find((message) => message.role === "user")?.content ?? "";
+        const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot);
+        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + discoveryBlock + grounding.evidenceBlock + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
 
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
@@ -75,24 +83,51 @@ export const appRouter = router({
           })),
         ];
 
-        const result = await invokeLLM({ messages: llmMessages });
-
-        const choice = result.choices[0];
-        const content = choice?.message?.content;
-
         let responseText: string;
-        if (typeof content === "string") {
-          responseText = content;
-        } else if (Array.isArray(content)) {
-          responseText = content
-            .filter((c) => c.type === "text")
-            .map((c) => (c as { type: "text"; text: string }).text)
-            .join("\n");
+        if (!grounding.hasSufficientEvidence) {
+          responseText = buildInsufficientEvidenceResponse(grounding);
         } else {
-          responseText = "I was unable to generate a response. Please try again.";
+          const result = await invokeLLM({ messages: llmMessages });
+          const choice = result.choices[0];
+          const content = choice?.message?.content;
+          if (typeof content === "string") {
+            responseText = content;
+          } else if (Array.isArray(content)) {
+            responseText = content
+              .filter((c) => c.type === "text")
+              .map((c) => (c as { type: "text"; text: string }).text)
+              .join("\n");
+          } else {
+            responseText = "I was unable to generate a response. Please try again.";
+          }
         }
 
-        return { text: responseText };
+        const text = appendBuddyProvenance(responseText, grounding);
+        const db = await getDb();
+        if (db) {
+          try {
+            await db.insert(askBuddyAudits).values({
+              question,
+              currentPagePath: currentPagePath ?? null,
+              capability: input.capability ?? null,
+              answerStatus: grounding.status,
+              sourcesJson: JSON.stringify(grounding.sources.map((source) => ({ id: source.id, label: source.label, path: source.path }))),
+              sourceVersionsJson: JSON.stringify(grounding.sources.map((source) => ({ id: source.id, lastUpdated: source.lastUpdated, artifactStatus: source.artifactStatus }))),
+              conflictsJson: grounding.conflicts.length > 0 ? JSON.stringify(grounding.conflicts) : null,
+            });
+          } catch (error) {
+            console.warn("[askBuddy] audit metadata was not persisted", error);
+          }
+        }
+
+        return {
+          text,
+          sources: grounding.sources,
+          conflicts: grounding.conflicts,
+          status: grounding.status,
+          knowledgeCheckedAt: grounding.checkedAt,
+          latestSource: grounding.latestSource,
+        };
       }),
   }),
 

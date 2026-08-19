@@ -66,9 +66,10 @@ describe("askBuddy.chat", () => {
     const result = await caller.askBuddy.chat({
       messages: [{ role: "user", content: "What are the platform guardrails?" }],
     });
-    expect(result).toEqual({
-      text: "This is a mock LLM response about the DCT platform.",
-    });
+    expect(result.text).toContain("This is a mock LLM response about the DCT platform.");
+    expect(result.text).toContain("### Sources Used");
+    expect(result.knowledgeCheckedAt).toBeTruthy();
+    expect(result.sources.length).toBeGreaterThan(0);
   });
 
   it("handles multi-turn conversation history", async () => {
@@ -92,7 +93,7 @@ describe("askBuddy.chat", () => {
     });
     const caller = appRouter.createCaller(createTestCtx());
     const result = await caller.askBuddy.chat({
-      messages: [{ role: "user", content: "Hello" }],
+      messages: [{ role: "user", content: "What is the platform guardrail?" }],
     });
     expect(result.text).toContain("unable to generate");
   });

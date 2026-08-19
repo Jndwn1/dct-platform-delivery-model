@@ -3,7 +3,7 @@
 // NON-PRODUCTION ARCHITECTURE REFERENCE
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, ExternalLink, ShieldCheck } from "lucide-react";
 import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import { trpc } from "@/lib/trpc";
@@ -17,8 +17,28 @@ interface Message {
   text: string;
   timestamp: Date;
   capability?: string;
-  sources?: string[];
+  sources?: Array<string | BuddySource>;
+  answerStatus?: "Confirmed" | "Open" | "Conflict" | "Missing";
+  knowledgeCheckedAt?: string;
+  latestSource?: BuddySource | null;
+  conflicts?: BuddyConflict[];
   copied?: boolean;
+}
+
+interface BuddySource {
+  id: string;
+  label: string;
+  path: string;
+  authority: string;
+  lastUpdated: string;
+  artifactStatus: "Current" | "Reference" | "Open" | "Unavailable";
+}
+
+interface BuddyConflict {
+  currentSource: string;
+  conflictingSource: string;
+  difference: string;
+  recommendedAction: string;
 }
 
 interface Capability {
@@ -346,22 +366,33 @@ const CAPABILITIES: Capability[] = [
       "What are the top open architecture decisions?",
     ],
   },
+  {
+    id: "discovery",
+    icon: "🔎",
+    label: "Discovery Assistant",
+    color: "#0f766e",
+    bg: "#f0fdfa",
+    border: "#5eead4",
+    description: "Cross-reference current platform evidence to distinguish confirmed information, open questions, missing artifacts, ownership, and story readiness without assumptions.",
+    sampleQuestions: [
+      "What are the open Discovery items?",
+      "What is blocking Batch 45?",
+      "Is this story ready?",
+      "Are there conflicting requirements?",
+    ],
+  },
 ];
 
 // ─── KNOWLEDGE SOURCES ───────────────────────────────────────────────────────
 
 const KNOWLEDGE_SOURCES = [
-  { label: "Batch Registry (batchModel.ts)", icon: "🏗", status: "Live" },
-  { label: "DCT Data (dctData.ts)", icon: "📋", status: "Live" },
-  { label: "Platform Data (platformData.ts)", icon: "⚙", status: "Live" },
-  { label: "Architecture Guardrails", icon: "⚖", status: "Live" },
-  { label: "System Ownership", icon: "🗂", status: "Live" },
-  { label: "ADR Registry", icon: "📝", status: "Live" },
-  { label: "Gate Definitions", icon: "✅", status: "Live" },
-  { label: "Agent Definitions", icon: "🤖", status: "Live" },
-  { label: "Story Guarantees", icon: "🔒", status: "Live" },
-  { label: "Platform Layers", icon: "📊", status: "Live" },
-  { label: "Meeting Notes", icon: "📄", status: "Pending" },
+  { label: "Control Panel / ADO-derived delivery status", icon: "⚙", status: "Current" },
+  { label: "Batch Registry & Calendar", icon: "🏗", status: "Current" },
+  { label: "Discovery Artifacts & Requirements", icon: "🔎", status: "Current" },
+  { label: "Architecture, Data Models & Governance", icon: "⚖", status: "Current" },
+  { label: "QA, UAT & Deployment Registries", icon: "✅", status: "Current" },
+  { label: "Registered API Documentation", icon: "⚡", status: "Reference" },
+  { label: "Swagger / OpenAPI", icon: "📄", status: "When registered" },
 ];
 
 const TOUR_STORAGE_KEY = "dct_platform_tour_completed";
@@ -384,7 +415,7 @@ export default function AskBuddy() {
     {
       id: "welcome",
       role: "buddy",
-      text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. I pull live data directly from the Control Panel — batch status, stories, invariants, ownership, gates, agents, and governance rules. Ask me anything.",
+      text: "Hi, I'm Ask Buddy — the DCT Discovery intelligence assistant. I use current platform evidence across delivery, Discovery, architecture, governance, requirements, QA, and registered API documentation. I do not fill Discovery gaps with assumptions.",
       timestamp: new Date(),
       capability: "welcome",
       sources: [],
@@ -534,7 +565,11 @@ export default function AskBuddy() {
         text: data.text,
         timestamp: new Date(),
         capability: "ai",
-        sources: ["LLM (Full Platform Knowledge Base)"],
+        sources: data.sources,
+        answerStatus: data.status,
+        knowledgeCheckedAt: data.knowledgeCheckedAt,
+        latestSource: data.latestSource,
+        conflicts: data.conflicts,
       };
       setMessages((prev) => [...prev, buddyMsg]);
       setIsTyping(false);
@@ -580,6 +615,8 @@ export default function AskBuddy() {
         { role: "user" as const, content: text.trim() },
       ],
       liveSnapshot,
+      currentPagePath: "/ask-buddy",
+      capability: activeCapability ?? "discovery",
     });
   };
 
@@ -613,7 +650,7 @@ export default function AskBuddy() {
   };
 
   const statusColor = (s: string) =>
-    s === "Live" ? "#059669" : s === "Reference" ? "#0891b2" : "#9ca3af";
+    s === "Current" ? "#059669" : s === "Reference" ? "#0891b2" : "#9ca3af";
 
   const [, navigate] = useLocation();
 
@@ -697,7 +734,8 @@ export default function AskBuddy() {
               </span>
             </div>
             <p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>
-              Pulling live data from the Control Panel · Batch Registry · Platform Data · Governance Rules
+              Grounded in current DCT Platform knowledge
+              <span style={{ display: "block", fontSize: "0.72rem", marginTop: "0.18rem" }}>Control Panel · Batch Registry · Discovery Artifacts · Requirements · Registered API Documentation · Architecture · Data Models · Governance · Platform Metrics</span>
             </p>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
@@ -997,6 +1035,10 @@ export default function AskBuddy() {
 
         {/* ── Center: Chat Panel ── */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderLeft: "4px solid #1e3a5f", borderRadius: 8, padding: "0.65rem 0.85rem", marginBottom: "0.75rem", display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
+            <ShieldCheck size={17} color="#1e3a5f" style={{ marginTop: 1, flexShrink: 0 }} />
+            <div style={{ color: "#1e3a5f", fontSize: "0.75rem", lineHeight: 1.45 }}><strong>Governance guardrail:</strong> Buddy answers from DCT Platform evidence. Buddy does not fill Discovery gaps with assumptions.</div>
+          </div>
           {/* Messages */}
           <div
             style={{
@@ -1061,14 +1103,13 @@ export default function AskBuddy() {
                         · {CAPABILITIES.find((c) => c.id === msg.capability)?.label ?? msg.capability}
                       </span>
                     )}
-                    {msg.sources && msg.sources.length > 0 && msg.sources.map((src, i) => (
-                      <span key={i} style={{
-                        fontSize: "0.62rem", background: "#f0fdf4", color: "#059669",
-                        border: "1px solid #86efac", borderRadius: 3, padding: "0.1rem 0.4rem", fontWeight: 600,
-                      }}>
-                        {src}
-                      </span>
+                    {msg.sources && msg.sources.length > 0 && msg.sources.map((src, i) => typeof src === "string" ? (
+                      <span key={i} style={{ fontSize: "0.62rem", background: "#f0fdf4", color: "#059669", border: "1px solid #86efac", borderRadius: 3, padding: "0.1rem 0.4rem", fontWeight: 600 }}>{src}</span>
+                    ) : (
+                      <a key={src.id} href={src.path} title={`${src.authority} · updated ${src.lastUpdated}`} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: "0.62rem", background: src.artifactStatus === "Open" ? "#fffbeb" : "#f0fdf4", color: src.artifactStatus === "Open" ? "#92400e" : "#047857", border: `1px solid ${src.artifactStatus === "Open" ? "#fde68a" : "#86efac"}`, borderRadius: 3, padding: "0.1rem 0.4rem", fontWeight: 600, textDecoration: "none" }}><ExternalLink size={9} /> {src.label}</a>
                     ))}
+                    {msg.answerStatus && <span style={{ fontSize: "0.62rem", color: msg.answerStatus === "Confirmed" ? "#047857" : msg.answerStatus === "Conflict" ? "#b45309" : "#92400e", fontWeight: 700 }}>· {msg.answerStatus}</span>}
+                    {msg.knowledgeCheckedAt && <span style={{ fontSize: "0.62rem", color: "#64748b" }}>· Checked {new Date(msg.knowledgeCheckedAt).toLocaleString()}</span>}
                     {msg.role === "buddy" && (
                       <button
                         onClick={() => {
@@ -1192,12 +1233,12 @@ export default function AskBuddy() {
           {/* Quick prompts */}
           <div style={{ marginTop: "0.75rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
             {[
-              "What is Batch 9?",
-              "List all ADRs",
-              "What batches are in PI 3?",
-              "Platform status summary",
-              "What are the guardrails?",
-              "List all agents",
+              "What changed in DCT recently?",
+              "What is the current MVP status?",
+              "What are the open Discovery items?",
+              "What does TDC own?",
+              "What is blocking Batch 45?",
+              "What does Swagger say?",
             ].map((q) => (
               <button
                 key={q}
@@ -1232,7 +1273,7 @@ export default function AskBuddy() {
                     <p style={{ margin: 0, fontSize: "0.72rem", color: "#374151", fontWeight: 500, lineHeight: 1.3 }}>
                       {src.label}
                     </p>
-                    <p style={{ margin: 0, fontSize: "0.65rem", color: statusColor(src.status), fontWeight: 600 }}>
+                      <p style={{ margin: 0, fontSize: "0.65rem", color: statusColor(src.status), fontWeight: 600 }}>
                       {src.status}
                     </p>
                   </div>
@@ -1240,7 +1281,7 @@ export default function AskBuddy() {
               ))}
               <div style={{ padding: "0.75rem 1rem", background: "#f0fdf4", borderTop: "1px solid #e2e8f0" }}>
                 <p style={{ margin: 0, fontSize: "0.7rem", color: "#059669", fontWeight: 600 }}>
-                  ✓ Pulling live data from Control Panel sources
+                  ✓ Source authority, freshness, and gaps are shown with substantive answers
                 </p>
               </div>
             </div>

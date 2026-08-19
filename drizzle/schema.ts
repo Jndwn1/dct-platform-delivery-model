@@ -275,3 +275,23 @@ export const uatRisks = mysqlTable("uat_risks", {
 
 export type UatRisk = typeof uatRisks.$inferSelect;
 export type InsertUatRisk = typeof uatRisks.$inferInsert;
+
+// ─── Ask Buddy Audit ─────────────────────────────────────────────────────────
+/**
+ * Lightweight governance metadata for significant Ask Buddy responses. Answer text is not stored;
+ * this record retains only question, consulted artifacts, source freshness, conflict state, and time.
+ */
+export const askBuddyAudits = mysqlTable("ask_buddy_audits", {
+  id: int("id").autoincrement().primaryKey(),
+  question: text("question").notNull(),
+  currentPagePath: varchar("currentPagePath", { length: 512 }),
+  capability: varchar("capability", { length: 64 }),
+  answerStatus: varchar("answerStatus", { length: 32 }).notNull(),
+  sourcesJson: text("sourcesJson").notNull(),
+  sourceVersionsJson: text("sourceVersionsJson").notNull(),
+  conflictsJson: text("conflictsJson"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AskBuddyAudit = typeof askBuddyAudits.$inferSelect;
+export type InsertAskBuddyAudit = typeof askBuddyAudits.$inferInsert;
