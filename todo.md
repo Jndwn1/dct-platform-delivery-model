@@ -76,3 +76,5 @@
 - [x] Perform and record explicit rendered verification of Control Panel and Delivery Intelligence against the locked baseline
 - [x] Populate the landing-page Recently Closed in PI3 list from the supplied ADO closed-record extract using exact closure dates
 - [x] Trace and correct the inconsistent PI3 percentage and non-reconciling metric cards shown in the dashboard screenshot
+- [x] Update Roger Screen Testing Status with authoritative lifecycle, QA readiness, dependency, Dev/QA/UAT date, and milestone data
+- [x] Surface the shared Roger MVP Screen Testing Status model in the DCT Delivery Model landing page and verify synchronized metrics

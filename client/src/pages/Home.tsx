@@ -23,6 +23,7 @@ import {
 } from "@/contexts/BatchStatusContext";
 import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
+import RogerScreenTestingStatus from "@/components/RogerScreenTestingStatus";
 import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
@@ -988,6 +989,11 @@ export default function Home() {
       {/* ── Executive Delivery Dashboard (always visible) ── */}
       <div id="exec-dashboard-anchor" style={{ marginBottom: "20px" }}>
         <ExecDashboard batches={BATCH_REFERENCE} />
+      </div>
+
+      {/* ── Roger MVP screen readiness — shared source with QA Deployment Registry ── */}
+      <div id="roger-screen-status-anchor" style={{ marginBottom: "20px" }}>
+        <RogerScreenTestingStatus />
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════
