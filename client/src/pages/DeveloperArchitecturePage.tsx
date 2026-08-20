@@ -311,7 +311,7 @@ function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
-      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+      onClick={(event) => { event.stopPropagation(); navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
       className="text-slate-400 hover:text-slate-700 transition-colors"
       title="Copy endpoint"
     >
@@ -324,8 +324,16 @@ function ApiContractCard({ contract }: { contract: typeof API_CONTRACTS[0] }) {
   const [open, setOpen] = useState(false);
   return (
     <div className={`border rounded-xl overflow-hidden ${contract.highlight ? "border-violet-300 ring-1 ring-violet-200" : "border-border"}`}>
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setOpen(o => !o)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setOpen(o => !o);
+          }
+        }}
         className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -342,7 +350,7 @@ function ApiContractCard({ contract }: { contract: typeof API_CONTRACTS[0] }) {
           <CopyButton text={contract.endpoint} />
           {open ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
         </div>
-      </button>
+      </div>
       <AnimatePresence>
         {open && (
           <motion.div

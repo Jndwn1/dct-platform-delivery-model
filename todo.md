@@ -128,3 +128,4 @@
 - [x] Add non-destructive workspace hubs, progressive disclosure, and role/audience navigation metadata without creating a new permission model
 - [x] Validate route preservation, shared Roger 18-screen authority, Ask Buddy availability, and newly organized workspace access paths
 - [x] Browser-verify global Ask Buddy and regression-verify retained and new workspace page-context resolution after the Phase 1 restructure
+- [x] Repair the nested-button markup on Developer Architecture while preserving its interactions and validate the route renders cleanly
