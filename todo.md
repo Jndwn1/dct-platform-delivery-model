@@ -98,3 +98,14 @@
 - [x] Retain active Master Data domains with nonstandard headers in the workbook-backed governance inventory
 - [x] Run and browser-verify a governed mapping session using DCT_Master_Data_Intake.xlsx to confirm active tabs are used and OLD tabs are excluded
 - [x] Record authoritative Master Data mapping-session evidence, including selected source, results, and historical-tab exclusion
+- [x] Diagnose and recover the blank preview frame after the development-service restart
+- [x] Verify the Ask Buddy preview visibly renders after the recovery
+- [x] Identify and reconcile the duplicate Roger screen record so all QA Registry consumers use the authoritative 18-screen inventory
+- [x] Verify Roger readiness, delivery, and mapping counters recalculate from 18 screens
+- [x] Verify Roger UI Data Mapping and remaining screen-count consumers derive exactly 18 screens from the shared registry
+- [x] Replace the legacy six-screen Roger UI Data Mapping inventory and metrics with the shared authoritative 18-screen QA Registry source
+- [x] Verify every routed Roger screen-status consumer, including the DCT Delivery Model landing-page surface, derives the shared 18-screen inventory
+- [x] Remove Context Awareness and the Roger Screen Testing Status section from the DCT Delivery Model landing page only
+- [x] Verify the QA Deployment Registry retains the 18-screen testing-status table as its single intended screen-status surface
+- [x] Restore only the compact 18-screen Roger metrics summary to the landing page while keeping detailed rows on the QA Deployment Registry
+- [x] Add regression coverage for the derived 18-screen landing-page Roger readiness metrics summary

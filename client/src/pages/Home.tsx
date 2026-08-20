@@ -23,7 +23,7 @@ import {
 } from "@/contexts/BatchStatusContext";
 import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
-import RogerScreenTestingStatus from "@/components/RogerScreenTestingStatus";
+import { getRogerScreenReadinessSummary } from "@/lib/rogerMvpScreenStatus";
 import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
@@ -544,6 +544,7 @@ export default function Home() {
   const batchTotal    = batch.total;
   const batchPct      = batch.readinessPct;
   const overallPct    = mvp.readinessPct;
+  const rogerScreenMetrics = useMemo(() => getRogerScreenReadinessSummary(), []);
   const pi3Closed = getPi3CumulativeCompleted();
   const recentlyClosedPi3 = PI3_POST_BASELINE_CLOSURES;
   const closedThisWeek = recentlyClosedPi3.filter(item => isInDashboardReportingWeek(item.completionDate));
@@ -991,9 +992,40 @@ export default function Home() {
         <ExecDashboard batches={BATCH_REFERENCE} />
       </div>
 
-      {/* ── Roger MVP screen readiness — shared source with QA Deployment Registry ── */}
-      <div id="roger-screen-status-anchor" style={{ marginBottom: "20px" }}>
-        <RogerScreenTestingStatus />
+      {/* ── Roger MVP screen summary — metrics only; detailed rows remain in QA ── */}
+      <div style={{
+        backgroundColor: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        padding: "16px 20px",
+        marginBottom: "20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        flexWrap: "wrap",
+      }}>
+        <div>
+          <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>
+            Roger MVP QA Readiness
+          </div>
+          <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>
+            Screen-level testing detail is maintained in QA Deployment Registry.
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {[
+            { label: "Total Screens", value: rogerScreenMetrics.total, color: "#1e3a5f", bg: "#eff6ff", border: "#bfdbfe" },
+            { label: "Ready to Test", value: rogerScreenMetrics.ready, color: "#047857", bg: "#ecfdf5", border: "#a7f3d0" },
+            { label: "Partially Ready", value: rogerScreenMetrics.partial, color: "#92400e", bg: "#fffbeb", border: "#fde68a" },
+            { label: "Not Ready", value: rogerScreenMetrics.notReady, color: "#b91c1c", bg: "#fef2f2", border: "#fecaca" },
+          ].map(metric => (
+            <div key={metric.label} style={{ minWidth: "96px", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${metric.border}`, backgroundColor: metric.bg, textAlign: "center" }}>
+              <div style={{ fontSize: "18px", fontWeight: 800, color: metric.color, lineHeight: 1 }}>{metric.value}</div>
+              <div style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: metric.color, marginTop: "4px" }}>{metric.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════

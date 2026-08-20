@@ -81,7 +81,6 @@ import { DiscoveryProvider } from "./contexts/DiscoveryContext";
 import { GlobalPageProvider } from "./contexts/GlobalPageContext";
 import { TourProvider, useTour } from "./contexts/TourContext";
 import ExecTour from "./components/ExecTour";
-import ContextAwarenessPanel from "./components/ContextAwarenessPanel";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -93,7 +92,6 @@ function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
-      <ContextAwarenessPanel />
     </div>
   );
 }

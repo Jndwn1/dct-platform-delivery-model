@@ -12,6 +12,7 @@ import {
 import { GovernanceStatusBar } from "../components/GovernanceStatusBar";
 import GovernanceWorkflowSimulator from "../components/GovernanceWorkflowSimulator";
 import { ROGER_MODEL_GROUPS, READINESS_STYLE, OWNER_STYLE } from "../lib/rogerModelData";
+import { ROGER_MAPPING_COVERAGE, countMappingCoverage, type RogerMappingEvidenceStatus } from "../lib/rogerMappingCoverage";
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
 const RSM_BLUE = "#003087";
@@ -146,6 +147,39 @@ function OwnerChip({ owner }: { owner: string }) {
     <span style={{ background: color + "18", color, border: `1px solid ${color}40`, fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "4px", whiteSpace: "nowrap" }}>
       {owner}
     </span>
+  );
+}
+
+function MappingCoverageBadge({ status }: { status: RogerMappingEvidenceStatus }) {
+  const style = status === "Documented"
+    ? { bg: "#dcfce7", text: "#166534" }
+    : status === "Related Evidence"
+      ? { bg: "#fef9c3", text: "#854d0e" }
+      : { bg: "#fee2e2", text: "#991b1b" };
+  return <span style={{ background: style.bg, color: style.text, borderRadius: "9999px", padding: "3px 8px", fontSize: "10px", fontWeight: 800, whiteSpace: "nowrap" }}>{status}</span>;
+}
+
+function QaRegistryCoverageSection() {
+  return (
+    <div style={{ marginBottom: "20px" }}>
+      <SectionHeader num="1" title="QA Registry Screen Mapping Coverage" subtitle="All current Roger MVP screens are derived from the authoritative 18-screen QA Registry. Roger API Design is primary; related evidence never becomes a confirmed screen contract without BA review." />
+      <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "16px", background: "white", overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+          <thead><tr style={{ background: "#f8fafc" }}>{["Screen / Area", "Delivery", "QA Readiness", "Mapping Evidence", "Endpoint / Contract", "Source", "BA Review Note"].map(h => <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontWeight: 800, color: "#374151", borderBottom: "2px solid #e5e7eb", fontSize: "10px", whiteSpace: "nowrap" }}>{h}</th>)}</tr></thead>
+          <tbody>{ROGER_MAPPING_COVERAGE.map((item, index) => (
+            <tr key={item.screen.id} style={{ background: index % 2 === 0 ? "white" : "#fafafa", borderBottom: "1px solid #f3f4f6" }}>
+              <td style={{ padding: "9px 10px", fontWeight: 700, color: "#111827" }}>{item.screen.screen}</td>
+              <td style={{ padding: "9px 10px", color: "#374151" }}>{item.screen.deliveryStatus}</td>
+              <td style={{ padding: "9px 10px", color: "#374151" }}>{item.screen.qaReadinessStatus}</td>
+              <td style={{ padding: "9px 10px" }}><MappingCoverageBadge status={item.evidenceStatus} /></td>
+              <td style={{ padding: "9px 10px", fontFamily: "monospace", fontSize: "10px", color: item.endpoint ? "#374151" : "#9ca3af", maxWidth: "220px" }}>{item.endpoint ?? "No endpoint registered"}</td>
+              <td style={{ padding: "9px 10px", fontSize: "11px", color: "#475569" }}>{item.source}</td>
+              <td style={{ padding: "9px 10px", fontSize: "11px", color: "#6b7280", maxWidth: "280px" }}>{item.note}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
@@ -326,6 +360,9 @@ export default function RogerMappingPage() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [showBatchHeatmap, setShowBatchHeatmap] = useState(false);
   const tiles = useMemo(() => computeSummaryTiles(), []);
+  const documentedCoverage = countMappingCoverage("Documented");
+  const relatedCoverage = countMappingCoverage("Related Evidence");
+  const mappingGaps = countMappingCoverage("Needs Mapping");
 
   const setFilter = (key: keyof FilterState, val: string | boolean) =>
     setFilters(f => ({ ...f, [key]: val }));
@@ -398,10 +435,10 @@ export default function RogerMappingPage() {
       {/* Summary Tiles */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "10px", marginBottom: "20px" }}>
         {[
-          { label: "Total Screens",       value: tiles.totalScreens,      bg: RSM_BLUE_LIGHT, text: RSM_BLUE },
-          { label: "Fully Governed APIs", value: tiles.fullyMapped,       bg: "#dcfce7",       text: "#166534" },
-          { label: "Partial Mappings",    value: tiles.partial,           bg: "#fef9c3",       text: "#854d0e" },
-          { label: "Governance Gaps",     value: tiles.gaps,              bg: "#ffedd5",       text: "#9a3412" },
+          { label: "Total Screens",       value: ROGER_MAPPING_COVERAGE.length, bg: RSM_BLUE_LIGHT, text: RSM_BLUE },
+          { label: "Documented Contracts", value: documentedCoverage,     bg: "#dcfce7",       text: "#166534" },
+          { label: "Related Evidence",    value: relatedCoverage,         bg: "#fef9c3",       text: "#854d0e" },
+          { label: "Mapping Gaps",        value: mappingGaps,             bg: "#ffedd5",       text: "#9a3412" },
           { label: "ADR Dependencies",    value: tiles.adrDeps,           bg: "#ede9fe",       text: "#5b21b6" },
           { label: "Consolidated Risks",  value: tiles.consolidatedRisks, bg: "#fee2e2",       text: "#991b1b" },
           { label: "Unmapped Points",     value: tiles.unmapped,          bg: "#f3f4f6",       text: "#374151" },
@@ -583,9 +620,11 @@ export default function RogerMappingPage() {
         </div>
       )}
 
-      {/* Sections 1–4: Screen Mapping Tables */}
+      <QaRegistryCoverageSection />
+
+      {/* Detailed API Design Mapping Tables */}
       <div style={{ marginBottom: "20px" }}>
-        <SectionHeader num="1–4" title="Roger UI Screen Data Mapping" subtitle="API endpoint mappings, TIM operational support, governance status, and ownership boundaries" />
+        <SectionHeader num="2" title="Documented Roger API Design Mapping Detail" subtitle="Field-level detail for screens with documented or related evidence. The QA Registry coverage table above remains the authoritative 18-screen inventory." />
         <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "16px", background: "white" }}>
           {visibleScreens.map(s => <ScreenSection key={s.id} section={s} filters={filters} />)}
         </div>
