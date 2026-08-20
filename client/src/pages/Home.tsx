@@ -748,13 +748,14 @@ export default function Home() {
         </div>
 
         {/* KPI row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px", marginTop: "20px", position: "relative" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginTop: "20px", position: "relative" }}>
           {[
             { label: "MVP Features Complete", value: mvp.complete, sub: "ADO-backed lifecycle", color: "#34d399" },
             { label: "MVP Features Active", value: mvp.inDev, sub: "11 Active ADO features", color: "#60a5fa" },
             { label: "MVP Features In Review", value: mvp.inReview, sub: "2 Review Ready", color: "#a78bfa" },
             { label: "MVP Features Planned", value: mvp.planned, sub: "Not Started only", color: "#94a3b8" },
             { label: "Total MVP Features", value: mvp.total, sub: `${batchTotal} batch + 5 non-batch`, color: "#fb923c" },
+            { label: "Roger QA Screens", value: rogerScreenMetrics.total, sub: `${rogerScreenMetrics.ready} Ready · ${rogerScreenMetrics.partial} Partial · ${rogerScreenMetrics.notReady} Not Ready`, color: "#38bdf8" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",
@@ -990,42 +991,6 @@ export default function Home() {
       {/* ── Executive Delivery Dashboard (always visible) ── */}
       <div id="exec-dashboard-anchor" style={{ marginBottom: "20px" }}>
         <ExecDashboard batches={BATCH_REFERENCE} />
-      </div>
-
-      {/* ── Roger MVP screen summary — metrics only; detailed rows remain in QA ── */}
-      <div style={{
-        backgroundColor: "#ffffff",
-        border: "1px solid #e2e8f0",
-        borderRadius: "10px",
-        padding: "16px 20px",
-        marginBottom: "20px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "16px",
-        flexWrap: "wrap",
-      }}>
-        <div>
-          <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>
-            Roger MVP QA Readiness
-          </div>
-          <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>
-            Screen-level testing detail is maintained in QA Deployment Registry.
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {[
-            { label: "Total Screens", value: rogerScreenMetrics.total, color: "#1e3a5f", bg: "#eff6ff", border: "#bfdbfe" },
-            { label: "Ready to Test", value: rogerScreenMetrics.ready, color: "#047857", bg: "#ecfdf5", border: "#a7f3d0" },
-            { label: "Partially Ready", value: rogerScreenMetrics.partial, color: "#92400e", bg: "#fffbeb", border: "#fde68a" },
-            { label: "Not Ready", value: rogerScreenMetrics.notReady, color: "#b91c1c", bg: "#fef2f2", border: "#fecaca" },
-          ].map(metric => (
-            <div key={metric.label} style={{ minWidth: "96px", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${metric.border}`, backgroundColor: metric.bg, textAlign: "center" }}>
-              <div style={{ fontSize: "18px", fontWeight: 800, color: metric.color, lineHeight: 1 }}>{metric.value}</div>
-              <div style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: metric.color, marginTop: "4px" }}>{metric.label}</div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════

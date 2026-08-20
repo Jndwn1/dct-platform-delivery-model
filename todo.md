@@ -108,4 +108,5 @@
 - [x] Remove Context Awareness and the Roger Screen Testing Status section from the DCT Delivery Model landing page only
 - [x] Verify the QA Deployment Registry retains the 18-screen testing-status table as its single intended screen-status surface
 - [x] Restore only the compact 18-screen Roger metrics summary to the landing page while keeping detailed rows on the QA Deployment Registry
+- [x] Move the compact Roger 18-screen metrics into the immediately visible landing-page hero while retaining QA-only detailed rows
 - [x] Add regression coverage for the derived 18-screen landing-page Roger readiness metrics summary
