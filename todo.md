@@ -122,3 +122,9 @@
 - [x] Clarify the landing-page critical-story milestone source as 8 technical stories and 3 bugs within the locked 11 active MVP features
 - [x] Add the stated TWB pending-validation and CCH Export API retrieval notes beneath the Aug. 27 Prior Year milestone
 - [x] Remove owner labels from all five MVP Critical Milestone cards while preserving statuses, sources, dates, and readiness notes
+- [x] Produce an approval-ready DCT platform audit covering navigation, pages, source artifacts, dependencies, retention, consolidation, and deletion candidates without changing or deleting content
+- [x] Create and verify a complete pre-restructure manifest of routes, navigation, components, context registrations, artifacts, database-backed pages, admin surfaces, redirects, and unlinked pages
+- [x] Restructure navigation into six role-based DCT workspaces with global Ask Buddy while preserving every existing route and underlying content
+- [x] Add non-destructive workspace hubs, progressive disclosure, and role/audience navigation metadata without creating a new permission model
+- [x] Validate route preservation, shared Roger 18-screen authority, Ask Buddy availability, and newly organized workspace access paths
+- [x] Browser-verify global Ask Buddy and regression-verify retained and new workspace page-context resolution after the Phase 1 restructure

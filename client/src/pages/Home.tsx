@@ -708,10 +708,10 @@ export default function Home() {
               }}>D</div>
               <div>
                 <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#ffffff", margin: 0, lineHeight: 1, letterSpacing: "-0.02em" }}>
-                  DCT Delivery Model
+                  Executive Health
                 </h1>
                 <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
-                  RSM · CATT · Governance &amp; Architecture Readiness Workspace
+                  DCT Delivery Model · RSM · CATT · Governance &amp; Architecture Readiness
                 </div>
               </div>
             </div>
@@ -722,6 +722,7 @@ export default function Home() {
                 borderRadius: "20px", padding: "3px 10px",
               }}>● ACTIVE — PI 3</span>
               <span style={{ fontSize: "11px", color: "#94a3b8" }}>PI 2 Complete · PI 3 Active · Jul–Sep 2026</span>
+              <span style={{ fontSize: "10px", color: "#94a3b8", backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", padding: "3px 6px" }}>Source: Governed Delivery Model</span>
               <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date(`${DASHBOARD_REPORTING_DATE}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · Last refresh: {new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
             </div>
           </div>

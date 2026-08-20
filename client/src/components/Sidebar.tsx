@@ -6,6 +6,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useBatchStatus, contextToSidebarBadge, type BatchKey, type BatchStatus } from "@/contexts/BatchStatusContext";
+import { ADMIN_NAVIGATION, ADVANCED_NAVIGATION, HISTORICAL_TRAINING_NAVIGATION, getWorkspace } from "@/lib/operatingModelNavigation";
 
 interface NavItem {
   label: string;
@@ -182,6 +183,27 @@ const DIAGRAM_ITEMS: NavItem[] = [
   { label: "Enterprise Overview",    path: "/architecture/enterprise", icon: "▣" },
   { label: "Runtime Journey (T1–10)",path: "/runtime-journey",         icon: "↝" },
 ];
+
+function workspaceShortcuts(workspaceId: "executive" | "delivery" | "roger" | "discovery" | "architecture" | "quality", labels: string[], includeHub = true): NavItem[] {
+  const workspace = getWorkspace(workspaceId);
+  if (!workspace) return [];
+  const links = workspace.groups.flatMap(group => group.links);
+  const selected = labels.map(label => links.find(link => link.label === label)).filter((link): link is NonNullable<typeof link> => Boolean(link));
+  return [
+    ...(includeHub && workspaceId !== "executive" ? [{ label: `${workspace.title} Hub`, path: workspace.path, icon: workspace.icon, badge: "Hub", badgeColor: "#0d9488" }] : []),
+    ...selected.map(link => ({ label: link.label, path: link.path, icon: "•" })),
+  ];
+}
+
+const EXECUTIVE_HEALTH_ITEMS = workspaceShortcuts("executive", ["Executive Health", "Ask Buddy"], false);
+const DELIVERY_MANAGEMENT_ITEMS = workspaceShortcuts("delivery", ["Delivery Calendar", "Current Pipeline", "Delivery Assurance"]);
+const ROGER_READINESS_ITEMS = workspaceShortcuts("roger", ["Screen Readiness", "UI Data Mapping", "API Readiness", "Consumer Decisions / ADRs"]);
+const DISCOVERY_WORKSPACE_ITEMS = workspaceShortcuts("discovery", ["Requirement Discovery", "Readiness Checklist", "Story Builder", "Prior Year Workspace", "Master Data & Governance", "Open Questions & Traceability"]);
+const ARCHITECTURE_WORKSPACE_ITEMS = workspaceShortcuts("architecture", ["Architecture Primer", "Platform Domains", "Architecture Views", "Data Governance"]);
+const QUALITY_WORKSPACE_ITEMS = workspaceShortcuts("quality", ["QA Registry", "UAT Readiness", "Deployments"]);
+const ADVANCED_ITEMS: NavItem[] = ADVANCED_NAVIGATION.map(item => ({ label: item.label, path: item.path, icon: "•", badge: "ADV", badgeColor: "#64748b" }));
+const ADMIN_ITEMS: NavItem[] = ADMIN_NAVIGATION.map(item => ({ label: item.label, path: item.path, icon: "⚙", badge: "Admin", badgeColor: "#6366f1" }));
+const HISTORICAL_TRAINING_ITEMS: NavItem[] = HISTORICAL_TRAINING_NAVIGATION.map(item => ({ label: item.label, path: item.path, icon: "◌", badge: "Training", badgeColor: "#64748b" }));
 
 // Format a Date as "Apr 9, 2026 · 10:41 AM"
 function formatSyncTime(d: Date) {
@@ -422,6 +444,24 @@ function NavSection({ title, items }: { title: string; items: NavItem[] }) {
   );
 }
 
+function CollapsibleNavSection({ title, items, defaultOpen = false }: { title: string; items: NavItem[]; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ marginBottom: "4px" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(value => !value)}
+        aria-expanded={open}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "10px 12px 3px", background: "none", border: "none", cursor: "pointer", color: "#475569" }}
+      >
+        <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>{title}</span>
+        <span style={{ fontSize: "9px" }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && items.map((item) => <NavItem key={item.path + item.label} item={item} />)}
+    </div>
+  );
+}
+
 interface SidebarProps {
   activeSection?: string;
 }
@@ -468,7 +508,8 @@ export default function Sidebar({ activeSection }: SidebarProps) {
 
       {/* Scrollable nav */}
       <div style={{ flex: 1, overflowY: "auto", padding: "4px 0" }}>
-        <NavSection title="Platform" items={PLATFORM_ITEMS} />
+        <NavSection title="Executive Health" items={EXECUTIVE_HEALTH_ITEMS} />
+        <NavSection title="Delivery Management" items={DELIVERY_MANAGEMENT_ITEMS} />
 
         {/* Batches section with collapse toggle */}
         <div style={{ marginBottom: "4px" }}>
@@ -565,28 +606,13 @@ export default function Sidebar({ activeSection }: SidebarProps) {
           )}
         </div>
 
-        {/* Discovery Center — 5 grouped sections with hierarchy headers */}
-        <NavSection title="Discovery Center" items={DISCOVERY_HUB_ITEMS} />
-        <div style={{ padding: "4px 12px 2px", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#334155", marginTop: "2px" }}>
-          ─ Platform Overview
-        </div>
-        {DISCOVERY_OVERVIEW_ITEMS.map(item => <NavItem key={item.path + item.label} item={item} />)}
-        <div style={{ padding: "8px 12px 2px", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#334155" }}>
-          ─ Platform Services
-        </div>
-        {DISCOVERY_SERVICES_ITEMS.map(item => <NavItem key={item.path + item.label} item={item} />)}
-        <div style={{ padding: "8px 12px 2px", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#334155" }}>
-          ─ Integration & Architecture
-        </div>
-        {DISCOVERY_ARCHITECTURE_ITEMS.map(item => <NavItem key={item.path + item.label} item={item} />)}
-        <div style={{ padding: "8px 12px 2px", fontSize: "8px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#334155" }}>
-          ─ BA Tools & Reference
-        </div>
-        {DISCOVERY_TOOLS_ITEMS.map(item => <NavItem key={item.path + item.label} item={item} />)}
-        <NavSection title="Business Architecture & Governance" items={BA_ITEMS} />
-        <NavSection title="Roger UI" items={ROGER_UI_ITEMS} />
-        <NavSection title="Platform Governance Tools" items={GOVERNANCE_ITEMS} />
-        <NavSection title="Architecture & Diagrams" items={DIAGRAM_ITEMS} />
+        <NavSection title="Product & Roger Readiness" items={ROGER_READINESS_ITEMS} />
+        <NavSection title="Discovery & BA Workspace" items={DISCOVERY_WORKSPACE_ITEMS} />
+        <NavSection title="Architecture & Governance" items={ARCHITECTURE_WORKSPACE_ITEMS} />
+        <NavSection title="QA / UAT / Deployment" items={QUALITY_WORKSPACE_ITEMS} />
+        <CollapsibleNavSection title="Advanced" items={ADVANCED_ITEMS} />
+        <CollapsibleNavSection title="Admin" items={ADMIN_ITEMS} />
+        <CollapsibleNavSection title="Historical / Training" items={HISTORICAL_TRAINING_ITEMS} />
       </div>
 
       {/* Footer */}

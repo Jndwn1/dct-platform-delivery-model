@@ -70,6 +70,8 @@ import Step5AskBuddy from "./pages/onboarding/Step5AskBuddy";
 import Step6Questions from "./pages/onboarding/Step6Questions";
 import Step7Complete from "./pages/onboarding/Step7Complete";
 import UATTestingPage from "./pages/UATTestingPage";
+import OperatingModelHub from "./pages/OperatingModelHub";
+import OnboardingHub from "./pages/onboarding/OnboardingHub";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -114,6 +116,11 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
           <Route path="/batch-roadmap" component={BatchRoadmap} />
+          <Route path="/workspace/delivery" component={() => <OperatingModelHub workspaceId="delivery" />} />
+          <Route path="/workspace/roger" component={() => <OperatingModelHub workspaceId="roger" />} />
+          <Route path="/workspace/discovery" component={() => <OperatingModelHub workspaceId="discovery" />} />
+          <Route path="/workspace/architecture" component={() => <OperatingModelHub workspaceId="architecture" />} />
+          <Route path="/workspace/quality" component={() => <OperatingModelHub workspaceId="quality" />} />
           <Route path="/gate-status" component={GateStatus} />
           <Route path="/touchpoints" component={TouchpointsPage} />
           <Route path="/architecture" component={ArchitectureView} />
@@ -176,6 +183,7 @@ function Router() {
           <Route path="/uat-testing" component={UATTestingPage} />
           {/* Learning Center */}
           <Route path="/learning-center" component={LearningCenter} />
+          <Route path="/guided-onboarding" component={OnboardingHub} />
           {/* Provision & State Discovery Workspace */}
           <Route path="/onboarding" component={DiscoveryWorkspace} />
           <Route path="/onboarding/step1" component={Step1Features} />
