@@ -28,6 +28,107 @@ import { deriveMvpCriticalMilestones, getNextCriticalMilestone, MVP_TARGET_DATE_
 import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
+type QuickNavigationItem = {
+  label: string;
+  id: string;
+  internal: boolean;
+  href?: string;
+};
+
+function QuickNavigationCard({
+  items,
+  onNavigate,
+  onOpenTour,
+}: {
+  items: QuickNavigationItem[];
+  onNavigate: (id: string) => void;
+  onOpenTour: () => void;
+}) {
+  return (
+    <div id="quick-nav" style={{
+      backgroundColor: "#ffffff",
+      border: "1px solid #e2e8f0",
+      borderRadius: "10px",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03)",
+      padding: "14px 24px 12px",
+      marginBottom: "16px",
+      marginTop: "16px",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "10px" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+          <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f1623" }}>🧭 Quick Navigation</span>
+          <span style={{ fontSize: "11px", color: "#64748b" }}>Jump directly to any section of the DCT Delivery Model.</span>
+        </div>
+        <button
+          onClick={onOpenTour}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 800,
+            color: "#ffffff", background: "linear-gradient(135deg, #1e3a5f 0%, #0d9488 100%)", border: "none",
+            borderRadius: "8px", padding: "9px 20px", cursor: "pointer",
+            boxShadow: "0 2px 12px rgba(13,148,136,0.35), 0 1px 4px rgba(0,0,0,0.15)",
+            transition: "all 0.2s ease", whiteSpace: "nowrap", letterSpacing: "0.01em",
+          }}
+          onMouseEnter={event => {
+            event.currentTarget.style.transform = "translateY(-1px)";
+            event.currentTarget.style.boxShadow = "0 4px 18px rgba(13,148,136,0.45), 0 2px 6px rgba(0,0,0,0.18)";
+          }}
+          onMouseLeave={event => {
+            event.currentTarget.style.transform = "translateY(0)";
+            event.currentTarget.style.boxShadow = "0 2px 12px rgba(13,148,136,0.35), 0 1px 4px rgba(0,0,0,0.15)";
+          }}
+        >
+          <span style={{ fontSize: "16px" }}>▶️</span>
+          Experience the BA Operating System
+        </button>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px" }}>
+        {items.filter(item => item.internal).map((item, index, internalItems) => (
+          <React.Fragment key={item.label}>
+            <button
+              onClick={() => onNavigate(item.id)}
+              style={{
+                fontSize: "12px", fontWeight: 600, color: "#1e3a5f", backgroundColor: "#f1f5f9",
+                border: "1px solid #e2e8f0", borderRadius: "6px", padding: "5px 12px", cursor: "pointer",
+                whiteSpace: "nowrap", lineHeight: "1.4", transition: "background-color 0.15s, border-color 0.15s, color 0.15s", outline: "none",
+              }}
+              onMouseEnter={event => {
+                event.currentTarget.style.backgroundColor = "#1e3a5f";
+                event.currentTarget.style.color = "#ffffff";
+                event.currentTarget.style.borderColor = "#1e3a5f";
+              }}
+              onMouseLeave={event => {
+                event.currentTarget.style.backgroundColor = "#f1f5f9";
+                event.currentTarget.style.color = "#1e3a5f";
+                event.currentTarget.style.borderColor = "#e2e8f0";
+              }}
+              onFocus={event => { event.currentTarget.style.outline = "2px solid #2563eb"; event.currentTarget.style.outlineOffset = "2px"; }}
+              onBlur={event => { event.currentTarget.style.outline = "none"; }}
+            >
+              {item.label}
+            </button>
+            {index < internalItems.length - 1 && <span style={{ color: "#cbd5e1", fontSize: "12px", userSelect: "none", padding: "0 2px" }}>·</span>}
+          </React.Fragment>
+        ))}
+        <span style={{ color: "#e2e8f0", fontSize: "16px", margin: "0 6px", userSelect: "none" }}>|</span>
+        {items.filter(item => !item.internal).map((item, index, externalItems) => (
+          <React.Fragment key={item.label}>
+            <Link href={item.href ?? "/"}>
+              <span id={item.id || undefined} style={{
+                display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "12px", fontWeight: 700,
+                color: "#059669", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px",
+                padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", lineHeight: "1.4", transition: "background-color 0.15s", textDecoration: "none",
+              }}>
+                {item.label} ↗
+              </span>
+            </Link>
+            {index < externalItems.length - 1 && <span style={{ color: "#cbd5e1", fontSize: "12px", userSelect: "none", padding: "0 2px" }}>·</span>}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Batch Calendar PI 2 + PI 3 (source of truth for Section 2) ─────────────
 // Data sourced directly from DCT_Calendar.xlsx, DCT Calendar sheet
 // Columns: PI, Status, Batch, Feat, Name, Start, End, What the batch does, Roger UI impact
@@ -776,6 +877,8 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Quick Navigation follows the Executive Health banner for first-view access. */}
+      <QuickNavigationCard items={quickNavItems} onNavigate={scrollToSection} onOpenTour={openTour} />
 
       {/* ═══════════════════════════════════════════════════════════════════════
            EXECUTIVE STATUS SUMMARY
@@ -942,135 +1045,6 @@ export default function Home() {
           <div style={{ marginTop: "4px", fontSize: "9px", color: "#64748b" }}>Source: authoritative shared Roger QA Registry. Detailed per-screen lifecycle, dependencies, owners, and notes remain on QA Deployment Registry.</div>
         </div>
         <div style={{ fontSize: "10px", color: "#64748b", marginTop: "10px" }}>Source: governed delivery milestones and existing RC-3 release target. Statuses require explicit delivery confirmation; dates alone never mark milestones complete.</div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-           QUICK NAVIGATION CARD
-      ═══════════════════════════════════════════════════════════════════════ */}
-      <div id="quick-nav" style={{
-        backgroundColor: "#ffffff",
-        border: "1px solid #e2e8f0",
-        borderRadius: "10px",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03)",
-        padding: "14px 24px 12px",
-        marginBottom: "20px",
-        marginTop: "4px",
-      }}>
-        {/* Header row */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "10px" }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
-            <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f1623" }}>🧭 Quick Navigation</span>
-            <span style={{ fontSize: "11px", color: "#64748b" }}>Jump directly to any section of the DCT Delivery Model.</span>
-          </div>
-          {/* ▶️ Experience the BA Operating System — Executive Simulation launcher */}
-          <button
-            onClick={() => openTour()}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
-              fontSize: "13px", fontWeight: 800,
-              color: "#ffffff",
-              background: "linear-gradient(135deg, #1e3a5f 0%, #0d9488 100%)",
-              border: "none",
-              borderRadius: "8px",
-              padding: "9px 20px",
-              cursor: "pointer",
-              boxShadow: "0 2px 12px rgba(13,148,136,0.35), 0 1px 4px rgba(0,0,0,0.15)",
-              transition: "all 0.2s ease",
-              whiteSpace: "nowrap",
-              letterSpacing: "0.01em",
-            }}
-            onMouseEnter={e => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.transform = "translateY(-1px)";
-              el.style.boxShadow = "0 4px 18px rgba(13,148,136,0.45), 0 2px 6px rgba(0,0,0,0.18)";
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.transform = "translateY(0)";
-              el.style.boxShadow = "0 2px 12px rgba(13,148,136,0.35), 0 1px 4px rgba(0,0,0,0.15)";
-            }}
-          >
-            <span style={{ fontSize: "16px" }}>▶️</span>
-            Experience the BA Operating System
-          </button>
-        </div>
-
-        {/* Navigation links row */}
-        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px" }}>
-
-          {/* Internal section buttons */}
-          {quickNavItems.filter(i => i.internal).map((item, idx, arr) => (
-            <React.Fragment key={item.label}>
-              <button
-                onClick={() => scrollToSection(item.id)}
-                style={{
-                  fontSize: "12px", fontWeight: 600, color: "#1e3a5f",
-                  backgroundColor: "#f1f5f9",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "6px",
-                  padding: "5px 12px",
-                  cursor: "pointer", whiteSpace: "nowrap",
-                  lineHeight: "1.4",
-                  transition: "background-color 0.15s, border-color 0.15s, color 0.15s",
-                  outline: "none",
-                }}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLButtonElement;
-                  el.style.backgroundColor = "#1e3a5f";
-                  el.style.color = "#ffffff";
-                  el.style.borderColor = "#1e3a5f";
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLButtonElement;
-                  el.style.backgroundColor = "#f1f5f9";
-                  el.style.color = "#1e3a5f";
-                  el.style.borderColor = "#e2e8f0";
-                }}
-                onFocus={e => {
-                  const el = e.currentTarget as HTMLButtonElement;
-                  el.style.outline = "2px solid #2563eb";
-                  el.style.outlineOffset = "2px";
-                }}
-                onBlur={e => {
-                  (e.currentTarget as HTMLButtonElement).style.outline = "none";
-                }}
-              >
-                {item.label}
-              </button>
-              {idx < arr.length - 1 && (
-                <span style={{ color: "#cbd5e1", fontSize: "12px", userSelect: "none", padding: "0 2px" }}>·</span>
-              )}
-            </React.Fragment>
-          ))}
-
-          {/* Divider before external links */}
-          <span style={{ color: "#e2e8f0", fontSize: "16px", margin: "0 6px", userSelect: "none" }}>|</span>
-
-          {/* External links */}
-          {quickNavItems.filter(i => !i.internal).map((item, idx, arr) => (
-            <React.Fragment key={item.label}>
-              <Link href={item.href ?? "/"}>
-                <span id={item.id || undefined} style={{
-                  display: "inline-flex", alignItems: "center", gap: "3px",
-                  fontSize: "12px", fontWeight: 700, color: "#059669",
-                  backgroundColor: "#f0fdf4",
-                  border: "1px solid #bbf7d0",
-                  borderRadius: "6px",
-                  padding: "5px 12px",
-                  cursor: "pointer", whiteSpace: "nowrap",
-                  lineHeight: "1.4",
-                  transition: "background-color 0.15s",
-                  textDecoration: "none",
-                }}>
-                  {item.label} ↗
-                </span>
-              </Link>
-              {idx < arr.length - 1 && (
-                <span style={{ color: "#cbd5e1", fontSize: "12px", userSelect: "none", padding: "0 2px" }}>·</span>
-              )}
-            </React.Fragment>
-          ))}
-        </div>
       </div>
 
       {/* ── Executive Delivery Dashboard (always visible) ── */}
