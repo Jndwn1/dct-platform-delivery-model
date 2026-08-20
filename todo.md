@@ -120,3 +120,4 @@
 - [x] Move Roger UI Data Mapping under Roger UI, remove Agent Hub navigation and routes, and repair the Runtime Journey nested-button markup
 - [x] Validate the Runtime Journey route and platform navigation after the focused cleanup
 - [x] Clarify the landing-page critical-story milestone source as 8 technical stories and 3 bugs within the locked 11 active MVP features
+- [x] Add the stated TWB pending-validation and CCH Export API retrieval notes beneath the Aug. 27 Prior Year milestone

@@ -900,6 +900,11 @@ export default function Home() {
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#1e3a5f", minHeight: "32px" }}>{milestone.name}</div>
                 <div style={{ fontSize: "11px", color: "#475569", lineHeight: 1.45, marginTop: "4px", minHeight: "48px" }}>{milestone.shortDescription}</div>
                 <div style={{ display: "inline-flex", marginTop: "8px", padding: "3px 7px", borderRadius: "4px", border: `1px solid ${statusBorder}`, backgroundColor: statusBg, color: statusColor, fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase" }}>{status}</div>
+                {milestone.statusNotes?.length ? (
+                  <div style={{ marginTop: "7px", padding: "7px 8px", borderLeft: "3px solid #60a5fa", backgroundColor: "#eff6ff", color: "#1e3a5f", fontSize: "10px", lineHeight: 1.45 }}>
+                    {milestone.statusNotes.map(note => <div key={note}>• {note}</div>)}
+                  </div>
+                ) : null}
                 <div style={{ fontSize: "9px", color: "#64748b", marginTop: "6px" }}>Owner: {milestone.owner} · Source: {milestone.source}{milestone.confirmationRequired ? " · Confirmation required" : ""}</div>
               </div>
             );

@@ -16,6 +16,7 @@ type MvpMilestoneDefinition = {
   name: string;
   shortDescription: string;
   detail: string[];
+  statusNotes?: string[];
   sourceScope: "delivery" | "prior-year" | "environment" | "uat" | "release";
 };
 
@@ -48,6 +49,10 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
     name: "Remaining Stories + PY Data Ready",
     shortDescription: "Complete remaining MVP stories, both PY data stories, and initial CCH/TWB loads for selected test clients.",
     detail: ["Remaining MVP stories", "Both PY data stories", "Initial CCH and TWB test-client loads"],
+    statusNotes: [
+      "TWB PY Data is pending validation with Krista/Jenniver.",
+      "CCH code will be retrieved from IMS through the Export API.",
+    ],
     sourceScope: "prior-year",
   },
   {
