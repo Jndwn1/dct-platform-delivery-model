@@ -983,11 +983,6 @@ export default function Home() {
             <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a" }}>MVP Critical Milestones</div>
             <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px" }}>Critical delivery dates leading to the {MVP_TARGET_DATE_LABEL} MVP / RC-3 target</div>
           </div>
-          <div style={{ minWidth: "245px", backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "10px 12px" }}>
-            <div style={{ fontSize: "10px", fontWeight: 800, color: "#1d4ed8", letterSpacing: "0.06em", textTransform: "uppercase" }}>Next Critical Milestone</div>
-            <div style={{ fontSize: "14px", fontWeight: 800, color: "#1e3a5f", marginTop: "3px" }}>{nextCriticalMilestone.dateLabel} — {nextCriticalMilestone.name}</div>
-            <div style={{ fontSize: "11px", color: "#475569", marginTop: "2px" }}>{resolveMilestoneStatus(nextCriticalMilestone)}</div>
-          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: "10px" }}>

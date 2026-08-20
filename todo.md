@@ -134,3 +134,4 @@
 - [x] Remove the visible “11 active MVP features” wording from Critical Story Completion while preserving locked MVP metrics elsewhere
 - [x] Restore the Critical Story Completion detail as “8 technical stories and 3 bugs — from the governed ADO lifecycle,” removing only the 11-feature phrase
 - [x] Move Quick Navigation directly beneath the Executive Health banner while preserving all existing links and landing-page content
+- [x] Remove the Next Critical Milestone callout while preserving all MVP Critical Milestone cards and calculations
