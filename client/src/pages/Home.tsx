@@ -905,7 +905,7 @@ export default function Home() {
                     {milestone.statusNotes.map(note => <div key={note}>• {note}</div>)}
                   </div>
                 ) : null}
-                <div style={{ fontSize: "9px", color: "#64748b", marginTop: "6px" }}>Owner: {milestone.owner} · Source: {milestone.source}{milestone.confirmationRequired ? " · Confirmation required" : ""}</div>
+                <div style={{ fontSize: "9px", color: "#64748b", marginTop: "6px" }}>Source: {milestone.source}{milestone.confirmationRequired ? " · Confirmation required" : ""}</div>
               </div>
             );
           })}

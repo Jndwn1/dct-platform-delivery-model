@@ -26,6 +26,7 @@ describe("MVP Critical Milestones", () => {
     expect(criticalStories?.source).toContain("8 technical stories and 3 bugs");
     expect(environment?.source).toContain("Environment Management ADO");
     expect(priorYear?.source).toContain("B31 PDC and B31 TDC");
+    expect(priorYear?.owner).toBe("Abbas, Nasar / Luca, Gary");
     expect(priorYear?.statusNotes).toEqual([
       "TWB PY Data is pending validation with Krista/Jenniver.",
       "CCH code will be retrieved from IMS through the Export API.",

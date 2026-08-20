@@ -121,3 +121,4 @@
 - [x] Validate the Runtime Journey route and platform navigation after the focused cleanup
 - [x] Clarify the landing-page critical-story milestone source as 8 technical stories and 3 bugs within the locked 11 active MVP features
 - [x] Add the stated TWB pending-validation and CCH Export API retrieval notes beneath the Aug. 27 Prior Year milestone
+- [x] Remove owner labels from all five MVP Critical Milestone cards while preserving statuses, sources, dates, and readiness notes
