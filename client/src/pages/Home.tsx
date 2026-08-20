@@ -23,7 +23,7 @@ import {
 } from "@/contexts/BatchStatusContext";
 import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
-import { getRogerScreenReadinessSummary } from "@/lib/rogerMvpScreenStatus";
+import { getRogerScreenDeliverySummary, getRogerScreenReadinessSummary, ROGER_MVP_MILESTONES } from "@/lib/rogerMvpScreenStatus";
 import { deriveMvpCriticalMilestones, getNextCriticalMilestone, MVP_TARGET_DATE_LABEL, resolveMilestoneStatus } from "@/lib/mvpCriticalMilestones";
 import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
@@ -546,6 +546,7 @@ export default function Home() {
   const batchPct      = batch.readinessPct;
   const overallPct    = mvp.readinessPct;
   const rogerScreenMetrics = useMemo(() => getRogerScreenReadinessSummary(), []);
+  const rogerScreenDeliveryMetrics = useMemo(() => getRogerScreenDeliverySummary(), []);
   const criticalMilestones = useMemo(() => deriveMvpCriticalMilestones(statuses), [statuses]);
   const nextCriticalMilestone = useMemo(() => getNextCriticalMilestone(criticalMilestones), [criticalMilestones]);
   const pi3Closed = getPi3CumulativeCompleted();
@@ -910,6 +911,35 @@ export default function Home() {
               </div>
             );
           })}
+        </div>
+        <div style={{ marginTop: "14px", border: "1px solid #c7d2fe", borderRadius: "9px", backgroundColor: "#f8faff", padding: "12px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: "10px", fontWeight: 800, color: "#4338ca", letterSpacing: "0.08em", textTransform: "uppercase" }}>Roger MVP Screen Readiness</div>
+              <div style={{ fontSize: "13px", fontWeight: 800, color: "#1e3a5f", marginTop: "2px" }}>18-screen QA and delivery rollup supporting the MVP critical path</div>
+            </div>
+            <Link href="/qa-deployment-registry" style={{ fontSize: "10px", fontWeight: 800, color: "#2563eb", textDecoration: "none" }}>View QA Registry detail →</Link>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(112px, 1fr))", gap: "8px", marginTop: "10px" }}>
+            {[
+              { label: "Total Screens", value: rogerScreenMetrics.total, color: "#1e3a5f", bg: "#eaf0fb" },
+              { label: "Ready to Test", value: rogerScreenMetrics.ready, color: "#047857", bg: "#ecfdf5" },
+              { label: "Partially Ready", value: rogerScreenMetrics.partial, color: "#92400e", bg: "#fffbeb" },
+              { label: "Not Ready", value: rogerScreenMetrics.notReady, color: "#b91c1c", bg: "#fef2f2" },
+            ].map(metric => (
+              <div key={metric.label} style={{ borderRadius: "6px", backgroundColor: metric.bg, padding: "8px 9px", border: `1px solid ${metric.color}22` }}>
+                <div style={{ fontSize: "18px", lineHeight: 1, fontWeight: 800, color: metric.color }}>{metric.value}</div>
+                <div style={{ fontSize: "9px", lineHeight: 1.2, fontWeight: 800, color: metric.color, textTransform: "uppercase", letterSpacing: "0.035em", marginTop: "3px" }}>{metric.label}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: "10px", fontSize: "10px", color: "#475569", lineHeight: 1.5 }}>
+            <strong style={{ color: "#1e3a5f" }}>Delivery status:</strong> {rogerScreenDeliveryMetrics.completed} Completed · {rogerScreenDeliveryMetrics.done} Done · {rogerScreenDeliveryMetrics.inQa} In QA · {rogerScreenDeliveryMetrics.inProgress} In Progress · {rogerScreenDeliveryMetrics.notStarted} Not Started · {rogerScreenDeliveryMetrics.outOfScope} Out of Scope · {rogerScreenDeliveryMetrics.notFunctional} Not Functional
+          </div>
+          <div style={{ marginTop: "4px", fontSize: "10px", color: "#64748b", lineHeight: 1.5 }}>
+            <strong style={{ color: "#1e3a5f" }}>Roger key dates:</strong> {ROGER_MVP_MILESTONES.map(milestone => `${milestone.milestone}: ${milestone.date}`).join(" · ")}
+          </div>
+          <div style={{ marginTop: "4px", fontSize: "9px", color: "#64748b" }}>Source: authoritative shared Roger QA Registry. Detailed per-screen lifecycle, dependencies, owners, and notes remain on QA Deployment Registry.</div>
         </div>
         <div style={{ fontSize: "10px", color: "#64748b", marginTop: "10px" }}>Source: governed delivery milestones and existing RC-3 release target. Statuses require explicit delivery confirmation; dates alone never mark milestones complete.</div>
       </div>

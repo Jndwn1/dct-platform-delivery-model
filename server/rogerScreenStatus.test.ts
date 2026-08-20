@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countBy, getRogerScreenReadinessSummary, ROGER_MVP_MILESTONES, ROGER_MVP_SCREEN_RECORDS } from "../client/src/lib/rogerMvpScreenStatus";
+import { countBy, getRogerScreenDeliverySummary, getRogerScreenReadinessSummary, ROGER_MVP_MILESTONES, ROGER_MVP_SCREEN_RECORDS } from "../client/src/lib/rogerMvpScreenStatus";
 
 describe("Roger MVP screen status model", () => {
   it("contains all authoritative current screen records", () => {
@@ -22,6 +22,19 @@ describe("Roger MVP screen status model", () => {
       ready: 4,
       partial: 8,
       notReady: 6,
+    });
+  });
+
+  it("derives the MVP Critical Milestones delivery rollup from the same 18-screen registry", () => {
+    expect(getRogerScreenDeliverySummary()).toEqual({
+      total: 18,
+      completed: 4,
+      done: 0,
+      inQa: 1,
+      inProgress: 12,
+      notStarted: 1,
+      outOfScope: 0,
+      notFunctional: 0,
     });
   });
 

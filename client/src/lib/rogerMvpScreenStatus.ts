@@ -63,3 +63,16 @@ export function getRogerScreenReadinessSummary(records: RogerMvpScreenRecord[] =
     notReady: countBy(records, "qaReadinessStatus", "Not Ready"),
   };
 }
+
+export function getRogerScreenDeliverySummary(records: RogerMvpScreenRecord[] = ROGER_MVP_SCREEN_RECORDS) {
+  return {
+    total: records.length,
+    completed: countBy(records, "deliveryStatus", "Completed"),
+    done: countBy(records, "deliveryStatus", "Done"),
+    inQa: countBy(records, "deliveryStatus", "In QA"),
+    inProgress: countBy(records, "deliveryStatus", "In Progress"),
+    notStarted: countBy(records, "deliveryStatus", "Not Started"),
+    outOfScope: countBy(records, "deliveryStatus", "Out of Scope"),
+    notFunctional: countBy(records, "deliveryStatus", "Not Functional"),
+  };
+}
