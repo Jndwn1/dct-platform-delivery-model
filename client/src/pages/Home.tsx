@@ -24,6 +24,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
 import { getRogerScreenReadinessSummary } from "@/lib/rogerMvpScreenStatus";
+import { deriveMvpCriticalMilestones, getNextCriticalMilestone, MVP_TARGET_DATE_LABEL, resolveMilestoneStatus } from "@/lib/mvpCriticalMilestones";
 import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
@@ -545,6 +546,8 @@ export default function Home() {
   const batchPct      = batch.readinessPct;
   const overallPct    = mvp.readinessPct;
   const rogerScreenMetrics = useMemo(() => getRogerScreenReadinessSummary(), []);
+  const criticalMilestones = useMemo(() => deriveMvpCriticalMilestones(statuses), [statuses]);
+  const nextCriticalMilestone = useMemo(() => getNextCriticalMilestone(criticalMilestones), [criticalMilestones]);
   const pi3Closed = getPi3CumulativeCompleted();
   const recentlyClosedPi3 = PI3_POST_BASELINE_CLOSURES;
   const closedThisWeek = recentlyClosedPi3.filter(item => isInDashboardReportingWeek(item.completionDate));
@@ -729,7 +732,7 @@ export default function Home() {
           }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
             <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>{rcLabel}</div>
-            <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: Sep 21, 2026</div>
+            <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: {MVP_TARGET_DATE_LABEL}</div>
           </div>
         </div>
 
@@ -845,7 +848,8 @@ export default function Home() {
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Release Targets</div>
             {[
               { label: "Release Candidate", value: rcLabel,        color: "#059669" },
-              { label: "Target MVP Date",   value: "Sep 21, 2026", color: "#0f1623" },
+              { label: "Target MVP Date",   value: MVP_TARGET_DATE_LABEL, color: "#0f1623" },
+              { label: "Next Critical Milestone", value: `${nextCriticalMilestone.dateLabel} · ${nextCriticalMilestone.name}`, color: "#2563eb" },
               { label: "Batch Readiness", value: `${batchPct}%`, color: batchPct >= 70 ? "#059669" : "#d97706" },
               { label: "Overall MVP Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#d97706" },
               { label: "MVP In Development", value: `${mvp.inDev} features`, color: "#2563eb" },
@@ -857,6 +861,51 @@ export default function Home() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* ── MVP Critical Milestones — executive timeline; no lifecycle metrics are recalculated ── */}
+      <div style={{
+        backgroundColor: "#ffffff",
+        border: "1px solid #bfdbfe",
+        borderRadius: "12px",
+        boxShadow: "0 2px 8px rgba(30,58,95,0.08)",
+        padding: "18px 22px 20px",
+        marginBottom: "20px",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", flexWrap: "wrap", marginBottom: "16px" }}>
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "3px" }}>Delivery Schedule</div>
+            <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a" }}>MVP Critical Milestones</div>
+            <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px" }}>Critical delivery dates leading to the {MVP_TARGET_DATE_LABEL} MVP / RC-3 target</div>
+          </div>
+          <div style={{ minWidth: "245px", backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "10px 12px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 800, color: "#1d4ed8", letterSpacing: "0.06em", textTransform: "uppercase" }}>Next Critical Milestone</div>
+            <div style={{ fontSize: "14px", fontWeight: 800, color: "#1e3a5f", marginTop: "3px" }}>{nextCriticalMilestone.dateLabel} — {nextCriticalMilestone.name}</div>
+            <div style={{ fontSize: "11px", color: "#475569", marginTop: "2px" }}>{resolveMilestoneStatus(nextCriticalMilestone)}</div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: "10px" }}>
+          {criticalMilestones.map((milestone, index) => {
+            const status = resolveMilestoneStatus(milestone);
+            const statusColor = status === "In Progress" ? "#2563eb" : status === "At Risk / Confirmation Required" ? "#b91c1c" : status === "Complete" ? "#047857" : "#92400e";
+            const statusBg = status === "In Progress" ? "#eff6ff" : status === "At Risk / Confirmation Required" ? "#fef2f2" : status === "Complete" ? "#ecfdf5" : "#fffbeb";
+            const statusBorder = status === "In Progress" ? "#bfdbfe" : status === "At Risk / Confirmation Required" ? "#fecaca" : status === "Complete" ? "#a7f3d0" : "#fde68a";
+            return (
+              <div key={milestone.id} style={{ border: "1px solid #e2e8f0", borderRadius: "9px", padding: "12px", backgroundColor: "#f8fafc", minHeight: "154px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "8px" }}>
+                  <div style={{ width: "22px", height: "22px", borderRadius: "50%", backgroundColor: "#1e3a5f", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 800 }}>{index + 1}</div>
+                  <span style={{ fontSize: "12px", fontWeight: 800, color: "#0f172a" }}>{milestone.dateLabel}</span>
+                </div>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#1e3a5f", minHeight: "32px" }}>{milestone.name}</div>
+                <div style={{ fontSize: "11px", color: "#475569", lineHeight: 1.45, marginTop: "4px", minHeight: "48px" }}>{milestone.shortDescription}</div>
+                <div style={{ display: "inline-flex", marginTop: "8px", padding: "3px 7px", borderRadius: "4px", border: `1px solid ${statusBorder}`, backgroundColor: statusBg, color: statusColor, fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase" }}>{status}</div>
+                <div style={{ fontSize: "9px", color: "#64748b", marginTop: "6px" }}>Owner: {milestone.owner} · Source: {milestone.source}{milestone.confirmationRequired ? " · Confirmation required" : ""}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ fontSize: "10px", color: "#64748b", marginTop: "10px" }}>Source: governed delivery milestones and existing RC-3 release target. Statuses require explicit delivery confirmation; dates alone never mark milestones complete.</div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════

@@ -110,3 +110,8 @@
 - [x] Restore only the compact 18-screen Roger metrics summary to the landing page while keeping detailed rows on the QA Deployment Registry
 - [x] Move the compact Roger 18-screen metrics into the immediately visible landing-page hero while retaining QA-only detailed rows
 - [x] Add regression coverage for the derived 18-screen landing-page Roger readiness metrics summary
+- [x] Add a governed MVP Critical Milestones timeline and next-critical-milestone summary to the landing page without changing existing delivery calculations
+- [x] Verify milestone source synchronization and visibility with the existing RC-3 Release Targets area
+- [x] Replace static MVP milestone status logic with derivation from governed delivery, release, deployment, environment, UAT, and Prior Year sources where evidence exists
+- [x] Add explicit confirmation-required fallback rules for milestone fields without a governed source record
+- [x] Add regression coverage proving Release Targets next-milestone and milestone statuses consume shared governed inputs
