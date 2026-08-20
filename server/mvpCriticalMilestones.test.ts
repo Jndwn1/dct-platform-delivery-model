@@ -22,8 +22,7 @@ describe("MVP Critical Milestones", () => {
     const priorYear = milestones.find(item => item.id === "remaining-stories-py-ready");
     
     expect(criticalStories?.status).toBe("In Progress");
-    expect(criticalStories?.source).toContain("active MVP features");
-    expect(criticalStories?.source).toContain("8 technical stories and 3 bugs");
+    expect(criticalStories?.source).toBe("Governed ADO lifecycle");
     expect(environment?.source).toContain("Environment Management ADO");
     expect(priorYear?.source).toContain("B31 PDC and B31 TDC");
     expect(priorYear?.owner).toBe("Abbas, Nasar / Luca, Gary");

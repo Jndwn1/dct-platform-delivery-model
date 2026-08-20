@@ -105,7 +105,7 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
         ...definition,
         status: statusFromActiveWork(mvp.inDev > 0, mvp.complete === mvp.total),
         owner: "DCT Delivery Team",
-        source: `${mvp.inDev} active MVP features — 8 technical stories and 3 bugs — from the governed ADO lifecycle`,
+        source: "Governed ADO lifecycle",
         confirmationRequired,
       };
     }

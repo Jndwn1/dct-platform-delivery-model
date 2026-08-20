@@ -130,3 +130,5 @@
 - [x] Browser-verify global Ask Buddy and regression-verify retained and new workspace page-context resolution after the Phase 1 restructure
 - [x] Repair the nested-button markup on Developer Architecture while preserving its interactions and validate the route renders cleanly
 - [x] Add concise shared Roger 18-screen readiness and delivery metrics to MVP Critical Milestones without duplicating QA testing detail
+- [x] Capture current landing-page and QA/UAT/deployment workspace screenshots and create a PowerPoint backup package before the suspension window
+- [x] Remove the visible “11 active MVP features” wording from Critical Story Completion while preserving locked MVP metrics elsewhere
