@@ -115,3 +115,8 @@
 - [x] Replace static MVP milestone status logic with derivation from governed delivery, release, deployment, environment, UAT, and Prior Year sources where evidence exists
 - [x] Add explicit confirmation-required fallback rules for milestone fields without a governed source record
 - [x] Add regression coverage proving Release Targets next-milestone and milestone statuses consume shared governed inputs
+- [x] Remove Delivery Intelligence and Registry Audit pages from navigation and routing without deleting underlying data or audit logging
+- [x] Verify both deleted routes are unavailable and remaining platform navigation continues to render correctly
+- [x] Move Roger UI Data Mapping under Roger UI, remove Agent Hub navigation and routes, and repair the Runtime Journey nested-button markup
+- [x] Validate the Runtime Journey route and platform navigation after the focused cleanup
+- [x] Clarify the landing-page critical-story milestone source as 8 technical stories and 3 bugs within the locked 11 active MVP features

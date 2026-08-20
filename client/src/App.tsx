@@ -14,7 +14,6 @@ import LoginPage from "./pages/LoginPage";
 import Home from "./pages/Home";
 import GateStatus from "./pages/GateStatus";
 import TouchpointsPage from "./pages/TouchpointsPage";
-import AgentHub from "./pages/AgentHub";
 import ArchitectureView from "./pages/ArchitectureView";
 import DeveloperArchitecturePage from "./pages/DeveloperArchitecturePage";
 import EnterpriseArchitecturePage from "./pages/EnterpriseArchitecturePage";
@@ -41,7 +40,6 @@ import GapAnalysisEngine from "./pages/GapAnalysisEngine";
 import DeploymentRegistry from "./pages/DeploymentRegistry";
 import QADeploymentRegistry from "./pages/QADeploymentRegistry";
 import QAReleaseSim from "./pages/QAReleaseSim";
-import DeliveryIntelligencePage from "./pages/DeliveryIntelligencePage";
 // Discovery Center
 import DiscoveryCenter from "./pages/DiscoveryCenter";
 import BAStoryBuilder from "./pages/discovery/BAStoryBuilder";
@@ -72,7 +70,6 @@ import Step5AskBuddy from "./pages/onboarding/Step5AskBuddy";
 import Step6Questions from "./pages/onboarding/Step6Questions";
 import Step7Complete from "./pages/onboarding/Step7Complete";
 import UATTestingPage from "./pages/UATTestingPage";
-import RegistryAudit from "./pages/RegistryAudit";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -119,7 +116,6 @@ function Router() {
           <Route path="/batch-roadmap" component={BatchRoadmap} />
           <Route path="/gate-status" component={GateStatus} />
           <Route path="/touchpoints" component={TouchpointsPage} />
-          <Route path="/agent-hub" component={AgentHub} />
           <Route path="/architecture" component={ArchitectureView} />
           <Route path="/architecture/developer" component={DeveloperArchitecturePage} />
           <Route path="/architecture/enterprise" component={EnterpriseArchitecturePage} />
@@ -142,9 +138,6 @@ function Router() {
           <Route path="/gate/overview" component={GateStatus} />
           <Route path="/gate/:id" component={GateStatus} />
 
-          {/* Agent detail routes */}
-          <Route path="/agent/:id" component={AgentHub} />
-
           {/* Tool pages */}
           <Route path="/taxonomy" component={TaxonomyPage} />
           <Route path="/data-model" component={DataModelPage} />
@@ -159,7 +152,6 @@ function Router() {
           <Route path="/deployment-registry" component={DeploymentRegistry} />
           <Route path="/qa-deployment-registry" component={QADeploymentRegistry} />
           <Route path="/qa-release-sim" component={QAReleaseSim} />
-          <Route path="/delivery-intelligence" component={DeliveryIntelligencePage} />
           {/* Discovery Center */}
           <Route path="/discovery" component={DiscoveryCenter} />
           <Route path="/discovery/ecosystem" component={EcosystemOverview} />
@@ -182,7 +174,6 @@ function Router() {
           <Route path="/discovery/prior-year-migration" component={PriorYearMigration} />
           {/* UAT Testing */}
           <Route path="/uat-testing" component={UATTestingPage} />
-          <Route path="/registry-audit" component={RegistryAudit} />
           {/* Learning Center */}
           <Route path="/learning-center" component={LearningCenter} />
           {/* Provision & State Discovery Workspace */}

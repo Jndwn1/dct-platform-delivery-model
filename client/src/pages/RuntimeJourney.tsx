@@ -175,9 +175,18 @@ export default function RuntimeJourney() {
           aria-label="Touchpoint list — use arrow keys to navigate"
         >
           {TOUCHPOINTS.map((tp) => (
-            <button
+            <div
               key={tp.id}
+              role="button"
+              tabIndex={0}
+              aria-pressed={selected === tp.id}
               onClick={() => setSelected(tp.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setSelected(tp.id);
+                }
+              }}
               style={{
                 textAlign: "left", padding: "10px 14px", borderRadius: "8px", cursor: "pointer",
                 backgroundColor: selected === tp.id ? "white" : "transparent",
@@ -202,7 +211,7 @@ export default function RuntimeJourney() {
                 <span style={{ fontSize: "10px", color: "#64748b" }}>{tp.system}</span>
                 <span style={{ fontSize: "10px", color: tp.layerColor, fontWeight: 600 }}>{tp.batch}</span>
               </div>
-            </button>
+            </div>
           ))}
         </div>
 

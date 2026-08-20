@@ -20,9 +20,10 @@ describe("MVP Critical Milestones", () => {
     const criticalStories = milestones.find(item => item.id === "critical-story-completion");
     const environment = milestones.find(item => item.id === "environment-readiness");
     const priorYear = milestones.find(item => item.id === "remaining-stories-py-ready");
-
+    
     expect(criticalStories?.status).toBe("In Progress");
     expect(criticalStories?.source).toContain("active MVP features");
+    expect(criticalStories?.source).toContain("8 technical stories and 3 bugs");
     expect(environment?.source).toContain("Environment Management ADO");
     expect(priorYear?.source).toContain("B31 PDC and B31 TDC");
   });

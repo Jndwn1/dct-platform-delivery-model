@@ -105,10 +105,8 @@ const GATE_NAV_ITEMS = [
 // Business Architecture & Governance — primary BA workflow tools
 const BA_ITEMS: NavItem[] = [
   { label: "UAT Testing",                 path: "/uat-testing",                 icon: "✓", badge: "UAT",    badgeColor: "#059669" },
-  { label: "Delivery Intelligence",        path: "/delivery-intelligence",       icon: "◉", badge: "PI3",    badgeColor: "#003865" },
   { label: "Deployment Registry",          path: "/deployment-registry",        icon: "🚀", badge: "New",     badgeColor: "#059669" },
   { label: "QA Deployment Registry",        path: "/qa-deployment-registry",     icon: "📋" },
-  { label: "Registry Audit",               path: "/registry-audit",              icon: "🔍", badge: "Dev",     badgeColor: "#7c3aed" },
   { label: "Batch Control Panel",         path: "/control-panel",              icon: "⚙", badge: "Admin",    badgeColor: "#6366f1" },
   { label: "Governance Gates",            path: "/gate/overview",              icon: "◉" },
   { label: "Touchpoints (T1–T11)",        path: "/touchpoints",                icon: "↝" },
@@ -165,7 +163,6 @@ const GOVERNANCE_ITEMS: NavItem[] = [
   { label: "AAP Review Model",            path: "/aap-review",             icon: "◈" },
   { label: "Batch Delivery Review Model", path: "/batch-delivery-review",  icon: "⬡", badge: "NEW", badgeColor: "#059669" },
   { label: "Data Governance & SoT",  path: "/data-governance",     icon: "⚖" },
-  { label: "Roger UI Data Mapping",  path: "/roger-mapping",       icon: "≡" },
 ];
 
 // PI Planning removed — PI2/PI3 pages removed per governance cleanup
@@ -174,11 +171,11 @@ const GOVERNANCE_ITEMS: NavItem[] = [
 const ROGER_UI_ITEMS: NavItem[] = [
   { label: "Consumer Integration Hub",  path: "/consumer-integration-hub",  icon: "🔗", badge: "v4.0",   badgeColor: "#7c3aed" },
   { label: "Roger API Evolution",      path: "/roger-api",                icon: "⚡", badge: "Export", badgeColor: "#003865" },
+  { label: "Roger UI Data Mapping",    path: "/roger-mapping",             icon: "≡" },
 ];
 
-// Diagrams — alphabetical; Visio Architecture removed (duplicate of Architecture Sync); Agent Hub moved here
+// Diagrams — alphabetical; Visio Architecture removed (duplicate of Architecture Sync)
 const DIAGRAM_ITEMS: NavItem[] = [
-  { label: "Agent Hub — AI Execution Layer", path: "/agent-hub", icon: "◈" },
   { label: "Architecture Diagram",   path: "/architecture",            icon: "⬡" },
   { label: "Architecture Sync",      path: "/architecture?tab=visio",  icon: "⟳", isArchSync: true },
   { label: "Developer Architecture", path: "/architecture/developer",  icon: "▤" },

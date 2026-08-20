@@ -213,22 +213,6 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     lastUpdated: "2026-07-16",
   },
 
-  // ─── DELIVERY INTELLIGENCE ───────────────────────────────────────────────────
-  "/delivery-intelligence": {
-    pageTitle: "Delivery Intelligence PI3",
-    pageIcon: "📊",
-    description: "PI3 delivery intelligence — readiness scoring, critical path, and Roger capability impact",
-    features: ["PI Readiness Dashboard", "Critical Path Tracking", "Roger Capability Impact Matrix", "Executive KPIs", "Azure DevOps Review", "Optimization Review"],
-    apis: ["GET /api/delivery/pi3/readiness", "GET /api/delivery/critical-path", "GET /api/roger/capability-impact"],
-    stories: ["PI3 Readiness Assessment", "Critical Path Analysis", "Roger Capability Mapping"],
-    screens: ["PI Readiness Dashboard", "Critical Path Diagram", "Roger Impact Matrix", "Executive KPI Cards", "ADO Review Panel", "Optimization Panel"],
-    businessRules: ["PI3 target: Sep 21, 2026 MVP", "Critical path batches cannot slip without RC impact", "Roger capability requires 7/10 APIs ready for MVP"],
-    batches: ["B9", "B38", "B39", "B40", "B41", "B42", "B43"],
-    businessObjects: ["PI", "CriticalPath", "RogerCapability", "KPI"],
-    integrations: ["Azure DevOps", "GitHub", "Roger UI"],
-    lastUpdated: "2026-07-16",
-  },
-
   // ─── TOUCHPOINTS ─────────────────────────────────────────────────────────────
   "/touchpoints": {
     pageTitle: "System Touchpoints",
@@ -242,22 +226,6 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: ["B3", "B4", "B5", "B6"],
     businessObjects: ["Touchpoint", "IntegrationPoint", "DataExchange", "Event"],
     integrations: ["PDC", "TDC", "Orchestrator", "Roger", "GoSystem", "Service Bus"],
-    lastUpdated: "2026-07-16",
-  },
-
-  // ─── AGENT HUB ───────────────────────────────────────────────────────────────
-  "/agent-hub": {
-    pageTitle: "Agent Hub",
-    pageIcon: "🤖",
-    description: "AI agent orchestration — agent definitions, execution logs, and governance rules",
-    features: ["Agent Catalog", "Execution Log", "Agent Governance Rules", "Orchestrator Integration"],
-    apis: ["GET /api/agents", "GET /api/agents/:id", "GET /api/agents/:id/logs"],
-    stories: ["View Agent Catalog", "Review Execution Logs", "Inspect Agent Governance"],
-    screens: ["Agent List", "Agent Detail", "Execution Log", "Governance Rules Panel"],
-    businessRules: ["Agents are stateless — no persistent state between executions", "All agent decisions are logged for audit", "Agents cannot write to TDC directly — only via Orchestrator"],
-    batches: ["B30", "B31", "B32"],
-    businessObjects: ["Agent", "ExecutionLog", "AgentGovernanceRule", "Orchestrator"],
-    integrations: ["Orchestrator", "TDC", "PDC", "Azure OpenAI"],
     lastUpdated: "2026-07-16",
   },
 
@@ -865,7 +833,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
 //   1. Update the relevant fields in the registry entry
 //   2. Update lastUpdated to today's date
 //   3. Update lastChange to describe what changed
-// The Registry Audit page (/registry-audit) will flag any violations.
+// Registry validation reports any violations to the calling workflow.
 export const REGISTRY_MANIFEST = {
   version: "v8",
   lastAudit: "2026-07-16",
@@ -876,7 +844,7 @@ export const REGISTRY_MANIFEST = {
 
 // ─── Validate Registry ───────────────────────────────────────────────────────
 // Returns a list of routes that are missing from the registry.
-// Used by the Registry Audit page to surface gaps.
+// Used by platform workflows to surface registry gaps.
 export function validateRegistry(appRoutes: string[]): {
   missing: string[];
   stale: string[];
@@ -919,10 +887,6 @@ export function resolvePageContext(pathname: string): PageContextEntry | null {
 
   if (/^\/gate\/[^/]+$/.test(pathname)) {
     return PAGE_CONTEXT_REGISTRY["/gate/overview"] ?? null;
-  }
-
-  if (/^\/agent\/[^/]+$/.test(pathname)) {
-    return PAGE_CONTEXT_REGISTRY["/agent-hub"] ?? null;
   }
 
   if (/^\/architecture\/[^/]+$/.test(pathname)) {

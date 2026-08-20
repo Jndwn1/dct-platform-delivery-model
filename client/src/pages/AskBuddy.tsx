@@ -136,28 +136,6 @@ A batch cannot advance until its gates are passed.`,
     navButtonLabel: "Go to Gate Status →",
   },
   {
-    id: "agents",
-    section: "Agents",
-    navLabel: "Agents",
-    icon: "🤖",
-    accentColor: "#7c3aed",
-    buddyMessage: `Agents are specialized AI assistants that support delivery activities.
-
-• Analyst Agent — Requirements and discovery support. Helps BAs define scope, write stories, and identify gaps.
-
-• Architect Agent — Architecture and technical design guidance. Explains system relationships, ADRs, and guardrails.
-
-• Developer Agent — Implementation and API assistance. Supports engineers with contracts, endpoints, and integration patterns.
-
-• QA Agent — Testing and validation support. Assists with test coverage, invariant verification, and gate readiness.
-
-Each agent operates within defined ownership boundaries.`,
-    highlights: ["Analyst Agent", "Architect Agent", "Developer Agent", "QA Agent"],
-    examplePrompt: "What agents are available on the platform?",
-    navPath: "/agent-hub",
-    navButtonLabel: "Go to Agent Hub →",
-  },
-  {
     id: "ba",
     section: "BA & Requirements",
     navLabel: "BA & Requirements",
