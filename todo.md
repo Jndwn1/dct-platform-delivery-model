@@ -132,3 +132,4 @@
 - [x] Add concise shared Roger 18-screen readiness and delivery metrics to MVP Critical Milestones without duplicating QA testing detail
 - [x] Capture current landing-page and QA/UAT/deployment workspace screenshots and create a PowerPoint backup package before the suspension window
 - [x] Remove the visible “11 active MVP features” wording from Critical Story Completion while preserving locked MVP metrics elsewhere
+- [x] Restore the Critical Story Completion detail as “8 technical stories and 3 bugs — from the governed ADO lifecycle,” removing only the 11-feature phrase
