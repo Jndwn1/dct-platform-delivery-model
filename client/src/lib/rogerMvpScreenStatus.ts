@@ -51,6 +51,26 @@ export const ROGER_MVP_MILESTONES = [
   { milestone: "MVP code available in UAT environment", owners: "Santosh, Stephane", date: "TBD", notes: "Code has previously been deployed to UAT, but it may not reflect the latest MVP changes. Final deployment date for the completed MVP code is still being determined." },
 ] as const;
 
+const REGISTRY_DELIVERY_ORDER: Record<DeliveryStatus, number> = {
+  "In Progress": 0,
+  "In QA": 1,
+  "Not Started": 2,
+  "Not Functional": 3,
+  "Out of Scope": 4,
+  "Done": 5,
+  "Completed": 99,
+};
+
+export function orderRogerScreensForRegistry(records: RogerMvpScreenRecord[]) {
+  return records
+    .map((record, index) => ({ record, index }))
+    .sort((left, right) => {
+      const statusDifference = REGISTRY_DELIVERY_ORDER[left.record.deliveryStatus] - REGISTRY_DELIVERY_ORDER[right.record.deliveryStatus];
+      return statusDifference || left.index - right.index;
+    })
+    .map(item => item.record);
+}
+
 export function countBy(records: RogerMvpScreenRecord[], field: "deliveryStatus" | "qaReadinessStatus", value: string) {
   return records.filter(record => record[field] === value).length;
 }

@@ -138,3 +138,4 @@
 - [x] Update Critical Story Completion source detail to 10 technical stories and 2 bugs without changing any other milestone-card content or locked MVP metrics
 - [x] Diagnose and restore the blank DCT dashboard preview, then verify the landing page renders normally
 - [x] Replace the QA Deployment Registry Screen / Area data with the supplied authoritative 18-row Roger MVP readiness set and synchronize all shared screen-status consumers
+- [x] Sort QA Screen / Area rows with In Progress first and Completed last, remove QA Readiness and Functional columns, and standardize row height

@@ -6,6 +6,7 @@ import {
   ROGER_MVP_MILESTONES,
   ROGER_MVP_SCREEN_RECORDS,
   ROGER_SCREEN_STATUS_STORAGE_KEY,
+  orderRogerScreensForRegistry,
   type DeliveryStatus,
   type FunctionalStatus,
   type QAReadinessStatus,
@@ -57,13 +58,13 @@ export default function RogerScreenTestingStatus() {
     setScreens(next);
     localStorage.setItem(ROGER_SCREEN_STATUS_STORAGE_KEY, JSON.stringify(next));
   };
-  const visible = screens.filter(screen => (qaFilter === "All" || screen.qaReadinessStatus === qaFilter) && (deliveryFilter === "All" || screen.deliveryStatus === deliveryFilter));
+  const visible = orderRogerScreensForRegistry(screens.filter(screen => (qaFilter === "All" || screen.qaReadinessStatus === qaFilter) && (deliveryFilter === "All" || screen.deliveryStatus === deliveryFilter)));
   const save = () => {
     if (!draft) return;
     persist(screens.map(screen => screen.id === draft.id ? { ...draft, lastUpdated: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) } : screen));
     setEditingId(null); setDraft(null);
   };
-  const cell = (value: string, tone = "#475569") => <div style={{ fontSize: "11px", color: tone, lineHeight: 1.42, whiteSpace: "pre-line", overflowWrap: "anywhere" }}>{value}</div>;
+  const cell = (value: string, tone = "#475569") => <div style={{ fontSize: "11px", color: tone, lineHeight: 1.42, whiteSpace: "pre-line", overflowWrap: "anywhere", maxHeight: "72px", overflowY: "auto", paddingRight: "3px" }}>{value}</div>;
 
   return (
     <section style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "10px", overflow: "hidden", marginTop: "28px" }}>
@@ -92,17 +93,15 @@ export default function RogerScreenTestingStatus() {
       </div>
 
       <div style={{ overflowX: "auto" }}>
-        <div style={{ minWidth: "1550px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "165px 115px 125px 125px 1fr 130px 105px 105px 115px 150px 82px", gap: "8px", backgroundColor: "#0f1623", padding: "9px 16px" }}>{["Screen / Area", "Delivery / Current Status", "QA Readiness", "Functional", "What's Not Working / Dependency", "Dev Ready", "QA Ready", "UAT Ready", "Owner / Dependency", "Notes", ""].map((head, index) => <div key={`${head}-${index}`} style={{ color: "#bfdbfe", fontSize: "9px", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" }}>{head}</div>)}</div>
+        <div style={{ minWidth: "1320px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "165px 135px minmax(220px, 1fr) 110px 105px 105px 130px 220px 82px", gap: "8px", backgroundColor: "#0f1623", padding: "9px 16px" }}>{["Screen / Area", "Delivery / Current Status", "What's Not Working / Dependency", "Dev Ready", "QA Ready", "UAT Ready", "Owner / Dependency", "Notes", ""].map((head, index) => <div key={`${head}-${index}`} style={{ color: "#bfdbfe", fontSize: "9px", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" }}>{head}</div>)}</div>
           {visible.map((screen, index) => {
             const editing = editingId === screen.id;
             const row = editing && draft ? draft : screen;
             const field = <K extends keyof RogerMvpScreenRecord>(key: K, rows = 2) => editing ? <textarea value={String(row[key])} onChange={event => setDraft({ ...row, [key]: event.target.value })} rows={rows} style={inputStyle} /> : cell(String(row[key]), row[key] === "TBD" ? "#92400e" : "#475569");
-            return <div key={screen.id} style={{ display: "grid", gridTemplateColumns: "165px 115px 125px 125px 1fr 130px 105px 105px 115px 150px 82px", gap: "8px", alignItems: "start", padding: "10px 16px", borderBottom: "1px solid #e2e8f0", backgroundColor: editing ? "#eff6ff" : index % 2 ? "#f8fafc" : "#fff" }}>
-              <div style={{ fontSize: "12px", fontWeight: 800, color: "#0f172a" }}>{row.screen}<div style={{ fontSize: "9px", color: "#64748b", marginTop: "4px" }}>Updated {row.lastUpdated}</div></div>
+            return <div key={screen.id} style={{ display: "grid", gridTemplateColumns: "165px 135px minmax(220px, 1fr) 110px 105px 105px 130px 220px 82px", gap: "8px", alignItems: "start", height: "104px", boxSizing: "border-box", overflow: "hidden", padding: "10px 16px", borderBottom: "1px solid #e2e8f0", backgroundColor: editing ? "#eff6ff" : index % 2 ? "#f8fafc" : "#fff" }}>
+              <div style={{ fontSize: "12px", fontWeight: 800, color: "#0f172a", maxHeight: "72px", overflowY: "auto", paddingRight: "3px" }}>{row.screen}<div style={{ fontSize: "9px", color: "#64748b", marginTop: "4px" }}>Updated {row.lastUpdated}</div></div>
               <div>{editing ? <select value={row.deliveryStatus} onChange={event => setDraft({ ...row, deliveryStatus: event.target.value as DeliveryStatus })} style={inputStyle}>{DELIVERY_STATUSES.map(status => <option key={status}>{status}</option>)}</select> : <Badge label={row.deliveryStatus} style={DELIVERY_STYLE[row.deliveryStatus]} />}</div>
-              <div>{editing ? <select value={row.qaReadinessStatus} onChange={event => setDraft({ ...row, qaReadinessStatus: event.target.value as QAReadinessStatus })} style={inputStyle}>{QA_READINESS_STATUSES.map(status => <option key={status}>{status}</option>)}</select> : <Badge label={row.qaReadinessStatus} style={QA_STYLE[row.qaReadinessStatus]} />}</div>
-              <div>{editing ? <select value={row.functionalStatus} onChange={event => setDraft({ ...row, functionalStatus: event.target.value as FunctionalStatus })} style={inputStyle}>{FUNCTIONAL_STATUSES.map(status => <option key={status}>{status}</option>)}</select> : cell(row.functionalStatus)}</div>
               <div>{field("dependency", 3)}</div><div>{field("devReady", 2)}</div><div>{field("qaReady", 2)}</div><div>{field("uatReady", 2)}</div><div>{field("owner", 2)}</div><div>{field("notes", 3)}</div>
               <div>{editing ? <><button onClick={save} style={{ display: "block", width: "100%", padding: "4px", marginBottom: "4px", border: "none", borderRadius: "4px", background: "#059669", color: "#fff", fontWeight: 700, cursor: "pointer" }}>Save</button><button onClick={() => { setEditingId(null); setDraft(null); }} style={{ display: "block", width: "100%", padding: "4px", border: "1px solid #cbd5e1", borderRadius: "4px", background: "#fff", color: "#475569", fontWeight: 700, cursor: "pointer" }}>Cancel</button></> : <button onClick={() => { setEditingId(screen.id); setDraft({ ...screen }); }} style={{ width: "100%", padding: "4px", border: "1px solid #bfdbfe", borderRadius: "4px", background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, cursor: "pointer" }}>Edit</button>}</div>
             </div>;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countBy, getRogerScreenDeliverySummary, getRogerScreenReadinessSummary, ROGER_MVP_MILESTONES, ROGER_MVP_SCREEN_RECORDS } from "../client/src/lib/rogerMvpScreenStatus";
+import { countBy, getRogerScreenDeliverySummary, getRogerScreenReadinessSummary, orderRogerScreensForRegistry, ROGER_MVP_MILESTONES, ROGER_MVP_SCREEN_RECORDS } from "../client/src/lib/rogerMvpScreenStatus";
 
 describe("Roger MVP screen status model", () => {
   it("contains all authoritative current screen records", () => {
@@ -39,6 +39,13 @@ describe("Roger MVP screen status model", () => {
       outOfScope: 0,
       notFunctional: 0,
     });
+  });
+
+  it("orders In Progress records first and Completed records last for the Screen / Area registry", () => {
+    const ordered = orderRogerScreensForRegistry(ROGER_MVP_SCREEN_RECORDS);
+
+    expect(ordered.slice(0, 9).every(record => record.deliveryStatus === "In Progress")).toBe(true);
+    expect(ordered.slice(-9).every(record => record.deliveryStatus === "Completed")).toBe(true);
   });
 
   it("preserves the supplied Aug 28, Sep 4, and TBD milestone dates", () => {
