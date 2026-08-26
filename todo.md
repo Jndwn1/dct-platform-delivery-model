@@ -145,3 +145,4 @@
 - [x] Show Aug. 27 and Aug. 28 as the next critical milestones in Release Targets while preserving milestone cards and locked delivery metrics
 - [x] Update the Aug. 21 Critical Story Completion milestone to Complete while preserving source detail and all other milestone content
 - [x] Reconcile governed MVP metrics to 13 Active and 0 In Review, then update related readiness percentages across dashboard consumers
+- [x] Fix duplicate B31 PDC and B31 TDC React keys in Delivery Highlights without changing metrics or labels

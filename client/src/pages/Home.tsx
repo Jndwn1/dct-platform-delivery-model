@@ -758,11 +758,11 @@ export default function Home() {
   const activeAdoBatchFeatures = useMemo(() => {
     return activeAdoFeatures.filter(feature => feature.classification === "Batch");
   }, [activeAdoFeatures]);
-  const deliveryHighlightActiveBatchFeatures = useMemo(() => [
-    ...activeAdoBatchFeatures,
-    { id: "B31-PDC", batchNumber: "B31 PDC", featureName: "Legacy Tool Prior Year Ingestion & Housing" },
-    { id: "B31-TDC", batchNumber: "B31 TDC", featureName: "Legacy Tool Prior Year Data Housing" },
-  ], [activeAdoBatchFeatures]);
+  const deliveryHighlightActiveBatchFeatures = useMemo(() => activeAdoBatchFeatures.map(feature => {
+    if (feature.id === "B31-PDC") return { ...feature, featureName: "Legacy Tool Prior Year Ingestion & Housing" };
+    if (feature.id === "B31-TDC") return { ...feature, featureName: "Legacy Tool Prior Year Data Housing" };
+    return feature;
+  }), [activeAdoBatchFeatures]);
   const activeAdoNonBatchFeatures = useMemo(() => {
     return activeAdoFeatures.filter(feature => feature.classification === "Non-Batch MVP");
   }, [activeAdoFeatures]);
