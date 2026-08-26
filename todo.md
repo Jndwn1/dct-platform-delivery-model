@@ -140,3 +140,4 @@
 - [x] Replace the QA Deployment Registry Screen / Area data with the supplied authoritative 18-row Roger MVP readiness set and synchronize all shared screen-status consumers
 - [x] Sort QA Screen / Area rows with In Progress first and Completed last, remove QA Readiness and Functional columns, and standardize row height
 - [x] Resize QA Screen / Area columns and Edit actions so the complete table fits within the page without horizontal scrolling
+- [x] Update Roger MVP Key Milestone Dates with the supplied dates, owners, and status notes while preserving table layout

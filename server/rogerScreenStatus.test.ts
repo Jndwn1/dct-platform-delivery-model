@@ -48,7 +48,12 @@ describe("Roger MVP screen status model", () => {
     expect(ordered.slice(-9).every(record => record.deliveryStatus === "Completed")).toBe(true);
   });
 
-  it("preserves the supplied Aug 28, Sep 4, and TBD milestone dates", () => {
-    expect(ROGER_MVP_MILESTONES.map(milestone => milestone.date)).toEqual(["Aug 28, 2026", "Aug 28, 2026", "Sep 4, 2026", "TBD"]);
+  it("preserves the supplied Roger MVP milestone dates, owners, and status notes", () => {
+    expect(ROGER_MVP_MILESTONES).toEqual([
+      { milestone: "All MVP code in QA environment", owners: "Santosh, Stephane", date: "28-Aug", notes: "" },
+      { milestone: "Tax Portal code to send Trial Balance to Roger in QA environment", owners: "Amit", date: "28-Aug", notes: "Trial Balance Upload screen — Dev Ready Aug 15, QA Ready Aug 28 (validation issues in progress)" },
+      { milestone: "QA team done testing", owners: "Sreedhar, Suvarna", date: "9-Sep", notes: "Provided QA has environment availability and it is stable, for both QA and Performance." },
+      { milestone: "MVP code available in UAT environment", owners: "Santosh, Stephane", date: "15-Sep", notes: "Code deployed to UAT previously but may not reflect latest MVP changes. Date for complete, current MVP code deployment to UAT is still being determined." },
+    ]);
   });
 });

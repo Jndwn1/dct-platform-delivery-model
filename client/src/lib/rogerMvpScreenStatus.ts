@@ -45,10 +45,10 @@ export const ROGER_MVP_SCREEN_RECORDS: RogerMvpScreenRecord[] = [
 ];
 
 export const ROGER_MVP_MILESTONES = [
-  { milestone: "All MVP code in QA environment", owners: "Santosh, Stephane", date: "Aug 28, 2026", notes: "Target for all MVP code to be available in QA." },
-  { milestone: "Tax Portal code to send Trial Balance to Roger in QA environment", owners: "Amit", date: "Aug 28, 2026", notes: "Trial Balance Upload is completed; Dev Ready is Available and QA Ready is Aug 28." },
-  { milestone: "QA team done testing", owners: "Sreedhar, Suvarna", date: "Sep 4, 2026", notes: "Dependent on stable environment availability for QA and performance testing." },
-  { milestone: "MVP code available in UAT environment", owners: "Santosh, Stephane", date: "TBD", notes: "Code has previously been deployed to UAT, but it may not reflect the latest MVP changes. Final deployment date for the completed MVP code is still being determined." },
+  { milestone: "All MVP code in QA environment", owners: "Santosh, Stephane", date: "28-Aug", notes: "" },
+  { milestone: "Tax Portal code to send Trial Balance to Roger in QA environment", owners: "Amit", date: "28-Aug", notes: "Trial Balance Upload screen — Dev Ready Aug 15, QA Ready Aug 28 (validation issues in progress)" },
+  { milestone: "QA team done testing", owners: "Sreedhar, Suvarna", date: "9-Sep", notes: "Provided QA has environment availability and it is stable, for both QA and Performance." },
+  { milestone: "MVP code available in UAT environment", owners: "Santosh, Stephane", date: "15-Sep", notes: "Code deployed to UAT previously but may not reflect latest MVP changes. Date for complete, current MVP code deployment to UAT is still being determined." },
 ] as const;
 
 const REGISTRY_DELIVERY_ORDER: Record<DeliveryStatus, number> = {
