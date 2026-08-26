@@ -758,6 +758,11 @@ export default function Home() {
   const activeAdoBatchFeatures = useMemo(() => {
     return activeAdoFeatures.filter(feature => feature.classification === "Batch");
   }, [activeAdoFeatures]);
+  const deliveryHighlightActiveBatchFeatures = useMemo(() => [
+    ...activeAdoBatchFeatures,
+    { id: "B31-PDC", batchNumber: "B31 PDC", featureName: "Legacy Tool Prior Year Ingestion & Housing" },
+    { id: "B31-TDC", batchNumber: "B31 TDC", featureName: "Legacy Tool Prior Year Data Housing" },
+  ], [activeAdoBatchFeatures]);
   const activeAdoNonBatchFeatures = useMemo(() => {
     return activeAdoFeatures.filter(feature => feature.classification === "Non-Batch MVP");
   }, [activeAdoFeatures]);
@@ -1068,8 +1073,8 @@ export default function Home() {
 
           {/* Active ADO batch features — current pipeline source */}
           <div style={{ backgroundColor: "#eff6ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #2563eb" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active ADO Batch Features ({activeAdoBatchFeatures.length})</div>
-            {activeAdoBatchFeatures.map(feature => (
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e3a5f", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🔵 Active ADO Batch Features ({deliveryHighlightActiveBatchFeatures.length})</div>
+            {deliveryHighlightActiveBatchFeatures.map(feature => (
               <div key={feature.id} style={{ fontSize: "12px", color: "#1e3a5f", marginBottom: "4px", display: "flex", gap: "6px" }}>
                 <span style={{ fontWeight: 700, minWidth: "54px" }}>{feature.batchNumber}</span>
                 <span style={{ color: "#475569" }}>{feature.featureName}</span>
@@ -1078,23 +1083,6 @@ export default function Home() {
             <div style={{ marginTop: "8px", paddingTop: "6px", borderTop: "1px solid #bfdbfe", fontSize: "11px", color: "#2563eb", fontWeight: 600 }}>
               + {activeAdoNonBatchFeatures.length} non-batch Active features (MVP Enhancements, QA, Defects, Environment, Roger stabilization)
             </div>
-          </div>
-
-          {/* Upcoming Milestones — remaining PI 3 batches, primary: B31 */}
-          <div style={{ backgroundColor: "#faf5ff", borderRadius: "8px", padding: "14px 16px", borderLeft: "3px solid #7c3aed" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#4c1d95", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>🟣 Upcoming Milestones</div>
-            {([
-              { batch: "B31 PDC", label: "Legacy Tool Prior Year Ingestion & Housing",  note: "Review Ready — ADO #1390014", primary: true },
-              { batch: "B31 TDC", label: "Legacy Tool Prior Year Data Housing",           note: "Review Ready — ADO #1390267", primary: true },
-            ] as { batch: string; label: string; note: string; primary: boolean }[]).map(b => (
-              <div key={b.batch} style={{ fontSize: "12px", marginBottom: "6px" }}>
-                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                  <span style={{ fontWeight: 700, minWidth: "52px", color: b.primary ? "#7c3aed" : "#6b21a8" }}>{b.batch}</span>
-                  <span style={{ color: b.primary ? "#4c1d95" : "#6b21a8", fontWeight: b.primary ? 600 : 400 }}>{b.label}</span>
-                </div>
-                <div style={{ fontSize: "10px", color: "#94a3b8", marginLeft: "58px" }}>{b.note}</div>
-              </div>
-            ))}
           </div>
 
           {/* B31 Critical-Path Banner */}
