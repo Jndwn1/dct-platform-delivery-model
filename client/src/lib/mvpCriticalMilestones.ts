@@ -52,7 +52,7 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
     shortDescription: "Complete remaining MVP stories, both PY data stories, and initial CCH/TWB loads for selected test clients.",
     detail: ["Remaining MVP stories", "Both PY data stories", "Initial CCH and TWB test-client loads"],
     statusNotes: [
-      "TWB PY Data is pending validation with Krista/Jenniver.",
+      "TWB PY Data is complete.",
       "CCH code will be retrieved from IMS through the Export API.",
     ],
     sourceScope: "prior-year",
@@ -118,7 +118,7 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
         ...definition,
         status: hasEvidence ? "In Progress" : "Upcoming",
         owner: [b31Pdc?.owner, b31Tdc?.owner].filter(Boolean).join(" / ") || "Confirmation required",
-        source: hasEvidence ? "B31 PDC and B31 TDC review-ready ADO records" : "No governed B31 Prior Year record available",
+        source: hasEvidence ? "B31 PDC and B31 TDC Active ADO records" : "No governed B31 Prior Year record available",
         confirmationRequired: !hasEvidence,
       };
     }

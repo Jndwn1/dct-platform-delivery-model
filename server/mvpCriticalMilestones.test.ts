@@ -24,10 +24,10 @@ describe("MVP Critical Milestones", () => {
     expect(criticalStories?.status).toBe("Complete");
     expect(criticalStories?.source).toBe("10 technical stories and 2 bugs — from the governed ADO lifecycle");
     expect(environment?.source).toContain("Environment Management ADO");
-    expect(priorYear?.source).toContain("B31 PDC and B31 TDC");
+    expect(priorYear?.source).toBe("B31 PDC and B31 TDC Active ADO records");
     expect(priorYear?.owner).toBe("Abbas, Nasar / Luca, Gary");
     expect(priorYear?.statusNotes).toEqual([
-      "TWB PY Data is pending validation with Krista/Jenniver.",
+      "TWB PY Data is complete.",
       "CCH code will be retrieved from IMS through the Export API.",
     ]);
   });
