@@ -17,6 +17,7 @@ type MvpMilestoneDefinition = {
   shortDescription: string;
   detail: string[];
   statusNotes?: string[];
+  statusOverride?: Exclude<MvpMilestoneStatus, "At Risk / Confirmation Required">;
   sourceScope: "delivery" | "prior-year" | "environment" | "uat" | "release";
 };
 
@@ -40,6 +41,7 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
     name: "Critical Story Completion",
     shortDescription: "Complete identified critical MVP stories required to keep the release on schedule.",
     detail: ["Leadership-critical MVP story list"],
+    statusOverride: "Complete",
     sourceScope: "delivery",
   },
   {
@@ -100,10 +102,10 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
 
   return MVP_CRITICAL_MILESTONE_SCHEDULE.map(definition => {
     if (definition.sourceScope === "delivery") {
-      const confirmationRequired = mvp.inDev === 0 && mvp.complete !== mvp.total;
+      const confirmationRequired = !definition.statusOverride && mvp.inDev === 0 && mvp.complete !== mvp.total;
       return {
         ...definition,
-        status: statusFromActiveWork(mvp.inDev > 0, mvp.complete === mvp.total),
+        status: definition.statusOverride ?? statusFromActiveWork(mvp.inDev > 0, mvp.complete === mvp.total),
         owner: "DCT Delivery Team",
         source: "10 technical stories and 2 bugs — from the governed ADO lifecycle",
         confirmationRequired,

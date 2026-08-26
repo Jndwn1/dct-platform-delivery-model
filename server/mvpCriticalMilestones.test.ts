@@ -21,7 +21,7 @@ describe("MVP Critical Milestones", () => {
     const environment = milestones.find(item => item.id === "environment-readiness");
     const priorYear = milestones.find(item => item.id === "remaining-stories-py-ready");
     
-    expect(criticalStories?.status).toBe("In Progress");
+    expect(criticalStories?.status).toBe("Complete");
     expect(criticalStories?.source).toBe("10 technical stories and 2 bugs — from the governed ADO lifecycle");
     expect(environment?.source).toContain("Environment Management ADO");
     expect(priorYear?.source).toContain("B31 PDC and B31 TDC");
@@ -32,11 +32,11 @@ describe("MVP Critical Milestones", () => {
     ]);
   });
 
-  it("selects the next incomplete milestone from derived inputs and flags overdue confirmation", () => {
+  it("selects the Aug. 27 milestone after user-confirmed critical-story completion", () => {
     const milestones = deriveMvpCriticalMilestones(DEFAULT_STATUS);
     const asOf = new Date("2026-08-20T12:00:00");
     const next = getNextCriticalMilestone(milestones, asOf);
-    expect(next.id).toBe("critical-story-completion");
-    expect(resolveMilestoneStatus(next, new Date("2026-08-22T12:00:00"))).toBe("At Risk / Confirmation Required");
+    expect(next.id).toBe("remaining-stories-py-ready");
+    expect(resolveMilestoneStatus(next, new Date("2026-08-22T12:00:00"))).toBe("In Progress");
   });
 });
