@@ -5,3 +5,5 @@ The QA Deployment Registry was reviewed after the authoritative Roger MVP readin
 The reviewed table shows the supplied Aug. 26 update date, the updated **Delivery / Current Status** column heading, the completed Line Mapping Page record, the Return Filing Page API-field dependencies, PY Data and Gateway/API dependencies, M-1/M-2 items for Form 1120, and Sign Off defect **#1450692**. Long notes render within the existing Notes column and do not change the table structure.
 
 The table refinement places all **In Progress** rows before every **Completed** row. The QA Readiness and Functional columns are removed from the Screen / Area grid, and each record uses the same fixed row height; dependency and Notes cells provide internal scrolling for longer supplied text instead of expanding the row or the table width.
+
+The grid was further compressed to the available page width. Its action column remains visible at the right edge, including the Edit control, and the Screen / Area container no longer creates a horizontal scroll region.

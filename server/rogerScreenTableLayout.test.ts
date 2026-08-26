@@ -8,6 +8,10 @@ describe("Roger Screen / Area table layout", () => {
 
     expect(source).toContain('height: "104px"');
     expect(source).toContain('overflowY: "auto"');
+    expect(source).toContain('overflowX: "hidden"');
+    expect(source).toContain('minWidth: 0, width: "100%"');
+    expect(source).toContain('54px');
+    expect(source).not.toContain('minWidth: "1320px"');
     expect(source).toContain('"Delivery / Current Status", "What\'s Not Working / Dependency", "Dev Ready", "QA Ready", "UAT Ready", "Owner / Dependency", "Notes"');
     expect(source).not.toContain('"Delivery / Current Status", "QA Readiness", "Functional", "What\'s Not Working / Dependency"');
   });
