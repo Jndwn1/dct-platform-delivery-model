@@ -36,8 +36,8 @@ describe("PI3 closure status model", () => {
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 28,
       complete: 15,
-      inDev: 11,
-      inReview: 2,
+      inDev: 13,
+      inReview: 0,
       planned: 0,
       readinessPct: 54,
     });
@@ -50,8 +50,8 @@ describe("PI3 closure status model", () => {
       batchFeatures: 23,
       nonBatchFeatures: 5,
       complete: 15,
-      active: 11,
-      inReview: 2,
+      active: 13,
+      inReview: 0,
       planned: 0,
       readinessPct: 54,
     });
@@ -62,8 +62,8 @@ describe("PI3 closure status model", () => {
     expect(deriveBatchMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 23,
       complete: 15,
-      inDev: 6,
-      inReview: 2,
+      inDev: 8,
+      inReview: 0,
       planned: 0,
       readinessPct: 65,
       reconciles: true,
@@ -71,18 +71,18 @@ describe("PI3 closure status model", () => {
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 28,
       complete: 15,
-      inDev: 11,
-      inReview: 2,
+      inDev: 13,
+      inReview: 0,
       planned: 0,
       readinessPct: 54,
       reconciles: true,
     });
   });
 
-  it("traces the two Review Ready records to the B31 ADO work items", () => {
-    const reviewReady = BATCH_DELIVERY_RECORDS.filter(record => record.statusKey === "31");
-    expect(reviewReady.map(record => record.adoId)).toEqual(["1390014", "1390267"]);
-    expect(reviewReady).toHaveLength(2);
+  it("traces the two Active B31 records to their ADO work items", () => {
+    const b31Active = BATCH_DELIVERY_RECORDS.filter(record => record.statusKey === "31");
+    expect(b31Active.map(record => record.adoId)).toEqual(["1390014", "1390267"]);
+    expect(b31Active.every(record => record.sourceStatusLabel === "Active")).toBe(true);
   });
 
   it("keeps the supplied ADO Active records out of the Planned bucket", () => {
@@ -100,13 +100,13 @@ describe("PI3 closure status model", () => {
       .map(record => record.statusKey)
       .sort();
 
-    expect(activeBatchKeys).toEqual(["10", "28", "42", "45", "7", "9a"]);
+    expect(activeBatchKeys).toEqual(["10", "28", "31", "31", "42", "45", "7", "9a"]);
     expect(NON_BATCH_MVP_RECORDS).toHaveLength(5);
-    expect(deriveBatchMetrics(DEFAULT_STATUS).inDev).toBe(6);
-    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(11);
+    expect(deriveBatchMetrics(DEFAULT_STATUS).inDev).toBe(8);
+    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(13);
   });
 
-  it("keeps the Executive calendar aligned to the supplied ADO Active and Review Ready classifications", () => {
+  it("keeps the Executive calendar aligned to the supplied ADO Active classifications", () => {
     const statusFor = (batch: string, feat?: string) =>
       BATCH_CALENDAR_PI23.find(row => row.batch === batch && (!feat || row.feat === feat))?.status;
 
@@ -117,8 +117,8 @@ describe("PI3 closure status model", () => {
     expect(statusFor("B39")).toBe("Out of Current ADO Pipeline");
     expect(statusFor("B20")).toBe("Out of Current ADO Pipeline");
     expect(statusFor("B21")).toBe("Out of Current ADO Pipeline");
-    expect(statusFor("B31", "PDC")).toBe("Review Ready");
-    expect(statusFor("B31", "TDC")).toBe("Review Ready");
+    expect(statusFor("B31", "PDC")).toBe("In Progress");
+    expect(statusFor("B31", "TDC")).toBe("In Progress");
   });
 
   it("marks B20, B21, and B39 as historical planning references in every batch detail view", () => {

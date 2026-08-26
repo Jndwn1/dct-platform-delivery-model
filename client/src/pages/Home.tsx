@@ -150,7 +150,7 @@ const BATCH_CALENDAR_PI23 = [
   { pi: "PI 2", status: "Done",        batch: "B16",   feat: "PDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 6/22",  endDate: "Tue 6/30",  whatItDoes: "Records the cross-LOB audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
   // ── PI 3 ──
   { pi: "PI 3", status: "Done",        batch: "B16",   feat: "TDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 7/13",  endDate: "Tue 7/21",  whatItDoes: "Records the tax-side audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
-  { pi: "PI 3", status: "Review Ready", batch: "B31",  feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
+  { pi: "PI 3", status: "In Progress", batch: "B31",  feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
   { pi: "PI 3", status: "In Progress", batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
   { pi: "PI 3", status: "In Progress", batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
   { pi: "PI 3", status: "Out of Current ADO Pipeline", batch: "B39", feat: "TDC", name: "Calculation Report", startDate: "Fri 7/31", endDate: "Mon 8/10", whatItDoes: "Historical portfolio item; not present in the supplied current ADO Active or Review Ready extract.", rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
@@ -159,7 +159,7 @@ const BATCH_CALENDAR_PI23 = [
   { pi: "PI 3", status: "Out of Current ADO Pipeline", batch: "B21", feat: "PDC", name: "Quality Control Standards", startDate: "Mon 8/3", endDate: "Tue 8/11", whatItDoes: "Historical portfolio item; not present in the supplied current ADO Active or Review Ready extract.", rogerImpact: "None: reference only, no new screen" },
   { pi: "PI 3", status: "Done",        batch: "B17",   feat: "TDC",     name: "Decision Support, Overrides, Evidence & Workpapers",               startDate: "Thu 8/20",  endDate: "Fri 8/28",  whatItDoes: "Adds override policies, evidence on decisions, and workpaper lock to snapshot.",                                                                rogerImpact: "Med: wire evidence / override / lock into review screens" },
   { pi: "PI 3", status: "Historical / Excluded", batch: "B26", feat: "PDC", name: "Entity Constituents & Allocations", startDate: "Wed 8/12", endDate: "Thu 8/20", whatItDoes: "Historical planning record retained outside the corrected 23-batch MVP scope.", rogerImpact: "None: structure only in MVP" },
-  { pi: "PI 3", status: "Review Ready", batch: "B31",  feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
+  { pi: "PI 3", status: "In Progress", batch: "B31",  feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
   { pi: "PI 3", status: "Stretch",     batch: "B33",   feat: "TDC",     name: "State Reference, Apportionment, Payments, NOL/Credit, Forms, TX Franchise", startDate: "Thu 9/10", endDate: "Fri 9/18", whatItDoes: "Adds state apportionment, nexus, payments, NOL/credit, forms, TX franchise.", rogerImpact: "High (stretch): state screens" },
 ];
 
@@ -862,8 +862,8 @@ export default function Home() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginTop: "20px", position: "relative" }}>
           {[
             { label: "MVP Features Complete", value: mvp.complete, sub: "ADO-backed lifecycle", color: "#34d399" },
-            { label: "MVP Features Active", value: mvp.inDev, sub: "11 Active ADO features", color: "#60a5fa" },
-            { label: "MVP Features In Review", value: mvp.inReview, sub: "2 Review Ready", color: "#a78bfa" },
+            { label: "MVP Features Active", value: mvp.inDev, sub: "13 Active ADO features", color: "#60a5fa" },
+            { label: "MVP Features In Review", value: mvp.inReview, sub: "No features in review", color: "#a78bfa" },
             { label: "MVP Features Planned", value: mvp.planned, sub: "Not Started only", color: "#94a3b8" },
             { label: "Total MVP Features", value: mvp.total, sub: `${batchTotal} batch + 5 non-batch`, color: "#fb923c" },
             { label: "Roger QA Screens", value: rogerScreenMetrics.total, sub: `${rogerScreenDeliveryMetrics.completed} Completed · ${rogerScreenDeliveryMetrics.inProgress} In Progress · QA status not stated`, color: "#38bdf8" },
@@ -1097,7 +1097,7 @@ export default function Home() {
               <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Legacy Tool Prior Year Data Housing</span>
             </div>
             <div style={{ fontSize: "11px", color: "#991b1b", lineHeight: "1.5" }}>
-              Status: Review Ready (ADO #1390014, #1390267) · Owner: Abbas, Nasar / Luca, Gary
+              Status: Active (ADO #1390014, #1390267) · Owner: Abbas, Nasar / Luca, Gary
             </div>
             <div style={{ fontSize: "11px", color: "#b91c1c", marginTop: "4px", fontStyle: "italic" }}>
               Prior year data housing required for rollforward, carryforward, and TB reconciliation before pilot start.

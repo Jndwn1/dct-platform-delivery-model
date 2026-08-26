@@ -35,7 +35,7 @@ export const BATCH_CALENDAR_PI23: Array<{
   { pi: "PI 2", status: "Done",        batch: "B16",   feat: "PDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 6/22",  endDate: "Tue 6/30",  whatItDoes: "Records the cross-LOB audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
   // ── PI 3 ──
   { pi: "PI 3", status: "Done",        batch: "B16",   feat: "TDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 7/13",  endDate: "Tue 7/21",  whatItDoes: "Records the tax-side audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
-  { pi: "PI 3", status: "Review Ready", batch: "B31",  feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
+  { pi: "PI 3", status: "In Progress", batch: "B31",  feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
   { pi: "PI 3", status: "In Progress",         batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
   { pi: "PI 3", status: "In Progress",         batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
   { pi: "PI 3", status: "Out of Current ADO Pipeline",         batch: "B39",   feat: "TDC",     name: "Calculation Report",                                                startDate: "Fri 7/31",  endDate: "Mon 8/10",  whatItDoes: "Produces the packaged, partner-ready calculation and sign-off report.",                                                                         rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
@@ -44,7 +44,7 @@ export const BATCH_CALENDAR_PI23: Array<{
   { pi: "PI 3", status: "Out of Current ADO Pipeline",         batch: "B21",   feat: "PDC",     name: "Quality Control Standards",                                        startDate: "Mon 8/3",   endDate: "Tue 8/11",  whatItDoes: "Holds quality-control review standards and concurring-partner rules.",                                                                          rogerImpact: "None: reference only, no new screen" },
   { pi: "PI 3", status: "Done",        batch: "B17",   feat: "TDC",     name: "Decision Support, Overrides, Evidence & Workpapers",               startDate: "Thu 8/20",  endDate: "Fri 8/28",  whatItDoes: "Adds override policies, evidence on decisions, and workpaper lock to snapshot.",                                                                rogerImpact: "Med: wire evidence / override / lock into review screens" },
   { pi: "PI 3", status: "Historical / Excluded", batch: "B26", feat: "PDC", name: "Entity Constituents & Allocations", startDate: "Wed 8/12", endDate: "Thu 8/20", whatItDoes: "Historical planning record retained outside the corrected 23-batch MVP scope.", rogerImpact: "None: structure only in MVP" },
-  { pi: "PI 3", status: "Review Ready", batch: "B31",  feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
+  { pi: "PI 3", status: "In Progress", batch: "B31",  feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
   { pi: "PI 3", status: "Stretch",     batch: "B33",   feat: "TDC",     name: "State Reference, Apportionment, Payments, NOL/Credit, Forms, TX Franchise", startDate: "Thu 9/10", endDate: "Fri 9/18", whatItDoes: "Adds state apportionment, nexus, payments, NOL/credit, forms, TX franchise.", rogerImpact: "High (stretch): state screens" },
 ];
 
@@ -254,7 +254,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       color: "#2563eb",
       bg: "#eff6ff",
       border: "#bfdbfe",
-      note: "Current ADO PI3 scope: 3 Active batch features and 2 B31 Review Ready records are included in the denominator.",
+      note: "Current ADO PI3 scope: 5 Active batch features, including the two B31 records, are included in the denominator.",
     },
     {
       pi: "PI 4",
@@ -327,7 +327,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="MVP Features Active"
           value={mvp.inDev}
-          sub="11 Active ADO features"
+          sub="13 Active ADO features"
           accent="#2563eb"
           badge="In Flight"
           badgeColor="#2563eb"
@@ -335,7 +335,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="MVP Features In Review"
           value={mvp.inReview}
-          sub="2 Review Ready"
+          sub="No features in review"
           accent="#7c3aed"
           badge="Review"
           badgeColor="#7c3aed"

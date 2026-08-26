@@ -1799,7 +1799,7 @@ export default function BatchControlPanel() {
         )}
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-5">
-          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from ADO-backed records. The six active batch features—B7, B10, B42, B45, B28, and B9A—count as <strong>In Development</strong>; the five active non-batch MVP features also count as <strong>In Development</strong>; B31 has two <strong>Review Ready</strong> records. B39, B20, B21, B26, and historical split records are excluded from the current 23-batch MVP scope. The prior 23-complete display did not retain a record-level calculation snapshot.
+          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from ADO-backed records. The eight active batch features—B7, B10, B42, B45, B28, B9A, B31 PDC, and B31 TDC—count as <strong>In Development</strong>; the five active non-batch MVP features also count as <strong>In Development</strong>. B39, B20, B21, B26, and historical split records are excluded from the current 23-batch MVP scope. The prior 23-complete display did not retain a record-level calculation snapshot.
         </div>
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-5">

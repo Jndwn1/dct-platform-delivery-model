@@ -318,7 +318,7 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "9a": "In Progress", // B9A — Data Gateway (IMS, CDS, DUO) (ADO Active)
   "17": "Complete", // B17 — Decision Support — Overrides, Evidence & Workpapers (Closed 8/4/2026)
   "29": "Complete",    // B29 — Consolidated Return Assembly (Closed in PI3 on Aug 11, 2026)
-  "31": "Ready for QA", // B31 — Legacy Tool Prior Year Ingestion & Housing (ADO: Review Ready)
+  "31": "In Progress", // B31 — Legacy Tool Prior Year Ingestion & Housing (ADO: Active)
   "26": "Ready for QA", // B26 — Entity Constituents & Allocations (ADO: Review Ready)
   "39": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
@@ -370,7 +370,7 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
 export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
   pi2:  ["4", "5", "6", "7", "8", "10", "11", "43", "13", "42"], // Current ADO: B7, B10, B42 Active
-  pi3:  ["16", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A Active; B31 Review Ready
+  pi3:  ["16", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A, and B31 Active
   pi4:  ["19", "40", "35", "26-tdc"],
 };
 
@@ -378,7 +378,7 @@ export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 // Authoritative current MVP scope: 23 batch features + 5 non-batch MVP features = 28.
 // The four historical split records B8-PDC, B8-TDC, B9, and B9-PDC are retained
 // for lineage and API traceability but excluded from current MVP lifecycle metrics.
-// Current ADO lifecycle: 15 Complete, 11 In Development, 2 In Review, 0 Planned.
+// Current ADO lifecycle: 15 Complete, 13 In Development, 0 In Review, 0 Planned.
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
@@ -421,7 +421,7 @@ const noAdo = "Not present in current source";
 
 /**
  * Authoritative executive metric population. Each entry is one ADO-facing feature;
- * B31 is intentionally represented by its two Review Ready records. This prevents
+ * B31 is intentionally represented by its two Active records. This prevents
  * parent/sub-track duplication from inflating Batch Delivery counts.
  */
 export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
@@ -446,8 +446,8 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "B45", statusKey: "45", adoId: "1444477", featureName: BATCH_LABELS["45"], batchNumber: "B45", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
   { id: "B28", statusKey: "28", adoId: "1390012", featureName: BATCH_LABELS["28"], batchNumber: "B28", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
   { id: "B9A", statusKey: "9a", adoId: "1387817", featureName: BATCH_LABELS["9a"], batchNumber: "B9A", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Active" },
-  { id: "B31-PDC", statusKey: "31", adoId: "1390014", featureName: "Batch 31 | PDC — Legacy Tool Prior Year Ingestion & Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Review Ready" },
-  { id: "B31-TDC", statusKey: "31", adoId: "1390267", featureName: "Batch 31 | TDC — Legacy Tool Prior Year Data Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Review Ready" },
+  { id: "B31-PDC", statusKey: "31", adoId: "1390014", featureName: "Batch 31 | PDC — Legacy Tool Prior Year Ingestion & Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Active" },
+  { id: "B31-TDC", statusKey: "31", adoId: "1390267", featureName: "Batch 31 | TDC — Legacy Tool Prior Year Data Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
 ];
 
 export const NON_BATCH_MVP_RECORDS: DeliveryMetricRecord[] = [
@@ -475,8 +475,8 @@ export const LOCKED_MVP_BASELINE = {
   batchFeatures: 23,
   nonBatchFeatures: 5,
   complete: 15,
-  active: 11,
-  inReview: 2,
+  active: 13,
+  inReview: 0,
   planned: 0,
   readinessPct: 54,
 } as const;
