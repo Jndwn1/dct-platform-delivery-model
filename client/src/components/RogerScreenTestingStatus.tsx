@@ -18,6 +18,7 @@ const QA_STYLE: Record<QAReadinessStatus, { bg: string; text: string; border: st
   "Not Ready": { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
   "Out of Scope": { bg: "#f8fafc", text: "#475569", border: "#e2e8f0" },
   "Not Functional": { bg: "#fff1f2", text: "#9f1239", border: "#fecdd3" },
+  "Not stated": { bg: "#f8fafc", text: "#475569", border: "#cbd5e1" },
 };
 
 const DELIVERY_STYLE: Record<DeliveryStatus, { bg: string; text: string; border: string }> = {
@@ -62,13 +63,14 @@ export default function RogerScreenTestingStatus() {
     persist(screens.map(screen => screen.id === draft.id ? { ...draft, lastUpdated: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) } : screen));
     setEditingId(null); setDraft(null);
   };
-  const cell = (value: string, tone = "#475569") => <div style={{ fontSize: "11px", color: tone, lineHeight: 1.42, whiteSpace: "pre-line" }}>{value}</div>;
+  const cell = (value: string, tone = "#475569") => <div style={{ fontSize: "11px", color: tone, lineHeight: 1.42, whiteSpace: "pre-line", overflowWrap: "anywhere" }}>{value}</div>;
 
   return (
     <section style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "10px", overflow: "hidden", marginTop: "28px" }}>
       <header style={{ backgroundColor: "#1e3a5f", padding: "16px 20px" }}>
         <div style={{ fontSize: "15px", fontWeight: 800, color: "#ffffff" }}>Roger Screen Testing Status</div>
         <div style={{ fontSize: "11px", color: "#bfdbfe", marginTop: "3px" }}>Authoritative Roger MVP screen lifecycle, QA readiness, dependencies, and milestone dates. Delivery status and QA readiness are distinct measures.</div>
+        <div style={{ fontSize: "10px", color: "#dbeafe", marginTop: "5px" }}>Screen / Area last updated: {screens[0]?.lastUpdated ?? "—"}</div>
       </header>
 
       <div style={{ padding: "14px 16px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
@@ -91,7 +93,7 @@ export default function RogerScreenTestingStatus() {
 
       <div style={{ overflowX: "auto" }}>
         <div style={{ minWidth: "1550px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "165px 115px 125px 125px 1fr 130px 105px 105px 115px 150px 82px", gap: "8px", backgroundColor: "#0f1623", padding: "9px 16px" }}>{["Screen / Area", "Delivery", "QA Readiness", "Functional", "What's Not Working / Dependency", "Dev Ready", "QA Ready", "UAT Ready", "Owner / Dependency", "Notes", ""].map((head, index) => <div key={`${head}-${index}`} style={{ color: "#bfdbfe", fontSize: "9px", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" }}>{head}</div>)}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "165px 115px 125px 125px 1fr 130px 105px 105px 115px 150px 82px", gap: "8px", backgroundColor: "#0f1623", padding: "9px 16px" }}>{["Screen / Area", "Delivery / Current Status", "QA Readiness", "Functional", "What's Not Working / Dependency", "Dev Ready", "QA Ready", "UAT Ready", "Owner / Dependency", "Notes", ""].map((head, index) => <div key={`${head}-${index}`} style={{ color: "#bfdbfe", fontSize: "9px", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" }}>{head}</div>)}</div>
           {visible.map((screen, index) => {
             const editing = editingId === screen.id;
             const row = editing && draft ? draft : screen;

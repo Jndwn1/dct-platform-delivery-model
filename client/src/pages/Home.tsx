@@ -861,7 +861,7 @@ export default function Home() {
             { label: "MVP Features In Review", value: mvp.inReview, sub: "2 Review Ready", color: "#a78bfa" },
             { label: "MVP Features Planned", value: mvp.planned, sub: "Not Started only", color: "#94a3b8" },
             { label: "Total MVP Features", value: mvp.total, sub: `${batchTotal} batch + 5 non-batch`, color: "#fb923c" },
-            { label: "Roger QA Screens", value: rogerScreenMetrics.total, sub: `${rogerScreenMetrics.ready} Ready · ${rogerScreenMetrics.partial} Partial · ${rogerScreenMetrics.notReady} Not Ready`, color: "#38bdf8" },
+            { label: "Roger QA Screens", value: rogerScreenMetrics.total, sub: `${rogerScreenDeliveryMetrics.completed} Completed · ${rogerScreenDeliveryMetrics.inProgress} In Progress · QA status not stated`, color: "#38bdf8" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",
@@ -1021,9 +1021,9 @@ export default function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(112px, 1fr))", gap: "8px", marginTop: "10px" }}>
             {[
               { label: "Total Screens", value: rogerScreenMetrics.total, color: "#1e3a5f", bg: "#eaf0fb" },
-              { label: "Ready to Test", value: rogerScreenMetrics.ready, color: "#047857", bg: "#ecfdf5" },
-              { label: "Partially Ready", value: rogerScreenMetrics.partial, color: "#92400e", bg: "#fffbeb" },
-              { label: "Not Ready", value: rogerScreenMetrics.notReady, color: "#b91c1c", bg: "#fef2f2" },
+              { label: "Completed", value: rogerScreenDeliveryMetrics.completed, color: "#047857", bg: "#ecfdf5" },
+              { label: "In Progress", value: rogerScreenDeliveryMetrics.inProgress, color: "#92400e", bg: "#fffbeb" },
+              { label: "QA Status Not Stated", value: rogerScreenMetrics.notStated, color: "#475569", bg: "#f8fafc" },
             ].map(metric => (
               <div key={metric.label} style={{ borderRadius: "6px", backgroundColor: metric.bg, padding: "8px 9px", border: `1px solid ${metric.color}22` }}>
                 <div style={{ fontSize: "18px", lineHeight: 1, fontWeight: 800, color: metric.color }}>{metric.value}</div>
