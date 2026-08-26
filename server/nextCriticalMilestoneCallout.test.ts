@@ -7,7 +7,7 @@ describe("MVP Critical Milestones header", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
 
     expect(source).not.toContain('textTransform: "uppercase" }}>Next Critical Milestone</div>');
-    expect(source).toContain('{ label: "Next Critical Milestone", value: `${nextCriticalMilestone.dateLabel} · ${nextCriticalMilestone.name}`');
+    expect(source).toContain('label: index === 0 ? "Next Critical Milestone" : "Following Critical Milestone"');
     expect(source).toContain("criticalMilestones.map");
   });
 });

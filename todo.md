@@ -142,3 +142,4 @@
 - [x] Resize QA Screen / Area columns and Edit actions so the complete table fits within the page without horizontal scrolling
 - [x] Update Roger MVP Key Milestone Dates with the supplied dates, owners, and status notes while preserving table layout
 - [x] Move B31 PDC and B31 TDC into Delivery Highlights Active ADO Batch Features while preserving milestone and critical-path context
+- [x] Show Aug. 27 and Aug. 28 as the next critical milestones in Release Targets while preserving milestone cards and locked delivery metrics

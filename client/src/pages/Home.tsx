@@ -24,7 +24,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
 import { getRogerScreenDeliverySummary, getRogerScreenReadinessSummary, ROGER_MVP_MILESTONES } from "@/lib/rogerMvpScreenStatus";
-import { deriveMvpCriticalMilestones, getNextCriticalMilestone, MVP_TARGET_DATE_LABEL, resolveMilestoneStatus } from "@/lib/mvpCriticalMilestones";
+import { deriveMvpCriticalMilestones, MVP_TARGET_DATE_LABEL, resolveMilestoneStatus } from "@/lib/mvpCriticalMilestones";
 import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
@@ -649,7 +649,7 @@ export default function Home() {
   const rogerScreenMetrics = useMemo(() => getRogerScreenReadinessSummary(), []);
   const rogerScreenDeliveryMetrics = useMemo(() => getRogerScreenDeliverySummary(), []);
   const criticalMilestones = useMemo(() => deriveMvpCriticalMilestones(statuses), [statuses]);
-  const nextCriticalMilestone = useMemo(() => getNextCriticalMilestone(criticalMilestones), [criticalMilestones]);
+  const releaseTargetCriticalMilestones = useMemo(() => criticalMilestones.filter(milestone => ["Aug 27, 2026", "Aug 28, 2026"].includes(milestone.dateLabel)), [criticalMilestones]);
   const pi3Closed = getPi3CumulativeCompleted();
   const recentlyClosedPi3 = PI3_POST_BASELINE_CLOSURES;
   const closedThisWeek = recentlyClosedPi3.filter(item => isInDashboardReportingWeek(item.completionDate));
@@ -959,7 +959,7 @@ export default function Home() {
             {[
               { label: "Release Candidate", value: rcLabel,        color: "#059669" },
               { label: "Target MVP Date",   value: MVP_TARGET_DATE_LABEL, color: "#0f1623" },
-              { label: "Next Critical Milestone", value: `${nextCriticalMilestone.dateLabel} · ${nextCriticalMilestone.name}`, color: "#2563eb" },
+              ...releaseTargetCriticalMilestones.map((milestone, index) => ({ label: index === 0 ? "Next Critical Milestone" : "Following Critical Milestone", value: `${milestone.dateLabel} · ${milestone.name}`, color: "#2563eb" })),
               { label: "Batch Readiness", value: `${batchPct}%`, color: batchPct >= 70 ? "#059669" : "#d97706" },
               { label: "Overall MVP Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#d97706" },
               { label: "MVP In Development", value: `${mvp.inDev} features`, color: "#2563eb" },
