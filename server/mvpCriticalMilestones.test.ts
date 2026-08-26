@@ -13,6 +13,7 @@ describe("MVP Critical Milestones", () => {
     expect(MVP_CRITICAL_MILESTONE_SCHEDULE).toHaveLength(5);
     expect(MVP_CRITICAL_MILESTONE_SCHEDULE.at(-1)?.date).toBe(MVP_TARGET_DATE);
     expect(MVP_TARGET_DATE).toBe(GOVERNED_PROGRAM_HEALTH.pilotTargetDate);
+    expect(MVP_CRITICAL_MILESTONE_SCHEDULE.find(item => item.id === "remaining-stories-py-ready")?.dateLabel).toBe("Aug 28, 2026");
   });
 
   it("derives milestone status and source evidence from shared governed delivery inputs", () => {

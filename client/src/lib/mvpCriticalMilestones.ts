@@ -46,8 +46,8 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
   },
   {
     id: "remaining-stories-py-ready",
-    date: "2026-08-27",
-    dateLabel: "Aug 27, 2026",
+    date: "2026-08-28",
+    dateLabel: "Aug 28, 2026",
     name: "Remaining Stories + PY Data Ready",
     shortDescription: "Complete remaining MVP stories, both PY data stories, and initial CCH/TWB loads for selected test clients.",
     detail: ["Remaining MVP stories", "Both PY data stories", "Initial CCH and TWB test-client loads"],
