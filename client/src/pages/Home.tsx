@@ -903,17 +903,16 @@ export default function Home() {
             <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "2px" }}>Program Status · As of Today</div>
             <div style={{ fontSize: "15px", fontWeight: 800, color: "#0f1623" }}>📋 Executive Status Summary</div>
           </div>
-          {/* Overall Status badge */}
+          {/* Overall milestone status */}
             <div style={{
               display: "flex", alignItems: "center", gap: "8px",
-              backgroundColor: programOnTrack ? "#f0fdf4" : "#fef2f2",
-              border: `1px solid ${programOnTrack ? "#bbf7d0" : "#fecaca"}`,
+              maxWidth: "620px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
               borderRadius: "8px", padding: "8px 16px",
             }}>
-              <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: programOnTrack ? "#059669" : "#dc2626", flexShrink: 0 }} />
+              <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#059669", flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>Overall Program Status</div>
-              <div style={{ fontSize: "14px", fontWeight: 800, color: programOnTrack ? "#059669" : "#dc2626" }}>{programOnTrack ? "🟢 On Track" : "🔴 At Risk"}</div>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>Overall Milestone Status</div>
+              <div style={{ fontSize: "12px", lineHeight: 1.35, fontWeight: 800, color: "#047857" }}>ON TRACK — Critical MVP development is substantially complete. The primary remaining path to Sep 21 is PY/CCH completion, final integration and reconciliation validation, QA, and environment readiness.</div>
             </div>
           </div>
         </div>
