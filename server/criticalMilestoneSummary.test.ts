@@ -7,6 +7,8 @@ describe("Critical milestone summary", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
 
     expect(source).toContain("ON TRACK — Critical MVP development is substantially complete. The primary remaining path to Sep 21 is PY/CCH completion, final integration and reconciliation validation, QA, and environment readiness.");
+    expect(source).toContain('id="overall-milestone-status"');
+    expect(source).toContain("Milestone Outlook");
     expect(source).toContain("MVP_TARGET_DATE_LABEL");
   });
 });

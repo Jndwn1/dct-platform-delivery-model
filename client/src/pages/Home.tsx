@@ -35,6 +35,8 @@ type QuickNavigationItem = {
   href?: string;
 };
 
+const EXECUTIVE_MILESTONE_SUMMARY = "ON TRACK — Critical MVP development is substantially complete. The primary remaining path to Sep 21 is PY/CCH completion, final integration and reconciliation validation, QA, and environment readiness.";
+
 function QuickNavigationCard({
   items,
   onNavigate,
@@ -904,15 +906,20 @@ export default function Home() {
             <div style={{ fontSize: "15px", fontWeight: 800, color: "#0f1623" }}>📋 Executive Status Summary</div>
           </div>
           {/* Overall milestone status */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: "8px",
-              maxWidth: "620px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
-              borderRadius: "8px", padding: "8px 16px",
-            }}>
-              <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#059669", flexShrink: 0 }} />
-            <div>
-              <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>Overall Milestone Status</div>
-              <div style={{ fontSize: "12px", lineHeight: 1.35, fontWeight: 800, color: "#047857" }}>ON TRACK — Critical MVP development is substantially complete. The primary remaining path to Sep 21 is PY/CCH completion, final integration and reconciliation validation, QA, and environment readiness.</div>
+          <div id="overall-milestone-status" aria-label={EXECUTIVE_MILESTONE_SUMMARY} style={{
+            display: "flex", alignItems: "flex-start", gap: "12px", maxWidth: "620px",
+            backgroundColor: "#ffffff", border: "1px solid #d1fae5", borderLeft: "4px solid #059669",
+            borderRadius: "8px", padding: "10px 14px", boxShadow: "0 1px 2px rgba(15,23,42,0.03)",
+          }}>
+            <div style={{ paddingTop: "1px", flexShrink: 0 }}>
+              <div style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#64748b", marginBottom: "5px" }}>Milestone Outlook</div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "3px 7px", borderRadius: "4px", backgroundColor: "#ecfdf5", border: "1px solid #a7f3d0", color: "#047857", fontSize: "9px", fontWeight: 800, letterSpacing: "0.05em" }}>
+                <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#059669" }} />
+                ON TRACK
+              </div>
+            </div>
+            <div style={{ borderLeft: "1px solid #e2e8f0", paddingLeft: "12px", fontSize: "12px", lineHeight: 1.45, color: "#334155", fontWeight: 600 }}>
+              Critical MVP development is substantially complete. The primary remaining path to Sep 21 is PY/CCH completion, final integration and reconciliation validation, QA, and environment readiness.
             </div>
           </div>
         </div>
