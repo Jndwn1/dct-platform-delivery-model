@@ -755,7 +755,7 @@ export function derivePICompletion(statuses: BatchStatusMap): PICompletion {
     const complete = keys.filter(k => isDelivered(statuses[k])).length;
     return { total, complete, pct: total ? Math.round((complete / total) * 100) : 0 };
   };
-  const all = Object.keys(statuses) as BatchKey[];
+  const all = (Object.keys(statuses) as BatchKey[]).filter(key => !PI_MEMBERSHIP.pi4.includes(key));
   const allComplete = all.filter(k => isDelivered(statuses[k])).length;
   const calcMetricRecords = (pi: "PI1" | "PI2" | "PI3") => {
     const records = BATCH_DELIVERY_RECORDS.filter(record => record.pi === pi);
@@ -767,7 +767,8 @@ export function derivePICompletion(statuses: BatchStatusMap): PICompletion {
     pi1: calcMetricRecords("PI1"),
     pi2: calcMetricRecords("PI2"),
     pi3: calcMetricRecords("PI3"),
-    pi4: calc(PI_MEMBERSHIP.pi4),
+    // PI4 Post Pilot is a visibility-only plan and is explicitly excluded from all delivery metrics.
+    pi4: { total: 0, complete: 0, pct: 0 },
     overall: { total: all.length, complete: allComplete, pct: Math.round((allComplete / all.length) * 100) },
   };
 }

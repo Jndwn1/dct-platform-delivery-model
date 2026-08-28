@@ -148,3 +148,4 @@
 - [x] Fix duplicate B31 PDC and B31 TDC React keys in Delivery Highlights without changing metrics or labels
 - [x] Update the Aug. 27 milestone note to state TWB PY Data is complete while retaining the CCH Export API note
 - [x] Update the Remaining Stories + PY Data Ready milestone date to Aug. 28 while preserving its status and readiness notes
+- [x] Add a PI4 Post Pilot card listing the five supplied planned features while excluding PI4 from all completion metrics, percentages, and dashboard KPIs

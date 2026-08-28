@@ -557,7 +557,7 @@ export function buildPlatformSystemPrompt(liveSnapshot?: LiveSnapshotInput): str
     lines.push(`- PI 1: ${liveSnapshot.piCompletion.pi1.complete}/${liveSnapshot.piCompletion.pi1.total} batches complete (${liveSnapshot.piCompletion.pi1.pct}%)`);
     lines.push(`- PI 2: ${liveSnapshot.piCompletion.pi2.complete}/${liveSnapshot.piCompletion.pi2.total} batches complete (${liveSnapshot.piCompletion.pi2.pct}%)`);
     lines.push(`- PI 3: ${liveSnapshot.piCompletion.pi3.complete}/${liveSnapshot.piCompletion.pi3.total} batches complete (${liveSnapshot.piCompletion.pi3.pct}%)`);
-    lines.push(`- PI 4: ${liveSnapshot.piCompletion.pi4.complete}/${liveSnapshot.piCompletion.pi4.total} batches complete (${liveSnapshot.piCompletion.pi4.pct}%)`);
+    lines.push(`- PI 4 — Post Pilot: 0% (planned features are visibility-only and excluded from delivery, completion, and KPI calculations pending an approved PI4 source)`);
     lines.push(`- Overall: ${liveSnapshot.piCompletion.overall.complete}/${liveSnapshot.piCompletion.overall.total} batches complete (${liveSnapshot.piCompletion.overall.pct}%)`);
     lines.push(``);
     lines.push(`### Live Batch Status by Key`);

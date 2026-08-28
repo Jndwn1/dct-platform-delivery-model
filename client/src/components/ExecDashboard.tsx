@@ -125,7 +125,7 @@ function StatusPill({
 
 /** Row 3 — PI progress card */
 function PICard({
-  pi, status, pct, color, bg, border, note,
+  pi, status, pct, color, bg, border, note, plannedFeatures, fullWidth,
 }: {
   pi: string;
   status: string;
@@ -134,6 +134,8 @@ function PICard({
   bg: string;
   border: string;
   note?: string;
+  plannedFeatures?: readonly string[];
+  fullWidth?: boolean;
 }) {
   return (
     <div style={{
@@ -141,7 +143,7 @@ function PICard({
       border: `1px solid ${border}`,
       borderRadius: "8px",
       padding: "14px 16px",
-      flex: "1 1 180px",
+      flex: fullWidth ? "1 1 100%" : "1 1 180px",
       minWidth: "160px",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
@@ -177,6 +179,15 @@ function PICard({
           ⚠ {note}
         </div>
       )}
+      {plannedFeatures && (
+        <div style={{ marginTop: "10px", borderTop: `1px solid ${border}`, paddingTop: "9px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color }}>Planned PI4 Features</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
+            {plannedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color, fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
+          </div>
+          <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>Visibility only — excluded from completion, readiness, denominator, percentage, and KPI calculations pending an approved PI4 delivery source.</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -184,6 +195,14 @@ function PICard({
 //  Main component 
 
 // BATCH_REFERENCE is passed in from Home.tsx for the email generator
+const PI4_POST_PILOT_FEATURES = [
+  "DCT Penetration Testing & Security Readiness",
+  "DCT Data Console",
+  "DCT Deferred Work – Future Enhancements Backlog",
+  "Manual Custom Client Account Management",
+  "IMS Translation & Import Layer Design",
+] as const;
+
 interface ExecDashboardProps {
   batches?: Array<{ pi: string; status: string; batchNum: string; platform: string; name: string; whatItDoes: string; rogerImpact: string }>;
 }
@@ -258,11 +277,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
     },
     {
       pi: "PI 4",
-      status: "Post Pilot",
+      status: "Post Pilot · Visibility Only",
       pct: 0,
       color: "#7c3aed",
       bg: "#faf5ff",
       border: "#e9d5ff",
+      fullWidth: true,
+      plannedFeatures: PI4_POST_PILOT_FEATURES,
     },
   ];
 
