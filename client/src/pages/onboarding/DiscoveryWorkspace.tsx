@@ -45,6 +45,187 @@ function SectionHeading({ number, title, subtitle }: { number: string; title: st
   );
 }
 
+// ─── PI 4 State delivery readiness ───────────────────────────────────────────
+const PI4_TIMELINE_ROWS = [
+  { label: "State filing / reporting metadata & source ingestion readiness", start: 1, end: 2, color: C.teal },
+  { label: "Automated ingestions / Apportionment + Payments", start: 1, end: 2, color: "#0284c7" },
+  { label: "Apportionment calculations", start: 2, end: 3, color: C.blue },
+  { label: "GoSystem Mapping / Taxonomy TDC mapping", start: 2, end: 4, color: C.purple },
+  { label: "State IT/Liability + Provision output", start: 3, end: 4, color: "#0f766e" },
+  { label: "Go Transformation / Routing", start: 4, end: 5, color: C.green },
+  { label: "Attributes tracking / Roll-forward", start: 5, end: 5, color: C.amber },
+] as const;
+
+const PI4_VALIDATION_WINDOWS = [
+  { label: "E2E QA", date: "Nov 3–10", color: "#2563eb" },
+  { label: "Field UAT", date: "Nov 11–20", color: "#7c3aed" },
+  { label: "UAT Updates", date: "Nov 23–Dec 2", color: "#b45309" },
+  { label: "UAT Retest", date: "Dec 3–8", color: "#047857" },
+] as const;
+
+const STATE_STORY_READINESS = [
+  "State stories must be sized for delivery within one to two sprints.",
+  "A BRD and acceptance criteria alone are not sufficient for DCT handoff.",
+  "Detailed requirements must be written directly in the story so Development can build and QA can test without inference.",
+  "Where a prototype exists, document the expected workflow, validations, statuses, system responses, error handling, and outcomes.",
+  "State must provide the required detail before a story is refinement-ready; DCT should not determine missing requirements after handoff.",
+  "Prefer multiple smaller stories to improve estimation, delivery, testing, and defect reduction.",
+] as const;
+
+const STATE_SIZING_ROWS = [
+  {
+    story: "1464551 – Land and validate the State source submission in PDC",
+    scope: "Ingest State source data into PDC, validate the submission, and handle validation outcomes/errors. Includes Orchestrator triggering, sequencing, payload handling, and error behavior.",
+    size: "Medium",
+    assessment: "Likely yes, if source contracts, validation rules, and orchestration requirements are already defined.",
+  },
+  {
+    story: "1464587 – Persist the versioned State Dataset and validation outcomes",
+    scope: "Persist the State Dataset, maintain version history, and store associated validation results/outcomes.",
+    size: "Medium–Large",
+    assessment: "Possibly, but versioning and validation persistence must be clearly defined before committing.",
+  },
+  {
+    story: "1464691 – Govern the approved State Filing Footprint and expose status to Roger",
+    scope: "Manage Filing Footprint approval/governance, maintain approved state, and expose status to Roger.",
+    size: "Large",
+    assessment: "Higher risk for one sprint because it combines governance, persistence, and downstream Roger integration. Review for decomposition.",
+  },
+  {
+    story: "1464780 – Persist the versioned Apportionment Context, results, approvals, and governed access",
+    scope: "Persist Apportionment Context and factor results; support overrides, versions, approvals, immutability, approved-result access, B16 lineage, and stale-result detection.",
+    size: "Very Large / Epic-like",
+    assessment: "No, not as currently written. Decompose into smaller sprint-ready stories before estimating and committing.",
+  },
+] as const;
+
+function PI4StateReadiness() {
+  return (
+    <section id="pi4-state-readiness" style={{ marginBottom: "48px" }}>
+      <SectionHeading
+        number="PI4"
+        title="State Delivery Readiness"
+        subtitle="Planning view to reduce ambiguity before development begins and preserve testable delivery across PI 4 sprint windows."
+      />
+
+      <div style={{ backgroundColor: "#ffffff", border: "1px solid #bae6fd", borderRadius: "12px", overflow: "hidden", marginBottom: "24px", boxShadow: "0 1px 4px rgba(15,23,42,0.05)" }}>
+        <div style={{ backgroundColor: C.teal, padding: "15px 20px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: "#e0f2fe", letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: "4px" }}>PI 4 planning timeline</div>
+          <div style={{ fontSize: "17px", fontWeight: 800, color: "#ffffff" }}>State delivery path and validation windows</div>
+        </div>
+        <div style={{ padding: "18px 20px 20px", overflowX: "auto" }}>
+          <div style={{ minWidth: "560px", display: "grid", gridTemplateColumns: "180px repeat(5, minmax(54px, 1fr))", gridTemplateRows: `32px repeat(${PI4_TIMELINE_ROWS.length}, 34px)`, columnGap: "6px", rowGap: "6px", alignItems: "center" }}>
+            <div style={{ gridColumn: 1, gridRow: 1, fontSize: "10px", fontWeight: 800, color: C.slate, letterSpacing: "0.08em", textTransform: "uppercase" }}>Workstream</div>
+            {[1, 2, 3, 4, 5].map(sprint => (
+              <div key={sprint} style={{ gridColumn: sprint + 1, gridRow: 1, textAlign: "center", fontSize: "11px", fontWeight: 800, color: C.navy, backgroundColor: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: "5px", padding: "6px 4px" }}>S{ sprint }</div>
+            ))}
+            {PI4_TIMELINE_ROWS.map((row, index) => {
+              const gridRow = index + 2;
+              return (
+                <div key={row.label} style={{ display: "contents" }}>
+                  <div style={{ gridColumn: 1, gridRow, paddingRight: "8px", fontSize: "11px", color: "#334155", fontWeight: index >= 7 ? 700 : 600, lineHeight: "1.25" }}>{row.label}</div>
+                  <div style={{ gridColumn: `${row.start + 1} / ${row.end + 2}`, gridRow, minHeight: "28px", borderRadius: "5px", backgroundColor: `${row.color}16`, border: `1px solid ${row.color}55`, borderLeft: `4px solid ${row.color}`, display: "flex", alignItems: "center", padding: "0 9px", fontSize: "10px", fontWeight: 800, color: row.color }}>
+                    {row.start === row.end ? "Scheduled" : `S${row.start}–S${row.end}`}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "8px", marginTop: "16px" }}>
+            {PI4_VALIDATION_WINDOWS.map(window => (
+              <div key={window.label} style={{ border: `1px solid ${window.color}40`, borderTop: `3px solid ${window.color}`, borderRadius: "6px", backgroundColor: "#ffffff", padding: "8px 9px" }}>
+                <div style={{ fontSize: "10px", color: C.slate, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "3px" }}>{window.label}</div>
+                <div style={{ fontSize: "12px", color: window.color, fontWeight: 800 }}>{window.date}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: "16px", display: "flex", alignItems: "flex-start", gap: "9px", backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "10px 12px" }}>
+            <span style={{ color: C.amber, fontSize: "14px", lineHeight: 1 }}>!</span>
+            <p style={{ fontSize: "12px", color: "#78350f", margin: 0, lineHeight: "1.5" }}><strong>Release-timing note:</strong> S5 is outside the main UAT cycle and may need to shift slightly to allow sufficient time for the TR push and UAT completion.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "20px", marginBottom: "24px" }}>
+        <div style={{ backgroundColor: "#ffffff", border: "1px solid #c7d2fe", borderRadius: "10px", padding: "18px 20px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: C.blue, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "7px" }}>State Story Readiness for PI 4</div>
+          <p style={{ fontSize: "13px", color: "#334155", margin: "0 0 12px", lineHeight: "1.55" }}>State work is refinement-ready when the intended behavior is clear enough for Development to build and QA to test without guesswork.</p>
+          <ul style={{ margin: 0, paddingLeft: "18px" }}>
+            {STATE_STORY_READINESS.map(item => <li key={item} style={{ fontSize: "12px", color: "#334155", lineHeight: "1.55", marginBottom: "7px" }}>{item}</li>)}
+          </ul>
+        </div>
+        <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "18px 20px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: C.green, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "9px" }}>Delivery objective</div>
+          <p style={{ fontSize: "15px", color: "#065f46", margin: "0 0 16px", fontWeight: 750, lineHeight: "1.45" }}>Provide enough front-end detail to minimize defects, make work testable by QA, and support delivery within planned PI 4 sprint windows.</p>
+          <div style={{ borderTop: "1px solid #bbf7d0", paddingTop: "12px" }}>
+            {[
+              "Detailed behavior and validation rules are captured before handoff.",
+              "Prototype evidence is used where available to document expected outcomes.",
+              "Story scope is split before estimating when it exceeds one to two sprints.",
+            ].map(item => <div key={item} style={{ display: "flex", gap: "8px", alignItems: "flex-start", fontSize: "12px", color: "#166534", lineHeight: "1.5", marginBottom: "8px" }}><span style={{ fontWeight: 800 }}>✓</span><span>{item}</span></div>)}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", marginBottom: "24px" }}>
+        <div style={{ padding: "15px 20px", borderBottom: "1px solid #e2e8f0" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: C.navy, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Current State Story Sizing Assessment</div>
+          <p style={{ fontSize: "12px", color: C.slate, margin: 0, lineHeight: "1.5" }}>Sizing assessment for refinement; it is not a delivery commitment.</p>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", minWidth: "950px", borderCollapse: "collapse", fontSize: "12px" }}>
+            <thead>
+              <tr style={{ backgroundColor: C.navy }}>
+                {[
+                  { label: "Story", width: "25%" },
+                  { label: "Scope", width: "39%" },
+                  { label: "Relative Size", width: "14%" },
+                  { label: "1-Sprint Assessment", width: "22%" },
+                ].map(column => <th key={column.label} style={{ width: column.width, padding: "11px 14px", textAlign: "left", color: "#ffffff", fontWeight: 750, fontSize: "11px" }}>{column.label}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {STATE_SIZING_ROWS.map((row, index) => (
+                <tr key={row.story} style={{ backgroundColor: index % 2 === 0 ? "#f8fafc" : "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
+                  <td style={{ padding: "12px 14px", verticalAlign: "top", color: C.navy, fontWeight: 750, lineHeight: "1.45" }}>{row.story}</td>
+                  <td style={{ padding: "12px 14px", verticalAlign: "top", color: "#334155", lineHeight: "1.5" }}>{row.scope}</td>
+                  <td style={{ padding: "12px 14px", verticalAlign: "top", color: row.size.includes("Very Large") ? "#b91c1c" : row.size === "Large" ? C.amber : C.blue, fontWeight: 800, lineHeight: "1.45" }}>{row.size}</td>
+                  <td style={{ padding: "12px 14px", verticalAlign: "top", color: "#334155", lineHeight: "1.5" }}>{row.assessment}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "14px", marginBottom: "24px" }}>
+        <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "10px", padding: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: "#1d4ed8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Cross-Team Dependencies · Orchestration</div>
+          <p style={{ fontSize: "12px", color: "#1e3a5f", margin: "0 0 9px", lineHeight: "1.5" }}>State ingestion requires Orchestrator work. Applicable stories must define:</p>
+          <ul style={{ margin: 0, paddingLeft: "17px" }}>{["Trigger behavior", "Processing sequence", "Payload requirements", "Validation handoffs", "Retry behavior", "Error handling", "PDC/DCT handoff and expected responses"].map(item => <li key={item} style={{ fontSize: "11px", color: "#1e3a5f", lineHeight: "1.5" }}>{item}</li>)}</ul>
+        </div>
+        <div style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "10px", padding: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: C.teal, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Cross-Team Dependencies · Roger UI</div>
+          <p style={{ fontSize: "12px", color: "#164e63", margin: 0, lineHeight: "1.55" }}>Roger has significant 1120-specific hard coding. State-specific configuration, attributes, statuses, mappings, and behavior should be stored and governed in the database/configuration layer so Roger can consume them dynamically. Identify Roger UI changes and dependencies directly in each State story.</p>
+        </div>
+        <div style={{ backgroundColor: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "10px", padding: "16px" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: C.purple, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Cross-Team Dependencies · Provision</div>
+          <p style={{ fontSize: "12px", color: "#581c87", margin: 0, lineHeight: "1.55" }}>Apply the same readiness standard: detailed requirements in the story, QA-testable behavior, and identified DCT, Roger, PDC, and Orchestrator dependencies. Provision work should also be sized for one to two sprints where possible.</p>
+        </div>
+      </div>
+
+      <div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "16px 20px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 800, color: C.navy, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>PI 4 High-Level Scope</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          {["User feedback", "Bugs", "Backlog work not completed in PI 1–3", ".NET 10 migration", "Penetration Testing", "State", "Provision", "PDC XLOB", "ARB feedback work"].map(item => (
+            <span key={item} style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "999px", padding: "5px 10px", color: "#334155", fontSize: "12px", fontWeight: 650 }}>{item}</span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── SECTION 1: Workstream Overview ──────────────────────────────────────────
 function WorkstreamOverview() {
   return (
@@ -1306,6 +1487,7 @@ function DefinitionOfReadySection() {
 
 // ─── Floating Quick Links sidebar ────────────────────────────────────────────
 const QUICK_LINKS = [
+  { label: "PI 4 State Plan", href: "#pi4-state-readiness", color: C.teal, icon: "◫" },
   { label: "Discovery Workflow", href: "#s-workflow", color: "#0369a1", icon: "🔎" },
   { label: "Batch 9A", href: "#s3", color: C.b9a, icon: "🔐" },
   { label: "Batch 16", href: "#s3", color: C.b16, icon: "📋" },
@@ -1389,6 +1571,7 @@ export default function DiscoveryWorkspace() {
       <div style={{ display: "flex", gap: "28px", alignItems: "flex-start" }}>
         {/* Main content */}
         <div style={{ flex: 1, minWidth: 0 }}>
+          <PI4StateReadiness />
           <WorkstreamOverview />
           <ResponsibilityMatrix />
           <DiscoveryWorkflowSection />

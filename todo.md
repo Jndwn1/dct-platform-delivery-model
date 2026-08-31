@@ -152,3 +152,4 @@
 - [x] Update the three specified critical milestone narratives and the overall milestone summary using the August 28 standup updates without changing statuses, dates, metrics, or PI4 treatment
 - [x] Refine the Executive Status Summary milestone-status presentation for a cleaner, more professional dashboard fit without changing the approved message or metrics
 - [x] Reconcile the latest published dashboard refinement with the August 28 completion update and save the integrated checkpoint
+- [x] Add the provided PI4 State timeline, story-readiness guidance, sizing assessment, cross-team dependencies, and high-level scope to the State page
