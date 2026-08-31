@@ -153,3 +153,5 @@
 - [x] Refine the Executive Status Summary milestone-status presentation for a cleaner, more professional dashboard fit without changing the approved message or metrics
 - [x] Reconcile the latest published dashboard refinement with the August 28 completion update and save the integrated checkpoint
 - [x] Add the provided PI4 State timeline, story-readiness guidance, sizing assessment, cross-team dependencies, and high-level scope to the State page
+- [x] Correct the specified TDC API Release Notes deployment display date to Aug. 31, 2026 and verify the Recent Deployments rollup
+- [x] Correct the TDC API Release Notes — Tech Stories 1471327 & 1463796 display date to Aug. 31, 2026 and confirm the refreshed Recent Deployments row

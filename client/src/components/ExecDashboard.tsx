@@ -520,7 +520,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
               };
               const sc = statusColors[d.status ?? "Planned"] ?? { bg: "#f8fafc", text: "#64748b" };
               const dateLabel = d.deploymentDate
-                ? new Date(d.deploymentDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                ? new Date(`${d.deploymentDate}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                 : "";
               return (
                 <div key={d.id} style={{
