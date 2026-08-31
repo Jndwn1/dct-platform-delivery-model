@@ -56,6 +56,7 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
       "Final mapping validation using a client with additional mapping rows is pending.",
       "Authorization allow-list PR approval is pending.",
     ],
+    statusOverride: "Complete",
     sourceScope: "prior-year",
   },
   {
@@ -70,6 +71,7 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
       "Tax Adjustments Workspace QA testing is in progress.",
       "QA findings have been consolidated into one defect for resolution.",
     ],
+    statusOverride: "Complete",
     sourceScope: "environment",
   },
   {
@@ -122,10 +124,10 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
       const hasEvidence = Boolean(b31Pdc && b31Tdc);
       return {
         ...definition,
-        status: hasEvidence ? "In Progress" : "Upcoming",
+        status: definition.statusOverride ?? (hasEvidence ? "In Progress" : "Upcoming"),
         owner: [b31Pdc?.owner, b31Tdc?.owner].filter(Boolean).join(" / ") || "Confirmation required",
         source: hasEvidence ? "B31 PDC and B31 TDC Active ADO records" : "No governed B31 Prior Year record available",
-        confirmationRequired: !hasEvidence,
+        confirmationRequired: !definition.statusOverride && !hasEvidence,
       };
     }
 
@@ -133,10 +135,10 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
       const hasEvidence = Boolean(environment);
       return {
         ...definition,
-        status: hasEvidence ? "In Progress" : "Upcoming",
+        status: definition.statusOverride ?? (hasEvidence ? "In Progress" : "Upcoming"),
         owner: environment?.owner ?? "Confirmation required",
         source: hasEvidence ? `Environment Management ADO ${environment?.adoId}` : "No governed environment readiness record available",
-        confirmationRequired: !hasEvidence,
+        confirmationRequired: !definition.statusOverride && !hasEvidence,
       };
     }
 

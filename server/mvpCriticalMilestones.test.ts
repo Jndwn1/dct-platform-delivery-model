@@ -27,7 +27,7 @@ describe("MVP Critical Milestones", () => {
     expect(criticalStories?.shortDescription).toBe("Critical MVP story work is complete. TDC rule-result and adjustment items are complete, along with reporting page and sign-off development. Two unnecessary stories will be removed from the board.");
     expect(environment?.source).toContain("Environment Management ADO");
     expect(environment?.shortDescription).toBe("Reporting and sign-off changes are being pushed to Dev.");
-    expect(environment?.status).toBe("In Progress");
+    expect(environment?.status).toBe("Complete");
     expect(environment?.statusNotes).toEqual([
       "Roger UI handoff and backend/UI reconciliation are still in progress.",
       "Tax Adjustments Workspace QA testing is in progress.",
@@ -35,7 +35,7 @@ describe("MVP Critical Milestones", () => {
     ]);
     expect(priorYear?.source).toBe("B31 PDC and B31 TDC Active ADO records");
     expect(priorYear?.owner).toBe("Abbas, Nasar / Luca, Gary");
-    expect(priorYear?.status).toBe("In Progress");
+    expect(priorYear?.status).toBe("Complete");
     expect(priorYear?.statusNotes).toEqual([
       "TDC PY table and API surface for CCH migration are in progress.",
       "Final mapping validation using a client with additional mapping rows is pending.",
@@ -43,11 +43,11 @@ describe("MVP Critical Milestones", () => {
     ]);
   });
 
-  it("selects the Aug. 28 milestone after user-confirmed critical-story completion", () => {
+  it("selects the Sep. 3 UAT milestone after the August 28 milestones are confirmed complete", () => {
     const milestones = deriveMvpCriticalMilestones(DEFAULT_STATUS);
-    const asOf = new Date("2026-08-20T12:00:00");
+    const asOf = new Date("2026-08-28T12:00:00");
     const next = getNextCriticalMilestone(milestones, asOf);
-    expect(next.id).toBe("remaining-stories-py-ready");
-    expect(resolveMilestoneStatus(next, new Date("2026-08-22T12:00:00"))).toBe("In Progress");
+    expect(next.id).toBe("uat-ready");
+    expect(resolveMilestoneStatus(next, new Date("2026-08-28T12:00:00"))).toBe("In Progress");
   });
 });
