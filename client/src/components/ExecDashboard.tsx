@@ -125,7 +125,7 @@ function StatusPill({
 
 /** Row 3 — PI progress card */
 function PICard({
-  pi, status, pct, color, bg, border, note, plannedFeatures, fullWidth,
+  pi, status, pct, color, bg, border, note, closedFeatures, plannedFeatures, fullWidth,
 }: {
   pi: string;
   status: string;
@@ -134,6 +134,7 @@ function PICard({
   bg: string;
   border: string;
   note?: string;
+  closedFeatures?: readonly string[];
   plannedFeatures?: readonly string[];
   fullWidth?: boolean;
 }) {
@@ -179,13 +180,25 @@ function PICard({
           ⚠ {note}
         </div>
       )}
-      {plannedFeatures && (
+      {(closedFeatures || plannedFeatures) && (
         <div style={{ marginTop: "10px", borderTop: `1px solid ${border}`, paddingTop: "9px" }}>
-          <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color }}>Planned PI4 Features</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
-            {plannedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color, fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
-          </div>
-          <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>Visibility only — excluded from completion, readiness, denominator, percentage, and KPI calculations pending an approved PI4 delivery source.</div>
+          {closedFeatures && (
+            <div>
+              <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#059669" }}>Closed PI4 Features</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
+                {closedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color: "#059669", fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
+              </div>
+            </div>
+          )}
+          {plannedFeatures && (
+            <div style={{ marginTop: closedFeatures ? "9px" : 0 }}>
+              <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color }}>Remaining PI4 Features</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
+                {plannedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color, fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
+              </div>
+            </div>
+          )}
+          <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>PI4 planning view only — excluded from MVP completion, readiness, denominator, and KPI calculations.</div>
         </div>
       )}
     </div>
@@ -195,11 +208,14 @@ function PICard({
 //  Main component 
 
 // BATCH_REFERENCE is passed in from Home.tsx for the email generator
-const PI4_POST_PILOT_FEATURES = [
-  "DCT Penetration Testing & Security Readiness",
-  "DCT Data Console",
-  "DCT Deferred Work – Future Enhancements Backlog",
+const PI4_CLOSED_FEATURES = [
   "Manual Custom Client Account Management",
+  "DCT - Data Console",
+  "DCT - Penetration Testing & Security Readiness",
+] as const;
+
+const PI4_REMAINING_FEATURES = [
+  "DCT Deferred Work – Future Enhancements Backlog",
   "IMS Translation & Import Layer Design",
 ] as const;
 
@@ -277,13 +293,14 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
     },
     {
       pi: "PI 4",
-      status: "Post Pilot · Visibility Only",
-      pct: 0,
+      status: "Post Pilot · 3 Closed / 2 Remaining",
+      pct: 60,
       color: "#7c3aed",
       bg: "#faf5ff",
       border: "#e9d5ff",
       fullWidth: true,
-      plannedFeatures: PI4_POST_PILOT_FEATURES,
+      closedFeatures: PI4_CLOSED_FEATURES,
+      plannedFeatures: PI4_REMAINING_FEATURES,
     },
   ];
 
