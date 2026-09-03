@@ -192,13 +192,13 @@ function PICard({
           )}
           {plannedFeatures && (
             <div style={{ marginTop: closedFeatures ? "9px" : 0 }}>
-              <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color }}>Remaining PI4 Features</div>
+              <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color }}>Active PI4 Features</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
                 {plannedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color, fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
               </div>
             </div>
           )}
-          <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>PI4 planning view only — excluded from MVP completion, readiness, denominator, and KPI calculations.</div>
+          <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>Included in the governed MVP delivery population; excluded from batch-only counts.</div>
         </div>
       )}
     </div>
@@ -258,6 +258,9 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   const pi3Pct = piCompletion?.pi3?.pct ?? 0;
   const pi3Complete = piCompletion?.pi3?.complete ?? 0;
   const pi3Total = piCompletion?.pi3?.total ?? 0;
+  const pi4Pct = piCompletion?.pi4?.pct ?? 0;
+  const pi4Complete = piCompletion?.pi4?.complete ?? 0;
+  const pi4Total = piCompletion?.pi4?.total ?? 0;
 
   // Last updated label
   const lastUpdatedLabel = lastUpdated
@@ -293,8 +296,8 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
     },
     {
       pi: "PI 4",
-      status: "Post Pilot · 3 Closed / 2 Remaining",
-      pct: 60,
+      status: `Post Pilot · ${pi4Complete} Closed / ${pi4Total - pi4Complete} Active`,
+      pct: pi4Pct,
       color: "#7c3aed",
       bg: "#faf5ff",
       border: "#e9d5ff",
@@ -320,7 +323,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            MVP Delivery Intelligence · PI1 + PI2 + PI3 · {BATCH_DELIVERY_RECORDS.length} Current Batch Features + {NON_BATCH_MVP_RECORDS.length} Non-Batch MVP Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            MVP Delivery Intelligence · PI1 + PI2 + PI3 + PI4 · {BATCH_DELIVERY_RECORDS.length} Current Batch Features + {NON_BATCH_MVP_RECORDS.length} Non-Batch MVP Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
@@ -365,7 +368,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="MVP Features Active"
           value={mvp.inDev}
-          sub="13 Active ADO features"
+          sub={`${mvp.inDev} Active ADO features`}
           accent="#2563eb"
           badge="In Flight"
           badgeColor="#2563eb"

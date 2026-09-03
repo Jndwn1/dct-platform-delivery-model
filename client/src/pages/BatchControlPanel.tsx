@@ -1799,7 +1799,7 @@ export default function BatchControlPanel() {
         )}
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-5">
-          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from ADO-backed records. The eight active batch features—B7, B10, B42, B45, B28, B9A, B31 PDC, and B31 TDC—count as <strong>In Development</strong>; the five active non-batch MVP features also count as <strong>In Development</strong>. B39, B20, B21, B26, and historical split records are excluded from the current 23-batch MVP scope. The prior 23-complete display did not retain a record-level calculation snapshot.
+          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from ADO-backed records. The eight active batch features—B7, B10, B42, B45, B28, B9A, B31 PDC, and B31 TDC—count as <strong>In Development</strong>. Three source-confirmed PI4 non-batch features are <strong>Complete</strong>, while two remain <strong>In Development</strong>. B39, B20, B21, B26, and historical split records are excluded from the current 23-batch MVP scope. The prior 23-complete display did not retain a record-level calculation snapshot.
         </div>
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-5">
@@ -1809,7 +1809,7 @@ export default function BatchControlPanel() {
         <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
             { label: "Batch Delivery", metric: batchMetrics, note: "23 governed MVP batch features" },
-            { label: "Non-Batch MVP", metric: nonBatchMetrics, note: "5 current ADO Active features; excluded from Batch counts" },
+            { label: "Non-Batch MVP", metric: nonBatchMetrics, note: "3 closed · 2 active; excluded from Batch counts" },
             { label: "Overall MVP Delivery", metric: mvpMetrics, note: "Batch + non-batch MVP features" },
           ].map(({ label, metric, note }) => (
             <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 p-3">

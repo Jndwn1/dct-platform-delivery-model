@@ -32,14 +32,14 @@ describe("PI3 closure status model", () => {
     expect(contextToDctStatus(DEFAULT_STATUS["29"])).toBe("CLOSED");
   });
 
-  it("reports the authoritative 28-feature MVP portfolio and 54 percent feature readiness", () => {
+  it("reports the authoritative 28-feature MVP portfolio after the three confirmed PI4 closures", () => {
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 28,
-      complete: 15,
-      inDev: 13,
+      complete: 18,
+      inDev: 10,
       inReview: 0,
       planned: 0,
-      readinessPct: 54,
+      readinessPct: 64,
     });
   });
 
@@ -49,11 +49,11 @@ describe("PI3 closure status model", () => {
       totalFeatures: 28,
       batchFeatures: 23,
       nonBatchFeatures: 5,
-      complete: 15,
-      active: 13,
+      complete: 18,
+      active: 10,
       inReview: 0,
       planned: 0,
-      readinessPct: 54,
+      readinessPct: 64,
     });
     expect(matchesLockedMvpBaseline(metrics)).toBe(true);
   });
@@ -70,11 +70,11 @@ describe("PI3 closure status model", () => {
     });
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 28,
-      complete: 15,
-      inDev: 13,
+      complete: 18,
+      inDev: 10,
       inReview: 0,
       planned: 0,
-      readinessPct: 54,
+      readinessPct: 64,
       reconciles: true,
     });
   });
@@ -102,8 +102,11 @@ describe("PI3 closure status model", () => {
 
     expect(activeBatchKeys).toEqual(["10", "28", "31", "31", "42", "45", "7", "9a"]);
     expect(NON_BATCH_MVP_RECORDS).toHaveLength(5);
+    expect(NON_BATCH_MVP_RECORDS.filter(record => record.sourceStatusLabel === "Active")).toHaveLength(2);
+    expect(NON_BATCH_MVP_RECORDS.filter(record => record.sourceStatusLabel === "Closed")).toHaveLength(3);
     expect(deriveBatchMetrics(DEFAULT_STATUS).inDev).toBe(8);
-    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(13);
+    expect(deriveMvpMetrics(DEFAULT_STATUS).complete).toBe(18);
+    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(10);
   });
 
   it("keeps the Executive calendar aligned to the supplied ADO Active classifications", () => {

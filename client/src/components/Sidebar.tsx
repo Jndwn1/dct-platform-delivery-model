@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useBatchStatus, contextToSidebarBadge, type BatchKey, type BatchStatus } from "@/contexts/BatchStatusContext";
+import { useBatchStatus, contextToSidebarBadge, deriveMvpMetrics, type BatchKey, type BatchStatus } from "@/contexts/BatchStatusContext";
 import { ADMIN_NAVIGATION, ADVANCED_NAVIGATION, HISTORICAL_TRAINING_NAVIGATION, getWorkspace } from "@/lib/operatingModelNavigation";
 
 interface NavItem {
@@ -478,6 +478,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
   });
   const togglePi = (key: string) => setPiOpen(prev => ({ ...prev, [key]: !prev[key] }));
   const { statuses, resetAll } = useBatchStatus();
+  const mvpMetrics = deriveMvpMetrics(statuses);
 
   return (
     <aside
@@ -619,7 +620,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
       <div style={{ borderTopWidth: "1px", borderTopColor: "#1e2a3a", padding: "10px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
           <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#10b981", flexShrink: 0 }} />
-          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Current ADO Pipeline · 13 Active · 0 In Review</span>
+          <span style={{ fontSize: "11px", color: "#94a3b8" }}>Current ADO Pipeline · {mvpMetrics.inDev} Active · {mvpMetrics.inReview} In Review</span>
         </div>
         <div style={{ fontSize: "10px", color: "#475569", marginBottom: "6px" }}>DCT — Data Consolidation Team</div>
         <button

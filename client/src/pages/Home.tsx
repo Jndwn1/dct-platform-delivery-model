@@ -660,6 +660,7 @@ export default function Home() {
       { label: "PI 1", metric: piCompletion.pi1 },
       { label: "PI 2", metric: piCompletion.pi2 },
       { label: "PI 3", metric: piCompletion.pi3 },
+      { label: "PI 4", metric: piCompletion.pi4 },
     ];
     return rows.map(({ label, metric }) => {
       const complete = metric.complete === metric.total;
@@ -864,7 +865,7 @@ export default function Home() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginTop: "20px", position: "relative" }}>
           {[
             { label: "MVP Features Complete", value: mvp.complete, sub: "ADO-backed lifecycle", color: "#34d399" },
-            { label: "MVP Features Active", value: mvp.inDev, sub: "13 Active ADO features", color: "#60a5fa" },
+            { label: "MVP Features Active", value: mvp.inDev, sub: `${mvp.inDev} Active ADO features`, color: "#60a5fa" },
             { label: "MVP Features In Review", value: mvp.inReview, sub: "No features in review", color: "#a78bfa" },
             { label: "MVP Features Planned", value: mvp.planned, sub: "Not Started only", color: "#94a3b8" },
             { label: "Total MVP Features", value: mvp.total, sub: `${batchTotal} batch + 5 non-batch`, color: "#fb923c" },
@@ -1087,7 +1088,7 @@ export default function Home() {
               </div>
             ))}
             <div style={{ marginTop: "8px", paddingTop: "6px", borderTop: "1px solid #bfdbfe", fontSize: "11px", color: "#2563eb", fontWeight: 600 }}>
-              + {activeAdoNonBatchFeatures.length} non-batch Active features (MVP Enhancements, QA, Defects, Environment, Roger stabilization)
+              + {activeAdoNonBatchFeatures.length} non-batch Active features ({activeAdoNonBatchFeatures.map(feature => feature.featureName).join(" · ")})
             </div>
           </div>
 

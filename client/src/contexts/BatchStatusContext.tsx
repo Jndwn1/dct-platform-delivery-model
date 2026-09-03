@@ -108,12 +108,12 @@ export interface BatchStatusMap {
   "40": BatchStatus;
   "35": BatchStatus;
   "26-tdc": BatchStatus;
-  // Non-batch Active MVP Features (ADO: Active)
-  "qa-workstream": BatchStatus;
-  "env-management": BatchStatus;
-  "roger-stabilization": BatchStatus;
-  "platform-defect": BatchStatus;
-  "mvp-enhancements": BatchStatus;
+  // Non-batch PI4 features
+  "pi4-manual-client-account-management": BatchStatus;
+  "pi4-data-console": BatchStatus;
+  "pi4-security-readiness": BatchStatus;
+  "pi4-deferred-work": BatchStatus;
+  "pi4-ims-translation": BatchStatus;
 }
 
 export type BatchKey = keyof BatchStatusMap;
@@ -161,12 +161,12 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "40": "Batch 40 — Client-Level Line Mapping Reuse",
   "35": "Batch 35 — S-Corp Specialization",
   "26-tdc": "Batch 26 | TDC — Entity Constituents & Allocations (TDC — PI 4)",
-  // Non-batch Active MVP Features
-  "qa-workstream": "DCT QA Workstream Separation & Sprint Reporting Governance",
-  "env-management": "TDC Environment Management",
-  "roger-stabilization": "Roger-DCT Integration Stabilization & Follow-up Remediation",
-  "platform-defect": "DCT General Platform Defect Tracking",
-  "mvp-enhancements": "DCT MVP Enhancements",
+  // Non-batch PI4 features
+  "pi4-manual-client-account-management": "Manual Custom Client Account Management",
+  "pi4-data-console": "DCT - Data Console",
+  "pi4-security-readiness": "DCT - Penetration Testing & Security Readiness",
+  "pi4-deferred-work": "DCT Deferred Work – Future Enhancements Backlog",
+  "pi4-ims-translation": "IMS Translation & Import Layer Design",
 };
 
 // ── Dependency map ────────────────────────────────────────────────────────────
@@ -212,12 +212,12 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "40": [],
   "35": [],
   "26-tdc": [],
-  // Non-batch Active MVP Features
-  "qa-workstream": [],
-  "env-management": [],
-  "roger-stabilization": [],
-  "platform-defect": [],
-  "mvp-enhancements": [],
+  // Non-batch PI4 features
+  "pi4-manual-client-account-management": [],
+  "pi4-data-console": [],
+  "pi4-security-readiness": [],
+  "pi4-deferred-work": [],
+  "pi4-ims-translation": [],
 };
 
 // ── Cascade step definitions ──────────────────────────────────────────────────
@@ -322,12 +322,12 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "26": "Ready for QA", // B26 — Entity Constituents & Allocations (ADO: Review Ready)
   "39": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
-  // ── Non-batch Active Features (ADO: Active) ──────────────────────────────
-  "qa-workstream": "In Progress",       // DCT QA Workstream Separation and Sprint Reporting Governance
-  "env-management": "In Progress",      // TDC Environment Management
-  "roger-stabilization": "In Progress", // Roger-DCT Integration Stabilization and Follow-up Remediation
-  "platform-defect": "In Progress",     // DCT General Platform Defect Tracking
-  "mvp-enhancements": "In Progress",    // DCT MVP Enhancements
+  // ── Non-batch PI4 features — source confirmed Sep. 2, 2026 ───────────────
+  "pi4-manual-client-account-management": "Complete",
+  "pi4-data-console": "Complete",
+  "pi4-security-readiness": "Complete",
+  "pi4-deferred-work": "In Progress",
+  "pi4-ims-translation": "In Progress",
   // ── PI 4 — Future (Post-Pilot) ───────────────────────────────────────────
   "19": "Not Started",  // B19 — Audit Tax-Expense Cross-LOB Outbound (9/21–9/28)
   "40": "Not Started",  // B40 — Client-Level Line Mapping Reuse
@@ -362,6 +362,9 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
   "29": "Complete",
   "43": "Complete",
   "8": "Complete",
+  "pi4-manual-client-account-management": "Complete",
+  "pi4-data-console": "Complete",
+  "pi4-security-readiness": "Complete",
 };
 
 // ── PI membership ─────────────────────────────────────────────────────────────
@@ -371,14 +374,14 @@ export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
   pi2:  ["4", "5", "6", "7", "8", "10", "11", "43", "13", "42"], // Current ADO: B7, B10, B42 Active
   pi3:  ["16", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A, and B31 Active
-  pi4:  ["19", "40", "35", "26-tdc"],
+  pi4:  ["19", "40", "35", "26-tdc", "pi4-manual-client-account-management", "pi4-data-console", "pi4-security-readiness", "pi4-deferred-work", "pi4-ims-translation"],
 };
 
 // ── MVP Portfolio — Single Source of Truth ──────────────────────────────────
-// Authoritative current MVP scope: 23 batch features + 5 non-batch MVP features = 28.
+// Authoritative current MVP scope: 23 batch features + 5 non-batch PI4 features = 28.
 // The four historical split records B8-PDC, B8-TDC, B9, and B9-PDC are retained
 // for lineage and API traceability but excluded from current MVP lifecycle metrics.
-// Current ADO lifecycle: 15 Complete, 13 In Development, 0 In Review, 0 Planned.
+// Current ADO lifecycle: 18 Complete, 10 In Development, 0 In Review, 0 Planned.
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
@@ -388,8 +391,8 @@ export const MVP_BATCH_KEYS: BatchKey[] = [
   "7", "10", "42",
   // PI 3 — B8 + B29 closed Aug 11; remaining delivery portfolio
   "8", "45", "28", "9a", "17", "29", "31",
-  // Non-batch Active Features (5) — ADO Active, included in MVP scope
-  "qa-workstream", "env-management", "roger-stabilization", "platform-defect", "mvp-enhancements",
+  // Non-batch PI4 features (5) — three Closed and two Active, included in MVP scope
+  "pi4-manual-client-account-management", "pi4-data-console", "pi4-security-readiness", "pi4-deferred-work", "pi4-ims-translation",
 ];
 
 /** The 23 current MVP batch features. Non-batch MVP features are intentionally excluded. */
@@ -400,9 +403,9 @@ export const BATCH_DELIVERY_KEYS: BatchKey[] = [
   "8", "45", "28", "9a", "17", "29", "31",
 ];
 
-/** The five active MVP features that are not architectural batches. */
+/** The five non-batch PI4 features included in the governed MVP portfolio. */
 export const NON_BATCH_MVP_KEYS: BatchKey[] = [
-  "qa-workstream", "env-management", "roger-stabilization", "platform-defect", "mvp-enhancements",
+  "pi4-manual-client-account-management", "pi4-data-console", "pi4-security-readiness", "pi4-deferred-work", "pi4-ims-translation",
 ];
 
 export interface DeliveryMetricRecord {
@@ -412,7 +415,7 @@ export interface DeliveryMetricRecord {
   featureName: string;
   batchNumber: string;
   classification: "Batch" | "Non-Batch MVP";
-  pi: "PI1" | "PI2" | "PI3";
+  pi: "PI1" | "PI2" | "PI3" | "PI4";
   owner?: string;
   sourceStatusLabel?: string;
 }
@@ -451,11 +454,11 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
 ];
 
 export const NON_BATCH_MVP_RECORDS: DeliveryMetricRecord[] = [
-  { id: "mvp-enhancements", statusKey: "mvp-enhancements", adoId: "1418018", featureName: BATCH_LABELS["mvp-enhancements"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Lacombe, Stephane", sourceStatusLabel: "Active" },
-  { id: "qa-workstream", statusKey: "qa-workstream", adoId: "1408161", featureName: BATCH_LABELS["qa-workstream"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Kalakonda, Aravind", sourceStatusLabel: "Active" },
-  { id: "platform-defect", statusKey: "platform-defect", adoId: "1403709", featureName: BATCH_LABELS["platform-defect"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Stafford, Jenniver", sourceStatusLabel: "Active" },
-  { id: "env-management", statusKey: "env-management", adoId: "1436035", featureName: BATCH_LABELS["env-management"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
-  { id: "roger-stabilization", statusKey: "roger-stabilization", adoId: "1395518", featureName: BATCH_LABELS["roger-stabilization"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "pi4-manual-client-account-management", statusKey: "pi4-manual-client-account-management", adoId: "1443717", featureName: BATCH_LABELS["pi4-manual-client-account-management"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", owner: "Lacombe, Stephane", sourceStatusLabel: "Closed" },
+  { id: "pi4-data-console", statusKey: "pi4-data-console", adoId: "1444364", featureName: BATCH_LABELS["pi4-data-console"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", owner: "Lacombe, Stephane", sourceStatusLabel: "Closed" },
+  { id: "pi4-security-readiness", statusKey: "pi4-security-readiness", adoId: "1435461", featureName: BATCH_LABELS["pi4-security-readiness"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", owner: "Lacombe, Stephane", sourceStatusLabel: "Closed" },
+  { id: "pi4-deferred-work", statusKey: "pi4-deferred-work", adoId: "Not supplied", featureName: BATCH_LABELS["pi4-deferred-work"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", sourceStatusLabel: "Active" },
+  { id: "pi4-ims-translation", statusKey: "pi4-ims-translation", adoId: "Not supplied", featureName: BATCH_LABELS["pi4-ims-translation"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", sourceStatusLabel: "Active" },
 ];
 
 export const MVP_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
@@ -470,15 +473,15 @@ export type DeliveryMetricBucket = "Complete" | "In Development" | "In Review" |
  * population until the business owner supplies a new ADO baseline.
  */
 export const LOCKED_MVP_BASELINE = {
-  asOf: "2026-08-18",
+  asOf: "2026-09-02",
   totalFeatures: 28,
   batchFeatures: 23,
   nonBatchFeatures: 5,
-  complete: 15,
-  active: 13,
+  complete: 18,
+  active: 10,
   inReview: 0,
   planned: 0,
-  readinessPct: 54,
+  readinessPct: 64,
 } as const;
 
 /**
@@ -489,7 +492,7 @@ export type PortfolioDeliveryStatus = DeliveryMetricBucket;
 export type AdoActivityStatus = "Active ADO work exists" | "No active ADO work";
 export type QAValidationStatus = "Not Started" | "In Validation" | "Review Ready" | "Validated" | "Not Reported";
 
-export const DASHBOARD_REPORTING_DATE = "2026-08-18";
+export const DASHBOARD_REPORTING_DATE = "2026-09-02";
 export const DASHBOARD_REPORTING_WEEK_START = "2026-08-17";
 export const DASHBOARD_REPORTING_WEEK_END = "2026-08-23";
 
@@ -503,7 +506,7 @@ export const GOVERNED_PORTFOLIO_STATUS: Partial<Record<DeliveryMetricRecord["id"
 
 export interface DeliveryReconciliationRecord {
   batch: string;
-  pi: "PI1" | "PI2" | "PI3";
+  pi: "PI1" | "PI2" | "PI3" | "PI4";
   mvp: boolean;
   portfolioStatus: PortfolioDeliveryStatus;
   adoActivity: AdoActivityStatus;
@@ -645,7 +648,7 @@ function loadFromStorage(): BatchStatusMap {
       // Validate each value is a known status; fall back to default if not
       const valid: Partial<BatchStatusMap> = {};
       for (const [k, v] of Object.entries(parsed)) {
-        if (STATUS_ORDER.includes(v as BatchStatus)) {
+        if (Object.prototype.hasOwnProperty.call(DEFAULT_STATUS, k) && STATUS_ORDER.includes(v as BatchStatus)) {
           valid[k as BatchKey] = v as BatchStatus;
         }
       }
@@ -757,8 +760,8 @@ export function derivePICompletion(statuses: BatchStatusMap): PICompletion {
   };
   const all = (Object.keys(statuses) as BatchKey[]).filter(key => !PI_MEMBERSHIP.pi4.includes(key));
   const allComplete = all.filter(k => isDelivered(statuses[k])).length;
-  const calcMetricRecords = (pi: "PI1" | "PI2" | "PI3") => {
-    const records = BATCH_DELIVERY_RECORDS.filter(record => record.pi === pi);
+  const calcMetricRecords = (pi: "PI1" | "PI2" | "PI3" | "PI4") => {
+    const records = MVP_DELIVERY_RECORDS.filter(record => record.pi === pi);
     const complete = records.filter(record => getPortfolioDeliveryStatus(record, statuses) === "Complete").length;
     const total = records.length;
     return { total, complete, pct: total ? Math.round((complete / total) * 100) : 0 };
@@ -767,8 +770,7 @@ export function derivePICompletion(statuses: BatchStatusMap): PICompletion {
     pi1: calcMetricRecords("PI1"),
     pi2: calcMetricRecords("PI2"),
     pi3: calcMetricRecords("PI3"),
-    // PI4 Post Pilot is a visibility-only plan and is explicitly excluded from all delivery metrics.
-    pi4: { total: 0, complete: 0, pct: 0 },
+    pi4: calcMetricRecords("PI4"),
     overall: { total: all.length, complete: allComplete, pct: Math.round((allComplete / all.length) * 100) },
   };
 }

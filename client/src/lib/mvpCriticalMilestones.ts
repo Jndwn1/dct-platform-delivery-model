@@ -105,8 +105,8 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
   const mvp = deriveMvpMetrics(statuses);
   const b31Pdc = findRecord("B31-PDC");
   const b31Tdc = findRecord("B31-TDC");
-  const environment = findRecord("env-management");
-  const qaWorkstream = findRecord("qa-workstream");
+  const environment = findRecord("env-management") ?? { adoId: "1436035", owner: "Luca, Gary" };
+  const qaWorkstream = findRecord("qa-workstream") ?? { adoId: "1408161", owner: "Kalakonda, Aravind" };
 
   return MVP_CRITICAL_MILESTONE_SCHEDULE.map(definition => {
     if (definition.sourceScope === "delivery") {
