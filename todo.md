@@ -157,3 +157,4 @@
 - [x] Correct the TDC API Release Notes — Tech Stories 1471327 & 1463796 display date to Aug. 31, 2026 and confirm the refreshed Recent Deployments row
 - [x] Reclassify the three user-confirmed PI4 features as closed, reduce the PI4 visibility-only planned list to two, and reconcile affected dashboard rollups without changing the locked MVP baseline
 - [x] Move the three user-confirmed closed PI4 features into the governed MVP Complete population, reduce non-batch Active features to two, and reconcile all dashboard metrics and Delivery Highlights
+- [x] Create a Roger-aligned State Compliance prototype with a return-filings landing view, selected-filing summary, and nine-step State workflow

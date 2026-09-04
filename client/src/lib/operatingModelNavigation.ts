@@ -82,6 +82,7 @@ export const OPERATING_MODEL_WORKSPACES: OperatingModelWorkspace[] = [
           { label: "Screen Readiness", path: "/qa-deployment-registry", description: "Authoritative 18-screen QA Registry and release evidence.", source: "Roger QA Registry", visibility: "Standard" },
           { label: "UI Data Mapping", path: "/roger-mapping", description: "Screen-to-API mapping using the shared screen inventory.", source: "Roger QA Registry + registered API evidence", visibility: "Standard" },
           { label: "API Readiness", path: "/roger-api", description: "Roger API evolution and registered contract evidence.", source: "Registered API documentation", visibility: "Standard" },
+          { label: "State Compliance Prototype", path: "/state-compliance", description: "Roger-aligned State filing workflow prototype from Return Filings through Outputs & Tracking.", source: "State Taxable Income MVP prototype + Roger UI references", visibility: "Standard" },
         ],
       },
       {

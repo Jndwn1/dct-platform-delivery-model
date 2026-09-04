@@ -4,7 +4,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -72,6 +72,7 @@ import Step7Complete from "./pages/onboarding/Step7Complete";
 import UATTestingPage from "./pages/UATTestingPage";
 import OperatingModelHub from "./pages/OperatingModelHub";
 import OnboardingHub from "./pages/onboarding/OnboardingHub";
+import StateCompliancePrototype from "./pages/StateCompliancePrototype";
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -82,6 +83,12 @@ import { TourProvider, useTour } from "./contexts/TourContext";
 import ExecTour from "./components/ExecTour";
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+
+  if (location === "/state-compliance") {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#f8fafc" }}>
       <Sidebar />
@@ -135,6 +142,7 @@ function Router() {
           <Route path="/roger-consumer-readiness" component={() => { window.location.replace("/consumer-integration-hub"); return null; }} />
           <Route path="/consumer-integration-hub" component={ConsumerIntegrationReadinessHub} />
           <Route path="/roger-api" component={RogerApiEvolution} />
+          <Route path="/state-compliance" component={StateCompliancePrototype} />
           <Route path="/runtime-journey" component={RuntimeJourney} />
           <Route path="/control-panel" component={BatchControlPanel} />
 
