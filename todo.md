@@ -159,3 +159,4 @@
 - [x] Move the three user-confirmed closed PI4 features into the governed MVP Complete population, reduce non-batch Active features to two, and reconcile all dashboard metrics and Delivery Highlights
 - [x] Create a Roger-aligned State Compliance prototype with a return-filings landing view, selected-filing summary, and nine-step State workflow
 - [x] Review the revised State team prototype and apply only approved State workflow changes while preserving Federal screens and the Roger UI visual language
+- [ ] Diagnose the platform-side deployment failure and republish the verified State Compliance prototype revision
