@@ -163,3 +163,4 @@
 - [x] Refine the State portfolio to use primary filer groups, nested State child rows, parent-level filing designations, and child-level State detail columns without changing Federal screens
 - [x] Align State parent return-structure values to the supplied entity or member-count semantics while retaining child workflow status placement
 - [x] Route State Income Tax Return links to the State Compliance prototype landing page while retaining current workflow interactions
+- [x] Make State Income Tax Return labels open the selected filer’s State Compliance workflow instead of reloading the landing page

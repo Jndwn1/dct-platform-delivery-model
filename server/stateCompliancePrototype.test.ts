@@ -16,7 +16,8 @@ describe("Roger-aligned State Compliance prototype", () => {
     expect(page).toContain("Platforms Normandy State Combined Group");
     expect(page).toContain("{filing.state} State {filing.type} Return");
     expect(page).toContain("State filings / form");
-    expect(page).toContain('href="/state-compliance"');
+    expect(page).toContain('onClick={() => onOpen(filer)} aria-label={`Open State Compliance workflow for ${filing.state} Income Tax Return`}');
+    expect(page).not.toContain('href="/state-compliance"');
     expect(page).toContain("Income Tax Return");
     expect(page).toContain('returnStructure: "3-member group"');
     expect(page).toContain('returnStructure: "1 parent entity"');
