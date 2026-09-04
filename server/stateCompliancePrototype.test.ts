@@ -14,6 +14,12 @@ describe("Roger-aligned State Compliance prototype", () => {
     expect(page).toContain("Federal Compliance");
     expect(page).toContain("State Compliance");
     expect(page).toContain("Platforms Normandy State Combined Group");
+    expect(page).toContain("{filing.state} State {filing.type} Return");
+    expect(page).toContain("State filings / form");
+    expect(page).toContain('returnStructure: "3-member group"');
+    expect(page).toContain('returnStructure: "1 parent entity"');
+    expect(page).toContain("Statutory due date");
+    expect(page).toContain("Client due date");
     expect(page).toContain("Add filer / filing group");
     expect(page).toContain("Refresh from TIM");
     expect(page).toContain("Show changes from TIM");
@@ -40,5 +46,7 @@ describe("Roger-aligned State Compliance prototype", () => {
     expect(page).toContain('name: "Platforms Normandy Inc. — PPT", structure: "1120 consolidated", progress: 43, issues: 147');
     expect(page).toContain('name: "Hutchings Yachting Inc. — PPT", structure: "1120", progress: 20, issues: 55');
     expect(page).toContain('state="Existing Roger experience — unchanged"');
+    expect(page).not.toContain('"Next statutory due"');
+    expect(page).not.toContain('"Next client due"');
   });
 });
