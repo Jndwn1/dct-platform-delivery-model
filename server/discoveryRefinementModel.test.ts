@@ -35,6 +35,12 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Ready with Dependency");
     expect(source).toContain("Reusable Refinement Question Framework");
     expect(source).toContain("DCT must not select correction meaning");
+    expect(source).toContain("End-to-End Cross-Workstream Process Flow");
+    expect(source).toContain("State Requirements → DCT/TDC Processing → Roger Review");
+    expect(source).toContain("Provision Requirements → Provision Calculation → Roger Review");
+    expect(source).toContain("Roger does not directly write to DCT or TDC data stores");
+    expect(source).toContain("DCT / TDC recomputes and validates every approved adjustment or correction");
+    expect(source).toContain('<ResponsibilityMatrix workstream={activeWorkstream} />');
     expect(source).not.toContain("          <DiscoveryWorkflowSection />");
     expect(source).not.toContain("          <DataFlowSection />");
     expect(source).not.toContain("          <RuleProcessingTdcPosting />");

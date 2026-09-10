@@ -23,6 +23,7 @@ const C = {
   b16:     "#065f46",
   b28:     "#7c3aed",
 };
+const ROGER_BLUE = "#0891b2";
 
 // ─── Section heading ──────────────────────────────────────────────────────────
 function SectionHeading({ number, title, subtitle }: { number?: string; title: string; subtitle?: string }) {
@@ -568,7 +569,78 @@ const RESP_ROWS = [
   { row: "Lineage",         state: "Full lineage via Batch 16", provision: "Full lineage via Batch 16", dct: "TDC enforces lineage closure (G4)", roger: "Displays lineage (read-only)", ims: "Receives lineage evidence with payload" },
 ];
 
-function ResponsibilityMatrix() {
+const CROSS_WORKSTREAM_PROCESS_FLOWS = {
+  state: {
+    title: "State cross-workstream process flow",
+    accent: C.teal,
+    image: "/manus-storage/state-cross-workstream-process-flow_a32b6643.png",
+    alt: "State closed-loop process flow across Business Workstream, DCT and TDC, and Roger",
+    summary: "State Requirements → DCT/TDC Processing → Roger Review → Adjustment / Correction → DCT Recalculation → Roger Updated View",
+    steps: [
+      ["State requirements", "State business rules, filing context, required source information, and expected outcomes."],
+      ["DCT / TDC processing", "Compute State results, publish governed data and workpapers, and retain audit and lineage evidence."],
+      ["Roger review", "Practitioners review State filing results, workpapers, validations, and related evidence."],
+      ["Adjustment / correction", "Practitioners submit an approved State adjustment or correction through Roger."],
+      ["DCT recalculation", "DCT / TDC validates, recalculates, audits the change, and preserves lineage."],
+      ["Roger updated view", "Roger displays refreshed State results and workpapers for the next practitioner review."],
+    ],
+  },
+  provision: {
+    title: "Provision cross-workstream process flow",
+    accent: C.purple,
+    image: "/manus-storage/provision-cross-workstream-process-flow_478e2218.png",
+    alt: "Provision closed-loop process flow across Business Workstream, DCT and TDC, and Roger",
+    summary: "Provision Requirements → Provision Calculation → Roger Review → Correction / Adjustment → DCT Recalculation → Roger Updated View",
+    steps: [
+      ["Provision requirements", "Provision policies, source data, calculation rules, required inputs, and expected outcomes."],
+      ["Provision calculation", "DCT / TDC computes RTP comparison, provision adjustments, and governed tax outcomes."],
+      ["Roger review", "Practitioners review Provision schedules, workpapers, calculated outcomes, and audit evidence."],
+      ["Correction / adjustment", "Practitioners submit an approved Provision correction or adjustment through Roger."],
+      ["DCT recalculation", "DCT / TDC recalculates, validates, audits the change, and preserves lineage."],
+      ["Roger updated view", "Roger displays refreshed Provision schedules, outcomes, and audit evidence for the next review."],
+    ],
+  },
+} as const;
+
+function CrossWorkstreamProcessFlow({ workstream }: { workstream: "state" | "provision" }) {
+  const flow = CROSS_WORKSTREAM_PROCESS_FLOWS[workstream];
+  const copyText = `${flow.title}\n${flow.summary}\n\nBusiness Workstream owns the business need, rules, required data, validation rules, and expected outcomes.\nDCT / TDC owns governed retrieval, calculation, persistence, audit, lineage, and API publication.\nRoger owns practitioner review, presentation, and submission of approved adjustments or corrections.\n\nGuardrails: Roger does not directly write to DCT or TDC data stores. DCT / TDC does not make State or Provision business decisions. DCT / TDC recomputes and validates every approved adjustment or correction before Roger shows the refreshed result.`;
+  return (
+    <section id="cross-workstream-process-flow" style={{ marginTop: "26px", marginBottom: "8px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "14px", marginBottom: "11px" }}>
+        <div>
+          <div style={{ color: flow.accent, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "4px" }}>Business flow with ownership lanes</div>
+          <h3 style={{ color: C.navy, fontSize: "15px", margin: 0 }}>End-to-End Cross-Workstream Process Flow — {workstream === "state" ? "State" : "Provision"}</h3>
+          <p style={{ color: C.slate, fontSize: "11px", margin: "4px 0 0", lineHeight: "1.45" }}>A closed-loop responsibility flow for the currently selected workstream. The arrows show how work and governed results move from left to right.</p>
+        </div>
+        <CopyButton text={copyText} label="Copy flow summary" />
+      </div>
+
+      <div style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "10px", overflow: "hidden" }}>
+        <div style={{ overflowX: "auto", padding: "10px", backgroundColor: "#f8fafc" }}>
+          <img src={flow.image} alt={flow.alt} style={{ display: "block", width: "100%", minWidth: "920px", height: "auto" }} />
+        </div>
+        <div style={{ borderTop: "1px solid #e2e8f0", padding: "14px 16px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap", marginBottom: "14px" }}>
+            <span style={{ color: C.slate, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em" }}>Business sequence</span>
+            {flow.summary.split(" → ").map((item, index, array) => <span key={item} style={{ display: "inline-flex", alignItems: "center", gap: "7px" }}><span style={{ backgroundColor: index === 0 ? `${flow.accent}18` : index === array.length - 1 ? "#ecfdf5" : "#f1f5f9", color: index === 0 ? flow.accent : C.navy, border: `1px solid ${index === 0 ? `${flow.accent}55` : "#dbe3eb"}`, borderRadius: "4px", padding: "4px 7px", fontSize: "10px", fontWeight: 750 }}>{item}</span>{index < array.length - 1 && <span style={{ color: "#94a3b8", fontWeight: 800 }}>→</span>}</span>)}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", marginBottom: "12px" }}>
+            <div style={{ backgroundColor: `${flow.accent}0d`, border: `1px solid ${flow.accent}35`, borderTop: `3px solid ${flow.accent}`, borderRadius: "7px", padding: "10px" }}><div style={{ color: flow.accent, fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>BUSINESS WORKSTREAM</div><div style={{ color: "#334155", fontSize: "10px", lineHeight: "1.45" }}>Owns the business need, rules, required data, validation rules, and expected outcomes.</div></div>
+            <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderTop: `3px solid ${C.blue}`, borderRadius: "7px", padding: "10px" }}><div style={{ color: C.blue, fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>DCT / TDC</div><div style={{ color: "#334155", fontSize: "10px", lineHeight: "1.45" }}>Owns governed retrieval, calculation, persistence, audit, lineage, and API publication.</div></div>
+            <div style={{ backgroundColor: "#ecfeff", border: "1px solid #bae6fd", borderTop: `3px solid ${ROGER_BLUE}`, borderRadius: "7px", padding: "10px" }}><div style={{ color: ROGER_BLUE, fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>ROGER</div><div style={{ color: "#334155", fontSize: "10px", lineHeight: "1.45" }}>Owns practitioner review, presentation, and submission of approved adjustments or corrections.</div></div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "7px", padding: "10px 11px" }}><div style={{ color: "#9a3412", fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>GOVERNANCE GUARDRAIL</div><div style={{ color: "#7c2d12", fontSize: "10px", lineHeight: "1.45" }}>Roger does not directly write to DCT or TDC data stores. DCT / TDC does not make State or Provision business decisions.</div></div>
+            <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "7px", padding: "10px 11px" }}><div style={{ color: C.green, fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>CLOSED-LOOP CONTROL</div><div style={{ color: "#166534", fontSize: "10px", lineHeight: "1.45" }}>DCT / TDC recomputes and validates every approved adjustment or correction before Roger displays the refreshed result.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ResponsibilityMatrix({ workstream }: { workstream: "state" | "provision" }) {
   const cols = [
     { key: "state",     label: "State",     color: C.teal },
     { key: "provision", label: "Provision", color: C.purple },
@@ -606,6 +678,7 @@ function ResponsibilityMatrix() {
           </tbody>
         </table>
       </div>
+      <CrossWorkstreamProcessFlow workstream={workstream} />
     </section>
   );
 }
@@ -1834,7 +1907,7 @@ export default function DiscoveryWorkspace() {
           <WorkstreamReadinessHub active={activeWorkstream} onChange={setActiveWorkstream} />
           {activeWorkstream === "state" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />}
           <WorkstreamOverview />
-          <ResponsibilityMatrix />
+          <ResponsibilityMatrix workstream={activeWorkstream} />
           <ExistingCapabilities />
           <AskBuddySection />
       </div>
