@@ -45,5 +45,6 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).not.toContain('SectionHeading number="B" title="State & Provision Story Readiness"');
     expect(source).not.toContain('SectionHeading number="PI4" title="Provision Delivery Readiness"');
     expect(source).not.toContain('SectionHeading number="7" title="Ask Buddy"');
+    expect(source).not.toContain("        <QuickLinks />");
   });
 });

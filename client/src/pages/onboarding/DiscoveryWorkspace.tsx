@@ -1828,10 +1828,8 @@ export default function DiscoveryWorkspace() {
         </div>
       </div>
 
-      {/* Two-column layout: content + quick links */}
-      <div style={{ display: "flex", gap: "28px", alignItems: "flex-start" }}>
-        {/* Main content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+      {/* Discovery content */}
+      <div style={{ minWidth: 0 }}>
           <CrossTeamRefinementModel />
           <WorkstreamReadinessHub active={activeWorkstream} onChange={setActiveWorkstream} />
           {activeWorkstream === "state" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />}
@@ -1839,9 +1837,6 @@ export default function DiscoveryWorkspace() {
           <ResponsibilityMatrix />
           <ExistingCapabilities />
           <AskBuddySection />
-        </div>
-        {/* Quick links sidebar */}
-        <QuickLinks />
       </div>
     </div>
   );
