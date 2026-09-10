@@ -226,11 +226,6 @@ function CrossTeamRefinementModel() {
   return (
     <section id="refinement-model" style={{ marginBottom: "48px" }}>
       <SectionHeading title="Cross-Team Discovery & Refinement Model" subtitle="Business workstreams define expected behavior first; DCT applies the backend implementation after requirements are ready." />
-      <div style={{ backgroundColor: C.navy, borderRadius: "12px", padding: "20px 22px", marginBottom: "18px" }}>
-        <div style={{ fontSize: "11px", color: "#6ee7b7", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "8px" }}>DCT acceptance check</div>
-        <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", fontWeight: 750, lineHeight: "1.45", maxWidth: "1000px" }}>“Is there enough information in this story for DCT DEV to know what must be built and for QA to know what must be validated, without DCT having to make a business decision?”</p>
-        <p style={{ margin: "10px 0 0", color: "#cbd5e1", fontSize: "12px", lineHeight: "1.5" }}>If the answer is <strong>No</strong>, the story requires <strong style={{ color: "#fbbf24" }}>business clarification before DCT acceptance</strong>.</p>
-      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "14px", marginBottom: "18px" }}>
         {REFINEMENT_ROLES.map(role => <div key={role.title} style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderTop: `4px solid ${role.color}`, borderRadius: "10px", padding: "15px 16px" }}><div style={{ color: role.color, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "5px" }}>{role.cue}</div><h3 style={{ color: C.navy, fontSize: "14px", margin: "0 0 10px" }}>{role.title}</h3><ul style={{ margin: 0, paddingLeft: "17px" }}>{role.items.map(item => <li key={item} style={{ color: "#334155", fontSize: "11px", lineHeight: "1.5", marginBottom: "7px" }}>{item}</li>)}</ul></div>)}
       </div>

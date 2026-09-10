@@ -170,3 +170,4 @@
 - [x] Update State and Provision capability tables with the current workstream stories, supporting batches, existing DCT capabilities, and governed interfaces
 - [x] Remove the shared Discovery Workflow, Steps 4, 4A, 5, 6, and Definition of Ready sections from both State and Provision views
 - [x] Remove the visible A, B, D, and #7 section markers from the retained shared Discovery headings
+- [x] Remove the shared DCT Acceptance Check panel from the State and Provision Discovery workspace
