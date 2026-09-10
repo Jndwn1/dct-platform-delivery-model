@@ -45,6 +45,214 @@ function SectionHeading({ number, title, subtitle }: { number: string; title: st
   );
 }
 
+// ─── DCT cross-team refinement model ─────────────────────────────────────────
+type ReadinessStatus = "Ready" | "Ready with Dependency" | "Needs Clarification" | "Not Ready";
+
+type DiscoveryStory = {
+  id: string;
+  outcome: string;
+  scope: string;
+  owner: string;
+  dct: string;
+  roger: string;
+  questions: string[];
+  dependencies: string[];
+  existing: string;
+  netNew: string;
+  implementation: string;
+  estimation: ReadinessStatus;
+  acceptance: ReadinessStatus;
+  reason: string;
+};
+
+const REFINEMENT_ROLES = [
+  {
+    title: "Business Workstream / BA / PO",
+    color: C.teal,
+    cue: "Business WHAT and WHY",
+    items: [
+      "Own business requirements, rules, expected outcomes, and the practitioner objective.",
+      "Define required business data, its meaning, validation rules, and success, failure, warning, and exception behavior.",
+      "Lead refinement and resolve business decisions before DCT accepts a story.",
+    ],
+  },
+  {
+    title: "DCT",
+    color: C.blue,
+    cue: "Backend HOW",
+    items: [
+      "Pre-review stories for gaps, dependencies, implementation considerations, and estimation concerns.",
+      "Determine the technical implementation and how PDC, TDC, Gateway, Orchestrator, and audit / lineage support the requirement.",
+      "Do not invent missing State or Provision business requirements or make business decisions for the requesting workstream.",
+    ],
+  },
+  {
+    title: "Roger",
+    color: "#0878aa",
+    cue: "Practitioner UI HOW",
+    items: [
+      "Own practitioner-facing UI implementation and interaction behavior.",
+      "Consume governed DCT data through the Gateway or approved access layer.",
+      "Do not own or persist DCT / TDC tax records.",
+    ],
+  },
+] as const;
+
+const REFINEMENT_SEQUENCE = [
+  "Discovery / Requirements Defined",
+  "DCT Pre-Review",
+  "Refinement",
+  "Resolve Open Questions / Dependencies",
+  "Confirm Implementation Considerations",
+  "Estimate",
+  "DCT Acceptance",
+  "DEV / QA",
+] as const;
+
+const REFINEMENT_CHECKLISTS = [
+  { title: "Business Definition", color: C.teal, items: ["What is the practitioner trying to accomplish?", "What business event triggers the requirement?", "What is the expected outcome?", "What data elements are required and what do they mean?", "What business rules, missing-data behavior, exceptions, and out-of-scope conditions apply?"] },
+  { title: "Data / Integration", color: C.blue, items: ["What system or business process is the source?", "At what business level must data be supported: client, filing, entity, Description / line item, or another level?", "Who consumes the result and what must be returned?", "Is the result working / draft, approved / final, or both?", "What downstream workflow depends on it?"] },
+  { title: "DEV / QA Readiness", color: C.green, items: ["Can DEV determine the behavior that must be implemented?", "Can QA determine what must be validated, including positive and negative outcomes?", "Are unresolved business decisions and dependencies documented?", "Can the team estimate without assumptions about missing requirements?"] },
+] as const;
+
+const STATE_STORIES: DiscoveryStory[] = [
+  {
+    id: "1471480 — Retrieve Return Structure Starting Context for a State Filer / Filing Group",
+    outcome: "Roger opens the correct governed State filing context for a single filer or filing group.",
+    scope: "Retrieve the initial State filing context when Roger opens or begins the State workflow.",
+    owner: "State Business Team", dct: "Determine governed retrieval and backend implementation.", roger: "Render the approved State starting context.",
+    questions: ["Define starting context; current-year, prior-year, or both.", "Specify required fields, source meaning, filer / filing-group identification, and no-footprint behavior.", "Confirm whether prior-year data is reviewable starting context only."],
+    dependencies: ["State filing-footprint definition", "Roger workflow-entry behavior"], existing: "Gateway consumer access; PDC / TDC governed context patterns.", netNew: "State-specific return-structure starting-context contract.", implementation: "Business clarification required before DCT selects data shape or retrieval pattern.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "Starting context and exception behavior are not yet defined for DEV and QA.",
+  },
+  {
+    id: "1471493 — Save and Lock a State Filing Footprint Version",
+    outcome: "A practitioner can work, save, approve, and lock a governed State filing-footprint version with understood lifecycle behavior.",
+    scope: "Persist a State Filing Footprint and govern its working / saved through approval / lock lifecycle.",
+    owner: "State Business Team", dct: "Implement governed persistence, versioning, and lifecycle enforcement.", roger: "Present statuses and trigger approved practitioner actions.",
+    questions: ["Define Save, Approve, and Lock, including each practitioner trigger.", "Specify required persisted business information and lock eligibility.", "Define post-lock change behavior, versioning, and statuses Roger must display."],
+    dependencies: ["State lifecycle policy", "Roger approval interaction"], existing: "TDC persistence and audit / lineage patterns.", netNew: "State filing-footprint lifecycle and status model.", implementation: "Business clarification required; DCT will determine persistence pattern after lifecycle rules are defined.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "Lifecycle semantics and post-lock behavior are unresolved.",
+  },
+  {
+    id: "1471498 — Expose Saved State Filing Footprint and Record Audit / Lineage Events",
+    outcome: "Approved consumers can access the governed State Filing Footprint with appropriate audit and lineage evidence.",
+    scope: "Expose governed State Filing Footprint information and capture audit / lineage for governed changes.",
+    owner: "State Business Team", dct: "Compose governed access and reuse existing audit / lineage capabilities.", roger: "Display approved business fields and any required audit history.",
+    questions: ["Clarify whether saved means working, approved, or both.", "Identify consumers, required fields, and business events that require audit history.", "Confirm whether Roger displays audit history and whether exposure / audit remain one story."],
+    dependencies: ["1471493 lifecycle definition", "B16 audit / lineage capability"], existing: "Batch 16 audit / lineage and Gateway governed access.", netNew: "State consumer field set and exposure contract.", implementation: "Reuse audit / lineage unless a documented State requirement identifies a gap.", estimation: "Ready with Dependency", acceptance: "Needs Clarification", reason: "Consumer state, required fields, and story split require business confirmation.",
+  },
+  {
+    id: "1472734 — DCT Gateway: Compose State Return-Filing Response for Roger",
+    outcome: "Roger receives the governed State return-filing response required for the practitioner experience.",
+    scope: "Provide the governed Gateway response Roger requires for State filing.",
+    owner: "State Business Team / Roger", dct: "Compose the governed response through the appropriate Gateway access layer.", roger: "Own UI interaction behavior and required presentation behavior.",
+    questions: ["Define required business fields and field meanings.", "Define filingName and returnStructure from the State perspective.", "Confirm one versus multiple filings, working versus approved data, and incomplete-filing behavior."],
+    dependencies: ["State business response definition", "Roger consumer requirements"], existing: "Gateway response composition and governed consumer access.", netNew: "State return-filing response contract.", implementation: "Business clarification required; State does not need to prescribe endpoint, DTO, or Gateway implementation.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "The required business response and incomplete-state behavior are not defined.",
+  },
+];
+
+const PROVISION_STORIES: DiscoveryStory[] = [
+  {
+    id: "1479949 — DCT-P1-01: Provide governed RTP inputs, context, and source evidence",
+    outcome: "Provision practitioners receive governed prior-year Return-to-Provision inputs and source evidence by Description and entity.",
+    scope: "Provide the governed business inputs and context for Package 1 Return-to-Provision Review.",
+    owner: "Tax Provision Business Team", dct: "Provide governed inputs, context, and evidence; determine technical implementation.", roger: "Present the approved review experience.",
+    questions: ["Confirm authoritative PY Provision and PY Tax Return values, Description mapping, entity detail, and eligible C corporation behavior.", "Define period, missing-value, null versus zero, sign, rounding, final / filed return, amendment, and source-evidence rules."],
+    dependencies: ["Package 1 BRD", "A110 example", "Provision source governance"], existing: "PDC financial truth, TDC governed records, audit / lineage patterns.", netNew: "RTP source-context dataset and business evidence contract.", implementation: "DCT will select source integration and persistence approach after business definitions are complete.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "Authoritative values and business handling rules need Provision confirmation.",
+  },
+  {
+    id: "1479958 — DCT-P1-02: Provide the RTP calculation and section dataset",
+    outcome: "Package 1 can compare PY Tax Return to PY Provision and present governed section calculations.",
+    scope: "Provide the RTP comparison and section-calculation dataset, including entity filtering and rollups.",
+    owner: "Tax Provision Business Team", dct: "Provide governed dataset and calculate according to approved business rules.", roger: "Render approved section and entity-level review behavior.",
+    questions: ["Confirm RTP Difference = PY Tax Return − PY Provision.", "Define Step 9 Description / group / order reuse and RTP items without a Step 9 match.", "Confirm entity filtering, rollups, Permanent / Temporary exceptions, Pretax Income exclusion, and Taxable Income presentation."],
+    dependencies: ["1479949 governed inputs", "Package 1 business calculation rules"], existing: "DCT calculation orchestration, PDC source data, TDC governed outputs.", netNew: "RTP calculation / section business dataset.", implementation: "Confirm how DCT handles unmatched Step 9 items, filtered totals, entity rollups, and classification exceptions.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "Business calculation and presentation behavior remains incomplete.",
+  },
+  {
+    id: "1480251 — DCT-P1-03: Persist, audit, and recalculate prior-year amount corrections",
+    outcome: "A practitioner correction is governed, audited, and reflected in affected RTP results.",
+    scope: "Persist a practitioner correction to an incorrect prior-year amount, audit the change, and recalculate affected results.",
+    owner: "Tax Provision Business Team", dct: "Persist and audit the approved correction model; recalculate governed results.", roger: "Present the business-approved correction interaction and returned values.",
+    questions: ["Does the correction change PY Provision, PY Tax Return, or create a separate override?", "Which original value stays visible and what value returns to Roger?", "Define affected totals and original-versus-corrected audit semantics."],
+    dependencies: ["Provision correction policy", "B16 audit / lineage capability"], existing: "Governed persistence, audit history, recalculation patterns.", netNew: "Provision correction business model and recalculation rules.", implementation: "MVP excludes correction reason, add / delete row, and formal approval / sign-off. DCT must not select correction meaning.", estimation: "Not Ready", acceptance: "Not Ready", reason: "The core accounting and business meaning of a correction is unresolved.",
+  },
+  {
+    id: "1480000 — DCT-P1-04: Provide RTP true-up outputs to downstream Provision workflows",
+    outcome: "Completed governed RTP results are available to downstream Provision workflows when business-ready.",
+    scope: "Expose the completed governed RTP result to Package 2 and Package 3 downstream workflows.",
+    owner: "Tax Provision Business Team", dct: "Expose the approved governed result with identifiers and lineage.", roger: "Consume downstream-ready information only where needed in the practitioner experience.",
+    questions: ["Define Package 2 and Package 3 input requirements and entity versus consolidated output.", "Define Permanent / Temporary routing, payable versus deferred routing, corrected-value needs, and consumption readiness."],
+    dependencies: ["1479958 completed RTP dataset", "Package 2 Deferred Rollforward", "Package 3 Federal Summary"], existing: "Gateway governed access and audit / lineage capabilities.", netNew: "Provision routing and downstream output contract.", implementation: "The BRD establishes Temporary to Package 2 and Package 3 consumption; Provision must define the detailed routing rule.", estimation: "Ready with Dependency", acceptance: "Needs Clarification", reason: "Downstream package inputs and detailed business routing are dependencies.",
+  },
+];
+
+const STATUS_STYLE: Record<ReadinessStatus, { bg: string; text: string; border: string }> = {
+  "Ready": { bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
+  "Ready with Dependency": { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
+  "Needs Clarification": { bg: "#fffbeb", text: "#92400e", border: "#fde68a" },
+  "Not Ready": { bg: "#fef2f2", text: "#b91c1c", border: "#fecaca" },
+};
+
+function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    await navigator.clipboard?.writeText(text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+  return <button type="button" onClick={copy} style={{ border: "1px solid #cbd5e1", color: C.navy, backgroundColor: "#ffffff", borderRadius: "5px", padding: "5px 8px", fontSize: "10px", fontWeight: 750, cursor: "pointer" }}>{copied ? "Copied" : label}</button>;
+}
+
+function ReadinessBadge({ status }: { status: ReadinessStatus }) {
+  const s = STATUS_STYLE[status];
+  return <span style={{ display: "inline-flex", border: `1px solid ${s.border}`, backgroundColor: s.bg, color: s.text, borderRadius: "999px", padding: "3px 7px", fontSize: "10px", fontWeight: 800, whiteSpace: "nowrap" }}>{status}</span>;
+}
+
+function CrossTeamRefinementModel() {
+  return (
+    <section id="refinement-model" style={{ marginBottom: "48px" }}>
+      <SectionHeading number="A" title="Cross-Team Discovery & Refinement Model" subtitle="Business workstreams define expected behavior first; DCT applies the backend implementation after requirements are ready." />
+      <div style={{ backgroundColor: C.navy, borderRadius: "12px", padding: "20px 22px", marginBottom: "18px" }}>
+        <div style={{ fontSize: "11px", color: "#6ee7b7", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "8px" }}>DCT acceptance check</div>
+        <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", fontWeight: 750, lineHeight: "1.45", maxWidth: "1000px" }}>“Is there enough information in this story for DCT DEV to know what must be built and for QA to know what must be validated, without DCT having to make a business decision?”</p>
+        <p style={{ margin: "10px 0 0", color: "#cbd5e1", fontSize: "12px", lineHeight: "1.5" }}>If the answer is <strong>No</strong>, the story requires <strong style={{ color: "#fbbf24" }}>business clarification before DCT acceptance</strong>.</p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "14px", marginBottom: "18px" }}>
+        {REFINEMENT_ROLES.map(role => <div key={role.title} style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderTop: `4px solid ${role.color}`, borderRadius: "10px", padding: "15px 16px" }}><div style={{ color: role.color, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "5px" }}>{role.cue}</div><h3 style={{ color: C.navy, fontSize: "14px", margin: "0 0 10px" }}>{role.title}</h3><ul style={{ margin: 0, paddingLeft: "17px" }}>{role.items.map(item => <li key={item} style={{ color: "#334155", fontSize: "11px", lineHeight: "1.5", marginBottom: "7px" }}>{item}</li>)}</ul></div>)}
+      </div>
+      <div style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "10px", padding: "14px 16px" }}>
+        <div style={{ fontSize: "10px", color: C.slate, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "10px" }}>Required sequence — refinement is not first discovery</div>
+        <div style={{ display: "flex", gap: "7px", flexWrap: "wrap", alignItems: "center" }}>{REFINEMENT_SEQUENCE.map((step, index) => <div key={step} style={{ display: "flex", alignItems: "center", gap: "7px" }}><span style={{ backgroundColor: index < 2 ? "#e0f2fe" : index < 5 ? "#fef3c7" : "#dcfce7", color: C.navy, borderRadius: "5px", padding: "6px 8px", fontSize: "10px", fontWeight: 750 }}>{step}</span>{index < REFINEMENT_SEQUENCE.length - 1 && <span style={{ color: "#94a3b8", fontWeight: 800 }}>→</span>}</div>)}</div>
+      </div>
+    </section>
+  );
+}
+
+function StoryMatrix({ stories }: { stories: DiscoveryStory[] }) {
+  const copyText = stories.map(story => `${story.id}\nBusiness outcome: ${story.outcome}\nOpen business questions: ${story.questions.join("; ")}\nDependencies: ${story.dependencies.join("; ")}\nEstimation: ${story.estimation}\nDCT acceptance: ${story.acceptance}\nReason / gap: ${story.reason}`).join("\n\n");
+  return <div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden" }}><div style={{ padding: "12px 14px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}><div><div style={{ fontSize: "12px", color: C.navy, fontWeight: 800 }}>Story Readiness Matrix</div><div style={{ fontSize: "10px", color: C.slate, marginTop: "2px" }}>Ready means DEV and QA can proceed without inventing business behavior.</div></div><CopyButton text={copyText} label="Copy matrix" /></div><div style={{ overflowX: "auto" }}><table style={{ borderCollapse: "collapse", width: "100%", minWidth: "1740px", fontSize: "10px" }}><thead><tr style={{ backgroundColor: C.navy }}>{["Story", "Business Outcome", "Scope", "Business Owner", "DCT Responsibility", "Roger Responsibility", "Open Business Questions", "Dependencies", "Existing DCT Capability", "Net-New DCT Capability", "Implementation Considerations", "Ready for Estimation?", "Ready for DCT Acceptance?", "Reason / Gap"].map(header => <th key={header} style={{ color: "#ffffff", textAlign: "left", padding: "10px", fontWeight: 750, minWidth: header === "Story" ? "190px" : "145px" }}>{header}</th>)}</tr></thead><tbody>{stories.map((story, index) => <tr key={story.id} style={{ backgroundColor: index % 2 === 0 ? "#f8fafc" : "#ffffff", borderBottom: "1px solid #e2e8f0" }}><td style={{ padding: "10px", verticalAlign: "top", color: C.navy, fontWeight: 800, lineHeight: "1.4" }}>{story.id}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.outcome}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.scope}</td><td style={{ padding: "10px", verticalAlign: "top" }}>{story.owner}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.dct}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.roger}</td><td style={{ padding: "10px", verticalAlign: "top" }}><ul style={{ margin: 0, paddingLeft: "14px" }}>{story.questions.map(question => <li key={question} style={{ marginBottom: "4px", lineHeight: "1.4" }}>{question}</li>)}</ul></td><td style={{ padding: "10px", verticalAlign: "top" }}><ul style={{ margin: 0, paddingLeft: "14px" }}>{story.dependencies.map(dependency => <li key={dependency} style={{ marginBottom: "4px", lineHeight: "1.4" }}>{dependency}</li>)}</ul></td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.existing}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.netNew}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.implementation}</td><td style={{ padding: "10px", verticalAlign: "top" }}><ReadinessBadge status={story.estimation} /></td><td style={{ padding: "10px", verticalAlign: "top" }}><ReadinessBadge status={story.acceptance} /></td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.reason}</td></tr>)}</tbody></table></div></div>;
+}
+
+function WorkstreamReadinessHub() {
+  const [active, setActive] = useState<"state" | "provision">("state");
+  const isState = active === "state";
+  const stories = isState ? STATE_STORIES : PROVISION_STORIES;
+  const color = isState ? C.teal : C.purple;
+  const workstream = isState ? "State" : "Provision";
+  const overview = isState ? "State Filing Footprint discovery for Feature 1451927. The business team defines the filing behavior, lifecycle, data meanings, and exception outcomes before DCT acceptance." : "Package 1 Return-to-Provision Review compares prior-year Provision amounts with the prior-year filed Tax Return by Description and entity. RTP Difference = PY Tax Return − PY Provision, and each difference carries into the current-year provision true-up.";
+  const boundary = isState ? "DCT provides backend implementation and governed records. State defines business behavior; Roger owns practitioner interaction. State does not prescribe DCT endpoints, database tables, DTOs, persistence patterns, or Gateway implementation." : "The Tax Provision Business Team owns provision-computation rules, data governance, validation, policies, and business processes. DCT provides governed inputs, calculations, persistence, and access only after those rules are defined.";
+  const risks = isState ? ["Starting-context, save / approve / lock, and incomplete-filing behavior require business definitions.", "Saved-state meaning and Roger audit-history presentation need an explicit decision."] : ["PY correction semantics are a major unresolved accounting decision.", "Package 2 / Package 3 routing needs detailed business rules before downstream acceptance."];
+  const decisionItems = isState ? ["Decide working versus approved data exposure.", "Decide State filing-footprint lifecycle and change-after-lock behavior."] : ["Decide whether a correction changes source values or creates an override.", "Decide routing for Permanent / Temporary, payable, and deferred outputs."];
+  return <section id="story-readiness" style={{ marginBottom: "48px" }}><SectionHeading number="B" title="State & Provision Story Readiness" subtitle="A consistent discovery structure that separates business ownership from DCT implementation responsibility." />
+    <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}><button type="button" onClick={() => setActive("state")} style={{ border: `1px solid ${isState ? C.teal : "#cbd5e1"}`, backgroundColor: isState ? C.teal : "#ffffff", color: isState ? "#ffffff" : C.slate, fontWeight: 800, borderRadius: "6px", padding: "8px 14px", cursor: "pointer" }}>State Discovery</button><button type="button" onClick={() => setActive("provision")} style={{ border: `1px solid ${!isState ? C.purple : "#cbd5e1"}`, backgroundColor: !isState ? C.purple : "#ffffff", color: !isState ? "#ffffff" : C.slate, fontWeight: 800, borderRadius: "6px", padding: "8px 14px", cursor: "pointer" }}>Provision Discovery</button></div>
+    <div style={{ backgroundColor: `${color}0d`, border: `1px solid ${color}40`, borderLeft: `5px solid ${color}`, borderRadius: "10px", padding: "16px 18px", marginBottom: "16px" }}><div style={{ color, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>{workstream} overview</div><p style={{ color: "#334155", fontSize: "13px", lineHeight: "1.55", margin: 0 }}>{overview}</p></div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "16px" }}><div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "15px" }}><div style={{ color, fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "6px" }}>Business Ownership</div><p style={{ color: "#334155", margin: 0, fontSize: "12px", lineHeight: "1.55" }}>{isState ? "State Business Team owns WHAT and WHY: State requirements, rules, data meaning, validation, and practitioner outcomes." : "Provision Workstream owns WHAT and WHY: Package 1 requirements, calculation rules, accounting / tax policies, data governance, and expected outcomes."}</p></div><div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "15px" }}><div style={{ color: C.blue, fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "6px" }}>DCT Ownership Boundary</div><p style={{ color: "#334155", margin: 0, fontSize: "12px", lineHeight: "1.55" }}>{boundary}</p></div></div>
+    <div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "15px", marginBottom: "16px" }}><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "10px" }}><div><div style={{ color: C.navy, fontWeight: 800, fontSize: "12px" }}>Current Features / Stories</div><div style={{ color: C.slate, fontSize: "10px", marginTop: "2px" }}>Select a story below to review scope, questions, dependencies, capability assessment, and readiness.</div></div><CopyButton text={stories.map(story => `${story.id}\n${story.scope}`).join("\n\n")} label="Copy stories" /></div><div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px" }}>{stories.map(story => <div key={story.id} style={{ border: `1px solid ${STATUS_STYLE[story.acceptance].border}`, borderRadius: "8px", padding: "12px", backgroundColor: "#ffffff" }}><div style={{ color: C.navy, fontSize: "11px", fontWeight: 800, lineHeight: "1.45", marginBottom: "6px" }}>{story.id}</div><p style={{ color: "#475569", fontSize: "11px", lineHeight: "1.45", margin: "0 0 8px" }}>{story.scope}</p><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><ReadinessBadge status={story.estimation} /><ReadinessBadge status={story.acceptance} /></div></div>)}</div></div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "16px" }}><div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "10px", padding: "14px" }}><div style={{ color: "#1d4ed8", fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>Dependencies</div><p style={{ color: "#1e3a5f", fontSize: "11px", margin: 0, lineHeight: "1.5" }}>{isState ? "State business definitions, Roger requirements, B16 audit / lineage, and governed Gateway access must be sequenced explicitly." : "Package 1 inputs and calculation rules precede correction handling; Package 2 and Package 3 contracts define downstream readiness."}</p></div><div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "14px" }}><div style={{ color: C.green, fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>Existing DCT Capabilities</div><p style={{ color: "#166534", fontSize: "11px", margin: 0, lineHeight: "1.5" }}>PDC governed source financial data; TDC tax-domain records and persistence; Gateway consumer access; Orchestrator coordination; existing audit / lineage capabilities.</p></div><div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "10px", padding: "14px" }}><div style={{ color: "#92400e", fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>Risks / Assumptions & Decision Log</div><ul style={{ margin: "0 0 7px", paddingLeft: "15px" }}>{risks.map(risk => <li key={risk} style={{ color: "#78350f", fontSize: "10px", lineHeight: "1.45", marginBottom: "4px" }}>{risk}</li>)}</ul><div style={{ color: "#78350f", fontSize: "10px", fontWeight: 750 }}>Business clarification required: {decisionItems.join(" ")}</div></div></div>
+    <div style={{ marginBottom: "16px" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "8px" }}><div><div style={{ color: C.navy, fontSize: "12px", fontWeight: 800 }}>Reusable Refinement Question Framework</div><div style={{ color: C.slate, fontSize: "10px", marginTop: "2px" }}>Use the same questions for State and Provision before DCT refinement.</div></div><CopyButton text={REFINEMENT_CHECKLISTS.map(checklist => `${checklist.title}\n${checklist.items.join("\n")}`).join("\n\n")} label="Copy checklist" /></div><div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px" }}>{REFINEMENT_CHECKLISTS.map(checklist => <div key={checklist.title} style={{ border: `1px solid ${checklist.color}40`, borderTop: `4px solid ${checklist.color}`, borderRadius: "8px", padding: "12px", backgroundColor: "#ffffff" }}><div style={{ color: checklist.color, fontSize: "11px", fontWeight: 800, marginBottom: "7px" }}>{checklist.title}</div><ul style={{ margin: 0, paddingLeft: "15px" }}>{checklist.items.map(item => <li key={item} style={{ color: "#334155", fontSize: "10px", lineHeight: "1.45", marginBottom: "5px" }}>{item}</li>)}</ul></div>)}</div></div>
+    <StoryMatrix stories={stories} />
+  </section>;
+}
+
 // ─── PI 4 State delivery readiness ───────────────────────────────────────────
 const PI4_TIMELINE_ROWS = [
   { label: "State filing / reporting metadata & source ingestion readiness", start: 1, end: 2, color: C.teal },
@@ -1487,6 +1695,8 @@ function DefinitionOfReadySection() {
 
 // ─── Floating Quick Links sidebar ────────────────────────────────────────────
 const QUICK_LINKS = [
+  { label: "Refinement Model", href: "#refinement-model", color: C.blue, icon: "⇄" },
+  { label: "Story Readiness", href: "#story-readiness", color: C.teal, icon: "✓" },
   { label: "PI 4 State Plan", href: "#pi4-state-readiness", color: C.teal, icon: "◫" },
   { label: "Discovery Workflow", href: "#s-workflow", color: "#0369a1", icon: "🔎" },
   { label: "Batch 9A", href: "#s3", color: C.b9a, icon: "🔐" },
@@ -1541,8 +1751,7 @@ export default function DiscoveryWorkspace() {
               <h1 style={{ fontSize: "24px", fontWeight: 900, color: C.navy, margin: 0 }}>Provision & State Discovery Workspace</h1>
             </div>
             <p style={{ fontSize: "14px", color: C.slate, margin: 0, lineHeight: "1.6", maxWidth: "700px" }}>
-              Review existing DCT capabilities to understand what already exists before documenting new business requirements.
-              This workspace covers Batches 9A, 16, and 28 and their support for the State and Provision workstreams.
+              A practical discovery and refinement workspace for State and Provision. Business workstreams define expected behavior; DCT identifies implementation considerations and accepts stories only when DEV and QA can proceed without making a business decision.
             </p>
           </div>
           {/* Discovery Principle */}
@@ -1571,6 +1780,8 @@ export default function DiscoveryWorkspace() {
       <div style={{ display: "flex", gap: "28px", alignItems: "flex-start" }}>
         {/* Main content */}
         <div style={{ flex: 1, minWidth: 0 }}>
+          <CrossTeamRefinementModel />
+          <WorkstreamReadinessHub />
           <PI4StateReadiness />
           <WorkstreamOverview />
           <ResponsibilityMatrix />
