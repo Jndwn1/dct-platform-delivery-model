@@ -606,39 +606,49 @@ const EXECUTIVE_PROCESS_FLOWS: Record<"state" | "provision", { accent: string; s
   },
 };
 
+const FILE_DROP_SYSTEM_FLOWS = {
+  state: {
+    accent: C.teal,
+    title: "State — File Drop End-to-End System Flow",
+    subtitle: "System flow showing what happens when a practitioner uploads a file in Roger for State processing.",
+    image: "/manus-storage/state-file-drop-system-flow_f47bb42b.png",
+    path: ["Roger UI", "Upload / Intake", "DMS storage", "Gateway", "Orchestrator", "PDC", "TDC", "Gateway response", "Roger result", "IMS / downstream"],
+    copy: "State file-drop system flow\nRoger UI → Upload / Intake → DMS / Original Document Storage → Gateway → Orchestrator → PDC normalization → TDC State tax-domain persistence → Gateway governed State response → Roger State workflow result → IMS / approved downstream delivery.\n\nAudit / Lineage (B16) connects to PDC and TDC.\n\nUser update loop: Roger save / update → Gateway → TDC validate / persist → Audit / Lineage → Gateway → Roger refresh.",
+  },
+  provision: {
+    accent: C.purple,
+    title: "Provision — File Drop End-to-End System Flow",
+    subtitle: "System flow showing what happens when a practitioner uploads a file in Roger for Provision processing.",
+    image: "/manus-storage/provision-file-drop-system-flow_bfb61ac1.png",
+    path: ["Roger UI", "Upload / Intake", "DMS storage", "Gateway", "Orchestrator", "PDC", "TDC", "Gateway response", "Roger result", "Package 2 / 3 + IMS"],
+    copy: "Provision file-drop system flow\nRoger UI → Upload / Intake → DMS / Original Document Storage → Gateway → Orchestrator → PDC normalization → TDC Provision tax-domain persistence → Gateway governed Provision response → Roger Provision workflow result → Package 2 Deferred Rollforward, Package 3 Federal Summary, and approved IMS consumers.\n\nAudit / Lineage (B16) connects to PDC and TDC.\n\nUser update loop: Roger save / update → Gateway → TDC validate / persist / recalculate → Audit / Lineage → Gateway → Roger refresh.",
+  },
+} as const;
+
 function CrossWorkstreamProcessFlow({ workstream }: { workstream: "state" | "provision" }) {
-  const flow = EXECUTIVE_PROCESS_FLOWS[workstream];
-  const copyText = `${workstream === "state" ? "State" : "Provision"} executive process flow\n${flow.summary}\n\n${flow.stages.map(stage => `${stage.number}. ${stage.title} — ${stage.owner}: ${stage.description}`).join("\n")}\n\nGOVERNED CHANGE LOOP\nRoger Change → Gateway → DCT Validate / Persist / Recalculate / Audit → Gateway → Roger Refresh\nPractitioner changes are returned through the governed DCT flow before the refreshed result is displayed in Roger.`;
+  const flow = FILE_DROP_SYSTEM_FLOWS[workstream];
   return (
     <section id="cross-workstream-process-flow" style={{ marginTop: "26px", marginBottom: "8px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "14px", marginBottom: "12px" }}>
         <div>
-          <div style={{ color: flow.accent, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "4px" }}>Executive operating model</div>
-          <h3 style={{ color: C.navy, fontSize: "17px", margin: 0 }}>End-to-End Cross-Workstream Process Flow — {workstream === "state" ? "State" : "Provision"}</h3>
-          <p style={{ color: C.slate, fontSize: "13px", margin: "6px 0 0", lineHeight: "1.45", maxWidth: "1100px" }}>{flow.summary}</p>
+          <div style={{ color: flow.accent, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "4px" }}>Platform architecture / data flow</div>
+          <h3 style={{ color: C.navy, fontSize: "17px", margin: 0 }}>{flow.title}</h3>
+          <p style={{ color: C.slate, fontSize: "13px", margin: "6px 0 0", lineHeight: "1.45", maxWidth: "1100px" }}>{flow.subtitle}</p>
         </div>
-        <CopyButton text={copyText} label="Copy flow summary" />
+        <CopyButton text={flow.copy} label="Copy system flow" />
       </div>
 
-      <div style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "10px", padding: "18px", overflowX: "auto" }}>
-        <div style={{ width: "100%", minWidth: 0, display: "flex", alignItems: "stretch", gap: "2px" }}>
-          {flow.stages.flatMap((stage, index) => [
-            <div key={stage.number} style={{ flex: "1 1 0", minWidth: 0, minHeight: "272px", display: "flex", flexDirection: "column", border: `1px solid ${stage.accent}55`, borderTop: `5px solid ${stage.accent}`, borderRadius: "8px", backgroundColor: index === 0 ? `${stage.accent}0d` : index === 5 ? "#f0fdf4" : "#f8fafc", overflow: "hidden" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "7px", padding: "10px 11px 8px", borderBottom: "1px solid #e2e8f0" }}><span style={{ display: "grid", placeItems: "center", width: "22px", height: "22px", flexShrink: 0, color: "#ffffff", backgroundColor: stage.accent, borderRadius: "50%", fontSize: "11px", fontWeight: 900 }}>{stage.number}</span><span style={{ color: stage.accent, fontSize: "9px", fontWeight: 900, letterSpacing: "0.07em" }}>{stage.owner}</span></div>
-              <div style={{ padding: "13px 12px 10px", flex: 1 }}><div style={{ color: C.navy, fontSize: "14px", lineHeight: "1.22", fontWeight: 850, marginBottom: "9px" }}>{stage.title}</div><div style={{ color: "#475569", fontSize: "11px", lineHeight: "1.48" }}>{stage.description}</div>{stage.supporting.length > 0 && <div style={{ display: "grid", gap: "4px", marginTop: "11px" }}>{stage.supporting.map(item => <span key={item} style={{ display: "block", color: C.blue, fontSize: "9px", lineHeight: "1.25", fontWeight: 800 }}>{item}</span>)}</div>}</div>
-              <div style={{ padding: "8px 11px", borderTop: "1px solid #e2e8f0", color: stage.accent, fontSize: "9px", fontWeight: 900, letterSpacing: "0.06em", textAlign: "center" }}>{stage.ownershipLabel}</div>
-            </div>,
-            index < flow.stages.length - 1 ? <div key={`arrow-${stage.number}`} style={{ display: "flex", flexShrink: 0, alignItems: "center", color: "#64748b", fontSize: "17px", fontWeight: 800, padding: "0 1px" }}>→</div> : null,
-          ])}
+      <div style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "10px", overflow: "hidden" }}>
+        <div style={{ padding: "10px 14px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0", color: C.slate, fontSize: "11px", fontWeight: 700 }}>
+          Scroll horizontally to review the full system architecture with the handoff payloads between systems.
+        </div>
+        <div style={{ overflowX: "auto", overflowY: "hidden", padding: "12px", backgroundColor: "#f8fafc" }}>
+          <img src={flow.image} alt={`${workstream === "state" ? "State" : "Provision"} file-drop system flow from Roger upload through governed downstream delivery`} style={{ display: "block", width: "2800px", maxWidth: "none", height: "auto" }} />
         </div>
       </div>
 
-      <div style={{ marginTop: "14px", backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "9px", padding: "14px 16px" }}>
-        <div style={{ color: C.navy, fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", marginBottom: "10px" }}>GOVERNED CHANGE LOOP</div>
-        <div style={{ display: "flex", alignItems: "stretch", gap: "8px", minWidth: "860px" }}>
-          {["Roger Change", "Gateway", "DCT Validate / Persist / Recalculate / Audit", "Gateway", "Roger Refresh"].map((item, index, items) => <span key={`${item}-${index}`} style={{ display: "inline-flex", alignItems: "center", gap: "8px", flex: item.startsWith("DCT") ? "1.6" : "1", minWidth: item.startsWith("DCT") ? "235px" : "130px" }}><span style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1, minHeight: "36px", padding: "7px 10px", borderRadius: "5px", border: `1px solid ${index === 2 ? "#93c5fd" : index === 0 || index === 4 ? "#a5e5ef" : "#cbd5e1"}`, backgroundColor: index === 2 ? "#eff6ff" : index === 0 || index === 4 ? "#ecfeff" : "#ffffff", color: index === 2 ? C.blue : index === 0 || index === 4 ? ROGER_BLUE : C.slate, fontSize: "10px", fontWeight: 850, textAlign: "center", lineHeight: "1.25" }}>{item}</span>{index < items.length - 1 && <span style={{ color: "#64748b", fontSize: "18px", fontWeight: 800 }}>→</span>}</span>)}
-        </div>
-        <p style={{ color: C.slate, fontSize: "11px", lineHeight: "1.45", margin: "10px 0 0" }}>Practitioner changes are returned through the governed DCT flow before the refreshed result is displayed in Roger.</p>
+      <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "6px", overflowX: "auto", paddingBottom: "2px" }}>
+        {flow.path.map((system, index) => <div key={system} style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}><span style={{ padding: "5px 7px", borderRadius: "5px", border: `1px solid ${flow.accent}55`, backgroundColor: index === 0 || index === 8 ? `${flow.accent}10` : "#ffffff", color: index === 0 || index === 8 ? flow.accent : C.slate, fontSize: "10px", fontWeight: 800 }}>{system}</span>{index < flow.path.length - 1 && <span style={{ color: "#64748b", fontWeight: 850 }}>→</span>}</div>)}
       </div>
     </section>
   );
