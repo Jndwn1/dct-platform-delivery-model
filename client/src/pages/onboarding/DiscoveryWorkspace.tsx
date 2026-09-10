@@ -1759,18 +1759,12 @@ const QUICK_LINKS = [
   { label: "Refinement Model", href: "#refinement-model", color: C.blue, icon: "⇄" },
   { label: "Story Readiness", href: "#story-readiness", color: C.teal, icon: "✓" },
   { label: "PI 4 State Plan", href: "#pi4-state-readiness", color: C.teal, icon: "◫" },
-  { label: "Discovery Workflow", href: "#s-workflow", color: "#0369a1", icon: "🔎" },
   { label: "Batch 9A", href: "#s3", color: C.b9a, icon: "🔐" },
   { label: "Batch 16", href: "#s3", color: C.b16, icon: "📋" },
   { label: "Batch 28", href: "#s3", color: C.b28, icon: "📄" },
   { label: "Workstream Overview", href: "#s1", color: C.slate, icon: "◎" },
   { label: "Responsibilities", href: "#s2", color: C.slate, icon: "▦" },
-  { label: "Data Flow", href: "#s4", color: C.slate, icon: "→" },
-  { label: "Rule Posting", href: "#s-rule-posting", color: C.green, icon: "⚖" },
-  { label: "Capability Map", href: "#s5", color: C.slate, icon: "☑" },
-  { label: "Discovery Questions", href: "#s6", color: C.slate, icon: "?" },
   { label: "Ask Buddy", href: "#s7", color: C.slate, icon: "🤖" },
-  { label: "Ready for DCT", href: "#s-ready", color: "#059669", icon: "✓" },
 ];
 
 function QuickLinks() {
@@ -1847,14 +1841,8 @@ export default function DiscoveryWorkspace() {
           {activeWorkstream === "state" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />}
           <WorkstreamOverview />
           <ResponsibilityMatrix />
-          <DiscoveryWorkflowSection />
           <ExistingCapabilities />
-          <DataFlowSection />
-          <RuleProcessingTdcPosting />
-          <CapabilityMappingTable workstream={activeWorkstream} />
-          <DiscoveryQuestionsSection />
           <AskBuddySection />
-          <DefinitionOfReadySection />
         </div>
         {/* Quick links sidebar */}
         <QuickLinks />

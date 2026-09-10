@@ -168,3 +168,4 @@
 - [x] Refine Provision Package 1 discovery with detailed business rules, story-specific readiness, a Provision-only refinement checklist, and the Package 0–3 dependency flow
 - [x] Make Provision delivery readiness and sizing content workstream-specific instead of showing State-only timeline and sizing material
 - [x] Update State and Provision capability tables with the current workstream stories, supporting batches, existing DCT capabilities, and governed interfaces
+- [x] Remove the shared Discovery Workflow, Steps 4, 4A, 5, 6, and Definition of Ready sections from both State and Provision views

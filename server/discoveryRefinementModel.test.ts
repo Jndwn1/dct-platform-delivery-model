@@ -35,5 +35,11 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Ready with Dependency");
     expect(source).toContain("Reusable Refinement Question Framework");
     expect(source).toContain("DCT must not select correction meaning");
+    expect(source).not.toContain("          <DiscoveryWorkflowSection />");
+    expect(source).not.toContain("          <DataFlowSection />");
+    expect(source).not.toContain("          <RuleProcessingTdcPosting />");
+    expect(source).not.toContain("          <CapabilityMappingTable workstream={activeWorkstream} />");
+    expect(source).not.toContain("          <DiscoveryQuestionsSection />");
+    expect(source).not.toContain("          <DefinitionOfReadySection />");
   });
 });
