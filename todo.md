@@ -173,3 +173,5 @@
 - [x] Remove the shared DCT Acceptance Check panel from the State and Provision Discovery workspace
 - [x] Hide the Quick Links sidebar from the State and Provision Discovery workspace
 - [x] Add a closed-loop End-to-End Cross-Workstream Process Flow beneath the Workstream Responsibilities table in both State and Provision views
+- [x] Replace the detailed State and Provision swimlane diagrams with a consistent six-stage executive horizontal flow and governed change loop
+- [x] Refine executive flow card sizing so all six stages fit in the standard desktop workspace without horizontal scrolling

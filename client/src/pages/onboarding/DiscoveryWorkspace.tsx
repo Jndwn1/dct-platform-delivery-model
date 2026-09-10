@@ -569,72 +569,76 @@ const RESP_ROWS = [
   { row: "Lineage",         state: "Full lineage via Batch 16", provision: "Full lineage via Batch 16", dct: "TDC enforces lineage closure (G4)", roger: "Displays lineage (read-only)", ims: "Receives lineage evidence with payload" },
 ];
 
-const CROSS_WORKSTREAM_PROCESS_FLOWS = {
+type ExecutiveFlowStage = {
+  number: string;
+  owner: string;
+  title: string;
+  description: string;
+  ownershipLabel: string;
+  accent: string;
+  supporting: readonly string[];
+};
+
+const EXECUTIVE_PROCESS_FLOWS: Record<"state" | "provision", { accent: string; summary: string; stages: readonly ExecutiveFlowStage[] }> = {
   state: {
-    title: "State cross-workstream process flow",
     accent: C.teal,
-    image: "/manus-storage/state-cross-workstream-process-flow_a32b6643.png",
-    alt: "State closed-loop process flow across Business Workstream, DCT and TDC, and Roger",
-    summary: "State Requirements → DCT/TDC Processing → Roger Review → Adjustment / Correction → DCT Recalculation → Roger Updated View",
-    steps: [
-      ["State requirements", "State business rules, filing context, required source information, and expected outcomes."],
-      ["DCT / TDC processing", "Compute State results, publish governed data and workpapers, and retain audit and lineage evidence."],
-      ["Roger review", "Practitioners review State filing results, workpapers, validations, and related evidence."],
-      ["Adjustment / correction", "Practitioners submit an approved State adjustment or correction through Roger."],
-      ["DCT recalculation", "DCT / TDC validates, recalculates, audits the change, and preserves lineage."],
-      ["Roger updated view", "Roger displays refreshed State results and workpapers for the next practitioner review."],
+    summary: "State defines the business requirement; Roger captures the practitioner interaction; DCT governs the data and tax decisions; Gateway delivers the governed result; downstream workflows consume the approved output.",
+    stages: [
+      { number: "1", owner: "STATE BUSINESS", title: "Define State Requirements", description: "Defines State tax requirements, Nexus, filing groups, apportionment, required data, rules, and expected business outcomes.", ownershipLabel: "WHAT + WHY", accent: C.teal, supporting: [] },
+      { number: "2", owner: "ROGER", title: "Practitioner Interaction", description: "Presents the State workflow and captures practitioner selections, filing context, and required actions.", ownershipLabel: "USER EXPERIENCE", accent: ROGER_BLUE, supporting: [] },
+      { number: "3", owner: "DCT PLATFORM", title: "Process & Govern State Data", description: "PDC/TDC retrieve, validate, calculate, persist, version, and audit governed State data and decisions.", ownershipLabel: "BACKEND HOW", accent: C.blue, supporting: ["PDC · Source Financial Data", "TDC · Tax Records & Decisions", "Audit / Lineage · Governed History"] },
+      { number: "4", owner: "GATEWAY", title: "Provide Governed Access", description: "Gateway securely composes and exposes the governed State response required by Roger and approved consumers.", ownershipLabel: "GOVERNED ACCESS", accent: "#2563eb", supporting: [] },
+      { number: "5", owner: "ROGER", title: "Review & Act", description: "Practitioner reviews State results, warnings, filing context, and governed data and makes permitted changes.", ownershipLabel: "PRACTITIONER REVIEW", accent: ROGER_BLUE, supporting: [] },
+      { number: "6", owner: "IMS / DOWNSTREAM", title: "Consume Governed Output", description: "Approved State results continue to downstream tax, filing, reporting, or integration workflows.", ownershipLabel: "DOWNSTREAM DELIVERY", accent: C.green, supporting: [] },
     ],
   },
   provision: {
-    title: "Provision cross-workstream process flow",
     accent: C.purple,
-    image: "/manus-storage/provision-cross-workstream-process-flow_478e2218.png",
-    alt: "Provision closed-loop process flow across Business Workstream, DCT and TDC, and Roger",
-    summary: "Provision Requirements → Provision Calculation → Roger Review → Correction / Adjustment → DCT Recalculation → Roger Updated View",
-    steps: [
-      ["Provision requirements", "Provision policies, source data, calculation rules, required inputs, and expected outcomes."],
-      ["Provision calculation", "DCT / TDC computes RTP comparison, provision adjustments, and governed tax outcomes."],
-      ["Roger review", "Practitioners review Provision schedules, workpapers, calculated outcomes, and audit evidence."],
-      ["Correction / adjustment", "Practitioners submit an approved Provision correction or adjustment through Roger."],
-      ["DCT recalculation", "DCT / TDC recalculates, validates, audits the change, and preserves lineage."],
-      ["Roger updated view", "Roger displays refreshed Provision schedules, outcomes, and audit evidence for the next review."],
+    summary: "Provision defines the business requirement; Roger captures the practitioner interaction; DCT governs the data, calculations, and decisions; Gateway delivers the governed result; downstream workflows consume the output.",
+    stages: [
+      { number: "1", owner: "PROVISION BUSINESS", title: "Define Provision Requirements", description: "Defines Provision accounting and tax rules, computations, required data, validations, and expected business outcomes.", ownershipLabel: "WHAT + WHY", accent: C.purple, supporting: [] },
+      { number: "2", owner: "ROGER", title: "Practitioner Interaction", description: "Presents the Provision workflow and captures entity selections, reviews, corrections, and other permitted actions.", ownershipLabel: "USER EXPERIENCE", accent: ROGER_BLUE, supporting: [] },
+      { number: "3", owner: "DCT PLATFORM", title: "Process & Govern Provision Data", description: "PDC/TDC retrieve, calculate, persist, recalculate, and audit governed Provision data and decisions.", ownershipLabel: "BACKEND HOW", accent: C.blue, supporting: ["PDC · Source Financial Data", "TDC · Provision Tax Records", "Audit / Lineage · Governed History"] },
+      { number: "4", owner: "GATEWAY", title: "Provide Governed Access", description: "Gateway securely composes and exposes Provision results required by Roger and downstream consumers.", ownershipLabel: "GOVERNED ACCESS", accent: "#2563eb", supporting: [] },
+      { number: "5", owner: "ROGER", title: "Review & Act", description: "Practitioner reviews Provision results, including RTP information, and makes permitted corrections or workflow decisions.", ownershipLabel: "PRACTITIONER REVIEW", accent: ROGER_BLUE, supporting: [] },
+      { number: "6", owner: "DOWNSTREAM", title: "Continue Provision Workflow", description: "Governed results feed Deferred Rollforward, Federal Summary, reporting, and approved downstream integrations.", ownershipLabel: "DOWNSTREAM DELIVERY", accent: C.green, supporting: [] },
     ],
   },
-} as const;
+};
 
 function CrossWorkstreamProcessFlow({ workstream }: { workstream: "state" | "provision" }) {
-  const flow = CROSS_WORKSTREAM_PROCESS_FLOWS[workstream];
-  const copyText = `${flow.title}\n${flow.summary}\n\nBusiness Workstream owns the business need, rules, required data, validation rules, and expected outcomes.\nDCT / TDC owns governed retrieval, calculation, persistence, audit, lineage, and API publication.\nRoger owns practitioner review, presentation, and submission of approved adjustments or corrections.\n\nGuardrails: Roger does not directly write to DCT or TDC data stores. DCT / TDC does not make State or Provision business decisions. DCT / TDC recomputes and validates every approved adjustment or correction before Roger shows the refreshed result.`;
+  const flow = EXECUTIVE_PROCESS_FLOWS[workstream];
+  const copyText = `${workstream === "state" ? "State" : "Provision"} executive process flow\n${flow.summary}\n\n${flow.stages.map(stage => `${stage.number}. ${stage.title} — ${stage.owner}: ${stage.description}`).join("\n")}\n\nGOVERNED CHANGE LOOP\nRoger Change → Gateway → DCT Validate / Persist / Recalculate / Audit → Gateway → Roger Refresh\nPractitioner changes are returned through the governed DCT flow before the refreshed result is displayed in Roger.`;
   return (
     <section id="cross-workstream-process-flow" style={{ marginTop: "26px", marginBottom: "8px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "14px", marginBottom: "11px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "14px", marginBottom: "12px" }}>
         <div>
-          <div style={{ color: flow.accent, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "4px" }}>Business flow with ownership lanes</div>
-          <h3 style={{ color: C.navy, fontSize: "15px", margin: 0 }}>End-to-End Cross-Workstream Process Flow — {workstream === "state" ? "State" : "Provision"}</h3>
-          <p style={{ color: C.slate, fontSize: "11px", margin: "4px 0 0", lineHeight: "1.45" }}>A closed-loop responsibility flow for the currently selected workstream. The arrows show how work and governed results move from left to right.</p>
+          <div style={{ color: flow.accent, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "4px" }}>Executive operating model</div>
+          <h3 style={{ color: C.navy, fontSize: "17px", margin: 0 }}>End-to-End Cross-Workstream Process Flow — {workstream === "state" ? "State" : "Provision"}</h3>
+          <p style={{ color: C.slate, fontSize: "13px", margin: "6px 0 0", lineHeight: "1.45", maxWidth: "1100px" }}>{flow.summary}</p>
         </div>
         <CopyButton text={copyText} label="Copy flow summary" />
       </div>
 
-      <div style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "10px", overflow: "hidden" }}>
-        <div style={{ overflowX: "auto", padding: "10px", backgroundColor: "#f8fafc" }}>
-          <img src={flow.image} alt={flow.alt} style={{ display: "block", width: "100%", minWidth: "920px", height: "auto" }} />
+      <div style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "10px", padding: "18px", overflowX: "auto" }}>
+        <div style={{ width: "100%", minWidth: 0, display: "flex", alignItems: "stretch", gap: "2px" }}>
+          {flow.stages.flatMap((stage, index) => [
+            <div key={stage.number} style={{ flex: "1 1 0", minWidth: 0, minHeight: "272px", display: "flex", flexDirection: "column", border: `1px solid ${stage.accent}55`, borderTop: `5px solid ${stage.accent}`, borderRadius: "8px", backgroundColor: index === 0 ? `${stage.accent}0d` : index === 5 ? "#f0fdf4" : "#f8fafc", overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "7px", padding: "10px 11px 8px", borderBottom: "1px solid #e2e8f0" }}><span style={{ display: "grid", placeItems: "center", width: "22px", height: "22px", flexShrink: 0, color: "#ffffff", backgroundColor: stage.accent, borderRadius: "50%", fontSize: "11px", fontWeight: 900 }}>{stage.number}</span><span style={{ color: stage.accent, fontSize: "9px", fontWeight: 900, letterSpacing: "0.07em" }}>{stage.owner}</span></div>
+              <div style={{ padding: "13px 12px 10px", flex: 1 }}><div style={{ color: C.navy, fontSize: "14px", lineHeight: "1.22", fontWeight: 850, marginBottom: "9px" }}>{stage.title}</div><div style={{ color: "#475569", fontSize: "11px", lineHeight: "1.48" }}>{stage.description}</div>{stage.supporting.length > 0 && <div style={{ display: "grid", gap: "4px", marginTop: "11px" }}>{stage.supporting.map(item => <span key={item} style={{ display: "block", color: C.blue, fontSize: "9px", lineHeight: "1.25", fontWeight: 800 }}>{item}</span>)}</div>}</div>
+              <div style={{ padding: "8px 11px", borderTop: "1px solid #e2e8f0", color: stage.accent, fontSize: "9px", fontWeight: 900, letterSpacing: "0.06em", textAlign: "center" }}>{stage.ownershipLabel}</div>
+            </div>,
+            index < flow.stages.length - 1 ? <div key={`arrow-${stage.number}`} style={{ display: "flex", flexShrink: 0, alignItems: "center", color: "#64748b", fontSize: "17px", fontWeight: 800, padding: "0 1px" }}>→</div> : null,
+          ])}
         </div>
-        <div style={{ borderTop: "1px solid #e2e8f0", padding: "14px 16px 16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap", marginBottom: "14px" }}>
-            <span style={{ color: C.slate, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em" }}>Business sequence</span>
-            {flow.summary.split(" → ").map((item, index, array) => <span key={item} style={{ display: "inline-flex", alignItems: "center", gap: "7px" }}><span style={{ backgroundColor: index === 0 ? `${flow.accent}18` : index === array.length - 1 ? "#ecfdf5" : "#f1f5f9", color: index === 0 ? flow.accent : C.navy, border: `1px solid ${index === 0 ? `${flow.accent}55` : "#dbe3eb"}`, borderRadius: "4px", padding: "4px 7px", fontSize: "10px", fontWeight: 750 }}>{item}</span>{index < array.length - 1 && <span style={{ color: "#94a3b8", fontWeight: 800 }}>→</span>}</span>)}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", marginBottom: "12px" }}>
-            <div style={{ backgroundColor: `${flow.accent}0d`, border: `1px solid ${flow.accent}35`, borderTop: `3px solid ${flow.accent}`, borderRadius: "7px", padding: "10px" }}><div style={{ color: flow.accent, fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>BUSINESS WORKSTREAM</div><div style={{ color: "#334155", fontSize: "10px", lineHeight: "1.45" }}>Owns the business need, rules, required data, validation rules, and expected outcomes.</div></div>
-            <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderTop: `3px solid ${C.blue}`, borderRadius: "7px", padding: "10px" }}><div style={{ color: C.blue, fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>DCT / TDC</div><div style={{ color: "#334155", fontSize: "10px", lineHeight: "1.45" }}>Owns governed retrieval, calculation, persistence, audit, lineage, and API publication.</div></div>
-            <div style={{ backgroundColor: "#ecfeff", border: "1px solid #bae6fd", borderTop: `3px solid ${ROGER_BLUE}`, borderRadius: "7px", padding: "10px" }}><div style={{ color: ROGER_BLUE, fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>ROGER</div><div style={{ color: "#334155", fontSize: "10px", lineHeight: "1.45" }}>Owns practitioner review, presentation, and submission of approved adjustments or corrections.</div></div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "7px", padding: "10px 11px" }}><div style={{ color: "#9a3412", fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>GOVERNANCE GUARDRAIL</div><div style={{ color: "#7c2d12", fontSize: "10px", lineHeight: "1.45" }}>Roger does not directly write to DCT or TDC data stores. DCT / TDC does not make State or Provision business decisions.</div></div>
-            <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "7px", padding: "10px 11px" }}><div style={{ color: C.green, fontSize: "10px", fontWeight: 800, marginBottom: "4px" }}>CLOSED-LOOP CONTROL</div><div style={{ color: "#166534", fontSize: "10px", lineHeight: "1.45" }}>DCT / TDC recomputes and validates every approved adjustment or correction before Roger displays the refreshed result.</div></div>
-          </div>
+      </div>
+
+      <div style={{ marginTop: "14px", backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "9px", padding: "14px 16px" }}>
+        <div style={{ color: C.navy, fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", marginBottom: "10px" }}>GOVERNED CHANGE LOOP</div>
+        <div style={{ display: "flex", alignItems: "stretch", gap: "8px", minWidth: "860px" }}>
+          {["Roger Change", "Gateway", "DCT Validate / Persist / Recalculate / Audit", "Gateway", "Roger Refresh"].map((item, index, items) => <span key={`${item}-${index}`} style={{ display: "inline-flex", alignItems: "center", gap: "8px", flex: item.startsWith("DCT") ? "1.6" : "1", minWidth: item.startsWith("DCT") ? "235px" : "130px" }}><span style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1, minHeight: "36px", padding: "7px 10px", borderRadius: "5px", border: `1px solid ${index === 2 ? "#93c5fd" : index === 0 || index === 4 ? "#a5e5ef" : "#cbd5e1"}`, backgroundColor: index === 2 ? "#eff6ff" : index === 0 || index === 4 ? "#ecfeff" : "#ffffff", color: index === 2 ? C.blue : index === 0 || index === 4 ? ROGER_BLUE : C.slate, fontSize: "10px", fontWeight: 850, textAlign: "center", lineHeight: "1.25" }}>{item}</span>{index < items.length - 1 && <span style={{ color: "#64748b", fontSize: "18px", fontWeight: 800 }}>→</span>}</span>)}
         </div>
+        <p style={{ color: C.slate, fontSize: "11px", lineHeight: "1.45", margin: "10px 0 0" }}>Practitioner changes are returned through the governed DCT flow before the refreshed result is displayed in Roger.</p>
       </div>
     </section>
   );
