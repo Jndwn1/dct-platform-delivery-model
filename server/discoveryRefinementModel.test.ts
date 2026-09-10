@@ -41,5 +41,9 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).not.toContain("          <CapabilityMappingTable workstream={activeWorkstream} />");
     expect(source).not.toContain("          <DiscoveryQuestionsSection />");
     expect(source).not.toContain("          <DefinitionOfReadySection />");
+    expect(source).not.toContain('SectionHeading number="A" title="Cross-Team Discovery & Refinement Model"');
+    expect(source).not.toContain('SectionHeading number="B" title="State & Provision Story Readiness"');
+    expect(source).not.toContain('SectionHeading number="PI4" title="Provision Delivery Readiness"');
+    expect(source).not.toContain('SectionHeading number="7" title="Ask Buddy"');
   });
 });
