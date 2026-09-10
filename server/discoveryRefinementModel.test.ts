@@ -23,6 +23,10 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Provision Refinement Question Framework");
     expect(source).toContain("Primary Provision refinement prompts");
     expect(source).toContain("Downstream output contract and payable / deferred routing require confirmation.");
+    expect(source).toContain("Provision Delivery Readiness");
+    expect(source).toContain("Provision delivery path and readiness gates");
+    expect(source).toContain("Current Provision Story Sizing & Estimation Assessment");
+    expect(source).toContain("activeWorkstream === \"state\" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />");
     expect(source).toContain("Story Readiness Matrix");
     expect(source).toContain("Ready with Dependency");
     expect(source).toContain("Reusable Refinement Question Framework");
