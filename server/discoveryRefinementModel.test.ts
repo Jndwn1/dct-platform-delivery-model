@@ -27,6 +27,10 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Provision delivery path and readiness gates");
     expect(source).toContain("Current Provision Story Sizing & Estimation Assessment");
     expect(source).toContain("activeWorkstream === \"state\" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />");
+    expect(source).toContain("How DCT Supports State Stories");
+    expect(source).toContain("How DCT Supports Provision Stories");
+    expect(source).toContain("1479949");
+    expect(source).toContain("1471480");
     expect(source).toContain("Story Readiness Matrix");
     expect(source).toContain("Ready with Dependency");
     expect(source).toContain("Reusable Refinement Question Framework");

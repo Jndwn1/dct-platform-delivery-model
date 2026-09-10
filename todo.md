@@ -167,3 +167,4 @@
 - [x] Update Provision and State Discovery with the cross-team refinement model, ownership boundaries, story readiness matrices, and reusable DCT refinement framework
 - [x] Refine Provision Package 1 discovery with detailed business rules, story-specific readiness, a Provision-only refinement checklist, and the Package 0–3 dependency flow
 - [x] Make Provision delivery readiness and sizing content workstream-specific instead of showing State-only timeline and sizing material
+- [x] Update State and Provision capability tables with the current workstream stories, supporting batches, existing DCT capabilities, and governed interfaces

@@ -1256,19 +1256,20 @@ const STATUS_CONFIG: Record<StatusType, { dot: string; bg: string; text: string;
   "Out of Scope":     { dot: "⚪", bg: "#f8fafc", text: "#475569", border: "#e2e8f0", label: "Out of Scope" },
 };
 
-const CAPABILITY_ROWS: { need: string; capability: string; batch: string; apis: string; status: StatusType; action: string }[] = [
-  { need: "Access state tax data", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/state/apportionment/{jurisdiction}", status: "Covered", action: "Reference the existing Gateway capability. Do not create a new requirement unless additional functionality is required." },
-  { need: "Access provision schedules", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/provision/schedules/{period}", status: "Covered", action: "Reference the existing capability. Validate only additional business fields if needed." },
-  { need: "Access workpapers", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "GET /api/v1/gateway/workpapers/{entityId}", status: "Covered", action: "Reuse the existing capability. Document only additional workpaper requirements." },
-  { need: "Audit trail for tax decisions", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/decisions/{entityId}", status: "Covered", action: "Reference Batch 16. Do not create a new audit capability." },
-  { need: "Lineage from ERP to output", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/lineage/{entityId}", status: "Covered", action: "Reuse existing lineage framework. Document only additional lineage requirements if applicable." },
-  { need: "Decision history & overrides", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/history/{decisionId}", status: "Covered", action: "Reference existing audit capability." },
-  { need: "DTA/DTL classification reference data", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/dta-classification/{entityTypeCode}", status: "Covered", action: "Reference existing reference data APIs." },
-  { need: "ETR category reference data", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/etr-category/{entityTypeCode}", status: "Covered", action: "Reference existing reference data APIs." },
-  { need: "Valuation allowance criteria", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "GET /api/v1/provision/reference/valuation-allowance/{entityTypeCode}", status: "Covered", action: "Reference existing reference data APIs." },
-  { need: "BTP provision outbound (DTA/DTL recon, ETR recon, return-to-provision)", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "POST /api/v1/provision/outbound/btp/{entityId}", status: "Covered", action: "Reuse the existing outbound contract." },
-  { need: "Provision compute / recognition rules (UTP, period mismatch, consolidation)", capability: "Not in DCT scope — owned by Provision team & BTP", batch: "—", apis: "Not applicable", status: "Out of Scope", action: "Document the business requirement and coordinate with the Provision/BTP team. Do not create DCT implementation work." },
-  { need: "Audit export for IMS delivery", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/export/{entityId}", status: "Covered", action: "Reuse the existing Batch 16 capability." },
+type CapabilityRow = { need: string; capability: string; batch: string; apis: string; status: StatusType; action: string; story: string };
+
+const STATE_CAPABILITY_ROWS: CapabilityRow[] = [
+  { story: "1471480", need: "Retrieve governed State filer / filing-group starting context", capability: "Gateway & governed retrieval patterns", batch: "B9A", apis: "Gateway response contract to be defined", status: "Partially Covered", action: "Define starting-context, filer / filing-group identification, source meaning, and no-footprint behavior before DCT selects the response shape." },
+  { story: "1471493", need: "Save, approve, and lock a State Filing Footprint version", capability: "TDC persistence plus audit / lineage patterns", batch: "B16", apis: "Governed filing-footprint lifecycle contract to be defined", status: "Partially Covered", action: "Define working, saved, approved, locked, and post-lock business behavior; DCT then determines versioning and persistence implementation." },
+  { story: "1471498", need: "Expose saved State Filing Footprint with audit and lineage evidence", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/lineage/{filingFootprintId}", status: "Partially Covered", action: "Confirm whether saved means working, approved, or both, plus consumers and required audit-history fields." },
+  { story: "1472734", need: "Compose State return-filing response for Roger", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "State return-filing Gateway response contract to be defined", status: "Partially Covered", action: "Define the Roger-required fields, state-return status behavior, and incomplete / exception response before implementing the consumer contract." },
+];
+
+const PROVISION_CAPABILITY_ROWS: CapabilityRow[] = [
+  { story: "1479949", need: "Provide PY Provision and PY Tax Return source values, entity context, and source evidence", capability: "PDC governed source financial data and TDC tax-domain context", batch: "B9A", apis: "Package 1 governed input contract to be defined", status: "Partially Covered", action: "Confirm authoritative source mappings, business level of detail, and missing / exception handling before DCT defines the input contract." },
+  { story: "1479958", need: "Provide RTP calculation, entity roll-up, and section dataset", capability: "TDC governed calculation and Gateway access patterns", batch: "B9A", apis: "Package 1 RTP dataset contract to be defined", status: "Partially Covered", action: "Confirm unmatched-item behavior, filtered-entity recalculation, roll-up rules, and Permanent / Temporary exceptions before estimation." },
+  { story: "1480251", need: "Persist, audit, and recalculate a practitioner correction to a prior-year amount", capability: "TDC persistence and Audit Trail & Lineage Governance", batch: "B16", apis: "Correction / recalculation contract to be defined", status: "Partially Covered", action: "Decide whether a correction changes a source value or creates a governed override, including historical visibility and recalculation rules." },
+  { story: "1480000", need: "Expose completed RTP true-up outputs to Package 2 and Package 3", capability: "Provision Reference Data & BTP Outbound Contract", batch: "B28", apis: "Package 2 / Package 3 output contract to be defined", status: "Partially Covered", action: "Confirm the required output, recipient, payable / deferred routing rule, and downstream consumption timing before DCT acceptance." },
 ];
 
 const LEGEND_ITEMS: { status: StatusType; definition: string; action: string }[] = [
@@ -1278,22 +1279,23 @@ const LEGEND_ITEMS: { status: StatusType; definition: string; action: string }[]
   { status: "Out of Scope",     definition: "Capability belongs to another platform or team.",       action: "Coordinate with the owning team rather than creating DCT implementation work." },
 ];
 
-function CapabilityMappingTable() {
+function CapabilityMappingTable({ workstream }: { workstream: "state" | "provision" }) {
+  const isState = workstream === "state";
+  const rows = isState ? STATE_CAPABILITY_ROWS : PROVISION_CAPABILITY_ROWS;
+  const title = isState ? "How DCT Supports State Stories" : "How DCT Supports Provision Stories";
+  const subtitle = isState ? "State story capability matrix — identify governed patterns and business gaps before DCT acceptance." : "Provision Package 1 capability matrix — identify governed patterns and business gaps before DCT acceptance.";
   const batchColor = (b: string) => b === "B9A" ? C.b9a : b === "B16" ? C.b16 : b === "—" ? "#94a3b8" : C.b28;
 
   return (
     <section id="s5" style={{ marginBottom: "48px" }}>
       <SectionHeading
         number="5"
-        title="How DCT Supports State & Provision"
-        subtitle="Discovery Decision Matrix — Review this matrix before documenting new business requirements."
+        title={title}
+        subtitle={subtitle}
       />
 
       {/* Section description */}
-      <p style={{ fontSize: "13px", color: "#334155", lineHeight: "1.7", marginBottom: "20px", marginTop: "-8px" }}>
-        The purpose of this matrix is to determine whether the requested business capability already exists within DCT, whether an enhancement is required, or whether the capability is outside the DCT platform.
-        Business Analysts should reference existing capabilities whenever possible rather than creating duplicate implementation work.
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "20px", marginTop: "-8px" }}><p style={{ fontSize: "13px", color: "#334155", lineHeight: "1.7", margin: 0 }}>The matrix aligns the current <strong>{isState ? "State" : "Provision"}</strong> stories with available DCT patterns, supporting batches, and the business decisions that must be resolved before implementation.</p><CopyButton text={rows.map(row => `${row.story} | ${row.need} | ${row.capability} | ${row.batch} | ${row.apis} | ${row.status} | ${row.action}`).join("\n")} label="Copy table" /></div>
 
       {/* Discovery Guidance panel */}
       <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "16px 20px", marginBottom: "20px", borderLeft: "4px solid #059669" }}>
@@ -1327,6 +1329,7 @@ function CapabilityMappingTable() {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
           <thead>
             <tr style={{ backgroundColor: C.navy }}>
+              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, minWidth: "90px" }}>Story</th>
               <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, minWidth: "160px" }}>Business Need</th>
               <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, minWidth: "180px" }}>Existing DCT Capability</th>
               <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700 }}>Supporting Batch</th>
@@ -1336,10 +1339,11 @@ function CapabilityMappingTable() {
             </tr>
           </thead>
           <tbody>
-            {CAPABILITY_ROWS.map((r, i) => {
+            {rows.map((r, i) => {
               const sc = STATUS_CONFIG[r.status];
               return (
                 <tr key={r.need} style={{ backgroundColor: i % 2 === 0 ? "#f8fafc" : "white", borderBottom: "1px solid #e2e8f0" }}>
+                  <td style={{ padding: "10px 14px", fontWeight: 750, color: C.navy, verticalAlign: "top" }}>{r.story}</td>
                   <td style={{ padding: "10px 14px", fontWeight: 600, color: C.navy, verticalAlign: "top" }}>{r.need}</td>
                   <td style={{ padding: "10px 14px", color: "#334155", verticalAlign: "top" }}>{r.capability}</td>
                   <td style={{ padding: "10px 14px", verticalAlign: "top" }}>
@@ -1847,7 +1851,7 @@ export default function DiscoveryWorkspace() {
           <ExistingCapabilities />
           <DataFlowSection />
           <RuleProcessingTdcPosting />
-          <CapabilityMappingTable />
+          <CapabilityMappingTable workstream={activeWorkstream} />
           <DiscoveryQuestionsSection />
           <AskBuddySection />
           <DefinitionOfReadySection />
