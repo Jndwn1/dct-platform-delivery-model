@@ -165,3 +165,4 @@
 - [x] Route State Income Tax Return links to the State Compliance prototype landing page while retaining current workflow interactions
 - [x] Make State Income Tax Return labels open the selected filer’s State Compliance workflow instead of reloading the landing page
 - [x] Update Provision and State Discovery with the cross-team refinement model, ownership boundaries, story readiness matrices, and reusable DCT refinement framework
+- [x] Refine Provision Package 1 discovery with detailed business rules, story-specific readiness, a Provision-only refinement checklist, and the Package 0–3 dependency flow

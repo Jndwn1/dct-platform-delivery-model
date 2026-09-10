@@ -14,6 +14,15 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("1479949 — DCT-P1-01: Provide governed RTP inputs, context, and source evidence");
     expect(source).toContain("1480251 — DCT-P1-03: Persist, audit, and recalculate prior-year amount corrections");
     expect(source).toContain("RTP Difference = PY Tax Return − PY Provision");
+    expect(source).toContain("Package 1 — Return-to-Provision Review");
+    expect(source).toContain("Annual Federal C corporation data");
+    expect(source).toContain("Quarterly / interim provisions");
+    expect(source).toContain("Package 0 — Federal Provision Data, Lineage, and Prior-Year Readiness");
+    expect(source).toContain("Package 2 — Deferred Rollforward");
+    expect(source).toContain("Package 3 — Federal Summary");
+    expect(source).toContain("Provision Refinement Question Framework");
+    expect(source).toContain("Primary Provision refinement prompts");
+    expect(source).toContain("Downstream output contract and payable / deferred routing require confirmation.");
     expect(source).toContain("Story Readiness Matrix");
     expect(source).toContain("Ready with Dependency");
     expect(source).toContain("Reusable Refinement Question Framework");
