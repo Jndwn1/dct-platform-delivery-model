@@ -176,3 +176,4 @@
 - [x] Replace the detailed State and Provision swimlane diagrams with a consistent six-stage executive horizontal flow and governed change loop
 - [x] Refine executive flow card sizing so all six stages fit in the standard desktop workspace without horizontal scrolling
 - [x] Replace the executive flow with separate State and Provision file-drop platform system flows from Roger upload through governed downstream delivery
+- [x] Consolidate State Discovery and Refinement to current stories 1472734 and 1471480, reconcile State-only scope and matrices, and preserve Provision content unchanged

@@ -131,38 +131,27 @@ const PROVISION_PRIMARY_QUESTIONS: Record<string, string> = {
   "1480000": "What exact RTP result does each downstream Provision workflow need, and what business rule determines whether the result routes to payable, deferred, or another treatment?",
 };
 
+const STATE_PRIMARY_QUESTIONS: Record<string, string> = {
+  "1472734": "Can the State team confirm the complete business data contract for the Roger Filing screen, including required fields, authoritative source, filing identity, persistence expectations, and expected response behavior?",
+  "1471480": "Can the State team define the full Filing Footprint lifecycle from initial retrieval through save, governance/finalization, later change, versioning, and retrieval?",
+};
+
 const STATE_STORIES: DiscoveryStory[] = [
   {
-    id: "1471480 — Retrieve Return Structure Starting Context for a State Filer / Filing Group",
-    outcome: "Roger opens the correct governed State filing context for a single filer or filing group.",
-    scope: "Retrieve the initial State filing context when Roger opens or begins the State workflow.",
-    owner: "State Business Team", dct: "Determine governed retrieval and backend implementation.", roger: "Render the approved State starting context.",
-    questions: ["Define starting context; current-year, prior-year, or both.", "Specify required fields, source meaning, filer / filing-group identification, and no-footprint behavior.", "Confirm whether prior-year data is reviewable starting context only."],
-    dependencies: ["State filing-footprint definition", "Roger workflow-entry behavior"], existing: "Gateway consumer access; PDC / TDC governed context patterns.", netNew: "State-specific return-structure starting-context contract.", implementation: "Business clarification required before DCT selects data shape or retrieval pattern.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "Starting context and exception behavior are not yet defined for DEV and QA.",
+    id: "1472734 — DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Integration/backend)",
+    outcome: "Roger receives the governed State return-filing data required for the Filing screen while DCT preserves the required identity, retrieval, and lineage evidence.",
+    scope: "Integrate required State return-filing data, store it where DCT is the system of record, and provide the governed Filing-screen response through the approved access layer.",
+    owner: "State Business Team", dct: "Implement governed integration, persistence, retrieval, and validation only after the State business data contract is confirmed.", roger: "Own Filing-screen UI and actions; consume the governed response without owning State tax records.",
+    questions: [STATE_PRIMARY_QUESTIONS["1472734"], "Confirm required Filing-screen fields, business meanings, authoritative sources, sourced versus derived values, filing identity, and the business level to be supported.", "Define one or multiple filings, filing-group and single-entity context, persistence expectations, response behavior, and whether data is stored or composed at retrieval.", "Define missing, null, blank, unavailable, incomplete-filing, warning, and error behavior Roger must receive."],
+    dependencies: ["State Filing-screen business data contract", "Authoritative source and filing-identity definitions", "Roger consumer requirements"], existing: "B9A Gateway governed access, PDC / TDC integration and persistence patterns, and B16 audit / lineage patterns.", netNew: "State Return-Filing Data business contract and governed consumer response definition.", implementation: "Contract to be defined. DCT selects the technical integration, persistence, and Gateway implementation only after State confirms the business requirement.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "Acceptance criteria alone do not establish the data contract, source meaning, filing identity, persistence expectation, or testable response and exception behavior.",
   },
   {
-    id: "1471493 — Save and Lock a State Filing Footprint Version",
-    outcome: "A practitioner can work, save, approve, and lock a governed State filing-footprint version with understood lifecycle behavior.",
-    scope: "Persist a State Filing Footprint and govern its working / saved through approval / lock lifecycle.",
-    owner: "State Business Team", dct: "Implement governed persistence, versioning, and lifecycle enforcement.", roger: "Present statuses and trigger approved practitioner actions.",
-    questions: ["Define Save, Approve, and Lock, including each practitioner trigger.", "Specify required persisted business information and lock eligibility.", "Define post-lock change behavior, versioning, and statuses Roger must display."],
-    dependencies: ["State lifecycle policy", "Roger approval interaction"], existing: "TDC persistence and audit / lineage patterns.", netNew: "State filing-footprint lifecycle and status model.", implementation: "Business clarification required; DCT will determine persistence pattern after lifecycle rules are defined.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "Lifecycle semantics and post-lock behavior are unresolved.",
-  },
-  {
-    id: "1471498 — Expose Saved State Filing Footprint and Record Audit / Lineage Events",
-    outcome: "Approved consumers can access the governed State Filing Footprint with appropriate audit and lineage evidence.",
-    scope: "Expose governed State Filing Footprint information and capture audit / lineage for governed changes.",
-    owner: "State Business Team", dct: "Compose governed access and reuse existing audit / lineage capabilities.", roger: "Display approved business fields and any required audit history.",
-    questions: ["Clarify whether saved means working, approved, or both.", "Identify consumers, required fields, and business events that require audit history.", "Confirm whether Roger displays audit history and whether exposure / audit remain one story."],
-    dependencies: ["1471493 lifecycle definition", "B16 audit / lineage capability"], existing: "Batch 16 audit / lineage and Gateway governed access.", netNew: "State consumer field set and exposure contract.", implementation: "Reuse audit / lineage unless a documented State requirement identifies a gap.", estimation: "Ready with Dependency", acceptance: "Needs Clarification", reason: "Consumer state, required fields, and story split require business confirmation.",
-  },
-  {
-    id: "1472734 — DCT Gateway: Compose State Return-Filing Response for Roger",
-    outcome: "Roger receives the governed State return-filing response required for the practitioner experience.",
-    scope: "Provide the governed Gateway response Roger requires for State filing.",
-    owner: "State Business Team / Roger", dct: "Compose the governed response through the appropriate Gateway access layer.", roger: "Own UI interaction behavior and required presentation behavior.",
-    questions: ["Define required business fields and field meanings.", "Define filingName and returnStructure from the State perspective.", "Confirm one versus multiple filings, working versus approved data, and incomplete-filing behavior."],
-    dependencies: ["State business response definition", "Roger consumer requirements"], existing: "Gateway response composition and governed consumer access.", netNew: "State return-filing response contract.", implementation: "Business clarification required; State does not need to prescribe endpoint, DTO, or Gateway implementation.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "The required business response and incomplete-state behavior are not defined.",
+    id: "1471480 — DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend)",
+    outcome: "Roger can retrieve and act on the governed State Filing Footprint decision set for the Return Structure screen, with lifecycle, version, audit, and lineage behavior defined by State.",
+    scope: "Retrieve starting State Filing Footprint context; save and govern practitioner filing decisions; and support later retrieval, versioning, audit, and lineage for the governed decision set.",
+    owner: "State Business Team", dct: "Implement governed backend persistence, retrieval, validation, versioning, and audit / lineage after State defines the Filing Footprint lifecycle.", roger: "Own Return Structure UI and actions; submit permitted practitioner decisions and display governed results without owning State tax records.",
+    questions: [STATE_PRIMARY_QUESTIONS["1471480"], "Define starting context: current-year working footprint, prior-year approved footprint, both, precedence, and no-footprint behavior.", "Define filing designation, filing-group membership, entities, State-specific entity determinations, nexus, State deliverable, apportionment method, and other required filing decisions.", "Define partial-save behavior, validation, governance or finalization eligibility, later change, versioning, supersession, and required audit / lineage events and Roger audit-history presentation."],
+    dependencies: ["State Filing Footprint business and lifecycle definitions", "State governance / finalization and versioning policy", "Roger Return Structure interaction requirements", "B16 audit / lineage capability"], existing: "TDC governed persistence and retrieval, B16 audit / lineage, and B9A Gateway governed access patterns.", netNew: "State Filing Footprint lifecycle, decision, versioning, and governed retrieval business contract.", implementation: "Contract to be defined. DCT determines the persistence, retrieval, validation, and versioning implementation only after State confirms lifecycle and decision behavior.", estimation: "Needs Clarification", acceptance: "Needs Clarification", reason: "Acceptance criteria alone do not establish starting context, save behavior, governance/finalization, versioning, or testable audit and lineage expectations.",
   },
 ];
 
@@ -243,6 +232,12 @@ function StoryMatrix({ stories }: { stories: DiscoveryStory[] }) {
   return <div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden" }}><div style={{ padding: "12px 14px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}><div><div style={{ fontSize: "12px", color: C.navy, fontWeight: 800 }}>Story Readiness Matrix</div><div style={{ fontSize: "10px", color: C.slate, marginTop: "2px" }}>Ready means DEV and QA can proceed without inventing business behavior.</div></div><CopyButton text={copyText} label="Copy matrix" /></div><div style={{ overflowX: "auto" }}><table style={{ borderCollapse: "collapse", width: "100%", minWidth: "1740px", fontSize: "10px" }}><thead><tr style={{ backgroundColor: C.navy }}>{["Story", "Business Outcome", "Scope", "Business Owner", "DCT Responsibility", "Roger Responsibility", "Open Business Questions", "Dependencies", "Existing DCT Capability", "Net-New DCT Capability", "Implementation Considerations", "Ready for Estimation?", "Ready for DCT Acceptance?", "Reason / Gap"].map(header => <th key={header} style={{ color: "#ffffff", textAlign: "left", padding: "10px", fontWeight: 750, minWidth: header === "Story" ? "190px" : "145px" }}>{header}</th>)}</tr></thead><tbody>{stories.map((story, index) => <tr key={story.id} style={{ backgroundColor: index % 2 === 0 ? "#f8fafc" : "#ffffff", borderBottom: "1px solid #e2e8f0" }}><td style={{ padding: "10px", verticalAlign: "top", color: C.navy, fontWeight: 800, lineHeight: "1.4" }}>{story.id}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.outcome}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.scope}</td><td style={{ padding: "10px", verticalAlign: "top" }}>{story.owner}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.dct}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.roger}</td><td style={{ padding: "10px", verticalAlign: "top" }}><ul style={{ margin: 0, paddingLeft: "14px" }}>{story.questions.map(question => <li key={question} style={{ marginBottom: "4px", lineHeight: "1.4" }}>{question}</li>)}</ul></td><td style={{ padding: "10px", verticalAlign: "top" }}><ul style={{ margin: 0, paddingLeft: "14px" }}>{story.dependencies.map(dependency => <li key={dependency} style={{ marginBottom: "4px", lineHeight: "1.4" }}>{dependency}</li>)}</ul></td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.existing}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.netNew}</td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.implementation}</td><td style={{ padding: "10px", verticalAlign: "top" }}><ReadinessBadge status={story.estimation} /></td><td style={{ padding: "10px", verticalAlign: "top" }}><ReadinessBadge status={story.acceptance} /></td><td style={{ padding: "10px", verticalAlign: "top", lineHeight: "1.45" }}>{story.reason}</td></tr>)}</tbody></table></div></div>;
 }
 
+const STATE_SCOPE_EXPERIENCE_VIEW = "Business requirement → 1472734 → 1471480 → Roger State Filing Experience";
+
+function StateScopeExperienceSummary() {
+  return <div style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderLeft: `5px solid ${C.teal}`, borderRadius: "10px", padding: "13px 15px", marginBottom: "16px" }}><div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}><div><div style={{ color: C.teal, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>State scope / experience view</div><div style={{ color: C.navy, fontSize: "13px", fontWeight: 800, lineHeight: "1.5" }}>{STATE_SCOPE_EXPERIENCE_VIEW}</div><p style={{ color: "#475569", fontSize: "10px", lineHeight: "1.45", margin: "6px 0 0" }}>This is a business scope and practitioner-experience view; it does not state a strict technical predecessor sequence.</p></div><CopyButton text={`${STATE_SCOPE_EXPERIENCE_VIEW}\nThis is a business scope and practitioner-experience view, not a strict technical predecessor sequence.`} label="Copy State view" /></div></div>;
+}
+
 function ProvisionPackageOneDetail() {
   const included = ["Annual Federal C corporation data", "Description", "PY Provision", "PY Tax Return", "RTP Difference", "Entity filtering and entity-level expansion / detail", "Pretax Income", "Permanent Differences", "Temporary Differences", "Total RTP Adjustment", "Taxable Income", "Entity-level correction of an incorrect amount"];
   const excluded = ["Quarterly / interim provisions", "State provision data", "Flow-through entities", "Correction reasons", "Adding or deleting rows", "Formal approval / sign-off", "Separate preparer / reviewer roles", "Payable account reconciliation"];
@@ -273,15 +268,16 @@ function WorkstreamReadinessHub({ active, onChange }: { active: "state" | "provi
   const stories = isState ? STATE_STORIES : PROVISION_STORIES;
   const color = isState ? C.teal : C.purple;
   const workstream = isState ? "State" : "Provision";
-  const overview = isState ? "State Filing Footprint discovery for Feature 1451927. The business team defines the filing behavior, lifecycle, data meanings, and exception outcomes before DCT acceptance." : "Package 1 Return-to-Provision Review compares prior-year Provision amounts with the prior-year filed Tax Return by Description and entity. RTP Difference = PY Tax Return − PY Provision, and each difference carries into the current-year provision true-up.";
-  const boundary = isState ? "DCT provides backend implementation and governed records. State defines business behavior; Roger owns practitioner interaction. State does not prescribe DCT endpoints, database tables, DTOs, persistence patterns, or Gateway implementation." : "The Tax Provision Business Team owns provision-computation rules, data governance, validation, policies, and business processes. DCT provides governed inputs, calculations, persistence, and access only after those rules are defined.";
-  const risks = isState ? ["Starting-context, save / approve / lock, and incomplete-filing behavior require business definitions.", "Saved-state meaning and Roger audit-history presentation need an explicit decision."] : ["PY correction semantics are a major unresolved accounting decision.", "Package 2 / Package 3 routing needs detailed business rules before downstream acceptance."];
-  const decisionItems = isState ? ["Decide working versus approved data exposure.", "Decide State filing-footprint lifecycle and change-after-lock behavior."] : ["Decide whether a correction changes source values or creates an override.", "Decide routing for Permanent / Temporary, payable, and deferred outputs."];
+  const overview = isState ? "State discovery is consolidated into two backend stories: 1472734 for Return-Filing Data and 1471480 for Filing Footprint Decisions. State defines the business requirement before DCT acceptance." : "Package 1 Return-to-Provision Review compares prior-year Provision amounts with the prior-year filed Tax Return by Description and entity. RTP Difference = PY Tax Return − PY Provision, and each difference carries into the current-year provision true-up.";
+  const boundary = isState ? "State defines State business, tax, filing, and data-meaning requirements. DCT implements governed backend persistence, retrieval, and validation. Roger owns UI and practitioner actions, but not State tax records. State does not prescribe DCT endpoints, database tables, DTOs, persistence patterns, or Gateway implementation." : "The Tax Provision Business Team owns provision-computation rules, data governance, validation, policies, and business processes. DCT provides governed inputs, calculations, persistence, and access only after those rules are defined.";
+  const risks = isState ? ["1472734 requires a confirmed Filing-screen data contract, authoritative sources, filing identity, persistence expectation, response behavior, and exceptions.", "1471480 requires confirmed starting context, business decisions, save behavior, governance/finalization, versioning, audit, and lineage behavior."] : ["PY correction semantics are a major unresolved accounting decision.", "Package 2 / Package 3 routing needs detailed business rules before downstream acceptance."];
+  const decisionItems = isState ? ["Confirm data and response behavior for 1472734.", "Confirm the Filing Footprint lifecycle and governed decision behavior for 1471480."] : ["Decide whether a correction changes source values or creates an override.", "Decide routing for Permanent / Temporary, payable, and deferred outputs."];
   return <section id="story-readiness" style={{ marginBottom: "48px" }}><SectionHeading title="State & Provision Story Readiness" subtitle="A consistent discovery structure that separates business ownership from DCT implementation responsibility." />
     <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}><button type="button" onClick={() => onChange("state")} style={{ border: `1px solid ${isState ? C.teal : "#cbd5e1"}`, backgroundColor: isState ? C.teal : "#ffffff", color: isState ? "#ffffff" : C.slate, fontWeight: 800, borderRadius: "6px", padding: "8px 14px", cursor: "pointer" }}>State Discovery</button><button type="button" onClick={() => onChange("provision")} style={{ border: `1px solid ${!isState ? C.purple : "#cbd5e1"}`, backgroundColor: !isState ? C.purple : "#ffffff", color: !isState ? "#ffffff" : C.slate, fontWeight: 800, borderRadius: "6px", padding: "8px 14px", cursor: "pointer" }}>Provision Discovery</button></div>
     <div style={{ backgroundColor: `${color}0d`, border: `1px solid ${color}40`, borderLeft: `5px solid ${color}`, borderRadius: "10px", padding: "16px 18px", marginBottom: "16px" }}><div style={{ color, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>{workstream} overview</div><p style={{ color: "#334155", fontSize: "13px", lineHeight: "1.55", margin: 0 }}>{overview}</p></div>
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "16px" }}><div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "15px" }}><div style={{ color, fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "6px" }}>Business Ownership</div><p style={{ color: "#334155", margin: 0, fontSize: "12px", lineHeight: "1.55" }}>{isState ? "State Business Team owns WHAT and WHY: State requirements, rules, data meaning, validation, and practitioner outcomes." : "Provision Workstream owns WHAT and WHY: Package 1 requirements, calculation rules, accounting / tax policies, data governance, and expected outcomes."}</p></div><div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "15px" }}><div style={{ color: C.blue, fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "6px" }}>DCT Ownership Boundary</div><p style={{ color: "#334155", margin: 0, fontSize: "12px", lineHeight: "1.55" }}>{boundary}</p></div></div>
     {!isState && <ProvisionPackageOneDetail />}
+    {isState && <StateScopeExperienceSummary />}
     <div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "15px", marginBottom: "16px" }}><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "10px" }}><div><div style={{ color: C.navy, fontWeight: 800, fontSize: "12px" }}>Current Features / Stories</div><div style={{ color: C.slate, fontSize: "10px", marginTop: "2px" }}>Select a story below to review scope, questions, dependencies, capability assessment, and readiness.</div></div><CopyButton text={stories.map(story => `${story.id}\n${story.scope}`).join("\n\n")} label="Copy stories" /></div><div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px" }}>{stories.map(story => <div key={story.id} style={{ border: `1px solid ${STATUS_STYLE[story.acceptance].border}`, borderRadius: "8px", padding: "12px", backgroundColor: "#ffffff" }}><div style={{ color: C.navy, fontSize: "11px", fontWeight: 800, lineHeight: "1.45", marginBottom: "6px" }}>{story.id}</div><p style={{ color: "#475569", fontSize: "11px", lineHeight: "1.45", margin: "0 0 8px" }}>{story.scope}</p><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><ReadinessBadge status={story.estimation} /><ReadinessBadge status={story.acceptance} /></div></div>)}</div></div>
     {!isState && <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "9px", padding: "12px 14px", marginBottom: "16px" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "6px" }}><div style={{ color: "#9a3412", fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em" }}>Primary Provision refinement prompts</div><CopyButton text={Object.entries(PROVISION_PRIMARY_QUESTIONS).map(([id, prompt]) => `${id}: ${prompt}`).join("\n\n")} label="Copy prompts" /></div><div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>{Object.entries(PROVISION_PRIMARY_QUESTIONS).map(([id, prompt]) => <div key={id} style={{ backgroundColor: "#ffffff", border: "1px solid #fed7aa", borderRadius: "6px", padding: "8px" }}><div style={{ color: "#9a3412", fontSize: "10px", fontWeight: 800, marginBottom: "3px" }}>{id}</div><div style={{ color: "#7c2d12", fontSize: "10px", lineHeight: "1.45" }}>{prompt}</div></div>)}</div></div>}
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "16px" }}><div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "10px", padding: "14px" }}><div style={{ color: "#1d4ed8", fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>Dependencies</div><p style={{ color: "#1e3a5f", fontSize: "11px", margin: 0, lineHeight: "1.5" }}>{isState ? "State business definitions, Roger requirements, B16 audit / lineage, and governed Gateway access must be sequenced explicitly." : "Package 1 inputs and calculation rules precede correction handling; Package 2 and Package 3 contracts define downstream readiness."}</p></div><div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "14px" }}><div style={{ color: C.green, fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>Existing DCT Capabilities</div><p style={{ color: "#166534", fontSize: "11px", margin: 0, lineHeight: "1.5" }}>PDC governed source financial data; TDC tax-domain records and persistence; Gateway consumer access; Orchestrator coordination; existing audit / lineage capabilities.</p></div><div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "10px", padding: "14px" }}><div style={{ color: "#92400e", fontWeight: 800, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>Risks / Assumptions & Decision Log</div><ul style={{ margin: "0 0 7px", paddingLeft: "15px" }}>{risks.map(risk => <li key={risk} style={{ color: "#78350f", fontSize: "10px", lineHeight: "1.45", marginBottom: "4px" }}>{risk}</li>)}</ul><div style={{ color: "#78350f", fontSize: "10px", fontWeight: 750 }}>Business clarification required: {decisionItems.join(" ")}</div></div></div>
@@ -315,33 +311,6 @@ const STATE_STORY_READINESS = [
   "Where a prototype exists, document the expected workflow, validations, statuses, system responses, error handling, and outcomes.",
   "State must provide the required detail before a story is refinement-ready; DCT should not determine missing requirements after handoff.",
   "Prefer multiple smaller stories to improve estimation, delivery, testing, and defect reduction.",
-] as const;
-
-const STATE_SIZING_ROWS = [
-  {
-    story: "1464551 – Land and validate the State source submission in PDC",
-    scope: "Ingest State source data into PDC, validate the submission, and handle validation outcomes/errors. Includes Orchestrator triggering, sequencing, payload handling, and error behavior.",
-    size: "Medium",
-    assessment: "Likely yes, if source contracts, validation rules, and orchestration requirements are already defined.",
-  },
-  {
-    story: "1464587 – Persist the versioned State Dataset and validation outcomes",
-    scope: "Persist the State Dataset, maintain version history, and store associated validation results/outcomes.",
-    size: "Medium–Large",
-    assessment: "Possibly, but versioning and validation persistence must be clearly defined before committing.",
-  },
-  {
-    story: "1464691 – Govern the approved State Filing Footprint and expose status to Roger",
-    scope: "Manage Filing Footprint approval/governance, maintain approved state, and expose status to Roger.",
-    size: "Large",
-    assessment: "Higher risk for one sprint because it combines governance, persistence, and downstream Roger integration. Review for decomposition.",
-  },
-  {
-    story: "1464780 – Persist the versioned Apportionment Context, results, approvals, and governed access",
-    scope: "Persist Apportionment Context and factor results; support overrides, versions, approvals, immutability, approved-result access, B16 lineage, and stale-result detection.",
-    size: "Very Large / Epic-like",
-    assessment: "No, not as currently written. Decompose into smaller sprint-ready stories before estimating and committing.",
-  },
 ] as const;
 
 function PI4StateReadiness() {
@@ -414,31 +383,13 @@ function PI4StateReadiness() {
 
       <div style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", marginBottom: "24px" }}>
         <div style={{ padding: "15px 20px", borderBottom: "1px solid #e2e8f0" }}>
-          <div style={{ fontSize: "11px", fontWeight: 800, color: C.navy, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Current State Story Sizing Assessment</div>
-          <p style={{ fontSize: "12px", color: C.slate, margin: 0, lineHeight: "1.5" }}>Sizing assessment for refinement; it is not a delivery commitment.</p>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: C.navy, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Current State Story Readiness Assessment</div>
+          <p style={{ fontSize: "12px", color: C.slate, margin: 0, lineHeight: "1.5" }}>Both approved State backend stories require clarification before estimation and DCT acceptance; no delivery size is inferred.</p>
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", minWidth: "950px", borderCollapse: "collapse", fontSize: "12px" }}>
-            <thead>
-              <tr style={{ backgroundColor: C.navy }}>
-                {[
-                  { label: "Story", width: "25%" },
-                  { label: "Scope", width: "39%" },
-                  { label: "Relative Size", width: "14%" },
-                  { label: "1-Sprint Assessment", width: "22%" },
-                ].map(column => <th key={column.label} style={{ width: column.width, padding: "11px 14px", textAlign: "left", color: "#ffffff", fontWeight: 750, fontSize: "11px" }}>{column.label}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {STATE_SIZING_ROWS.map((row, index) => (
-                <tr key={row.story} style={{ backgroundColor: index % 2 === 0 ? "#f8fafc" : "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
-                  <td style={{ padding: "12px 14px", verticalAlign: "top", color: C.navy, fontWeight: 750, lineHeight: "1.45" }}>{row.story}</td>
-                  <td style={{ padding: "12px 14px", verticalAlign: "top", color: "#334155", lineHeight: "1.5" }}>{row.scope}</td>
-                  <td style={{ padding: "12px 14px", verticalAlign: "top", color: row.size.includes("Very Large") ? "#b91c1c" : row.size === "Large" ? C.amber : C.blue, fontWeight: 800, lineHeight: "1.45" }}>{row.size}</td>
-                  <td style={{ padding: "12px 14px", verticalAlign: "top", color: "#334155", lineHeight: "1.5" }}>{row.assessment}</td>
-                </tr>
-              ))}
-            </tbody>
+          <table style={{ width: "100%", minWidth: "900px", borderCollapse: "collapse", fontSize: "12px" }}>
+            <thead><tr style={{ backgroundColor: C.navy }}>{["Story", "Scope", "Estimation Status", "Readiness Assessment"].map(label => <th key={label} style={{ padding: "11px 14px", textAlign: "left", color: "#ffffff", fontWeight: 750, fontSize: "11px" }}>{label}</th>)}</tr></thead>
+            <tbody>{STATE_STORIES.map((story, index) => <tr key={story.id} style={{ backgroundColor: index % 2 === 0 ? "#f8fafc" : "#ffffff", borderBottom: "1px solid #e2e8f0" }}><td style={{ padding: "12px 14px", verticalAlign: "top", color: C.navy, fontWeight: 750, lineHeight: "1.45" }}>{story.id}</td><td style={{ padding: "12px 14px", verticalAlign: "top", color: "#334155", lineHeight: "1.5" }}>{story.scope}</td><td style={{ padding: "12px 14px", verticalAlign: "top" }}><ReadinessBadge status={story.estimation} /></td><td style={{ padding: "12px 14px", verticalAlign: "top", color: "#334155", lineHeight: "1.5" }}>{story.reason}</td></tr>)}</tbody>
           </table>
         </div>
       </div>
@@ -611,9 +562,9 @@ const FILE_DROP_SYSTEM_FLOWS = {
     accent: C.teal,
     title: "State — File Drop End-to-End System Flow",
     subtitle: "System flow showing what happens when a practitioner uploads a file in Roger for State processing.",
-    image: "/manus-storage/state-file-drop-system-flow_f47bb42b.png",
+    image: "/manus-storage/state-file-drop-system-flow_c38ceba9.png",
     path: ["Roger UI", "Upload / Intake", "DMS storage", "Gateway", "Orchestrator", "PDC", "TDC", "Gateway response", "Roger result", "IMS / downstream"],
-    copy: "State file-drop system flow\nRoger UI → Upload / Intake → DMS / Original Document Storage → Gateway → Orchestrator → PDC normalization → TDC State tax-domain persistence → Gateway governed State response → Roger State workflow result → IMS / approved downstream delivery.\n\nAudit / Lineage (B16) connects to PDC and TDC.\n\nUser update loop: Roger save / update → Gateway → TDC validate / persist → Audit / Lineage → Gateway → Roger refresh.",
+    copy: "State file-drop system flow\nRoger UI → Upload / Intake → DMS / Original Document Storage → Gateway → Orchestrator → PDC normalization → TDC State tax-domain persistence → Audit / Lineage → Gateway governed State response → Roger State workflow result → IMS / approved downstream delivery.\n\nState story callout: 1472734 integrates, stores, and provides Return-Filing Data to the Roger Filing screen. 1471480 retrieves, saves, governs, and returns Filing Footprint Decisions to the Roger Return Structure screen.\n\nAudit / Lineage (B16) connects to PDC and TDC.\n\nUser update loop: Roger save / update → Gateway → TDC validate / persist → Audit / Lineage → Gateway → Roger refresh.",
   },
   provision: {
     accent: C.purple,
@@ -1342,10 +1293,8 @@ const STATUS_CONFIG: Record<StatusType, { dot: string; bg: string; text: string;
 type CapabilityRow = { need: string; capability: string; batch: string; apis: string; status: StatusType; action: string; story: string };
 
 const STATE_CAPABILITY_ROWS: CapabilityRow[] = [
-  { story: "1471480", need: "Retrieve governed State filer / filing-group starting context", capability: "Gateway & governed retrieval patterns", batch: "B9A", apis: "Gateway response contract to be defined", status: "Partially Covered", action: "Define starting-context, filer / filing-group identification, source meaning, and no-footprint behavior before DCT selects the response shape." },
-  { story: "1471493", need: "Save, approve, and lock a State Filing Footprint version", capability: "TDC persistence plus audit / lineage patterns", batch: "B16", apis: "Governed filing-footprint lifecycle contract to be defined", status: "Partially Covered", action: "Define working, saved, approved, locked, and post-lock business behavior; DCT then determines versioning and persistence implementation." },
-  { story: "1471498", need: "Expose saved State Filing Footprint with audit and lineage evidence", capability: "Audit Trail & Lineage Governance", batch: "B16", apis: "GET /api/v1/audit/lineage/{filingFootprintId}", status: "Partially Covered", action: "Confirm whether saved means working, approved, or both, plus consumers and required audit-history fields." },
-  { story: "1472734", need: "Compose State return-filing response for Roger", capability: "Gateway & Governed Consumer Access Layer", batch: "B9A", apis: "State return-filing Gateway response contract to be defined", status: "Partially Covered", action: "Define the Roger-required fields, state-return status behavior, and incomplete / exception response before implementing the consumer contract." },
+  { story: "1472734", need: "Integrate, store, and provide governed State Return-Filing Data for the Roger Filing screen", capability: "B9A Gateway governed access with applicable PDC / TDC integration and persistence patterns", batch: "B9A", apis: "State Return-Filing Data contract to be defined", status: "Partially Covered", action: "Confirm Filing-screen fields, authoritative sources, filing identity, persistence expectations, response behavior, and exceptions before DCT defines the governed consumer contract." },
+  { story: "1471480", need: "Retrieve, save, and govern State Filing Footprint Decisions for the Roger Return Structure screen", capability: "TDC governed persistence and retrieval with B16 audit / lineage and B9A Gateway access patterns", batch: "B16", apis: "State Filing Footprint lifecycle contract to be defined", status: "Partially Covered", action: "Confirm starting context, filing decisions, partial-save behavior, governance/finalization, versioning, audit, lineage, and later retrieval before DCT determines implementation." },
 ];
 
 const PROVISION_CAPABILITY_ROWS: CapabilityRow[] = [

@@ -3,14 +3,28 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("Provision and State Discovery refinement model", () => {
-  it("keeps the supplied cross-team ownership, readiness rule, State, and Provision story discovery content", () => {
+  it("keeps the approved two-story State model, ownership boundaries, and Provision discovery content", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/onboarding/DiscoveryWorkspace.tsx"), "utf8");
+    const buddySource = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
+    const stateStoriesBlock = source.slice(source.indexOf("const STATE_STORIES"), source.indexOf("const PROVISION_STORIES"));
+    const stateCapabilitiesBlock = source.slice(source.indexOf("const STATE_CAPABILITY_ROWS"), source.indexOf("const PROVISION_CAPABILITY_ROWS"));
 
     expect(source).toContain("Cross-Team Discovery & Refinement Model");
     expect(source).not.toContain("DCT acceptance check");
     expect(source).not.toContain("Is there enough information in this story for DCT DEV");
-    expect(source).toContain("1471480 — Retrieve Return Structure Starting Context for a State Filer / Filing Group");
-    expect(source).toContain("1472734 — DCT Gateway: Compose State Return-Filing Response for Roger");
+    expect(stateStoriesBlock).toContain("1472734 — DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Integration/backend)");
+    expect(stateStoriesBlock).toContain("1471480 — DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend)");
+    expect(stateStoriesBlock.match(/estimation: \"Needs Clarification\"/g)).toHaveLength(2);
+    expect(stateStoriesBlock.match(/acceptance: \"Needs Clarification\"/g)).toHaveLength(2);
+    expect(source).toContain("Can the State team confirm the complete business data contract for the Roger Filing screen, including required fields, authoritative source, filing identity, persistence expectations, and expected response behavior?");
+    expect(source).toContain("Can the State team define the full Filing Footprint lifecycle from initial retrieval through save, governance/finalization, later change, versioning, and retrieval?");
+    expect(source).toContain("Business requirement → 1472734 → 1471480 → Roger State Filing Experience");
+    expect(source).toContain("not a strict technical predecessor sequence");
+    expect(stateCapabilitiesBlock).toContain("State Return-Filing Data contract to be defined");
+    expect(stateCapabilitiesBlock).toContain("State Filing Footprint lifecycle contract to be defined");
+    expect(source).not.toContain("1471493");
+    expect(source).not.toContain("1471498");
+
     expect(source).toContain("1479949 — DCT-P1-01: Provide governed RTP inputs, context, and source evidence");
     expect(source).toContain("1480251 — DCT-P1-03: Persist, audit, and recalculate prior-year amount corrections");
     expect(source).toContain("RTP Difference = PY Tax Return − PY Provision");
@@ -29,8 +43,6 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("activeWorkstream === \"state\" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />");
     expect(source).toContain("How DCT Supports State Stories");
     expect(source).toContain("How DCT Supports Provision Stories");
-    expect(source).toContain("1479949");
-    expect(source).toContain("1471480");
     expect(source).toContain("Story Readiness Matrix");
     expect(source).toContain("Ready with Dependency");
     expect(source).toContain("Reusable Refinement Question Framework");
@@ -53,5 +65,9 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).not.toContain('SectionHeading number="PI4" title="Provision Delivery Readiness"');
     expect(source).not.toContain('SectionHeading number="7" title="Ask Buddy"');
     expect(source).not.toContain("        <QuickLinks />");
+    expect(buddySource).toContain("State Refinement Model — Current Two Backend Stories");
+    expect(buddySource).toContain("1472734 — DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Integration/backend)");
+    expect(buddySource).toContain("1471480 — DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend)");
+    expect(buddySource).toContain("Roger owns practitioner-facing UI and actions but does not own State tax records.");
   });
 });

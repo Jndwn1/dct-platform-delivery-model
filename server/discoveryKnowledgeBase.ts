@@ -1035,12 +1035,14 @@ The Discovery Center is the primary resource for Business Analysts working on th
   "/onboarding": {
     pageTitle: "Provision & State Discovery Workspace",
     pagePath: "/onboarding",
-    summary: "Discovery workspace for the State and Provision workstreams, covering Batches 9A, 16, and 28 and their governed data access, audit trail, and provision reference data capabilities.",
+    summary: "Discovery workspace for the State and Provision workstreams. State refinement is consolidated into two current backend stories—1472734 Return-Filing Data and 1471480 Filing Footprint Decisions—supported by governed access and audit / lineage patterns.",
     suggestedQuestions: [
       "What does Batch 9A deliver for the State and Provision workstreams?",
       "How does Batch 28 support Provision reference data?",
       "What is the role of Batch 16 in audit trail and lineage governance?",
-      "What data does the State workstream need from PDC and TDC?",
+      "What are the two current State backend stories and what does each own?",
+      "What must the State team define for the Roger Filing-screen data contract?",
+      "What is the State Filing Footprint lifecycle from retrieval through governance and later change?",
       "How does the Provision workstream consume governed data from DCT?",
       "What APIs are available for State and Provision consumers?",
       "What is already built vs what is net-new for State and Provision?",
@@ -1060,7 +1062,14 @@ This workspace covers the **State** and **Provision** workstreams and the DCT ba
 - **Business Functions:** Apply state tax rules and classifications; compute state apportionment factors; prepare state tax returns and disclosures; ensure compliance with state regulations; provide complete audit trail for regulatory review.
 - **Downstream Consumers:** Roger (practitioner review), IMS (routes governed data to return engines), state filing teams, regulatory reporting.
 - **Key DCT Batches:** B9A (Data Gateway — governed consumer access), B16 (Audit Trail & Lineage Governance), B28 (Provision Reference Data & BTP Outbound Contract).
-- **Data Flow:** TDC computes and classifies state tax data → B9A Gateway exposes governed API → IMS retrieves and routes to return engine (GoSystem, CCH, OIT) → Roger surfaces for practitioner review.
+ - **Data Flow:** Roger upload → Upload / Intake → DMS → Gateway → Orchestrator → PDC → TDC → Audit / Lineage → Gateway → Roger → IMS or approved downstream consumer where applicable.
+
+### State Refinement Model — Current Two Backend Stories
+- **1472734 — DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Integration/backend):** Integrates required State return-filing data, stores it where DCT is the system of record, and provides the governed Filing-screen response. State must confirm the Filing-screen data contract: required fields, authoritative sources, filing identity, persistence expectations, response behavior, and exception handling.
+- **1471480 — DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend):** Retrieves starting Filing Footprint context, saves and governs practitioner decisions, and supports later retrieval, versioning, audit, and lineage. State must define starting context, filing decisions, save behavior, governance or finalization, later change, versioning, and audit / lineage expectations.
+- **Readiness:** Both stories remain **Needs Clarification** for estimation and DCT acceptance. Acceptance criteria alone do not make a story ready; Development and QA must be able to work without inventing a State business decision.
+- **Scope / experience view:** Business requirement → 1472734 → 1471480 → Roger State Filing Experience. This is a business scope and practitioner-experience view, not a strict technical predecessor sequence.
+- **Ownership:** State defines business, tax, filing, and data-meaning requirements. DCT implements governed backend persistence, retrieval, and validation. Roger owns practitioner-facing UI and actions but does not own State tax records.
 
 ---
 
@@ -1110,7 +1119,7 @@ Before documenting any new requirement for the State or Provision workstream, de
 - PDC owns financial data normalization — it does not own tax logic.
 - TDC owns all tax decisions, classifications, and provision computations — immutable once locked.
 - B9A Gateway owns consumer access — no consumer bypasses it.
-- Roger is read-only — it consumes governed outputs but cannot write to TDC or PDC.
+ - Roger owns practitioner-facing UI and permitted actions; it does not own State tax records or persist them outside governed DCT records.
 - IMS owns engine routing and payload translation — DCT does not connect directly to GoSystem, CCH, or OIT.
 `,
   },
