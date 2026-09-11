@@ -12,9 +12,13 @@ describe("PI4 State delivery readiness", () => {
     expect(source).toContain("S5 is outside the main UAT cycle");
     expect(source).toContain("State Story Readiness for PI 4");
     expect(source).toContain("Current State Story Readiness Assessment");
-    expect(source).toContain("Both approved State backend stories require clarification before estimation and DCT acceptance; no delivery size is inferred.");
-    expect(source).toContain("1472734 — DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Integration/backend)");
-    expect(source).toContain("1471480 — DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend)");
+    expect(source).toContain("Both approved State stories are not ready to estimate or accept for DCT ownership");
+    expect(source).toContain("1472734 – DCT Gateway — Compose State Return-Filing Response for Roger");
+    expect(source).toContain("1471480 – DCT — Retrieve Return Structure Starting Context for a State Filer / Filing Group");
+    expect(source).toContain("State filing-group relationship remains unresolved");
+    expect(source).toContain("Open Items from State Refinement");
+    expect(source).toContain("Why DCT Cannot Estimate Yet");
+    expect(source).toContain("State Readiness Decision");
     expect(source).not.toContain("1464780");
     expect(source).toContain("Cross-Team Dependencies · Orchestration");
     expect(source).toContain("Cross-Team Dependencies · Roger UI");
