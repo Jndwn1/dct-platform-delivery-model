@@ -8,6 +8,7 @@ describe("Provision and State Discovery refinement model", () => {
     const buddySource = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
     const stateStoriesBlock = source.slice(source.indexOf("const STATE_STORIES"), source.indexOf("const PROVISION_STORIES"));
     const stateCapabilitiesBlock = source.slice(source.indexOf("const STATE_CAPABILITY_ROWS"), source.indexOf("const PROVISION_CAPABILITY_ROWS"));
+    const workstreamReadinessBlock = source.slice(source.indexOf("function WorkstreamReadinessHub"), source.indexOf("// ─── PI 4 State delivery readiness"));
 
     expect(source).toContain("Cross-Team Discovery & Refinement Model");
     expect(source).not.toContain("DCT acceptance check");
@@ -54,6 +55,14 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Package 2 Deferred Rollforward, Package 3 Federal Summary");
     expect(source).toContain("Copy system flow");
     expect(source).toContain('<ResponsibilityMatrix workstream={activeWorkstream} />');
+    expect(source).toContain('const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/"');
+    expect(source).toContain("Provision Prototype");
+    expect(source).toContain("Roger — Tax Provision Prototype");
+    expect(source).toContain("Interactive Roger Provision prototype used to illustrate the proposed Provision workflow, screen sequence, Return-to-Provision experience, Deferred Rollforward, and related practitioner interactions.");
+    expect(source).toContain("Open Provision Prototype");
+    expect(source).toContain('target="_blank"');
+    expect(source).toContain('rel="noopener noreferrer"');
+    expect(workstreamReadinessBlock.indexOf("<StoryMatrix stories={stories} />")).toBeLessThan(workstreamReadinessBlock.indexOf("<ProvisionPrototypeReference />"));
     expect(source).not.toContain("          <DiscoveryWorkflowSection />");
     expect(source).not.toContain("          <DataFlowSection />");
     expect(source).not.toContain("          <RuleProcessingTdcPosting />");
