@@ -10,7 +10,7 @@ import { useRef, useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import GeneratePOEmail from "@/components/GeneratePOEmail";
-import { BATCH_DELIVERY_RECORDS, GOVERNED_PROGRAM_HEALTH, NON_BATCH_MVP_RECORDS, useBatchStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
+import { BATCH_DELIVERY_RECORDS, GOVERNED_PROGRAM_HEALTH, PI4_PLANNED_FEATURES, useBatchStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
 
 // ─── Batch Calendar PI 2 + PI 3 (mirrors Home.tsx BATCH_CALENDAR_PI23) ─────────
 // This is the single source of truth for all Executive Dashboard KPI calculations.
@@ -125,7 +125,7 @@ function StatusPill({
 
 /** Row 3 — PI progress card */
 function PICard({
-  pi, status, pct, color, bg, border, note, closedFeatures, plannedFeatures, fullWidth,
+  pi, status, pct, color, bg, border, note, plannedFeatures, fullWidth,
 }: {
   pi: string;
   status: string;
@@ -134,7 +134,6 @@ function PICard({
   bg: string;
   border: string;
   note?: string;
-  closedFeatures?: readonly string[];
   plannedFeatures?: readonly string[];
   fullWidth?: boolean;
 }) {
@@ -180,25 +179,15 @@ function PICard({
           ⚠ {note}
         </div>
       )}
-      {(closedFeatures || plannedFeatures) && (
+      {plannedFeatures && (
         <div style={{ marginTop: "10px", borderTop: `1px solid ${border}`, paddingTop: "9px" }}>
-          {closedFeatures && (
-            <div>
-              <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#059669" }}>Closed PI4 Features</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
-                {closedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color: "#059669", fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
-              </div>
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color }}>Planned PI4 Features</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
+              {plannedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color, fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
             </div>
-          )}
-          {plannedFeatures && (
-            <div style={{ marginTop: closedFeatures ? "9px" : 0 }}>
-              <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color }}>Active PI4 Features</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
-                {plannedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color, fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
-              </div>
-            </div>
-          )}
-          <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>Included in the governed MVP delivery population; excluded from batch-only counts.</div>
+          </div>
+          <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>Planning visibility only — excluded from all PI4 and MVP delivery metrics.</div>
         </div>
       )}
     </div>
@@ -208,17 +197,6 @@ function PICard({
 //  Main component 
 
 // BATCH_REFERENCE is passed in from Home.tsx for the email generator
-const PI4_CLOSED_FEATURES = [
-  "Manual Custom Client Account Management",
-  "DCT - Data Console",
-  "DCT - Penetration Testing & Security Readiness",
-] as const;
-
-const PI4_REMAINING_FEATURES = [
-  "DCT Deferred Work – Future Enhancements Backlog",
-  "IMS Translation & Import Layer Design",
-] as const;
-
 interface ExecDashboardProps {
   batches?: Array<{ pi: string; status: string; batchNum: string; platform: string; name: string; whatItDoes: string; rogerImpact: string }>;
 }
@@ -258,10 +236,6 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
   const pi3Pct = piCompletion?.pi3?.pct ?? 0;
   const pi3Complete = piCompletion?.pi3?.complete ?? 0;
   const pi3Total = piCompletion?.pi3?.total ?? 0;
-  const pi4Pct = piCompletion?.pi4?.pct ?? 0;
-  const pi4Complete = piCompletion?.pi4?.complete ?? 0;
-  const pi4Total = piCompletion?.pi4?.total ?? 0;
-
   // Last updated label
   const lastUpdatedLabel = lastUpdated
     ? new Date(lastUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
@@ -296,14 +270,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
     },
     {
       pi: "PI 4",
-      status: `Post Pilot · ${pi4Complete} Closed / ${pi4Total - pi4Complete} Active`,
-      pct: pi4Pct,
+      status: "Post Pilot · Planning Visibility Only",
+      pct: 0,
       color: "#7c3aed",
       bg: "#faf5ff",
       border: "#e9d5ff",
       fullWidth: true,
-      closedFeatures: PI4_CLOSED_FEATURES,
-      plannedFeatures: PI4_REMAINING_FEATURES,
+      plannedFeatures: PI4_PLANNED_FEATURES,
     },
   ];
 
@@ -323,7 +296,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            MVP Delivery Intelligence · PI1 + PI2 + PI3 + PI4 · {BATCH_DELIVERY_RECORDS.length} Current Batch Features + {NON_BATCH_MVP_RECORDS.length} Non-Batch MVP Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            MVP Delivery Intelligence · PI1 + PI2 + PI3 Delivery Metrics · PI4 Planning Visibility · {BATCH_DELIVERY_RECORDS.length} Current Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
@@ -354,7 +327,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="Total MVP Features"
           value={totalMvpFeatures}
-          sub="23 batch + 5 non-batch"
+          sub="23 governed batch delivery features"
           accent="#1e3a5f"
         />
         <KPICard

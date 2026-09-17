@@ -663,6 +663,15 @@ export default function Home() {
       { label: "PI 4", metric: piCompletion.pi4 },
     ];
     return rows.map(({ label, metric }) => {
+      if (label === "PI 4") {
+        return {
+          label,
+          status: "Post Pilot · Planning",
+          color: "#7c3aed",
+          bg: "#faf5ff",
+          border: "#e9d5ff",
+        };
+      }
       const complete = metric.complete === metric.total;
       return {
         label,
@@ -766,9 +775,6 @@ export default function Home() {
     if (feature.id === "B31-TDC") return { ...feature, featureName: "Legacy Tool Prior Year Data Housing" };
     return feature;
   }), [activeAdoBatchFeatures]);
-  const activeAdoNonBatchFeatures = useMemo(() => {
-    return activeAdoFeatures.filter(feature => feature.classification === "Non-Batch MVP");
-  }, [activeAdoFeatures]);
   const stretchBatches = useMemo(() => {
     return BATCH_CALENDAR_PI23.filter(b => {
       const key = ctxKeyForBatch(b.batch);
@@ -868,7 +874,7 @@ export default function Home() {
             { label: "MVP Features Active", value: mvp.inDev, sub: `${mvp.inDev} Active ADO features`, color: "#60a5fa" },
             { label: "MVP Features In Review", value: mvp.inReview, sub: "No features in review", color: "#a78bfa" },
             { label: "MVP Features Planned", value: mvp.planned, sub: "Not Started only", color: "#94a3b8" },
-            { label: "Total MVP Features", value: mvp.total, sub: `${batchTotal} batch + 5 non-batch`, color: "#fb923c" },
+            { label: "Total MVP Features", value: mvp.total, sub: `${batchTotal} governed batch delivery features`, color: "#fb923c" },
             { label: "Roger QA Screens", value: rogerScreenMetrics.total, sub: `${rogerScreenDeliveryMetrics.completed} Completed · ${rogerScreenDeliveryMetrics.inProgress} In Progress · QA status not stated`, color: "#38bdf8" },
           ].map(k => (
             <div key={k.label} style={{
@@ -1087,9 +1093,6 @@ export default function Home() {
                 <span style={{ color: "#475569" }}>{feature.featureName}</span>
               </div>
             ))}
-            <div style={{ marginTop: "8px", paddingTop: "6px", borderTop: "1px solid #bfdbfe", fontSize: "11px", color: "#2563eb", fontWeight: 600 }}>
-              + {activeAdoNonBatchFeatures.length} non-batch Active features ({activeAdoNonBatchFeatures.map(feature => feature.featureName).join(" · ")})
-            </div>
           </div>
 
           {/* B31 Critical-Path Banner */}

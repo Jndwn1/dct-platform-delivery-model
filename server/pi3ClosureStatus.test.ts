@@ -6,7 +6,7 @@ import {
   GOVERNED_PROGRAM_HEALTH,
   LOCKED_MVP_BASELINE,
   matchesLockedMvpBaseline,
-  NON_BATCH_MVP_RECORDS,
+  PI4_PLANNED_FEATURES,
   PI3_HISTORICAL_COMPLETION_BASELINE,
   PI3_POST_BASELINE_CLOSURES,
   PI_MEMBERSHIP,
@@ -32,33 +32,33 @@ describe("PI3 closure status model", () => {
     expect(contextToDctStatus(DEFAULT_STATUS["29"])).toBe("CLOSED");
   });
 
-  it("reports the authoritative 28-feature MVP portfolio after the three confirmed PI4 closures", () => {
+  it("excludes PI4 planning visibility from the authoritative MVP delivery portfolio", () => {
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
-      total: 28,
-      complete: 18,
-      inDev: 10,
+      total: 23,
+      complete: 15,
+      inDev: 8,
       inReview: 0,
       planned: 0,
-      readinessPct: 64,
+      readinessPct: 65,
     });
   });
 
   it("matches the user-confirmed locked MVP baseline", () => {
     const metrics = deriveMvpMetrics(DEFAULT_STATUS);
     expect(LOCKED_MVP_BASELINE).toMatchObject({
-      totalFeatures: 28,
+      totalFeatures: 23,
       batchFeatures: 23,
-      nonBatchFeatures: 5,
-      complete: 18,
-      active: 10,
+      nonBatchFeatures: 0,
+      complete: 15,
+      active: 8,
       inReview: 0,
       planned: 0,
-      readinessPct: 64,
+      readinessPct: 65,
     });
     expect(matchesLockedMvpBaseline(metrics)).toBe(true);
   });
 
-  it("keeps Batch Delivery separate from the five non-batch MVP features", () => {
+  it("keeps PI4 planning visibility separate from current MVP delivery metrics", () => {
     expect(deriveBatchMetrics(DEFAULT_STATUS)).toMatchObject({
       total: 23,
       complete: 15,
@@ -69,12 +69,12 @@ describe("PI3 closure status model", () => {
       reconciles: true,
     });
     expect(deriveMvpMetrics(DEFAULT_STATUS)).toMatchObject({
-      total: 28,
-      complete: 18,
-      inDev: 10,
+      total: 23,
+      complete: 15,
+      inDev: 8,
       inReview: 0,
       planned: 0,
-      readinessPct: 64,
+      readinessPct: 65,
       reconciles: true,
     });
   });
@@ -94,19 +94,17 @@ describe("PI3 closure status model", () => {
     expect(deriveBatchMetrics(DEFAULT_STATUS).planned).toBe(0);
   });
 
-  it("derives current development directly from all qualifying ADO Active MVP features", () => {
+  it("derives current development from qualifying batch ADO features only", () => {
     const activeBatchKeys = BATCH_DELIVERY_RECORDS
       .filter(record => record.sourceStatusLabel === "Active")
       .map(record => record.statusKey)
       .sort();
 
     expect(activeBatchKeys).toEqual(["10", "28", "31", "31", "42", "45", "7", "9a"]);
-    expect(NON_BATCH_MVP_RECORDS).toHaveLength(5);
-    expect(NON_BATCH_MVP_RECORDS.filter(record => record.sourceStatusLabel === "Active")).toHaveLength(2);
-    expect(NON_BATCH_MVP_RECORDS.filter(record => record.sourceStatusLabel === "Closed")).toHaveLength(3);
+    expect(PI4_PLANNED_FEATURES).toHaveLength(5);
     expect(deriveBatchMetrics(DEFAULT_STATUS).inDev).toBe(8);
-    expect(deriveMvpMetrics(DEFAULT_STATUS).complete).toBe(18);
-    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(10);
+    expect(deriveMvpMetrics(DEFAULT_STATUS).complete).toBe(15);
+    expect(deriveMvpMetrics(DEFAULT_STATUS).inDev).toBe(8);
   });
 
   it("keeps the Executive calendar aligned to the supplied ADO Active classifications", () => {

@@ -1,8 +1,6 @@
 import {
   BATCH_DELIVERY_RECORDS,
   GOVERNED_PROGRAM_HEALTH,
-  MVP_DELIVERY_RECORDS,
-  NON_BATCH_MVP_RECORDS,
   deriveMvpMetrics,
   type BatchStatusMap,
 } from "@/contexts/BatchStatusContext";
@@ -104,7 +102,7 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
   },
 ];
 
-const findRecord = (id: string) => [...BATCH_DELIVERY_RECORDS, ...NON_BATCH_MVP_RECORDS].find(record => record.id === id);
+const findRecord = (id: string) => BATCH_DELIVERY_RECORDS.find(record => record.id === id);
 
 function statusFromActiveWork(activeWorkExists: boolean, allComplete: boolean): Exclude<MvpMilestoneStatus, "At Risk / Confirmation Required"> {
   if (allComplete) return "Complete";

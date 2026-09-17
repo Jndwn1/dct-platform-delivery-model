@@ -12,8 +12,8 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Link } from "wouter";
 import {
-  useBatchStatus, BATCH_DELIVERY_RECORDS, MVP_DELIVERY_RECORDS, NON_BATCH_MVP_RECORDS,
-  buildDeliveryReconciliationDataset, classifyDeliveryStatus, deriveBatchMetrics, deriveDeliveryMetrics, deriveMvpMetrics, getAdoActivityStatus, getPortfolioDeliveryStatus, GOVERNED_PROGRAM_HEALTH, PI3_HISTORICAL_COMPLETION_BASELINE, PI3_POST_BASELINE_CLOSURES,
+  useBatchStatus, BATCH_DELIVERY_RECORDS, MVP_DELIVERY_RECORDS,
+  buildDeliveryReconciliationDataset, classifyDeliveryStatus, deriveBatchMetrics, deriveMvpMetrics, getAdoActivityStatus, getPortfolioDeliveryStatus, GOVERNED_PROGRAM_HEALTH, PI3_HISTORICAL_COMPLETION_BASELINE, PI3_POST_BASELINE_CLOSURES,
   STATUS_STYLES, BATCH_LABELS, CASCADE_STEPS,
   type BatchKey, type BatchStatus,
 } from "@/contexts/BatchStatusContext";
@@ -1241,7 +1241,6 @@ export default function BatchControlPanel() {
   const { statuses, setStatus, resetAll, gates, lastUpdated, syncLog, clearSyncLog, unlockedBatches, piCompletion, cascade } = useBatchStatus();
   const batchMetrics = deriveBatchMetrics(statuses);
   const mvpMetrics = deriveMvpMetrics(statuses);
-  const nonBatchMetrics = deriveDeliveryMetrics(statuses, NON_BATCH_MVP_RECORDS);
   const [metricFilter, setMetricFilter] = useState<"All" | "Complete" | "In Development" | "In Review" | "Planned">("All");
   const reconciliationRows = useMemo(() => buildDeliveryReconciliationDataset(statuses), [statuses]);
   const metricRows = useMemo(() => MVP_DELIVERY_RECORDS.map(record => {
@@ -1259,7 +1258,7 @@ export default function BatchControlPanel() {
   const visibleMetricRows = metricFilter === "All"
     ? metricRows
     : metricRows.filter(row => row.dashboardStatus === metricFilter);
-  const reconciles = batchMetrics.reconciles && nonBatchMetrics.reconciles && mvpMetrics.reconciles;
+  const reconciles = batchMetrics.reconciles && mvpMetrics.reconciles;
   const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
   const [poSummaryCopied, setPoSummaryCopied] = useState(false);
   const [poSummaryGeneratedAt, setPoSummaryGeneratedAt] = useState<string | null>(null);
@@ -1799,18 +1798,17 @@ export default function BatchControlPanel() {
         )}
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-5">
-          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from ADO-backed records. The eight active batch features—B7, B10, B42, B45, B28, B9A, B31 PDC, and B31 TDC—count as <strong>In Development</strong>. Three source-confirmed PI4 non-batch features are <strong>Complete</strong>, while two remain <strong>In Development</strong>. B39, B20, B21, B26, and historical split records are excluded from the current 23-batch MVP scope. The prior 23-complete display did not retain a record-level calculation snapshot.
+          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from 23 ADO-backed batch delivery records. The eight active batch features—B7, B10, B42, B45, B28, B9A, B31 PDC, and B31 TDC—count as <strong>In Development</strong>. PI4 is planning visibility only and is excluded from all delivery metrics. B39, B20, B21, B26, and historical split records are excluded from the current 23-batch MVP scope. The prior 23-complete display did not retain a record-level calculation snapshot.
         </div>
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-5">
           <strong>Historical PI3 closure baseline:</strong> {PI3_HISTORICAL_COMPLETION_BASELINE.cumulativeComplete} items complete as of Jul 28, plus {PI3_POST_BASELINE_CLOSURES.length} post-baseline closures. QA validation is separate: PI2 delivery is complete with {GOVERNED_PROGRAM_HEALTH.qaValidationProgress.PI2}% QA validation progress; program health is <strong>{GOVERNED_PROGRAM_HEALTH.programStatus}</strong> for the Sep 21 pilot.
         </div>
 
-        <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
             { label: "Batch Delivery", metric: batchMetrics, note: "23 governed MVP batch features" },
-            { label: "Non-Batch MVP", metric: nonBatchMetrics, note: "3 closed · 2 active; excluded from Batch counts" },
-            { label: "Overall MVP Delivery", metric: mvpMetrics, note: "Batch + non-batch MVP features" },
+            { label: "Overall MVP Delivery", metric: mvpMetrics, note: "23 governed batch delivery features; PI4 excluded" },
           ].map(({ label, metric, note }) => (
             <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <div className="text-xs font-bold text-slate-800">{label}</div>

@@ -322,12 +322,12 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "26": "Ready for QA", // B26 — Entity Constituents & Allocations (ADO: Review Ready)
   "39": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
-  // ── Non-batch PI4 features — source confirmed Sep. 2, 2026 ───────────────
-  "pi4-manual-client-account-management": "Complete",
-  "pi4-data-console": "Complete",
-  "pi4-security-readiness": "Complete",
-  "pi4-deferred-work": "In Progress",
-  "pi4-ims-translation": "In Progress",
+  // ── PI4 planning visibility only — excluded from delivery classification ──
+  "pi4-manual-client-account-management": "Not Started",
+  "pi4-data-console": "Not Started",
+  "pi4-security-readiness": "Not Started",
+  "pi4-deferred-work": "Not Started",
+  "pi4-ims-translation": "Not Started",
   // ── PI 4 — Future (Post-Pilot) ───────────────────────────────────────────
   "19": "Not Started",  // B19 — Audit Tax-Expense Cross-LOB Outbound (9/21–9/28)
   "40": "Not Started",  // B40 — Client-Level Line Mapping Reuse
@@ -362,9 +362,15 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
   "29": "Complete",
   "43": "Complete",
   "8": "Complete",
-  "pi4-manual-client-account-management": "Complete",
-  "pi4-data-console": "Complete",
-  "pi4-security-readiness": "Complete",
+};
+
+/** PI4 planning visibility is not a delivery classification and cannot retain prior local status selections. */
+const PI4_PLANNING_STATUS: Partial<BatchStatusMap> = {
+  "pi4-manual-client-account-management": "Not Started",
+  "pi4-data-console": "Not Started",
+  "pi4-security-readiness": "Not Started",
+  "pi4-deferred-work": "Not Started",
+  "pi4-ims-translation": "Not Started",
 };
 
 // ── PI membership ─────────────────────────────────────────────────────────────
@@ -378,10 +384,11 @@ export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 };
 
 // ── MVP Portfolio — Single Source of Truth ──────────────────────────────────
-// Authoritative current MVP scope: 23 batch features + 5 non-batch PI4 features = 28.
+// Authoritative current MVP scope: 23 batch features. PI4 features are retained
+// below as planning visibility only and excluded from all MVP delivery metrics.
 // The four historical split records B8-PDC, B8-TDC, B9, and B9-PDC are retained
 // for lineage and API traceability but excluded from current MVP lifecycle metrics.
-// Current ADO lifecycle: 18 Complete, 10 In Development, 0 In Review, 0 Planned.
+// Current ADO lifecycle: 15 Complete, 8 In Development, 0 In Review, 0 Planned.
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
@@ -391,8 +398,6 @@ export const MVP_BATCH_KEYS: BatchKey[] = [
   "7", "10", "42",
   // PI 3 — B8 + B29 closed Aug 11; remaining delivery portfolio
   "8", "45", "28", "9a", "17", "29", "31",
-  // Non-batch PI4 features (5) — three Closed and two Active, included in MVP scope
-  "pi4-manual-client-account-management", "pi4-data-console", "pi4-security-readiness", "pi4-deferred-work", "pi4-ims-translation",
 ];
 
 /** The 23 current MVP batch features. Non-batch MVP features are intentionally excluded. */
@@ -403,10 +408,12 @@ export const BATCH_DELIVERY_KEYS: BatchKey[] = [
   "8", "45", "28", "9a", "17", "29", "31",
 ];
 
-/** The five non-batch PI4 features included in the governed MVP portfolio. */
-export const NON_BATCH_MVP_KEYS: BatchKey[] = [
+/** PI4 planning visibility items. These are never included in delivery metrics. */
+export const PI4_PLANNED_FEATURE_KEYS: BatchKey[] = [
   "pi4-manual-client-account-management", "pi4-data-console", "pi4-security-readiness", "pi4-deferred-work", "pi4-ims-translation",
 ];
+
+export const PI4_PLANNED_FEATURES = PI4_PLANNED_FEATURE_KEYS.map(key => BATCH_LABELS[key]);
 
 export interface DeliveryMetricRecord {
   id: string;
@@ -453,17 +460,8 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "B31-TDC", statusKey: "31", adoId: "1390267", featureName: "Batch 31 | TDC — Legacy Tool Prior Year Data Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
 ];
 
-export const NON_BATCH_MVP_RECORDS: DeliveryMetricRecord[] = [
-  { id: "pi4-manual-client-account-management", statusKey: "pi4-manual-client-account-management", adoId: "1443717", featureName: BATCH_LABELS["pi4-manual-client-account-management"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", owner: "Lacombe, Stephane", sourceStatusLabel: "Closed" },
-  { id: "pi4-data-console", statusKey: "pi4-data-console", adoId: "1444364", featureName: BATCH_LABELS["pi4-data-console"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", owner: "Lacombe, Stephane", sourceStatusLabel: "Closed" },
-  { id: "pi4-security-readiness", statusKey: "pi4-security-readiness", adoId: "1435461", featureName: BATCH_LABELS["pi4-security-readiness"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", owner: "Lacombe, Stephane", sourceStatusLabel: "Closed" },
-  { id: "pi4-deferred-work", statusKey: "pi4-deferred-work", adoId: "Not supplied", featureName: BATCH_LABELS["pi4-deferred-work"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", sourceStatusLabel: "Active" },
-  { id: "pi4-ims-translation", statusKey: "pi4-ims-translation", adoId: "Not supplied", featureName: BATCH_LABELS["pi4-ims-translation"], batchNumber: "Non-Batch", classification: "Non-Batch MVP", pi: "PI4", sourceStatusLabel: "Active" },
-];
-
 export const MVP_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   ...BATCH_DELIVERY_RECORDS,
-  ...NON_BATCH_MVP_RECORDS,
 ];
 
 export type DeliveryMetricBucket = "Complete" | "In Development" | "In Review" | "Planned";
@@ -474,14 +472,14 @@ export type DeliveryMetricBucket = "Complete" | "In Development" | "In Review" |
  */
 export const LOCKED_MVP_BASELINE = {
   asOf: "2026-09-02",
-  totalFeatures: 28,
+  totalFeatures: 23,
   batchFeatures: 23,
-  nonBatchFeatures: 5,
-  complete: 18,
-  active: 10,
+  nonBatchFeatures: 0,
+  complete: 15,
+  active: 8,
   inReview: 0,
   planned: 0,
-  readinessPct: 64,
+  readinessPct: 65,
 } as const;
 
 /**
@@ -623,7 +621,7 @@ export function deriveBatchMetrics(statuses: BatchStatusMap) {
   return deriveDeliveryMetrics(statuses, BATCH_DELIVERY_RECORDS);
 }
 
-/** Overall MVP delivery metrics. Includes batch and non-batch MVP features. */
+/** Overall MVP delivery metrics. PI4 planning visibility is excluded. */
 export function deriveMvpMetrics(statuses: BatchStatusMap) {
   return deriveDeliveryMetrics(statuses, MVP_DELIVERY_RECORDS);
 }
@@ -654,10 +652,10 @@ function loadFromStorage(): BatchStatusMap {
       }
       // Preserve all saved Control Panel selections while applying the two
       // authoritative PI3 closure updates recorded on August 11, 2026.
-      return { ...DEFAULT_STATUS, ...valid, ...REQUIRED_CLOSURE_STATUSES };
+      return { ...DEFAULT_STATUS, ...valid, ...REQUIRED_CLOSURE_STATUSES, ...PI4_PLANNING_STATUS };
     }
   } catch { /* ignore */ }
-  return { ...DEFAULT_STATUS, ...REQUIRED_CLOSURE_STATUSES };
+  return { ...DEFAULT_STATUS, ...REQUIRED_CLOSURE_STATUSES, ...PI4_PLANNING_STATUS };
 }
 
 function saveToStorage(map: BatchStatusMap) {
