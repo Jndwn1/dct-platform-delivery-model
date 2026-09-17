@@ -181,3 +181,4 @@
 - [x] Update State refinement readiness for stories 1472734 and 1471480 with the latest TIM, Roger workflow, issue-count, and estimate-readiness decisions
 - [x] Replace the UAT Timeline section with the Roger UAT Timeline Overview for PI4 planning and pilot readiness
 - [x] Add the Sep. 21–Oct. 9 UAT execution window to the main dashboard critical milestones
+- [x] Update Executive Health Release Targets to show Sep. 21 MVP then Sep. 21–Oct. 9 UAT execution

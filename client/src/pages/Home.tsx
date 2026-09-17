@@ -651,7 +651,7 @@ export default function Home() {
   const rogerScreenMetrics = useMemo(() => getRogerScreenReadinessSummary(), []);
   const rogerScreenDeliveryMetrics = useMemo(() => getRogerScreenDeliverySummary(), []);
   const criticalMilestones = useMemo(() => deriveMvpCriticalMilestones(statuses), [statuses]);
-  const releaseTargetCriticalMilestones = useMemo(() => criticalMilestones.filter(milestone => milestone.dateLabel === "Aug 28, 2026"), [criticalMilestones]);
+  const releaseTargetCriticalMilestones = useMemo(() => criticalMilestones.filter(milestone => ["mvp-target", "uat-execution"].includes(milestone.id)), [criticalMilestones]);
   const pi3Closed = getPi3CumulativeCompleted();
   const recentlyClosedPi3 = PI3_POST_BASELINE_CLOSURES;
   const closedThisWeek = recentlyClosedPi3.filter(item => isInDashboardReportingWeek(item.completionDate));
