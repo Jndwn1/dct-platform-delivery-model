@@ -27,6 +27,7 @@ describe("MVP Critical Milestones", () => {
     const criticalStories = milestones.find(item => item.id === "critical-story-completion");
     const environment = milestones.find(item => item.id === "environment-readiness");
     const priorYear = milestones.find(item => item.id === "remaining-stories-py-ready");
+    const uatReady = milestones.find(item => item.id === "uat-ready");
     
     expect(criticalStories?.status).toBe("Complete");
     expect(criticalStories?.source).toBe("10 technical stories and 2 bugs — from the governed ADO lifecycle");
@@ -47,13 +48,15 @@ describe("MVP Critical Milestones", () => {
       "Final mapping validation using a client with additional mapping rows is pending.",
       "Authorization allow-list PR approval is pending.",
     ]);
+    expect(uatReady?.status).toBe("Complete");
+    expect(uatReady?.confirmationRequired).toBe(false);
   });
 
-  it("selects the Sep. 3 UAT milestone after the August 28 milestones are confirmed complete", () => {
+  it("selects the Sep. 21 MVP target after UAT readiness is confirmed complete", () => {
     const milestones = deriveMvpCriticalMilestones(DEFAULT_STATUS);
     const asOf = new Date("2026-08-28T12:00:00");
     const next = getNextCriticalMilestone(milestones, asOf);
-    expect(next.id).toBe("uat-ready");
+    expect(next.id).toBe("mvp-target");
     expect(resolveMilestoneStatus(next, new Date("2026-08-28T12:00:00"))).toBe("In Progress");
   });
 });

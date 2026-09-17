@@ -81,6 +81,7 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
     name: "UAT Ready",
     shortDescription: "Deploy MVP code to UAT, complete the required UAT data load, and begin formal validation.",
     detail: ["MVP code deployed to UAT", "Required UAT data load", "Formal UAT validation"],
+    statusOverride: "Complete",
     sourceScope: "uat",
   },
   {
@@ -155,10 +156,10 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
       const hasEvidence = Boolean(qaWorkstream);
       return {
         ...definition,
-        status: hasEvidence ? "In Progress" : "Upcoming",
+        status: definition.statusOverride ?? (hasEvidence ? "In Progress" : "Upcoming"),
         owner: qaWorkstream?.owner ?? "Confirmation required",
         source: hasEvidence ? `QA Workstream ADO ${qaWorkstream?.adoId}` : "No governed UAT readiness record available",
-        confirmationRequired: !hasEvidence,
+        confirmationRequired: !definition.statusOverride && !hasEvidence,
       };
     }
 
