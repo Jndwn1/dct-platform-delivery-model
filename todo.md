@@ -180,3 +180,4 @@
 - [x] Add the Roger Tax Provision Prototype reference immediately below the Provision Story Readiness Matrix and verify its new-tab link behavior
 - [x] Update State refinement readiness for stories 1472734 and 1471480 with the latest TIM, Roger workflow, issue-count, and estimate-readiness decisions
 - [x] Replace the UAT Timeline section with the Roger UAT Timeline Overview for PI4 planning and pilot readiness
+- [x] Add the Sep. 21–Oct. 9 UAT execution window to the main dashboard critical milestones

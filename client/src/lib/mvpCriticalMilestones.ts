@@ -92,6 +92,15 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
     detail: ["MVP release target", "RC-3 delivery milestone"],
     sourceScope: "release",
   },
+  {
+    id: "uat-execution",
+    date: "2026-09-21",
+    dateLabel: "Sep 21–Oct 9, 2026",
+    name: "UAT Execution",
+    shortDescription: "Formal UAT execution for the Roger MVP experience.",
+    detail: ["UAT execution window", "Support execution, defect triage, and pilot-readiness issue resolution"],
+    sourceScope: "uat",
+  },
 ];
 
 const findRecord = (id: string) => [...BATCH_DELIVERY_RECORDS, ...NON_BATCH_MVP_RECORDS].find(record => record.id === id);

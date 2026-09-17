@@ -993,7 +993,7 @@ export default function Home() {
           <div>
             <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "3px" }}>Delivery Schedule</div>
             <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a" }}>MVP Critical Milestones</div>
-            <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px" }}>Critical delivery dates leading to the {MVP_TARGET_DATE_LABEL} MVP / RC-3 target</div>
+            <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px" }}>Critical delivery dates through the {MVP_TARGET_DATE_LABEL} MVP / RC-3 target and UAT execution</div>
           </div>
         </div>
 
