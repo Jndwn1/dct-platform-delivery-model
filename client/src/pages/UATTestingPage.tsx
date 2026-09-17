@@ -217,21 +217,96 @@ export default function UATTestingPage() {
           </div>
         </div>
 
-        {/* ── UAT Readiness Timeline Summary ── */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 10 }}>UAT Readiness Timeline</div>
-          <div style={{ background: "white", border: "1px solid #e2e8f0", borderLeft: "4px solid #003865", borderRadius: 8, padding: "14px 18px" }}>
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {[
-                "Test scripts completed and approved before business testing begins.",
-                "Business and reference data validated in UAT environment before testing starts.",
-                "Dedicated defect resolution and regression testing window established (Sep 13–16).",
-                "Business validation completed before executive Go/No-Go review.",
-                "Timeline clearly separates readiness, execution, remediation, validation, and deployment activities.",
-              ].map(item => (
-                <li key={item} style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, marginBottom: 4 }}>{item}</li>
-              ))}
-            </ul>
+        {/* ── Roger UAT Timeline Overview ── */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const, marginBottom: 10 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 3 }}>PI4 Planning Roadmap</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: NAVY }}>Roger UAT Timeline Overview</div>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8, fontSize: 10, fontWeight: 700 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#166534" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: GREEN }} /> Completed</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#312e81" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: PURPLE }} /> Current / Imminent</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#1e40af" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "white", border: "2px solid #60a5fa" }} /> Upcoming</span>
+            </div>
+          </div>
+
+          <div style={{ background: "white", border: "1px solid #dbe5f1", borderRadius: 10, overflow: "hidden" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: 0, borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ padding: "16px 16px 14px", background: "#f0fdf4", borderRight: "1px solid #bbf7d0" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: GREEN, boxShadow: "0 0 0 4px #dcfce7" }} />
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#166534" }}>Completed / Pre-UAT Preparation</span>
+                </div>
+                {[
+                  ["July 20", "Scope finalized"],
+                  ["August 10", "Test population identified"],
+                  ["August 28", "MVP feature development complete"],
+                  ["September 7", "Source data ready"],
+                ].map(([date, detail]) => (
+                  <div key={date} style={{ display: "grid", gridTemplateColumns: "86px 1fr", gap: 7, padding: "5px 0", borderTop: "1px solid #dcfce7", fontSize: 11, lineHeight: 1.35 }}>
+                    <strong style={{ color: "#166534" }}>{date}</strong>
+                    <span style={{ color: "#374151" }}>{detail}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ padding: "16px", background: "#f5f3ff", borderRight: "1px solid #c4b5fd", position: "relative" as const }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: PURPLE, boxShadow: "0 0 0 4px #ede9fe" }} />
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#4c1d95" }}>Current / Immediate Milestone</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 7, alignItems: "stretch", marginBottom: 11 }}>
+                  <div style={{ background: "white", border: "1px solid #c4b5fd", borderRadius: 7, padding: "9px 8px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#312e81", marginBottom: 3 }}>September 18</div>
+                    <div style={{ fontSize: 10, color: SLATE, lineHeight: 1.35 }}>Final system readiness sign-off and UAT kickoff communications</div>
+                  </div>
+                  <div style={{ alignSelf: "center", color: PURPLE, fontWeight: 800, fontSize: 18 }}>→</div>
+                  <div style={{ background: NAVY, borderRadius: 7, padding: "9px 8px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "white", marginBottom: 3 }}>September 21</div>
+                    <div style={{ fontSize: 10, color: "#dbeafe", lineHeight: 1.35 }}>UAT execution begins</div>
+                  </div>
+                </div>
+                <div style={{ background: "#ede9fe", borderLeft: `3px solid ${PURPLE}`, borderRadius: 5, padding: "8px 9px", fontSize: 10, color: "#4c1d95", lineHeight: 1.45 }}>
+                  <strong>PI4 Focus:</strong> Complete readiness activities, support UAT execution, triage defects, and address issues required for TY26 pilot readiness.
+                </div>
+              </div>
+
+              <div style={{ padding: "16px", background: "#eff6ff", borderRight: "1px solid #bfdbfe" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: NAVY, boxShadow: "0 0 0 4px #dbeafe" }} />
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#1e3a8a" }}>UAT Execution</span>
+                </div>
+                <div style={{ background: "white", border: "1px solid #93c5fd", borderRadius: 8, padding: "12px 11px" }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: NAVY, marginBottom: 4 }}>September 21 – October 9</div>
+                  <div style={{ fontSize: 11, color: SLATE, lineHeight: 1.45 }}>UAT execution</div>
+                </div>
+                <div style={{ marginTop: 10, fontSize: 10, color: "#1e40af", fontWeight: 700, lineHeight: 1.4 }}>Readiness transitions directly into the active UAT window.</div>
+              </div>
+
+              <div style={{ padding: "16px", background: "#f8fbff" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: "white", border: "2px solid #60a5fa" }} />
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#1e40af" }}>Post-UAT / Pilot Readiness</span>
+                </div>
+                {[
+                  ["October", "UAT closeout; defect triage; scope prioritization; SME working sessions"],
+                  ["November", "Pilot population defined; UAT Round 2 for TY26 pilot scope"],
+                  ["December", "UAT Round 2 continues; final development and regression testing"],
+                  ["January", "Pilot launch and training"],
+                ].map(([date, detail]) => (
+                  <div key={date} style={{ display: "grid", gridTemplateColumns: "68px 1fr", gap: 7, padding: "5px 0", borderTop: "1px solid #dbeafe", fontSize: 10, lineHeight: 1.35 }}>
+                    <strong style={{ color: "#1e40af" }}>{date}</strong>
+                    <span style={{ color: SLATE }}>{detail}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 9, padding: "11px 16px", background: "#f8fafc" }}>
+              <div style={{ width: 7, height: 7, marginTop: 5, borderRadius: "50%", background: TEAL, flexShrink: 0 }} />
+              <div style={{ fontSize: 11, color: SLATE, lineHeight: 1.5 }}><strong style={{ color: NAVY }}>PI4 Planning Note:</strong> UAT outcomes will inform PI4 defect prioritization, remaining MVP work, regression testing, and TY26 pilot readiness.</div>
+            </div>
           </div>
         </div>
 
