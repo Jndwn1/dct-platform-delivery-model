@@ -71,6 +71,7 @@ import Step6Questions from "./pages/onboarding/Step6Questions";
 import Step7Complete from "./pages/onboarding/Step7Complete";
 import UATTestingPage from "./pages/UATTestingPage";
 import OperatingModelHub from "./pages/OperatingModelHub";
+import PI4PlanningWorkspace from "./pages/PI4PlanningWorkspace";
 import OnboardingHub from "./pages/onboarding/OnboardingHub";
 import StateCompliancePrototype from "./pages/StateCompliancePrototype";
 // Layout
@@ -124,6 +125,7 @@ function Router() {
           <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
           <Route path="/batch-roadmap" component={BatchRoadmap} />
           <Route path="/workspace/delivery" component={() => <OperatingModelHub workspaceId="delivery" />} />
+          <Route path="/pi4-planning" component={PI4PlanningWorkspace} />
           <Route path="/workspace/roger" component={() => <OperatingModelHub workspaceId="roger" />} />
           <Route path="/workspace/discovery" component={() => <OperatingModelHub workspaceId="discovery" />} />
           <Route path="/workspace/architecture" component={() => <OperatingModelHub workspaceId="architecture" />} />

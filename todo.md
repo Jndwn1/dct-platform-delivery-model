@@ -184,3 +184,4 @@
 - [x] Update Executive Health Release Targets to show Sep. 21 MVP then Sep. 21–Oct. 9 UAT execution
 - [x] Mark MVP Critical Milestone #4, UAT Ready, complete
 - [x] Restore PI4 to visibility-only planning with no closed or active features
+- [x] Create a separate PI4 planning workspace to track PI4 sprints and supplied DCT, State, and Provision story mappings without changing MVP delivery metrics

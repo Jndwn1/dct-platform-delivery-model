@@ -125,7 +125,7 @@ function StatusPill({
 
 /** Row 3 — PI progress card */
 function PICard({
-  pi, status, pct, color, bg, border, note, plannedFeatures, fullWidth,
+  pi, status, pct, color, bg, border, note, plannedFeatures, planningLink, fullWidth,
 }: {
   pi: string;
   status: string;
@@ -135,6 +135,7 @@ function PICard({
   border: string;
   note?: string;
   plannedFeatures?: readonly string[];
+  planningLink?: string;
   fullWidth?: boolean;
 }) {
   return (
@@ -188,6 +189,7 @@ function PICard({
             </div>
           </div>
           <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>Planning visibility only — excluded from all PI4 and MVP delivery metrics.</div>
+          {planningLink && <Link href={planningLink} style={{ display: "inline-flex", color: "#6d28d9", fontSize: "10px", fontWeight: 800, marginTop: "8px", textDecoration: "none" }}>Open PI4 Sprint & Story Tracker →</Link>}
         </div>
       )}
     </div>
@@ -277,6 +279,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       border: "#e9d5ff",
       fullWidth: true,
       plannedFeatures: PI4_PLANNED_FEATURES,
+      planningLink: "/pi4-planning",
     },
   ];
 

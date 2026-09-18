@@ -1,0 +1,196 @@
+import { useMemo, useState } from "react";
+import { Link } from "wouter";
+import {
+  createPi4PlanningCopy,
+  getPi4FeaturesByWorkstream,
+  PI4_PLANNING_SUMMARY,
+  PI4_SPRINT_PLANNING_LANES,
+  type Pi4Feature,
+  type Pi4Workstream,
+} from "@/lib/pi4PlanningModel";
+
+type WorkspaceFilter = "All" | Pi4Workstream;
+
+const WORKSTREAM_STYLE: Record<Pi4Workstream, { accent: string; ink: string; surface: string; border: string }> = {
+  "DCT Platform": { accent: "#0f766e", ink: "#115e59", surface: "#f0fdfa", border: "#99f6e4" },
+  State: { accent: "#2563eb", ink: "#1d4ed8", surface: "#eff6ff", border: "#bfdbfe" },
+  Provision: { accent: "#7c3aed", ink: "#6d28d9", surface: "#f5f3ff", border: "#ddd6fe" },
+};
+
+function CountCard({ label, value, detail, color }: { label: string; value: string | number; detail: string; color: string }) {
+  return (
+    <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderTop: `3px solid ${color}`, borderRadius: "9px", padding: "13px 15px", boxShadow: "0 1px 3px rgba(15, 23, 42, 0.06)" }}>
+      <div style={{ color: "#64748b", fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</div>
+      <div style={{ color: "#0f172a", fontSize: "27px", fontWeight: 850, lineHeight: 1.1, marginTop: "5px" }}>{value}</div>
+      <div style={{ color: "#64748b", fontSize: "10px", lineHeight: 1.35, marginTop: "5px" }}>{detail}</div>
+    </div>
+  );
+}
+
+function StoryTable({ feature }: { feature: Pi4Feature }) {
+  const theme = WORKSTREAM_STYLE[feature.workstream];
+  return (
+    <div style={{ border: `1px solid ${theme.border}`, borderRadius: "9px", overflow: "hidden", background: "#ffffff", boxShadow: "0 1px 3px rgba(15, 23, 42, 0.05)" }}>
+      <div style={{ background: theme.surface, borderBottom: `1px solid ${theme.border}`, padding: "11px 14px", display: "flex", gap: "10px", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap" }}>
+            <span style={{ color: theme.ink, background: "#ffffff", border: `1px solid ${theme.border}`, borderRadius: "4px", padding: "2px 6px", fontSize: "10px", fontWeight: 800, whiteSpace: "nowrap" }}>FEATURE {feature.id}</span>
+            <span style={{ color: theme.ink, fontSize: "10px", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" }}>{feature.workstream}</span>
+          </div>
+          <div style={{ color: "#0f172a", fontSize: "14px", fontWeight: 800, lineHeight: 1.3, marginTop: "6px" }}>{feature.title}</div>
+        </div>
+        <span style={{ color: theme.ink, background: "rgba(255,255,255,0.72)", border: `1px solid ${theme.border}`, borderRadius: "99px", padding: "3px 8px", fontSize: "10px", fontWeight: 750, whiteSpace: "nowrap" }}>{feature.stories.length} linked {feature.stories.length === 1 ? "story" : "stories"}</span>
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", minWidth: "760px", borderCollapse: "collapse", fontSize: "12px" }}>
+          <thead>
+            <tr style={{ background: "#f8fafc", color: "#475569", textAlign: "left" }}>
+              <th style={{ padding: "8px 12px", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 800, width: "17%" }}>DCT Story</th>
+              <th style={{ padding: "8px 12px", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 800 }}>Story intent</th>
+              <th style={{ padding: "8px 12px", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 800, width: "15%" }}>Sprint</th>
+              <th style={{ padding: "8px 12px", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 800, width: "17%" }}>Planning state</th>
+            </tr>
+          </thead>
+          <tbody>
+            {feature.stories.map((story, index) => {
+              const refinement = story.planningStatus === "Refinement required";
+              const statusColor = refinement ? "#b91c1c" : "#475569";
+              const statusSurface = refinement ? "#fef2f2" : "#f8fafc";
+              const statusBorder = refinement ? "#fecaca" : "#cbd5e1";
+              return (
+                <tr key={story.id} style={{ borderTop: index ? "1px solid #e2e8f0" : "none", verticalAlign: "top" }}>
+                  <td style={{ padding: "11px 12px" }}>
+                    <div style={{ color: theme.ink, fontSize: "10px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase" }}>{story.type}</div>
+                    <div style={{ color: "#0f172a", marginTop: "3px", fontWeight: 800 }}>#{story.id}</div>
+                  </td>
+                  <td style={{ padding: "11px 12px", color: "#334155", lineHeight: 1.42 }}>
+                    <div style={{ fontWeight: 650 }}>{story.title}</div>
+                    {story.note && <div style={{ color: "#991b1b", fontSize: "10px", lineHeight: 1.4, marginTop: "5px" }}>{story.note}</div>}
+                  </td>
+                  <td style={{ padding: "11px 12px", color: "#475569", fontWeight: 650 }}>Unassigned<br /><span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 500 }}>Awaiting PI4 plan</span></td>
+                  <td style={{ padding: "11px 12px" }}>
+                    <span style={{ display: "inline-block", color: statusColor, background: statusSurface, border: `1px solid ${statusBorder}`, borderRadius: "99px", padding: "4px 7px", fontSize: "10px", fontWeight: 800, lineHeight: 1.2 }}>{story.planningStatus}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export default function PI4PlanningWorkspace() {
+  const [filter, setFilter] = useState<WorkspaceFilter>("All");
+  const [copied, setCopied] = useState(false);
+  const visibleFeatures = useMemo(() => {
+    if (filter === "All") return ["DCT Platform", "State", "Provision"] as Pi4Workstream[];
+    return [filter];
+  }, [filter]);
+
+  const copyPlanningSummary = async () => {
+    try {
+      await navigator.clipboard.writeText(createPi4PlanningCopy());
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: "1240px", margin: "0 auto", padding: "30px 32px 48px", fontFamily: "system-ui, sans-serif" }}>
+      <header style={{ borderLeft: "5px solid #7c3aed", paddingLeft: "16px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ color: "#6d28d9", fontSize: "11px", fontWeight: 850, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "5px" }}>PI4 Post-Pilot Planning</div>
+            <h1 style={{ color: "#0f172a", fontSize: "27px", lineHeight: 1.15, letterSpacing: "-0.02em", fontWeight: 850, margin: 0 }}>PI4 Sprint & Story Tracker</h1>
+            <p style={{ color: "#475569", fontSize: "13px", lineHeight: 1.55, maxWidth: "790px", margin: "8px 0 0" }}>A single planning workspace for the supplied DCT Platform, State, and Provision feature-to-story mappings. Use it to prepare the PI4 sprint baseline without treating planning inventory as committed delivery work.</p>
+          </div>
+          <button onClick={copyPlanningSummary} style={{ display: "inline-flex", alignItems: "center", gap: "7px", color: copied ? "#065f46" : "#ffffff", background: copied ? "#ecfdf5" : "#1e3a5f", border: copied ? "1px solid #86efac" : "1px solid #1e3a5f", borderRadius: "7px", padding: "8px 11px", fontSize: "11px", fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" }}>{copied ? "✓ Planning summary copied" : "▣ Copy planning summary"}</button>
+        </div>
+      </header>
+
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", color: "#5b21b6", background: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "8px", padding: "11px 13px", fontSize: "12px", lineHeight: 1.45, marginBottom: "18px" }}>
+        <span style={{ fontSize: "15px", lineHeight: 1 }}>ⓘ</span>
+        <span><strong>Planning boundary:</strong> This workspace is a PI4 planning inventory only. It does not create Active, Complete, In Progress, or Planned delivery metrics and does not assign sprint dates. Sprint commitments begin only after the PI4 baseline is approved.</span>
+      </div>
+
+      <section aria-label="PI4 planning summary" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "12px", marginBottom: "24px" }}>
+        <CountCard label="Feature records" value={PI4_PLANNING_SUMMARY.featureCount} detail="DCT Platform, State, and Provision" color="#7c3aed" />
+        <CountCard label="Linked stories" value={PI4_PLANNING_SUMMARY.storyCount} detail="Story-level sprint planning inventory" color="#0d9488" />
+        <CountCard label="Sprint planning lanes" value={PI4_PLANNING_SUMMARY.sprintLaneCount} detail="No dates or commitments set" color="#2563eb" />
+        <CountCard label="Assigned stories" value={PI4_PLANNING_SUMMARY.assignedStoryCount} detail="Sprint assignments pending PI4 baseline" color="#64748b" />
+      </section>
+
+      <section style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 4px rgba(15, 23, 42, 0.06)", marginBottom: "24px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", padding: "14px 16px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+          <div>
+            <div style={{ color: "#64748b", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Planning sequence</div>
+            <h2 style={{ color: "#0f172a", fontSize: "16px", fontWeight: 850, margin: "4px 0 0" }}>PI4 Sprint Planning Lanes</h2>
+          </div>
+          <span style={{ color: "#475569", fontSize: "10px", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "99px", padding: "4px 8px", fontWeight: 700 }}>Sequence to validate — not a committed schedule</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0", padding: "8px" }}>
+          {PI4_SPRINT_PLANNING_LANES.map((lane, index) => (
+            <div key={lane.id} style={{ minWidth: 0, padding: "12px", borderRight: index % 4 !== 3 ? "1px solid #e2e8f0" : "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                <span style={{ display: "inline-flex", width: "21px", height: "21px", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "#ede9fe", color: "#6d28d9", fontSize: "10px", fontWeight: 850 }}>{index + 1}</span>
+                <span style={{ color: "#6d28d9", fontSize: "10px", fontWeight: 850, textTransform: "uppercase", letterSpacing: "0.06em" }}>Planning lane</span>
+              </div>
+              <div style={{ color: "#0f172a", fontSize: "13px", fontWeight: 800, lineHeight: 1.35, marginTop: "7px" }}>{lane.label}</div>
+              <div style={{ color: "#64748b", fontSize: "10px", fontWeight: 700, marginTop: "4px" }}>{lane.timing}</div>
+              <p style={{ color: "#475569", fontSize: "11px", lineHeight: 1.45, margin: "8px 0" }}>{lane.scope}</p>
+              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>{lane.workstreams.map((workstream) => <span key={workstream} style={{ color: WORKSTREAM_STYLE[workstream as Pi4Workstream].ink, background: WORKSTREAM_STYLE[workstream as Pi4Workstream].surface, border: `1px solid ${WORKSTREAM_STYLE[workstream as Pi4Workstream].border}`, borderRadius: "4px", padding: "2px 5px", fontSize: "9px", fontWeight: 800 }}>{workstream}</span>)}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section aria-label="PI4 feature and story mappings">
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", marginBottom: "12px" }}>
+          <div>
+            <div style={{ color: "#64748b", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Planning inventory</div>
+            <h2 style={{ color: "#0f172a", fontSize: "18px", fontWeight: 850, margin: "4px 0 0" }}>Feature → Story Mapping</h2>
+            <p style={{ color: "#64748b", fontSize: "11px", margin: "5px 0 0" }}>All stories are unassigned pending PI4 sprint planning. State records retain their current refinement constraint.</p>
+          </div>
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            {(["All", "DCT Platform", "State", "Provision"] as WorkspaceFilter[]).map((option) => {
+              const active = filter === option;
+              const theme = option === "All" ? { accent: "#1e3a5f", surface: "#eff6ff", ink: "#1e3a5f", border: "#bfdbfe" } : WORKSTREAM_STYLE[option];
+              return <button key={option} onClick={() => setFilter(option)} style={{ color: active ? "#ffffff" : theme.ink, background: active ? theme.accent : "#ffffff", border: `1px solid ${active ? theme.accent : theme.border}`, borderRadius: "5px", padding: "5px 8px", fontSize: "10px", fontWeight: 800, cursor: "pointer" }}>{option}</button>;
+            })}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          {visibleFeatures.map((workstream) => {
+            const theme = WORKSTREAM_STYLE[workstream];
+            const features = getPi4FeaturesByWorkstream(workstream);
+            return (
+              <section key={workstream}>
+                <div style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "9px" }}>
+                  <div style={{ width: "4px", height: "24px", borderRadius: "99px", background: theme.accent }} />
+                  <div>
+                    <h3 style={{ color: "#0f172a", fontSize: "15px", fontWeight: 850, margin: 0 }}>{workstream}</h3>
+                    <div style={{ color: "#64748b", fontSize: "10px", marginTop: "2px" }}>{features.length} feature {features.length === 1 ? "record" : "records"} · {features.reduce((count, feature) => count + feature.stories.length, 0)} linked stories</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>{features.map((feature) => <StoryTable key={feature.id} feature={feature} />)}</div>
+              </section>
+            );
+          })}
+        </div>
+      </section>
+
+      <footer style={{ marginTop: "26px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 14px", fontSize: "11px", lineHeight: 1.5, color: "#475569" }}>
+        <strong style={{ color: "#334155" }}>Related PI4 planning references:</strong>{" "}
+        <Link href="/onboarding" style={{ color: "#2563eb", fontWeight: 750 }}>Provision & State Discovery Workspace</Link>{" "}
+        for readiness decisions and prototype references, and{" "}
+        <Link href="/uat-testing" style={{ color: "#2563eb", fontWeight: 750 }}>UAT Readiness</Link>{" "}
+        for the PI4 UAT execution and TY26 pilot timeline.
+      </footer>
+    </div>
+  );
+}

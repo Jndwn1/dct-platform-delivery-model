@@ -58,6 +58,23 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     lastChange: "Batch 8 and Batch 29 are recorded as PI3 closures on August 11. Control Panel rollups align to 20 completed delivery items and the authoritative PI2 and PI3 completion calculations.",
   },
 
+  // ─── PI4 SPRINT & STORY TRACKER ────────────────────────────────────────────
+  "/pi4-planning": {
+    pageTitle: "PI4 Sprint & Story Tracker",
+    pageIcon: "◫",
+    description: "PI4 planning workspace for supplied DCT Platform, State, and Provision feature-to-story mappings and sprint-sequencing preparation.",
+    features: ["PI4 Feature Inventory", "Story-to-Feature Mapping", "Sprint Planning Lanes", "Planning Copy Summary"],
+    apis: [],
+    stories: ["1433863", "1450150", "1454679", "1472917", "1435463", "1474079", "1472734", "1471480", "1479949", "1479958", "1480251", "1480000"],
+    screens: ["PI4 Sprint & Story Tracker", "Sprint Planning Lanes", "Feature-to-Story Mapping"],
+    businessRules: ["PI4 planning inventory does not create delivery metrics or committed sprint dates", "State stories 1472734 and 1471480 remain refinement-required and not ready to estimate", "Sprint commitments begin only after the PI4 baseline is approved"],
+    batches: [],
+    businessObjects: ["PI4 Feature", "DCT Story", "Sprint Planning Lane", "Planning Baseline"],
+    integrations: ["Provision & State Discovery Workspace", "UAT Readiness"],
+    lastUpdated: "2026-09-18",
+    lastChange: "Created a separate PI4 planning workspace with supplied DCT Platform, State, and Provision feature-to-story mappings; all stories remain unassigned and excluded from PI4 and MVP delivery metrics.",
+  },
+
   // ─── BATCH DETAIL ────────────────────────────────────────────────────────────
   "/batch/:id": {
     pageTitle: "Batch Detail",

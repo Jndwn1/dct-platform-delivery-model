@@ -53,6 +53,7 @@ export const OPERATING_MODEL_WORKSPACES: OperatingModelWorkspace[] = [
         links: [
           { label: "Delivery Calendar", path: "/batch-calendar", description: "Current PI and batch delivery schedule.", source: "Governed Delivery Model", visibility: "Standard" },
           { label: "Current Pipeline", path: "/batch-roadmap", description: "Current and historical delivery pipeline context.", source: "Approved delivery roadmap", visibility: "Standard" },
+          { label: "PI4 Sprint Tracker", path: "/pi4-planning", description: "PI4 planning lanes and supplied DCT Platform, State, and Provision feature-to-story mappings; no delivery metrics or sprint commitments.", source: "PI4 planning snapshots", visibility: "Standard" },
           { label: "Delivery Assurance", path: "/workspace/delivery#assurance", description: "Governance gates, touchpoints, and delivery review access.", source: "Governed delivery assurance", visibility: "Standard" },
         ],
       },
