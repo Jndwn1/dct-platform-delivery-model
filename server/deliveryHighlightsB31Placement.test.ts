@@ -3,27 +3,28 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BATCH_DELIVERY_RECORDS } from "../client/src/contexts/BatchStatusContext";
 
-describe("Delivery Highlights B31 placement", () => {
-  it("lists only the still-active B31 PDC feature and retains the targeted post-launch follow-up banner", () => {
+describe("Delivery Highlights active and closed workstreams", () => {
+  it("shows exactly the five user-confirmed active workstreams and the four current-day closures", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
     const activeRecords = BATCH_DELIVERY_RECORDS.filter(record => record.sourceStatusLabel === "Active");
 
-    expect(source).toContain('feature.id === "B31-PDC"');
-    expect(source).toContain('feature.id === "B31-TDC"');
-    expect(activeRecords.map(record => record.id)).toContain("B31-PDC");
-    expect(activeRecords.map(record => record.id)).not.toContain("B31-TDC");
-    expect(activeRecords.map(record => record.id)).not.toContain("B7");
-    expect(activeRecords.map(record => record.id)).not.toContain("B42");
-    expect(source).not.toContain('{ id: "B31-PDC", batchNumber');
-    expect(source).not.toContain('{ id: "B31-TDC", batchNumber');
+    expect(activeRecords.map(record => record.id).sort()).toEqual(["B28", "B45", "B9A", "DEFECT-TRACKING", "ENV-MANAGEMENT"]);
+    expect(activeRecords.map(record => record.featureName)).toEqual(expect.arrayContaining([
+      "Batch 28 — Tax Workpaper & Provision Schedules",
+      "Batch 9A — Data Gateway (IMS, CDS, DUO)",
+      "MVP Enhancements — Rule Logic Expression Table & Adjustment Subtype Domain Expansion",
+      "Defect Tracking",
+      "Environment Management",
+    ]));
+    expect(activeRecords.map(record => record.id)).not.toContain("B10");
+    expect(activeRecords.map(record => record.id)).not.toContain("B31-PDC");
+    expect(source).toContain("Active ADO Workstreams");
+    expect(source).toContain("Closed Today — 4 Workstreams");
+    expect(source).toContain("B10 — Return Assembly, Filing & Lineage Closure");
+    expect(source).toContain("B31 PDC — Legacy Tool Prior Year Ingestion & Housing");
+    expect(source).toContain("Performance Testing");
+    expect(source).toContain("DCT QA Workstream");
     expect(source).toContain("deliveryHighlightActiveBatchFeatures.length");
-    expect(source).toContain("Post-Launch Follow-Up — Prior Year Data");
-    expect(source).toContain("Status: Active (ADO #1390014)");
-    expect(source).toContain("B31 TDC data housing is closed.");
-    expect(source).not.toContain("ADO #1390014, #1390267");
-    expect(source).toContain('{ pi: "PI 2", status: "Done",        batch: "B7"');
-    expect(source).toContain('{ pi: "PI 2", status: "Done",        batch: "B42"');
-    expect(source).toContain('{ pi: "PI 3", status: "Done",        batch: "B31",  feat: "TDC"');
-    expect(source).not.toContain("🟣 Upcoming Milestones");
+    expect(source).not.toContain("Post-Launch Follow-Up — Prior Year Data");
   });
 });

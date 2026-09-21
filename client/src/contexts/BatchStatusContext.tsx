@@ -103,6 +103,10 @@ export interface BatchStatusMap {
   "43": BatchStatus;
   "45": BatchStatus;
   "9a": BatchStatus;
+  "defect-tracking": BatchStatus;
+  "environment-management": BatchStatus;
+  "performance-testing": BatchStatus;
+  "dct-qa-workstream": BatchStatus;
   // PI 4 batches (Roadmap v8)
   "19": BatchStatus;
   "40": BatchStatus;
@@ -156,6 +160,10 @@ export const BATCH_LABELS: Record<BatchKey, string> = {
   "43": "Batch 43 — Practitioner Book & Reclass Adjustments",
   "45": "Batch 45 — Rule Logic Expression Table & Adjustment Subtype Domain Expansion",
   "9a": "Batch 9A — Data Gateway (IMS, CDS, DUO)",
+  "defect-tracking": "Defect Tracking",
+  "environment-management": "Environment Management",
+  "performance-testing": "Performance Testing",
+  "dct-qa-workstream": "DCT QA Workstream",
   // PI 4 batches (Roadmap v8)
   "19": "Batch 19 — Audit Tax-Expense Cross-LOB Outbound",
   "40": "Batch 40 — Client-Level Line Mapping Reuse",
@@ -207,6 +215,10 @@ export const BATCH_DEPENDENCIES: Record<BatchKey, BatchKey[]> = {
   "43": ["11"],
   "45": ["42", "43"],
   "9a": ["31"],
+  "defect-tracking": [],
+  "environment-management": [],
+  "performance-testing": [],
+  "dct-qa-workstream": [],
   // PI 4 batches (Roadmap v8)
   "19": [],
   "40": [],
@@ -308,7 +320,7 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "16": "Complete",   // B16 — Audit Trail & Lineage Governance (ADO: Closed 7/21/2026)
   // ── PI 2/3 — Closed per confirmed MVP portfolio update ───────────────────────
   "7": "Complete",     // B7 — Client Tax Profile & Eligibility (closed)
-  "10": "In Progress", // B10 — Return Assembly, Filing & Lineage Closure (ADO Active 1349599)
+  "10": "Complete",    // B10 — Return Assembly, Filing & Lineage Closure (closed Sep 21, 2026)
   "42": "Complete",    // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (closed)
   "45": "In Progress", // B45 — Rule Logic Expression Table & Adjustment Subtype Domain Expansion (ADO Active)
   // ── PI 3 — ACTIVE (7/13–9/15) ─────────────────────────────────────────
@@ -318,10 +330,15 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "9a": "In Progress", // B9A — Data Gateway (IMS, CDS, DUO) (ADO Active)
   "17": "Complete", // B17 — Decision Support — Overrides, Evidence & Workpapers (Closed 8/4/2026)
   "29": "Complete",    // B29 — Consolidated Return Assembly (Closed in PI3 on Aug 11, 2026)
-  "31": "In Progress", // B31 aggregate remains active for PDC; the TDC Data Housing record is closed
+  "31": "Complete",    // B31 PDC and TDC tracks closed Sep 21, 2026
   "26": "Ready for QA", // B26 — Entity Constituents & Allocations (ADO: Review Ready)
   "39": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
+  // ── Current UAT and pilot-readiness workstreams ────────────────────────────
+  "defect-tracking": "In Progress",
+  "environment-management": "In Progress",
+  "performance-testing": "Complete",
+  "dct-qa-workstream": "Complete",
   // ── PI4 planning visibility only — excluded from delivery classification ──
   "pi4-manual-client-account-management": "Not Started",
   "pi4-data-console": "Not Started",
@@ -364,6 +381,10 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
   "8": "Complete",
   "7": "Complete",
   "42": "Complete",
+  "10": "Complete",
+  "31": "Complete",
+  "performance-testing": "Complete",
+  "dct-qa-workstream": "Complete",
 };
 
 /** PI4 planning visibility is not a delivery classification and cannot retain prior local status selections. */
@@ -381,7 +402,7 @@ const PI4_PLANNING_STATUS: Partial<BatchStatusMap> = {
 export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
   pi2:  ["4", "5", "6", "7", "8", "10", "11", "43", "13", "42"], // Current ADO: B10 active; B7 and B42 closed
-  pi3:  ["16", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A, and B31 PDC active; B31 TDC closed
+  pi3:  ["16", "45", "28", "9a", "31", "17", "29", "defect-tracking", "environment-management", "performance-testing", "dct-qa-workstream"],
   pi4:  ["19", "40", "35", "26-tdc", "pi4-manual-client-account-management", "pi4-data-console", "pi4-security-readiness", "pi4-deferred-work", "pi4-ims-translation"],
 };
 
@@ -390,7 +411,7 @@ export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 // below as planning visibility only and excluded from all MVP delivery metrics.
 // The four historical split records B8-PDC, B8-TDC, B9, and B9-PDC are retained
 // for lineage and API traceability but excluded from current MVP lifecycle metrics.
-// Current ADO lifecycle: 18 Complete, 5 In Development, 0 In Review, 0 Planned.
+// Current ADO lifecycle: 22 Complete, 5 In Development, 0 In Review, 0 Planned.
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
@@ -398,8 +419,8 @@ export const MVP_BATCH_KEYS: BatchKey[] = [
   "4", "5", "6", "11", "43", "13", "16",
   // PI 2 — Current ADO Active (1)
   "7", "10", "42",
-  // PI 3 — B8 + B29 closed Aug 11; B31 TDC subsequently closed
-  "8", "45", "28", "9a", "17", "29", "31",
+  // PI 3 — B8 + B29 closed Aug 11; current UAT/pilot readiness workstreams included
+  "8", "45", "28", "9a", "17", "29", "31", "defect-tracking", "environment-management", "performance-testing", "dct-qa-workstream",
 ];
 
 /** The 23 current MVP batch features. Non-batch MVP features are intentionally excluded. */
@@ -407,7 +428,7 @@ export const BATCH_DELIVERY_KEYS: BatchKey[] = [
   "foundation-core", "1", "2", "2a", "3",
   "4", "5", "6", "11", "43", "13", "16",
   "7", "10", "42",
-  "8", "45", "28", "9a", "17", "29", "31",
+  "8", "45", "28", "9a", "17", "29", "31", "defect-tracking", "environment-management", "performance-testing", "dct-qa-workstream",
 ];
 
 /** PI4 planning visibility items. These are never included in delivery metrics. */
@@ -446,7 +467,7 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "B4", statusKey: "4", adoId: "1349156", featureName: BATCH_LABELS["4"], batchNumber: "B4", classification: "Batch", pi: "PI2" },
   { id: "B5", statusKey: "5", adoId: "1355868", featureName: BATCH_LABELS["5"], batchNumber: "B5", classification: "Batch", pi: "PI2" },
   { id: "B6", statusKey: "6", adoId: "1350255", featureName: BATCH_LABELS["6"], batchNumber: "B6", classification: "Batch", pi: "PI2" },
-  { id: "B10", statusKey: "10", adoId: "1349599", featureName: BATCH_LABELS["10"], batchNumber: "B10", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B10", statusKey: "10", adoId: "1349599", featureName: BATCH_LABELS["10"], batchNumber: "B10", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Closed" },
   { id: "B11", statusKey: "11", adoId: noAdo, featureName: BATCH_LABELS["11"], batchNumber: "B11", classification: "Batch", pi: "PI2" },
   { id: "B43", statusKey: "43", adoId: noAdo, featureName: BATCH_LABELS["43"], batchNumber: "B43", classification: "Batch", pi: "PI2" },
   { id: "B13", statusKey: "13", adoId: noAdo, featureName: BATCH_LABELS["13"], batchNumber: "B13", classification: "Batch", pi: "PI2" },
@@ -456,11 +477,15 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "B17", statusKey: "17", adoId: noAdo, featureName: BATCH_LABELS["17"], batchNumber: "B17", classification: "Batch", pi: "PI3" },
   { id: "B29A", statusKey: "29", adoId: noAdo, featureName: BATCH_LABELS["29"], batchNumber: "B29A", classification: "Batch", pi: "PI3" },
   { id: "B42", statusKey: "42", adoId: "1402117", featureName: BATCH_LABELS["42"], batchNumber: "B42", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Closed" },
-  { id: "B45", statusKey: "45", adoId: "1444477", featureName: BATCH_LABELS["45"], batchNumber: "B45", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B45", statusKey: "45", adoId: "1444477", featureName: "MVP Enhancements — Rule Logic Expression Table & Adjustment Subtype Domain Expansion", batchNumber: "MVP", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
   { id: "B28", statusKey: "28", adoId: "1390012", featureName: BATCH_LABELS["28"], batchNumber: "B28", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
   { id: "B9A", statusKey: "9a", adoId: "1387817", featureName: BATCH_LABELS["9a"], batchNumber: "B9A", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Active" },
-  { id: "B31-PDC", statusKey: "31", adoId: "1390014", featureName: "Batch 31 | PDC — Legacy Tool Prior Year Ingestion & Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Active" },
+  { id: "B31-PDC", statusKey: "31", adoId: "1390014", featureName: "Batch 31 | PDC — Legacy Tool Prior Year Ingestion & Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Closed" },
   { id: "B31-TDC", statusKey: "31", adoId: "1390267", featureName: "Batch 31 | TDC — Legacy Tool Prior Year Data Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Closed" },
+  { id: "DEFECT-TRACKING", statusKey: "defect-tracking", adoId: "User-confirmed active workstream", featureName: "Defect Tracking", batchNumber: "Defect", classification: "Batch", pi: "PI3", sourceStatusLabel: "Active" },
+  { id: "ENV-MANAGEMENT", statusKey: "environment-management", adoId: "1436035", featureName: "Environment Management", batchNumber: "Environment", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "PERFORMANCE-TESTING", statusKey: "performance-testing", adoId: noAdo, featureName: "Performance Testing", batchNumber: "Performance", classification: "Batch", pi: "PI3", sourceStatusLabel: "Closed" },
+  { id: "DCT-QA-WORKSTREAM", statusKey: "dct-qa-workstream", adoId: "1408161", featureName: "DCT QA Workstream", batchNumber: "DCT QA", classification: "Batch", pi: "PI3", owner: "Kalakonda, Aravind", sourceStatusLabel: "Closed" },
 ];
 
 export const MVP_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
@@ -475,14 +500,14 @@ export type DeliveryMetricBucket = "Complete" | "In Development" | "In Review" |
  */
 export const LOCKED_MVP_BASELINE = {
   asOf: "2026-09-21",
-  totalFeatures: 23,
-  batchFeatures: 23,
+  totalFeatures: 27,
+  batchFeatures: 27,
   nonBatchFeatures: 0,
-  complete: 18,
+  complete: 22,
   active: 5,
   inReview: 0,
   planned: 0,
-  readinessPct: 78,
+  readinessPct: 81,
 } as const;
 
 /**
@@ -535,6 +560,10 @@ export const PI3_POST_BASELINE_CLOSURES = [
   { id: "B7", batch: "B7", name: "Client Tax Profile & Eligibility", platform: "TDC", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "In Validation" as QAValidationStatus },
   { id: "B42", batch: "B42", name: "Tax Rules Framework & Book-to-Tax Adjustment Rules", platform: "TDC", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "In Validation" as QAValidationStatus },
   { id: "B31-TDC", batch: "B31 TDC", name: "Legacy Tool Prior Year Data Housing", platform: "TDC", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "B10", batch: "B10", name: "Return Assembly, Filing & Lineage Closure", platform: "TDC", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "B31-PDC", batch: "B31 PDC", name: "Legacy Tool Prior Year Ingestion & Housing", platform: "PDC", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "PERFORMANCE-TESTING", batch: "Performance", name: "Performance Testing", platform: "DCT", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "Validated" as QAValidationStatus },
+  { id: "DCT-QA-WORKSTREAM", batch: "DCT QA", name: "DCT QA Workstream", platform: "DCT", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "Validated" as QAValidationStatus },
 ] as const;
 
 export const GOVERNED_PROGRAM_HEALTH = {

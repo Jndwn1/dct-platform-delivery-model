@@ -116,8 +116,8 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
   const mvp = deriveMvpMetrics(statuses);
   const b31Pdc = findRecord("B31-PDC");
   const b31Tdc = findRecord("B31-TDC");
-  const environment = findRecord("env-management") ?? { adoId: "1436035", owner: "Luca, Gary" };
-  const qaWorkstream = findRecord("qa-workstream") ?? { adoId: "1408161", owner: "Kalakonda, Aravind" };
+  const environment = findRecord("ENV-MANAGEMENT") ?? { adoId: "1436035", owner: "Luca, Gary" };
+  const qaWorkstream = findRecord("DCT-QA-WORKSTREAM") ?? { adoId: "1408161", owner: "Kalakonda, Aravind" };
 
   return MVP_CRITICAL_MILESTONE_SCHEDULE.map(definition => {
     if (definition.sourceScope === "delivery") {
@@ -137,7 +137,7 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
         ...definition,
         status: definition.statusOverride ?? (hasEvidence ? "In Progress" : "Upcoming"),
         owner: [b31Pdc?.owner, b31Tdc?.owner].filter(Boolean).join(" / ") || "Confirmation required",
-        source: hasEvidence ? "B31 PDC active ADO record and B31 TDC closed ADO record" : "No governed B31 Prior Year record available",
+        source: hasEvidence ? "B31 PDC and B31 TDC closed ADO records" : "No governed B31 Prior Year record available",
         confirmationRequired: !definition.statusOverride && !hasEvidence,
       };
     }

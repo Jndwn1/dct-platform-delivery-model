@@ -28,7 +28,7 @@ export const BATCH_CALENDAR_PI23: Array<{
   { pi: "PI 2", status: "Done",        batch: "B8",    feat: "PDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces cross-LOB ingestion and data exceptions for remediation.",                                                                             rogerImpact: "Exceptions surfacing" },
   { pi: "PI 2", status: "Done",        batch: "B8",    feat: "TDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces tax-side exceptions for remediation.",                                                                                               rogerImpact: "Exceptions surfacing" },
   { pi: "PI 2", status: "Done",        batch: "B9",    feat: "Gateway", name: "Roger Gateway & Governed Consumer Access Layer",                    startDate: "Thu 5/21",  endDate: "Tue 6/2",   whatItDoes: "Governed gateway exposing approved upstream data to consumers.",                                                                               rogerImpact: "None (gateway)" },
-  { pi: "PI 2", status: "In Progress",        batch: "B10",   feat: "TDC",     name: "Return Assembly, Filing & Lineage",                                 startDate: "Wed 6/3",   endDate: "Fri 6/5",   whatItDoes: "Assembles the return, creates the immutable filing record, anchors lineage.",                                                                    rogerImpact: "Form 1120 / filing (stage 10)" },
+  { pi: "PI 2", status: "Done",        batch: "B10",   feat: "TDC",     name: "Return Assembly, Filing & Lineage",                                 startDate: "Wed 6/3",   endDate: "Sun 9/21",   whatItDoes: "Assembles the return, creates the immutable filing record, anchors lineage.",                                                                    rogerImpact: "Form 1120 / filing (stage 10)" },
   { pi: "PI 2", status: "Done",        batch: "B43",   feat: "TDC",     name: "Practitioner Book & Reclass Adjustments",                           startDate: "Wed 6/10",  endDate: "Tue 6/16",  whatItDoes: "Persists practitioner book and reclass adjustments as a multi-line model.",                                                                 rogerImpact: "High: Book Adjustment & Reclass Adjustment (stages 4-5)" },
   { pi: "PI 2", status: "Historical / Excluded", batch: "B9", feat: "Gateway", name: "Roger Gateway - TDC Integration Endpoints", startDate: "Wed 6/17", endDate: "Fri 6/19", whatItDoes: "Historical split record retained for lineage; excluded from the current 23-batch MVP population.", rogerImpact: "None (gateway)" },
   { pi: "PI 2", status: "Done",        batch: "B11",   feat: "TDC",     name: "Learning Governance & Model Evolution",                             startDate: "Wed 6/17",  endDate: "Thu 6/25",  whatItDoes: "Captures learning from real decisions under consent; governs model evolution.",                                                                 rogerImpact: "None (behind the scenes)" },
@@ -36,7 +36,7 @@ export const BATCH_CALENDAR_PI23: Array<{
   { pi: "PI 2", status: "Done",        batch: "B16",   feat: "PDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 6/22",  endDate: "Tue 6/30",  whatItDoes: "Records the cross-LOB audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
   // ── PI 3 ──
   { pi: "PI 3", status: "Done",        batch: "B16",   feat: "TDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 7/13",  endDate: "Tue 7/21",  whatItDoes: "Records the tax-side audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
-  { pi: "PI 3", status: "In Progress", batch: "B31",  feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Mon 7/13",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
+  { pi: "PI 3", status: "Done",        batch: "B31",  feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Sun 9/21",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
   { pi: "PI 3", status: "In Progress",         batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
   { pi: "PI 3", status: "In Progress",         batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
   { pi: "PI 3", status: "Out of Current ADO Pipeline",         batch: "B39",   feat: "TDC",     name: "Calculation Report",                                                startDate: "Fri 7/31",  endDate: "Mon 8/10",  whatItDoes: "Produces the packaged, partner-ready calculation and sign-off report.",                                                                         rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
@@ -265,7 +265,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       color: "#2563eb",
       bg: "#eff6ff",
       border: "#bfdbfe",
-      note: "Current ADO PI3 scope: 4 Active batch features, including B31 PDC; B31 TDC data housing is closed.",
+      note: "Current ADO scope: five active workstreams — B9A, B28, MVP Enhancements, Defect Tracking, and Environment Management. B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21.",
     },
     {
       pi: "PI 4",
@@ -327,7 +327,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         <KPICard
           title="Total MVP Features"
           value={totalMvpFeatures}
-          sub="23 governed batch delivery features"
+          sub={`${BATCH_DELIVERY_RECORDS.length} governed delivery features`}
           accent="#1e3a5f"
         />
         <KPICard

@@ -1158,6 +1158,8 @@ const BATCH_KEYS: BatchKey[] = [
   "43",
   // PI 3 — MVP
   "17","20","21","22","23","26","28","29","9a","31","33","39","42","45",
+  // Current UAT and pilot-readiness workstreams
+  "defect-tracking","environment-management","performance-testing","dct-qa-workstream",
 ];
 
 function Badge({ label, bg, text }: { label: string; bg: string; text: string }) {
@@ -1798,7 +1800,7 @@ export default function BatchControlPanel() {
         )}
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-5">
-          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from 23 ADO-backed batch delivery records. The eight active batch features—B7, B10, B42, B45, B28, B9A, B31 PDC, and B31 TDC—count as <strong>In Development</strong>. PI4 is planning visibility only and is excluded from all delivery metrics. B39, B20, B21, B26, and historical split records are excluded from the current 23-batch MVP scope. The prior 23-complete display did not retain a record-level calculation snapshot.
+          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from 27 governed delivery records. The five active workstreams—B9A, B28, MVP Enhancements, Defect Tracking, and Environment Management—count as <strong>In Development</strong>. B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21. PI4 is planning visibility only and is excluded from all delivery metrics. B39, B20, B21, B26, and historical split records remain excluded from the current MVP scope.
         </div>
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-5">
@@ -1874,7 +1876,7 @@ export default function BatchControlPanel() {
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
                   style={{ backgroundColor: style.dot }}
                 >
-                  {key === "foundation-core" ? "FC" : `B${key}`}
+                  {key === "foundation-core" ? "FC" : ["defect-tracking", "environment-management", "performance-testing", "dct-qa-workstream"].includes(key) ? "WS" : `B${key}`}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-slate-800 truncate">{BATCH_LABELS[key]}</div>
