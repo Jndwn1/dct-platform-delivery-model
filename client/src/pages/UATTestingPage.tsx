@@ -4,7 +4,7 @@
 import { useState } from "react";
 import {
   CheckCircle2, ClipboardList, Database, GitBranch, BookOpen,
-  Shield, ArrowDown,
+  Shield, ArrowDown, XCircle,
 } from "lucide-react";
 import UATProcessFlowDiagram from "@/components/UATProcessFlowDiagram";
 import { deriveReleaseCandidate, useBatchStatus } from "@/contexts/BatchStatusContext";
@@ -282,6 +282,63 @@ export default function UATTestingPage() {
             <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderLeft: `4px solid ${TEAL}`, borderRadius: 8, padding: "12px 14px" }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: "#075985", textTransform: "uppercase" as const, letterSpacing: "0.07em", marginBottom: 6 }}>Follow-up expectation</div>
               <div style={{ fontSize: 11, color: "#1e3a5f", lineHeight: 1.55 }}>The UAT team may reach out with questions during Weeks 4–5 if additional clarification is required.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── MVP Scope & Functionality ── */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 3 }}>UAT Test Boundary</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: NAVY }}>MVP Scope &amp; Functionality</div>
+            <div style={{ fontSize: 11, color: SLATE, marginTop: 3 }}>The capabilities to validate in the MVP UAT window and the explicitly deferred scope.</div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 14 }}>
+            <div style={{ background: "#f8fcf8", border: "1px solid #bbdfb8", borderRadius: 10, overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 14px", background: "#3f9f35", color: "white" }}>
+                <CheckCircle2 className="w-5 h-5" />
+                <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.04em" }}>IN SCOPE FOR UAT TESTING</span>
+              </div>
+              <ul style={{ margin: 0, padding: "13px 16px 14px 32px", color: "#1e293b" }}>
+                {[
+                  "Client group dashboard & aggregate filing page (status, metrics, issue counts)",
+                  "Trial Balance upload via Tax Portal with automated ingestion into Roger and success/failure notification in Roger",
+                  "Automated chart of accounts (COA) and tax-line mappings based on client-historical and AI-suggested results, with human edit and approval",
+                  "Dynamic workflow to manage changes, human validations, and issue identification",
+                  "Standard book adjustment and reclass capabilities",
+                  "Standard and non-standard tax adjustments with input screens",
+                  "Book return review, book-to-tax, and tax reconciliation views across income statement, balance sheet, and TB views for single-entity, consolidating, and consolidated views",
+                  "Prior-year final tax amounts sourced from CCH",
+                  "Final sign-off with validations, including GoSystem integration to push return data",
+                ].map(item => (
+                  <li key={item} style={{ fontSize: 11, lineHeight: 1.45, marginBottom: 7 }}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div style={{ background: "#fafafa", border: "1px solid #d1d5db", borderRadius: 10, overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 14px", background: "#4b5563", color: "white" }}>
+                <XCircle className="w-5 h-5" />
+                <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.04em" }}>OUT OF SCOPE</span>
+              </div>
+              <ul style={{ margin: 0, padding: "13px 16px 14px 32px", color: "#1e293b" }}>
+                {[
+                  ["State", "apportionment, nexus, payments", "TY26"],
+                  ["Provision", "all schedules, BTP extract/import, RTP", "TY26"],
+                  ["Fixed assets", "BFA/Sage/GoSystem handoff, Form 4562", "TY26"],
+                  ["M-3 report UI and Form 8916-A UI", "", "TY26"],
+                  ["Scenario datasets", "snapshots, copy-forward, comparison", "TY26"],
+                  ["Non-standard calculations", "with documentation", "TY26"],
+                  ["Client entity mappings", "", "TY26"],
+                  ["Client reports", "", "TY26"],
+                  ["S corp, partnership, OIT integrations, complex corporate structures (for example, divcons), and international", "", "TY27"],
+                ].map(([area, detail, timing]) => (
+                  <li key={area} style={{ fontSize: 11, lineHeight: 1.45, marginBottom: 7 }}>
+                    <strong>{area}</strong>{detail ? <> — {detail}</> : null} <span style={{ color: PURPLE, fontWeight: 800 }}>({timing})</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
