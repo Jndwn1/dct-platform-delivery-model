@@ -7,6 +7,7 @@ export type Pi4Story = {
   title: string;
   sprint: "Unassigned";
   planningStatus: Pi4PlanningStatus;
+  deliveryOwner?: "DCT";
   note?: string;
 };
 
@@ -110,16 +111,18 @@ export const PI4_FEATURE_STORY_MAP: Pi4Feature[] = [
         type: "Tech Story",
         title: "DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Interaction/backend)",
         sprint: "Unassigned",
-        planningStatus: "Refinement required",
-        note: "Current State readiness assessment: not ready to estimate pending TIM/Roger contract and workflow decisions.",
+        planningStatus: "Planning visibility",
+        deliveryOwner: "DCT",
+        note: "Refinement complete — DCT-owned delivery. Manage the TIM/Roger contract and workflow dependencies within PI4 planning; sprint remains unassigned pending baseline approval.",
       },
       {
         id: "1471480",
         type: "User Story",
         title: "DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend)",
         sprint: "Unassigned",
-        planningStatus: "Refinement required",
-        note: "Current State readiness assessment: not ready to estimate pending filing-group, State Issue Count, and Combined/Unitary decisions.",
+        planningStatus: "Planning visibility",
+        deliveryOwner: "DCT",
+        note: "Refinement complete — DCT-owned delivery. Manage the filing-group, State Issue Count, and Combined/Unitary dependencies within PI4 planning; sprint remains unassigned pending baseline approval.",
       },
     ],
   },
@@ -263,7 +266,7 @@ export function createPi4PlanningCopy() {
     "Feature-to-Story Mapping",
     ...PI4_FEATURE_STORY_MAP.flatMap((feature) => [
       `Feature ${feature.id} — ${feature.title} [${feature.workstream}]`,
-      ...feature.stories.map((story) => `  ${story.type} ${story.id} — ${story.title} | Sprint: ${story.sprint} | ${story.planningStatus}${story.note ? ` | ${story.note}` : ""}`),
+      ...feature.stories.map((story) => `  ${story.type} ${story.id} — ${story.title} | Owner: ${story.deliveryOwner ?? "Unassigned"} | Sprint: ${story.sprint} | ${story.planningStatus}${story.note ? ` | ${story.note}` : ""}`),
     ]),
   ];
 

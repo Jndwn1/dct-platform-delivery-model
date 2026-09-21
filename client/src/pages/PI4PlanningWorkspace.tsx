@@ -145,6 +145,9 @@ function StoryTable({ feature }: { feature: Pi4Feature }) {
           <tbody>
             {feature.stories.map((story, index) => {
               const refinement = story.planningStatus === "Refinement required";
+              const noteStyle = refinement
+                ? { color: "#991b1b", background: "#fef2f2", border: "#dc2626" }
+                : { color: "#1e3a8a", background: "#eff6ff", border: "#2563eb" };
               return (
                 <tr key={story.id} style={{ borderTop: index ? "1px solid #e2e8f0" : "none", verticalAlign: "top" }}>
                   <td style={{ padding: "13px" }}>
@@ -153,7 +156,8 @@ function StoryTable({ feature }: { feature: Pi4Feature }) {
                   </td>
                   <td style={{ padding: "13px", color: "#334155", lineHeight: 1.5 }}>
                     <div style={{ fontWeight: 650 }}>{story.title}</div>
-                    {story.note && <div style={{ color: "#991b1b", fontSize: "10px", lineHeight: 1.45, marginTop: "7px", padding: "7px 8px", background: "#fef2f2", borderLeft: "3px solid #dc2626", borderRadius: "4px" }}>{story.note}</div>}
+                    {story.deliveryOwner && <div style={{ marginTop: "7px" }}><StatusPill tone="confirmed">{story.deliveryOwner} owned</StatusPill></div>}
+                    {story.note && <div style={{ color: noteStyle.color, fontSize: "10px", lineHeight: 1.45, marginTop: "7px", padding: "7px 8px", background: noteStyle.background, borderLeft: `3px solid ${noteStyle.border}`, borderRadius: "4px" }}>{story.note}</div>}
                   </td>
                   <td style={{ padding: "13px", color: "#475569" }}>
                     <StatusPill tone="neutral">Unassigned</StatusPill>
@@ -293,7 +297,7 @@ export default function PI4PlanningWorkspace() {
           { title: "Planning Status", text: "PI4 planning inventory is established, but sprint commitments and dates remain pending baseline approval.", icon: ClipboardList, color: "#7c3aed" },
           { title: "Primary Workstreams", text: "DCT Platform, State, and Provision.", icon: Layers3, color: "#0f766e" },
           { title: "Architecture", text: "PI4 work spans Roger, DCT/Gateway, PDC, TDC, and orchestration.", icon: Network, color: "#2563eb" },
-          { title: "Primary Planning Attention", text: "State refinement dependencies, Package 1 Provision sequencing, and DCT platform foundation/control work.", icon: Eye, color: "#b45309" },
+          { title: "Primary Planning Attention", text: "DCT-owned State delivery dependencies, Package 1 Provision sequencing, and DCT platform foundation/control work.", icon: Eye, color: "#b45309" },
         ].map(({ title, text, icon: Icon, color }) => (
           <div key={title} style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "9px", padding: "13px", boxShadow: "0 2px 7px rgba(15, 23, 42, 0.04)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "7px", color, fontSize: "11px", fontWeight: 850 }}><Icon size={15} aria-hidden="true" />{title}</div>
@@ -307,7 +311,7 @@ export default function PI4PlanningWorkspace() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "8px", marginTop: "10px" }}>
           {[
             "PI4 baseline still requires approval before sprint commitments.",
-            "State work retains refinement dependencies.",
+            "State stories are refined and DCT-owned; PI4 sprint commitments remain pending baseline approval.",
             "Provision sequencing depends on Package 0 / downstream readiness.",
             "DCT Platform work includes foundational data, security, prior-year continuity, and administration capabilities.",
           ].map((item) => <div key={item} style={{ display: "flex", gap: "7px", alignItems: "flex-start", color: "#78350f", fontSize: "10px", lineHeight: 1.45 }}><CheckCircle2 size={14} style={{ flex: "0 0 auto", marginTop: "1px" }} aria-hidden="true" />{item}</div>)}
@@ -466,7 +470,7 @@ export default function PI4PlanningWorkspace() {
           <div>
             <div style={{ color: "#64748b", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Planning inventory</div>
             <h2 style={{ color: "#0f172a", fontSize: "20px", fontWeight: 850, margin: "5px 0 0" }}>Feature → Story Mapping</h2>
-            <p style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.45, margin: "6px 0 0" }}>All stories are unassigned pending PI4 sprint planning. State records retain their current refinement constraint.</p>
+            <p style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.45, margin: "6px 0 0" }}>All stories are unassigned pending PI4 sprint planning. State records are refined and DCT-owned, with their delivery dependencies managed through the PI4 baseline.</p>
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
             {(["All", "DCT Platform", "State", "Provision"] as WorkspaceFilter[]).map((option) => {
@@ -491,7 +495,7 @@ export default function PI4PlanningWorkspace() {
                       <div style={{ color: "#64748b", fontSize: "10px", marginTop: "3px" }}>{features.length} feature {features.length === 1 ? "record" : "records"} · {features.reduce((count, feature) => count + feature.stories.length, 0)} linked stories</div>
                     </div>
                   </div>
-                  <StatusPill tone={workstream === "State" ? "refinement" : "planning"}>{workstream === "State" ? "Refinement Required" : "Planning Visibility"}</StatusPill>
+                  <StatusPill tone={workstream === "State" ? "confirmed" : "planning"}>{workstream === "State" ? "Refined · DCT Owned" : "Planning Visibility"}</StatusPill>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "11px" }}>{features.map((feature) => <StoryTable key={feature.id} feature={feature} />)}</div>
               </section>

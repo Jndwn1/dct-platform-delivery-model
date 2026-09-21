@@ -1064,12 +1064,13 @@ This workspace covers the **State** and **Provision** workstreams and the DCT ba
 - **Key DCT Batches:** B9A (Data Gateway — governed consumer access), B16 (Audit Trail & Lineage Governance), B28 (Provision Reference Data & BTP Outbound Contract).
  - **Data Flow:** Roger upload → Upload / Intake → DMS → Gateway → Orchestrator → PDC → TDC → Audit / Lineage → Gateway → Roger → IMS or approved downstream consumer where applicable.
 
-### State Refinement Model — Current Two Backend Stories
-- **1472734 — DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Integration/backend):** Integrates required State return-filing data, stores it where DCT is the system of record, and provides the governed Filing-screen response. State must confirm the Filing-screen data contract: required fields, authoritative sources, filing identity, persistence expectations, response behavior, and exception handling.
-- **1471480 — DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend):** Retrieves starting Filing Footprint context, saves and governs practitioner decisions, and supports later retrieval, versioning, audit, and lineage. State must define starting context, filing decisions, save behavior, governance or finalization, later change, versioning, and audit / lineage expectations.
-- **Readiness:** Both stories remain **Needs Clarification** for estimation and DCT acceptance. Acceptance criteria alone do not make a story ready; Development and QA must be able to work without inventing a State business decision.
+### State Refinement & DCT Ownership — Current Two Backend Stories
+- **1472734 — DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Integration/backend):** DCT owns the refined backend delivery to integrate required State return-filing data, store it where DCT is the system of record, and provide the governed Filing-screen response. The TIM filing-group relationship, State Issue Count, and Roger workflow contract remain managed delivery dependencies.
+- **1471480 — DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend):** DCT owns the refined backend delivery to retrieve starting Filing Footprint context, save and govern practitioner decisions, and support later retrieval, versioning, audit, and lineage. The TIM parent/child and filing-group relationship, endpoint, grouping identifier, and Combined/Unitary decision remain managed delivery dependencies.
+- **Refinement / ownership:** Both stories are refined and **DCT-owned**. They remain unassigned to a PI4 sprint until the PI4 baseline is approved; the ownership update does not change PI4 or MVP delivery metrics.
 - **Scope / experience view:** Business requirement → 1472734 → 1471480 → Roger State Filing Experience. This is a business scope and practitioner-experience view, not a strict technical predecessor sequence.
-- **Ownership:** State defines business, tax, filing, and data-meaning requirements. DCT implements governed backend persistence, retrieval, and validation. Roger owns practitioner-facing UI and actions but does not own State tax records.
+- **Ownership boundary:** State defines business, tax, filing, and data-meaning requirements. DCT owns governed backend implementation, persistence, retrieval, validation, and contract management. Roger owns practitioner-facing UI and actions but does not own State tax records.
+
 
 ---
 

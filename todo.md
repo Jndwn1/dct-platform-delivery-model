@@ -192,3 +192,4 @@
 - [x] Add the supplied TY26 Pilot expansion column to the PI4 Sprint Tracker without changing planning-only metric treatment
 - [x] Add the approved Roger Pilot architecture diagram and supporting Logical Architecture & End-to-End Flow panel to PI4 planning
 - [x] Enhance the PI4 Post-Pilot Planning page with executive hierarchy, navigation, and presentation while preserving all source content and planning states
+- [x] Update State stories 1472734 and 1471480 to reflect refinement completion and DCT ownership without assigning PI4 sprints

@@ -12,6 +12,7 @@ import {
 import { resolvePageContext } from "../client/src/lib/pageContextRegistry";
 
 const allStories = PI4_FEATURE_STORY_MAP.flatMap((feature) => feature.stories);
+const stateStories = allStories.filter((story) => ["1472734", "1471480"].includes(story.id));
 
 describe("PI4 Sprint & Story Tracker", () => {
   it("maintains the supplied DCT Platform, State, and Provision feature-to-story mappings as planning inventory", () => {
@@ -29,7 +30,10 @@ describe("PI4 Sprint & Story Tracker", () => {
       expect(allStories.some((story) => story.id === storyId)).toBe(true);
     });
     expect(allStories.every((story) => story.sprint === "Unassigned")).toBe(true);
-    expect(allStories.filter((story) => story.planningStatus === "Refinement required").map((story) => story.id)).toEqual(["1472734", "1471480"]);
+    expect(stateStories).toHaveLength(2);
+    expect(stateStories.every((story) => story.planningStatus === "Planning visibility")).toBe(true);
+    expect(stateStories.every((story) => story.deliveryOwner === "DCT")).toBe(true);
+    expect(stateStories.every((story) => story.note?.includes("Refinement complete — DCT-owned delivery"))).toBe(true);
     expect(PI4_SPRINT_PLANNING_LANES.every((lane) => lane.timing === "Sprint dates to be confirmed")).toBe(true);
   });
 
@@ -38,16 +42,19 @@ describe("PI4 Sprint & Story Tracker", () => {
     const appSource = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
     const navSource = readFileSync(resolve(process.cwd(), "client/src/lib/operatingModelNavigation.ts"), "utf8");
     const dashboardSource = readFileSync(resolve(process.cwd(), "client/src/components/ExecDashboard.tsx"), "utf8");
+    const pageContext = resolvePageContext("/pi4-planning");
 
     expect(existsSync(pagePath)).toBe(true);
     expect(appSource).toContain('path="/pi4-planning"');
     expect(navSource).toContain('label: "PI4 Sprint Tracker"');
     expect(navSource).toContain('path: "/pi4-planning"');
     expect(dashboardSource).toContain('planningLink: "/pi4-planning"');
-    expect(resolvePageContext("/pi4-planning")).toMatchObject({ pageTitle: "PI4 Sprint & Story Tracker" });
+    expect(pageContext).toMatchObject({ pageTitle: "PI4 Sprint & Story Tracker" });
+    expect(pageContext?.businessRules).toContain("State stories 1472734 and 1471480 are refined and DCT-owned; PI4 sprint assignment remains pending baseline approval");
 
     const copiedText = createPi4PlanningCopy();
     expect(copiedText).toContain("Planning visibility only — excluded from PI4 and MVP delivery metrics");
+    expect(copiedText).toContain("Owner: DCT");
     expect(copiedText).toContain("TY26 Pilot — What expands for pilot");
     expect(copiedText).toContain("Client & Return Setup: Support for Disregarded Entities");
     expect(copiedText).toContain("Feature 1451927 — Roger State Taxable Income MVP — State Filing Footprint [State]");

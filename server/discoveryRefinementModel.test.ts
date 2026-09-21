@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("Provision and State Discovery refinement model", () => {
-  it("keeps the approved two-story State model, ownership boundaries, and Provision discovery content", () => {
+  it("keeps the approved two-story State model, DCT ownership decision, and Provision discovery content", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/onboarding/DiscoveryWorkspace.tsx"), "utf8");
     const buddySource = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
     const stateStoriesBlock = source.slice(source.indexOf("const STATE_STORIES"), source.indexOf("const PROVISION_STORIES"));
@@ -15,22 +15,18 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).not.toContain("Is there enough information in this story for DCT DEV");
     expect(stateStoriesBlock).toContain("1472734 – DCT Gateway — Compose State Return-Filing Response for Roger");
     expect(stateStoriesBlock).toContain("1471480 – DCT — Retrieve Return Structure Starting Context for a State Filer / Filing Group");
-    expect(stateStoriesBlock.match(/estimation: \"Not Ready\"/g)).toHaveLength(2);
-    expect(stateStoriesBlock.match(/acceptance: \"Not Ready\"/g)).toHaveLength(2);
+    expect(stateStoriesBlock.match(/estimation: "Ready with Dependency"/g)).toHaveLength(2);
+    expect(stateStoriesBlock.match(/acceptance: "Ready"/g)).toHaveLength(2);
+    expect(stateStoriesBlock).toContain('owner: "DCT"');
     expect(source).toContain("TIM provides the filer, State activation, deliverables, and the Single/Consolidated indicator");
     expect(source).toContain("Deliverable Due Date is the source for the date shown on the screen.");
     expect(source).toContain("The State filing group begins with an available Federal filing group");
-    expect(source).toContain("State Story Readiness Matrix");
-    expect(source).toContain("🔴 Not Ready to Estimate");
-    expect(source).toContain("Open Items from State Refinement");
-    expect(source).toContain("TIM State Filing-Group Relationship");
-    expect(source).toContain("TIM → Roger/DCT Data Contract");
-    expect(source).toContain("Roger State UI / Workflow");
-    expect(source).toContain("State Issue Count");
-    expect(source).toContain("Combined / Unitary Handling");
-    expect(source).toContain("Why DCT Cannot Estimate Yet");
-    expect(source).toContain("State Readiness Decision");
-    expect(source).toContain("not yet be accepted for DCT ownership or estimated");
+    expect(source).toContain("State Story Refinement &amp; Ownership");
+    expect(source).toContain("✓ Refined · DCT owned");
+    expect(source).toContain("Managed State Delivery Dependencies");
+    expect(source).toContain("DCT Delivery Guardrails");
+    expect(source).toContain("Ownership Decision");
+    expect(source).toContain("DCT has taken ownership of both refined State stories.");
     expect(source).toContain("Business requirement → 1472734 → 1471480 → Roger State Filing Experience");
     expect(source).toContain("not a strict technical predecessor sequence");
     expect(stateCapabilitiesBlock).toContain("State Return-Filing Data contract to be defined");
@@ -53,7 +49,7 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Provision Delivery Readiness");
     expect(source).toContain("Provision delivery path and readiness gates");
     expect(source).toContain("Current Provision Story Sizing & Estimation Assessment");
-    expect(source).toContain("activeWorkstream === \"state\" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />");
+    expect(source).toContain('activeWorkstream === "state" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />');
     expect(source).toContain("How DCT Supports State Stories");
     expect(source).toContain("How DCT Supports Provision Stories");
     expect(source).toContain("Story Readiness Matrix");
@@ -86,9 +82,8 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).not.toContain('SectionHeading number="PI4" title="Provision Delivery Readiness"');
     expect(source).not.toContain('SectionHeading number="7" title="Ask Buddy"');
     expect(source).not.toContain("        <QuickLinks />");
-    expect(buddySource).toContain("State Refinement Model — Current Two Backend Stories");
-    expect(buddySource).toContain("1472734 — DCT — Integrate, Store, and Provide State Return-Filing Data for the Roger Filing Screen (Integration/backend)");
-    expect(buddySource).toContain("1471480 — DCT — Retrieve, Save, and Govern State Filing Footprint Decisions for the Roger Return Structure Screen (Backend)");
+    expect(buddySource).toContain("State Refinement & DCT Ownership — Current Two Backend Stories");
+    expect(buddySource).toContain("Both stories are refined and **DCT-owned**");
     expect(buddySource).toContain("Roger owns practitioner-facing UI and actions but does not own State tax records.");
   });
 });

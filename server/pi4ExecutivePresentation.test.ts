@@ -21,10 +21,11 @@ describe("PI4 executive planning presentation", () => {
     expect(source).toContain("Planning inventory only — not committed delivery");
     expect(source).toContain("Planning view refreshed");
     expect(source).toContain("Executive navigation");
-    ["Executive Overview", "Architecture", "TY26 Pilot", "Planning Lanes", "DCT Platform", "State", "Provision"].forEach((label) => expect(source).toContain(`label: \"${label}\"`));
+    ["Executive Overview", "Architecture", "TY26 Pilot", "Planning Lanes", "DCT Platform", "State", "Provision"].forEach((label) => expect(source).toContain(`label: "${label}"`));
     expect(source).toContain("Leadership Attention");
     expect(source).toContain("PI4 baseline still requires approval before sprint commitments.");
-    expect(source).toContain("State work retains refinement dependencies.");
+    expect(source).toContain("State stories are refined and DCT-owned; PI4 sprint commitments remain pending baseline approval.");
+    expect(source).toContain("DCT-owned State delivery dependencies");
     expect(source).toContain("Provision sequencing depends on Package 0 / downstream readiness.");
     expect(source).toContain("DCT Platform work includes foundational data, security, prior-year continuity, and administration capabilities.");
     expect(source).toContain("Baseline approval pending");
@@ -34,6 +35,7 @@ describe("PI4 executive planning presentation", () => {
 
   it("keeps detailed architecture, TY26 pilot, lanes, and feature-to-story content available within executive cards and disclosure", () => {
     const source = workspaceSource();
+    const stateStories = PI4_FEATURE_STORY_MAP.flatMap((feature) => feature.stories).filter((story) => ["1472734", "1471480"].includes(story.id));
 
     expect(source).toContain("Logical Architecture &amp; End-to-End Flow");
     expect(source).toContain("Architecture Flow");
@@ -51,9 +53,12 @@ describe("PI4 executive planning presentation", () => {
     expect(source).toContain("Purpose / scope &amp; readiness note");
     expect(source).toContain("Owning workstream(s)");
     expect(source).toContain("<details open");
-    expect(source).toContain("Refinement Required");
+    expect(source).toContain("Refined · DCT Owned");
+    expect(source).toContain("{story.deliveryOwner} owned");
     expect(source).toContain("Planning Visibility");
 
+    expect(stateStories.every((story) => story.deliveryOwner === "DCT")).toBe(true);
+    expect(stateStories.every((story) => story.planningStatus === "Planning visibility")).toBe(true);
     expect(PI4_LOGICAL_ARCHITECTURE_FLOW).toHaveLength(10);
     expect(PI4_ARCHITECTURE_FOCUS).toHaveLength(5);
     expect(PI4_TY26_PILOT_EXPANSIONS).toHaveLength(8);

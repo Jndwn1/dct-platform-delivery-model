@@ -67,11 +67,11 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     apis: [],
     stories: ["1433863", "1450150", "1454679", "1472917", "1435463", "1474079", "1472734", "1471480", "1479949", "1479958", "1480251", "1480000"],
     screens: ["PI4 Sprint & Story Tracker", "Sprint Planning Lanes", "Feature-to-Story Mapping"],
-    businessRules: ["PI4 planning inventory does not create delivery metrics or committed sprint dates", "State stories 1472734 and 1471480 remain refinement-required and not ready to estimate", "Sprint commitments begin only after the PI4 baseline is approved"],
+    businessRules: ["PI4 planning inventory does not create delivery metrics or committed sprint dates", "State stories 1472734 and 1471480 are refined and DCT-owned; PI4 sprint assignment remains pending baseline approval", "Sprint commitments begin only after the PI4 baseline is approved"],
     batches: [],
     businessObjects: ["PI4 Feature", "DCT Story", "Sprint Planning Lane", "Planning Baseline"],
     integrations: ["Provision & State Discovery Workspace", "UAT Readiness"],
-    lastUpdated: "2026-09-18",
+    lastUpdated: "2026-09-21",
     lastChange: "Created a separate PI4 planning workspace with supplied DCT Platform, State, and Provision feature-to-story mappings; all stories remain unassigned and excluded from PI4 and MVP delivery metrics.",
   },
 
