@@ -2,40 +2,50 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-describe("Roger UAT Timeline Overview", () => {
-  it("presents completed preparation, the PI4 UAT handoff, execution, and pilot-readiness milestones", () => {
+describe("Roger UAT Timeline", () => {
+  it("presents the supplied six-week phase plan, involvement legend, and supporting sessions", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/UATTestingPage.tsx"), "utf8");
 
-    expect(source).toContain("Roger UAT Timeline Overview");
-    expect(source).toContain("Completed / Pre-UAT Preparation");
-    expect(source).toContain("July 20");
-    expect(source).toContain("Scope finalized");
-    expect(source).toContain("August 10");
-    expect(source).toContain("Test population identified");
-    expect(source).toContain("August 28");
-    expect(source).toContain("MVP feature development complete");
-    expect(source).toContain("September 7");
-    expect(source).toContain("Source data ready");
+    expect(source).toContain("Roger UAT Timeline");
+    expect(source).toContain("UAT Operating Plan");
+    expect(source).toContain("Weekly tester and UAT team involvement from preparation through follow-up.");
 
-    expect(source).toContain("Current / Immediate Milestone");
-    expect(source).toContain("September 18");
-    expect(source).toContain("Final system readiness sign-off and UAT kickoff communications");
-    expect(source).toContain("September 21");
-    expect(source).toContain("UAT execution begins");
-    expect(source).toContain("September 21 – October 9");
-    expect(source).toContain("PI4 Focus:");
-    expect(source).toContain("Complete readiness activities, support UAT execution, triage defects, and address issues required for TY26 pilot readiness.");
+    expect(source).toContain("Week 0");
+    expect(source).toContain("9/14–9/18");
+    expect(source).toContain("Week 1");
+    expect(source).toContain("9/21–9/25");
+    expect(source).toContain("Week 2");
+    expect(source).toContain("9/28–10/2");
+    expect(source).toContain("Week 3");
+    expect(source).toContain("10/5–10/9");
+    expect(source).toContain("Week 4");
+    expect(source).toContain("10/12–10/16");
+    expect(source).toContain("Week 5");
+    expect(source).toContain("10/19–10/23");
 
-    expect(source).toContain("Post-UAT / Pilot Readiness");
-    expect(source).toContain("UAT closeout; defect triage; scope prioritization; SME working sessions");
-    expect(source).toContain("Pilot population defined; UAT Round 2 for TY26 pilot scope");
-    expect(source).toContain("UAT Round 2 continues; final development and regression testing");
-    expect(source).toContain("Pilot launch and training");
-    expect(source).toContain("UAT outcomes will inform PI4 defect prioritization, remaining MVP work, regression testing, and TY26 pilot readiness.");
+    expect(source).toContain("UAT prep");
+    expect(source).toContain("internal triage");
+    expect(source).toContain("UAT kick-off*");
+    expect(source).toContain("UAT testing round");
+    expect(source).toContain("User touchpoints");
+    expect(source).toContain("Teams chat");
+    expect(source).toContain("Bug consolidation &amp; internal triage");
+    expect(source).toContain("daily team meeting");
+    expect(source).toContain("UAT sign-off**");
+    expect(source).toContain("Clarification / follow-up on feedback");
 
-    expect(source).toContain("Completed</span>");
-    expect(source).toContain("Current / Imminent</span>");
-    expect(source).toContain("Upcoming</span>");
-    expect(source).not.toContain("Dedicated defect resolution and regression testing window established (Sep 13–16).");
+    expect(source).toContain("UAT tester involvement");
+    expect(source).toContain("UAT team involvement");
+    expect(source).toContain("UAT Participation Expectation &amp; Access Readiness Session");
+    expect(source).toContain("Sep 17, 11:00 a.m.–12:00 p.m. CT");
+    expect(source).toContain("Kick-off meeting");
+    expect(source).toContain("Sep 21, 9:30–11:00 a.m. CT");
+    expect(source).toContain("Sign-off meeting");
+    expect(source).toContain("Oct 9, to be scheduled");
+    expect(source).toContain("Weeks 4–5 if additional clarification is required.");
+
+    expect(source).not.toContain("Completed / Pre-UAT Preparation");
+    expect(source).not.toContain("PI4 Focus:");
+    expect(source).not.toContain("Post-UAT / Pilot Readiness");
   });
 });

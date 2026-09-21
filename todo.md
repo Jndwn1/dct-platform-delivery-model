@@ -187,3 +187,4 @@
 - [x] Create a separate PI4 planning workspace to track PI4 sprints and supplied DCT, State, and Provision story mappings without changing MVP delivery metrics
 - [x] Close B42, B7, and B31 TDC in the governed MVP portfolio while retaining B31 PDC as active and reconciling landing-page metrics
 - [x] Update the PI3 Recently Closed rollup to show B7, B42, and B31 TDC as three closures this week and 17 cumulative PI3 closures
+- [x] Replace the UAT Timeline section with the supplied Roger weekly phase plan, involvement legend, and supporting session details
