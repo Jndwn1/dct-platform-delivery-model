@@ -40,7 +40,7 @@ describe("MVP Critical Milestones", () => {
       "Tax Adjustments Workspace QA testing is in progress.",
       "QA findings have been consolidated into one defect for resolution.",
     ]);
-    expect(priorYear?.source).toBe("B31 PDC and B31 TDC Active ADO records");
+    expect(priorYear?.source).toBe("B31 PDC active ADO record and B31 TDC closed ADO record");
     expect(priorYear?.owner).toBe("Abbas, Nasar / Luca, Gary");
     expect(priorYear?.status).toBe("Complete");
     expect(priorYear?.statusNotes).toEqual([

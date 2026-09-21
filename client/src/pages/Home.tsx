@@ -140,7 +140,7 @@ const BATCH_CALENDAR_PI23 = [
   { pi: "PI 2", status: "Done",        batch: "B5",    feat: "PDC",     name: "Entity Identity & Structure",                                       startDate: "Wed 4/22",  endDate: "Thu 4/30",  whatItDoes: "Gives every client and entity a permanent identity and access scope.",                                                                          rogerImpact: "Client / entity selection" },
   { pi: "PI 2", status: "Done",        batch: "B6",    feat: "TDC",     name: "Practitioner Review & Lock",                                        startDate: "Wed 4/22",  endDate: "Thu 4/30",  whatItDoes: "Practitioners review, decide, and lock mappings; decisions are immutable.",                                                                     rogerImpact: "Review & lock" },
   { pi: "PI 2", status: "Done",        batch: "B2A",   feat: "PDC",     name: "Orchestrator Classification Result & Contract Enforcement",          startDate: "Wed 4/29",  endDate: "Mon 5/9",   whatItDoes: "Enforces the orchestrator's classification result and contract at intake.",                                                                      rogerImpact: "None (behind the scenes)" },
-  { pi: "PI 2", status: "In Progress", batch: "B7",    feat: "TDC",     name: "Client Tax Profile & Eligibility",                                  startDate: "Fri 5/1",   endDate: "Mon 5/11",  whatItDoes: "Holds the client tax profile and determines which rules apply.",                                                                               rogerImpact: "Eligibility" },
+  { pi: "PI 2", status: "Done",        batch: "B7",    feat: "TDC",     name: "Client Tax Profile & Eligibility",                                  startDate: "Fri 5/1",   endDate: "Mon 5/11",  whatItDoes: "Holds the client tax profile and determines which rules apply.",                                                                               rogerImpact: "Eligibility" },
   { pi: "PI 2", status: "Done",        batch: "B8",    feat: "PDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces cross-LOB ingestion and data exceptions for remediation.",                                                                             rogerImpact: "Exceptions surfacing" },
   { pi: "PI 2", status: "Done",        batch: "B8",    feat: "TDC",     name: "Exceptions & Remediation",                                          startDate: "Tue 5/12",  endDate: "Wed 5/20",  whatItDoes: "Surfaces tax-side exceptions for remediation.",                                                                                               rogerImpact: "Exceptions surfacing" },
   { pi: "PI 2", status: "Historical / Excluded", batch: "B9", feat: "Gateway", name: "Roger Gateway & Governed Consumer Access Layer", startDate: "Thu 5/21", endDate: "Tue 6/2", whatItDoes: "Historical split record retained for lineage; excluded from the current 23-batch MVP population.", rogerImpact: "None (gateway)" },
@@ -148,7 +148,7 @@ const BATCH_CALENDAR_PI23 = [
   { pi: "PI 2", status: "Done",        batch: "B43",   feat: "TDC",     name: "Practitioner Book & Reclass Adjustments",                           startDate: "Wed 6/10",  endDate: "Tue 6/16",  whatItDoes: "Persists practitioner book and reclass adjustments as a multi-line model.",                                                                 rogerImpact: "High: Book Adjustment & Reclass Adjustment (stages 4-5)" },
   { pi: "PI 2", status: "Historical / Excluded", batch: "B9", feat: "Gateway", name: "Roger Gateway - TDC Integration Endpoints", startDate: "Wed 6/17", endDate: "Fri 6/19", whatItDoes: "Historical split record retained for lineage; excluded from the current 23-batch MVP population.", rogerImpact: "None (gateway)" },
   { pi: "PI 2", status: "Done",        batch: "B11",   feat: "TDC",     name: "Learning Governance & Model Evolution",                             startDate: "Wed 6/17",  endDate: "Thu 6/25",  whatItDoes: "Captures learning from real decisions under consent; governs model evolution.",                                                                 rogerImpact: "None (behind the scenes)" },
-  { pi: "PI 2", status: "In Progress", batch: "B42",   feat: "TDC",     name: "Tax Rules Framework & Book-to-Tax Adjustment Rules",                startDate: "Wed 6/17",  endDate: "Thu 6/25",  whatItDoes: "Computes book-to-tax adjustments from governed, configured rules.",                                                                            rogerImpact: "High: Tax Adjustment (stage 7) + rule admin screen" },
+  { pi: "PI 2", status: "Done",        batch: "B42",   feat: "TDC",     name: "Tax Rules Framework & Book-to-Tax Adjustment Rules",                startDate: "Wed 6/17",  endDate: "Thu 6/25",  whatItDoes: "Computes book-to-tax adjustments from governed, configured rules.",                                                                            rogerImpact: "High: Tax Adjustment (stage 7) + rule admin screen" },
   { pi: "PI 2", status: "Done",        batch: "B16",   feat: "PDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 6/22",  endDate: "Tue 6/30",  whatItDoes: "Records the cross-LOB audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
   // ── PI 3 ──
   { pi: "PI 3", status: "Done",        batch: "B16",   feat: "TDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 7/13",  endDate: "Tue 7/21",  whatItDoes: "Records the tax-side audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
@@ -161,7 +161,7 @@ const BATCH_CALENDAR_PI23 = [
   { pi: "PI 3", status: "Out of Current ADO Pipeline", batch: "B21", feat: "PDC", name: "Quality Control Standards", startDate: "Mon 8/3", endDate: "Tue 8/11", whatItDoes: "Historical portfolio item; not present in the supplied current ADO Active or Review Ready extract.", rogerImpact: "None: reference only, no new screen" },
   { pi: "PI 3", status: "Done",        batch: "B17",   feat: "TDC",     name: "Decision Support, Overrides, Evidence & Workpapers",               startDate: "Thu 8/20",  endDate: "Fri 8/28",  whatItDoes: "Adds override policies, evidence on decisions, and workpaper lock to snapshot.",                                                                rogerImpact: "Med: wire evidence / override / lock into review screens" },
   { pi: "PI 3", status: "Historical / Excluded", batch: "B26", feat: "PDC", name: "Entity Constituents & Allocations", startDate: "Wed 8/12", endDate: "Thu 8/20", whatItDoes: "Historical planning record retained outside the corrected 23-batch MVP scope.", rogerImpact: "None: structure only in MVP" },
-  { pi: "PI 3", status: "In Progress", batch: "B31",  feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
+  { pi: "PI 3", status: "Done",        batch: "B31",  feat: "TDC",     name: "Legacy Tool Prior Year Data Housing",                               startDate: "Mon 8/31",  endDate: "Wed 9/9",   whatItDoes: "Houses prior-year balances, filed amounts, and carryforwards in TDC.",                                                                          rogerImpact: "Low: prior-year shown on rollforward / TB" },
   { pi: "PI 3", status: "Stretch",     batch: "B33",   feat: "TDC",     name: "State Reference, Apportionment, Payments, NOL/Credit, Forms, TX Franchise", startDate: "Thu 9/10", endDate: "Fri 9/18", whatItDoes: "Adds state apportionment, nexus, payments, NOL/credit, forms, TX franchise.", rogerImpact: "High (stretch): state screens" },
 ];
 
@@ -757,8 +757,8 @@ export default function Home() {
     { label: "Governance",             id: "quick-nav-governance",   internal: false, href: "/gate-status" },
   ];
 
-  // Delivery Highlights — active ADO work is sourced from the supplied ADO pipeline,
-  // not client-side Control Panel selections. This keeps B42, B28, and B45 visible.
+  // Delivery Highlights — active ADO work is sourced from the governed portfolio
+  // lifecycle, so confirmed closures leave the active feature list immediately.
   // Context key format: "foundation-core" for FC, numeric string for B1/B2/etc., "2a" for B2A
   const ctxKeyForBatch = (batchStr: string): string => {
     if (batchStr === "FC") return "foundation-core";
@@ -837,7 +837,7 @@ export default function Home() {
                 backgroundColor: "rgba(5,150,105,0.2)", border: "1px solid rgba(52,211,153,0.4)",
                 borderRadius: "20px", padding: "3px 10px",
               }}>● ACTIVE — PI 3</span>
-              <span style={{ fontSize: "11px", color: "#94a3b8" }}>PI 2 Complete · PI 3 Active · Jul–Sep 2026</span>
+              <span style={{ fontSize: "11px", color: "#94a3b8" }}>PI 2 & PI 3 Delivery Completion · Jul–Sep 2026</span>
               <span style={{ fontSize: "10px", color: "#94a3b8", backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", padding: "3px 6px" }}>Source: Governed Delivery Model</span>
               <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date(`${DASHBOARD_REPORTING_DATE}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · Last refresh: {new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
             </div>
@@ -1095,22 +1095,18 @@ export default function Home() {
             ))}
           </div>
 
-          {/* B31 Critical-Path Banner */}
+          {/* B31 Critical-Path Banner — PDC ingestion remains active; TDC data housing is closed. */}
           <div style={{ backgroundColor: "#fef2f2", borderRadius: "8px", padding: "12px 16px", borderLeft: "3px solid #dc2626" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>🔴 Critical Path — Must Land Before 9/21 Pilot</div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
               <span style={{ fontSize: "12px", fontWeight: 800, color: "#dc2626", backgroundColor: "#fee2e2", padding: "2px 7px", borderRadius: "4px", border: "1px solid #fca5a5" }}>B31 PDC</span>
               <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Legacy Tool Prior Year Ingestion &amp; Housing</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-              <span style={{ fontSize: "12px", fontWeight: 800, color: "#dc2626", backgroundColor: "#fee2e2", padding: "2px 7px", borderRadius: "4px", border: "1px solid #fca5a5" }}>B31 TDC</span>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Legacy Tool Prior Year Data Housing</span>
-            </div>
             <div style={{ fontSize: "11px", color: "#991b1b", lineHeight: "1.5" }}>
-              Status: Active (ADO #1390014, #1390267) · Owner: Abbas, Nasar / Luca, Gary
+              Status: Active (ADO #1390014) · Owner: Abbas, Nasar
             </div>
             <div style={{ fontSize: "11px", color: "#b91c1c", marginTop: "4px", fontStyle: "italic" }}>
-              Prior year data housing required for rollforward, carryforward, and TB reconciliation before pilot start.
+              Prior year ingestion remains required for rollforward, carryforward, and TB reconciliation before pilot start. B31 TDC data housing is closed.
             </div>
           </div>
           {/* Release Readiness */}

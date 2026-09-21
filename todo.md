@@ -185,3 +185,4 @@
 - [x] Mark MVP Critical Milestone #4, UAT Ready, complete
 - [x] Restore PI4 to visibility-only planning with no closed or active features
 - [x] Create a separate PI4 planning workspace to track PI4 sprints and supplied DCT, State, and Provision story mappings without changing MVP delivery metrics
+- [x] Close B42, B7, and B31 TDC in the governed MVP portfolio while retaining B31 PDC as active and reconciling landing-page metrics

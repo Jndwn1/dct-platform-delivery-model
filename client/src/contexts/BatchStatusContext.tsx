@@ -306,10 +306,10 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   // ── PI 3 — ADO Closed (Aug 11, 2026) ───────────────────────────────────────
   "8": "Complete",    // B8 — Exceptions & Remediation (Closed in PI3 on Aug 11, 2026)
   "16": "Complete",   // B16 — Audit Trail & Lineage Governance (ADO: Closed 7/21/2026)
-  // ── PI 2/3 — Active per ADO backlog ──────────────────────────────────────────
-  "7": "In Progress",  // B7 — Client Tax Profile & Eligibility (ADO: Active)
+  // ── PI 2/3 — Closed per confirmed MVP portfolio update ───────────────────────
+  "7": "Complete",     // B7 — Client Tax Profile & Eligibility (closed)
   "10": "In Progress", // B10 — Return Assembly, Filing & Lineage Closure (ADO Active 1349599)
-  "42": "In Progress", // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (ADO: Active)
+  "42": "Complete",    // B42 — Tax Rules Framework & Book-to-Tax Adjustment Rules (closed)
   "45": "In Progress", // B45 — Rule Logic Expression Table & Adjustment Subtype Domain Expansion (ADO Active)
   // ── PI 3 — ACTIVE (7/13–9/15) ─────────────────────────────────────────
   "20": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
@@ -318,7 +318,7 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "9a": "In Progress", // B9A — Data Gateway (IMS, CDS, DUO) (ADO Active)
   "17": "Complete", // B17 — Decision Support — Overrides, Evidence & Workpapers (Closed 8/4/2026)
   "29": "Complete",    // B29 — Consolidated Return Assembly (Closed in PI3 on Aug 11, 2026)
-  "31": "In Progress", // B31 — Legacy Tool Prior Year Ingestion & Housing (ADO: Active)
+  "31": "In Progress", // B31 aggregate remains active for PDC; the TDC Data Housing record is closed
   "26": "Ready for QA", // B26 — Entity Constituents & Allocations (ADO: Review Ready)
   "39": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
@@ -362,6 +362,8 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
   "29": "Complete",
   "43": "Complete",
   "8": "Complete",
+  "7": "Complete",
+  "42": "Complete",
 };
 
 /** PI4 planning visibility is not a delivery classification and cannot retain prior local status selections. */
@@ -378,8 +380,8 @@ const PI4_PLANNING_STATUS: Partial<BatchStatusMap> = {
 // PI_MEMBERSHIP reflects Roadmap v8 (updated July 2026) — 9-tdc & 12 excluded from PI 2 (On Hold)
 export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
   pi1:  ["foundation-core", "1", "2", "2a", "3"],
-  pi2:  ["4", "5", "6", "7", "8", "10", "11", "43", "13", "42"], // Current ADO: B7, B10, B42 Active
-  pi3:  ["16", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A, and B31 Active
+  pi2:  ["4", "5", "6", "7", "8", "10", "11", "43", "13", "42"], // Current ADO: B10 active; B7 and B42 closed
+  pi3:  ["16", "45", "28", "9a", "31", "17", "29"], // Current ADO: B45, B28, B9A, and B31 PDC active; B31 TDC closed
   pi4:  ["19", "40", "35", "26-tdc", "pi4-manual-client-account-management", "pi4-data-console", "pi4-security-readiness", "pi4-deferred-work", "pi4-ims-translation"],
 };
 
@@ -388,15 +390,15 @@ export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 // below as planning visibility only and excluded from all MVP delivery metrics.
 // The four historical split records B8-PDC, B8-TDC, B9, and B9-PDC are retained
 // for lineage and API traceability but excluded from current MVP lifecycle metrics.
-// Current ADO lifecycle: 15 Complete, 8 In Development, 0 In Review, 0 Planned.
+// Current ADO lifecycle: 18 Complete, 5 In Development, 0 In Review, 0 Planned.
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
-  // PI 2 — current MVP scope: seven complete + three active
+  // PI 2 — current MVP scope: nine complete + one active
   "4", "5", "6", "11", "43", "13", "16",
-  // PI 2 — Current ADO Active (3)
+  // PI 2 — Current ADO Active (1)
   "7", "10", "42",
-  // PI 3 — B8 + B29 closed Aug 11; remaining delivery portfolio
+  // PI 3 — B8 + B29 closed Aug 11; B31 TDC subsequently closed
   "8", "45", "28", "9a", "17", "29", "31",
 ];
 
@@ -431,8 +433,9 @@ const noAdo = "Not present in current source";
 
 /**
  * Authoritative executive metric population. Each entry is one ADO-facing feature;
- * B31 is intentionally represented by its two Active records. This prevents
- * parent/sub-track duplication from inflating Batch Delivery counts.
+ * B31 is intentionally represented by its PDC and TDC records. This prevents
+ * parent/sub-track duplication from inflating Batch Delivery counts while
+ * allowing the TDC Data Housing closure to be tracked independently.
  */
 export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "FC", statusKey: "foundation-core", adoId: "N/A — foundation", featureName: BATCH_LABELS["foundation-core"], batchNumber: "FC", classification: "Batch", pi: "PI1" },
@@ -448,16 +451,16 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "B43", statusKey: "43", adoId: noAdo, featureName: BATCH_LABELS["43"], batchNumber: "B43", classification: "Batch", pi: "PI2" },
   { id: "B13", statusKey: "13", adoId: noAdo, featureName: BATCH_LABELS["13"], batchNumber: "B13", classification: "Batch", pi: "PI2" },
   { id: "B16", statusKey: "16", adoId: "1390258", featureName: BATCH_LABELS["16"], batchNumber: "B16", classification: "Batch", pi: "PI3" },
-  { id: "B7", statusKey: "7", adoId: "1354322", featureName: BATCH_LABELS["7"], batchNumber: "B7", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B7", statusKey: "7", adoId: "1354322", featureName: BATCH_LABELS["7"], batchNumber: "B7", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Closed" },
   { id: "B8", statusKey: "8", adoId: noAdo, featureName: BATCH_LABELS["8"], batchNumber: "B8", classification: "Batch", pi: "PI2" },
   { id: "B17", statusKey: "17", adoId: noAdo, featureName: BATCH_LABELS["17"], batchNumber: "B17", classification: "Batch", pi: "PI3" },
   { id: "B29A", statusKey: "29", adoId: noAdo, featureName: BATCH_LABELS["29"], batchNumber: "B29A", classification: "Batch", pi: "PI3" },
-  { id: "B42", statusKey: "42", adoId: "1402117", featureName: BATCH_LABELS["42"], batchNumber: "B42", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B42", statusKey: "42", adoId: "1402117", featureName: BATCH_LABELS["42"], batchNumber: "B42", classification: "Batch", pi: "PI2", owner: "Luca, Gary", sourceStatusLabel: "Closed" },
   { id: "B45", statusKey: "45", adoId: "1444477", featureName: BATCH_LABELS["45"], batchNumber: "B45", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
   { id: "B28", statusKey: "28", adoId: "1390012", featureName: BATCH_LABELS["28"], batchNumber: "B28", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
   { id: "B9A", statusKey: "9a", adoId: "1387817", featureName: BATCH_LABELS["9a"], batchNumber: "B9A", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Active" },
   { id: "B31-PDC", statusKey: "31", adoId: "1390014", featureName: "Batch 31 | PDC — Legacy Tool Prior Year Ingestion & Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Active" },
-  { id: "B31-TDC", statusKey: "31", adoId: "1390267", featureName: "Batch 31 | TDC — Legacy Tool Prior Year Data Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Active" },
+  { id: "B31-TDC", statusKey: "31", adoId: "1390267", featureName: "Batch 31 | TDC — Legacy Tool Prior Year Data Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Closed" },
 ];
 
 export const MVP_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
@@ -471,15 +474,15 @@ export type DeliveryMetricBucket = "Complete" | "In Development" | "In Review" |
  * population until the business owner supplies a new ADO baseline.
  */
 export const LOCKED_MVP_BASELINE = {
-  asOf: "2026-09-02",
+  asOf: "2026-09-21",
   totalFeatures: 23,
   batchFeatures: 23,
   nonBatchFeatures: 0,
-  complete: 15,
-  active: 8,
+  complete: 18,
+  active: 5,
   inReview: 0,
   planned: 0,
-  readinessPct: 65,
+  readinessPct: 78,
 } as const;
 
 /**
@@ -490,7 +493,7 @@ export type PortfolioDeliveryStatus = DeliveryMetricBucket;
 export type AdoActivityStatus = "Active ADO work exists" | "No active ADO work";
 export type QAValidationStatus = "Not Started" | "In Validation" | "Review Ready" | "Validated" | "Not Reported";
 
-export const DASHBOARD_REPORTING_DATE = "2026-09-02";
+export const DASHBOARD_REPORTING_DATE = "2026-09-21";
 export const DASHBOARD_REPORTING_WEEK_START = "2026-08-17";
 export const DASHBOARD_REPORTING_WEEK_END = "2026-08-23";
 
@@ -540,6 +543,7 @@ export const GOVERNED_PROGRAM_HEALTH = {
 } as const;
 
 export function getPortfolioDeliveryStatus(record: DeliveryMetricRecord, statuses: BatchStatusMap): PortfolioDeliveryStatus {
+  if (record.sourceStatusLabel === "Closed") return "Complete";
   if (record.sourceStatusLabel === "Active") return "In Development";
   if (record.sourceStatusLabel === "Review Ready") return "In Review";
   if (record.sourceStatusLabel === "Planned") return "Planned";

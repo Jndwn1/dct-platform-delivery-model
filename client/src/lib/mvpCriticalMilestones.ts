@@ -134,7 +134,7 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
         ...definition,
         status: definition.statusOverride ?? (hasEvidence ? "In Progress" : "Upcoming"),
         owner: [b31Pdc?.owner, b31Tdc?.owner].filter(Boolean).join(" / ") || "Confirmation required",
-        source: hasEvidence ? "B31 PDC and B31 TDC Active ADO records" : "No governed B31 Prior Year record available",
+        source: hasEvidence ? "B31 PDC active ADO record and B31 TDC closed ADO record" : "No governed B31 Prior Year record available",
         confirmationRequired: !definition.statusOverride && !hasEvidence,
       };
     }
