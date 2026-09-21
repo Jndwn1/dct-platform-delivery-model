@@ -24,7 +24,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import ExecDashboard from "@/components/ExecDashboard";
 import { getRogerScreenDeliverySummary, getRogerScreenReadinessSummary, ROGER_MVP_MILESTONES } from "@/lib/rogerMvpScreenStatus";
-import { deriveMvpCriticalMilestones, MVP_TARGET_DATE_LABEL, resolveMilestoneStatus } from "@/lib/mvpCriticalMilestones";
+import { deriveMvpCriticalMilestones, MVP_LIVE_DATE_LABEL, resolveMilestoneStatus } from "@/lib/mvpCriticalMilestones";
 import { useTour } from "@/contexts/TourContext";
 import GovernanceBanner from "@/components/GovernanceBanner";
 
@@ -35,7 +35,7 @@ type QuickNavigationItem = {
   href?: string;
 };
 
-const EXECUTIVE_MILESTONE_SUMMARY = "ON TRACK — Critical MVP development is substantially complete. The primary remaining path to Sep 21 is PY/CCH completion, final integration and reconciliation validation, QA, and environment readiness.";
+const EXECUTIVE_MILESTONE_SUMMARY = "MVP LIVE — The MVP launched on Sep. 21. The current focus is UAT execution, defect triage, regression validation, and TY26 pilot readiness.";
 
 function QuickNavigationCard({
   items,
@@ -651,7 +651,7 @@ export default function Home() {
   const rogerScreenMetrics = useMemo(() => getRogerScreenReadinessSummary(), []);
   const rogerScreenDeliveryMetrics = useMemo(() => getRogerScreenDeliverySummary(), []);
   const criticalMilestones = useMemo(() => deriveMvpCriticalMilestones(statuses), [statuses]);
-  const releaseTargetCriticalMilestones = useMemo(() => criticalMilestones.filter(milestone => ["mvp-target", "uat-execution"].includes(milestone.id)), [criticalMilestones]);
+  const uatExecutionMilestone = useMemo(() => criticalMilestones.find(milestone => milestone.id === "uat-execution"), [criticalMilestones]);
   const pi3Closed = getPi3CumulativeCompleted();
   const recentlyClosedPi3 = PI3_POST_BASELINE_CLOSURES;
   const closedThisWeek = recentlyClosedPi3.filter(item => isInDashboardReportingWeek(item.completionDate));
@@ -836,8 +836,8 @@ export default function Home() {
                 fontSize: "11px", fontWeight: 700, color: "#34d399",
                 backgroundColor: "rgba(5,150,105,0.2)", border: "1px solid rgba(52,211,153,0.4)",
                 borderRadius: "20px", padding: "3px 10px",
-              }}>● ACTIVE — PI 3</span>
-              <span style={{ fontSize: "11px", color: "#94a3b8" }}>PI 2 & PI 3 Delivery Completion · Jul–Sep 2026</span>
+              }}>● MVP LIVE — UAT EXECUTION</span>
+              <span style={{ fontSize: "11px", color: "#94a3b8" }}>MVP launched Sep 21, 2026 · UAT execution through Oct 9</span>
               <span style={{ fontSize: "10px", color: "#94a3b8", backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", padding: "3px 6px" }}>Source: Governed Delivery Model</span>
               <span style={{ fontSize: "10px", color: "#64748b" }}>Data as of: {new Date(`${DASHBOARD_REPORTING_DATE}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · Last refresh: {new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
             </div>
@@ -847,9 +847,9 @@ export default function Home() {
             backgroundColor: "rgba(5,150,105,0.15)", border: "2px solid rgba(52,211,153,0.5)",
             borderRadius: "10px", padding: "14px 20px", textAlign: "center", minWidth: "180px",
           }}>
-            <div style={{ fontSize: "10px", fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Release Candidate</div>
-            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>{rcLabel}</div>
-            <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Target MVP: {MVP_TARGET_DATE_LABEL}</div>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>MVP Release Status</div>
+            <div style={{ fontSize: "28px", fontWeight: 900, color: "#34d399", lineHeight: 1 }}>LIVE</div>
+            <div style={{ fontSize: "11px", color: "#a7f3d0", marginTop: "4px", fontWeight: 600 }}>Launched: {MVP_LIVE_DATE_LABEL} · {rcLabel}</div>
           </div>
         </div>
 
@@ -922,11 +922,11 @@ export default function Home() {
               <div style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#64748b", marginBottom: "5px" }}>Milestone Outlook</div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "3px 7px", borderRadius: "4px", backgroundColor: "#ecfdf5", border: "1px solid #a7f3d0", color: "#047857", fontSize: "9px", fontWeight: 800, letterSpacing: "0.05em" }}>
                 <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#059669" }} />
-                ON TRACK
+                MVP LIVE
               </div>
             </div>
             <div style={{ borderLeft: "1px solid #e2e8f0", paddingLeft: "12px", fontSize: "12px", lineHeight: 1.45, color: "#334155", fontWeight: 600 }}>
-              Critical MVP development is substantially complete. The primary remaining path to Sep 21 is PY/CCH completion, final integration and reconciliation validation, QA, and environment readiness.
+              MVP launched Sep. 21. The current focus is UAT execution, defect triage, regression validation, and TY26 pilot readiness.
             </div>
           </div>
         </div>
@@ -970,9 +970,9 @@ export default function Home() {
           <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px 16px" }}>
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>Release Targets</div>
             {[
-              { label: "Release Candidate", value: rcLabel,        color: "#059669" },
-              { label: "Target MVP Date",   value: MVP_TARGET_DATE_LABEL, color: "#0f1623" },
-              ...releaseTargetCriticalMilestones.map((milestone, index) => ({ label: index === 0 ? "Next Critical Milestone" : "Following Critical Milestone", value: `${milestone.dateLabel} · ${milestone.name}`, color: "#2563eb" })),
+              { label: "MVP Release", value: `Live · ${MVP_LIVE_DATE_LABEL}`, color: "#059669" },
+              { label: "Release Candidate", value: rcLabel, color: "#059669" },
+              ...(uatExecutionMilestone ? [{ label: "Current Critical Milestone", value: `${uatExecutionMilestone.dateLabel} · ${uatExecutionMilestone.name}`, color: "#2563eb" }] : []),
               { label: "Batch Readiness", value: `${batchPct}%`, color: batchPct >= 70 ? "#059669" : "#d97706" },
               { label: "Overall MVP Readiness", value: `${overallPct}%`, color: overallPct >= 70 ? "#059669" : "#d97706" },
               { label: "MVP In Development", value: `${mvp.inDev} features`, color: "#2563eb" },
@@ -999,7 +999,7 @@ export default function Home() {
           <div>
             <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "3px" }}>Delivery Schedule</div>
             <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a" }}>MVP Critical Milestones</div>
-            <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px" }}>Critical delivery dates through the {MVP_TARGET_DATE_LABEL} MVP / RC-3 target and UAT execution</div>
+            <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px" }}>MVP launch achieved {MVP_LIVE_DATE_LABEL}; current delivery focus is UAT execution and TY26 pilot readiness</div>
           </div>
         </div>
 
@@ -1057,7 +1057,7 @@ export default function Home() {
           </div>
           <div style={{ marginTop: "4px", fontSize: "9px", color: "#64748b" }}>Source: authoritative shared Roger QA Registry. Detailed per-screen lifecycle, dependencies, owners, and notes remain on QA Deployment Registry.</div>
         </div>
-        <div style={{ fontSize: "10px", color: "#64748b", marginTop: "10px" }}>Source: governed delivery milestones and existing RC-3 release target. Statuses require explicit delivery confirmation; dates alone never mark milestones complete.</div>
+        <div style={{ fontSize: "10px", color: "#64748b", marginTop: "10px" }}>Source: governed delivery milestones and explicit MVP launch confirmation. UAT execution and post-launch work remain governed separately from MVP delivery metrics.</div>
       </div>
 
       {/* ── Executive Delivery Dashboard (always visible) ── */}
@@ -1095,9 +1095,9 @@ export default function Home() {
             ))}
           </div>
 
-          {/* B31 Critical-Path Banner — PDC ingestion remains active; TDC data housing is closed. */}
+          {/* B31 post-launch follow-up — PDC ingestion remains active; TDC data housing is closed. */}
           <div style={{ backgroundColor: "#fef2f2", borderRadius: "8px", padding: "12px 16px", borderLeft: "3px solid #dc2626" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>🔴 Critical Path — Must Land Before 9/21 Pilot</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#991b1b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>🔴 Post-Launch Follow-Up — Prior Year Data</div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
               <span style={{ fontSize: "12px", fontWeight: 800, color: "#dc2626", backgroundColor: "#fee2e2", padding: "2px 7px", borderRadius: "4px", border: "1px solid #fca5a5" }}>B31 PDC</span>
               <span style={{ fontSize: "12px", fontWeight: 700, color: "#7f1d1d" }}>Legacy Tool Prior Year Ingestion &amp; Housing</span>
@@ -1106,7 +1106,7 @@ export default function Home() {
               Status: Active (ADO #1390014) · Owner: Abbas, Nasar
             </div>
             <div style={{ fontSize: "11px", color: "#b91c1c", marginTop: "4px", fontStyle: "italic" }}>
-              Prior year ingestion remains required for rollforward, carryforward, and TB reconciliation before pilot start. B31 TDC data housing is closed.
+              Prior year ingestion remains a controlled UAT and pilot-readiness follow-up for rollforward, carryforward, and TB reconciliation. B31 TDC data housing is closed.
             </div>
           </div>
           {/* Release Readiness */}
@@ -1116,7 +1116,7 @@ export default function Home() {
               { label: "Platform Completion", value: `${overallPct}%`, ok: overallPct >= 70 },
               { label: "Gates Passed",      value: `${[gates.g1, gates.g2, gates.g3, gates.g4].filter(g => g === "Complete").length} / 4`, ok: [gates.g1, gates.g2].every(g => g === "Complete") },
               { label: "RC Status",         value: `${rcLabel} ${programOnTrack ? "On Track" : "At Risk"}`, ok: programOnTrack },
-              { label: "MVP-Required Close",value: "Sep 21, 2026",    ok: true },
+              { label: "MVP Live Date",     value: MVP_LIVE_DATE_LABEL, ok: true },
             ].map(r => (
               <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "5px" }}>
                 <span style={{ color: "#374151" }}>{r.label}</span>

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { BATCH_DELIVERY_RECORDS } from "../client/src/contexts/BatchStatusContext";
 
 describe("Delivery Highlights B31 placement", () => {
-  it("lists only the still-active B31 PDC feature and retains the targeted critical-path banner", () => {
+  it("lists only the still-active B31 PDC feature and retains the targeted post-launch follow-up banner", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
     const activeRecords = BATCH_DELIVERY_RECORDS.filter(record => record.sourceStatusLabel === "Active");
 
@@ -17,7 +17,7 @@ describe("Delivery Highlights B31 placement", () => {
     expect(source).not.toContain('{ id: "B31-PDC", batchNumber');
     expect(source).not.toContain('{ id: "B31-TDC", batchNumber');
     expect(source).toContain("deliveryHighlightActiveBatchFeatures.length");
-    expect(source).toContain("Critical Path — Must Land Before 9/21 Pilot");
+    expect(source).toContain("Post-Launch Follow-Up — Prior Year Data");
     expect(source).toContain("Status: Active (ADO #1390014)");
     expect(source).toContain("B31 TDC data housing is closed.");
     expect(source).not.toContain("ADO #1390014, #1390267");

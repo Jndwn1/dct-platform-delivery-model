@@ -11,6 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import GeneratePOEmail from "@/components/GeneratePOEmail";
 import { BATCH_DELIVERY_RECORDS, GOVERNED_PROGRAM_HEALTH, PI4_PLANNED_FEATURES, useBatchStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
+import { MVP_LIVE_DATE_LABEL } from "@/lib/mvpCriticalMilestones";
 
 // ─── Batch Calendar PI 2 + PI 3 (mirrors Home.tsx BATCH_CALENDAR_PI23) ─────────
 // This is the single source of truth for all Executive Dashboard KPI calculations.
@@ -224,14 +225,10 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
 
   const releaseCandidateLabel = useMemo(() => deriveReleaseCandidate(piCompletion), [piCompletion]);
 
-  // Pilot countdown — MVP target Sep 21, 2026
-  const PILOT_DATE = new Date("2026-09-21T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysRemaining = Math.max(0, Math.ceil((PILOT_DATE.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
-  const urgencyColor = daysRemaining <= 30 ? "#dc2626" : daysRemaining <= 60 ? "#d97706" : "#059669";
-  const urgencyBg = daysRemaining <= 30 ? "#fef2f2" : daysRemaining <= 60 ? "#fffbeb" : "#f0fdf4";
-  const urgencyBorder = daysRemaining <= 30 ? "#fecaca" : daysRemaining <= 60 ? "#fde68a" : "#bbf7d0";
+  // Explicit business confirmation: MVP launched Sep. 21; UAT is the active follow-through phase.
+  const launchColor = "#047857";
+  const launchBg = "#ecfdf5";
+  const launchBorder = "#a7f3d0";
 
   // PI delivery progress is governed separately from QA validation progress.
   const pi2Pct = piCompletion?.pi2?.pct ?? 0;
@@ -299,13 +296,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            MVP Delivery Intelligence · PI1 + PI2 + PI3 Delivery Metrics · PI4 Planning Visibility · {BATCH_DELIVERY_RECORDS.length} Current Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            MVP Live · UAT Execution · PI1 + PI2 + PI3 Delivery Metrics · PI4 Planning Visibility · {BATCH_DELIVERY_RECORDS.length} Current Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard
           </h2>
           <div style={{ fontSize: "12px", color: "#64748b", marginTop: "3px", fontWeight: 500 }}>
-            Separate Batch Delivery and Overall MVP Delivery metrics with governed status traceability.
+            MVP is live. Separate Batch Delivery and Overall MVP Delivery metrics remain available for governed post-launch traceability.
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -397,6 +394,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
             border="#bbf7d0"
           />
           <StatusPill
+            label="MVP Live — Sep 21"
+            indicator="🟢"
+            color="#065f46"
+            bg="#f0fdf4"
+            border="#bbf7d0"
+          />
+          <StatusPill
             label="Governance Controls Active"
             indicator="🟢"
             color="#065f46"
@@ -446,13 +450,13 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
         </div>
       </div>
 
-      {/* Row 4: Pilot Countdown + Last 5 Deployments */}
+      {/* Row 4: MVP launch status + Last 5 Deployments */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
 
-        {/* Pilot Countdown */}
+        {/* MVP launch status */}
         <div style={{
-          backgroundColor: urgencyBg,
-          border: `1px solid ${urgencyBorder}`,
+          backgroundColor: launchBg,
+          border: `1px solid ${launchBorder}`,
           borderRadius: "8px",
           padding: "14px 18px",
           flex: "0 0 auto",
@@ -463,10 +467,10 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
           justifyContent: "center",
           gap: "4px",
         }}>
-          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: urgencyColor }}>Pilot Countdown</div>
-          <div style={{ fontSize: "36px", fontWeight: 900, color: urgencyColor, lineHeight: 1 }}>{daysRemaining}</div>
-          <div style={{ fontSize: "11px", fontWeight: 600, color: urgencyColor }}>days remaining</div>
-          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Target: Sep 21, 2026</div>
+          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: launchColor }}>MVP Status</div>
+          <div style={{ fontSize: "22px", fontWeight: 900, color: launchColor, lineHeight: 1 }}>LIVE</div>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: launchColor }}>Launched {MVP_LIVE_DATE_LABEL}</div>
+          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>UAT execution is now active</div>
         </div>
 
         {/* Recent Deployments */}

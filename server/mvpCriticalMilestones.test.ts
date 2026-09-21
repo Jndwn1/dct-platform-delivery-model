@@ -28,6 +28,7 @@ describe("MVP Critical Milestones", () => {
     const environment = milestones.find(item => item.id === "environment-readiness");
     const priorYear = milestones.find(item => item.id === "remaining-stories-py-ready");
     const uatReady = milestones.find(item => item.id === "uat-ready");
+    const mvpLive = milestones.find(item => item.id === "mvp-target");
     
     expect(criticalStories?.status).toBe("Complete");
     expect(criticalStories?.source).toBe("10 technical stories and 2 bugs — from the governed ADO lifecycle");
@@ -50,13 +51,18 @@ describe("MVP Critical Milestones", () => {
     ]);
     expect(uatReady?.status).toBe("Complete");
     expect(uatReady?.confirmationRequired).toBe(false);
+    expect(mvpLive).toMatchObject({
+      name: "MVP Live",
+      status: "Complete",
+      shortDescription: "MVP is live. The Sep. 21 production launch and RC-3 delivery milestone have been achieved.",
+    });
   });
 
-  it("selects the Sep. 21 MVP target after UAT readiness is confirmed complete", () => {
+  it("selects UAT execution as the active critical milestone after MVP launch", () => {
     const milestones = deriveMvpCriticalMilestones(DEFAULT_STATUS);
-    const asOf = new Date("2026-08-28T12:00:00");
+    const asOf = new Date("2026-09-21T12:00:00");
     const next = getNextCriticalMilestone(milestones, asOf);
-    expect(next.id).toBe("mvp-target");
-    expect(resolveMilestoneStatus(next, new Date("2026-08-28T12:00:00"))).toBe("In Progress");
+    expect(next.id).toBe("uat-execution");
+    expect(resolveMilestoneStatus(next, asOf)).toBe("In Progress");
   });
 });

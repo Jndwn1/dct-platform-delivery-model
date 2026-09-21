@@ -28,6 +28,8 @@ export type MvpCriticalMilestone = MvpMilestoneDefinition & {
 
 export const MVP_TARGET_DATE = GOVERNED_PROGRAM_HEALTH.pilotTargetDate;
 export const MVP_TARGET_DATE_LABEL = "Sep 21, 2026";
+export const MVP_LIVE_DATE = MVP_TARGET_DATE;
+export const MVP_LIVE_DATE_LABEL = "Sep 21, 2026";
 
 // Dates and commitments come from the governing leadership milestone communication.
 // Status is intentionally NOT stored here; it is derived below from shared delivery inputs.
@@ -86,9 +88,10 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
     id: "mvp-target",
     date: MVP_TARGET_DATE,
     dateLabel: MVP_TARGET_DATE_LABEL,
-    name: "MVP Target",
-    shortDescription: "MVP release target and RC-3 delivery milestone.",
-    detail: ["MVP release target", "RC-3 delivery milestone"],
+    name: "MVP Live",
+    shortDescription: "MVP is live. The Sep. 21 production launch and RC-3 delivery milestone have been achieved.",
+    detail: ["MVP production launch live", "RC-3 delivery milestone achieved"],
+    statusOverride: "Complete",
     sourceScope: "release",
   },
   {
@@ -163,10 +166,10 @@ export function deriveMvpCriticalMilestones(statuses: BatchStatusMap): MvpCritic
 
     return {
       ...definition,
-      status: statusFromActiveWork(mvp.inDev > 0 || mvp.inReview > 0, mvp.complete === mvp.total),
+      status: definition.statusOverride ?? statusFromActiveWork(mvp.inDev > 0 || mvp.inReview > 0, mvp.complete === mvp.total),
       owner: "DCT Release Management",
       source: `${GOVERNED_PROGRAM_HEALTH.releaseCandidate} target ${GOVERNED_PROGRAM_HEALTH.pilotTargetDate}; governed MVP lifecycle`,
-      confirmationRequired: false,
+      confirmationRequired: !definition.statusOverride,
     };
   });
 }
