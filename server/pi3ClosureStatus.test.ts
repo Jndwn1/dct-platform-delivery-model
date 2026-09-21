@@ -3,7 +3,11 @@ import {
   DEFAULT_STATUS,
   BATCH_DELIVERY_RECORDS,
   buildDeliveryReconciliationDataset,
+  DASHBOARD_REPORTING_WEEK_END,
+  DASHBOARD_REPORTING_WEEK_START,
   GOVERNED_PROGRAM_HEALTH,
+  getPi3CumulativeCompleted,
+  isInDashboardReportingWeek,
   LOCKED_MVP_BASELINE,
   matchesLockedMvpBaseline,
   PI4_PLANNED_FEATURES,
@@ -147,15 +151,19 @@ describe("PI3 closure status model", () => {
     expect(BATCH_DELIVERY_RECORDS.find(record => record.id === "B16")?.pi).toBe("PI3");
   });
 
-  it("preserves the July 28 PI3 historical baseline and post-baseline closure history", () => {
+  it("rolls the three confirmed closures into the current PI3 reporting week and cumulative total", () => {
     expect(PI3_HISTORICAL_COMPLETION_BASELINE).toMatchObject({ asOf: "2026-07-28", cumulativeComplete: 11, reportingWeekComplete: 8 });
-    expect(PI3_POST_BASELINE_CLOSURES).toMatchObject([
-      { id: "B16", platform: "PDC", name: "Audit Trail & Lineage Governance", completionDate: "2026-08-04" },
-      { id: "B17", platform: "TDC", name: "Decision Support, Overrides, Evidence & Workpapers", completionDate: "2026-08-04" },
-      { id: "B29", platform: "TDC", name: "Prior-Year Migration", completionDate: "2026-08-11" },
-    ]);
+    expect(DASHBOARD_REPORTING_WEEK_START).toBe("2026-09-21");
+    expect(DASHBOARD_REPORTING_WEEK_END).toBe("2026-09-27");
+    expect(PI3_POST_BASELINE_CLOSURES).toHaveLength(6);
+    expect(PI3_POST_BASELINE_CLOSURES.map(item => item.id)).toEqual(["B16", "B17", "B29", "B7", "B42", "B31-TDC"]);
+    const closedThisWeek = PI3_POST_BASELINE_CLOSURES.filter(item => isInDashboardReportingWeek(item.completionDate));
+    expect(closedThisWeek.map(item => item.id)).toEqual(["B7", "B42", "B31-TDC"]);
+    expect(getPi3CumulativeCompleted()).toBe(17);
     expect(GOVERNED_PROGRAM_HEALTH).toMatchObject({ programStatus: "On Track", releaseCandidate: "RC-3" });
     const dataset = buildDeliveryReconciliationDataset(DEFAULT_STATUS);
-    expect(dataset.every(record => !(record.includedInThisWeek && record.originalCompletionDate === "2026-08-11"))).toBe(true);
+    expect(dataset.find(record => record.batch === "B7")?.includedInThisWeek).toBe(true);
+    expect(dataset.find(record => record.batch === "B42")?.includedInThisWeek).toBe(true);
+    expect(dataset.filter(record => record.batch === "B31").map(record => record.includedInThisWeek)).toEqual([false, true]);
   });
 });

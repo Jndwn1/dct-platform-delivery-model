@@ -494,8 +494,8 @@ export type AdoActivityStatus = "Active ADO work exists" | "No active ADO work";
 export type QAValidationStatus = "Not Started" | "In Validation" | "Review Ready" | "Validated" | "Not Reported";
 
 export const DASHBOARD_REPORTING_DATE = "2026-09-21";
-export const DASHBOARD_REPORTING_WEEK_START = "2026-08-17";
-export const DASHBOARD_REPORTING_WEEK_END = "2026-08-23";
+export const DASHBOARD_REPORTING_WEEK_START = "2026-09-21";
+export const DASHBOARD_REPORTING_WEEK_END = "2026-09-27";
 
 /**
  * ADO is the authority for current lifecycle. The supplied source explicitly
@@ -532,6 +532,9 @@ export const PI3_POST_BASELINE_CLOSURES = [
   { id: "B16", batch: "B16", name: "Audit Trail & Lineage Governance", platform: "PDC", completionDate: "2026-08-04", latestDeploymentDate: "2026-08-04", qaStatus: "In Validation" as QAValidationStatus },
   { id: "B17", batch: "B17", name: "Decision Support, Overrides, Evidence & Workpapers", platform: "TDC", completionDate: "2026-08-04", latestDeploymentDate: "2026-08-04", qaStatus: "In Validation" as QAValidationStatus },
   { id: "B29", batch: "B29", name: "Prior-Year Migration", platform: "TDC", completionDate: "2026-08-11", latestDeploymentDate: "2026-08-11", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "B7", batch: "B7", name: "Client Tax Profile & Eligibility", platform: "TDC", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "B42", batch: "B42", name: "Tax Rules Framework & Book-to-Tax Adjustment Rules", platform: "TDC", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "B31-TDC", batch: "B31 TDC", name: "Legacy Tool Prior Year Data Housing", platform: "TDC", completionDate: "2026-09-21", latestDeploymentDate: "2026-09-21", qaStatus: "In Validation" as QAValidationStatus },
 ] as const;
 
 export const GOVERNED_PROGRAM_HEALTH = {

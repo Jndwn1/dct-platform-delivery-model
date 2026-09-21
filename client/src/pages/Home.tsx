@@ -1146,7 +1146,7 @@ export default function Home() {
             }}>{pi3Closed} cumulative closed in PI 3</span>
           </div>
           <div style={{ fontSize: "11px", color: "#475569", marginBottom: "8px" }}>
-            Historical reconciliation baseline: {PI3_HISTORICAL_COMPLETION_BASELINE.cumulativeComplete} PI3 items complete as of Jul 28, plus {recentlyClosedPi3.length} legitimate completions after the baseline. Reporting week: Aug 17–23, 2026.
+            Historical reconciliation baseline: {PI3_HISTORICAL_COMPLETION_BASELINE.cumulativeComplete} PI3 items complete as of Jul 28, plus {recentlyClosedPi3.length} legitimate completions after the baseline. Reporting week: Sep 21–27, 2026.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "6px" }}>
             {recentlyClosedPi3.map(r => {
