@@ -5,6 +5,7 @@ import {
   getPi4FeaturesByWorkstream,
   PI4_PLANNING_SUMMARY,
   PI4_SPRINT_PLANNING_LANES,
+  PI4_TY26_PILOT_EXPANSIONS,
   type Pi4Feature,
   type Pi4Workstream,
 } from "@/lib/pi4PlanningModel";
@@ -122,6 +123,28 @@ export default function PI4PlanningWorkspace() {
         <CountCard label="Linked stories" value={PI4_PLANNING_SUMMARY.storyCount} detail="Story-level sprint planning inventory" color="#0d9488" />
         <CountCard label="Sprint planning lanes" value={PI4_PLANNING_SUMMARY.sprintLaneCount} detail="No dates or commitments set" color="#2563eb" />
         <CountCard label="Assigned stories" value={PI4_PLANNING_SUMMARY.assignedStoryCount} detail="Sprint assignments pending PI4 baseline" color="#64748b" />
+      </section>
+
+      <section aria-label="TY26 pilot expansion" style={{ background: "#ffffff", border: "1px solid #bae6fd", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 4px rgba(15, 23, 42, 0.06)", marginBottom: "24px" }}>
+        <div style={{ background: "#0ea5d8", color: "white", padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ color: "#0369a1", background: "#ffffff", borderRadius: "5px", padding: "3px 7px", fontSize: "11px", fontWeight: 850 }}>Next</span>
+            <div>
+              <div style={{ fontSize: "19px", fontWeight: 850, lineHeight: 1.1 }}>TY26 Pilot</div>
+              <div style={{ fontSize: "12px", color: "#e0f2fe", marginTop: "3px" }}>What expands for pilot</div>
+            </div>
+          </div>
+          <span style={{ color: "#075985", background: "rgba(255,255,255,0.9)", borderRadius: "99px", padding: "4px 8px", fontSize: "10px", fontWeight: 800 }}>Planning visibility only</span>
+        </div>
+        <div>
+          {PI4_TY26_PILOT_EXPANSIONS.map((item, index) => (
+            <div key={item.area} style={{ display: "grid", gridTemplateColumns: "minmax(190px, 0.32fr) 1fr", gap: "14px", padding: "11px 14px", borderTop: index ? "1px solid #dbeafe" : "none" }}>
+              <div style={{ color: "#0284c7", fontSize: "12px", fontWeight: 850, lineHeight: 1.3 }}>{item.area}</div>
+              <div style={{ color: "#334155", fontSize: "11px", lineHeight: 1.45 }}>{item.expansion}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ color: "#475569", background: "#f8fafc", borderTop: "1px solid #dbeafe", padding: "9px 14px", fontSize: "10px", lineHeight: 1.45 }}><strong style={{ color: "#334155" }}>Planning boundary:</strong> These pilot expansions provide visibility for PI4 planning and do not create committed sprint work or change MVP/PI4 delivery metrics.</div>
       </section>
 
       <section style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 4px rgba(15, 23, 42, 0.06)", marginBottom: "24px" }}>

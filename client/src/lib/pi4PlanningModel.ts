@@ -191,6 +191,21 @@ export const PI4_SPRINT_PLANNING_LANES = [
   },
 ] as const;
 
+/**
+ * TY26 pilot expansion reference supplied for PI4 planning. These capabilities
+ * remain planning visibility only and do not alter the MVP or PI4 delivery KPIs.
+ */
+export const PI4_TY26_PILOT_EXPANSIONS = [
+  { area: "Client & Return Setup", expansion: "Support for Disregarded Entities" },
+  { area: "Trial Balance Ingestion", expansion: "Client entity identifiers and abbreviations maintained within Roger to improve TB ingestion and entity assignment" },
+  { area: "Line Mapping", expansion: "Nonstandard mappings" },
+  { area: "Prior-Year Data", expansion: "Prior-year TWB 2.0 balances, mappings, and user inputs" },
+  { area: "Book & Reclass Adjustments", expansion: "Import Audit Adjustment reports" },
+  { area: "Tax Adjustments & Calculations", expansion: "Nonstandard tax adjustments, supporting documentation, review comment management" },
+  { area: "Reporting & Reconciliation", expansion: "Enhanced reporting, comparison reporting, and traceability" },
+  { area: "Sign-Off & GoSystem Integration", expansion: "Expanded sign-off functionality and the ability to push selected entities to GoSystem" },
+] as const;
+
 export const PI4_PLANNING_SUMMARY = {
   featureCount: PI4_FEATURE_STORY_MAP.length,
   storyCount: PI4_FEATURE_STORY_MAP.reduce((count, feature) => count + feature.stories.length, 0),
@@ -209,6 +224,9 @@ export function createPi4PlanningCopy() {
     "",
     "Sprint Planning Lanes",
     ...PI4_SPRINT_PLANNING_LANES.map((lane, index) => `${index + 1}. ${lane.label} — ${lane.timing}: ${lane.scope}`),
+    "",
+    "TY26 Pilot — What expands for pilot",
+    ...PI4_TY26_PILOT_EXPANSIONS.map((item) => `- ${item.area}: ${item.expansion}`),
     "",
     "Feature-to-Story Mapping",
     ...PI4_FEATURE_STORY_MAP.flatMap((feature) => [

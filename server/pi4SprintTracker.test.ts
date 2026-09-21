@@ -7,6 +7,7 @@ import {
   PI4_FEATURE_STORY_MAP,
   PI4_PLANNING_SUMMARY,
   PI4_SPRINT_PLANNING_LANES,
+  PI4_TY26_PILOT_EXPANSIONS,
 } from "../client/src/lib/pi4PlanningModel";
 import { resolvePageContext } from "../client/src/lib/pageContextRegistry";
 
@@ -47,7 +48,24 @@ describe("PI4 Sprint & Story Tracker", () => {
 
     const copiedText = createPi4PlanningCopy();
     expect(copiedText).toContain("Planning visibility only — excluded from PI4 and MVP delivery metrics");
+    expect(copiedText).toContain("TY26 Pilot — What expands for pilot");
+    expect(copiedText).toContain("Client & Return Setup: Support for Disregarded Entities");
     expect(copiedText).toContain("Feature 1451927 — Roger State Taxable Income MVP — State Filing Footprint [State]");
     expect(copiedText).toContain("User Story 1480000 — DCT-P1-04 — Provide RTP true-up outputs to downstream Provision workflows");
+  });
+
+  it("keeps the supplied TY26 pilot expansions visible as planning-only content", () => {
+    const workspaceSource = readFileSync(resolve(process.cwd(), "client/src/pages/PI4PlanningWorkspace.tsx"), "utf8");
+
+    expect(PI4_TY26_PILOT_EXPANSIONS).toHaveLength(8);
+    expect(PI4_TY26_PILOT_EXPANSIONS).toEqual(expect.arrayContaining([
+      expect.objectContaining({ area: "Client & Return Setup", expansion: "Support for Disregarded Entities" }),
+      expect.objectContaining({ area: "Trial Balance Ingestion", expansion: "Client entity identifiers and abbreviations maintained within Roger to improve TB ingestion and entity assignment" }),
+      expect.objectContaining({ area: "Sign-Off & GoSystem Integration", expansion: "Expanded sign-off functionality and the ability to push selected entities to GoSystem" }),
+    ]));
+    expect(workspaceSource).toContain("TY26 Pilot");
+    expect(workspaceSource).toContain("What expands for pilot");
+    expect(workspaceSource).toContain("Planning visibility only");
+    expect(workspaceSource).toContain("do not create committed sprint work or change MVP/PI4 delivery metrics");
   });
 });

@@ -189,3 +189,4 @@
 - [x] Update the PI3 Recently Closed rollup to show B7, B42, and B31 TDC as three closures this week and 17 cumulative PI3 closures
 - [x] Replace the UAT Timeline section with the supplied Roger weekly phase plan, involvement legend, and supporting session details
 - [x] Add the supplied MVP UAT testing scope, including explicit TY26 and TY27 exclusions, to the UAT Readiness page
+- [x] Add the supplied TY26 Pilot expansion column to the PI4 Sprint Tracker without changing planning-only metric treatment
