@@ -206,6 +206,34 @@ export const PI4_TY26_PILOT_EXPANSIONS = [
   { area: "Sign-Off & GoSystem Integration", expansion: "Expanded sign-off functionality and the ability to push selected entities to GoSystem" },
 ] as const;
 
+/**
+ * Business-readable companion to the approved Roger logical architecture.
+ * It clarifies the supplied diagram and does not introduce new ownership
+ * boundaries or platform components.
+ */
+export const PI4_LOGICAL_ARCHITECTURE_FLOW = [
+  { step: "01", layer: "User / Roger Experience Layer", explanation: "Roger captures practitioner selections, uploaded information, and the client, entity, and tax-year context needed to initiate processing." },
+  { step: "02", layer: "PDC — Platform Data Layer", explanation: "PDC stores shared cross-line-of-business information, document and processing metadata, and reusable client/entity context." },
+  { step: "03", layer: "PDC API / Gateway", explanation: "The PDC API receives the appropriate context and passes client, entity, tax year, and data-type attributes to downstream processing." },
+  { step: "04", layer: "Orchestration Layer", explanation: "The orchestrator evaluates incoming context, determines the workflow, coordinates processing steps, and invokes the appropriate services or agents." },
+  { step: "05", layer: "File Identification & Data Extraction", explanation: "For file-based workflows, the platform identifies Excel, PDF, CSV, or another input type and selects the appropriate extraction strategy." },
+  { step: "06", layer: "Classification & Schema Mapping", explanation: "Extracted content is classified, such as Trial Balance, and transformed into the appropriate target schema." },
+  { step: "07", layer: "Taxonomy / Line Mapping", explanation: "Applicable tax taxonomy and line-mapping information associate source financial data with tax reporting structures, supported by Azure AI Search and maintained mapping indexes." },
+  { step: "08", layer: "Human-in-the-Loop Review", explanation: "Where required, Roger surfaces proposed mappings for practitioner review and confirmation before downstream tax processing continues." },
+  { step: "09", layer: "TDC — Tax Domain Data Layer", explanation: "TDC stores and governs tax-specific information, including tax master data, mappings, adjustments, calculations, and governed tax outputs." },
+  { step: "10", layer: "Downstream Tax Processing / Integrations", explanation: "Mapped, validated, and governed tax information becomes available for downstream workflows and tax-system integrations." },
+] as const;
+
+export const PI4_ARCHITECTURE_FOCUS = [
+  { system: "PDC", detail: "Shared/cross-LOB data, ingestion, metadata, and reusable platform context." },
+  { system: "DCT / Gateway", detail: "Integration, retrieval, composition, and movement of governed data between platform components." },
+  { system: "TDC", detail: "Tax-domain data, master data, taxonomy, mappings, adjustments, and governed tax outputs." },
+  { system: "Orchestrator", detail: "Determines and coordinates processing based on incoming context." },
+  { system: "Roger", detail: "Practitioner-facing workflow, review, decisions, and presentation." },
+] as const;
+
+export const PI4_ARCHITECTURE_QUICK_FLOW = "Roger → PDC → PDC API/Gateway → Orchestrator → Extraction & Classification → Schema/Taxonomy Mapping → User Review → TDC → Downstream Tax Processing";
+
 export const PI4_PLANNING_SUMMARY = {
   featureCount: PI4_FEATURE_STORY_MAP.length,
   storyCount: PI4_FEATURE_STORY_MAP.reduce((count, feature) => count + feature.stories.length, 0),
@@ -227,6 +255,10 @@ export function createPi4PlanningCopy() {
     "",
     "TY26 Pilot — What expands for pilot",
     ...PI4_TY26_PILOT_EXPANSIONS.map((item) => `- ${item.area}: ${item.expansion}`),
+    "",
+    "Logical Architecture & End-to-End Flow",
+    `Quick flow: ${PI4_ARCHITECTURE_QUICK_FLOW}`,
+    ...PI4_LOGICAL_ARCHITECTURE_FLOW.map((item) => `${item.step}. ${item.layer}: ${item.explanation}`),
     "",
     "Feature-to-Story Mapping",
     ...PI4_FEATURE_STORY_MAP.flatMap((feature) => [

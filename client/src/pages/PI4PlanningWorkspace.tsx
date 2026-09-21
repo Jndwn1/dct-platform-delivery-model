@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import { Link } from "wouter";
 import {
   createPi4PlanningCopy,
@@ -6,11 +6,18 @@ import {
   PI4_PLANNING_SUMMARY,
   PI4_SPRINT_PLANNING_LANES,
   PI4_TY26_PILOT_EXPANSIONS,
+  PI4_ARCHITECTURE_FOCUS,
+  PI4_ARCHITECTURE_QUICK_FLOW,
+  PI4_LOGICAL_ARCHITECTURE_FLOW,
   type Pi4Feature,
   type Pi4Workstream,
 } from "@/lib/pi4PlanningModel";
 
 type WorkspaceFilter = "All" | Pi4Workstream;
+
+const APPROVED_LOGICAL_ARCHITECTURE_DIAGRAM = "/manus-storage/image1_38887cda.png";
+const LOGICAL_ARCHITECTURE_DIAGRAM_KEY = "dct-pi4-logical-architecture-diagram";
+const LOGICAL_ARCHITECTURE_LABEL_KEY = "dct-pi4-logical-architecture-label";
 
 const WORKSTREAM_STYLE: Record<Pi4Workstream, { accent: string; ink: string; surface: string; border: string }> = {
   "DCT Platform": { accent: "#0f766e", ink: "#115e59", surface: "#f0fdfa", border: "#99f6e4" },
@@ -85,6 +92,16 @@ function StoryTable({ feature }: { feature: Pi4Feature }) {
 export default function PI4PlanningWorkspace() {
   const [filter, setFilter] = useState<WorkspaceFilter>("All");
   const [copied, setCopied] = useState(false);
+  const [logicalArchitectureDiagram, setLogicalArchitectureDiagram] = useState(() => {
+    if (typeof window === "undefined") return APPROVED_LOGICAL_ARCHITECTURE_DIAGRAM;
+    return window.localStorage.getItem(LOGICAL_ARCHITECTURE_DIAGRAM_KEY) || APPROVED_LOGICAL_ARCHITECTURE_DIAGRAM;
+  });
+  const [logicalArchitectureLabel, setLogicalArchitectureLabel] = useState(() => {
+    if (typeof window === "undefined") return "Approved Roger Pilot architecture diagram";
+    return window.localStorage.getItem(LOGICAL_ARCHITECTURE_LABEL_KEY) || "Approved Roger Pilot architecture diagram";
+  });
+  const [diagramNotice, setDiagramNotice] = useState("Approved diagram displayed");
+  const [isDiagramExpanded, setIsDiagramExpanded] = useState(false);
   const visibleFeatures = useMemo(() => {
     if (filter === "All") return ["DCT Platform", "State", "Provision"] as Pi4Workstream[];
     return [filter];
@@ -97,6 +114,49 @@ export default function PI4PlanningWorkspace() {
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
+    }
+  };
+
+  const handleLogicalArchitectureUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.currentTarget.files?.[0];
+    if (!selectedFile) return;
+
+    if (!selectedFile.type.startsWith("image/")) {
+      setDiagramNotice("Select a PNG, JPEG, or WebP architecture image.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageSource = typeof reader.result === "string" ? reader.result : null;
+      if (!imageSource) {
+        setDiagramNotice("The selected diagram could not be read.");
+        return;
+      }
+
+      setLogicalArchitectureDiagram(imageSource);
+      setLogicalArchitectureLabel(selectedFile.name);
+      setDiagramNotice(`Replacement displayed: ${selectedFile.name}`);
+      try {
+        window.localStorage.setItem(LOGICAL_ARCHITECTURE_DIAGRAM_KEY, imageSource);
+        window.localStorage.setItem(LOGICAL_ARCHITECTURE_LABEL_KEY, selectedFile.name);
+      } catch {
+        setDiagramNotice(`Replacement displayed for this browser session: ${selectedFile.name}`);
+      }
+    };
+    reader.onerror = () => setDiagramNotice("The selected diagram could not be read.");
+    reader.readAsDataURL(selectedFile);
+  };
+
+  const restoreApprovedLogicalArchitecture = () => {
+    setLogicalArchitectureDiagram(APPROVED_LOGICAL_ARCHITECTURE_DIAGRAM);
+    setLogicalArchitectureLabel("Approved Roger Pilot architecture diagram");
+    setDiagramNotice("Approved diagram restored");
+    try {
+      window.localStorage.removeItem(LOGICAL_ARCHITECTURE_DIAGRAM_KEY);
+      window.localStorage.removeItem(LOGICAL_ARCHITECTURE_LABEL_KEY);
+    } catch {
+      // The approved diagram is still restored in the active browser session.
     }
   };
 
@@ -123,6 +183,84 @@ export default function PI4PlanningWorkspace() {
         <CountCard label="Linked stories" value={PI4_PLANNING_SUMMARY.storyCount} detail="Story-level sprint planning inventory" color="#0d9488" />
         <CountCard label="Sprint planning lanes" value={PI4_PLANNING_SUMMARY.sprintLaneCount} detail="No dates or commitments set" color="#2563eb" />
         <CountCard label="Assigned stories" value={PI4_PLANNING_SUMMARY.assignedStoryCount} detail="Sprint assignments pending PI4 baseline" color="#64748b" />
+      </section>
+
+      <section aria-label="Logical Architecture and End-to-End Flow" style={{ background: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 4px rgba(15, 23, 42, 0.06)", marginBottom: "24px" }}>
+        <div style={{ background: "#eff6ff", borderBottom: "1px solid #bfdbfe", padding: "14px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "14px", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ color: "#1d4ed8", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>PI4 technical dependency view</div>
+            <h2 style={{ color: "#0f172a", fontSize: "17px", fontWeight: 850, margin: "4px 0 0" }}>Logical Architecture &amp; End-to-End Flow</h2>
+            <p style={{ color: "#475569", fontSize: "11px", lineHeight: 1.45, maxWidth: "760px", margin: "5px 0 0" }}>The approved Roger Pilot architecture is the visual source of truth. The companion content below clarifies the end-to-end system interaction for PI4 planning without changing system ownership.</p>
+          </div>
+          <span style={{ color: "#1e3a8a", background: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "99px", padding: "4px 8px", fontSize: "10px", fontWeight: 800 }}>Architecture reference</span>
+        </div>
+
+        <div style={{ padding: "16px" }}>
+          <div style={{ background: "#f8fafc", border: "1px solid #dbeafe", borderRadius: "9px", padding: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", flexWrap: "wrap", marginBottom: "9px" }}>
+              <div>
+                <div style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>Logical Architecture Diagram</div>
+                <div style={{ color: "#64748b", fontSize: "10px", marginTop: "2px" }}>{logicalArchitectureLabel}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap" }}>
+                <label style={{ color: "#ffffff", background: "#2563eb", border: "1px solid #2563eb", borderRadius: "5px", padding: "6px 9px", fontSize: "10px", fontWeight: 800, cursor: "pointer" }}>
+                  Replace diagram
+                  <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogicalArchitectureUpload} style={{ display: "none" }} />
+                </label>
+                <button type="button" onClick={() => setIsDiagramExpanded(true)} style={{ color: "#1e40af", background: "#ffffff", border: "1px solid #93c5fd", borderRadius: "5px", padding: "6px 9px", fontSize: "10px", fontWeight: 800, cursor: "pointer" }}>Expand diagram</button>
+                {logicalArchitectureDiagram !== APPROVED_LOGICAL_ARCHITECTURE_DIAGRAM && <button type="button" onClick={restoreApprovedLogicalArchitecture} style={{ color: "#475569", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "5px", padding: "6px 9px", fontSize: "10px", fontWeight: 800, cursor: "pointer" }}>Restore approved</button>}
+              </div>
+            </div>
+            <button type="button" onClick={() => setIsDiagramExpanded(true)} style={{ display: "block", width: "100%", background: "#ffffff", border: "1px solid #dbeafe", borderRadius: "7px", padding: "6px", cursor: "zoom-in" }} aria-label="Expand Roger Logical Architecture diagram">
+              <img src={logicalArchitectureDiagram} alt="Roger Logical Architecture – PI4" style={{ display: "block", width: "100%", maxHeight: "470px", objectFit: "contain", borderRadius: "4px" }} />
+            </button>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", flexWrap: "wrap", marginTop: "8px", color: "#475569", fontSize: "10px", lineHeight: 1.4 }}>
+              <span><strong style={{ color: "#334155" }}>Roger Logical Architecture – PI4</strong></span>
+              <span>{diagramNotice}</span>
+            </div>
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <div style={{ color: "#0f172a", fontSize: "13px", fontWeight: 850 }}>Architecture Flow</div>
+            <div style={{ color: "#64748b", fontSize: "10px", lineHeight: 1.45, marginTop: "3px" }}>Business-readable explanation of the system names and interactions shown in the approved diagram.</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(245px, 1fr))", gap: "8px", marginTop: "10px" }}>
+              {PI4_LOGICAL_ARCHITECTURE_FLOW.map((item) => (
+                <div key={item.step} style={{ border: "1px solid #dbeafe", borderRadius: "7px", padding: "10px", background: "#ffffff" }}>
+                  <div style={{ display: "flex", gap: "7px", alignItems: "flex-start" }}>
+                    <span style={{ flex: "0 0 auto", color: "#1d4ed8", background: "#eff6ff", borderRadius: "4px", padding: "2px 5px", fontSize: "9px", fontWeight: 850 }}>{item.step}</span>
+                    <div style={{ color: "#0f172a", fontSize: "11px", fontWeight: 850, lineHeight: 1.35 }}>{item.layer}</div>
+                  </div>
+                  <div style={{ color: "#475569", fontSize: "10px", lineHeight: 1.45, marginTop: "6px" }}>{item.explanation}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: "13px", background: "#0f172a", borderRadius: "8px", padding: "11px 13px" }}>
+            <div style={{ color: "#bfdbfe", fontSize: "9px", fontWeight: 850, letterSpacing: "0.08em", textTransform: "uppercase" }}>Visual flow summary</div>
+            <div style={{ color: "#ffffff", fontSize: "11px", lineHeight: 1.55, fontWeight: 700, marginTop: "4px" }}>{PI4_ARCHITECTURE_QUICK_FLOW}</div>
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <div style={{ color: "#0f172a", fontSize: "13px", fontWeight: 850 }}>PI4 Architecture Focus</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "8px", marginTop: "9px" }}>
+              {PI4_ARCHITECTURE_FOCUS.map((item) => (
+                <div key={item.system} style={{ borderLeft: "3px solid #2563eb", background: "#f8fafc", borderTop: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", borderRadius: "6px", padding: "9px 10px" }}>
+                  <div style={{ color: "#1e3a8a", fontSize: "11px", fontWeight: 850 }}>{item.system}</div>
+                  <div style={{ color: "#475569", fontSize: "10px", lineHeight: 1.4, marginTop: "4px" }}>{item.detail}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: "14px", display: "flex", gap: "9px", alignItems: "flex-start", background: "#fffbeb", border: "1px solid #fde68a", borderLeft: "4px solid #d97706", borderRadius: "7px", padding: "11px 13px" }}>
+            <span style={{ color: "#b45309", fontSize: "14px", lineHeight: 1 }}>ⓘ</span>
+            <div>
+              <div style={{ color: "#92400e", fontSize: "11px", fontWeight: 850 }}>Why This Matters for PI4</div>
+              <div style={{ color: "#78350f", fontSize: "10px", lineHeight: 1.5, marginTop: "4px" }}>This view helps PI4 teams locate a feature in the platform, identify which system owns data at each stage, recognize integration and dependency points, distinguish transformation from persistence, and coordinate work that spans Roger, DCT, PDC, TDC, or orchestration.</div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section aria-label="TY26 pilot expansion" style={{ background: "#ffffff", border: "1px solid #bae6fd", borderRadius: "10px", overflow: "hidden", boxShadow: "0 1px 4px rgba(15, 23, 42, 0.06)", marginBottom: "24px" }}>
@@ -214,6 +352,21 @@ export default function PI4PlanningWorkspace() {
         <Link href="/uat-testing" style={{ color: "#2563eb", fontWeight: 750 }}>UAT Readiness</Link>{" "}
         for the PI4 UAT execution and TY26 pilot timeline.
       </footer>
+
+      {isDiagramExpanded && (
+        <div role="dialog" aria-modal="true" aria-label="Expanded Roger Logical Architecture diagram" onClick={() => setIsDiagramExpanded(false)} style={{ position: "fixed", inset: 0, zIndex: 80, display: "flex", alignItems: "center", justifyContent: "center", padding: "26px", background: "rgba(15, 23, 42, 0.78)" }}>
+          <div onClick={(event) => event.stopPropagation()} style={{ width: "min(1400px, 96vw)", maxHeight: "92vh", overflow: "auto", background: "#ffffff", borderRadius: "10px", padding: "14px", boxShadow: "0 22px 60px rgba(15, 23, 42, 0.35)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "10px" }}>
+              <div>
+                <div style={{ color: "#0f172a", fontSize: "14px", fontWeight: 850 }}>Roger Logical Architecture – PI4</div>
+                <div style={{ color: "#64748b", fontSize: "10px", marginTop: "2px" }}>{logicalArchitectureLabel}</div>
+              </div>
+              <button type="button" onClick={() => setIsDiagramExpanded(false)} style={{ color: "#334155", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "5px", padding: "6px 9px", fontSize: "10px", fontWeight: 800, cursor: "pointer" }}>Close</button>
+            </div>
+            <img src={logicalArchitectureDiagram} alt="Expanded Roger Logical Architecture – PI4" style={{ display: "block", width: "100%", height: "auto" }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
