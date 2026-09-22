@@ -878,7 +878,7 @@ export default function Home() {
             { label: "MVP Features In Review", value: mvp.inReview, sub: "No features in review", color: "#a78bfa" },
             { label: "MVP Features Planned", value: mvp.planned, sub: "Not Started only", color: "#94a3b8" },
             { label: "Total MVP Features", value: mvp.total, sub: `${batchTotal} governed batch delivery features`, color: "#fb923c" },
-            { label: "Roger QA Screens", value: rogerScreenMetrics.total, sub: `${rogerScreenDeliveryMetrics.completed} Completed · ${rogerScreenDeliveryMetrics.inProgress} In Progress · QA status not stated`, color: "#38bdf8" },
+            { label: "Roger QA Screens", value: rogerScreenMetrics.total, sub: `${rogerScreenDeliveryMetrics.completed} Delivery Completed · ${rogerScreenMetrics.completed} QA Completed`, color: "#38bdf8" },
           ].map(k => (
             <div key={k.label} style={{
               backgroundColor: "rgba(255,255,255,0.06)",
@@ -1044,7 +1044,7 @@ export default function Home() {
               { label: "Total Screens", value: rogerScreenMetrics.total, color: "#1e3a5f", bg: "#eaf0fb" },
               { label: "Completed", value: rogerScreenDeliveryMetrics.completed, color: "#047857", bg: "#ecfdf5" },
               { label: "In Progress", value: rogerScreenDeliveryMetrics.inProgress, color: "#92400e", bg: "#fffbeb" },
-              { label: "QA Status Not Stated", value: rogerScreenMetrics.notStated, color: "#475569", bg: "#f8fafc" },
+              { label: "QA Completed", value: rogerScreenMetrics.completed, color: "#047857", bg: "#ecfdf5" },
             ].map(metric => (
               <div key={metric.label} style={{ borderRadius: "6px", backgroundColor: metric.bg, padding: "8px 9px", border: `1px solid ${metric.color}22` }}>
                 <div style={{ fontSize: "18px", lineHeight: 1, fontWeight: 800, color: metric.color }}>{metric.value}</div>
@@ -1054,6 +1054,9 @@ export default function Home() {
           </div>
           <div style={{ marginTop: "10px", fontSize: "10px", color: "#475569", lineHeight: 1.5 }}>
             <strong style={{ color: "#1e3a5f" }}>Delivery status:</strong> {rogerScreenDeliveryMetrics.completed} Completed · {rogerScreenDeliveryMetrics.done} Done · {rogerScreenDeliveryMetrics.inQa} In QA · {rogerScreenDeliveryMetrics.inProgress} In Progress · {rogerScreenDeliveryMetrics.notStarted} Not Started · {rogerScreenDeliveryMetrics.outOfScope} Out of Scope · {rogerScreenDeliveryMetrics.notFunctional} Not Functional
+          </div>
+          <div style={{ marginTop: "4px", fontSize: "10px", color: "#475569", lineHeight: 1.5 }}>
+            <strong style={{ color: "#1e3a5f" }}>QA status:</strong> {rogerScreenMetrics.completed} Completed
           </div>
           <div style={{ marginTop: "4px", fontSize: "10px", color: "#64748b", lineHeight: 1.5 }}>
             <strong style={{ color: "#1e3a5f" }}>Roger key dates:</strong> {ROGER_MVP_MILESTONES.map(milestone => `${milestone.milestone}: ${milestone.date}`).join(" · ")}

@@ -9,7 +9,7 @@ describe("Roger MVP screen status model", () => {
     expect(ROGER_MVP_SCREEN_RECORDS.find(record => record.id === "review-submit")).toBeUndefined();
   });
 
-  it("marks all 18 Roger MVP screens completed while retaining QA readiness as a separate dimension", () => {
+  it("marks all 18 Roger MVP screens completed for both delivery and QA", () => {
     const lineMappingPage = ROGER_MVP_SCREEN_RECORDS.find(record => record.id === "line-mapping-page");
     const signOff = ROGER_MVP_SCREEN_RECORDS.find(record => record.id === "sign-off");
 
@@ -17,16 +17,19 @@ describe("Roger MVP screen status model", () => {
     expect(signOff?.notes).toContain("#1450692");
     expect(countBy(ROGER_MVP_SCREEN_RECORDS, "deliveryStatus", "Completed")).toBe(18);
     expect(countBy(ROGER_MVP_SCREEN_RECORDS, "deliveryStatus", "In Progress")).toBe(0);
+    expect(countBy(ROGER_MVP_SCREEN_RECORDS, "qaReadinessStatus", "Completed")).toBe(18);
+    expect(countBy(ROGER_MVP_SCREEN_RECORDS, "qaReadinessStatus", "Not stated")).toBe(0);
     expect(new Set(ROGER_MVP_SCREEN_RECORDS.map(record => record.lastUpdated))).toEqual(new Set(["Sep 22, 2026"]));
   });
 
-  it("derives the compact landing-page readiness metrics from the same 18-screen registry", () => {
+  it("derives the completed QA metric from the same 18-screen registry", () => {
     expect(getRogerScreenReadinessSummary()).toEqual({
       total: 18,
+      completed: 18,
       ready: 0,
       partial: 0,
       notReady: 0,
-      notStated: 18,
+      notStated: 0,
     });
   });
 

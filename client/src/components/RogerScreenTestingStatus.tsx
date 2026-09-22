@@ -14,6 +14,7 @@ import {
 } from "@/lib/rogerMvpScreenStatus";
 
 const QA_STYLE: Record<QAReadinessStatus, { bg: string; text: string; border: string }> = {
+  Completed: { bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
   "Ready to Test": { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0" },
   "Partially Ready": { bg: "#fefce8", text: "#854d0e", border: "#fde68a" },
   "Not Ready": { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
