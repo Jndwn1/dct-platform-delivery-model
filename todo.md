@@ -202,3 +202,4 @@
 - [x] Close Defect Tracking and reconcile final MVP closure metrics and Delivery Highlights
 - [x] Add the Roger → GoSystem State Calculation POC extension to the existing State workspace, including architecture, data movement, requirements, taxonomy, BA deliverables, dependencies, and success criteria
 - [x] Remove the legacy discovery, story-readiness, refinement, ownership, and PI4 readiness sections from the State & Provision workspace while retaining the platform architecture, capabilities, Ask Buddy, and State POC
+- [x] Resize the embedded Roger → GoSystem State POC workflow to fit the workspace without horizontal scrolling

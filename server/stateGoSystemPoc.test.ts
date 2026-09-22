@@ -37,6 +37,12 @@ describe("State GoSystem POC extension", () => {
     expect(poc).toContain("Governed persistence, retrieval, and integration support.");
     expect(poc).toContain("State tax calculation engine.");
     expect(poc).toContain("/manus-storage/gosystem-state-calculation-poc_ddd0591b.png");
+    expect(poc).toContain("sized to fit the workspace");
+    expect(poc).toContain('overflowX: "hidden"');
+    expect(poc).toContain('maxWidth: "1280px"');
+    expect(poc).toContain('width: "100%"');
+    expect(poc).not.toContain('width: "2800px"');
+    expect(poc).not.toContain("Scroll horizontally to review the full POC architecture");
 
     expect(knowledgeBase).toContain("Roger → GoSystem POC — State Calculation Integration");
     expect(knowledgeBase).toContain("What does the Roger to GoSystem State Calculation POC need to prove?");

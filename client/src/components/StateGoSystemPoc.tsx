@@ -210,8 +210,8 @@ export default function StateGoSystemPoc() {
 
         <PanelHeading eyebrow="State architecture / controlled flow" title="GoSystem as the downstream State calculation system" subtitle="The existing State file-drop architecture remains in place. This POC extends it with a governed calculation loop; GoSystem is added as a downstream calculation engine and does not replace TIM, PDC, TDC, Orchestrator, Gateway, IMS, or State services." />
         <div style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "10px", marginBottom: "18px", overflow: "hidden" }}>
-          <div style={{ backgroundColor: "#ffffff", borderBottom: "1px solid #e2e8f0", color: C.slate, fontSize: "10px", fontWeight: 700, padding: "9px 12px" }}>Scroll horizontally to review the full POC architecture, inbound package, return package, system responsibilities, and governance boundary.</div>
-          <div style={{ overflowX: "auto", padding: "12px" }}><img src={ARCHITECTURE_IMAGE} alt="Roger to GoSystem State calculation POC architecture showing practitioner, Roger, DCT, Taxonomy, IMS, GoSystem, result retrieval, and review flow" style={{ display: "block", height: "auto", maxWidth: "none", width: "2800px" }} /></div>
+          <div style={{ backgroundColor: "#ffffff", borderBottom: "1px solid #e2e8f0", color: C.slate, fontSize: "10px", fontWeight: 700, padding: "9px 12px" }}>Full POC architecture, sized to fit the workspace and show the complete governed flow in one view.</div>
+          <div style={{ overflowX: "hidden", padding: "12px" }}><img src={ARCHITECTURE_IMAGE} alt="Roger to GoSystem State calculation POC architecture showing practitioner, Roger, DCT, Taxonomy, IMS, GoSystem, result retrieval, and review flow" style={{ display: "block", height: "auto", margin: "0 auto", maxWidth: "1280px", width: "100%" }} /></div>
         </div>
 
         <div style={{ display: "grid", gap: "9px", gridTemplateColumns: "repeat(9, minmax(115px, 1fr))", marginBottom: "20px", minWidth: "0", overflowX: "auto" }}>
