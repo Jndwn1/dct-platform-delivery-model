@@ -4,15 +4,13 @@ import { describe, expect, it } from "vitest";
 import { BATCH_DELIVERY_RECORDS } from "../client/src/contexts/BatchStatusContext";
 
 describe("Delivery Highlights active and closed workstreams", () => {
-  it("shows exactly the two active workstreams and dynamically renders the three current-day closures", () => {
+  it("shows Defect Tracking as the sole active workstream and dynamically renders current-day closures", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
     const activeRecords = BATCH_DELIVERY_RECORDS.filter(record => record.sourceStatusLabel === "Active");
 
-    expect(activeRecords.map(record => record.id).sort()).toEqual(["B45", "DEFECT-TRACKING"]);
-    expect(activeRecords.map(record => record.featureName)).toEqual(expect.arrayContaining([
-      "MVP Enhancements — Rule Logic Expression Table & Adjustment Subtype Domain Expansion",
-      "Defect Tracking",
-    ]));
+    expect(activeRecords.map(record => record.id).sort()).toEqual(["DEFECT-TRACKING"]);
+    expect(activeRecords.map(record => record.featureName)).toEqual(["Defect Tracking"]);
+    expect(BATCH_DELIVERY_RECORDS.find(record => record.id === "B45")?.sourceStatusLabel).toBe("Closed");
     expect(activeRecords.map(record => record.id)).not.toContain("B28");
     expect(activeRecords.map(record => record.id)).not.toContain("B9A");
     expect(activeRecords.map(record => record.id)).not.toContain("ENV-MANAGEMENT");

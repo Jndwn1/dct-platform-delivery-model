@@ -265,7 +265,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       color: "#2563eb",
       bg: "#eff6ff",
       border: "#bfdbfe",
-      note: "Current ADO scope: two active workstreams — MVP Enhancements and Defect Tracking. B9A, B28, and Environment Management closed Sep. 22; B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21.",
+      note: "Current ADO scope: one active workstream — Defect Tracking. MVP Enhancements, B9A, B28, and Environment Management closed Sep. 22; B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21.",
     },
     {
       pi: "PI 4",
