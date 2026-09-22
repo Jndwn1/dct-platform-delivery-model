@@ -181,6 +181,8 @@ function RequirementGroup({ label, items, accent }: { label: string; items: read
 }
 
 export default function StateGoSystemPoc() {
+  const [isDiagramViewerOpen, setIsDiagramViewerOpen] = useState(false);
+  const [diagramZoom, setDiagramZoom] = useState(1);
   const copyText = [
     "Roger → GoSystem POC: State Calculation Integration",
     "Purpose: Prove governed State preparation data can move Roger → DCT → IMS → GoSystem and return as a structured, transparent review package in Roger.",
@@ -210,9 +212,32 @@ export default function StateGoSystemPoc() {
 
         <PanelHeading eyebrow="State architecture / controlled flow" title="GoSystem as the downstream State calculation system" subtitle="The existing State file-drop architecture remains in place. This POC extends it with a governed calculation loop; GoSystem is added as a downstream calculation engine and does not replace TIM, PDC, TDC, Orchestrator, Gateway, IMS, or State services." />
         <div style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "10px", marginBottom: "18px", overflow: "hidden" }}>
-          <div style={{ backgroundColor: "#ffffff", borderBottom: "1px solid #e2e8f0", color: C.slate, fontSize: "10px", fontWeight: 700, padding: "9px 12px" }}>Full POC architecture, sized to fit the workspace and show the complete governed flow in one view.</div>
+          <div style={{ alignItems: "center", backgroundColor: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", gap: "12px", justifyContent: "space-between", padding: "9px 12px" }}>
+            <span style={{ color: C.slate, fontSize: "10px", fontWeight: 700 }}>Architecture overview — open the full-size viewer to read every workflow label.</span>
+            <button type="button" onClick={() => setIsDiagramViewerOpen(true)} style={{ backgroundColor: C.navy, border: "1px solid #0f1623", borderRadius: "6px", color: "#ffffff", cursor: "pointer", flexShrink: 0, fontSize: "10px", fontWeight: 800, padding: "6px 10px" }}>Open readable diagram</button>
+          </div>
           <div style={{ overflowX: "hidden", padding: "12px" }}><img src={ARCHITECTURE_IMAGE} alt="Roger to GoSystem State calculation POC architecture showing practitioner, Roger, DCT, Taxonomy, IMS, GoSystem, result retrieval, and review flow" style={{ display: "block", height: "auto", margin: "0 auto", maxWidth: "1280px", width: "100%" }} /></div>
         </div>
+
+        {isDiagramViewerOpen && (
+          <div role="dialog" aria-modal="true" aria-label="Readable Roger to GoSystem State calculation workflow" onClick={() => setIsDiagramViewerOpen(false)} style={{ alignItems: "center", backgroundColor: "rgba(15, 22, 35, 0.78)", display: "flex", inset: 0, justifyContent: "center", padding: "24px", position: "fixed", zIndex: 80 }}>
+            <div onClick={event => event.stopPropagation()} style={{ backgroundColor: "#ffffff", borderRadius: "12px", boxShadow: "0 20px 60px rgba(0,0,0,0.38)", maxHeight: "calc(100vh - 48px)", maxWidth: "calc(100vw - 48px)", overflow: "hidden", width: "100%" }}>
+              <div style={{ alignItems: "center", backgroundColor: C.navy, display: "flex", gap: "12px", justifyContent: "space-between", padding: "12px 16px" }}>
+                <div>
+                  <div style={{ color: "#bae6fd", fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>Full-size workflow viewer</div>
+                  <div style={{ color: "#ffffff", fontSize: "14px", fontWeight: 800, marginTop: "2px" }}>Roger → GoSystem POC: State Calculation Integration</div>
+                </div>
+                <div style={{ alignItems: "center", display: "flex", gap: "7px" }}>
+                  <button type="button" onClick={() => setDiagramZoom(value => Math.max(0.75, Number((value - 0.15).toFixed(2))))} style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "5px", color: C.navy, cursor: "pointer", fontSize: "12px", fontWeight: 800, padding: "5px 8px" }}>−</button>
+                  <span style={{ color: "#dbeafe", fontSize: "11px", fontWeight: 700, minWidth: "38px", textAlign: "center" }}>{Math.round(diagramZoom * 100)}%</span>
+                  <button type="button" onClick={() => setDiagramZoom(value => Math.min(1.5, Number((value + 0.15).toFixed(2))))} style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "5px", color: C.navy, cursor: "pointer", fontSize: "12px", fontWeight: 800, padding: "5px 8px" }}>+</button>
+                  <button type="button" onClick={() => setIsDiagramViewerOpen(false)} style={{ backgroundColor: "transparent", border: "1px solid #7dd3fc", borderRadius: "5px", color: "#ffffff", cursor: "pointer", fontSize: "10px", fontWeight: 800, marginLeft: "5px", padding: "6px 9px" }}>Close</button>
+                </div>
+              </div>
+              <div style={{ backgroundColor: "#f8fafc", maxHeight: "calc(100vh - 125px)", overflow: "auto", padding: "16px" }}><img src={ARCHITECTURE_IMAGE} alt="Full-size Roger to GoSystem State calculation POC architecture" style={{ display: "block", height: "auto", maxWidth: "none", width: `${2800 * diagramZoom}px` }} /></div>
+            </div>
+          </div>
+        )}
 
         <div style={{ display: "grid", gap: "9px", gridTemplateColumns: "repeat(9, minmax(115px, 1fr))", marginBottom: "20px", minWidth: "0", overflowX: "auto" }}>
           {[
