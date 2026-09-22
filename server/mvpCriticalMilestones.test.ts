@@ -16,6 +16,7 @@ describe("MVP Critical Milestones", () => {
     expect(MVP_CRITICAL_MILESTONE_SCHEDULE.find(item => item.id === "remaining-stories-py-ready")?.dateLabel).toBe("Aug 28, 2026");
     expect(MVP_CRITICAL_MILESTONE_SCHEDULE.find(item => item.id === "uat-execution")).toMatchObject({
       date: "2026-09-21",
+      endDate: "2026-10-09",
       dateLabel: "Sep 21–Oct 9, 2026",
       name: "UAT Execution",
       sourceScope: "uat",
@@ -64,5 +65,6 @@ describe("MVP Critical Milestones", () => {
     const next = getNextCriticalMilestone(milestones, asOf);
     expect(next.id).toBe("uat-execution");
     expect(resolveMilestoneStatus(next, asOf)).toBe("In Progress");
+    expect(resolveMilestoneStatus(next, new Date("2026-09-22T12:00:00"))).toBe("In Progress");
   });
 });

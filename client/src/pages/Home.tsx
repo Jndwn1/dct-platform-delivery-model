@@ -153,8 +153,8 @@ const BATCH_CALENDAR_PI23 = [
   // ── PI 3 ──
   { pi: "PI 3", status: "Done",        batch: "B16",   feat: "TDC",     name: "Audit Trail & Lineage Governance",                                  startDate: "Mon 7/13",  endDate: "Tue 7/21",  whatItDoes: "Records the tax-side audit trail and lineage as governed events.",                                                                             rogerImpact: "None (audit / lineage)" },
   { pi: "PI 3", status: "Done",        batch: "B31",  feat: "PDC",     name: "Legacy Tool Prior Year Ingestion",                                  startDate: "Wed 7/1",   endDate: "Sun 9/21",  whatItDoes: "Ingests prior-year data from legacy tools (TWB via CDS / DUO).",                                                                              rogerImpact: "Low: prior-year data appears on TB / rollforward" },
-  { pi: "PI 3", status: "In Progress", batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Thu 7/30",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
-  { pi: "PI 3", status: "In Progress", batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Wed 7/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
+  { pi: "PI 3", status: "Done",        batch: "B28",   feat: "TDC",     name: "Tax Workpaper & Provision Schedules",                               startDate: "Wed 7/22",  endDate: "Tue 9/22",  whatItDoes: "Produces workpapers and provision schedules (M-1/M-3, Sch J/L, depreciation).",                                                               rogerImpact: "High: Book Return Review & Book to Tax Reconciliation (stages 6, 9)" },
+  { pi: "PI 3", status: "Done",        batch: "B9a",   feat: "Gateway", name: "Data Gateway (IMS, CDS, DUO, Tax Portal)",                          startDate: "Tue 7/14",  endDate: "Tue 9/22",  whatItDoes: "Extends the gateway to new sources (IMS, CDS, DUO) for automated retrieval.",                                                                 rogerImpact: "None (gateway / connectors)" },
   { pi: "PI 3", status: "Out of Current ADO Pipeline", batch: "B39", feat: "TDC", name: "Calculation Report", startDate: "Fri 7/31", endDate: "Mon 8/10", whatItDoes: "Historical portfolio item; not present in the supplied current ADO Active or Review Ready extract.", rogerImpact: "High: Book to Tax Report (stage 8) + packaged report" },
   { pi: "PI 3", status: "Out of Current ADO Pipeline", batch: "B20", feat: "PDC", name: "Firm Governance & Professional Standards", startDate: "Thu 7/23", endDate: "Fri 7/31", whatItDoes: "Historical portfolio item; not present in the supplied current ADO Active or Review Ready extract.", rogerImpact: "None: gates sign-off, no new screen" },
   { pi: "PI 3", status: "Done",        batch: "B29",   feat: "TDC",     name: "Consolidated Return Assembly",                                      startDate: "Tue 8/11",  endDate: "Tue 8/11",  whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                                rogerImpact: "High: consolidated / multi-entity views + Form 1120" },
@@ -190,12 +190,12 @@ const BATCH_REFERENCE = [
   { pi: "PI 3", status: "Out of Current ADO Pipeline", batchNum: "20", platform: "TDC", name: "Apportionment & State Allocation", whatItDoes: "Historical portfolio item; excluded from the supplied current ADO Active and Review Ready extract.", rogerImpact: "State Apportionment" },
   { pi: "PI 3", status: "Out of Current ADO Pipeline", batchNum: "21", platform: "PDC", name: "Multi-Entity Consolidation", whatItDoes: "Historical portfolio item; excluded from the supplied current ADO Active and Review Ready extract.", rogerImpact: "Consolidation View" },
   { pi: "PI 3", status: "Historical / Excluded", batchNum: "26", platform: "PDC", name: "Known Mappings — Confirmed Classification Retrieval", whatItDoes: "Historical planning record retained outside the corrected 23-batch MVP scope.", rogerImpact: "Line Mappings (Stage 2)" },
-  { pi: "PI 3", status: "In Progress", batchNum: "28",  platform: "TDC",      name: "Deferred Tax & Temporary Differences",                               whatItDoes: "Computes deferred tax assets/liabilities and temporary differences.",                                                                         rogerImpact: "Deferred Tax" },
+  { pi: "PI 3", status: "Done",        batchNum: "28",  platform: "TDC",      name: "Deferred Tax & Temporary Differences",                               whatItDoes: "Computes deferred tax assets/liabilities and temporary differences.",                                                                         rogerImpact: "Deferred Tax" },
   { pi: "PI 3", status: "Done",      batchNum: "29",  platform: "TDC",      name: "Consolidated Return Assembly",                                      whatItDoes: "Assembles consolidated C-corp returns with eliminations and group adjustments.",                                                             rogerImpact: "Consolidated / multi-entity views + Form 1120" },
   { pi: "PI 3", status: "Review Ready", batchNum: "31", platform: "TDC", name: "Partnership K-1 & Pass-Through Allocation", whatItDoes: "Handles K-1 income allocation and pass-through entity tax treatment.", rogerImpact: "K-1 / Pass-Through" },
-  { pi: "PI 3", status: "In Progress", batchNum: "9A",  platform: "Gateway",  name: "Roger Gateway — Extended Consumer Contracts",                        whatItDoes: "Extends the Roger Gateway with additional governed consumer contracts.",                                                                       rogerImpact: "Gateway Expansion" },
+  { pi: "PI 3", status: "Done",        batchNum: "9A",  platform: "Gateway",  name: "Roger Gateway — Extended Consumer Contracts",                        whatItDoes: "Extends the Roger Gateway with additional governed consumer contracts.",                                                                       rogerImpact: "Gateway Expansion" },
   { pi: "PI 3", status: "In Progress", batchNum: "Defect", platform: "DCT", name: "Defect Tracking", whatItDoes: "Tracks UAT defects, triage, remediation, and retest evidence.", rogerImpact: "UAT issue resolution" },
-  { pi: "PI 3", status: "In Progress", batchNum: "Environment", platform: "DCT", name: "Environment Management", whatItDoes: "Coordinates governed environment readiness and deployment activity.", rogerImpact: "UAT execution support" },
+  { pi: "PI 3", status: "Done",        batchNum: "Environment", platform: "DCT", name: "Environment Management", whatItDoes: "Coordinates governed environment readiness and deployment activity.", rogerImpact: "UAT execution support" },
   { pi: "PI 3", status: "Out of Current ADO Pipeline", batchNum: "39", platform: "TDC", name: "International Tax — GILTI, FDII, BEAT", whatItDoes: "Historical portfolio item; excluded from the supplied current ADO Active and Review Ready extract.", rogerImpact: "International Tax" },
   { pi: "PI 3", status: "Stretch",   batchNum: "33",  platform: "TDC",      name: "S-Corp & Flow-Through Specialization",                               whatItDoes: "S-Corp and flow-through entity tax specialization.",                                                                                         rogerImpact: "S-Corp / Flow-Through" },
   { pi: "PI 4", status: "Planned",   batchNum: "19",  platform: "TDC",      name: "Estimated Tax & Safe Harbor",                                        whatItDoes: "Manages estimated tax payments and safe harbor calculations.",                                                                                rogerImpact: "Estimated Tax" },
@@ -657,6 +657,7 @@ export default function Home() {
   const pi3Closed = getPi3CumulativeCompleted();
   const recentlyClosedPi3 = PI3_POST_BASELINE_CLOSURES;
   const closedThisWeek = recentlyClosedPi3.filter(item => isInDashboardReportingWeek(item.completionDate));
+  const closedToday = recentlyClosedPi3.filter(item => item.completionDate === DASHBOARD_REPORTING_DATE);
   const piStatusRows = useMemo(() => {
     const rows = [
       { label: "PI 1", metric: piCompletion.pi1 },
@@ -1099,14 +1100,9 @@ export default function Home() {
 
           {/* Confirmed current-day closures — retained here for executive scanning. */}
           <div style={{ backgroundColor: "#ecfdf5", borderRadius: "8px", padding: "12px 16px", borderLeft: "3px solid #059669" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>✅ Closed Today — 4 Workstreams</div>
-            {[
-              "B10 — Return Assembly, Filing & Lineage Closure",
-              "B31 PDC — Legacy Tool Prior Year Ingestion & Housing",
-              "Performance Testing",
-              "DCT QA Workstream",
-            ].map(item => (
-              <div key={item} style={{ fontSize: "11px", color: "#065f46", lineHeight: "1.6" }}>• {item}</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>✅ Closed Today — {closedToday.length} Workstreams</div>
+            {closedToday.map(item => (
+              <div key={item.id} style={{ fontSize: "11px", color: "#065f46", lineHeight: "1.6" }}>• {item.batch} — {item.name}</div>
             ))}
           </div>
           {/* Release Readiness */}

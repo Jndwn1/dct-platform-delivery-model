@@ -195,3 +195,4 @@
 - [x] Update State stories 1472734 and 1471480 to reflect refinement completion and DCT ownership without assigning PI4 sprints
 - [x] Mark the MVP live across the executive dashboard, release targets, and governed critical-milestone model while retaining UAT context
 - [x] Reconcile five active MVP workstreams and close B10, B31 PDC, Performance Testing, and DCT QA Workstream across metrics, Delivery Highlights, and Recently Closed
+- [x] Close B9A, B28, and Environment Management and reconcile dashboard metrics, Delivery Highlights, and Recently Closed in PI3

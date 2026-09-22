@@ -1800,7 +1800,7 @@ export default function BatchControlPanel() {
         )}
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-5">
-          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from 27 governed delivery records. The five active workstreams—B9A, B28, MVP Enhancements, Defect Tracking, and Environment Management—count as <strong>In Development</strong>. B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21. PI4 is planning visibility only and is excluded from all delivery metrics. B39, B20, B21, B26, and historical split records remain excluded from the current MVP scope.
+          <strong>Governed reconciliation applied:</strong> Current portfolio lifecycle is sourced from 27 governed delivery records. The two active workstreams—MVP Enhancements and Defect Tracking—count as <strong>In Development</strong>. B9A, B28, and Environment Management closed Sep. 22; B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21. PI4 is planning visibility only and is excluded from all delivery metrics. B39, B20, B21, B26, and historical split records remain excluded from the current MVP scope.
         </div>
 
         <div className="mx-5 mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-5">

@@ -10,6 +10,7 @@ export type MvpMilestoneStatus = "Complete" | "In Progress" | "At Risk / Confirm
 type MvpMilestoneDefinition = {
   id: string;
   date: string;
+  endDate?: string;
   dateLabel: string;
   name: string;
   shortDescription: string;
@@ -97,6 +98,7 @@ export const MVP_CRITICAL_MILESTONE_SCHEDULE: MvpMilestoneDefinition[] = [
   {
     id: "uat-execution",
     date: "2026-09-21",
+    endDate: "2026-10-09",
     dateLabel: "Sep 21–Oct 9, 2026",
     name: "UAT Execution",
     shortDescription: "Formal UAT execution for the Roger MVP experience.",
@@ -179,7 +181,7 @@ export function resolveMilestoneStatus(
   asOf: Date = new Date(),
 ): MvpMilestoneStatus {
   if (milestone.status === "Complete") return "Complete";
-  const day = new Date(`${milestone.date}T23:59:59`);
+  const day = new Date(`${milestone.endDate ?? milestone.date}T23:59:59`);
   if (asOf > day) return "At Risk / Confirmation Required";
   return milestone.status;
 }
