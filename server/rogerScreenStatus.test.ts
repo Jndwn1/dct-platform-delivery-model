@@ -9,13 +9,15 @@ describe("Roger MVP screen status model", () => {
     expect(ROGER_MVP_SCREEN_RECORDS.find(record => record.id === "review-submit")).toBeUndefined();
   });
 
-  it("keeps delivery status and QA readiness as separate dimensions", () => {
+  it("marks all 18 Roger MVP screens completed while retaining QA readiness as a separate dimension", () => {
     const lineMappingPage = ROGER_MVP_SCREEN_RECORDS.find(record => record.id === "line-mapping-page");
     const signOff = ROGER_MVP_SCREEN_RECORDS.find(record => record.id === "sign-off");
+
     expect(lineMappingPage).toMatchObject({ deliveryStatus: "Completed", qaReady: "Available" });
     expect(signOff?.notes).toContain("#1450692");
-    expect(countBy(ROGER_MVP_SCREEN_RECORDS, "deliveryStatus", "Completed")).toBe(9);
-    expect(countBy(ROGER_MVP_SCREEN_RECORDS, "deliveryStatus", "In Progress")).toBe(9);
+    expect(countBy(ROGER_MVP_SCREEN_RECORDS, "deliveryStatus", "Completed")).toBe(18);
+    expect(countBy(ROGER_MVP_SCREEN_RECORDS, "deliveryStatus", "In Progress")).toBe(0);
+    expect(new Set(ROGER_MVP_SCREEN_RECORDS.map(record => record.lastUpdated))).toEqual(new Set(["Sep 22, 2026"]));
   });
 
   it("derives the compact landing-page readiness metrics from the same 18-screen registry", () => {
@@ -28,24 +30,24 @@ describe("Roger MVP screen status model", () => {
     });
   });
 
-  it("derives the MVP Critical Milestones delivery rollup from the same 18-screen registry", () => {
+  it("derives an all-complete delivery rollup from the same 18-screen registry", () => {
     expect(getRogerScreenDeliverySummary()).toEqual({
       total: 18,
-      completed: 9,
+      completed: 18,
       done: 0,
       inQa: 0,
-      inProgress: 9,
+      inProgress: 0,
       notStarted: 0,
       outOfScope: 0,
       notFunctional: 0,
     });
   });
 
-  it("orders In Progress records first and Completed records last for the Screen / Area registry", () => {
+  it("keeps all completed screen records in the authoritative registry", () => {
     const ordered = orderRogerScreensForRegistry(ROGER_MVP_SCREEN_RECORDS);
 
-    expect(ordered.slice(0, 9).every(record => record.deliveryStatus === "In Progress")).toBe(true);
-    expect(ordered.slice(-9).every(record => record.deliveryStatus === "Completed")).toBe(true);
+    expect(ordered).toHaveLength(18);
+    expect(ordered.every(record => record.deliveryStatus === "Completed")).toBe(true);
   });
 
   it("preserves the supplied Roger MVP milestone dates, owners, and status notes", () => {
