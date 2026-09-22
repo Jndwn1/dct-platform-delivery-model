@@ -56,7 +56,8 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Ready with Dependency");
     expect(source).toContain("Reusable Refinement Question Framework");
     expect(source).toContain("DCT must not select correction meaning");
-    expect(source).toContain("State — File Drop End-to-End System Flow");
+    expect(source).toContain("State — File Drop + GoSystem Calculation System Flow");
+    expect(source).toContain("GoSystem POC calculation extension");
     expect(source).toContain("Provision — File Drop End-to-End System Flow");
     expect(source).toContain("DMS / Original Document Storage");
     expect(source).toContain("Audit / Lineage (B16) connects to PDC and TDC.");

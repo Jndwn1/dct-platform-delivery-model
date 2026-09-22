@@ -200,3 +200,4 @@
 - [x] Mark QA status complete for all 18 Roger MVP screens and synchronize the QA summaries
 - [x] Close MVP Enhancements and reconcile current-day closures, active Delivery Highlights, and MVP lifecycle metrics
 - [x] Close Defect Tracking and reconcile final MVP closure metrics and Delivery Highlights
+- [x] Add the Roger → GoSystem State Calculation POC extension to the existing State workspace, including architecture, data movement, requirements, taxonomy, BA deliverables, dependencies, and success criteria

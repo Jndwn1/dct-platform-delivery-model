@@ -8,6 +8,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { appendSharedBuddyConversation } from "@/lib/askBuddyConversation";
 import RuleProcessingTdcPosting from "@/components/RuleProcessingTdcPosting";
+import StateGoSystemPoc from "@/components/StateGoSystemPoc";
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 const C = {
@@ -607,7 +608,7 @@ const EXECUTIVE_PROCESS_FLOWS: Record<"state" | "provision", { accent: string; s
     stages: [
       { number: "1", owner: "STATE BUSINESS", title: "Define State Requirements", description: "Defines State tax requirements, Nexus, filing groups, apportionment, required data, rules, and expected business outcomes.", ownershipLabel: "WHAT + WHY", accent: C.teal, supporting: [] },
       { number: "2", owner: "ROGER", title: "Practitioner Interaction", description: "Presents the State workflow and captures practitioner selections, filing context, and required actions.", ownershipLabel: "USER EXPERIENCE", accent: ROGER_BLUE, supporting: [] },
-      { number: "3", owner: "DCT PLATFORM", title: "Process & Govern State Data", description: "PDC/TDC retrieve, validate, calculate, persist, version, and audit governed State data and decisions.", ownershipLabel: "BACKEND HOW", accent: C.blue, supporting: ["PDC · Source Financial Data", "TDC · Tax Records & Decisions", "Audit / Lineage · Governed History"] },
+      { number: "3", owner: "DCT PLATFORM", title: "Process & Govern State Data", description: "PDC/TDC retrieve, validate, persist, version, and audit governed State data and decisions; DCT prepares structured packages and retrieves GoSystem results without owning GoSystem State calculation logic.", ownershipLabel: "BACKEND HOW", accent: C.blue, supporting: ["PDC · Source Financial Data", "TDC · Tax Records & Decisions", "Audit / Lineage · Governed History"] },
       { number: "4", owner: "GATEWAY", title: "Provide Governed Access", description: "Gateway securely composes and exposes the governed State response required by Roger and approved consumers.", ownershipLabel: "GOVERNED ACCESS", accent: "#2563eb", supporting: [] },
       { number: "5", owner: "ROGER", title: "Review & Act", description: "Practitioner reviews State results, warnings, filing context, and governed data and makes permitted changes.", ownershipLabel: "PRACTITIONER REVIEW", accent: ROGER_BLUE, supporting: [] },
       { number: "6", owner: "IMS / DOWNSTREAM", title: "Consume Governed Output", description: "Approved State results continue to downstream tax, filing, reporting, or integration workflows.", ownershipLabel: "DOWNSTREAM DELIVERY", accent: C.green, supporting: [] },
@@ -630,11 +631,11 @@ const EXECUTIVE_PROCESS_FLOWS: Record<"state" | "provision", { accent: string; s
 const FILE_DROP_SYSTEM_FLOWS = {
   state: {
     accent: C.teal,
-    title: "State — File Drop End-to-End System Flow",
-    subtitle: "System flow showing what happens when a practitioner uploads a file in Roger for State processing.",
+    title: "State — File Drop + GoSystem Calculation System Flow",
+    subtitle: "The existing Roger file-drop architecture remains intact. The State POC adds a governed DCT → IMS → GoSystem calculation loop and a structured GoSystem → IMS → DCT → Roger review return package.",
     image: "/manus-storage/state-file-drop-system-flow_c38ceba9.png",
-    path: ["Roger UI", "Upload / Intake", "DMS storage", "Gateway", "Orchestrator", "PDC", "TDC", "Gateway response", "Roger result", "IMS / downstream"],
-    copy: "State file-drop system flow\nRoger UI → Upload / Intake → DMS / Original Document Storage → Gateway → Orchestrator → PDC normalization → TDC State tax-domain persistence → Audit / Lineage → Gateway governed State response → Roger State workflow result → IMS / approved downstream delivery.\n\nState story callout: 1472734 integrates, stores, and provides Return-Filing Data to the Roger Filing screen. 1471480 retrieves, saves, governs, and returns Filing Footprint Decisions to the Roger Return Structure screen.\n\nAudit / Lineage (B16) connects to PDC and TDC.\n\nUser update loop: Roger save / update → Gateway → TDC validate / persist → Audit / Lineage → Gateway → Roger refresh.",
+    path: ["Roger UI", "Upload / Intake", "DMS storage", "Gateway", "Orchestrator", "PDC / TDC", "IMS", "GoSystem", "IMS return", "DCT / Roger review"],
+    copy: "State file-drop and GoSystem calculation flow\nRoger UI → Upload / Intake → DMS / Original Document Storage → Gateway → Orchestrator → PDC normalization → TDC State tax-domain persistence → Audit / Lineage.\n\nGoSystem POC calculation extension: Roger State Experience → DCT governed data layer → Taxonomy Mapping → IMS → GoSystem State calculation engine → IMS → Taxonomy Mapping → DCT governed retrieval → Roger State Review → practitioner reconciliation / approval.\n\nState story callout: 1472734 integrates, stores, and provides Return-Filing Data to the Roger Filing screen. 1471480 retrieves, saves, governs, and returns Filing Footprint Decisions to the Roger Return Structure screen.\n\nDCT supports governed persistence, retrieval, lineage, and integration support; GoSystem owns State tax calculation logic.\n\nUser update loop: Roger save / update → Gateway → TDC validate / persist → Audit / Lineage → Gateway → Roger refresh.",
   },
   provision: {
     accent: C.purple,
@@ -1941,6 +1942,7 @@ export default function DiscoveryWorkspace() {
           {activeWorkstream === "state" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />}
           <WorkstreamOverview />
           <ResponsibilityMatrix workstream={activeWorkstream} />
+          {activeWorkstream === "state" && <StateGoSystemPoc />}
           <ExistingCapabilities />
           <AskBuddySection />
       </div>
