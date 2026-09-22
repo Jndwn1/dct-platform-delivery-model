@@ -204,3 +204,4 @@
 - [x] Remove the legacy discovery, story-readiness, refinement, ownership, and PI4 readiness sections from the State & Provision workspace while retaining the platform architecture, capabilities, Ask Buddy, and State POC
 - [x] Resize the embedded Roger → GoSystem State POC workflow to fit the workspace without horizontal scrolling
 - [x] Add a zoomable full-size viewer for the Roger → GoSystem State POC workflow so the diagram remains legible
+- [x] Refine the State POC ownership boundaries section into a balanced executive card layout

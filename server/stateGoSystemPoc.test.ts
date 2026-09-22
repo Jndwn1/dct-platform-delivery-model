@@ -50,6 +50,10 @@ describe("State GoSystem POC extension", () => {
     expect(poc).toContain("2800 * diagramZoom");
     expect(poc).toContain('maxWidth: "none", width: `${2800 * diagramZoom}px`');
     expect(poc).toContain("Full-size Roger to GoSystem State calculation POC architecture");
+    expect(poc).toContain('gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))"');
+    expect(poc).toContain('minHeight: "230px"');
+    expect(poc).toContain("Ownership boundaries in the State calculation POC");
+    expect(poc).toContain(">Ownership</span>");
 
     expect(knowledgeBase).toContain("Roger → GoSystem POC — State Calculation Integration");
     expect(knowledgeBase).toContain("What does the Roger to GoSystem State Calculation POC need to prove?");

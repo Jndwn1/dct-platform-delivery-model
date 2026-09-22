@@ -246,11 +246,11 @@ export default function StateGoSystemPoc() {
         </div>
 
         <PanelHeading eyebrow="Responsibilities" title="Ownership boundaries in the State calculation POC" subtitle="The POC keeps business rules, practitioner experience, governed data support, mapping, integration, and calculation responsibilities visibly distinct." />
-        <div style={{ display: "grid", gap: "11px", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", marginBottom: "22px" }}>
-          {RESPONSIBILITIES.map(card => <div key={card.title} style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderTop: `4px solid ${card.accent}`, borderRadius: "9px", padding: "13px" }}>
-            <div style={{ color: card.accent, fontSize: "12px", fontWeight: 800, marginBottom: "5px" }}>{card.title}</div>
-            <div style={{ color: C.navy, fontSize: "10px", fontWeight: 800, lineHeight: "1.4", marginBottom: "8px" }}>{card.responsibility}</div>
-            <ul style={{ margin: 0, paddingLeft: "16px" }}>{card.items.map(item => <li key={item} style={{ color: "#334155", fontSize: "10px", lineHeight: "1.45", marginBottom: "5px" }}>{item}</li>)}</ul>
+        <div style={{ display: "grid", gap: "14px", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", marginBottom: "22px" }}>
+          {RESPONSIBILITIES.map(card => <div key={card.title} style={{ background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)", border: "1px solid #dbe5ee", borderTop: `4px solid ${card.accent}`, borderRadius: "10px", boxShadow: "0 1px 4px rgba(15,23,42,0.05)", display: "flex", flexDirection: "column", minHeight: "230px", padding: "16px" }}>
+            <div style={{ alignItems: "center", display: "flex", gap: "8px", marginBottom: "9px" }}><span style={{ backgroundColor: `${card.accent}14`, borderRadius: "999px", color: card.accent, fontSize: "9px", fontWeight: 800, letterSpacing: "0.06em", padding: "3px 7px", textTransform: "uppercase" }}>Ownership</span><div style={{ color: card.accent, fontSize: "13px", fontWeight: 800 }}>{card.title}</div></div>
+            <div style={{ color: C.navy, fontSize: "11px", fontWeight: 800, lineHeight: "1.45", marginBottom: "10px" }}>{card.responsibility}</div>
+            <ul style={{ margin: 0, paddingLeft: "17px" }}>{card.items.map(item => <li key={item} style={{ color: "#334155", fontSize: "11px", lineHeight: "1.5", marginBottom: "7px" }}>{item}</li>)}</ul>
           </div>)}
         </div>
 
