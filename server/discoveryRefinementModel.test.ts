@@ -3,12 +3,13 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("Provision and State Discovery refinement model", () => {
-  it("keeps the approved two-story State model, DCT ownership decision, and Provision discovery content", () => {
+  it("keeps the State and Provision source models while removing the requested legacy sections from the rendered workspace", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/onboarding/DiscoveryWorkspace.tsx"), "utf8");
     const buddySource = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
     const stateStoriesBlock = source.slice(source.indexOf("const STATE_STORIES"), source.indexOf("const PROVISION_STORIES"));
     const stateCapabilitiesBlock = source.slice(source.indexOf("const STATE_CAPABILITY_ROWS"), source.indexOf("const PROVISION_CAPABILITY_ROWS"));
     const workstreamReadinessBlock = source.slice(source.indexOf("function WorkstreamReadinessHub"), source.indexOf("// ─── PI 4 State delivery readiness"));
+    const renderedWorkspace = source.slice(source.indexOf("export default function DiscoveryWorkspace"));
 
     expect(source).toContain("Cross-Team Discovery & Refinement Model");
     expect(source).not.toContain("DCT acceptance check");
@@ -49,7 +50,8 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Provision Delivery Readiness");
     expect(source).toContain("Provision delivery path and readiness gates");
     expect(source).toContain("Current Provision Story Sizing & Estimation Assessment");
-    expect(source).toContain('activeWorkstream === "state" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />');
+    expect(source).toContain("function PI4StateReadiness()");
+    expect(source).toContain("function ProvisionDeliveryReadiness()");
     expect(source).toContain("How DCT Supports State Stories");
     expect(source).toContain("How DCT Supports Provision Stories");
     expect(source).toContain("Story Readiness Matrix");
@@ -63,7 +65,7 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).toContain("Audit / Lineage (B16) connects to PDC and TDC.");
     expect(source).toContain("Package 2 Deferred Rollforward, Package 3 Federal Summary");
     expect(source).toContain("Copy system flow");
-    expect(source).toContain('<ResponsibilityMatrix workstream={activeWorkstream} />');
+    expect(source).toContain('<ResponsibilityMatrix workstream="state" />');
     expect(source).toContain('const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/"');
     expect(source).toContain("Provision Prototype");
     expect(source).toContain("Roger — Tax Provision Prototype");
@@ -83,6 +85,20 @@ describe("Provision and State Discovery refinement model", () => {
     expect(source).not.toContain('SectionHeading number="PI4" title="Provision Delivery Readiness"');
     expect(source).not.toContain('SectionHeading number="7" title="Ask Buddy"');
     expect(source).not.toContain("        <QuickLinks />");
+
+    expect(renderedWorkspace).not.toContain("<CrossTeamRefinementModel />");
+    expect(renderedWorkspace).not.toContain("<WorkstreamReadinessHub");
+    expect(renderedWorkspace).not.toContain("<PI4StateReadiness />");
+    expect(renderedWorkspace).not.toContain("<ProvisionDeliveryReadiness />");
+    expect(renderedWorkspace).not.toContain("activeWorkstream");
+    expect(renderedWorkspace).not.toContain("A practical discovery and refinement workspace for State and Provision");
+    expect(renderedWorkspace).not.toContain("Discovery Principle");
+    expect(renderedWorkspace).not.toContain("Batch 9A — Gateway");
+    expect(renderedWorkspace).toContain("<WorkstreamOverview />");
+    expect(renderedWorkspace).toContain('<ResponsibilityMatrix workstream="state" />');
+    expect(renderedWorkspace).toContain("<StateGoSystemPoc />");
+    expect(renderedWorkspace).toContain("<ExistingCapabilities />");
+    expect(renderedWorkspace).toContain("<AskBuddySection />");
     expect(buddySource).toContain("State Refinement & DCT Ownership — Current Two Backend Stories");
     expect(buddySource).toContain("Both stories are refined and **DCT-owned**");
     expect(buddySource).toContain("Roger owns practitioner-facing UI and actions but does not own State tax records.");

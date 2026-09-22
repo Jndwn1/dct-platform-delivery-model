@@ -4,7 +4,6 @@
 // Replaces the multi-step onboarding wizard entirely
 
 import { useState, useRef, useEffect } from "react";
-import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { appendSharedBuddyConversation } from "@/lib/askBuddyConversation";
 import RuleProcessingTdcPosting from "@/components/RuleProcessingTdcPosting";
@@ -1895,9 +1894,6 @@ function QuickLinks() {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function DiscoveryWorkspace() {
-  const [, navigate] = useLocation();
-  const [activeWorkstream, setActiveWorkstream] = useState<"state" | "provision">("state");
-
   return (
     <div style={{ padding: "28px 32px", fontFamily: "system-ui, sans-serif", maxWidth: "1400px", margin: "0 auto" }}>
 
@@ -1909,40 +1905,15 @@ export default function DiscoveryWorkspace() {
               <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: C.navy, display: "flex", alignItems: "center", justifyContent: "center", color: "#10b981", fontWeight: 900, fontSize: "16px" }}>D</div>
               <h1 style={{ fontSize: "24px", fontWeight: 900, color: C.navy, margin: 0 }}>Provision & State Discovery Workspace</h1>
             </div>
-            <p style={{ fontSize: "14px", color: C.slate, margin: 0, lineHeight: "1.6", maxWidth: "700px" }}>
-              A practical discovery and refinement workspace for State and Provision. Business workstreams define expected behavior; DCT identifies implementation considerations and accepts stories only when DEV and QA can proceed without making a business decision.
-            </p>
           </div>
-          {/* Discovery Principle */}
-          <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "14px 18px", minWidth: "260px", flexShrink: 0 }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>🔎 Discovery Principle</div>
-            <p style={{ fontSize: "12px", color: "#166534", margin: 0, lineHeight: "1.6" }}>
-              Effective discovery begins with understanding existing capabilities before defining new requirements.
-            </p>
-          </div>
-        </div>
-        {/* Batch badges */}
-        <div style={{ display: "flex", gap: "8px", marginTop: "14px" }}>
-          {[
-            { label: "Batch 9A — Gateway", color: C.b9a },
-            { label: "Batch 16 — Audit Trail", color: C.b16 },
-            { label: "Batch 28 — Provision Reference Data", color: C.b28 },
-            { label: "State Workstream", color: C.teal },
-            { label: "Provision Workstream", color: C.purple },
-          ].map(b => (
-            <span key={b.label} style={{ fontSize: "11px", fontWeight: 600, color: "white", backgroundColor: b.color, borderRadius: "4px", padding: "3px 9px" }}>{b.label}</span>
-          ))}
         </div>
       </div>
 
-      {/* Discovery content */}
+      {/* Repurposed platform workspace: legacy discovery, story readiness, refinement, ownership, and PI4 readiness views intentionally removed. */}
       <div style={{ minWidth: 0 }}>
-          <CrossTeamRefinementModel />
-          <WorkstreamReadinessHub active={activeWorkstream} onChange={setActiveWorkstream} />
-          {activeWorkstream === "state" ? <PI4StateReadiness /> : <ProvisionDeliveryReadiness />}
           <WorkstreamOverview />
-          <ResponsibilityMatrix workstream={activeWorkstream} />
-          {activeWorkstream === "state" && <StateGoSystemPoc />}
+          <ResponsibilityMatrix workstream="state" />
+          <StateGoSystemPoc />
           <ExistingCapabilities />
           <AskBuddySection />
       </div>

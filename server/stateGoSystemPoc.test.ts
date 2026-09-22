@@ -10,7 +10,8 @@ describe("State GoSystem POC extension", () => {
     const knowledgeBase = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
 
     expect(workspace).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
-    expect(workspace).toContain('activeWorkstream === "state" && <StateGoSystemPoc />');
+    expect(workspace).toContain("<StateGoSystemPoc />");
+    expect(workspace).toContain('<ResponsibilityMatrix workstream="state" />');
     expect(workspace).toContain("State — File Drop + GoSystem Calculation System Flow");
     expect(workspace).toContain("DCT → IMS → GoSystem calculation loop");
     expect(app).not.toContain("StateGoSystemPoc");
