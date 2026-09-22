@@ -260,12 +260,12 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
     },
     {
       pi: "PI 3",
-      status: `Active · ${pi3Complete}/${pi3Total}`,
+      status: pi3Complete === pi3Total ? `Complete · ${pi3Complete}/${pi3Total}` : `Active · ${pi3Complete}/${pi3Total}`,
       pct: pi3Pct,
-      color: "#2563eb",
-      bg: "#eff6ff",
-      border: "#bfdbfe",
-      note: "Current ADO scope: one active workstream — Defect Tracking. MVP Enhancements, B9A, B28, and Environment Management closed Sep. 22; B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21.",
+      color: pi3Complete === pi3Total ? "#059669" : "#2563eb",
+      bg: pi3Complete === pi3Total ? "#f0fdf4" : "#eff6ff",
+      border: pi3Complete === pi3Total ? "#bbf7d0" : "#bfdbfe",
+      note: "All current ADO workstreams are closed. Defect Tracking, MVP Enhancements, B9A, B28, and Environment Management closed Sep. 22; B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21.",
     },
     {
       pi: "PI 4",

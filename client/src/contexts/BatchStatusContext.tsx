@@ -335,7 +335,7 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "39": "In Progress", // Retained historical status; not included in current supplied ADO pipeline population
   "33": "Stretch",     // B33 — State Reference, Apportionment, Payments, NOL/Credit (PI 3 Stretch)
   // ── Current UAT and pilot-readiness workstreams ────────────────────────────
-  "defect-tracking": "In Progress",
+  "defect-tracking": "Complete", // final MVP delivery workstream closed Sep 22, 2026
   "environment-management": "Complete", // closed Sep 22, 2026
   "performance-testing": "Complete",
   "dct-qa-workstream": "Complete",
@@ -386,6 +386,7 @@ const REQUIRED_CLOSURE_STATUSES: Partial<BatchStatusMap> = {
   "31": "Complete",
   "28": "Complete",
   "9a": "Complete",
+  "defect-tracking": "Complete",
   "environment-management": "Complete",
   "performance-testing": "Complete",
   "dct-qa-workstream": "Complete",
@@ -415,7 +416,7 @@ export const PI_MEMBERSHIP: Record<string, BatchKey[]> = {
 // below as planning visibility only and excluded from all MVP delivery metrics.
 // The four historical split records B8-PDC, B8-TDC, B9, and B9-PDC are retained
 // for lineage and API traceability but excluded from current MVP lifecycle metrics.
-// Current ADO lifecycle: 26 Complete, 1 In Development, 0 In Review, 0 Planned.
+// Current ADO lifecycle: 27 Complete, 0 In Development, 0 In Review, 0 Planned.
 export const MVP_BATCH_KEYS: BatchKey[] = [
   // PI 1 — Complete (5)
   "foundation-core", "1", "2", "2a", "3",
@@ -486,7 +487,7 @@ export const BATCH_DELIVERY_RECORDS: DeliveryMetricRecord[] = [
   { id: "B9A", statusKey: "9a", adoId: "1387817", featureName: BATCH_LABELS["9a"], batchNumber: "B9A", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Closed" },
   { id: "B31-PDC", statusKey: "31", adoId: "1390014", featureName: "Batch 31 | PDC — Legacy Tool Prior Year Ingestion & Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Abbas, Nasar", sourceStatusLabel: "Closed" },
   { id: "B31-TDC", statusKey: "31", adoId: "1390267", featureName: "Batch 31 | TDC — Legacy Tool Prior Year Data Housing", batchNumber: "B31", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Closed" },
-  { id: "DEFECT-TRACKING", statusKey: "defect-tracking", adoId: "User-confirmed active workstream", featureName: "Defect Tracking", batchNumber: "Defect", classification: "Batch", pi: "PI3", sourceStatusLabel: "Active" },
+  { id: "DEFECT-TRACKING", statusKey: "defect-tracking", adoId: "User-confirmed closure", featureName: "Defect Tracking", batchNumber: "Defect", classification: "Batch", pi: "PI3", sourceStatusLabel: "Closed" },
   { id: "ENV-MANAGEMENT", statusKey: "environment-management", adoId: "1436035", featureName: "Environment Management", batchNumber: "Environment", classification: "Batch", pi: "PI3", owner: "Luca, Gary", sourceStatusLabel: "Closed" },
   { id: "PERFORMANCE-TESTING", statusKey: "performance-testing", adoId: noAdo, featureName: "Performance Testing", batchNumber: "Performance", classification: "Batch", pi: "PI3", sourceStatusLabel: "Closed" },
   { id: "DCT-QA-WORKSTREAM", statusKey: "dct-qa-workstream", adoId: "1408161", featureName: "DCT QA Workstream", batchNumber: "DCT QA", classification: "Batch", pi: "PI3", owner: "Kalakonda, Aravind", sourceStatusLabel: "Closed" },
@@ -507,11 +508,11 @@ export const LOCKED_MVP_BASELINE = {
   totalFeatures: 27,
   batchFeatures: 27,
   nonBatchFeatures: 0,
-  complete: 26,
-  active: 1,
+  complete: 27,
+  active: 0,
   inReview: 0,
   planned: 0,
-  readinessPct: 96,
+  readinessPct: 100,
 } as const;
 
 /**
@@ -572,6 +573,7 @@ export const PI3_POST_BASELINE_CLOSURES = [
   { id: "B9A", batch: "B9A", name: "Data Gateway (IMS, CDS, DUO)", platform: "Gateway", completionDate: "2026-09-22", latestDeploymentDate: "2026-09-22", qaStatus: "In Validation" as QAValidationStatus },
   { id: "ENV-MANAGEMENT", batch: "Environment", name: "Environment Management", platform: "DCT", completionDate: "2026-09-22", latestDeploymentDate: "2026-09-22", qaStatus: "In Validation" as QAValidationStatus },
   { id: "B45", batch: "MVP", name: "MVP Enhancements", platform: "TDC", completionDate: "2026-09-22", latestDeploymentDate: "2026-09-22", qaStatus: "In Validation" as QAValidationStatus },
+  { id: "DEFECT-TRACKING", batch: "Defect", name: "Defect Tracking", platform: "DCT", completionDate: "2026-09-22", latestDeploymentDate: "2026-09-22", qaStatus: "Validated" as QAValidationStatus },
 ] as const;
 
 export const GOVERNED_PROGRAM_HEALTH = {

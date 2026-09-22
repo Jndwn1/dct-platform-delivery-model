@@ -1099,6 +1099,9 @@ export default function Home() {
                 <span style={{ color: "#475569" }}>{feature.featureName}</span>
               </div>
             ))}
+            {deliveryHighlightActiveBatchFeatures.length === 0 && (
+              <div style={{ fontSize: "11px", color: "#065f46", lineHeight: "1.5" }}>✓ No active ADO workstreams remain. The MVP delivery feature set is complete.</div>
+            )}
           </div>
 
           {/* Confirmed current-day closures — retained here for executive scanning. */}
