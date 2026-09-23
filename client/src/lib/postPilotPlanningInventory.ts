@@ -100,7 +100,7 @@ export const POST_PILOT_PLANNING_INVENTORY: readonly PostPilotPlanningRecord[] =
     adoDependencies: ["1482205"],
   },
   {
-    objectiveNumber: "",
+    objectiveNumber: "11",
     featureId: "1451927",
     objectiveDescription: "Roger State Taxable Income MVP - State Filing Footprint",
     committed: "Not captured",
@@ -109,7 +109,7 @@ export const POST_PILOT_PLANNING_INVENTORY: readonly PostPilotPlanningRecord[] =
     adoDependencies: ["1471480", "1472734"],
   },
   {
-    objectiveNumber: "",
+    objectiveNumber: "12",
     featureId: "1492005",
     objectiveDescription: "Data & Workflow Enhancements",
     committed: "Not captured",
@@ -118,7 +118,7 @@ export const POST_PILOT_PLANNING_INVENTORY: readonly PostPilotPlanningRecord[] =
     adoDependencies: ["1478431"],
   },
   {
-    objectiveNumber: "",
+    objectiveNumber: "13",
     featureId: "1490944",
     objectiveDescription: "Data Defect & Bug Management",
     committed: "Not captured",
@@ -127,7 +127,7 @@ export const POST_PILOT_PLANNING_INVENTORY: readonly PostPilotPlanningRecord[] =
     adoDependencies: ["1477412", "1483802", "1483805", "1487890", "1488332", "1463645", "1477411", "1477413"],
   },
   {
-    objectiveNumber: "11",
+    objectiveNumber: "14",
     featureId: "1441528",
     objectiveDescription: "Finding 5.6 Security Implementation",
     committed: "Not captured",

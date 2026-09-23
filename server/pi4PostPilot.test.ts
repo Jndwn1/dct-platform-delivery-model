@@ -65,6 +65,10 @@ describe("PI4 Post Pilot delivery", () => {
       highValueCount: 13,
       unresolvedDependencyCount: 3,
     });
+    expect(POST_PILOT_PLANNING_INVENTORY.map((record) => record.objectiveNumber)).toEqual(
+      Array.from({ length: 14 }, (_, index) => String(index + 1)),
+    );
+    expect(POST_PILOT_PLANNING_INVENTORY.every((record) => record.objectiveNumber.trim().length > 0)).toBe(true);
     expect(POST_PILOT_PLANNING_INVENTORY.every((record) => record.committed === "Not captured" && record.sizing === "Not captured")).toBe(true);
     expect(POST_PILOT_PLANNING_INVENTORY).toEqual(expect.arrayContaining([
       expect.objectContaining({ featureId: "1441524", objectiveDescription: "Finding - 5.2 API and Payload Definitions", adoDependencies: ["1433863", "1483681"] }),
