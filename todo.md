@@ -209,3 +209,4 @@
 - [x] Add live MVP dashboard metrics and the supplied PI4 planned-feature and ADO-dependency inventory to the Post Pilot page without treating it as committed delivery
 - [x] Remove the Live Portfolio Baseline and MVP Dashboard Metrics block from Post Pilot while retaining PI4 planning metrics and inventory
 - [x] Renumber all 14 Post Pilot objectives consecutively without blanks
+- [x] Remove the Unique Features metric card from Post Pilot

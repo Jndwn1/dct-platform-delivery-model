@@ -41,7 +41,6 @@ function SectionHeading({ eyebrow, title, description }: { eyebrow: string; titl
 export default function PostPilotPage() {
   const planningMetrics: MetricCardProps[] = [
     { label: "PI4 Planning Records", value: POST_PILOT_PLANNING_SUMMARY.planningRecordCount, detail: "Supplied planning inventory rows", color: PURPLE, surface: PURPLE_SURFACE, border: PURPLE_BORDER },
-    { label: "Unique Features", value: POST_PILOT_PLANNING_SUMMARY.uniqueFeatureCount, detail: "Feature IDs represented", color: "#2563eb", surface: "#eff6ff", border: "#bfdbfe" },
     { label: "Committed", value: POST_PILOT_PLANNING_SUMMARY.markedCommittedCount, detail: "No commitments captured", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
     { label: "Sized", value: POST_PILOT_PLANNING_SUMMARY.sizedCount, detail: "No sizing captured", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
     { label: "High Business Value", value: POST_PILOT_PLANNING_SUMMARY.highValueCount, detail: "Rated 9 or 10 in source", color: "#0f766e", surface: "#f0fdfa", border: "#99f6e4" },

@@ -34,6 +34,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("Live portfolio baseline");
     expect(postPilot).not.toContain("MVP Features Complete");
     expect(postPilot).not.toContain("Roger QA Screens");
+    expect(postPilot).not.toContain('label: "Unique Features"');
     expect(postPilot).toContain("Post Pilot Metrics");
     expect(postPilot).toContain("Planned Features and ADO Dependencies");
     expect(postPilot).not.toContain("deriveMvpMetrics");
