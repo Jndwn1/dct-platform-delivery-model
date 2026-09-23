@@ -98,6 +98,7 @@ describe("Provision and State Discovery refinement model", () => {
     expect(renderedWorkspace).toContain("<WorkstreamOverview />");
     expect(renderedWorkspace).toContain('<ResponsibilityMatrix workstream="state" />');
     expect(renderedWorkspace).not.toContain("<StateGoSystemPoc />");
+    expect(renderedWorkspace).not.toContain("<StatePocBaDiscoveryPackage />");
     expect(renderedWorkspace).toContain("<ExistingCapabilities />");
     expect(renderedWorkspace).toContain("<AskBuddySection />");
     expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));

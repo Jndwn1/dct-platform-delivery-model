@@ -215,3 +215,4 @@
 - [x] Refocus the Post Pilot Roger → GoSystem POC on the minimum DCT input package, POC flow, proof path, scope distinction, and BA inbound/outbound contract
 - [x] Remove duplicate POC overview, architecture, flow, ownership, mapping, and BA-deliverable content from Post Pilot while preserving distinct minimum and future-state information
 - [x] Add the Roger → GoSystem POC BA Discovery & Mapping Package to the existing State workspace as the visual requirements layer
+- [x] Move the POC BA Discovery & Mapping Package from the State workspace to beneath the Post Pilot POC details

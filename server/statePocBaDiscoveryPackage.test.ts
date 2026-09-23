@@ -3,12 +3,15 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("State POC BA Discovery and Mapping Package", () => {
-  it("keeps the BA requirements package on the existing State workspace", () => {
+  it("places the BA requirements package beneath the Post Pilot POC details", () => {
     const workspace = readFileSync(resolve(process.cwd(), "client/src/pages/onboarding/DiscoveryWorkspace.tsx"), "utf8");
+    const postPilot = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");
     const packageSource = readFileSync(resolve(process.cwd(), "client/src/components/StatePocBaDiscoveryPackage.tsx"), "utf8");
 
-    expect(workspace).toContain('import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage"');
-    expect(workspace).toContain("<StatePocBaDiscoveryPackage />");
+    expect(workspace).not.toContain('import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage"');
+    expect(workspace).not.toContain("<StatePocBaDiscoveryPackage />");
+    expect(postPilot).toContain('import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage"');
+    expect(postPilot.indexOf("<StatePocBaDiscoveryPackage />")).toBeGreaterThan(postPilot.indexOf("<StateGoSystemPoc />"));
     expect(packageSource).toContain("POC BA Discovery & Mapping Package");
     expect(packageSource).toContain("The BA objective for the Roger → GoSystem POC");
     expect(packageSource).toContain("BA Deliverables for the POC");

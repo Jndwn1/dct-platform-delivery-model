@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import StateGoSystemPoc from "@/components/StateGoSystemPoc";
+import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
 import {
   POST_PILOT_PLANNING_INVENTORY,
   POST_PILOT_PLANNING_SUMMARY,
@@ -151,6 +152,7 @@ export default function PostPilotPage() {
       </section>
 
       <StateGoSystemPoc />
+      <StatePocBaDiscoveryPackage />
     </div>
   );
 }
