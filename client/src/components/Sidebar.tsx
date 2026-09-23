@@ -195,7 +195,7 @@ function workspaceShortcuts(workspaceId: "executive" | "delivery" | "roger" | "d
   ];
 }
 
-const EXECUTIVE_HEALTH_ITEMS = workspaceShortcuts("executive", ["Executive Health", "Ask Buddy"], false);
+const EXECUTIVE_HEALTH_ITEMS = workspaceShortcuts("executive", ["Executive Health", "Post Pilot", "Ask Buddy"], false);
 const DELIVERY_MANAGEMENT_ITEMS = workspaceShortcuts("delivery", ["Delivery Calendar", "Current Pipeline", "PI4 Sprint Tracker", "Delivery Assurance"]);
 const ROGER_READINESS_ITEMS = workspaceShortcuts("roger", ["Screen Readiness", "UI Data Mapping", "API Readiness", "State Compliance Prototype", "Consumer Decisions / ADRs"]);
 const DISCOVERY_WORKSPACE_ITEMS = workspaceShortcuts("discovery", ["Requirement Discovery", "Readiness Checklist", "Story Builder", "Prior Year Workspace", "Master Data & Governance", "Open Questions & Traceability"]);

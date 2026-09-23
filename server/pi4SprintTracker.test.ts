@@ -41,14 +41,14 @@ describe("PI4 Sprint & Story Tracker", () => {
     const pagePath = resolve(process.cwd(), "client/src/pages/PI4PlanningWorkspace.tsx");
     const appSource = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
     const navSource = readFileSync(resolve(process.cwd(), "client/src/lib/operatingModelNavigation.ts"), "utf8");
-    const dashboardSource = readFileSync(resolve(process.cwd(), "client/src/components/ExecDashboard.tsx"), "utf8");
+    const postPilotSource = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");
     const pageContext = resolvePageContext("/pi4-planning");
 
     expect(existsSync(pagePath)).toBe(true);
     expect(appSource).toContain('path="/pi4-planning"');
     expect(navSource).toContain('label: "PI4 Sprint Tracker"');
     expect(navSource).toContain('path: "/pi4-planning"');
-    expect(dashboardSource).toContain('planningLink: "/pi4-planning"');
+    expect(postPilotSource).toContain('href="/pi4-planning"');
     expect(pageContext).toMatchObject({ pageTitle: "PI4 Sprint & Story Tracker" });
     expect(pageContext?.businessRules).toContain("State stories 1472734 and 1471480 are refined and DCT-owned; PI4 sprint assignment remains pending baseline approval");
 

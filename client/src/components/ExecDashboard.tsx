@@ -10,7 +10,7 @@ import { useRef, useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import GeneratePOEmail from "@/components/GeneratePOEmail";
-import { BATCH_DELIVERY_RECORDS, GOVERNED_PROGRAM_HEALTH, PI4_PLANNED_FEATURES, useBatchStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
+import { BATCH_DELIVERY_RECORDS, GOVERNED_PROGRAM_HEALTH, useBatchStatus, deriveBatchMetrics, deriveMvpMetrics, deriveReleaseCandidate } from "@/contexts/BatchStatusContext";
 import { MVP_LIVE_DATE_LABEL } from "@/lib/mvpCriticalMilestones";
 
 // ─── Batch Calendar PI 2 + PI 3 (mirrors Home.tsx BATCH_CALENDAR_PI23) ─────────
@@ -126,7 +126,7 @@ function StatusPill({
 
 /** Row 3 — PI progress card */
 function PICard({
-  pi, status, pct, color, bg, border, note, plannedFeatures, planningLink, fullWidth,
+  pi, status, pct, color, bg, border, note, fullWidth,
 }: {
   pi: string;
   status: string;
@@ -135,8 +135,6 @@ function PICard({
   bg: string;
   border: string;
   note?: string;
-  plannedFeatures?: readonly string[];
-  planningLink?: string;
   fullWidth?: boolean;
 }) {
   return (
@@ -179,18 +177,6 @@ function PICard({
           lineHeight: "1.4",
         }}>
           ⚠ {note}
-        </div>
-      )}
-      {plannedFeatures && (
-        <div style={{ marginTop: "10px", borderTop: `1px solid ${border}`, paddingTop: "9px" }}>
-          <div>
-            <div style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color }}>Planned PI4 Features</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "5px 14px", marginTop: "7px" }}>
-              {plannedFeatures.map(feature => <div key={feature} style={{ display: "flex", gap: "6px", alignItems: "flex-start", fontSize: "11px", lineHeight: 1.35, color: "#334155" }}><span style={{ color, fontWeight: 800 }}>•</span><span>{feature}</span></div>)}
-            </div>
-          </div>
-          <div style={{ marginTop: "8px", fontSize: "10px", color: "#64748b", fontStyle: "italic" }}>Planning visibility only — excluded from all PI4 and MVP delivery metrics.</div>
-          {planningLink && <Link href={planningLink} style={{ display: "inline-flex", color: "#6d28d9", fontSize: "10px", fontWeight: 800, marginTop: "8px", textDecoration: "none" }}>Open PI4 Sprint & Story Tracker →</Link>}
         </div>
       )}
     </div>
@@ -267,17 +253,6 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       border: pi3Complete === pi3Total ? "#bbf7d0" : "#bfdbfe",
       note: "All current ADO workstreams are closed. Defect Tracking, MVP Enhancements, B9A, B28, and Environment Management closed Sep. 22; B10, B31 PDC, Performance Testing, and DCT QA Workstream closed Sep. 21.",
     },
-    {
-      pi: "PI 4",
-      status: "Post Pilot · Planning Visibility Only",
-      pct: 0,
-      color: "#7c3aed",
-      bg: "#faf5ff",
-      border: "#e9d5ff",
-      fullWidth: true,
-      plannedFeatures: PI4_PLANNED_FEATURES,
-      planningLink: "/pi4-planning",
-    },
   ];
 
   return (
@@ -296,7 +271,7 @@ export default function ExecDashboard({ batches = [] }: ExecDashboardProps) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
-            MVP Live · UAT Execution · PI1 + PI2 + PI3 Delivery Metrics · PI4 Planning Visibility · {BATCH_DELIVERY_RECORDS.length} Current Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            MVP Live · UAT Execution · PI1 + PI2 + PI3 Delivery Metrics · {BATCH_DELIVERY_RECORDS.length} Current Batch Features · Data as of {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </div>
           <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0f1623", margin: 0, letterSpacing: "-0.01em" }}>
             Executive Delivery Dashboard

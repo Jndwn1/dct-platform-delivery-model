@@ -663,18 +663,8 @@ export default function Home() {
       { label: "PI 1", metric: piCompletion.pi1 },
       { label: "PI 2", metric: piCompletion.pi2 },
       { label: "PI 3", metric: piCompletion.pi3 },
-      { label: "PI 4", metric: piCompletion.pi4 },
     ];
     return rows.map(({ label, metric }) => {
-      if (label === "PI 4") {
-        return {
-          label,
-          status: "Post Pilot · Planning",
-          color: "#7c3aed",
-          bg: "#faf5ff",
-          border: "#e9d5ff",
-        };
-      }
       const complete = metric.complete === metric.total;
       return {
         label,

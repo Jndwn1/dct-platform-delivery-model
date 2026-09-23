@@ -34,6 +34,7 @@ export const OPERATING_MODEL_WORKSPACES: OperatingModelWorkspace[] = [
         title: "Executive controls",
         links: [
           { label: "Executive Health", path: "/", description: "MVP, PI, readiness, milestone, risk, and decision summary.", source: "Governed Delivery Model", visibility: "Standard" },
+          { label: "Post Pilot", path: "/post-pilot", description: "PI4 Post Pilot planning visibility, planned-feature metrics, and transition to the PI4 Sprint & Story Tracker.", source: "PI4 planning visibility", visibility: "Standard" },
           { label: "Ask Buddy", path: "/ask-buddy", description: "Evidence-grounded platform questions and source provenance.", source: "Governed platform evidence", visibility: "Standard" },
         ],
       },

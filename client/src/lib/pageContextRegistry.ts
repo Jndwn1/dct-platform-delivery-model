@@ -41,6 +41,22 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     lastChange: "Positioned as the Executive Health workspace while retaining the governed delivery dashboard and all underlying delivery content.",
   },
 
+  "/post-pilot": {
+    pageTitle: "Post Pilot",
+    pageIcon: "◫",
+    description: "Executive PI4 Post Pilot planning visibility, planned-feature metrics, and connection to the PI4 Sprint & Story Tracker.",
+    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "PI4 Tracker Navigation"],
+    apis: [],
+    stories: [],
+    screens: ["Post Pilot Overview", "Planned PI4 Features"],
+    businessRules: ["PI4 planning is excluded from MVP delivery metrics", "PI4 delivery progress remains 0% until a separate approved source establishes actual completion", "The PI4 Sprint & Story Tracker remains the detailed planning workspace"],
+    batches: [],
+    businessObjects: ["PI4 Planning Item", "Post Pilot Plan"],
+    integrations: ["PI4 Sprint & Story Tracker"],
+    lastUpdated: "2026-09-23",
+    lastChange: "Moved PI4 planning visibility from the Executive Health landing page to this dedicated Post Pilot page after MVP launch.",
+  },
+
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────
   "/control-panel": {
     pageTitle: "Batch Control Panel",

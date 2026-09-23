@@ -21,6 +21,7 @@ describe("Phase 1 operating-model navigation", () => {
 
     const executive = OPERATING_MODEL_WORKSPACES.find((workspace) => workspace.id === "executive");
     expect(executive?.groups.flatMap((group) => group.links).some((link) => link.path === "/ask-buddy")).toBe(true);
+    expect(executive?.groups.flatMap((group) => group.links)).toContainEqual(expect.objectContaining({ label: "Post Pilot", path: "/post-pilot", visibility: "Standard" }));
   });
 
   it("preserves the shared Roger QA Registry as the screen-readiness source and classifies control access without removing routes", () => {
@@ -76,5 +77,6 @@ describe("Phase 1 operating-model navigation", () => {
     expect(resolvePageContext("/workspace/delivery")?.pageTitle).toBe("Delivery Management");
     expect(resolvePageContext("/workspace/roger")?.businessRules).toContain("The 18-screen QA Registry remains the authoritative screen inventory");
     expect(resolvePageContext("/workspace/quality")?.pageTitle).toBe("QA / UAT / Deployment");
+    expect(resolvePageContext("/post-pilot")?.pageTitle).toBe("Post Pilot");
   });
 });
