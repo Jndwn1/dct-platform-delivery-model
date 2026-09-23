@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("State GoSystem POC extension", () => {
-  it("places the Roger to GoSystem POC beneath the Post Pilot feature inventory without creating a standalone State page", () => {
+  it("places the streamlined Roger to GoSystem POC beneath the Post Pilot feature inventory", () => {
     const workspace = readFileSync(resolve(process.cwd(), "client/src/pages/onboarding/DiscoveryWorkspace.tsx"), "utf8");
     const postPilot = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");
     const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8");
@@ -15,25 +15,15 @@ describe("State GoSystem POC extension", () => {
 
     expect(workspace).not.toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
     expect(workspace).not.toContain("<StateGoSystemPoc />");
-    expect(workspace).toContain('<ResponsibilityMatrix workstream="state" />');
-    expect(workspace).toContain("State — File Drop + GoSystem Calculation System Flow");
-    expect(workspace).toContain("DCT → IMS → GoSystem calculation loop");
     expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
     expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
     expect(app).not.toContain("StateGoSystemPoc");
     expect(app).not.toContain("/state-poc");
 
     expect(poc).toContain("Roger → GoSystem POC: State Calculation Integration");
-    expect(poc).toContain("proof-of-feasibility");
     expect(poc).toContain("POC Meeting Transcript (DOCX)");
     expect(poc).toContain('/manus-storage/POC_6327d700.docx');
-    expect(poc).toContain("Open transcript (DOCX)");
-    expect(poc).toContain("Transcript-derived architecture overview");
-    expect(poc).toContain("Architecture Overview of the POC");
-    expect(poc).toContain("Establish and validate filing context");
-    expect(poc).toContain("Return a reviewable result—not just a number");
-    expect(poc).toContain("Prove a scalable pattern before broad delivery");
-    expect(poc).toContain("POC focus");
+    expect(poc).toContain("Architecture summary:");
     expect(poc).toContain("Minimum POC Input Package for DCT");
     expect(poc).toContain("Filing Context");
     expect(poc).toContain("Federal Starting Context");
@@ -44,63 +34,35 @@ describe("State GoSystem POC extension", () => {
     expect(poc).toContain("Minimum POC State Calculation Flow");
     expect(poc).toContain("DCT — Build Governed POC Input Package");
     expect(poc).toContain("DCT — Correlate & Govern Returned Results");
-    expect(poc).toContain("POC Proof Path");
-    expect(poc).toContain("POC — Required Now");
-    expect(poc).toContain("Future-State Expansion");
     expect(poc).toContain("BA Requirement for the POC");
-    expect(poc).toContain("The POC should <strong>not</strong> be blocked by requirements that belong to the future-state implementation.");
-    expect(poc).toContain('/manus-storage/minimum-poc-state-calculation-flow_00034465.png');
-    expect(poc).toContain("Open readable POC flow");
-    expect(poc).toContain("Full-size POC flow viewer");
-    expect(poc).toContain("retrieving structured GoSystem calculation outputs");
-    expect(poc).toContain("GoSystem as the downstream State calculation system");
-    expect(poc).toContain("Roger → DCT → Taxonomy Mapping → IMS → GoSystem");
-    expect(poc).toContain("GoSystem → IMS → Taxonomy Mapping → DCT → Roger");
-    expect(poc).toContain("State Calculation Input Package");
-    expect(poc).toContain("State Calculation Review Package");
     expect(poc).toContain("Full Target State Calculation Package");
-    expect(poc).toContain("Inbound — Roger/DCT → GoSystem");
-    expect(poc).toContain("Outbound — GoSystem → DCT/Roger");
-    expect(poc).toContain("Taxonomy Expectations");
-    expect(poc).toContain("BA Deliverables for Taxonomy & POC");
     expect(poc).toContain("Federal → State Deliverable Linkage");
     expect(poc).toContain("POC Open Questions");
     expect(poc).toContain("POC Success Criteria");
-    expect(poc).toContain("Governed persistence, retrieval, and integration support.");
-    expect(poc).toContain("State tax calculation engine.");
-    expect(poc).toContain("/manus-storage/gosystem-state-calculation-poc_ddd0591b.png");
-    expect(poc).toContain("Architecture overview — open the full-size viewer");
-    expect(poc).toContain('overflowX: "hidden"');
-    expect(poc).toContain('maxWidth: "1280px"');
-    expect(poc).toContain('width: "100%"');
-    expect(poc).not.toContain('width: "2800px"');
-    expect(poc).not.toContain("Scroll horizontally to review the full POC architecture");
-    expect(poc).toContain("Open readable diagram");
-    expect(poc).toContain("Full-size workflow viewer");
-    expect(poc).toContain('role="dialog"');
-    expect(poc).toContain("diagramZoom");
-    expect(poc).toContain("2800 * diagramZoom");
-    expect(poc).toContain('maxWidth: "none", width: `${2800 * diagramZoom}px`');
-    expect(poc).toContain("Full-size Roger to GoSystem State calculation POC architecture");
-    expect(poc).toContain('gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))"');
-    expect(poc).toContain('minHeight: "230px"');
-    expect(poc).toContain("Ownership boundaries in the State calculation POC");
-    expect(poc).toContain(">Ownership</span>");
+    expect(poc).toContain('/manus-storage/minimum-poc-state-calculation-flow_00034465.png');
+    expect(poc).toContain("Open readable POC flow");
+    expect(poc).toContain("Full-size POC flow viewer");
+
+    expect(poc).not.toContain("Transcript-derived architecture overview");
+    expect(poc).not.toContain("POC Proof Path");
+    expect(poc).not.toContain("GoSystem as the downstream State calculation system");
+    expect(poc).not.toContain("Open readable diagram");
+    expect(poc).not.toContain("Ownership boundaries in the State calculation POC");
+    expect(poc).not.toContain("Full Target Data Movement");
+    expect(poc).not.toContain("Taxonomy Expectations");
+    expect(poc).not.toContain("BA Deliverables for Taxonomy & POC");
+    expect(poc).not.toContain("gosystem-state-calculation-poc_ddd0591b.png");
+    expect(poc).not.toContain("POC — Required Now");
+    expect(poc).not.toContain("Future-State Expansion");
 
     expect(onboardingKnowledge).not.toContain("Roger → GoSystem POC — State Calculation Integration");
-    expect(onboardingKnowledge).not.toContain("What does the Roger to GoSystem State Calculation POC need to prove?");
     expect(postPilotKnowledge).toContain("Post Pilot — Roger → GoSystem POC: State Calculation Integration");
-    expect(postPilotKnowledge).toContain("POC Meeting Transcript (DOCX)");
     expect(postPilotKnowledge).toContain("Minimum POC input package for DCT");
-    expect(postPilotKnowledge).toContain("NOLs, credits, payments, every State modification");
-    expect(postPilotKnowledge).toContain("proposed proof-of-feasibility and open design questions");
-    expect(postPilotKnowledge).toContain("What does the Roger to GoSystem State Calculation POC need to prove?");
-    expect(postPilotKnowledge).toContain("Federal → State Deliverable Linkage is a DCT architecture/data-model concern");
     expect(pageContext).toContain("POC Meeting Transcript Source");
     expect(pageContext).toContain("Minimum POC Input Package");
   });
 
-  it("keeps the generated POC architecture asset outside the web project public assets", () => {
-    expect(existsSync("/home/ubuntu/webdev-static-assets/gosystem-state-poc/gosystem-state-calculation-poc.png")).toBe(true);
+  it("keeps the generated minimum POC flow asset outside the web project public assets", () => {
+    expect(existsSync("/home/ubuntu/webdev-static-assets/gosystem-state-poc/minimum-poc-state-calculation-flow.png")).toBe(true);
   });
 });

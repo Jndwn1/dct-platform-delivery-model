@@ -213,3 +213,4 @@
 - [x] Relocate the complete Roger → GoSystem POC from the State workspace to beneath the Post Pilot feature inventory
 - [x] Add the POC meeting transcript as a Post Pilot source document and summarize its architecture overview
 - [x] Refocus the Post Pilot Roger → GoSystem POC on the minimum DCT input package, POC flow, proof path, scope distinction, and BA inbound/outbound contract
+- [x] Remove duplicate POC overview, architecture, flow, ownership, mapping, and BA-deliverable content from Post Pilot while preserving distinct minimum and future-state information
