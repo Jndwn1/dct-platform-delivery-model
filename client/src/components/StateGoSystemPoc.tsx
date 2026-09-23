@@ -11,6 +11,30 @@ const C = {
 };
 
 const ARCHITECTURE_IMAGE = "/manus-storage/gosystem-state-calculation-poc_ddd0591b.png";
+const POC_TRANSCRIPT_SOURCE_URL = "/manus-storage/POC_6327d700.docx";
+
+const TRANSCRIPT_ARCHITECTURE_OVERVIEW = [
+  {
+    title: "1. Establish and validate filing context",
+    accent: C.green,
+    detail: "Roger captures the State filing footprint, filer and filing-group context, jurisdiction, tax year, entity or locator context, and calculation configuration. The transcript emphasizes validating the existing GoSystem setup first so the POC does not push changes that can be inherited, rolled forward, or read from GoSystem.",
+  },
+  {
+    title: "2. Govern the calculation package",
+    accent: C.blue,
+    detail: "DCT persists the approved context and supports lineage; Taxonomy defines repeatable business-to-system mappings; IMS translates and correlates the package. GoSystem remains the State calculation engine for taxable income, apportionment, liability, accrual, and applicable State variations.",
+  },
+  {
+    title: "3. Return a reviewable result—not just a number",
+    accent: C.teal,
+    detail: "The return path must give Roger a workpaper-style review experience. The transcript calls for enough structured output to reconcile apportionment factors, State taxable income, liability or accrual components, modifications, and—where required—NOL, credit, and carryforward detail before practitioner approval.",
+  },
+  {
+    title: "4. Prove a scalable pattern before broad delivery",
+    accent: C.purple,
+    detail: "The initial POC should use representative scenarios to prove both inbound and outbound mappings. State-specific configuration, combined or consolidated treatment, modifications, and output granularity remain design decisions; the most material feasibility risk is the outbound package across variable State calculations.",
+  },
+] as const;
 
 const RESPONSIBILITIES = [
   {
@@ -205,6 +229,29 @@ export default function StateGoSystemPoc() {
       </div>
 
       <div style={{ padding: "20px" }}>
+        <section aria-labelledby="poc-source-document" style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderLeft: `5px solid ${C.teal}`, borderRadius: "9px", marginBottom: "18px", padding: "13px 15px" }}>
+          <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "space-between" }}>
+            <div style={{ maxWidth: "850px" }}>
+              <div style={{ color: C.teal, fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", marginBottom: "5px", textTransform: "uppercase" }}>Source document</div>
+              <div id="poc-source-document" style={{ color: C.navy, fontSize: "13px", fontWeight: 850 }}>POC Meeting Transcript (DOCX)</div>
+              <p style={{ color: C.slate, fontSize: "11px", lineHeight: "1.5", margin: "5px 0 0" }}>Recorded POC working-session transcript used as the source for the architecture overview below. It documents the proposed operating model, design questions, and feasibility considerations; it is not an approved implementation specification.</p>
+            </div>
+            <a href={POC_TRANSCRIPT_SOURCE_URL} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: "#ffffff", border: `1px solid ${C.teal}66`, borderRadius: "6px", color: C.teal, fontSize: "10px", fontWeight: 800, padding: "7px 10px", textDecoration: "none", whiteSpace: "nowrap" }}>Open transcript (DOCX)</a>
+          </div>
+        </section>
+
+        <section aria-labelledby="transcript-architecture-overview" style={{ backgroundColor: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "10px", marginBottom: "20px", padding: "15px" }}>
+          <PanelHeading eyebrow="Transcript-derived architecture overview" title="Architecture Overview of the POC" subtitle="A concise synthesis of the POC working session, separating the intended operating model from the design questions that must be resolved during proof of feasibility." accent={C.blue} />
+          <div id="transcript-architecture-overview" style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}>
+            {TRANSCRIPT_ARCHITECTURE_OVERVIEW.map((item) => (
+              <div key={item.title} style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderTop: `4px solid ${item.accent}`, borderRadius: "8px", padding: "12px" }}>
+                <div style={{ color: item.accent, fontSize: "11px", fontWeight: 850, lineHeight: "1.35", marginBottom: "6px" }}>{item.title}</div>
+                <div style={{ color: "#334155", fontSize: "10px", lineHeight: "1.55" }}>{item.detail}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderLeft: "5px solid #d97706", borderRadius: "9px", marginBottom: "20px", padding: "13px 15px" }}>
           <div style={{ color: "#92400e", fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", marginBottom: "5px", textTransform: "uppercase" }}>POC focus</div>
           <div style={{ color: "#78350f", fontSize: "13px", fontWeight: 700, lineHeight: "1.55" }}>Prove both inbound and outbound integration, with particular emphasis on retrieving structured GoSystem calculation outputs and making them transparent and reviewable within Roger.</div>

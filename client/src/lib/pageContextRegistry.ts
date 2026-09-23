@@ -45,7 +45,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     pageTitle: "Post Pilot",
     pageIcon: "◫",
     description: "Executive PI4 Post Pilot planning visibility, planned-feature metrics, the Roger to GoSystem State Calculation POC, and connection to the PI4 Sprint & Story Tracker.",
-    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "Roger to GoSystem State Calculation POC", "PI4 Tracker Navigation"],
+    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "Roger to GoSystem State Calculation POC", "POC Meeting Transcript Source", "PI4 Tracker Navigation"],
     apis: [],
     stories: ["1472734", "1471480"],
     screens: ["Post Pilot Overview", "Planned PI4 Features", "State Calculation POC"],
@@ -54,7 +54,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     businessObjects: ["PI4 Planning Item", "Post Pilot Plan", "State Calculation Input Package", "State Calculation Review Package"],
     integrations: ["PI4 Sprint & Story Tracker", "Roger", "DCT", "Taxonomy", "IMS", "GoSystem"],
     lastUpdated: "2026-09-23",
-    lastChange: "Moved the complete Roger to GoSystem State Calculation POC from the State workspace to the Post Pilot feature inventory after MVP launch.",
+    lastChange: "Added the POC Meeting Transcript as the source document for the Roger to GoSystem architecture overview and retained its design questions as proof-of-feasibility inputs rather than implementation commitments.",
   },
 
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────

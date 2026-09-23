@@ -1137,6 +1137,7 @@ Before documenting any new requirement for the State or Provision workstream, de
     context: `
 ## Post Pilot — Roger → GoSystem POC: State Calculation Integration
 
+- **Source evidence:** The **POC Meeting Transcript (DOCX)** is the working-session source for this overview. It records a proposed proof-of-feasibility and open design questions; it does not establish an approved implementation contract.
 - **Purpose:** This proof-of-feasibility establishes whether Roger can collect and structure required State preparation data, DCT can govern the data package, IMS can transmit and retrieve through the integration boundary, GoSystem can calculate, and Roger can present a transparent review package for practitioner reconciliation and approval.
 - **Inbound package:** Roger → DCT → Taxonomy Mapping → IMS → GoSystem. The POC validates filing context, calculation configuration, PBC inputs, State modifications, and applicable attributes; it determines which values must be supplied, inherited, rolled forward, derived, or read from GoSystem.
 - **Outbound package:** GoSystem → IMS → Taxonomy Mapping → DCT → Roger. The POC must return sufficient structured detail for practitioner review, including apportionment factors, State control/taxable-income components, liability/accrual outputs, and required NOL, credit, carryforward, and utilization values.

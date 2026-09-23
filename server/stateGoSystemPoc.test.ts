@@ -9,6 +9,7 @@ describe("State GoSystem POC extension", () => {
     const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8");
     const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
     const knowledgeBase = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
+    const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
     const onboardingKnowledge = knowledgeBase.slice(knowledgeBase.indexOf('"/onboarding"'), knowledgeBase.indexOf('"/post-pilot"'));
     const postPilotKnowledge = knowledgeBase.slice(knowledgeBase.indexOf('"/post-pilot"'), knowledgeBase.indexOf('"/qa-deployment-registry"'));
 
@@ -24,6 +25,14 @@ describe("State GoSystem POC extension", () => {
 
     expect(poc).toContain("Roger → GoSystem POC: State Calculation Integration");
     expect(poc).toContain("proof-of-feasibility");
+    expect(poc).toContain("POC Meeting Transcript (DOCX)");
+    expect(poc).toContain('/manus-storage/POC_6327d700.docx');
+    expect(poc).toContain("Open transcript (DOCX)");
+    expect(poc).toContain("Transcript-derived architecture overview");
+    expect(poc).toContain("Architecture Overview of the POC");
+    expect(poc).toContain("Establish and validate filing context");
+    expect(poc).toContain("Return a reviewable result—not just a number");
+    expect(poc).toContain("Prove a scalable pattern before broad delivery");
     expect(poc).toContain("POC focus");
     expect(poc).toContain("retrieving structured GoSystem calculation outputs");
     expect(poc).toContain("GoSystem as the downstream State calculation system");
@@ -63,8 +72,11 @@ describe("State GoSystem POC extension", () => {
     expect(onboardingKnowledge).not.toContain("Roger → GoSystem POC — State Calculation Integration");
     expect(onboardingKnowledge).not.toContain("What does the Roger to GoSystem State Calculation POC need to prove?");
     expect(postPilotKnowledge).toContain("Post Pilot — Roger → GoSystem POC: State Calculation Integration");
+    expect(postPilotKnowledge).toContain("POC Meeting Transcript (DOCX)");
+    expect(postPilotKnowledge).toContain("proposed proof-of-feasibility and open design questions");
     expect(postPilotKnowledge).toContain("What does the Roger to GoSystem State Calculation POC need to prove?");
     expect(postPilotKnowledge).toContain("Federal → State Deliverable Linkage is a DCT architecture/data-model concern");
+    expect(pageContext).toContain("POC Meeting Transcript Source");
   });
 
   it("keeps the generated POC architecture asset outside the web project public assets", () => {
