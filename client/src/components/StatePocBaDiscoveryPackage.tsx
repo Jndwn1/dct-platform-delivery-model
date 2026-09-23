@@ -12,6 +12,8 @@ const C = {
   purple: "#7c3aed",
 };
 
+const BA_MAPPING_WORKBOOK_URL = "/manus-storage/Roger_GoSystem_POC_BA_Mapping_Template_45aa60ff.xlsx";
+
 type Status = "Draft" | "In Progress" | "Not Started" | "Known / Confirmed" | "Known Concept — Detail TBD" | "Decision Required" | "Blocking Dependency" | "Future-State";
 
 const STATUS: Record<Status, { bg: string; border: string; text: string }> = {
@@ -138,7 +140,7 @@ export default function StatePocBaDiscoveryPackage() {
         <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderLeft: "5px solid #2563eb", borderRadius: "9px", color: "#1e3a5f", fontSize: "11px", lineHeight: "1.5", marginBottom: "24px", padding: "11px 13px" }}>The BA serves as the connector across these teams, but the source teams remain responsible for validating their respective business rules, mappings, interfaces, and technical constraints.</div>
         <Heading eyebrow="9 · status legend" title="Visual Status Legend" />
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>{(["Known / Confirmed", "Known Concept — Detail TBD", "Decision Required", "Blocking Dependency", "Future-State"] as Status[]).map(status => <Chip key={status} status={status} />)}</div>
-        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "10px", padding: "15px" }}><Heading eyebrow="Working Mapping Artifact" title="Roger_GoSystem_POC_BA_Mapping_Template.xlsx" subtitle="The Manus page summarizes and visualizes requirements. The spreadsheet remains the field-level working artifact used during discovery and mapping sessions." /><div style={{ alignItems: "center", background: "#ffffff", border: "1px dashed #0284c7", borderRadius: "8px", color: C.teal, display: "flex", fontSize: "11px", fontWeight: 800, justifyContent: "space-between", padding: "11px 12px" }}><span>Workbook link / upload area</span><span style={{ color: C.gray, fontWeight: 700 }}>No workbook linked yet</span></div></div>
+        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "10px", padding: "15px" }}><Heading eyebrow="Working Mapping Artifact" title="Roger_GoSystem_POC_BA_Mapping_Template.xlsx" subtitle="Source workbook supplied for the POC. It includes the POC overview, inbound and outbound mapping tabs, responsibilities, decision log, and BA deliverables; use it as the field-level working artifact for discovery and mapping sessions." /><div style={{ alignItems: "center", background: "#ffffff", border: "1px dashed #0284c7", borderRadius: "8px", color: C.teal, display: "flex", fontSize: "11px", fontWeight: 800, gap: "10px", justifyContent: "space-between", padding: "11px 12px" }}><div><div>Linked source workbook</div><div style={{ color: C.gray, fontSize: "10px", fontWeight: 600, marginTop: "3px" }}>Roger_GoSystem_POC_BA_Mapping_Template.xlsx</div></div><a href={BA_MAPPING_WORKBOOK_URL} target="_blank" rel="noopener noreferrer" style={{ background: C.teal, borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 850, padding: "7px 9px", textDecoration: "none", whiteSpace: "nowrap" }}>Open workbook ↗</a></div></div>
       </div>
     </div>
   </section>;

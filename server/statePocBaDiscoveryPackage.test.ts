@@ -27,6 +27,8 @@ describe("State POC BA Discovery and Mapping Package", () => {
     expect(packageSource).toContain("BA Discovery → POC-Ready Requirements");
     expect(packageSource).toContain("Known Concept — Detail TBD");
     expect(packageSource).toContain("Roger_GoSystem_POC_BA_Mapping_Template.xlsx");
-    expect(packageSource).toContain("No workbook linked yet");
+    expect(packageSource).toContain("Roger_GoSystem_POC_BA_Mapping_Template_45aa60ff.xlsx");
+    expect(packageSource).toContain("Open workbook");
+    expect(packageSource).not.toContain("No workbook linked yet");
   });
 });
