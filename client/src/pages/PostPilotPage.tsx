@@ -1,20 +1,78 @@
+import { useMemo } from "react";
 import { Link } from "wouter";
-import { PI4_PLANNED_FEATURES } from "@/contexts/BatchStatusContext";
+import { deriveMvpMetrics, useBatchStatus } from "@/contexts/BatchStatusContext";
+import { getRogerScreenReadinessSummary } from "@/lib/rogerMvpScreenStatus";
+import {
+  POST_PILOT_PLANNING_INVENTORY,
+  POST_PILOT_PLANNING_SUMMARY,
+} from "@/lib/postPilotPlanningInventory";
 
 const PURPLE = "#7c3aed";
 const PURPLE_INK = "#6d28d9";
 const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
 
+type MetricCardProps = {
+  label: string;
+  value: string | number;
+  detail: string;
+  color: string;
+  surface?: string;
+  border?: string;
+};
+
+function MetricCard({ label, value, detail, color, surface = "#ffffff", border = "#e2e8f0" }: MetricCardProps) {
+  return (
+    <div style={{ background: surface, border: `1px solid ${border}`, borderTop: `4px solid ${color}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", minHeight: "124px", padding: "14px" }}>
+      <div style={{ color: "#64748b", fontSize: "10px", fontWeight: 850, letterSpacing: "0.075em", textTransform: "uppercase" }}>{label}</div>
+      <div style={{ color, fontSize: "28px", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1, marginTop: "12px" }}>{value}</div>
+      <div style={{ color: "#64748b", fontSize: "10px", lineHeight: 1.45, marginTop: "7px" }}>{detail}</div>
+    </div>
+  );
+}
+
+function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
+  return (
+    <div style={{ borderLeft: `4px solid ${PURPLE}`, marginBottom: "14px", paddingLeft: "12px" }}>
+      <div style={{ color: PURPLE, fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>{eyebrow}</div>
+      <h2 style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, letterSpacing: "-0.015em", margin: "4px 0 0" }}>{title}</h2>
+      <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>{description}</p>
+    </div>
+  );
+}
+
 export default function PostPilotPage() {
+  const { statuses } = useBatchStatus();
+  const mvpMetrics = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
+  const rogerScreenMetrics = useMemo(() => getRogerScreenReadinessSummary(), []);
+
+  const liveMvpMetrics: MetricCardProps[] = [
+    { label: "MVP Features Complete", value: mvpMetrics.complete, detail: "ADO-backed lifecycle", color: "#059669", surface: "#f0fdf4", border: "#bbf7d0" },
+    { label: "MVP Features Active", value: mvpMetrics.inDev, detail: "Active ADO features", color: "#2563eb", surface: "#eff6ff", border: "#bfdbfe" },
+    { label: "MVP Features In Review", value: mvpMetrics.inReview, detail: "Awaiting closure review", color: "#7c3aed", surface: "#faf5ff", border: "#ddd6fe" },
+    { label: "MVP Features Planned", value: mvpMetrics.planned, detail: "Not Started only", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
+    { label: "Total MVP Features", value: mvpMetrics.total, detail: "Governed delivery features", color: "#d97706", surface: "#fffbeb", border: "#fde68a" },
+    { label: "Roger QA Screens", value: rogerScreenMetrics.total, detail: `${rogerScreenMetrics.completed} QA completed`, color: "#0891b2", surface: "#ecfeff", border: "#a5f3fc" },
+    { label: "Overall MVP Readiness", value: `${mvpMetrics.readinessPct}%`, detail: "Live MVP baseline", color: "#059669", surface: "#f0fdf4", border: "#bbf7d0" },
+  ];
+
+  const planningMetrics: MetricCardProps[] = [
+    { label: "PI4 Planning Records", value: POST_PILOT_PLANNING_SUMMARY.planningRecordCount, detail: "Supplied planning inventory rows", color: PURPLE, surface: PURPLE_SURFACE, border: PURPLE_BORDER },
+    { label: "Unique Features", value: POST_PILOT_PLANNING_SUMMARY.uniqueFeatureCount, detail: "Feature IDs represented", color: "#2563eb", surface: "#eff6ff", border: "#bfdbfe" },
+    { label: "Committed", value: POST_PILOT_PLANNING_SUMMARY.markedCommittedCount, detail: "No commitments captured", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
+    { label: "Sized", value: POST_PILOT_PLANNING_SUMMARY.sizedCount, detail: "No sizing captured", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
+    { label: "High Business Value", value: POST_PILOT_PLANNING_SUMMARY.highValueCount, detail: "Rated 9 or 10 in source", color: "#0f766e", surface: "#f0fdfa", border: "#99f6e4" },
+    { label: "Linked ADO Dependencies", value: POST_PILOT_PLANNING_SUMMARY.linkedAdoDependencyCount, detail: `${POST_PILOT_PLANNING_SUMMARY.unresolvedDependencyCount} records show TBD`, color: "#b45309", surface: "#fffbeb", border: "#fde68a" },
+  ];
+
   return (
     <div style={{ maxWidth: "1320px", margin: "0 auto", padding: "28px 32px 48px", fontFamily: "system-ui, sans-serif" }}>
       <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "14px", justifyContent: "space-between", marginBottom: "22px" }}>
         <div>
           <div style={{ color: PURPLE, fontSize: "10px", fontWeight: 850, letterSpacing: "0.1em", textTransform: "uppercase" }}>Executive Health</div>
           <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 900, letterSpacing: "-0.02em", margin: "5px 0 0" }}>Post Pilot</h1>
-          <p style={{ color: "#64748b", fontSize: "13px", lineHeight: 1.5, margin: "6px 0 0", maxWidth: "710px" }}>
-            PI4 planning visibility and post-pilot metric tracking. Delivery metrics remain separate from the live MVP portfolio until PI4 work is formally approved.
+          <p style={{ color: "#64748b", fontSize: "13px", lineHeight: 1.5, margin: "6px 0 0", maxWidth: "760px" }}>
+            A PI4 planning dashboard that carries forward the live MVP baseline while keeping post-pilot planning records, commitments, sizing, and dependencies visibly separate from delivered MVP work.
           </p>
         </div>
         <div style={{ backgroundColor: "#f5f3ff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "999px", color: PURPLE_INK, fontSize: "10px", fontWeight: 850, letterSpacing: "0.06em", padding: "7px 10px", textTransform: "uppercase" }}>
@@ -22,7 +80,18 @@ export default function PostPilotPage() {
         </div>
       </div>
 
-      <section aria-labelledby="pi4-post-pilot-title" style={{ backgroundColor: PURPLE_SURFACE, border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(124, 58, 237, 0.07)", overflow: "hidden" }}>
+      <section aria-labelledby="live-mvp-baseline" style={{ marginBottom: "26px" }}>
+        <SectionHeading
+          eyebrow="Live portfolio baseline"
+          title="MVP Dashboard Metrics"
+          description="The same live MVP metric set used on the Executive Health landing page, retained here as the post-pilot baseline."
+        />
+        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))" }}>
+          {liveMvpMetrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
+        </div>
+      </section>
+
+      <section aria-labelledby="pi4-post-pilot-title" style={{ backgroundColor: PURPLE_SURFACE, border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(124, 58, 237, 0.07)", marginBottom: "26px", overflow: "hidden" }}>
         <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "18px", justifyContent: "space-between", padding: "18px 20px 14px" }}>
           <div>
             <div style={{ color: "#0f172a", fontSize: "16px", fontWeight: 900 }} id="pi4-post-pilot-title">PI 4</div>
@@ -30,25 +99,82 @@ export default function PostPilotPage() {
           </div>
           <div style={{ color: PURPLE, fontSize: "24px", fontWeight: 900, lineHeight: 1 }}>0%</div>
         </div>
-
         <div style={{ height: "6px", backgroundColor: "#e2e8f0", borderRadius: "3px", margin: "0 20px" }} />
-
         <div style={{ borderTop: `1px solid ${PURPLE_BORDER}`, marginTop: "14px", padding: "14px 20px 18px" }}>
-          <div style={{ color: PURPLE, fontSize: "11px", fontWeight: 850, letterSpacing: "0.07em", textTransform: "uppercase" }}>Planned PI4 Features</div>
-          <div style={{ display: "grid", gap: "10px 18px", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", marginTop: "10px" }}>
-            {PI4_PLANNED_FEATURES.map((feature) => (
-              <div key={feature} style={{ alignItems: "flex-start", color: "#334155", display: "flex", fontSize: "12px", gap: "7px", lineHeight: 1.4 }}>
-                <span aria-hidden="true" style={{ color: PURPLE, fontWeight: 900 }}>•</span>
-                <span>{feature}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ color: "#64748b", fontSize: "11px", fontStyle: "italic", marginTop: "14px" }}>
-            Planning visibility only — excluded from all PI4 and MVP delivery metrics.
+          <div style={{ color: "#64748b", fontSize: "11px", fontStyle: "italic" }}>
+            Planning visibility only — excluded from all PI4 and MVP delivery metrics. Commitment and sizing fields are displayed as supplied; neither has been captured for this inventory.
           </div>
           <Link href="/pi4-planning" style={{ color: PURPLE_INK, display: "inline-flex", fontSize: "12px", fontWeight: 850, marginTop: "12px", textDecoration: "none" }}>
             Open PI4 Sprint &amp; Story Tracker →
           </Link>
+        </div>
+      </section>
+
+      <section aria-labelledby="pi4-planning-metrics" style={{ marginBottom: "26px" }}>
+        <SectionHeading
+          eyebrow="PI4 planning inventory"
+          title="Post Pilot Metrics"
+          description="These values describe the submitted planning inventory only. They do not represent active or completed PI4 delivery."
+        />
+        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))" }}>
+          {planningMetrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
+        </div>
+      </section>
+
+      <section aria-labelledby="planned-pi4-features">
+        <SectionHeading
+          eyebrow="Planning inventory detail"
+          title="Planned Features and ADO Dependencies"
+          description="Feature and dependency details transcribed from the supplied Post Pilot planning inventory. Blank source fields remain marked as not captured; TBD dependencies remain unresolved."
+        />
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
+          <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "space-between", padding: "11px 14px" }}>
+            <div id="planned-pi4-features" style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>Post Pilot feature inventory</div>
+            <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 850 }}>No PI4 delivery commitment recorded</div>
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ borderCollapse: "collapse", minWidth: "1060px", width: "100%" }}>
+              <thead>
+                <tr style={{ background: "#1e293b", color: "#ffffff", textAlign: "left" }}>
+                  {[
+                    "Obj. #",
+                    "Feature / Objective Description",
+                    "Committed?",
+                    "Business Value (1–10)",
+                    "Sizing",
+                    "ADO Story / Dependency IDs",
+                  ].map((label) => (
+                    <th key={label} style={{ fontSize: "10px", fontWeight: 850, letterSpacing: "0.055em", padding: "10px 12px", textTransform: "uppercase" }}>{label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {POST_PILOT_PLANNING_INVENTORY.map((record, index) => {
+                  const dependencyIsTbd = record.adoDependencies === "TBD";
+                  const dependencyText = Array.isArray(record.adoDependencies) ? record.adoDependencies.join(", ") : "TBD";
+                  return (
+                    <tr key={`${record.featureId}-${record.objectiveNumber || index}`} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}>
+                      <td style={{ color: "#475569", fontSize: "12px", fontWeight: 800, padding: "11px 12px", textAlign: "center", width: "6%" }}>{record.objectiveNumber || "—"}</td>
+                      <td style={{ padding: "11px 12px", width: "39%" }}>
+                        <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 850 }}>FEATURE {record.featureId}</div>
+                        <div style={{ color: "#1e293b", fontSize: "12px", fontWeight: 700, lineHeight: 1.4, marginTop: "3px" }}>{record.objectiveDescription}</div>
+                      </td>
+                      <td style={{ color: "#64748b", fontSize: "11px", padding: "11px 12px", width: "12%" }}>{record.committed}</td>
+                      <td style={{ padding: "11px 12px", width: "13%" }}>
+                        {record.businessValue === null ? <span style={{ color: "#94a3b8", fontSize: "11px" }}>Not provided</span> : (
+                          <span style={{ background: record.businessValue === 10 ? "#dcfce7" : "#eff6ff", border: `1px solid ${record.businessValue === 10 ? "#86efac" : "#bfdbfe"}`, borderRadius: "99px", color: record.businessValue === 10 ? "#166534" : "#1d4ed8", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "3px 7px" }}>{record.businessValue}</span>
+                        )}
+                      </td>
+                      <td style={{ color: "#64748b", fontSize: "11px", padding: "11px 12px", width: "12%" }}>{record.sizing}</td>
+                      <td style={{ padding: "11px 12px", width: "18%" }}>
+                        {dependencyIsTbd ? <span style={{ color: "#b45309", fontSize: "11px", fontWeight: 850 }}>TBD</span> : <span style={{ color: "#334155", fontSize: "11px", lineHeight: 1.45 }}>{dependencyText}</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
     </div>

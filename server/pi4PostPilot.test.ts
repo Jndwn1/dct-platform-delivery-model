@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_STATUS, derivePICompletion } from "../client/src/contexts/BatchStatusContext";
+import { POST_PILOT_PLANNING_INVENTORY, POST_PILOT_PLANNING_SUMMARY } from "../client/src/lib/postPilotPlanningInventory";
 
 describe("PI4 Post Pilot delivery", () => {
   it("keeps PI4 at zero delivery progress because planning items are visibility-only", () => {
@@ -29,8 +30,12 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Post Pilot");
     expect(postPilot).toContain("Post Pilot · Planning Visibility Only");
     expect(postPilot).toContain("0%");
-    expect(postPilot).toContain("Planned PI4 Features");
-    expect(postPilot).toContain("PI4_PLANNED_FEATURES");
+    expect(postPilot).toContain("MVP Dashboard Metrics");
+    expect(postPilot).toContain("Post Pilot Metrics");
+    expect(postPilot).toContain("Planned Features and ADO Dependencies");
+    expect(postPilot).toContain("deriveMvpMetrics");
+    expect(postPilot).toContain("getRogerScreenReadinessSummary");
+    expect(postPilot).toContain("POST_PILOT_PLANNING_INVENTORY");
     expect(postPilot).toContain("excluded from all PI4 and MVP delivery metrics");
     expect(postPilot).toContain('href="/pi4-planning"');
     expect(postPilot).not.toContain("Closed PI4 Features");
@@ -45,5 +50,24 @@ describe("PI4 Post Pilot delivery", () => {
     expect(planningModel).toContain('"pi4-ims-translation": "IMS Translation & Import Layer Design"');
     expect(platformContext).toContain("0 closed, 0 active, and 0% delivery progress");
     expect(platformContext).toContain("excluded from all PI4 and MVP delivery metrics");
+  });
+
+  it("registers the supplied planned features, source business values, and ADO dependency IDs without inventing commitment or sizing", () => {
+    expect(POST_PILOT_PLANNING_INVENTORY).toHaveLength(14);
+    expect(POST_PILOT_PLANNING_SUMMARY).toMatchObject({
+      planningRecordCount: 14,
+      uniqueFeatureCount: 13,
+      markedCommittedCount: 0,
+      sizedCount: 0,
+      highValueCount: 13,
+      unresolvedDependencyCount: 3,
+    });
+    expect(POST_PILOT_PLANNING_INVENTORY.every((record) => record.committed === "Not captured" && record.sizing === "Not captured")).toBe(true);
+    expect(POST_PILOT_PLANNING_INVENTORY).toEqual(expect.arrayContaining([
+      expect.objectContaining({ featureId: "1441524", objectiveDescription: "Finding - 5.2 API and Payload Definitions", adoDependencies: ["1433863", "1483681"] }),
+      expect.objectContaining({ featureId: "1451927", objectiveDescription: "Roger State Taxable Income MVP - State Filing Footprint", businessValue: 10, adoDependencies: ["1471480", "1472734"] }),
+      expect.objectContaining({ featureId: "1490944", objectiveDescription: "Data Defect & Bug Management", businessValue: 10, adoDependencies: ["1477412", "1483802", "1483805", "1487890", "1488332", "1463645", "1477411", "1477413"] }),
+      expect.objectContaining({ featureId: "1441528", objectiveDescription: "Finding 5.6 Security Implementation", adoDependencies: ["1472922", "1444513"] }),
+    ]));
   });
 });
