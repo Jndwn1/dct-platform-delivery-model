@@ -3,17 +3,22 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("State GoSystem POC extension", () => {
-  it("adds the Roger to GoSystem POC to the existing State workspace without creating a standalone State page", () => {
+  it("places the Roger to GoSystem POC beneath the Post Pilot feature inventory without creating a standalone State page", () => {
     const workspace = readFileSync(resolve(process.cwd(), "client/src/pages/onboarding/DiscoveryWorkspace.tsx"), "utf8");
+    const postPilot = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");
     const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8");
     const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
     const knowledgeBase = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
+    const onboardingKnowledge = knowledgeBase.slice(knowledgeBase.indexOf('"/onboarding"'), knowledgeBase.indexOf('"/post-pilot"'));
+    const postPilotKnowledge = knowledgeBase.slice(knowledgeBase.indexOf('"/post-pilot"'), knowledgeBase.indexOf('"/qa-deployment-registry"'));
 
-    expect(workspace).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
-    expect(workspace).toContain("<StateGoSystemPoc />");
+    expect(workspace).not.toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
+    expect(workspace).not.toContain("<StateGoSystemPoc />");
     expect(workspace).toContain('<ResponsibilityMatrix workstream="state" />');
     expect(workspace).toContain("State — File Drop + GoSystem Calculation System Flow");
     expect(workspace).toContain("DCT → IMS → GoSystem calculation loop");
+    expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
+    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
     expect(app).not.toContain("StateGoSystemPoc");
     expect(app).not.toContain("/state-poc");
 
@@ -55,9 +60,11 @@ describe("State GoSystem POC extension", () => {
     expect(poc).toContain("Ownership boundaries in the State calculation POC");
     expect(poc).toContain(">Ownership</span>");
 
-    expect(knowledgeBase).toContain("Roger → GoSystem POC — State Calculation Integration");
-    expect(knowledgeBase).toContain("What does the Roger to GoSystem State Calculation POC need to prove?");
-    expect(knowledgeBase).toContain("Federal → State Deliverable Linkage is a DCT architecture/data-model concern");
+    expect(onboardingKnowledge).not.toContain("Roger → GoSystem POC — State Calculation Integration");
+    expect(onboardingKnowledge).not.toContain("What does the Roger to GoSystem State Calculation POC need to prove?");
+    expect(postPilotKnowledge).toContain("Post Pilot — Roger → GoSystem POC: State Calculation Integration");
+    expect(postPilotKnowledge).toContain("What does the Roger to GoSystem State Calculation POC need to prove?");
+    expect(postPilotKnowledge).toContain("Federal → State Deliverable Linkage is a DCT architecture/data-model concern");
   });
 
   it("keeps the generated POC architecture asset outside the web project public assets", () => {

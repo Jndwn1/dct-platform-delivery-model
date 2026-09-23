@@ -7,7 +7,6 @@ import { useState, useRef, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { appendSharedBuddyConversation } from "@/lib/askBuddyConversation";
 import RuleProcessingTdcPosting from "@/components/RuleProcessingTdcPosting";
-import StateGoSystemPoc from "@/components/StateGoSystemPoc";
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 const C = {
@@ -1913,7 +1912,6 @@ export default function DiscoveryWorkspace() {
       <div style={{ minWidth: 0 }}>
           <WorkstreamOverview />
           <ResponsibilityMatrix workstream="state" />
-          <StateGoSystemPoc />
           <ExistingCapabilities />
           <AskBuddySection />
       </div>

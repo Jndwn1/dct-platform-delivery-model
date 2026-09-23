@@ -22,6 +22,7 @@ describe("PI4 Post Pilot delivery", () => {
     const sidebar = readFileSync(resolve(process.cwd(), "client/src/components/Sidebar.tsx"), "utf8");
     const planningModel = readFileSync(resolve(process.cwd(), "client/src/contexts/BatchStatusContext.tsx"), "utf8");
     const platformContext = readFileSync(resolve(process.cwd(), "server/platformContext.ts"), "utf8");
+    const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
 
     expect(dashboard).not.toContain("Post Pilot · Planning Visibility Only");
     expect(dashboard).not.toContain("PI4 Planning Visibility");
@@ -44,8 +45,12 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain('href="/pi4-planning"');
     expect(postPilot).not.toContain("Closed PI4 Features");
     expect(postPilot).not.toContain("Active PI4 Features");
+    expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
+    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
     expect(app).toContain('path="/post-pilot" component={PostPilotPage}');
     expect(sidebar).toContain('["Executive Health", "Post Pilot", "Ask Buddy"]');
+    expect(pageContext).toContain('"Roger to GoSystem State Calculation POC"');
+    expect(pageContext).toContain('"State Calculation POC"');
 
     expect(planningModel).toContain('"pi4-manual-client-account-management": "Manual Custom Client Account Management"');
     expect(planningModel).toContain('"pi4-data-console": "DCT - Data Console"');

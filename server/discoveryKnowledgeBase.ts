@@ -1043,7 +1043,6 @@ The Discovery Center is the primary resource for Business Analysts working on th
       "What are the two current State backend stories and what does each own?",
       "What must the State team define for the Roger Filing-screen data contract?",
       "What is the State Filing Footprint lifecycle from retrieval through governance and later change?",
-      "What does the Roger to GoSystem State Calculation POC need to prove?",
       "How does the Provision workstream consume governed data from DCT?",
       "What APIs are available for State and Provision consumers?",
       "What is already built vs what is net-new for State and Provision?",
@@ -1071,15 +1070,6 @@ This workspace covers the **State** and **Provision** workstreams and the DCT ba
 - **Refinement / ownership:** Both stories are refined and **DCT-owned**. They remain unassigned to a PI4 sprint until the PI4 baseline is approved; the ownership update does not change PI4 or MVP delivery metrics.
 - **Scope / experience view:** Business requirement → 1472734 → 1471480 → Roger State Filing Experience. This is a business scope and practitioner-experience view, not a strict technical predecessor sequence.
 - **Ownership boundary:** State defines business, tax, filing, and data-meaning requirements. DCT owns governed backend implementation, persistence, retrieval, validation, and contract management. Roger owns practitioner-facing UI and actions but does not own State tax records.
-
-### Roger → GoSystem POC — State Calculation Integration
-- **Purpose:** This proof-of-feasibility establishes whether Roger can collect and structure required State preparation data, DCT can govern the data package, IMS can transmit and retrieve through the integration boundary, GoSystem can calculate, and Roger can present a transparent review package for practitioner reconciliation and approval.
-- **Inbound package:** Roger → DCT → Taxonomy Mapping → IMS → GoSystem. The POC validates filing context, calculation configuration, PBC inputs, State modifications, and applicable attributes; it determines which values must be supplied, inherited, rolled forward, derived, or read from GoSystem.
-- **Outbound package:** GoSystem → IMS → Taxonomy Mapping → DCT → Roger. The POC must return sufficient structured detail for practitioner review, including apportionment factors, State control/taxable-income components, liability/accrual outputs, and required NOL, credit, carryforward, and utilization values.
-- **Ownership:** Roger is the practitioner experience. DCT provides governed persistence, retrieval, lineage, and integration support. Taxonomy defines repeatable business-to-system mapping. IMS is the GoSystem translation boundary. GoSystem is the State tax calculation engine. Process / State owns business rules, calculation requirements, and review requirements.
-- **Key architecture dependency:** Federal → State Deliverable Linkage is a DCT architecture/data-model concern. The State deliverable must identify the correct Federal deliverable for an entity and tax year when multiple Federal deliverables exist; shared source data may be reusable, but adjustments and calculated values are deliverable-specific.
-- **Success:** The POC succeeds when the governed input package is transmitted, GoSystem executes the expected State calculation, outputs are retrieved and mapped into DCT/Roger structures, the practitioner can reconcile the result, and the pattern can reasonably scale beyond representative scenarios.
-
 
 ---
 
@@ -1131,6 +1121,28 @@ Before documenting any new requirement for the State or Provision workstream, de
 - B9A Gateway owns consumer access — no consumer bypasses it.
  - Roger owns practitioner-facing UI and permitted actions; it does not own State tax records or persist them outside governed DCT records.
 - IMS owns engine routing and payload translation — DCT does not connect directly to GoSystem, CCH, or OIT.
+`,
+  },
+
+  "/post-pilot": {
+    pageTitle: "Post Pilot",
+    pagePath: "/post-pilot",
+    summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, and the Roger to GoSystem State Calculation POC.",
+    suggestedQuestions: [
+      "What does the Roger to GoSystem State Calculation POC need to prove?",
+      "What data moves into GoSystem and what review information returns to Roger?",
+      "What are the ownership boundaries in the State calculation POC?",
+      "What are the POC success criteria and unresolved questions?",
+    ],
+    context: `
+## Post Pilot — Roger → GoSystem POC: State Calculation Integration
+
+- **Purpose:** This proof-of-feasibility establishes whether Roger can collect and structure required State preparation data, DCT can govern the data package, IMS can transmit and retrieve through the integration boundary, GoSystem can calculate, and Roger can present a transparent review package for practitioner reconciliation and approval.
+- **Inbound package:** Roger → DCT → Taxonomy Mapping → IMS → GoSystem. The POC validates filing context, calculation configuration, PBC inputs, State modifications, and applicable attributes; it determines which values must be supplied, inherited, rolled forward, derived, or read from GoSystem.
+- **Outbound package:** GoSystem → IMS → Taxonomy Mapping → DCT → Roger. The POC must return sufficient structured detail for practitioner review, including apportionment factors, State control/taxable-income components, liability/accrual outputs, and required NOL, credit, carryforward, and utilization values.
+- **Ownership:** Roger is the practitioner experience. DCT provides governed persistence, retrieval, lineage, and integration support. Taxonomy defines repeatable business-to-system mapping. IMS is the GoSystem translation boundary. GoSystem is the State tax calculation engine. Process / State owns business rules, calculation requirements, and review requirements.
+- **Key architecture dependency:** Federal → State Deliverable Linkage is a DCT architecture/data-model concern. The State deliverable must identify the correct Federal deliverable for an entity and tax year when multiple Federal deliverables exist; shared source data may be reusable, but adjustments and calculated values are deliverable-specific.
+- **Success:** The POC succeeds when the governed input package is transmitted, GoSystem executes the expected State calculation, outputs are retrieved and mapped into DCT/Roger structures, the practitioner can reconcile the result, and the pattern can reasonably scale beyond representative scenarios.
 `,
   },
 

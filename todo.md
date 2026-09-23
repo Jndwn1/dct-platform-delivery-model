@@ -210,3 +210,4 @@
 - [x] Remove the Live Portfolio Baseline and MVP Dashboard Metrics block from Post Pilot while retaining PI4 planning metrics and inventory
 - [x] Renumber all 14 Post Pilot objectives consecutively without blanks
 - [x] Remove the Unique Features metric card from Post Pilot
+- [x] Relocate the complete Roger → GoSystem POC from the State workspace to beneath the Post Pilot feature inventory

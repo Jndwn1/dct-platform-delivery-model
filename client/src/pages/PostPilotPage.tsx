@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import StateGoSystemPoc from "@/components/StateGoSystemPoc";
 import {
   POST_PILOT_PLANNING_INVENTORY,
   POST_PILOT_PLANNING_SUMMARY,
@@ -148,6 +149,8 @@ export default function PostPilotPage() {
           </div>
         </div>
       </section>
+
+      <StateGoSystemPoc />
     </div>
   );
 }

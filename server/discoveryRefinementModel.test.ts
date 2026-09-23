@@ -10,6 +10,7 @@ describe("Provision and State Discovery refinement model", () => {
     const stateCapabilitiesBlock = source.slice(source.indexOf("const STATE_CAPABILITY_ROWS"), source.indexOf("const PROVISION_CAPABILITY_ROWS"));
     const workstreamReadinessBlock = source.slice(source.indexOf("function WorkstreamReadinessHub"), source.indexOf("// ─── PI 4 State delivery readiness"));
     const renderedWorkspace = source.slice(source.indexOf("export default function DiscoveryWorkspace"));
+    const postPilot = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");
 
     expect(source).toContain("Cross-Team Discovery & Refinement Model");
     expect(source).not.toContain("DCT acceptance check");
@@ -96,9 +97,10 @@ describe("Provision and State Discovery refinement model", () => {
     expect(renderedWorkspace).not.toContain("Batch 9A — Gateway");
     expect(renderedWorkspace).toContain("<WorkstreamOverview />");
     expect(renderedWorkspace).toContain('<ResponsibilityMatrix workstream="state" />');
-    expect(renderedWorkspace).toContain("<StateGoSystemPoc />");
+    expect(renderedWorkspace).not.toContain("<StateGoSystemPoc />");
     expect(renderedWorkspace).toContain("<ExistingCapabilities />");
     expect(renderedWorkspace).toContain("<AskBuddySection />");
+    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
     expect(buddySource).toContain("State Refinement & DCT Ownership — Current Two Backend Stories");
     expect(buddySource).toContain("Both stories are refined and **DCT-owned**");
     expect(buddySource).toContain("Roger owns practitioner-facing UI and actions but does not own State tax records.");
