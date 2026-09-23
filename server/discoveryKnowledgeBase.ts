@@ -1130,6 +1130,7 @@ Before documenting any new requirement for the State or Provision workstream, de
     summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, and the Roger to GoSystem State Calculation POC.",
     suggestedQuestions: [
       "What does the Roger to GoSystem State Calculation POC need to prove?",
+      "What is included in the minimum POC input package for DCT?",
       "What data moves into GoSystem and what review information returns to Roger?",
       "What are the ownership boundaries in the State calculation POC?",
       "What are the POC success criteria and unresolved questions?",
@@ -1139,7 +1140,9 @@ Before documenting any new requirement for the State or Provision workstream, de
 
 - **Source evidence:** The **POC Meeting Transcript (DOCX)** is the working-session source for this overview. It records a proposed proof-of-feasibility and open design questions; it does not establish an approved implementation contract.
 - **Purpose:** This proof-of-feasibility establishes whether Roger can collect and structure required State preparation data, DCT can govern the data package, IMS can transmit and retrieve through the integration boundary, GoSystem can calculate, and Roger can present a transparent review package for practitioner reconciliation and approval.
-- **Inbound package:** Roger → DCT → Taxonomy Mapping → IMS → GoSystem. The POC validates filing context, calculation configuration, PBC inputs, State modifications, and applicable attributes; it determines which values must be supplied, inherited, rolled forward, derived, or read from GoSystem.
+- **Minimum POC input package for DCT:** The immediate proof path is one representative State scenario with core filing context; a Federal taxable-income starting value or governed Federal-deliverable reference; minimum calculation configuration; Property, Payroll, and Sales inputs; one representative State modification; and Taxonomy/mapping, correlation, source, version, and lineage metadata. This is sufficient to identify the filing, execute one State calculation, and correlate the response back to the correct run.
+- **POC scope boundary:** NOLs, credits, payments, every State modification, all 50-State variations, and full production-scale mapping patterns are future-state expansion items; they must not block the representative proof of feasibility.
+- **Inbound package:** Roger → DCT → Taxonomy Mapping → IMS → GoSystem. DCT builds the governed minimum POC package, Taxonomy maps concepts, and IMS transmits it to GoSystem. The POC must decide whether the Federal starting value is sent directly or referenced through the associated Federal deliverable.
 - **Outbound package:** GoSystem → IMS → Taxonomy Mapping → DCT → Roger. The POC must return sufficient structured detail for practitioner review, including apportionment factors, State control/taxable-income components, liability/accrual outputs, and required NOL, credit, carryforward, and utilization values.
 - **Ownership:** Roger is the practitioner experience. DCT provides governed persistence, retrieval, lineage, and integration support. Taxonomy defines repeatable business-to-system mapping. IMS is the GoSystem translation boundary. GoSystem is the State tax calculation engine. Process / State owns business rules, calculation requirements, and review requirements.
 - **Key architecture dependency:** Federal → State Deliverable Linkage is a DCT architecture/data-model concern. The State deliverable must identify the correct Federal deliverable for an entity and tax year when multiple Federal deliverables exist; shared source data may be reusable, but adjustments and calculated values are deliverable-specific.
