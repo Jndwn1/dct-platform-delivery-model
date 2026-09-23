@@ -45,7 +45,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain('href="/pi4-planning"');
     expect(postPilot).not.toContain("Closed PI4 Features");
     expect(postPilot).not.toContain("Active PI4 Features");
-    expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
+    expect(postPilot).toContain('import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc"');
     expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
     expect(app).toContain('path="/post-pilot" component={PostPilotPage}');
     expect(sidebar).toContain('["Executive Health", "Post Pilot", "Ask Buddy"]');

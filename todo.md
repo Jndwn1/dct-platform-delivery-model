@@ -218,3 +218,4 @@
 - [x] Move the POC BA Discovery & Mapping Package from the State workspace to beneath the Post Pilot POC details
 - [x] Link the supplied Roger–GoSystem POC BA mapping workbook from the Post Pilot POC package
 - [x] Remove the large State Architecture / Controlled Flow diagram section from the Post Pilot POC
+- [x] Move broader POC implementation, metadata, dependency, decisions, and proof sections to the end of Post Pilot

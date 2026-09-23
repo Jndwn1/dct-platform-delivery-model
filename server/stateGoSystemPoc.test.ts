@@ -15,8 +15,11 @@ describe("State GoSystem POC extension", () => {
 
     expect(workspace).not.toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
     expect(workspace).not.toContain("<StateGoSystemPoc />");
-    expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
+    expect(postPilot).toContain('import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc"');
     expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
+    expect(postPilot.indexOf("<StatePocBaDiscoveryPackage />")).toBeGreaterThan(postPilot.indexOf("<StateGoSystemPoc />"));
+    expect(postPilot.indexOf("<StateGoSystemPocClosingDetails />")).toBeGreaterThan(postPilot.indexOf("<StatePocBaDiscoveryPackage />"));
+    expect(poc).toContain("export function StateGoSystemPocClosingDetails");
     expect(app).not.toContain("StateGoSystemPoc");
     expect(app).not.toContain("/state-poc");
 

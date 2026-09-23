@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import StateGoSystemPoc from "@/components/StateGoSystemPoc";
+import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc";
 import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
 import {
   POST_PILOT_PLANNING_INVENTORY,
@@ -153,6 +153,7 @@ export default function PostPilotPage() {
 
       <StateGoSystemPoc />
       <StatePocBaDiscoveryPackage />
+      <StateGoSystemPocClosingDetails />
     </div>
   );
 }

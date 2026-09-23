@@ -191,33 +191,35 @@ export default function StateGoSystemPoc() {
           <div style={{ display: "grid", gap: "7px", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", marginTop: "12px" }}>{BA_INBOUND_CONTRACT_FIELDS.map((field, index) => <div key={field} style={{ alignItems: "center", backgroundColor: "#ffffff", border: "1px solid #e9d5ff", borderRadius: "6px", color: C.slate, display: "flex", fontSize: "10px", gap: "7px", padding: "7px 8px" }}><span style={{ color: C.purple, fontWeight: 850 }}>{index + 1}.</span>{field}</div>)}</div>
           <div style={{ color: "#5b21b6", fontSize: "11px", fontWeight: 750, lineHeight: "1.5", marginTop: "12px" }}>Also create the corresponding outbound mapping for the minimum results required to prove the POC.</div>
         </section>
+      </div>
+    </div>
+  </section>;
+}
 
-        <PanelHeading eyebrow="Broader implementation model" title="Full Target State Calculation Package" subtitle="This future-state package is intentionally distinct from the minimum POC package above and should not block proof of feasibility." />
-        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))" }}>
-          {PACKAGE_COLUMNS.map(column => <div key={column.title} style={{ backgroundColor: "#ffffff", border: `1px solid ${column.accent}44`, borderTop: `5px solid ${column.accent}`, borderRadius: "10px", overflow: "hidden" }}>
-            <div style={{ backgroundColor: `${column.accent}10`, borderBottom: `1px solid ${column.accent}33`, color: column.accent, fontSize: "12px", fontWeight: 800, padding: "11px 12px" }}>{column.title}</div>
-            <div style={{ padding: "12px" }}>{column.groups.map(group => <div key={group.label} style={{ marginBottom: "10px" }}><div style={{ color: C.slate, fontSize: "10px", fontWeight: 800, marginBottom: "4px", textTransform: "uppercase" }}>{group.label}</div><ul style={{ margin: 0, paddingLeft: "15px" }}>{group.items.map(item => <li key={item} style={{ color: "#334155", fontSize: "10px", lineHeight: "1.42", marginBottom: "3px" }}>{item}</li>)}</ul></div>)}</div>
-            <div style={{ backgroundColor: "#fffbeb", borderTop: "1px solid #fde68a", color: "#78350f", fontSize: "10px", lineHeight: "1.45", padding: "10px 12px" }}><strong>Process Ask:</strong> {column.ask}</div>
-          </div>)}
-        </div>
-        <div style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "8px", color: C.slate, fontSize: "11px", fontWeight: 750, margin: "12px 0 22px", padding: "10px 12px" }}><strong style={{ color: C.navy }}>Cross-Cutting Metadata:</strong> Taxonomy ID • Source • Lineage • Approval Status • Version • Transmission Correlation ID • Validation Messages</div>
-
-        <section aria-labelledby="federal-state-deliverable-linkage" style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "10px", marginBottom: "22px", padding: "16px" }}>
-          <PanelHeading eyebrow="Architecture dependency" title="Federal → State Deliverable Linkage" subtitle="A DCT / architecture / data-model dependency that is separate from the minimum POC package." accent={C.teal} />
-          <div id="federal-state-deliverable-linkage" style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "7px", marginBottom: "10px" }}>{["Shared Source Data", "Provision Deliverable", "Federal Deliverable", "State Deliverable"].map((step, index) => <Fragment key={step}><span style={{ backgroundColor: index === 3 ? C.teal : "#ffffff", border: `1px solid ${C.teal}66`, borderRadius: "6px", color: index === 3 ? "#ffffff" : C.navy, fontSize: "10px", fontWeight: 800, padding: "7px 9px", textAlign: "center" }}>{step}</span>{index < 3 && <span style={{ color: C.teal, fontWeight: 800 }}>→</span>}</Fragment>)}</div>
-          <p style={{ color: "#164e63", fontSize: "10px", lineHeight: "1.5", margin: 0 }}>Original Trial Balance or source data may be reusable, but adjustments and calculated values become deliverable-specific. For TY26, the State workflow must reference the correct Federal deliverable when multiple deliverables exist for the same entity and tax year.</p>
-        </section>
-
-        <div style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))" }}>
-          <div style={{ backgroundColor: "#ffffff", border: "1px solid #fed7aa", borderRadius: "10px", padding: "16px" }}>
-            <PanelHeading eyebrow="Decisions required" title="POC Open Questions" subtitle="Keep unresolved business, Taxonomy, integration, and architecture decisions explicit rather than embedding assumptions in implementation." accent="#d97706" />
-            <ol style={{ columns: 2, margin: 0, paddingLeft: "18px" }}>{OPEN_QUESTIONS.map(item => <li key={item} style={{ breakInside: "avoid", color: "#78350f", fontSize: "10px", lineHeight: "1.45", marginBottom: "7px", paddingRight: "10px" }}>{item}</li>)}</ol>
-          </div>
-          <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "16px" }}>
-            <PanelHeading eyebrow="Proof of feasibility" title="POC Success Criteria" subtitle="The POC is successful only when the full governed input-to-review pattern can be demonstrated." accent={C.green} />
-            <ol style={{ columns: 2, margin: 0, paddingLeft: "18px" }}>{SUCCESS_CRITERIA.map(item => <li key={item} style={{ breakInside: "avoid", color: "#166534", fontSize: "10px", lineHeight: "1.45", marginBottom: "7px", paddingRight: "10px" }}>{item}</li>)}</ol>
-          </div>
-        </div>
+export function StateGoSystemPocClosingDetails() {
+  return <section id="poc-closing-details" style={{ marginBottom: "48px" }}>
+    <PanelHeading eyebrow="Broader implementation model" title="Full Target State Calculation Package" subtitle="This future-state package is intentionally distinct from the minimum POC package above and should not block proof of feasibility." />
+    <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))" }}>
+      {PACKAGE_COLUMNS.map(column => <div key={column.title} style={{ backgroundColor: "#ffffff", border: `1px solid ${column.accent}44`, borderTop: `5px solid ${column.accent}`, borderRadius: "10px", overflow: "hidden" }}>
+        <div style={{ backgroundColor: `${column.accent}10`, borderBottom: `1px solid ${column.accent}33`, color: column.accent, fontSize: "12px", fontWeight: 800, padding: "11px 12px" }}>{column.title}</div>
+        <div style={{ padding: "12px" }}>{column.groups.map(group => <div key={group.label} style={{ marginBottom: "10px" }}><div style={{ color: C.slate, fontSize: "10px", fontWeight: 800, marginBottom: "4px", textTransform: "uppercase" }}>{group.label}</div><ul style={{ margin: 0, paddingLeft: "15px" }}>{group.items.map(item => <li key={item} style={{ color: "#334155", fontSize: "10px", lineHeight: "1.42", marginBottom: "3px" }}>{item}</li>)}</ul></div>)}</div>
+        <div style={{ backgroundColor: "#fffbeb", borderTop: "1px solid #fde68a", color: "#78350f", fontSize: "10px", lineHeight: "1.45", padding: "10px 12px" }}><strong>Process Ask:</strong> {column.ask}</div>
+      </div>)}
+    </div>
+    <div style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "8px", color: C.slate, fontSize: "11px", fontWeight: 750, margin: "12px 0 22px", padding: "10px 12px" }}><strong style={{ color: C.navy }}>Cross-Cutting Metadata:</strong> Taxonomy ID • Source • Lineage • Approval Status • Version • Transmission Correlation ID • Validation Messages</div>
+    <section aria-labelledby="federal-state-deliverable-linkage" style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "10px", marginBottom: "22px", padding: "16px" }}>
+      <PanelHeading eyebrow="Architecture dependency" title="Federal → State Deliverable Linkage" subtitle="A DCT / architecture / data-model dependency that is separate from the minimum POC package." accent={C.teal} />
+      <div id="federal-state-deliverable-linkage" style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "7px", marginBottom: "10px" }}>{["Shared Source Data", "Provision Deliverable", "Federal Deliverable", "State Deliverable"].map((step, index) => <Fragment key={step}><span style={{ backgroundColor: index === 3 ? C.teal : "#ffffff", border: `1px solid ${C.teal}66`, borderRadius: "6px", color: index === 3 ? "#ffffff" : C.navy, fontSize: "10px", fontWeight: 800, padding: "7px 9px", textAlign: "center" }}>{step}</span>{index < 3 && <span style={{ color: C.teal, fontWeight: 800 }}>→</span>}</Fragment>)}</div>
+      <p style={{ color: "#164e63", fontSize: "10px", lineHeight: "1.5", margin: 0 }}>Original Trial Balance or source data may be reusable, but adjustments and calculated values become deliverable-specific. For TY26, the State workflow must reference the correct Federal deliverable when multiple deliverables exist for the same entity and tax year.</p>
+    </section>
+    <div style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))" }}>
+      <div style={{ backgroundColor: "#ffffff", border: "1px solid #fed7aa", borderRadius: "10px", padding: "16px" }}>
+        <PanelHeading eyebrow="Decisions required" title="POC Open Questions" subtitle="Keep unresolved business, Taxonomy, integration, and architecture decisions explicit rather than embedding assumptions in implementation." accent="#d97706" />
+        <ol style={{ columns: 2, margin: 0, paddingLeft: "18px" }}>{OPEN_QUESTIONS.map(item => <li key={item} style={{ breakInside: "avoid", color: "#78350f", fontSize: "10px", lineHeight: "1.45", marginBottom: "7px", paddingRight: "10px" }}>{item}</li>)}</ol>
+      </div>
+      <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "10px", padding: "16px" }}>
+        <PanelHeading eyebrow="Proof of feasibility" title="POC Success Criteria" subtitle="The POC is successful only when the full governed input-to-review pattern can be demonstrated." accent={C.green} />
+        <ol style={{ columns: 2, margin: 0, paddingLeft: "18px" }}>{SUCCESS_CRITERIA.map(item => <li key={item} style={{ breakInside: "avoid", color: "#166534", fontSize: "10px", lineHeight: "1.45", marginBottom: "7px", paddingRight: "10px" }}>{item}</li>)}</ol>
       </div>
     </div>
   </section>;
