@@ -10,7 +10,6 @@ const C = {
   slate: "#475569",
 };
 
-const MINIMUM_POC_FLOW_IMAGE = "/manus-storage/minimum-poc-state-calculation-flow_00034465.png";
 const POC_TRANSCRIPT_SOURCE_URL = "/manus-storage/POC_6327d700.docx";
 
 const MINIMUM_POC_INPUT_CARDS = [
@@ -135,8 +134,6 @@ function PocInputCard({ card }: { card: typeof MINIMUM_POC_INPUT_CARDS[number] }
 }
 
 export default function StateGoSystemPoc() {
-  const [isMinimumFlowViewerOpen, setIsMinimumFlowViewerOpen] = useState(false);
-  const [minimumFlowZoom, setMinimumFlowZoom] = useState(1);
   const copyText = [
     "Roger → GoSystem POC: State Calculation Integration",
     "Purpose: Prove governed State preparation data can move Roger → DCT → IMS → GoSystem and return as a structured, transparent review package in Roger.",
@@ -186,33 +183,6 @@ export default function StateGoSystemPoc() {
           <div id="representative-poc-scenario" style={{ alignItems: "center", color: "#166534", display: "flex", flexWrap: "wrap", fontSize: "12px", fontWeight: 800, gap: "7px", lineHeight: "1.4" }}>
             {["One Client", "One Entity", "One Tax Year", "One State", "One Filing Designation", "One Federal Taxable Income Starting Point", "Property / Payroll / Sales Inputs", "One Representative State Modification", "Required Calculation Configuration"].map((item, index) => <Fragment key={item}><span style={{ backgroundColor: "#ffffff", border: "1px solid #86efac", borderRadius: "999px", padding: "5px 8px" }}>{item}</span>{index < 8 && <span style={{ color: C.green, fontSize: "16px" }}>+</span>}</Fragment>)}
           </div>
-        </section>
-
-        <section aria-labelledby="minimum-poc-state-calculation-flow" style={{ marginBottom: "24px" }}>
-          <PanelHeading eyebrow="Prominent POC flow" title="Minimum POC State Calculation Flow" subtitle="The detailed flow below makes the thin, representative input package and the returned review package visibly traceable across each system responsibility." accent="#2563eb" />
-          <div id="minimum-poc-state-calculation-flow" style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "10px", overflow: "hidden" }}>
-            <div style={{ alignItems: "center", backgroundColor: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", gap: "12px", justifyContent: "space-between", padding: "9px 12px" }}>
-              <span style={{ color: C.slate, fontSize: "10px", fontWeight: 700 }}>System responsibilities are shown inside each flow box; open the full-size view to inspect each label.</span>
-              <button type="button" onClick={() => setIsMinimumFlowViewerOpen(true)} style={{ backgroundColor: "#2563eb", border: "1px solid #1d4ed8", borderRadius: "6px", color: "#ffffff", cursor: "pointer", flexShrink: 0, fontSize: "10px", fontWeight: 800, padding: "6px 10px" }}>Open readable POC flow</button>
-            </div>
-            <div style={{ overflowX: "hidden", padding: "12px" }}><img src={MINIMUM_POC_FLOW_IMAGE} alt="Minimum POC State Calculation Flow: Tax Practitioner to Roger State Experience to DCT — Build Governed POC Input Package to Taxonomy Mapping to IMS to GoSystem, then IMS to Taxonomy Mapping to DCT — Correlate & Govern Returned Results to Roger State Review Experience to Practitioner Review and Reconciliation" style={{ display: "block", height: "auto", margin: "0 auto", maxWidth: "1600px", width: "100%" }} /></div>
-          </div>
-          {isMinimumFlowViewerOpen && (
-            <div role="dialog" aria-modal="true" aria-label="Readable minimum POC State calculation flow" onClick={() => setIsMinimumFlowViewerOpen(false)} style={{ alignItems: "center", backgroundColor: "rgba(15, 22, 35, 0.78)", display: "flex", inset: 0, justifyContent: "center", padding: "24px", position: "fixed", zIndex: 80 }}>
-              <div onClick={event => event.stopPropagation()} style={{ backgroundColor: "#ffffff", borderRadius: "12px", boxShadow: "0 20px 60px rgba(0,0,0,0.38)", maxHeight: "calc(100vh - 48px)", maxWidth: "calc(100vw - 48px)", overflow: "hidden", width: "100%" }}>
-                <div style={{ alignItems: "center", backgroundColor: "#1e3a5f", display: "flex", gap: "12px", justifyContent: "space-between", padding: "12px 16px" }}>
-                  <div><div style={{ color: "#bfdbfe", fontSize: "10px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>Full-size POC flow viewer</div><div style={{ color: "#ffffff", fontSize: "14px", fontWeight: 800, marginTop: "2px" }}>Minimum POC State Calculation Flow</div></div>
-                  <div style={{ alignItems: "center", display: "flex", gap: "7px" }}>
-                    <button type="button" onClick={() => setMinimumFlowZoom(value => Math.max(0.75, Number((value - 0.15).toFixed(2))))} style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "5px", color: C.navy, cursor: "pointer", fontSize: "12px", fontWeight: 800, padding: "5px 8px" }}>−</button>
-                    <span style={{ color: "#dbeafe", fontSize: "11px", fontWeight: 700, minWidth: "38px", textAlign: "center" }}>{Math.round(minimumFlowZoom * 100)}%</span>
-                    <button type="button" onClick={() => setMinimumFlowZoom(value => Math.min(1.5, Number((value + 0.15).toFixed(2))))} style={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "5px", color: C.navy, cursor: "pointer", fontSize: "12px", fontWeight: 800, padding: "5px 8px" }}>+</button>
-                    <button type="button" onClick={() => setIsMinimumFlowViewerOpen(false)} style={{ backgroundColor: "transparent", border: "1px solid #7dd3fc", borderRadius: "5px", color: "#ffffff", cursor: "pointer", fontSize: "10px", fontWeight: 800, marginLeft: "5px", padding: "6px 9px" }}>Close</button>
-                  </div>
-                </div>
-                <div style={{ backgroundColor: "#f8fafc", maxHeight: "calc(100vh - 125px)", overflow: "auto", padding: "16px" }}><img src={MINIMUM_POC_FLOW_IMAGE} alt="Full-size Minimum POC State Calculation Flow showing DCT — Build Governed POC Input Package and DCT — Correlate & Govern Returned Results" style={{ display: "block", height: "auto", maxWidth: "none", width: `${3982 * minimumFlowZoom}px` }} /></div>
-              </div>
-            </div>
-          )}
         </section>
 
         <section aria-labelledby="ba-requirement-for-poc" style={{ backgroundColor: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "10px", marginBottom: "24px", padding: "15px" }}>

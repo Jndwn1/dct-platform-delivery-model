@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -31,17 +31,15 @@ describe("State GoSystem POC extension", () => {
     expect(poc).toContain("Representative Calculation Inputs");
     expect(poc).toContain("Governance & Correlation Metadata");
     expect(poc).toContain("Representative POC Scenario");
-    expect(poc).toContain("Minimum POC State Calculation Flow");
-    expect(poc).toContain("DCT — Build Governed POC Input Package");
-    expect(poc).toContain("DCT — Correlate & Govern Returned Results");
     expect(poc).toContain("BA Requirement for the POC");
     expect(poc).toContain("Full Target State Calculation Package");
     expect(poc).toContain("Federal → State Deliverable Linkage");
     expect(poc).toContain("POC Open Questions");
     expect(poc).toContain("POC Success Criteria");
-    expect(poc).toContain('/manus-storage/minimum-poc-state-calculation-flow_00034465.png');
-    expect(poc).toContain("Open readable POC flow");
-    expect(poc).toContain("Full-size POC flow viewer");
+    expect(poc).not.toContain("Minimum POC State Calculation Flow");
+    expect(poc).not.toContain('/manus-storage/minimum-poc-state-calculation-flow_00034465.png');
+    expect(poc).not.toContain("Open readable POC flow");
+    expect(poc).not.toContain("Full-size POC flow viewer");
 
     expect(poc).not.toContain("Transcript-derived architecture overview");
     expect(poc).not.toContain("POC Proof Path");
@@ -62,7 +60,4 @@ describe("State GoSystem POC extension", () => {
     expect(pageContext).toContain("Minimum POC Input Package");
   });
 
-  it("keeps the generated minimum POC flow asset outside the web project public assets", () => {
-    expect(existsSync("/home/ubuntu/webdev-static-assets/gosystem-state-poc/minimum-poc-state-calculation-flow.png")).toBe(true);
-  });
 });

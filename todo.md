@@ -217,3 +217,4 @@
 - [x] Add the Roger → GoSystem POC BA Discovery & Mapping Package to the existing State workspace as the visual requirements layer
 - [x] Move the POC BA Discovery & Mapping Package from the State workspace to beneath the Post Pilot POC details
 - [x] Link the supplied Roger–GoSystem POC BA mapping workbook from the Post Pilot POC package
+- [x] Remove the large State Architecture / Controlled Flow diagram section from the Post Pilot POC
