@@ -207,3 +207,4 @@
 - [x] Refine the State POC ownership boundaries section into a balanced executive card layout
 - [x] Move PI4 planning visibility from the landing page to a dedicated Executive Health Post Pilot page with the existing planned-feature section
 - [x] Add live MVP dashboard metrics and the supplied PI4 planned-feature and ADO-dependency inventory to the Post Pilot page without treating it as committed delivery
+- [x] Remove the Live Portfolio Baseline and MVP Dashboard Metrics block from Post Pilot while retaining PI4 planning metrics and inventory

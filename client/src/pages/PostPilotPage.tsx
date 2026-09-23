@@ -1,7 +1,4 @@
-import { useMemo } from "react";
 import { Link } from "wouter";
-import { deriveMvpMetrics, useBatchStatus } from "@/contexts/BatchStatusContext";
-import { getRogerScreenReadinessSummary } from "@/lib/rogerMvpScreenStatus";
 import {
   POST_PILOT_PLANNING_INVENTORY,
   POST_PILOT_PLANNING_SUMMARY,
@@ -42,20 +39,6 @@ function SectionHeading({ eyebrow, title, description }: { eyebrow: string; titl
 }
 
 export default function PostPilotPage() {
-  const { statuses } = useBatchStatus();
-  const mvpMetrics = useMemo(() => deriveMvpMetrics(statuses), [statuses]);
-  const rogerScreenMetrics = useMemo(() => getRogerScreenReadinessSummary(), []);
-
-  const liveMvpMetrics: MetricCardProps[] = [
-    { label: "MVP Features Complete", value: mvpMetrics.complete, detail: "ADO-backed lifecycle", color: "#059669", surface: "#f0fdf4", border: "#bbf7d0" },
-    { label: "MVP Features Active", value: mvpMetrics.inDev, detail: "Active ADO features", color: "#2563eb", surface: "#eff6ff", border: "#bfdbfe" },
-    { label: "MVP Features In Review", value: mvpMetrics.inReview, detail: "Awaiting closure review", color: "#7c3aed", surface: "#faf5ff", border: "#ddd6fe" },
-    { label: "MVP Features Planned", value: mvpMetrics.planned, detail: "Not Started only", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
-    { label: "Total MVP Features", value: mvpMetrics.total, detail: "Governed delivery features", color: "#d97706", surface: "#fffbeb", border: "#fde68a" },
-    { label: "Roger QA Screens", value: rogerScreenMetrics.total, detail: `${rogerScreenMetrics.completed} QA completed`, color: "#0891b2", surface: "#ecfeff", border: "#a5f3fc" },
-    { label: "Overall MVP Readiness", value: `${mvpMetrics.readinessPct}%`, detail: "Live MVP baseline", color: "#059669", surface: "#f0fdf4", border: "#bbf7d0" },
-  ];
-
   const planningMetrics: MetricCardProps[] = [
     { label: "PI4 Planning Records", value: POST_PILOT_PLANNING_SUMMARY.planningRecordCount, detail: "Supplied planning inventory rows", color: PURPLE, surface: PURPLE_SURFACE, border: PURPLE_BORDER },
     { label: "Unique Features", value: POST_PILOT_PLANNING_SUMMARY.uniqueFeatureCount, detail: "Feature IDs represented", color: "#2563eb", surface: "#eff6ff", border: "#bfdbfe" },
@@ -72,24 +55,13 @@ export default function PostPilotPage() {
           <div style={{ color: PURPLE, fontSize: "10px", fontWeight: 850, letterSpacing: "0.1em", textTransform: "uppercase" }}>Executive Health</div>
           <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 900, letterSpacing: "-0.02em", margin: "5px 0 0" }}>Post Pilot</h1>
           <p style={{ color: "#64748b", fontSize: "13px", lineHeight: 1.5, margin: "6px 0 0", maxWidth: "760px" }}>
-            A PI4 planning dashboard that carries forward the live MVP baseline while keeping post-pilot planning records, commitments, sizing, and dependencies visibly separate from delivered MVP work.
+            A PI4 planning dashboard for managing post-pilot planning records, commitments, sizing, business value, and ADO dependencies without treating planning inventory as delivered work.
           </p>
         </div>
         <div style={{ backgroundColor: "#f5f3ff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "999px", color: PURPLE_INK, fontSize: "10px", fontWeight: 850, letterSpacing: "0.06em", padding: "7px 10px", textTransform: "uppercase" }}>
           Planning visibility only
         </div>
       </div>
-
-      <section aria-labelledby="live-mvp-baseline" style={{ marginBottom: "26px" }}>
-        <SectionHeading
-          eyebrow="Live portfolio baseline"
-          title="MVP Dashboard Metrics"
-          description="The same live MVP metric set used on the Executive Health landing page, retained here as the post-pilot baseline."
-        />
-        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))" }}>
-          {liveMvpMetrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-        </div>
-      </section>
 
       <section aria-labelledby="pi4-post-pilot-title" style={{ backgroundColor: PURPLE_SURFACE, border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(124, 58, 237, 0.07)", marginBottom: "26px", overflow: "hidden" }}>
         <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "18px", justifyContent: "space-between", padding: "18px 20px 14px" }}>

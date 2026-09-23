@@ -30,11 +30,14 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Post Pilot");
     expect(postPilot).toContain("Post Pilot · Planning Visibility Only");
     expect(postPilot).toContain("0%");
-    expect(postPilot).toContain("MVP Dashboard Metrics");
+    expect(postPilot).not.toContain("MVP Dashboard Metrics");
+    expect(postPilot).not.toContain("Live portfolio baseline");
+    expect(postPilot).not.toContain("MVP Features Complete");
+    expect(postPilot).not.toContain("Roger QA Screens");
     expect(postPilot).toContain("Post Pilot Metrics");
     expect(postPilot).toContain("Planned Features and ADO Dependencies");
-    expect(postPilot).toContain("deriveMvpMetrics");
-    expect(postPilot).toContain("getRogerScreenReadinessSummary");
+    expect(postPilot).not.toContain("deriveMvpMetrics");
+    expect(postPilot).not.toContain("getRogerScreenReadinessSummary");
     expect(postPilot).toContain("POST_PILOT_PLANNING_INVENTORY");
     expect(postPilot).toContain("excluded from all PI4 and MVP delivery metrics");
     expect(postPilot).toContain('href="/pi4-planning"');
