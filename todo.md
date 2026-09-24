@@ -225,3 +225,4 @@
 - [x] Add the PI4 Pod Delivery & Data Review Process flow to Post Pilot with the supplied ownership lanes, data sign-off, and TDC/DCT support path
 - [x] Rename the Sprint 2 DCT priority card to TDC
 - [x] Add the State & Provision Ask Buddy first-pass and Gary technical review process to the Post Pilot page
+- [x] Create first-pass Markdown reviews and a consolidated Gary report for current-year State stories 1494188, 1494198, 1494222, 1494339, and 1494344; register the documents in the Post Pilot review workspace

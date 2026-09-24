@@ -135,4 +135,24 @@ describe("PI4 Post Pilot delivery", () => {
     expect(knowledge).toContain("Ask Buddy does **not** replace Gary");
     expect(knowledge).toContain("Tech Story 1494344");
   });
+
+  it("publishes the evidence-bound current-year State review package for Gary without treating first-pass output as a technical approval", () => {
+    const review = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionStoryReview.tsx"), "utf8");
+    const knowledge = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
+    const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
+
+    expect(review).toContain("Current-year State review package");
+    expect(review).toContain("First-pass findings for Gary");
+    expect(review).toContain("1494188");
+    expect(review).toContain("1494198");
+    expect(review).toContain("1494222");
+    expect(review).toContain("1494339");
+    expect(review).toContain("1494344");
+    expect(review).toContain("Current_Year_State_Story_First_Pass_Review_Report_for_Gary");
+    expect(review).toContain("Gary’s final review remains required");
+    expect(knowledge).toContain("Current-year State review package");
+    expect(knowledge).toContain("1494222 needs the greatest TDC scrutiny");
+    expect(pageContext).toContain("Current-Year State Review Package");
+    expect(pageContext).toContain("1494188");
+  });
 });

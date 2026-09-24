@@ -1137,6 +1137,7 @@ Before documenting any new requirement for the State or Provision workstream, de
       "How should Ask Buddy perform a first-pass review of a State or Provision story?",
       "What does Gary review after the Ask Buddy first pass?",
       "What is the review status for Tech Story 1494344?",
+      "What are the first-pass findings for the current-year State story package?",
     ],
     context: `
 ## Post Pilot — Roger → GoSystem POC: State Calculation Integration
@@ -1159,6 +1160,8 @@ Before documenting any new requirement for the State or Provision workstream, de
 - **First-pass checklist:** Ask Buddy reviews business outcome, story type, system ownership, Gateway requirements, TDC persistence, identifiers and scope, data-contract readiness, acceptance-criteria quality, governance, dependencies, and a possible story split. Missing evidence must be marked **TBD**, **Missing**, or **Technical requirement required** rather than inferred.
 - **Worked example — Tech Story 1494344:** *Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions* is a first-pass Technical Story example. Its supplied title alone does not establish an endpoint, action contract, persistence design, identifiers, data contract, or final split decision. Candidate ownership: Roger / State UI performs and displays the practitioner action; Gateway receives and validates it; TDC persists, versions, and audits governed actions; Gateway / TDC returns the saved result. Gary must validate this against current implementation context.
 - **Review statuses:** GREEN = Ready for Gary Review; YELLOW = Minor clarification needed; ORANGE = Significant requirements missing; RED = Not ready for technical review. These statuses describe readiness for review, not implementation completion.
+- **Current-year State review package:** First-pass Markdown reviews are available for **1494188**, **1494198**, **1494222**, **1494339**, and **1494344**, with a consolidated report for Gary. The evidence source is the Jenniver-supplied findings only. The package does not establish acceptance criteria, endpoint names, schema choices, or implementation decisions that were not supplied.
+- **Current-year priorities:** 1494222 needs the greatest TDC scrutiny because the governed dataset needs an explicit identity, lifecycle, version, mapping-status, and normalization model. 1494344 needs the greatest Gateway/TDC mutation scrutiny because it combines practitioner mapping, correction, payment, city/write-in, and approval actions. Gary makes the final technical split and implementation decision.
 `,
   },
 

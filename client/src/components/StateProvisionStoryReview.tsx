@@ -171,6 +171,60 @@ const REVIEW_FILE_SECTIONS = [
   "Review Status",
 ];
 
+type CurrentYearStateReview = {
+  id: string;
+  title: string;
+  status: "Yellow" | "Yellow/Orange" | "Orange";
+  solid: string;
+  gaps: string;
+  url: string;
+};
+
+const CURRENT_YEAR_STATE_REVIEW_REPORT_URL = "/manus-storage/Current_Year_State_Story_First_Pass_Review_Report_for_Gary_004d26df.md";
+
+const CURRENT_YEAR_STATE_REVIEWS: CurrentYearStateReview[] = [
+  {
+    id: "1494188",
+    title: "PDC — Enable Current-Year State Source Documents Without Financial Mappings",
+    status: "Yellow",
+    solid: "Clear exception condition with retained standard controls and audit / reason context.",
+    gaps: "Define approved State-processing context, mapping-applicability signal, and PDC status values.",
+    url: "/manus-storage/ADO_1494188_PDC_Current_Year_State_Source_Documents_Review_9792f3ed.md",
+  },
+  {
+    id: "1494198",
+    title: "PDC — Create and Route Current-Year State Source Submissions for Orchestrator Classification",
+    status: "Yellow",
+    solid: "Clear Tax Portal, PDC, and Orchestrator ownership split with an explicit source-file boundary.",
+    gaps: "Confirm submission envelope, idempotency, failure behavior, and stateFootprintVersion rule.",
+    url: "/manus-storage/ADO_1494198_PDC_Current_Year_State_Submission_Routing_Review_e35b8be3.md",
+  },
+  {
+    id: "1494222",
+    title: "TDC — Persist and Govern the Orchestrator-Mapped Current-Year State Input Dataset",
+    status: "Yellow/Orange",
+    solid: "Strong governance intent for provenance, mapping status, versioning, and source preservation.",
+    gaps: "Define dataset identity, lifecycle, status encoding, mapping-target rules, and payment normalization.",
+    url: "/manus-storage/ADO_1494222_TDC_Govern_Current_Year_State_Input_Dataset_Review_4bf487fa.md",
+  },
+  {
+    id: "1494339",
+    title: "Gateway — Provide the Current-Year State Input Dataset to Roger",
+    status: "Yellow",
+    solid: "The read contract, Not Ready concept, and raw-source exclusion are clear at a high level.",
+    gaps: "Define endpoint, identifiers, DTO, authorization, response behavior, and Gateway non-calculation boundary.",
+    url: "/manus-storage/ADO_1494339_Gateway_Current_Year_State_Input_Dataset_to_Roger_Review_d839808c.md",
+  },
+  {
+    id: "1494344",
+    title: "Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions",
+    status: "Orange",
+    solid: "Broad practitioner-action coverage with strong audit / lineage intent and source-record preservation.",
+    gaps: "Define the action model, request and persistence contracts, versioning, authorization, retry, and retrieval behavior.",
+    url: "/manus-storage/ADO_1494344_Gateway_TDC_State_Practitioner_Actions_Review_c1c9320d.md",
+  },
+];
+
 function StatusChip({ status }: { status: ReviewStatus }) {
   const styles: Record<ReviewStatus, { background: string; border: string; color: string }> = {
     Known: { background: C.greenSurface, border: "#86efac", color: C.green },
@@ -178,6 +232,16 @@ function StatusChip({ status }: { status: ReviewStatus }) {
     Missing: { background: C.redSurface, border: "#fecdd3", color: C.red },
     "Needs Gary Review": { background: C.amberSurface, border: "#fde68a", color: C.amber },
     Pending: { background: "#f8fafc", border: "#cbd5e1", color: C.slate },
+  };
+  const style = styles[status];
+  return <span style={{ background: style.background, border: `1px solid ${style.border}`, borderRadius: "999px", color: style.color, display: "inline-flex", fontSize: "9px", fontWeight: 900, letterSpacing: "0.045em", padding: "3px 7px", whiteSpace: "nowrap" }}>{status}</span>;
+}
+
+function FirstPassChip({ status }: { status: CurrentYearStateReview["status"] }) {
+  const styles: Record<CurrentYearStateReview["status"], { background: string; border: string; color: string }> = {
+    Yellow: { background: C.amberSurface, border: "#fde68a", color: C.amber },
+    "Yellow/Orange": { background: "#fff7ed", border: "#fdba74", color: "#c2410c" },
+    Orange: { background: C.redSurface, border: "#fecdd3", color: C.red },
   };
   const style = styles[status];
   return <span style={{ background: style.background, border: `1px solid ${style.border}`, borderRadius: "999px", color: style.color, display: "inline-flex", fontSize: "9px", fontWeight: 900, letterSpacing: "0.045em", padding: "3px 7px", whiteSpace: "nowrap" }}>{status}</span>;
@@ -259,6 +323,44 @@ export default function StateProvisionStoryReview() {
             <div style={{ color: C.muted, fontSize: "10px", lineHeight: 1.45, marginTop: "8px" }}>Awaiting source story content and Ask Buddy first-pass analysis. Final outcome must be validated by Gary.</div>
           </div>
         </div>
+      </div>
+
+      <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", marginTop: "14px", overflow: "hidden" }}>
+        <div style={{ alignItems: "flex-start", background: "#f8fafc", borderBottom: `1px solid ${C.border}`, display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "space-between", padding: "14px" }}>
+          <div>
+            <div style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, letterSpacing: "0.075em", textTransform: "uppercase" }}>Current-year State review package</div>
+            <div style={{ color: C.navy, fontSize: "15px", fontWeight: 900, marginTop: "4px" }}>First-pass findings for Gary</div>
+            <p style={{ color: C.muted, fontSize: "10px", lineHeight: 1.5, margin: "5px 0 0", maxWidth: "760px" }}>Five story-level reviews are grounded in the supplied findings. They identify strengths and evidence gaps without inventing unprovided acceptance criteria, endpoints, data models, or implementation details.</p>
+          </div>
+          <a href={CURRENT_YEAR_STATE_REVIEW_REPORT_URL} target="_blank" rel="noopener noreferrer" style={{ background: C.purple, borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 900, padding: "9px 11px", textDecoration: "none", whiteSpace: "nowrap" }}>Open consolidated report for Gary</a>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ borderCollapse: "collapse", minWidth: "1080px", width: "100%" }}>
+            <thead>
+              <tr style={{ background: C.navy, color: "#ffffff" }}>
+                {[
+                  "Story",
+                  "First-pass status",
+                  "What looks solid",
+                  "Main gaps / questions to resolve",
+                  "Review file",
+                ].map((header) => <th key={header} style={{ fontSize: "9px", fontWeight: 900, letterSpacing: "0.045em", padding: "10px", textAlign: "left", textTransform: "uppercase" }}>{header}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {CURRENT_YEAR_STATE_REVIEWS.map((review, index) => (
+                <tr key={review.id} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}`, verticalAlign: "top" }}>
+                  <td style={{ color: C.navy, fontSize: "10px", fontWeight: 850, lineHeight: 1.4, padding: "10px", width: "24%" }}><strong style={{ color: C.purpleInk }}>{review.id}</strong> — {review.title}</td>
+                  <td style={{ padding: "10px" }}><FirstPassChip status={review.status} /></td>
+                  <td style={{ color: C.slate, fontSize: "10px", lineHeight: 1.45, padding: "10px", width: "22%" }}>{review.solid}</td>
+                  <td style={{ color: C.amber, fontSize: "10px", lineHeight: 1.45, padding: "10px", width: "30%" }}>{review.gaps}</td>
+                  <td style={{ padding: "10px", whiteSpace: "nowrap" }}><a href={review.url} target="_blank" rel="noopener noreferrer" style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, textDecoration: "none" }}>Open review ↗</a></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ background: C.amberSurface, borderTop: "1px solid #fde68a", color: "#713f12", fontSize: "10px", lineHeight: 1.5, padding: "10px 14px" }}><strong>Technical control:</strong> Gary’s final review remains required for implementation, API, persistence, architectural, and repository-pattern decisions. The individual review files preserve the detailed unresolved questions and split assessment.</div>
       </div>
 
       <div style={{ marginTop: "20px" }}>
