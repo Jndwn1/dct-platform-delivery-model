@@ -11,9 +11,60 @@ const PURPLE_INK = "#6d28d9";
 const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
 
-const PI4_SPRINT_TIMELINE = [
+type SprintPriorityArea = {
+  title: string;
+  accent: string;
+  bullets: string[];
+};
+
+type Pi4Sprint = {
+  sprint: string;
+  dates: string;
+  priorities?: SprintPriorityArea[];
+};
+
+const SPRINT_2_PRIORITY_AREAS: SprintPriorityArea[] = [
+  {
+    title: "DCT Sprint 2 Focus",
+    accent: "#1e3a5f",
+    bullets: [
+      "Continue MVP / UAT defect remediation",
+      "High / Critical defects first",
+      "Backend, data, and cross-pod consultation",
+    ],
+  },
+  {
+    title: "State · 3 Primary Goals",
+    accent: "#0f766e",
+    bullets: [
+      "State Filing Footprint",
+      "Automated Apportionment & Payments",
+      "State Taxonomy / GoSystem Alignment",
+    ],
+  },
+  {
+    title: "Provision",
+    accent: "#b45309",
+    bullets: [
+      "Sprint 2 goals — Pending Confirmation",
+      "No explicit Provision goals in the Sprint Priorities transcript",
+      "Add confirmed objectives after Provision PO validation",
+    ],
+  },
+  {
+    title: "Additional Objective",
+    accent: PURPLE,
+    bullets: [
+      "Entity mapping requirements",
+      "Non-legal entity requirements",
+      "Progress objective; full features span multiple sprints",
+    ],
+  },
+];
+
+const PI4_SPRINT_TIMELINE: Pi4Sprint[] = [
   { sprint: "PI4 · Sprint 1", dates: "9/16 – 9/22" },
-  { sprint: "PI4 · Sprint 2", dates: "9/23 – 10/6" },
+  { sprint: "PI4 · Sprint 2", dates: "9/23 – 10/6", priorities: SPRINT_2_PRIORITY_AREAS },
   { sprint: "PI4 · Sprint 3", dates: "10/7 – 10/20" },
   { sprint: "PI4 · Sprint 4", dates: "10/21 – 11/3" },
   { sprint: "PI4 · Sprint 5", dates: "11/4 – 11/17" },
@@ -98,14 +149,30 @@ export default function PostPilotPage() {
           description="Planning cadence for the five PI4 sprints. Dates reflect the supplied PI4 sprint schedule."
         />
         <div style={{ background: "#ffffff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", padding: "14px" }}>
-          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(175px, 1fr))" }}>
+          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
             {PI4_SPRINT_TIMELINE.map((item, index) => (
-              <div key={item.sprint} style={{ background: index === 1 ? PURPLE_SURFACE : "#f8fafc", border: `1px solid ${index === 1 ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${index === 1 ? PURPLE : "#94a3b8"}`, borderRadius: "8px", minHeight: "86px", padding: "11px 12px" }}>
+              <div key={item.sprint} style={{ background: index === 1 ? PURPLE_SURFACE : "#f8fafc", border: `1px solid ${index === 1 ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${index === 1 ? PURPLE : "#94a3b8"}`, borderRadius: "8px", gridColumn: index === 1 || index >= 3 ? "span 2" : undefined, minHeight: "86px", padding: "11px 12px" }}>
                 <div style={{ alignItems: "center", display: "flex", gap: "8px" }}>
                   <span style={{ alignItems: "center", background: index === 1 ? PURPLE : "#475569", borderRadius: "999px", color: "#ffffff", display: "inline-flex", fontSize: "10px", fontWeight: 900, height: "21px", justifyContent: "center", width: "21px" }}>{index + 1}</span>
                   <span style={{ color: index === 1 ? PURPLE_INK : "#334155", fontSize: "11px", fontWeight: 850 }}>{item.sprint}</span>
                 </div>
                 <div style={{ color: "#0f172a", fontSize: "16px", fontWeight: 900, letterSpacing: "-0.02em", marginTop: "12px" }}>{item.dates}</div>
+                {item.priorities && (
+                  <div style={{ borderTop: `1px solid ${PURPLE_BORDER}`, marginTop: "12px", paddingTop: "11px" }}>
+                    <div style={{ color: PURPLE_INK, fontSize: "9px", fontWeight: 900, letterSpacing: "0.075em", marginBottom: "8px", textTransform: "uppercase" }}>Sprint 2 Goals &amp; Objectives</div>
+                    <div style={{ display: "grid", gap: "7px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
+                      {item.priorities.map((area) => (
+                        <div key={area.title} style={{ background: "#ffffff", border: `1px solid ${area.accent}33`, borderLeft: `3px solid ${area.accent}`, borderRadius: "6px", padding: "8px" }}>
+                          <div style={{ color: area.accent, fontSize: "9px", fontWeight: 900, lineHeight: 1.2, marginBottom: "5px" }}>{area.title}</div>
+                          <ul style={{ color: "#475569", fontSize: "9px", lineHeight: 1.35, margin: 0, paddingLeft: "13px" }}>
+                            {area.bullets.map((bullet) => <li key={bullet} style={{ marginBottom: "2px" }}>{bullet}</li>)}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ color: "#6b21a8", fontSize: "9px", fontStyle: "italic", lineHeight: 1.35, marginTop: "8px" }}>Sprint clarification: the three State goals apply to the current Sprint 2.</div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

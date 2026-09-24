@@ -220,3 +220,4 @@
 - [x] Remove the large State Architecture / Controlled Flow diagram section from the Post Pilot POC
 - [x] Move broader POC implementation, metadata, dependency, decisions, and proof sections to the end of Post Pilot
 - [x] Add the supplied five-sprint PI4 timeline to the Post Pilot executive page
+- [x] Add concise DCT, State, Provision, and entity-mapping Sprint 2 priorities within the existing PI4 timeline
