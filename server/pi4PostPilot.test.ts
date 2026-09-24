@@ -68,6 +68,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Gary / Data Review");
     expect(postPilot).toContain("TDC/DCT cross-functional support path");
     expect(postPilot).toContain("TDC/DCT handles MVP/UAT defects, cross-pod data work, migration/shared technical work, and Scrum of Scrums capacity support");
+    expect(postPilot).toContain('import StateProvisionStoryReview from "@/components/StateProvisionStoryReview"');
+    expect(postPilot).toContain("<StateProvisionStoryReview />");
     expect(postPilot).not.toContain("deriveMvpMetrics");
     expect(postPilot).not.toContain("getRogerScreenReadinessSummary");
     expect(postPilot).toContain("POST_PILOT_PLANNING_INVENTORY");
@@ -81,6 +83,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(sidebar).toContain('["Executive Health", "Post Pilot", "Ask Buddy"]');
     expect(pageContext).toContain('"Roger to GoSystem State Calculation POC"');
     expect(pageContext).toContain('"State Calculation POC"');
+    expect(pageContext).toContain('"State / Provision Story Review"');
+    expect(pageContext).toContain('"1494344"');
 
     expect(planningModel).toContain('"pi4-manual-client-account-management": "Manual Custom Client Account Management"');
     expect(planningModel).toContain('"pi4-data-console": "DCT - Data Console"');
@@ -112,5 +116,23 @@ describe("PI4 Post Pilot delivery", () => {
       expect.objectContaining({ featureId: "1490944", objectiveDescription: "Data Defect & Bug Management", businessValue: 10, adoDependencies: ["1477412", "1483802", "1483805", "1487890", "1488332", "1463645", "1477411", "1477413"] }),
       expect.objectContaining({ featureId: "1441528", objectiveDescription: "Finding 5.6 Security Implementation", adoDependencies: ["1472922", "1444513"] }),
     ]));
+  });
+
+  it("provides a repeatable Ask Buddy first-pass and Gary final technical review model without inventing Story 1494344 requirements", () => {
+    const review = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionStoryReview.tsx"), "utf8");
+    const knowledge = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
+
+    expect(review).toContain("Ask Buddy First Pass + Gary Technical Review");
+    expect(review).toContain("Ask Buddy / Manus does not replace Gary’s final technical review");
+    expect(review).toContain("Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions");
+    expect(review).toContain("Ask Buddy First-Pass Review Checklist");
+    expect(review).toContain("Technical requirement required");
+    expect(review).toContain("ADO_1494344_Gateway_TDC_State_Practitioner_Actions_Review.md");
+    expect(review).toContain("Gary’s TDC / Gateway Development Standard");
+    expect(review).toContain("Awaiting First Pass");
+    expect(review).toContain("State and Provision remain responsible for business capability and application-layer work");
+    expect(review).toContain("/manus-storage/state-provision-ask-buddy-gary-review-flow_a3c9f8fd.png");
+    expect(knowledge).toContain("Ask Buddy does **not** replace Gary");
+    expect(knowledge).toContain("Tech Story 1494344");
   });
 });

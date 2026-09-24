@@ -224,3 +224,4 @@
 - [x] Replace the Sprint 2 priority cards with the confirmed DCT, State, Provision, and entity-mapping objectives
 - [x] Add the PI4 Pod Delivery & Data Review Process flow to Post Pilot with the supplied ownership lanes, data sign-off, and TDC/DCT support path
 - [x] Rename the Sprint 2 DCT priority card to TDC
+- [x] Add the State & Provision Ask Buddy first-pass and Gary technical review process to the Post Pilot page

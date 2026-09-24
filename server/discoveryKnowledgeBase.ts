@@ -1127,13 +1127,16 @@ Before documenting any new requirement for the State or Provision workstream, de
   "/post-pilot": {
     pageTitle: "Post Pilot",
     pagePath: "/post-pilot",
-    summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, and the Roger to GoSystem State Calculation POC.",
+    summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, the Roger to GoSystem State Calculation POC, and the State / Provision Ask Buddy first-pass plus Gary technical-review process.",
     suggestedQuestions: [
       "What does the Roger to GoSystem State Calculation POC need to prove?",
       "What is included in the minimum POC input package for DCT?",
       "What data moves into GoSystem and what review information returns to Roger?",
       "What are the ownership boundaries in the State calculation POC?",
       "What are the POC success criteria and unresolved questions?",
+      "How should Ask Buddy perform a first-pass review of a State or Provision story?",
+      "What does Gary review after the Ask Buddy first pass?",
+      "What is the review status for Tech Story 1494344?",
     ],
     context: `
 ## Post Pilot — Roger → GoSystem POC: State Calculation Integration
@@ -1147,6 +1150,15 @@ Before documenting any new requirement for the State or Provision workstream, de
 - **Ownership:** Roger is the practitioner experience. DCT provides governed persistence, retrieval, lineage, and integration support. Taxonomy defines repeatable business-to-system mapping. IMS is the GoSystem translation boundary. GoSystem is the State tax calculation engine. Process / State owns business rules, calculation requirements, and review requirements.
 - **Key architecture dependency:** Federal → State Deliverable Linkage is a DCT architecture/data-model concern. The State deliverable must identify the correct Federal deliverable for an entity and tax year when multiple Federal deliverables exist; shared source data may be reusable, but adjustments and calculated values are deliverable-specific.
 - **Success:** The POC succeeds when the governed input package is transmitted, GoSystem executes the expected State calculation, outputs are retrieved and mapped into DCT/Roger structures, the practitioner can reconcile the result, and the pattern can reasonably scale beyond representative scenarios.
+
+## State & Provision Story Review — Ask Buddy First Pass + Gary Technical Review
+
+- **Purpose:** This repeatable process applies to State and Provision stories that require TDC, Gateway, or shared data-layer work. It reduces manual review burden by using Ask Buddy / Manus for an evidence-grounded first pass before Gary completes final technical validation.
+- **Authority boundary:** Ask Buddy does **not** replace Gary. Gary retains final technical review authority because the complete review may require TDC and Gateway codebase context, current implementation patterns, APIs, contracts, database behavior, architectural constraints, and Claude Code or repository context not represented in a story.
+- **Process:** State / Provision submits the story; Jenniver provides ADO content and supporting evidence; Ask Buddy creates a structured Markdown review; Jenniver evaluates major requirement or ownership gaps; stories with material gaps return to the owning team; otherwise Gary conducts final technical review; Jenniver consolidates findings; the owning team updates the story; the outcome is either returned for clarification or **Ready for TDC / Gateway Development**.
+- **First-pass checklist:** Ask Buddy reviews business outcome, story type, system ownership, Gateway requirements, TDC persistence, identifiers and scope, data-contract readiness, acceptance-criteria quality, governance, dependencies, and a possible story split. Missing evidence must be marked **TBD**, **Missing**, or **Technical requirement required** rather than inferred.
+- **Worked example — Tech Story 1494344:** *Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions* is a first-pass Technical Story example. Its supplied title alone does not establish an endpoint, action contract, persistence design, identifiers, data contract, or final split decision. Candidate ownership: Roger / State UI performs and displays the practitioner action; Gateway receives and validates it; TDC persists, versions, and audits governed actions; Gateway / TDC returns the saved result. Gary must validate this against current implementation context.
+- **Review statuses:** GREEN = Ready for Gary Review; YELLOW = Minor clarification needed; ORANGE = Significant requirements missing; RED = Not ready for technical review. These statuses describe readiness for review, not implementation completion.
 `,
   },
 
