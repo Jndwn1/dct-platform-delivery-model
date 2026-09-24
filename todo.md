@@ -221,3 +221,4 @@
 - [x] Move broader POC implementation, metadata, dependency, decisions, and proof sections to the end of Post Pilot
 - [x] Add the supplied five-sprint PI4 timeline to the Post Pilot executive page
 - [x] Add concise DCT, State, Provision, and entity-mapping Sprint 2 priorities within the existing PI4 timeline
+- [x] Replace the Sprint 2 priority cards with the confirmed DCT, State, Provision, and entity-mapping objectives

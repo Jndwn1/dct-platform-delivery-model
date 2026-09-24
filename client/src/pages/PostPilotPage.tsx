@@ -25,19 +25,20 @@ type Pi4Sprint = {
 
 const SPRINT_2_PRIORITY_AREAS: SprintPriorityArea[] = [
   {
-    title: "DCT Sprint 2 Focus",
+    title: "DCT",
     accent: "#1e3a5f",
     bullets: [
-      "Continue MVP / UAT defect remediation",
-      "High / Critical defects first",
-      "Backend, data, and cross-pod consultation",
+      "UAT / MVP defects",
+      "High / Critical first",
+      "Backend / data support",
+      "Cross-pod consultation",
     ],
   },
   {
-    title: "State · 3 Primary Goals",
+    title: "State",
     accent: "#0f766e",
     bullets: [
-      "State Filing Footprint",
+      "Filing Footprint",
       "Automated Apportionment & Payments",
       "State Taxonomy / GoSystem Alignment",
     ],
@@ -46,18 +47,18 @@ const SPRINT_2_PRIORITY_AREAS: SprintPriorityArea[] = [
     title: "Provision",
     accent: "#b45309",
     bullets: [
-      "Sprint 2 goals — Pending Confirmation",
-      "No explicit Provision goals in the Sprint Priorities transcript",
-      "Add confirmed objectives after Provision PO validation",
+      "Package 1 — Return to Provision",
+      "Prior-Year Provision + Prior-Year Tax Return ingestion",
+      "RTP calculation / data foundation",
+      "Corrections and governed downstream outputs",
     ],
   },
   {
     title: "Additional Objective",
     accent: PURPLE,
     bullets: [
-      "Entity mapping requirements",
-      "Non-legal entity requirements",
-      "Progress objective; full features span multiple sprints",
+      "Entity Mapping Requirements",
+      "Non-Legal Entities",
     ],
   },
 ];
@@ -170,7 +171,6 @@ export default function PostPilotPage() {
                         </div>
                       ))}
                     </div>
-                    <div style={{ color: "#6b21a8", fontSize: "9px", fontStyle: "italic", lineHeight: 1.35, marginTop: "8px" }}>Sprint clarification: the three State goals apply to the current Sprint 2.</div>
                   </div>
                 )}
               </div>
