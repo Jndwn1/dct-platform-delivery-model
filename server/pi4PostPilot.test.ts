@@ -43,7 +43,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("10/7 – 10/20");
     expect(postPilot).toContain("10/21 – 11/3");
     expect(postPilot).toContain("11/4 – 11/17");
-    expect(postPilot).toContain('title: "DCT"');
+    expect(postPilot).toContain('title: "TDC"');
+    expect(postPilot).not.toContain('title: "DCT"');
     expect(postPilot).toContain("UAT / MVP defects");
     expect(postPilot).toContain("High / Critical first");
     expect(postPilot).toContain('title: "State"');

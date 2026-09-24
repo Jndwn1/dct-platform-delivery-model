@@ -26,7 +26,7 @@ type Pi4Sprint = {
 
 const SPRINT_2_PRIORITY_AREAS: SprintPriorityArea[] = [
   {
-    title: "DCT",
+    title: "TDC",
     accent: "#1e3a5f",
     bullets: [
       "UAT / MVP defects",
