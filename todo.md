@@ -219,3 +219,4 @@
 - [x] Link the supplied Roger–GoSystem POC BA mapping workbook from the Post Pilot POC package
 - [x] Remove the large State Architecture / Controlled Flow diagram section from the Post Pilot POC
 - [x] Move broader POC implementation, metadata, dependency, decisions, and proof sections to the end of Post Pilot
+- [x] Add the supplied five-sprint PI4 timeline to the Post Pilot executive page

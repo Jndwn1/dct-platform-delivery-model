@@ -11,6 +11,14 @@ const PURPLE_INK = "#6d28d9";
 const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
 
+const PI4_SPRINT_TIMELINE = [
+  { sprint: "PI4 · Sprint 1", dates: "9/16 – 9/22" },
+  { sprint: "PI4 · Sprint 2", dates: "9/23 – 10/6" },
+  { sprint: "PI4 · Sprint 3", dates: "10/7 – 10/20" },
+  { sprint: "PI4 · Sprint 4", dates: "10/21 – 11/3" },
+  { sprint: "PI4 · Sprint 5", dates: "11/4 – 11/17" },
+];
+
 type MetricCardProps = {
   label: string;
   value: string | number;
@@ -80,6 +88,28 @@ export default function PostPilotPage() {
           <Link href="/pi4-planning" style={{ color: PURPLE_INK, display: "inline-flex", fontSize: "12px", fontWeight: 850, marginTop: "12px", textDecoration: "none" }}>
             Open PI4 Sprint &amp; Story Tracker →
           </Link>
+        </div>
+      </section>
+
+      <section aria-labelledby="pi4-sprint-timeline" style={{ marginBottom: "26px" }}>
+        <SectionHeading
+          eyebrow="PI4 delivery calendar"
+          title="PI4 Sprint Timeline"
+          description="Planning cadence for the five PI4 sprints. Dates reflect the supplied PI4 sprint schedule."
+        />
+        <div style={{ background: "#ffffff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", padding: "14px" }}>
+          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(175px, 1fr))" }}>
+            {PI4_SPRINT_TIMELINE.map((item, index) => (
+              <div key={item.sprint} style={{ background: index === 1 ? PURPLE_SURFACE : "#f8fafc", border: `1px solid ${index === 1 ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${index === 1 ? PURPLE : "#94a3b8"}`, borderRadius: "8px", minHeight: "86px", padding: "11px 12px" }}>
+                <div style={{ alignItems: "center", display: "flex", gap: "8px" }}>
+                  <span style={{ alignItems: "center", background: index === 1 ? PURPLE : "#475569", borderRadius: "999px", color: "#ffffff", display: "inline-flex", fontSize: "10px", fontWeight: 900, height: "21px", justifyContent: "center", width: "21px" }}>{index + 1}</span>
+                  <span style={{ color: index === 1 ? PURPLE_INK : "#334155", fontSize: "11px", fontWeight: 850 }}>{item.sprint}</span>
+                </div>
+                <div style={{ color: "#0f172a", fontSize: "16px", fontWeight: 900, letterSpacing: "-0.02em", marginTop: "12px" }}>{item.dates}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Sprint 2 is visually highlighted as the immediate post-launch planning window.</div>
         </div>
       </section>
 

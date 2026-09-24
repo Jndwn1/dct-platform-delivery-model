@@ -37,6 +37,12 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("Roger QA Screens");
     expect(postPilot).not.toContain('label: "Unique Features"');
     expect(postPilot).toContain("Post Pilot Metrics");
+    expect(postPilot).toContain("PI4 Sprint Timeline");
+    expect(postPilot).toContain("9/16 – 9/22");
+    expect(postPilot).toContain("9/23 – 10/6");
+    expect(postPilot).toContain("10/7 – 10/20");
+    expect(postPilot).toContain("10/21 – 11/3");
+    expect(postPilot).toContain("11/4 – 11/17");
     expect(postPilot).toContain("Planned Features and ADO Dependencies");
     expect(postPilot).not.toContain("deriveMvpMetrics");
     expect(postPilot).not.toContain("getRogerScreenReadinessSummary");
