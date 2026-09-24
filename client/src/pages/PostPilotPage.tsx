@@ -10,6 +10,7 @@ const PURPLE = "#7c3aed";
 const PURPLE_INK = "#6d28d9";
 const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
+const POD_DELIVERY_FLOW_IMAGE = "/manus-storage/pi4-pod-delivery-data-review-process_8340aaca.png";
 
 type SprintPriorityArea = {
   title: string;
@@ -244,6 +245,40 @@ export default function PostPilotPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="pi4-pod-delivery-flow" style={{ marginTop: "26px", marginBottom: "26px" }}>
+        <SectionHeading
+          eyebrow="PI4 delivery operating model"
+          title="PI4 Pod Delivery & Data Review Process"
+          description="Visual process flow showing how high-level functionality moves through requirements, pod review, Gary data sign-off when needed, pod implementation, accountability, and TDC/DCT cross-functional support."
+        />
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
+          <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between", padding: "11px 14px" }}>
+            <div id="pi4-pod-delivery-flow" style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>Pod delivery and data review flow</div>
+            <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" }}>
+              <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 850 }}>PO / Process · Pod Lead / BAs · Gary / Data Review · Pod Development · TDC/DCT Support</div>
+              <a href={POD_DELIVERY_FLOW_IMAGE} target="_blank" rel="noopener noreferrer" style={{ background: "#0f172a", borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 850, padding: "7px 9px", textDecoration: "none" }}>Open readable flow</a>
+            </div>
+          </div>
+          <div style={{ overflowX: "auto", padding: "14px" }}>
+            <img
+              src={POD_DELIVERY_FLOW_IMAGE}
+              alt="PI4 Pod Delivery and Data Review Process swimlane showing PO, Process Team, Pod Lead, BAs, Gary Data Review, Pod Development Team, and TDC/DCT cross-functional support path"
+              style={{ border: "1px solid #cbd5e1", borderRadius: "8px", display: "block", maxWidth: "100%", minWidth: "980px", width: "100%" }}
+            />
+          </div>
+          <div style={{ background: PURPLE_SURFACE, borderTop: `1px solid ${PURPLE_BORDER}`, color: "#475569", display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", padding: "12px 14px" }}>
+            <div>
+              <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>Main delivery path</div>
+              <p style={{ fontSize: "11px", lineHeight: 1.45, margin: "5px 0 0" }}>PO, Process Team, and Pod Lead define the outcome; Pod Lead and BAs decompose requirements; the pod reviews stories, routes data work to Gary for sign-off, then returns to the pod for implementation and delivery.</p>
+            </div>
+            <div>
+              <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>TDC / DCT support lane</div>
+              <p style={{ fontSize: "11px", lineHeight: 1.45, margin: "5px 0 0" }}>TDC/DCT handles MVP/UAT defects, cross-pod data work, migration/shared technical work, and Scrum of Scrums capacity support when work spans multiple pods or is better handled centrally.</p>
+            </div>
           </div>
         </div>
       </section>

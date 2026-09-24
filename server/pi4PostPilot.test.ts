@@ -58,6 +58,15 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Non-Legal Entities");
     expect(postPilot).not.toContain("Sprint 2 goals — Pending Confirmation");
     expect(postPilot).toContain("Planned Features and ADO Dependencies");
+    expect(postPilot).toContain("PI4 Pod Delivery & Data Review Process");
+    expect(postPilot).toContain("POD_DELIVERY_FLOW_IMAGE");
+    expect(postPilot).toContain("/manus-storage/pi4-pod-delivery-data-review-process_8340aaca.png");
+    expect(postPilot).toContain("Pod delivery and data review flow");
+    expect(postPilot).toContain("Open readable flow");
+    expect(postPilot).toContain('target="_blank"');
+    expect(postPilot).toContain("Gary / Data Review");
+    expect(postPilot).toContain("TDC/DCT cross-functional support path");
+    expect(postPilot).toContain("TDC/DCT handles MVP/UAT defects, cross-pod data work, migration/shared technical work, and Scrum of Scrums capacity support");
     expect(postPilot).not.toContain("deriveMvpMetrics");
     expect(postPilot).not.toContain("getRogerScreenReadinessSummary");
     expect(postPilot).toContain("POST_PILOT_PLANNING_INVENTORY");
