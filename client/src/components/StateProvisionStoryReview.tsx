@@ -181,6 +181,7 @@ type CurrentYearStateReview = {
 };
 
 const CURRENT_YEAR_STATE_REVIEW_REPORT_URL = "/manus-storage/Current_Year_State_Story_First_Pass_Review_Report_for_Gary_004d26df.md";
+const CURRENT_YEAR_STATE_REVIEW_PACKAGE_URL = "/manus-storage/Current_Year_State_Story_Review_Package_for_Gary_5d3a36f5.zip";
 
 const CURRENT_YEAR_STATE_REVIEWS: CurrentYearStateReview[] = [
   {
@@ -278,9 +279,27 @@ function downloadMarkdownReview() {
   URL.revokeObjectURL(url);
 }
 
+function openGaryEmailDraft(recipient: string) {
+  const subject = "Current-Year State Story First-Pass Review Package";
+  const body = [
+    "Gary,",
+    "",
+    "Attached is the current-year State first-pass review package for your technical review.",
+    "",
+    "The package contains five evidence-bound story reviews and a consolidated report. The priority review items are 1494344 (Orange) and 1494222 (Yellow/Orange).",
+    "",
+    "Please confirm the technical decisions, contract patterns, persistence and lifecycle approach, and any required story split recommendations.",
+    "",
+    "Thank you,",
+    "Jenniver",
+  ].join("\n");
+  window.location.href = `mailto:${encodeURIComponent(recipient.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 export default function StateProvisionStoryReview() {
   const [storyFiles, setStoryFiles] = useState<string[]>([]);
   const [standardFiles, setStandardFiles] = useState<string[]>([]);
+  const [garyEmail, setGaryEmail] = useState("");
   const collectFiles = (setter: (files: string[]) => void) => (event: ChangeEvent<HTMLInputElement>) => setter(Array.from(event.target.files ?? []).map((file) => file.name));
 
   return (
@@ -332,7 +351,10 @@ export default function StateProvisionStoryReview() {
             <div style={{ color: C.navy, fontSize: "15px", fontWeight: 900, marginTop: "4px" }}>First-pass findings for Gary</div>
             <p style={{ color: C.muted, fontSize: "10px", lineHeight: 1.5, margin: "5px 0 0", maxWidth: "760px" }}>Five story-level reviews are grounded in the supplied findings. They identify strengths and evidence gaps without inventing unprovided acceptance criteria, endpoints, data models, or implementation details.</p>
           </div>
-          <a href={CURRENT_YEAR_STATE_REVIEW_REPORT_URL} target="_blank" rel="noopener noreferrer" style={{ background: C.purple, borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 900, padding: "9px 11px", textDecoration: "none", whiteSpace: "nowrap" }}>Open consolidated report for Gary</a>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
+            <a download href={CURRENT_YEAR_STATE_REVIEW_PACKAGE_URL} style={{ background: C.purple, borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 900, padding: "9px 11px", textDecoration: "none", whiteSpace: "nowrap" }}>Download all reviews (.zip)</a>
+            <a download href={CURRENT_YEAR_STATE_REVIEW_REPORT_URL} style={{ background: "#ffffff", border: `1px solid ${C.purple}`, borderRadius: "6px", color: C.purpleInk, fontSize: "10px", fontWeight: 900, padding: "8px 10px", textDecoration: "none", whiteSpace: "nowrap" }}>Download report (.md)</a>
+          </div>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ borderCollapse: "collapse", minWidth: "1080px", width: "100%" }}>
@@ -354,11 +376,22 @@ export default function StateProvisionStoryReview() {
                   <td style={{ padding: "10px" }}><FirstPassChip status={review.status} /></td>
                   <td style={{ color: C.slate, fontSize: "10px", lineHeight: 1.45, padding: "10px", width: "22%" }}>{review.solid}</td>
                   <td style={{ color: C.amber, fontSize: "10px", lineHeight: 1.45, padding: "10px", width: "30%" }}>{review.gaps}</td>
-                  <td style={{ padding: "10px", whiteSpace: "nowrap" }}><a href={review.url} target="_blank" rel="noopener noreferrer" style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, textDecoration: "none" }}>Open review ↗</a></td>
+                  <td style={{ padding: "10px", whiteSpace: "nowrap" }}><a download href={review.url} style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, textDecoration: "none" }}>Download review ↓</a></td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+        <div style={{ alignItems: "end", background: "#f8fafc", borderTop: `1px solid ${C.border}`, display: "grid", gap: "10px", gridTemplateColumns: "minmax(230px, 1fr) minmax(190px, 0.7fr) auto", padding: "12px 14px" }}>
+          <div>
+            <div style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, letterSpacing: "0.075em", textTransform: "uppercase" }}>Email package to Gary</div>
+            <div style={{ color: C.muted, fontSize: "10px", lineHeight: 1.45, marginTop: "3px" }}>Download the ZIP first. The email action opens a prefilled draft; attach the downloaded package before sending.</div>
+          </div>
+          <label style={{ color: C.navy, display: "grid", fontSize: "9px", fontWeight: 850, gap: "5px" }}>
+            Gary’s email address
+            <input aria-label="Gary’s email address" onChange={(event) => setGaryEmail(event.target.value)} placeholder="gary@example.com" style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "6px", color: C.navy, fontSize: "11px", outline: "none", padding: "8px 9px" }} type="email" value={garyEmail} />
+          </label>
+          <button disabled={!garyEmail.trim()} onClick={() => openGaryEmailDraft(garyEmail)} style={{ background: C.navy, border: "none", borderRadius: "6px", color: "#ffffff", cursor: garyEmail.trim() ? "pointer" : "not-allowed", fontSize: "10px", fontWeight: 900, opacity: garyEmail.trim() ? 1 : 0.45, padding: "9px 11px", whiteSpace: "nowrap" }} type="button">Open email draft</button>
         </div>
         <div style={{ background: C.amberSurface, borderTop: "1px solid #fde68a", color: "#713f12", fontSize: "10px", lineHeight: 1.5, padding: "10px 14px" }}><strong>Technical control:</strong> Gary’s final review remains required for implementation, API, persistence, architectural, and repository-pattern decisions. The individual review files preserve the detailed unresolved questions and split assessment.</div>
       </div>

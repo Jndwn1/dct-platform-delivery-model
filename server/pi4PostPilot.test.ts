@@ -149,6 +149,13 @@ describe("PI4 Post Pilot delivery", () => {
     expect(review).toContain("1494339");
     expect(review).toContain("1494344");
     expect(review).toContain("Current_Year_State_Story_First_Pass_Review_Report_for_Gary");
+    expect(review).toContain("Download all reviews (.zip)");
+    expect(review).toContain("Current_Year_State_Story_Review_Package_for_Gary_5d3a36f5.zip");
+    expect(review).toContain("Download report (.md)");
+    expect(review).toContain("Download review ↓");
+    expect(review).toContain("Gary’s email address");
+    expect(review).toContain("Open email draft");
+    expect(review).toContain("mailto:");
     expect(review).toContain("Gary’s final review remains required");
     expect(knowledge).toContain("Current-year State review package");
     expect(knowledge).toContain("1494222 needs the greatest TDC scrutiny");

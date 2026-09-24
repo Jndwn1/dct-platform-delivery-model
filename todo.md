@@ -226,3 +226,4 @@
 - [x] Rename the Sprint 2 DCT priority card to TDC
 - [x] Add the State & Provision Ask Buddy first-pass and Gary technical review process to the Post Pilot page
 - [x] Create first-pass Markdown reviews and a consolidated Gary report for current-year State stories 1494188, 1494198, 1494222, 1494339, and 1494344; register the documents in the Post Pilot review workspace
+- [x] Add individual and ZIP Markdown downloads plus a prepared email draft action for the current-year State review package
