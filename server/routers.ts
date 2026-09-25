@@ -8,7 +8,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks, mappingArtifacts, mappingResults, mappingSessions } from "../drizzle/schema";
+import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, postPilotDeployments, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks, mappingArtifacts, mappingResults, mappingSessions } from "../drizzle/schema";
 import { storagePut } from "./storage";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 import { createMappingCandidates, isMappableArtifactField, mappingReadiness, parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
@@ -692,6 +692,68 @@ ${input.notes}` as string },
         const content = response.choices[0]?.message?.content;
         try { return JSON.parse(typeof content === "string" ? content : JSON.stringify(content)); }
         catch { return { error: "Failed to parse response", raw: content }; }
+      }),
+  }),
+
+  postPilotDeploymentRegistry: router({
+    list: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      const rows = await db.select().from(postPilotDeployments).orderBy(desc(postPilotDeployments.deploymentDate), desc(postPilotDeployments.createdAt));
+      return rows.map((row) => ({ ...row, id: Number(row.id) }));
+    }),
+    summary: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return { total: 0, production: 0, pdc: 0, tdc: 0, rollbackCandidates: 0 };
+      const all = await db.select().from(postPilotDeployments);
+      return {
+        total: all.length,
+        production: all.filter((record) => record.environment === "Production" && record.status === "Deployed").length,
+        pdc: all.filter((record) => record.platform === "PDC").length,
+        tdc: all.filter((record) => record.platform === "TDC").length,
+        rollbackCandidates: all.filter((record) => record.status === "Rolled Back" || record.status === "In Progress").length,
+      };
+    }),
+    create: publicProcedure
+      .input(z.object({
+        releaseName: z.string().min(1).max(512),
+        deploymentDate: z.string().min(1).max(16),
+        deploymentOwner: z.string().min(1).max(128),
+        productOwner: z.string().min(1).max(128),
+        platform: z.enum(["PDC", "TDC", "Platform", "Both"]),
+        type: z.enum(["Feature", "Bug", "Technical Story", "Hotfix"]),
+        status: z.enum(["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).optional(),
+        screenName: z.string().min(1).max(256),
+        summary: z.string().max(8000).optional(),
+        relatedFeature: z.string().max(256).optional(),
+        relatedStory: z.string().max(256).optional(),
+        environment: z.string().min(1).max(64).optional(),
+        adoWorkItemId: z.string().max(32).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("The Post Pilot deployment registry is unavailable. Please try again.");
+        const dateStr = input.deploymentDate.replace(/-/g, "").slice(0, 8);
+        const existing = await db.select().from(postPilotDeployments);
+        const sequence = String(existing.length + 1).padStart(3, "0");
+        const deploymentId = `PPDEP-${dateStr.slice(0, 4)}-${dateStr.slice(4, 8)}-${sequence}`;
+        await db.insert(postPilotDeployments).values({
+          deploymentId,
+          releaseName: input.releaseName,
+          deploymentDate: input.deploymentDate,
+          deploymentOwner: input.deploymentOwner,
+          productOwner: input.productOwner,
+          platform: input.platform,
+          type: input.type,
+          status: input.status ?? "Planned",
+          screenName: input.screenName,
+          summary: input.summary ?? null,
+          relatedFeature: input.relatedFeature ?? null,
+          relatedStory: input.relatedStory ?? null,
+          environment: input.environment ?? "Production",
+          adoWorkItemId: input.adoWorkItemId ?? null,
+        });
+        return { success: true, deploymentId };
       }),
   }),
 

@@ -98,6 +98,38 @@ export const deployments = mysqlTable("deployments", {
 export type Deployment = typeof deployments.$inferSelect;
 export type InsertDeployment = typeof deployments.$inferInsert;
 
+// ─── Post Pilot Deployment Registry ─────────────────────────────────────────
+/**
+ * Post Pilot Deployment Registry — a separate release register for PI4/Post
+ * Pilot delivery. It intentionally does not reuse the historical deployment
+ * table, so the Post Pilot baseline starts at zero and remains independently
+ * traceable. A deployment screen is required for every record.
+ */
+export const postPilotDeployments = mysqlTable("post_pilot_deployments", {
+  id: int("id").autoincrement().primaryKey(),
+  /** PPDEP-YYYY-MMDD-NNN format identifier */
+  deploymentId: varchar("deploymentId", { length: 32 }).notNull().unique(),
+  releaseName: varchar("releaseName", { length: 512 }).notNull(),
+  deploymentDate: varchar("deploymentDate", { length: 16 }).notNull(),
+  deploymentOwner: varchar("deploymentOwner", { length: 128 }).notNull(),
+  productOwner: varchar("productOwner", { length: 128 }).notNull(),
+  platform: mysqlEnum("postPilotPlatform", ["PDC", "TDC", "Platform", "Both"]).notNull(),
+  type: mysqlEnum("postPilotDeploymentType", ["Feature", "Bug", "Technical Story", "Hotfix"]).notNull(),
+  status: mysqlEnum("postPilotDeploymentStatus", ["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).default("Planned").notNull(),
+  /** Required screen/capability captured for the deployment tracking table. */
+  screenName: varchar("screenName", { length: 256 }).notNull(),
+  summary: text("summary"),
+  relatedFeature: varchar("relatedFeature", { length: 256 }),
+  relatedStory: varchar("relatedStory", { length: 256 }),
+  environment: varchar("environment", { length: 64 }).default("Production").notNull(),
+  adoWorkItemId: varchar("adoWorkItemId", { length: 32 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PostPilotDeployment = typeof postPilotDeployments.$inferSelect;
+export type InsertPostPilotDeployment = typeof postPilotDeployments.$inferInsert;
+
 // ─── Deployment Screens ──────────────────────────────────────────────────────
 /**
  * Per-screen release notes for a deployment.

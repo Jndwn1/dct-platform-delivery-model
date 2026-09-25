@@ -238,3 +238,4 @@
 - [x] Replace Post Pilot Batch references with Sprints 2–5 and add source-backed sprint metrics
 - [x] Add a live production deployment snapshot beneath Post Pilot Sprint Metrics
 - [x] Reset the Post Pilot deployment snapshot to the confirmed zero-deployment baseline
+- [x] Replace the snapshot with a separate persistent Post Pilot deployment registry, Create Deployment form, required screen capture, and Copy Wiki Markdown control

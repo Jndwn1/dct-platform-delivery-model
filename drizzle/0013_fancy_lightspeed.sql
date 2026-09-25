@@ -1,0 +1,21 @@
+CREATE TABLE `post_pilot_deployments` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`deploymentId` varchar(32) NOT NULL,
+	`releaseName` varchar(512) NOT NULL,
+	`deploymentDate` varchar(16) NOT NULL,
+	`deploymentOwner` varchar(128) NOT NULL,
+	`productOwner` varchar(128) NOT NULL,
+	`postPilotPlatform` enum('PDC','TDC','Platform','Both') NOT NULL,
+	`postPilotDeploymentType` enum('Feature','Bug','Technical Story','Hotfix') NOT NULL,
+	`postPilotDeploymentStatus` enum('Planned','Scheduled','In Progress','Deployed','Rolled Back') NOT NULL DEFAULT 'Planned',
+	`screenName` varchar(256) NOT NULL,
+	`summary` text,
+	`relatedFeature` varchar(256),
+	`relatedStory` varchar(256),
+	`environment` varchar(64) NOT NULL DEFAULT 'Production',
+	`adoWorkItemId` varchar(32),
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `post_pilot_deployments_id` PRIMARY KEY(`id`),
+	CONSTRAINT `post_pilot_deployments_deploymentId_unique` UNIQUE(`deploymentId`)
+);
