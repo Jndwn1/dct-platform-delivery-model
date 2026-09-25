@@ -13,19 +13,20 @@ const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
 const POD_DELIVERY_FLOW_IMAGE = "/manus-storage/pi4-pod-delivery-data-review-process_8340aaca.png";
 
-type SprintPriorityArea = {
+type BatchPriorityArea = {
   title: string;
   accent: string;
   bullets: string[];
 };
 
-type Pi4Sprint = {
-  sprint: string;
+type Pi4Batch = {
+  number: number;
+  batch: string;
   dates: string;
-  priorities?: SprintPriorityArea[];
+  priorities?: BatchPriorityArea[];
 };
 
-const SPRINT_2_PRIORITY_AREAS: SprintPriorityArea[] = [
+const BATCH_2_PRIORITY_AREAS: BatchPriorityArea[] = [
   {
     title: "TDC",
     accent: "#1e3a5f",
@@ -65,12 +66,11 @@ const SPRINT_2_PRIORITY_AREAS: SprintPriorityArea[] = [
   },
 ];
 
-const PI4_SPRINT_TIMELINE: Pi4Sprint[] = [
-  { sprint: "PI4 · Sprint 1", dates: "9/16 – 9/22" },
-  { sprint: "PI4 · Sprint 2", dates: "9/23 – 10/6", priorities: SPRINT_2_PRIORITY_AREAS },
-  { sprint: "PI4 · Sprint 3", dates: "10/7 – 10/20" },
-  { sprint: "PI4 · Sprint 4", dates: "10/21 – 11/3" },
-  { sprint: "PI4 · Sprint 5", dates: "11/4 – 11/17" },
+const PI4_BATCH_TIMELINE: Pi4Batch[] = [
+  { number: 2, batch: "PI4 · Batch 2", dates: "9/23 – 10/6", priorities: BATCH_2_PRIORITY_AREAS },
+  { number: 3, batch: "PI4 · Batch 3", dates: "10/7 – 10/20" },
+  { number: 4, batch: "PI4 · Batch 4", dates: "10/21 – 11/3" },
+  { number: 5, batch: "PI4 · Batch 5", dates: "11/4 – 11/17" },
 ];
 
 type MetricCardProps = {
@@ -140,29 +140,29 @@ export default function PostPilotPage() {
             Planning visibility only — excluded from all PI4 and MVP delivery metrics. Commitment and sizing fields are displayed as supplied; neither has been captured for this inventory.
           </div>
           <Link href="/pi4-planning" style={{ color: PURPLE_INK, display: "inline-flex", fontSize: "12px", fontWeight: 850, marginTop: "12px", textDecoration: "none" }}>
-            Open PI4 Sprint &amp; Story Tracker →
+            Open PI4 Batch &amp; Story Tracker →
           </Link>
         </div>
       </section>
 
-      <section aria-labelledby="pi4-sprint-timeline" style={{ marginBottom: "26px" }}>
+      <section aria-labelledby="pi4-batch-timeline" style={{ marginBottom: "26px" }}>
         <SectionHeading
           eyebrow="PI4 delivery calendar"
-          title="PI4 Sprint Timeline"
-          description="Planning cadence for the five PI4 sprints. Dates reflect the supplied PI4 sprint schedule."
+          title="PI4 Batch Timeline"
+          description="Planning cadence for the displayed PI4 batches. Dates reflect the supplied PI4 delivery schedule."
         />
         <div style={{ background: "#ffffff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", padding: "14px" }}>
           <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-            {PI4_SPRINT_TIMELINE.map((item, index) => (
-              <div key={item.sprint} style={{ background: index === 1 ? PURPLE_SURFACE : "#f8fafc", border: `1px solid ${index === 1 ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${index === 1 ? PURPLE : "#94a3b8"}`, borderRadius: "8px", gridColumn: index === 1 || index >= 3 ? "span 2" : undefined, minHeight: "86px", padding: "11px 12px" }}>
+            {PI4_BATCH_TIMELINE.map((item, index) => (
+              <div key={item.batch} style={{ background: item.priorities ? PURPLE_SURFACE : "#f8fafc", border: `1px solid ${item.priorities ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${item.priorities ? PURPLE : "#94a3b8"}`, borderRadius: "8px", gridColumn: item.priorities || index >= 3 ? "span 2" : undefined, minHeight: "86px", padding: "11px 12px" }}>
                 <div style={{ alignItems: "center", display: "flex", gap: "8px" }}>
-                  <span style={{ alignItems: "center", background: index === 1 ? PURPLE : "#475569", borderRadius: "999px", color: "#ffffff", display: "inline-flex", fontSize: "10px", fontWeight: 900, height: "21px", justifyContent: "center", width: "21px" }}>{index + 1}</span>
-                  <span style={{ color: index === 1 ? PURPLE_INK : "#334155", fontSize: "11px", fontWeight: 850 }}>{item.sprint}</span>
+                  <span style={{ alignItems: "center", background: item.priorities ? PURPLE : "#475569", borderRadius: "999px", color: "#ffffff", display: "inline-flex", fontSize: "10px", fontWeight: 900, height: "21px", justifyContent: "center", width: "21px" }}>{item.number}</span>
+                  <span style={{ color: item.priorities ? PURPLE_INK : "#334155", fontSize: "11px", fontWeight: 850 }}>{item.batch}</span>
                 </div>
                 <div style={{ color: "#0f172a", fontSize: "16px", fontWeight: 900, letterSpacing: "-0.02em", marginTop: "12px" }}>{item.dates}</div>
                 {item.priorities && (
                   <div style={{ borderTop: `1px solid ${PURPLE_BORDER}`, marginTop: "12px", paddingTop: "11px" }}>
-                    <div style={{ color: PURPLE_INK, fontSize: "9px", fontWeight: 900, letterSpacing: "0.075em", marginBottom: "8px", textTransform: "uppercase" }}>Sprint 2 Goals &amp; Objectives</div>
+                    <div style={{ color: PURPLE_INK, fontSize: "9px", fontWeight: 900, letterSpacing: "0.075em", marginBottom: "8px", textTransform: "uppercase" }}>Batch 2 Goals &amp; Objectives</div>
                     <div style={{ display: "grid", gap: "7px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
                       {item.priorities.map((area) => (
                         <div key={area.title} style={{ background: "#ffffff", border: `1px solid ${area.accent}33`, borderLeft: `3px solid ${area.accent}`, borderRadius: "6px", padding: "8px" }}>
@@ -178,7 +178,7 @@ export default function PostPilotPage() {
               </div>
             ))}
           </div>
-          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Sprint 2 is visually highlighted as the immediate post-launch planning window.</div>
+          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Batch 2 is visually highlighted as the immediate post-launch planning window.</div>
         </div>
       </section>
 

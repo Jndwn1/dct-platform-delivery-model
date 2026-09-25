@@ -228,3 +228,4 @@
 - [x] Create first-pass Markdown reviews and a consolidated Gary report for current-year State stories 1494188, 1494198, 1494222, 1494339, and 1494344; register the documents in the Post Pilot review workspace
 - [x] Add individual and ZIP Markdown downloads plus a prepared email draft action for the current-year State review package
 - [x] Remove the Visual Review Process flow from the Post Pilot State & Provision Story Review workspace
+- [x] Remove Batch 1 from the Post Pilot PI4 timeline while retaining Batches 2–5
