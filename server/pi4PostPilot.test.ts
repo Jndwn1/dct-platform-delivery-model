@@ -28,6 +28,7 @@ describe("PI4 Post Pilot delivery", () => {
     const planningModel = readFileSync(resolve(process.cwd(), "client/src/contexts/BatchStatusContext.tsx"), "utf8");
     const platformContext = readFileSync(resolve(process.cwd(), "server/platformContext.ts"), "utf8");
     const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
+    const deploymentSnapshot = readFileSync(resolve(process.cwd(), "client/src/components/PostPilotDeploymentSnapshot.tsx"), "utf8");
 
     expect(dashboard).not.toContain("Post Pilot · Planning Visibility Only");
     expect(dashboard).not.toContain("PI4 Planning Visibility");
@@ -72,6 +73,24 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Pending source");
     expect(postPilot).toContain("ADO work items");
     expect(postPilot).toContain("Feature and ADO work-item metrics will populate");
+    expect(postPilot).toContain('import PostPilotDeploymentSnapshot from "@/components/PostPilotDeploymentSnapshot"');
+    expect(postPilot).toContain("<PostPilotDeploymentSnapshot />");
+    expect(postPilot.indexOf("<PostPilotDeploymentSnapshot />")).toBeGreaterThan(postPilot.indexOf("pi4-sprint-metrics"));
+    expect(deploymentSnapshot).toContain("Deployment Snapshot");
+    expect(deploymentSnapshot).toContain("trpc.deploymentRegistry.summary.useQuery()");
+    expect(deploymentSnapshot).toContain('trpc.deploymentRegistry.list.useQuery({ sortBy: "deploymentDate" })');
+    expect(deploymentSnapshot).toContain("Total Deployments");
+    expect(deploymentSnapshot).toContain("Production Releases");
+    expect(deploymentSnapshot).toContain("PDC Deployments");
+    expect(deploymentSnapshot).toContain("TDC Deployments");
+    expect(deploymentSnapshot).toContain("Open Rollback Candidates");
+    expect(deploymentSnapshot).toContain("Recent Production Deployment Records");
+    expect(deploymentSnapshot).toContain('href="/deployment-registry"');
+    expect(deploymentSnapshot).toContain("do not change PI4 sprint progress");
+    expect(deploymentSnapshot).toContain('deployment.deploymentDate >= "2026-06-11"');
+    expect(deploymentSnapshot).toContain(".slice(0, 5)");
+    expect(deploymentSnapshot).toContain("shown from Jun 11, 2026");
+    expect(deploymentSnapshot).not.toContain('"Status"].map');
     expect(postPilot).toContain("PI4 Pod Delivery & Data Review Process");
     expect(postPilot).toContain("POD_DELIVERY_FLOW_IMAGE");
     expect(postPilot).toContain("/manus-storage/pi4-pod-delivery-data-review-process_8340aaca.png");

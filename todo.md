@@ -236,3 +236,4 @@
 - [x] Remove the requested Story Review support panels while preserving the package and email handoff
 - [x] Update the Batch 1 planned-feature and ADO-dependency inventory from the supplied backlog
 - [x] Replace Post Pilot Batch references with Sprints 2–5 and add source-backed sprint metrics
+- [x] Add a live production deployment snapshot beneath Post Pilot Sprint Metrics

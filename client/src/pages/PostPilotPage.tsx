@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc";
 import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
 import StateProvisionStoryReview from "@/components/StateProvisionStoryReview";
+import PostPilotDeploymentSnapshot from "@/components/PostPilotDeploymentSnapshot";
 import {
   POST_PILOT_PLANNING_INVENTORY,
   POST_PILOT_PLANNING_SOURCE_SELECTION,
@@ -248,6 +249,8 @@ export default function PostPilotPage() {
           })}
         </div>
       </section>
+
+      <PostPilotDeploymentSnapshot />
 
       <section aria-labelledby="pi4-planning-metrics" style={{ marginBottom: "26px" }}>
         <SectionHeading
