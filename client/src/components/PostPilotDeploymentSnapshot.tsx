@@ -1,6 +1,13 @@
 import { Link } from "wouter";
 import { Activity, CheckCircle2, Layers, Rocket, RotateCcw } from "lucide-react";
-import { trpc } from "@/lib/trpc";
+
+const POST_PILOT_DEPLOYMENT_BASELINE = {
+  total: 0,
+  production: 0,
+  pdc: 0,
+  tdc: 0,
+  rollbackCandidates: 0,
+} as const;
 
 function DeploymentMetricCard({
   label,
@@ -25,13 +32,7 @@ function DeploymentMetricCard({
 }
 
 export default function PostPilotDeploymentSnapshot() {
-  const { data: summaryData, isLoading: isSummaryLoading } = trpc.deploymentRegistry.summary.useQuery();
-  const { data: deployments = [], isLoading: isDeploymentLoading } = trpc.deploymentRegistry.list.useQuery({ sortBy: "deploymentDate" });
-  const summary = summaryData ?? { total: 0, production: 0, pdc: 0, tdc: 0, rollbackCandidates: 0 };
-  const isLoading = isSummaryLoading || isDeploymentLoading;
-  const recentDeployments = deployments
-    .filter((deployment) => deployment.deploymentDate >= "2026-06-11")
-    .slice(0, 5);
+  const summary = POST_PILOT_DEPLOYMENT_BASELINE;
 
   return (
     <section aria-labelledby="post-pilot-deployment-snapshot" style={{ marginBottom: "26px" }}>
@@ -39,9 +40,9 @@ export default function PostPilotDeploymentSnapshot() {
         <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Release and deployment traceability</div>
         <div style={{ alignItems: "baseline", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
           <h2 id="post-pilot-deployment-snapshot" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, letterSpacing: "-0.015em", margin: "4px 0 0" }}>Deployment Snapshot</h2>
-          <Link href="/deployment-registry" style={{ color: "#0f766e", fontSize: "11px", fontWeight: 850, textDecoration: "none" }}>Open Deployment Registry →</Link>
+          <Link href="/deployment-registry" style={{ color: "#0f766e", fontSize: "11px", fontWeight: 850, textDecoration: "none" }}>Open Historical Deployment Registry →</Link>
         </div>
-        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>Live production registry counts and recent release records. These deployment measures are traceability indicators and do not change PI4 sprint progress.</p>
+        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>Post Pilot deployment tracking begins at zero. These measures are scoped to Post Pilot releases only and do not change PI4 sprint progress.</p>
       </div>
 
       <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", marginBottom: "14px" }}>
@@ -54,38 +55,13 @@ export default function PostPilotDeploymentSnapshot() {
 
       <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
         <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "space-between", padding: "10px 14px" }}>
-          <div style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>Recent Production Deployment Records</div>
-          <div style={{ color: "#64748b", fontSize: "10px" }}>{isLoading ? "Loading registry…" : `${recentDeployments.length} of ${summary.total} deployments shown from Jun 11, 2026`}</div>
+          <div style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>Post Pilot Deployment Records</div>
+          <div style={{ color: "#64748b", fontSize: "10px" }}>0 records</div>
         </div>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ borderCollapse: "collapse", minWidth: "940px", width: "100%" }}>
-            <thead>
-              <tr style={{ background: "#0f172a", color: "#ffffff", textAlign: "left" }}>
-                {["Date", "Release Name", "Type", "Platform", "Environment", "Deployment Owner", "Product Owner"].map((heading) => (
-                  <th key={heading} style={{ color: "#cbd5e1", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{heading}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr><td colSpan={7} style={{ color: "#64748b", fontSize: "12px", padding: "26px", textAlign: "center" }}>Loading deployment registry records…</td></tr>
-              ) : recentDeployments.length === 0 ? (
-                <tr><td colSpan={7} style={{ color: "#64748b", fontSize: "12px", padding: "26px", textAlign: "center" }}>No production deployment records from Jun 11, 2026 onward are currently available in the registry.</td></tr>
-              ) : recentDeployments.map((deployment, index) => {
-                return (
-                  <tr key={deployment.deploymentId} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
-                    <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px", whiteSpace: "nowrap" }}>{deployment.deploymentDate}</td>
-                    <td style={{ color: "#1e293b", fontSize: "11px", fontWeight: 700, lineHeight: 1.35, maxWidth: "330px", padding: "11px 12px" }}>{deployment.releaseName}</td>
-                    <td style={{ padding: "11px 12px" }}><span style={{ background: "#fef3c7", border: "1px solid #fde68a", borderRadius: "999px", color: "#92400e", display: "inline-flex", fontSize: "9px", fontWeight: 850, padding: "3px 6px", whiteSpace: "nowrap" }}>{deployment.type}</span></td>
-                    <td style={{ color: deployment.platform === "PDC" ? "#1d4ed8" : "#047857", fontSize: "11px", fontWeight: 800, padding: "11px 12px" }}>{deployment.platform}</td>
-                    <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{deployment.environment}</td>
-                    <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{deployment.deploymentOwner}</td>
-                    <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{deployment.productOwner}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div style={{ padding: "26px", textAlign: "center" }}>
+          <Rocket size={28} style={{ color: "#cbd5e1", marginBottom: "9px" }} />
+          <div style={{ color: "#475569", fontSize: "12px", fontWeight: 800 }}>No Post Pilot deployments recorded</div>
+          <div style={{ color: "#94a3b8", fontSize: "11px", lineHeight: 1.45, margin: "5px auto 0", maxWidth: "510px" }}>This section will populate when a Post Pilot deployment is formally registered. Historical releases remain available in the Deployment Registry.</div>
         </div>
       </div>
     </section>
