@@ -29,6 +29,7 @@ describe("PI4 Post Pilot delivery", () => {
     const platformContext = readFileSync(resolve(process.cwd(), "server/platformContext.ts"), "utf8");
     const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
     const deploymentSnapshot = readFileSync(resolve(process.cwd(), "client/src/components/PostPilotDeploymentSnapshot.tsx"), "utf8");
+    const prototypeFlow = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionPrototypeFlow.tsx"), "utf8");
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
     const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
 
@@ -70,6 +71,24 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Non-Legal Entities");
     expect(postPilot).not.toContain("Sprint 2 goals — Pending Confirmation");
     expect(postPilot).toContain("Planned Features and ADO Dependencies");
+    expect(postPilot).toContain('import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow"');
+    expect(postPilot).toContain("<StateProvisionPrototypeFlow />");
+    expect(postPilot.indexOf("<StateProvisionPrototypeFlow />")).toBeGreaterThan(postPilot.indexOf("Planned Features and ADO Dependencies"));
+    expect(postPilot.indexOf("<StateProvisionPrototypeFlow />")).toBeLessThan(postPilot.indexOf("State & Provision Prototypes"));
+    expect(prototypeFlow).toContain("Roger State &amp; Provision End-to-End Process Flow");
+    expect(prototypeFlow).toContain("IMS—not Roger or DCT—owns return-engine routing and payload translation");
+    expect(prototypeFlow).toContain("GoSystem is the representative State POC path");
+    expect(prototypeFlow).toContain("iTax Provision scope and contracts remain to be defined");
+    expect(prototypeFlow).toContain("System Roles &amp; Ownership");
+    expect(prototypeFlow).toContain('system: "Roger"');
+    expect(prototypeFlow).toContain('system: "TDC"');
+    expect(prototypeFlow).toContain('system: "B9A Gateway"');
+    expect(prototypeFlow).toContain('system: "IMS"');
+    expect(prototypeFlow).toContain('system: "GoSystem"');
+    expect(prototypeFlow).toContain('system: "iTax"');
+    expect(prototypeFlow).toContain("Integration broker");
+    expect(prototypeFlow).toContain("roger-state-provision-end-to-end-process-flow_20c79e7c.png");
+    expect(prototypeFlow).toContain("Open readable flow");
     expect(postPilot).toContain("State & Provision Prototypes");
     expect(postPilot).toContain("Roger — State Compliance Prototype");
     expect(postPilot).toContain('href="/state-compliance"');

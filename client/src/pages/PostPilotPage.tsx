@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc";
 import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
+import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow";
 import StateProvisionStoryReview from "@/components/StateProvisionStoryReview";
 import PostPilotDeploymentSnapshot from "@/components/PostPilotDeploymentSnapshot";
 import {
@@ -320,6 +321,8 @@ export default function PostPilotPage() {
           </div>
         </div>
       </section>
+
+      <StateProvisionPrototypeFlow />
 
       <section aria-labelledby="post-pilot-prototypes" style={{ marginTop: "26px", marginBottom: "26px" }}>
         <SectionHeading
