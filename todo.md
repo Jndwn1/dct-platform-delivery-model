@@ -244,3 +244,4 @@
 - [x] Redesign all Post Pilot process flows for executive readability
 - [x] Restore one executive Roger end-to-end process diagram below the State and Provision prototypes
 - [x] Replace the Post Pilot diagram with a client-file-to-Federal, State, and Provision Roger process flow
+- [x] Redesign the client-file-to-Roger flow as a five-phase executive process with no crossing connectors
