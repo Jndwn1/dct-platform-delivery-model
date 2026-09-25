@@ -129,12 +129,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(review).toContain("Ask Buddy First Pass + Gary Technical Review");
     expect(review).toContain("Ask Buddy / Manus does not replace Gary’s final technical review");
     expect(review).toContain("Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions");
-    expect(review).toContain("Ask Buddy First-Pass Review Checklist");
-    expect(review).toContain("Technical requirement required");
     expect(review).toContain("ADO_1494344_Gateway_TDC_State_Practitioner_Actions_Review.md");
-    expect(review).toContain("Gary’s TDC / Gateway Development Standard");
-    expect(review).toContain("Awaiting First Pass");
-    expect(review).toContain("State and Provision remain responsible for business capability and application-layer work");
     expect(review).toContain('import StoryReviewAskBuddy from "@/components/StoryReviewAskBuddy"');
     expect(review).toContain("<StoryReviewAskBuddy />");
     expect(review).not.toContain("Worked example");
@@ -142,6 +137,14 @@ describe("PI4 Post Pilot delivery", () => {
     expect(review).not.toContain("Open ADO work item");
     expect(review).not.toContain("Visual review process");
     expect(review).not.toContain("state-provision-ask-buddy-gary-review-flow");
+    expect(review).not.toContain("Ask Buddy First-Pass Review Checklist");
+    expect(review).not.toContain("Example ownership table");
+    expect(review).not.toContain("Data-contract review");
+    expect(review).not.toContain(">Markdown review file</div>");
+    expect(review).not.toContain("Gary’s TDC / Gateway Development Standard");
+    expect(review).not.toContain("Story evidence intake");
+    expect(review).not.toContain("Jenniver review dashboard");
+    expect(review).not.toContain("Process principle");
     expect(storyReviewBuddy).toContain("Ask Buddy — Story Review Agent");
     expect(storyReviewBuddy).toContain('currentPagePath: "/post-pilot"');
     expect(storyReviewBuddy).toContain('capability: "story-review"');
