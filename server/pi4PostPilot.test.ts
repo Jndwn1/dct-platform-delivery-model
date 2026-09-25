@@ -167,7 +167,17 @@ describe("PI4 Post Pilot delivery", () => {
     expect(review).toContain("Download all reviews (.zip)");
     expect(review).toContain("Current_Year_State_Story_Review_Package_for_Gary_5d3a36f5.zip");
     expect(review).toContain("Download report (.md)");
-    expect(review).toContain("Download review ↓");
+    expect(review).toContain("Download review (.md) ↓");
+    expect(review).toContain('const GARY_EMAIL = "Gary.Luca@rsmus.com"');
+    expect(review).toContain("FIRST_PASS_REVIEW_CYCLE");
+    expect(review).toContain("Review #");
+    expect(review).toContain("First-pass review date");
+    expect(review).toContain("Sep 24, 2026");
+    expect(review).toContain("reviewNumber: 5");
+    expect(review).toContain("Included first-pass review files:");
+    expect(review).toContain("First pass: ${review.reviewedOn}");
+    expect(review).toContain("Review file: ${review.reviewFileName}");
+    expect(review).toContain("useState(GARY_EMAIL)");
     expect(review).toContain("Gary’s email address");
     expect(review).toContain("Open email draft");
     expect(review).toContain("mailto:");

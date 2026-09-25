@@ -171,9 +171,12 @@ const REVIEW_FILE_SECTIONS = [
 ];
 
 type CurrentYearStateReview = {
+  reviewNumber: number;
   id: string;
   title: string;
   status: "Yellow" | "Yellow/Orange" | "Orange";
+  reviewedOn: string;
+  reviewFileName: string;
   solid: string;
   gaps: string;
   url: string;
@@ -181,44 +184,61 @@ type CurrentYearStateReview = {
 
 const CURRENT_YEAR_STATE_REVIEW_REPORT_URL = "/manus-storage/Current_Year_State_Story_First_Pass_Review_Report_for_Gary_004d26df.md";
 const CURRENT_YEAR_STATE_REVIEW_PACKAGE_URL = "/manus-storage/Current_Year_State_Story_Review_Package_for_Gary_5d3a36f5.zip";
+const GARY_EMAIL = "Gary.Luca@rsmus.com";
+const FIRST_PASS_REVIEW_CYCLE = "PI4 · Batch 2 (9/23–10/6)";
 
 const CURRENT_YEAR_STATE_REVIEWS: CurrentYearStateReview[] = [
   {
+    reviewNumber: 1,
     id: "1494188",
     title: "PDC — Enable Current-Year State Source Documents Without Financial Mappings",
     status: "Yellow",
+    reviewedOn: "Sep 24, 2026",
+    reviewFileName: "ADO_1494188_PDC_Current_Year_State_Source_Documents_Review.md",
     solid: "Clear exception condition with retained standard controls and audit / reason context.",
     gaps: "Define approved State-processing context, mapping-applicability signal, and PDC status values.",
     url: "/manus-storage/ADO_1494188_PDC_Current_Year_State_Source_Documents_Review_9792f3ed.md",
   },
   {
+    reviewNumber: 2,
     id: "1494198",
     title: "PDC — Create and Route Current-Year State Source Submissions for Orchestrator Classification",
     status: "Yellow",
+    reviewedOn: "Sep 24, 2026",
+    reviewFileName: "ADO_1494198_PDC_Current_Year_State_Submission_Routing_Review.md",
     solid: "Clear Tax Portal, PDC, and Orchestrator ownership split with an explicit source-file boundary.",
     gaps: "Confirm submission envelope, idempotency, failure behavior, and stateFootprintVersion rule.",
     url: "/manus-storage/ADO_1494198_PDC_Current_Year_State_Submission_Routing_Review_e35b8be3.md",
   },
   {
+    reviewNumber: 3,
     id: "1494222",
     title: "TDC — Persist and Govern the Orchestrator-Mapped Current-Year State Input Dataset",
     status: "Yellow/Orange",
+    reviewedOn: "Sep 24, 2026",
+    reviewFileName: "ADO_1494222_TDC_Govern_Current_Year_State_Input_Dataset_Review.md",
     solid: "Strong governance intent for provenance, mapping status, versioning, and source preservation.",
     gaps: "Define dataset identity, lifecycle, status encoding, mapping-target rules, and payment normalization.",
     url: "/manus-storage/ADO_1494222_TDC_Govern_Current_Year_State_Input_Dataset_Review_4bf487fa.md",
   },
   {
+    reviewNumber: 4,
     id: "1494339",
     title: "Gateway — Provide the Current-Year State Input Dataset to Roger",
     status: "Yellow",
+    reviewedOn: "Sep 24, 2026",
+    reviewFileName: "ADO_1494339_Gateway_Current_Year_State_Input_Dataset_to_Roger_Review.md",
     solid: "The read contract, Not Ready concept, and raw-source exclusion are clear at a high level.",
     gaps: "Define endpoint, identifiers, DTO, authorization, response behavior, and Gateway non-calculation boundary.",
     url: "/manus-storage/ADO_1494339_Gateway_Current_Year_State_Input_Dataset_to_Roger_Review_d839808c.md",
   },
   {
+    reviewNumber: 5,
     id: "1494344",
     title: "Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions",
     status: "Orange",
+    reviewedOn: "Sep 24, 2026",
+    reviewFileName: "ADO_1494344_Gateway_TDC_State_Practitioner_Actions_Review.md",
     solid: "Broad practitioner-action coverage with strong audit / lineage intent and source-record preservation.",
     gaps: "Define the action model, request and persistence contracts, versioning, authorization, retry, and retrieval behavior.",
     url: "/manus-storage/ADO_1494344_Gateway_TDC_State_Practitioner_Actions_Review_c1c9320d.md",
@@ -283,9 +303,14 @@ function openGaryEmailDraft(recipient: string) {
   const body = [
     "Gary,",
     "",
-    "Attached is the current-year State first-pass review package for your technical review.",
+    `Attached is the current-year State first-pass review package for ${FIRST_PASS_REVIEW_CYCLE}.`,
     "",
-    "The package contains five evidence-bound story reviews and a consolidated report. The priority review items are 1494344 (Orange) and 1494222 (Yellow/Orange).",
+    `This package contains only the ${CURRENT_YEAR_STATE_REVIEWS.length} recently completed first-pass reviews (all reviewed Sep 24, 2026), plus the consolidated report. Please attach the downloaded ZIP package before sending.`,
+    "",
+    "Included first-pass review files:",
+    ...CURRENT_YEAR_STATE_REVIEWS.map((review) => `${review.reviewNumber}. Story ${review.id} | First pass: ${review.reviewedOn} | Review file: ${review.reviewFileName}`),
+    "",
+    "Priority technical review items: 1494344 (Orange) and 1494222 (Yellow/Orange).",
     "",
     "Please confirm the technical decisions, contract patterns, persistence and lifecycle approach, and any required story split recommendations.",
     "",
@@ -298,7 +323,7 @@ function openGaryEmailDraft(recipient: string) {
 export default function StateProvisionStoryReview() {
   const [storyFiles, setStoryFiles] = useState<string[]>([]);
   const [standardFiles, setStandardFiles] = useState<string[]>([]);
-  const [garyEmail, setGaryEmail] = useState("");
+  const [garyEmail, setGaryEmail] = useState(GARY_EMAIL);
   const collectFiles = (setter: (files: string[]) => void) => (event: ChangeEvent<HTMLInputElement>) => setter(Array.from(event.target.files ?? []).map((file) => file.name));
 
   return (
@@ -319,7 +344,7 @@ export default function StateProvisionStoryReview() {
           <div>
             <div style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, letterSpacing: "0.075em", textTransform: "uppercase" }}>Current-year State review package</div>
             <div style={{ color: C.navy, fontSize: "15px", fontWeight: 900, marginTop: "4px" }}>First-pass findings for Gary</div>
-            <p style={{ color: C.muted, fontSize: "10px", lineHeight: 1.5, margin: "5px 0 0", maxWidth: "760px" }}>Five story-level reviews are grounded in the supplied findings. They identify strengths and evidence gaps without inventing unprovided acceptance criteria, endpoints, data models, or implementation details.</p>
+            <p style={{ color: C.muted, fontSize: "10px", lineHeight: 1.5, margin: "5px 0 0", maxWidth: "760px" }}>{CURRENT_YEAR_STATE_REVIEWS.length} first-pass reviews completed in {FIRST_PASS_REVIEW_CYCLE}. Each entry retains its review date and Markdown review file for Gary’s technical review.</p>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
             <a download href={CURRENT_YEAR_STATE_REVIEW_PACKAGE_URL} style={{ background: C.purple, borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 900, padding: "9px 11px", textDecoration: "none", whiteSpace: "nowrap" }}>Download all reviews (.zip)</a>
@@ -327,10 +352,12 @@ export default function StateProvisionStoryReview() {
           </div>
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ borderCollapse: "collapse", minWidth: "1080px", width: "100%" }}>
+          <table style={{ borderCollapse: "collapse", minWidth: "1260px", width: "100%" }}>
             <thead>
               <tr style={{ background: C.navy, color: "#ffffff" }}>
                 {[
+                  "Review #",
+                  "First-pass review date",
                   "Story",
                   "First-pass status",
                   "What looks solid",
@@ -342,11 +369,13 @@ export default function StateProvisionStoryReview() {
             <tbody>
               {CURRENT_YEAR_STATE_REVIEWS.map((review, index) => (
                 <tr key={review.id} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}`, verticalAlign: "top" }}>
+                  <td style={{ color: C.purpleInk, fontSize: "11px", fontWeight: 900, padding: "10px", textAlign: "center" }}>{review.reviewNumber}</td>
+                  <td style={{ color: C.slate, fontSize: "10px", fontWeight: 800, padding: "10px", whiteSpace: "nowrap" }}>{review.reviewedOn}</td>
                   <td style={{ color: C.navy, fontSize: "10px", fontWeight: 850, lineHeight: 1.4, padding: "10px", width: "24%" }}><strong style={{ color: C.purpleInk }}>{review.id}</strong> — {review.title}</td>
                   <td style={{ padding: "10px" }}><FirstPassChip status={review.status} /></td>
                   <td style={{ color: C.slate, fontSize: "10px", lineHeight: 1.45, padding: "10px", width: "22%" }}>{review.solid}</td>
                   <td style={{ color: C.amber, fontSize: "10px", lineHeight: 1.45, padding: "10px", width: "30%" }}>{review.gaps}</td>
-                  <td style={{ padding: "10px", whiteSpace: "nowrap" }}><a download href={review.url} style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, textDecoration: "none" }}>Download review ↓</a></td>
+                  <td style={{ padding: "10px", whiteSpace: "nowrap" }}><a download href={review.url} style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, textDecoration: "none" }} title={review.reviewFileName}>Download review (.md) ↓</a></td>
                 </tr>
               ))}
             </tbody>
@@ -355,11 +384,11 @@ export default function StateProvisionStoryReview() {
         <div style={{ alignItems: "end", background: "#f8fafc", borderTop: `1px solid ${C.border}`, display: "grid", gap: "10px", gridTemplateColumns: "minmax(230px, 1fr) minmax(190px, 0.7fr) auto", padding: "12px 14px" }}>
           <div>
             <div style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, letterSpacing: "0.075em", textTransform: "uppercase" }}>Email package to Gary</div>
-            <div style={{ color: C.muted, fontSize: "10px", lineHeight: 1.45, marginTop: "3px" }}>Download the ZIP first. The email action opens a prefilled draft; attach the downloaded package before sending.</div>
+            <div style={{ color: C.muted, fontSize: "10px", lineHeight: 1.45, marginTop: "3px" }}>The prepared draft is addressed to Gary and lists only the {CURRENT_YEAR_STATE_REVIEWS.length} first-pass reviews in this package. Attach the downloaded ZIP before sending.</div>
           </div>
           <label style={{ color: C.navy, display: "grid", fontSize: "9px", fontWeight: 850, gap: "5px" }}>
             Gary’s email address
-            <input aria-label="Gary’s email address" onChange={(event) => setGaryEmail(event.target.value)} placeholder="gary@example.com" style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "6px", color: C.navy, fontSize: "11px", outline: "none", padding: "8px 9px" }} type="email" value={garyEmail} />
+            <input aria-label="Gary’s email address" onChange={(event) => setGaryEmail(event.target.value)} placeholder={GARY_EMAIL} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "6px", color: C.navy, fontSize: "11px", outline: "none", padding: "8px 9px" }} type="email" value={garyEmail} />
           </label>
           <button disabled={!garyEmail.trim()} onClick={() => openGaryEmailDraft(garyEmail)} style={{ background: C.navy, border: "none", borderRadius: "6px", color: "#ffffff", cursor: garyEmail.trim() ? "pointer" : "not-allowed", fontSize: "10px", fontWeight: 900, opacity: garyEmail.trim() ? 1 : 0.45, padding: "9px 11px", whiteSpace: "nowrap" }} type="button">Open email draft</button>
         </div>
