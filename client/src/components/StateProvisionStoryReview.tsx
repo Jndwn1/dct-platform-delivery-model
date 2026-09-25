@@ -1,4 +1,5 @@
 import { useState, type ChangeEvent } from "react";
+import StoryReviewAskBuddy from "@/components/StoryReviewAskBuddy";
 
 const C = {
   navy: "#0f172a",
@@ -381,6 +382,8 @@ export default function StateProvisionStoryReview() {
         </div>
         <div style={{ background: C.amberSurface, borderTop: "1px solid #fde68a", color: "#713f12", fontSize: "10px", lineHeight: 1.5, padding: "10px 14px" }}><strong>Technical control:</strong> Gary’s final review remains required for implementation, API, persistence, architectural, and repository-pattern decisions. The individual review files preserve the detailed unresolved questions and split assessment.</div>
       </div>
+
+      <StoryReviewAskBuddy />
 
       <div style={{ marginTop: "20px" }}>
         <div style={{ borderLeft: `3px solid ${C.blue}`, marginBottom: "11px", paddingLeft: "10px" }}>

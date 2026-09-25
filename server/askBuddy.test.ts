@@ -87,6 +87,18 @@ describe("askBuddy.chat", () => {
     expect(callArgs.messages).toHaveLength(4);
   });
 
+  it("injects documented Post Pilot story-review evidence for the scoped review agent", async () => {
+    const caller = appRouter.createCaller(createTestCtx());
+    await caller.askBuddy.chat({
+      messages: [{ role: "user", content: "What are the key gaps that Gary should review for Story 1494344?" }],
+      currentPagePath: "/post-pilot",
+      capability: "story-review",
+    });
+    const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(callArgs.messages[0].content).toContain("State & Provision Story Review");
+    expect(callArgs.messages[0].content).toContain("Gary retains final technical review authority");
+  });
+
   it("returns fallback text when LLM returns no content", async () => {
     (invokeLLM as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       choices: [{ message: { content: null } }],

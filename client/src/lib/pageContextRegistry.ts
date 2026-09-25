@@ -45,7 +45,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     pageTitle: "Post Pilot",
     pageIcon: "◫",
     description: "Executive PI4 Post Pilot planning visibility, planned-feature metrics, the Roger to GoSystem State Calculation POC, and the State / Provision Ask Buddy first-pass plus Gary technical-review operating model with current-year State review outputs.",
-    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "Roger to GoSystem State Calculation POC", "Minimum POC Input Package", "POC Meeting Transcript Source", "State / Provision Story Review", "Current-Year State Review Package", "Ask Buddy First Pass", "Gary Technical Review", "PI4 Tracker Navigation"],
+    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "Roger to GoSystem State Calculation POC", "Minimum POC Input Package", "POC Meeting Transcript Source", "State / Provision Story Review", "Current-Year State Review Package", "Inline Story Review Ask Buddy Agent", "Ask Buddy First Pass", "Gary Technical Review", "PI4 Tracker Navigation"],
     apis: [],
     stories: ["1472734", "1471480", "1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Post Pilot Overview", "Planned PI4 Features", "State Calculation POC", "State / Provision Story Review", "Current-Year State Review Package"],
@@ -53,8 +53,8 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     batches: [],
     businessObjects: ["PI4 Planning Item", "Post Pilot Plan", "Minimum POC Input Package", "State Calculation Input Package", "State Calculation Review Package", "Current-Year State Review Report", "Story Review File", "Gateway Contract", "TDC Practitioner Action"],
     integrations: ["PI4 Sprint & Story Tracker", "Ask Buddy", "Roger", "Gateway", "TDC", "Taxonomy", "IMS", "GoSystem"],
-    lastUpdated: "2026-09-24",
-    lastChange: "Added evidence-bound first-pass Markdown reviews and a consolidated Gary report for current-year State stories 1494188, 1494198, 1494222, 1494339, and 1494344; Gary remains the final technical reviewer.",
+    lastUpdated: "2026-09-25",
+    lastChange: "Added a scoped inline Ask Buddy Story Review Agent beneath the current-year State review package. The agent is grounded to the Post Pilot evidence layer and retains Gary as the final technical reviewer.",
   },
 
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────

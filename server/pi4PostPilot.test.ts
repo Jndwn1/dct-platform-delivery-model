@@ -123,6 +123,7 @@ describe("PI4 Post Pilot delivery", () => {
 
   it("provides a repeatable Ask Buddy first-pass and Gary final technical review model without inventing Story 1494344 requirements", () => {
     const review = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionStoryReview.tsx"), "utf8");
+    const storyReviewBuddy = readFileSync(resolve(process.cwd(), "client/src/components/StoryReviewAskBuddy.tsx"), "utf8");
     const knowledge = readFileSync(resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"), "utf8");
 
     expect(review).toContain("Ask Buddy First Pass + Gary Technical Review");
@@ -134,8 +135,15 @@ describe("PI4 Post Pilot delivery", () => {
     expect(review).toContain("Gary’s TDC / Gateway Development Standard");
     expect(review).toContain("Awaiting First Pass");
     expect(review).toContain("State and Provision remain responsible for business capability and application-layer work");
+    expect(review).toContain('import StoryReviewAskBuddy from "@/components/StoryReviewAskBuddy"');
+    expect(review).toContain("<StoryReviewAskBuddy />");
     expect(review).not.toContain("Visual review process");
     expect(review).not.toContain("state-provision-ask-buddy-gary-review-flow");
+    expect(storyReviewBuddy).toContain("Ask Buddy — Story Review Agent");
+    expect(storyReviewBuddy).toContain('currentPagePath: "/post-pilot"');
+    expect(storyReviewBuddy).toContain('capability: "story-review"');
+    expect(storyReviewBuddy).toContain("Gary remains the final technical reviewer");
+    expect(storyReviewBuddy).toContain("What are the key gaps that Gary should review for Story 1494344?");
     expect(knowledge).toContain("Ask Buddy does **not** replace Gary");
     expect(knowledge).toContain("Tech Story 1494344");
   });
@@ -164,6 +172,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(knowledge).toContain("Current-year State review package");
     expect(knowledge).toContain("1494222 needs the greatest TDC scrutiny");
     expect(pageContext).toContain("Current-Year State Review Package");
+    expect(pageContext).toContain("Inline Story Review Ask Buddy Agent");
     expect(pageContext).toContain("1494188");
   });
 });
