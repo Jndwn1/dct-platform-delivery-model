@@ -234,3 +234,4 @@
 - [x] Update Gary's recipient, first-pass review email scope, and current review tracking columns
 - [x] Add a formatted Outlook email draft with live links for every first-pass review
 - [x] Remove the requested Story Review support panels while preserving the package and email handoff
+- [x] Update the Batch 1 planned-feature and ADO-dependency inventory from the supplied backlog

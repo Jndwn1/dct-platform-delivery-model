@@ -3,7 +3,9 @@ import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/S
 import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
 import StateProvisionStoryReview from "@/components/StateProvisionStoryReview";
 import {
+  POST_PILOT_PLANNING_BATCH,
   POST_PILOT_PLANNING_INVENTORY,
+  POST_PILOT_PLANNING_SOURCE_SELECTION,
   POST_PILOT_PLANNING_SUMMARY,
 } from "@/lib/postPilotPlanningInventory";
 
@@ -104,11 +106,11 @@ function SectionHeading({ eyebrow, title, description }: { eyebrow: string; titl
 
 export default function PostPilotPage() {
   const planningMetrics: MetricCardProps[] = [
-    { label: "PI4 Planning Records", value: POST_PILOT_PLANNING_SUMMARY.planningRecordCount, detail: "Supplied planning inventory rows", color: PURPLE, surface: PURPLE_SURFACE, border: PURPLE_BORDER },
+    { label: "PI4 Planning Records", value: POST_PILOT_PLANNING_SUMMARY.planningRecordCount, detail: `${POST_PILOT_PLANNING_BATCH} feature rows`, color: PURPLE, surface: PURPLE_SURFACE, border: PURPLE_BORDER },
     { label: "Committed", value: POST_PILOT_PLANNING_SUMMARY.markedCommittedCount, detail: "No commitments captured", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
     { label: "Sized", value: POST_PILOT_PLANNING_SUMMARY.sizedCount, detail: "No sizing captured", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
     { label: "High Business Value", value: POST_PILOT_PLANNING_SUMMARY.highValueCount, detail: "Rated 9 or 10 in source", color: "#0f766e", surface: "#f0fdfa", border: "#99f6e4" },
-    { label: "Linked ADO Dependencies", value: POST_PILOT_PLANNING_SUMMARY.linkedAdoDependencyCount, detail: `${POST_PILOT_PLANNING_SUMMARY.unresolvedDependencyCount} records show TBD`, color: "#b45309", surface: "#fffbeb", border: "#fde68a" },
+    { label: "Linked ADO Dependencies", value: POST_PILOT_PLANNING_SUMMARY.linkedAdoDependencyCount, detail: POST_PILOT_PLANNING_SUMMARY.unresolvedDependencyCount === 0 ? "All supplied dependencies are identified" : `${POST_PILOT_PLANNING_SUMMARY.unresolvedDependencyCount} records show TBD`, color: "#b45309", surface: "#fffbeb", border: "#fde68a" },
   ];
 
   return (
@@ -197,12 +199,12 @@ export default function PostPilotPage() {
         <SectionHeading
           eyebrow="Planning inventory detail"
           title="Planned Features and ADO Dependencies"
-          description="Feature and dependency details transcribed from the supplied Post Pilot planning inventory. Blank source fields remain marked as not captured; TBD dependencies remain unresolved."
+          description={`${POST_PILOT_PLANNING_BATCH} feature and dependency details transcribed from the supplied ADO backlog snapshot. Commitment and sizing remain marked as not captured.`}
         />
         <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
           <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "space-between", padding: "11px 14px" }}>
-            <div id="planned-pi4-features" style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>Post Pilot feature inventory</div>
-            <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 850 }}>No PI4 delivery commitment recorded</div>
+            <div id="planned-pi4-features" style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>{POST_PILOT_PLANNING_BATCH} feature inventory</div>
+            <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 850 }}>{POST_PILOT_PLANNING_SOURCE_SELECTION} · No PI4 delivery commitment recorded</div>
           </div>
           <div style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", minWidth: "1060px", width: "100%" }}>

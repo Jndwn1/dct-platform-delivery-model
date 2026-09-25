@@ -2,7 +2,12 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_STATUS, derivePICompletion } from "../client/src/contexts/BatchStatusContext";
-import { POST_PILOT_PLANNING_INVENTORY, POST_PILOT_PLANNING_SUMMARY } from "../client/src/lib/postPilotPlanningInventory";
+import {
+  POST_PILOT_PLANNING_BATCH,
+  POST_PILOT_PLANNING_INVENTORY,
+  POST_PILOT_PLANNING_SOURCE_SELECTION,
+  POST_PILOT_PLANNING_SUMMARY,
+} from "../client/src/lib/postPilotPlanningInventory";
 
 describe("PI4 Post Pilot delivery", () => {
   it("keeps PI4 at zero delivery progress because planning items are visibility-only", () => {
@@ -98,26 +103,29 @@ describe("PI4 Post Pilot delivery", () => {
     expect(platformContext).toContain("excluded from all PI4 and MVP delivery metrics");
   });
 
-  it("registers the supplied planned features, source business values, and ADO dependency IDs without inventing commitment or sizing", () => {
-    expect(POST_PILOT_PLANNING_INVENTORY).toHaveLength(14);
+  it("registers the supplied Batch 1 planned features and ADO dependencies without inventing commitment or sizing", () => {
+    expect(POST_PILOT_PLANNING_BATCH).toBe("PI4 · Batch 1");
+    expect(POST_PILOT_PLANNING_SOURCE_SELECTION).toBe("Supplied ADO backlog selection");
+    expect(POST_PILOT_PLANNING_INVENTORY).toHaveLength(4);
     expect(POST_PILOT_PLANNING_SUMMARY).toMatchObject({
-      planningRecordCount: 14,
-      uniqueFeatureCount: 13,
+      planningRecordCount: 4,
+      uniqueFeatureCount: 4,
       markedCommittedCount: 0,
       sizedCount: 0,
-      highValueCount: 13,
-      unresolvedDependencyCount: 3,
+      highValueCount: 4,
+      linkedAdoDependencyCount: 18,
+      unresolvedDependencyCount: 0,
     });
     expect(POST_PILOT_PLANNING_INVENTORY.map((record) => record.objectiveNumber)).toEqual(
-      Array.from({ length: 14 }, (_, index) => String(index + 1)),
+      Array.from({ length: 4 }, (_, index) => String(index + 1)),
     );
     expect(POST_PILOT_PLANNING_INVENTORY.every((record) => record.objectiveNumber.trim().length > 0)).toBe(true);
     expect(POST_PILOT_PLANNING_INVENTORY.every((record) => record.committed === "Not captured" && record.sizing === "Not captured")).toBe(true);
     expect(POST_PILOT_PLANNING_INVENTORY).toEqual(expect.arrayContaining([
-      expect.objectContaining({ featureId: "1441524", objectiveDescription: "Finding - 5.2 API and Payload Definitions", adoDependencies: ["1433863", "1483681"] }),
-      expect.objectContaining({ featureId: "1451927", objectiveDescription: "Roger State Taxable Income MVP - State Filing Footprint", businessValue: 10, adoDependencies: ["1471480", "1472734"] }),
-      expect.objectContaining({ featureId: "1490944", objectiveDescription: "Data Defect & Bug Management", businessValue: 10, adoDependencies: ["1477412", "1483802", "1483805", "1487890", "1488332", "1463645", "1477411", "1477413"] }),
-      expect.objectContaining({ featureId: "1441528", objectiveDescription: "Finding 5.6 Security Implementation", adoDependencies: ["1472922", "1444513"] }),
+      expect.objectContaining({ featureId: "1441524", objectiveDescription: "Finding - 5.2 API and Payload Definitions", adoDependencies: ["1483681", "1433863"] }),
+      expect.objectContaining({ featureId: "1461160", objectiveDescription: "User-Defined Nonstandard TDC Codes", adoDependencies: ["1454679", "1450150"] }),
+      expect.objectContaining({ featureId: "1490944", objectiveDescription: "Data Defect & Bug Management", businessValue: 10, adoDependencies: ["1488496", "1488477", "1463645", "1488332", "1488494", "1488497", "1487890", "1483802", "1477411", "1477413", "1477373", "1492007"] }),
+      expect.objectContaining({ featureId: "1441528", objectiveDescription: "Finding - 5.6 Security Implementation", adoDependencies: ["1482205", "1472922"] }),
     ]));
   });
 
