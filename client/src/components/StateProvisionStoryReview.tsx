@@ -36,7 +36,7 @@ type CurrentYearStateReview = {
 const CURRENT_YEAR_STATE_REVIEW_REPORT_URL = "/manus-storage/Current_Year_State_Story_First_Pass_Review_Report_for_Gary_004d26df.md";
 const CURRENT_YEAR_STATE_REVIEW_PACKAGE_URL = "/manus-storage/Current_Year_State_Story_Review_Package_for_Gary_5d3a36f5.zip";
 const GARY_EMAIL = "Gary.Luca@rsmus.com";
-const FIRST_PASS_REVIEW_CYCLE = "PI4 · Batch 2 (9/23–10/6)";
+const FIRST_PASS_REVIEW_CYCLE = "PI4 · Sprint 2 (9/23–10/6)";
 const PUBLIC_REVIEW_ASSET_ORIGIN = "https://dctdash-6z8sjwgc.manus.space";
 
 const CURRENT_YEAR_STATE_REVIEWS: CurrentYearStateReview[] = [

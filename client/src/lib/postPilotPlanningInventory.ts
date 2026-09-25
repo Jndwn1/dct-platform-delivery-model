@@ -8,7 +8,7 @@ export type PostPilotPlanningRecord = {
   adoDependencies: string[] | "TBD";
 };
 
-export const POST_PILOT_PLANNING_BATCH = "PI4 · Batch 1";
+export const POST_PILOT_PLANNING_SPRINT = "PI4 · Sprint 2";
 export const POST_PILOT_PLANNING_SOURCE_SELECTION = "Supplied ADO backlog selection";
 
 export const POST_PILOT_PLANNING_INVENTORY: readonly PostPilotPlanningRecord[] = [

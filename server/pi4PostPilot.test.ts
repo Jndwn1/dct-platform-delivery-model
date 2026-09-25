@@ -3,10 +3,10 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_STATUS, derivePICompletion } from "../client/src/contexts/BatchStatusContext";
 import {
-  POST_PILOT_PLANNING_BATCH,
   POST_PILOT_PLANNING_INVENTORY,
   POST_PILOT_PLANNING_SOURCE_SELECTION,
   POST_PILOT_PLANNING_SUMMARY,
+  POST_PILOT_PLANNING_SPRINT,
 } from "../client/src/lib/postPilotPlanningInventory";
 
 describe("PI4 Post Pilot delivery", () => {
@@ -42,10 +42,10 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("Roger QA Screens");
     expect(postPilot).not.toContain('label: "Unique Features"');
     expect(postPilot).toContain("Post Pilot Metrics");
-    expect(postPilot).toContain("PI4 Batch Timeline");
-    expect(postPilot).not.toContain("PI4 · Batch 1");
+    expect(postPilot).toContain("PI4 Sprint Timeline");
+    expect(postPilot).not.toContain("PI4 · Batch");
     expect(postPilot).not.toContain("9/16 – 9/22");
-    expect(postPilot).toContain("PI4 · Batch 2");
+    expect(postPilot).toContain("PI4 · Sprint 2");
     expect(postPilot).toContain("9/23 – 10/6");
     expect(postPilot).toContain("10/7 – 10/20");
     expect(postPilot).toContain("10/21 – 11/3");
@@ -67,6 +67,11 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Non-Legal Entities");
     expect(postPilot).not.toContain("Sprint 2 goals — Pending Confirmation");
     expect(postPilot).toContain("Planned Features and ADO Dependencies");
+    expect(postPilot).toContain("Sprint Metrics");
+    expect(postPilot).toContain("Source-backed");
+    expect(postPilot).toContain("Pending source");
+    expect(postPilot).toContain("ADO work items");
+    expect(postPilot).toContain("Feature and ADO work-item metrics will populate");
     expect(postPilot).toContain("PI4 Pod Delivery & Data Review Process");
     expect(postPilot).toContain("POD_DELIVERY_FLOW_IMAGE");
     expect(postPilot).toContain("/manus-storage/pi4-pod-delivery-data-review-process_8340aaca.png");
@@ -103,8 +108,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(platformContext).toContain("excluded from all PI4 and MVP delivery metrics");
   });
 
-  it("registers the supplied Batch 1 planned features and ADO dependencies without inventing commitment or sizing", () => {
-    expect(POST_PILOT_PLANNING_BATCH).toBe("PI4 · Batch 1");
+  it("registers the supplied Sprint 2 planned features and ADO dependencies without inventing commitment or sizing", () => {
+    expect(POST_PILOT_PLANNING_SPRINT).toBe("PI4 · Sprint 2");
     expect(POST_PILOT_PLANNING_SOURCE_SELECTION).toBe("Supplied ADO backlog selection");
     expect(POST_PILOT_PLANNING_INVENTORY).toHaveLength(4);
     expect(POST_PILOT_PLANNING_SUMMARY).toMatchObject({
@@ -169,6 +174,8 @@ describe("PI4 Post Pilot delivery", () => {
 
     expect(review).toContain("Current-year State review package");
     expect(review).toContain("First-pass findings for Gary");
+    expect(review).toContain("PI4 · Sprint 2 (9/23–10/6)");
+    expect(review).not.toContain("PI4 · Batch 2");
     expect(review).toContain("1494188");
     expect(review).toContain("1494198");
     expect(review).toContain("1494222");
