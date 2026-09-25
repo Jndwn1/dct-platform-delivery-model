@@ -70,6 +70,15 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Non-Legal Entities");
     expect(postPilot).not.toContain("Sprint 2 goals — Pending Confirmation");
     expect(postPilot).toContain("Planned Features and ADO Dependencies");
+    expect(postPilot).toContain("State & Provision Prototypes");
+    expect(postPilot).toContain("Roger — State Compliance Prototype");
+    expect(postPilot).toContain('href="/state-compliance"');
+    expect(postPilot).toContain("Open State Prototype");
+    expect(postPilot).toContain('const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/"');
+    expect(postPilot).toContain("Roger — Tax Provision Prototype");
+    expect(postPilot).toContain("Open Provision Prototype");
+    expect(postPilot.indexOf("State & Provision Prototypes")).toBeGreaterThan(postPilot.indexOf("Planned Features and ADO Dependencies"));
+    expect(postPilot.indexOf("State & Provision Prototypes")).toBeLessThan(postPilot.indexOf("PI4 Pod Delivery & Data Review Process"));
     expect(postPilot).toContain("Sprint Metrics");
     expect(postPilot).toContain("Source-backed");
     expect(postPilot).toContain("Pending source");

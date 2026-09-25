@@ -239,3 +239,4 @@
 - [x] Add a live production deployment snapshot beneath Post Pilot Sprint Metrics
 - [x] Reset the Post Pilot deployment snapshot to the confirmed zero-deployment baseline
 - [x] Replace the snapshot with a separate persistent Post Pilot deployment registry, Create Deployment form, required screen capture, and Copy Wiki Markdown control
+- [x] Add State and Provision prototype references to the Post Pilot page

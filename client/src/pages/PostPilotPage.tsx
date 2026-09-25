@@ -15,6 +15,7 @@ const PURPLE_INK = "#6d28d9";
 const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
 const POD_DELIVERY_FLOW_IMAGE = "/manus-storage/pi4-pod-delivery-data-review-process_8340aaca.png";
+const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/";
 
 type SprintPriorityArea = {
   title: string;
@@ -316,6 +317,28 @@ export default function PostPilotPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="post-pilot-prototypes" style={{ marginTop: "26px", marginBottom: "26px" }}>
+        <SectionHeading
+          eyebrow="Post Pilot experience references"
+          title="State & Provision Prototypes"
+          description="Interactive Roger-aligned reference experiences supporting PI4 planning, story refinement, and stakeholder walkthroughs."
+        />
+        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
+          <div style={{ background: "#f0fdfa", border: "1px solid #99f6e4", borderLeft: "4px solid #0f766e", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", padding: "16px" }}>
+            <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>State prototype</div>
+            <div id="post-pilot-prototypes" style={{ color: "#0f172a", fontSize: "15px", fontWeight: 900, marginTop: "6px" }}>Roger — State Compliance Prototype</div>
+            <p style={{ color: "#475569", fontSize: "12px", lineHeight: 1.55, margin: "8px 0 14px" }}>Roger-aligned State filing workflow reference from Return Filings through Outputs &amp; Tracking. It supports PI4 State planning while preserving the separate Federal experience.</p>
+            <Link href="/state-compliance" style={{ alignItems: "center", background: "#0f766e", borderRadius: "6px", color: "#ffffff", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "9px 12px", textDecoration: "none" }}>Open State Prototype →</Link>
+          </div>
+          <div style={{ background: PURPLE_SURFACE, border: `1px solid ${PURPLE_BORDER}`, borderLeft: `4px solid ${PURPLE}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", padding: "16px" }}>
+            <div style={{ color: PURPLE, fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Provision prototype</div>
+            <div style={{ color: "#0f172a", fontSize: "15px", fontWeight: 900, marginTop: "6px" }}>Roger — Tax Provision Prototype</div>
+            <p style={{ color: "#475569", fontSize: "12px", lineHeight: 1.55, margin: "8px 0 14px" }}>Interactive Roger Provision prototype illustrating the proposed Provision workflow, screen sequence, Return-to-Provision experience, Deferred Rollforward, and related practitioner interactions.</p>
+            <a href={PROVISION_PROTOTYPE_URL} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", background: PURPLE, borderRadius: "6px", color: "#ffffff", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "9px 12px", textDecoration: "none" }}>Open Provision Prototype ↗</a>
           </div>
         </div>
       </section>
