@@ -331,8 +331,6 @@ export default function PostPilotPage() {
         </div>
       </section>
 
-      <StateProvisionPrototypeFlow />
-
       <section aria-labelledby="post-pilot-prototypes" style={{ marginTop: "26px", marginBottom: "26px" }}>
         <SectionHeading
           eyebrow="Post Pilot experience references"
@@ -354,6 +352,8 @@ export default function PostPilotPage() {
           </div>
         </div>
       </section>
+
+      <StateProvisionPrototypeFlow />
 
       <section aria-labelledby="pi4-pod-delivery-flow" style={{ marginTop: "26px", marginBottom: "26px" }}>
         <SectionHeading
