@@ -1,4 +1,4 @@
-const PROCESS_FLOW_IMAGE = "/manus-storage/roger-state-provision-end-to-end-process-flow_20c79e7c.png";
+import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow";
 
 const C = {
   navy: "#0f172a",
@@ -17,14 +17,14 @@ const SYSTEM_ROLES = [
   { system: "iTax", role: "Provision tax-engine touchpoint", detail: "Represents the planned Provision tax-engine touchpoint. Its exact scope, inbound / outbound contract, and ownership details remain to be defined.", accent: "#c2410c", surface: "#fff7ed" },
 ] as const;
 
-function Insight({ title, detail, accent, surface }: { title: string; detail: string; accent: string; surface: string }) {
-  return (
-    <div style={{ background: surface, border: `1px solid ${accent}33`, borderRadius: "8px", padding: "11px 12px" }}>
-      <div style={{ color: accent, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>{title}</div>
-      <p style={{ color: "#334155", fontSize: "11px", lineHeight: 1.5, margin: "5px 0 0" }}>{detail}</p>
-    </div>
-  );
-}
+const FLOW_STEPS: readonly ExecutiveFlowStep[] = [
+  { label: "1 · Practitioner experience", title: "Roger State & Provision", detail: "Practitioners review scoped State or Provision information and submit only permitted actions.", accent: C.teal, surface: "#f0fdfa" },
+  { label: "2 · Governing record", title: "TDC", detail: "Governs tax decisions, approvals, lineage, and the tax record needed for downstream delivery.", accent: C.blue, surface: "#eff6ff" },
+  { label: "3 · Authorized access", title: "B9A Gateway", detail: "Provides the controlled downstream retrieval boundary; consumers do not bypass it.", accent: C.blue, surface: "#eff6ff" },
+  { label: "4 · Integration broker", title: "IMS", detail: "Retrieves the governed package, translates engine-specific payloads, and routes delivery.", accent: C.purple, surface: "#faf5ff" },
+  { label: "5 · Engine touchpoints", title: "GoSystem / iTax", detail: "GoSystem supports the representative State POC; iTax is the planned Provision touchpoint with contract scope TBD.", accent: "#c2410c", surface: "#fff7ed" },
+  { label: "6 · Practitioner outcome", title: "Returned outcome", detail: "Status and agreed results return through the governed path for practitioner review and reconciliation.", accent: C.teal, surface: "#f0fdfa" },
+];
 
 function SystemRole({ system, role, detail, accent, surface }: typeof SYSTEM_ROLES[number]) {
   return (
@@ -49,24 +49,11 @@ export default function StateProvisionPrototypeFlow() {
         <strong>Governance boundary:</strong> Roger remains the practitioner experience and TDC remains the governed tax record. IMS—not Roger or DCT—owns return-engine routing and payload translation. This planning flow does not establish an approved endpoint, data contract, or implementation commitment.
       </div>
 
-      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
-        <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between", padding: "11px 14px" }}>
-          <div style={{ color: C.navy, fontSize: "12px", fontWeight: 850 }}>Practitioner → governed package → IMS → tax-engine touchpoint → returned outcomes</div>
-          <a href={PROCESS_FLOW_IMAGE} target="_blank" rel="noopener noreferrer" style={{ background: C.navy, borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 850, padding: "7px 9px", textDecoration: "none" }}>Open readable flow</a>
-        </div>
-        <div style={{ overflowX: "auto", padding: "14px" }}>
-          <img
-            src={PROCESS_FLOW_IMAGE}
-            alt="Roger State and Provision end-to-end process flow showing State and Provision prototypes, practitioner review, TDC governance, B9A Gateway, IMS, GoSystem, iTax, and returned outcomes for Roger"
-            style={{ border: "1px solid #cbd5e1", borderRadius: "8px", display: "block", maxWidth: "100%", minWidth: "980px", width: "100%" }}
-          />
-        </div>
-        <div style={{ background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(225px, 1fr))", padding: "12px 14px" }}>
-          <Insight title="Roger practitioner experience" accent={C.teal} surface="#f0fdfa" detail="State and Provision workflow references converge in Roger, where practitioners review scoped outcomes and submit only permitted actions." />
-          <Insight title="Governed delivery path" accent={C.blue} surface="#eff6ff" detail="TDC governs tax decisions, approvals, lineage, and records. B9A Gateway remains the authorized consumer boundary for downstream access." />
-          <Insight title="IMS and engine touchpoints" accent={C.purple} surface="#faf5ff" detail="IMS retrieves the governed package, translates and routes it. GoSystem is the representative State POC path; exact iTax Provision scope and contracts remain to be defined." />
-        </div>
-      </div>
+      <ExecutiveProcessFlow
+        ariaLabel="Roger State and Provision executive end-to-end process flow"
+        steps={FLOW_STEPS}
+        outcome="A single Roger practitioner experience is supported by governed tax decisions, controlled delivery, traceable engine routing, and visible returned outcomes."
+      />
 
       <div style={{ marginTop: "14px" }}>
         <div style={{ color: C.navy, fontSize: "13px", fontWeight: 850, marginBottom: "8px" }}>System Roles &amp; Ownership</div>

@@ -1,4 +1,5 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
+import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow";
 
 const C = {
   navy: "#0f1623",
@@ -99,6 +100,14 @@ const DECISIONS = [
   ["Which taxonomy IDs and mapping patterns can be reused?", "Taxonomy"],
 ] as const;
 
+const BA_DISCOVERY_FLOW_STEPS: readonly ExecutiveFlowStep[] = [
+  { label: "1 · Collect evidence", title: "Source-team inputs", detail: "State / Process, Roger, DCT, Taxonomy, and IMS / GoSystem provide their owned requirements and constraints.", accent: C.gray, surface: "#f8fafc" },
+  { label: "2 · Structure the work", title: "BA discovery", detail: "Organize business meaning, questions, dependencies, and decisions without inferring technical answers.", accent: C.teal, surface: "#f0f9ff" },
+  { label: "3 · Define the minimum", title: "POC contract", detail: "Confirm the smallest inbound package, outbound review results, mappings, and correlation needed to prove one scenario.", accent: "#2563eb", surface: "#eff6ff" },
+  { label: "4 · Prove the path", title: "IMS / GoSystem POC", detail: "Test the governed transmission, representative calculation, returned results, and reconciliation evidence.", accent: C.purple, surface: "#faf5ff" },
+  { label: "5 · Ready delivery", title: "ADO-ready requirements", detail: "Capture approved decisions in stories and acceptance criteria with POC readiness evidence and accountable owners.", accent: C.green, surface: "#ecfdf5" },
+];
+
 function Chip({ status }: { status: Status }) {
   const s = STATUS[status];
   return <span style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: "999px", color: s.text, display: "inline-block", fontSize: "9px", fontWeight: 800, lineHeight: "1.2", padding: "4px 7px", whiteSpace: "nowrap" }}>{status}</span>;
@@ -136,7 +145,7 @@ export default function StatePocBaDiscoveryPackage() {
           <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "10px", padding: "15px" }}><Heading eyebrow="7 · system responsibilities" title="System Responsibility Matrix" subtitle="Draft ownership boundaries to validate with all participating teams." /><div style={{ display: "grid", gap: "8px" }}>{[["Roger", "Practitioner experience"], ["DCT", "Governed data, persistence, retrieval, and correlation"], ["Taxonomy", "Business-to-system mapping"], ["IMS", "Technical GoSystem integration"], ["GoSystem", "State tax calculation engine"], ["State / Process", "Business rules and review requirements"], ["TDC / PDC", "Existing governed / master data where applicable"], ["QA", "POC validation"]].map(([team, responsibility]) => <div key={team} style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderLeft: `4px solid ${C.teal}`, borderRadius: "6px", padding: "8px 10px" }}><strong style={{ color: C.navy, fontSize: "10px" }}>{team}</strong><span style={{ color: C.gray, fontSize: "10px" }}> = {responsibility}</span></div>)}</div></div>
         </div>
         <Heading eyebrow="8 · BA discovery flow" title="BA Discovery → POC-Ready Requirements" subtitle="A simple collaboration flow that moves validated source information into implementable, testable POC requirements." />
-        <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "10px", marginBottom: "14px", padding: "15px" }}><div style={{ display: "flex", flexWrap: "wrap", gap: "7px", justifyContent: "center" }}>{["State / Process Requirements", "Roger Existing Inputs", "DCT Existing Data", "Taxonomy Existing Mappings", "IMS / GoSystem Interface Details", "BA Discovery & Requirements Analysis", "Minimum POC Input Package", "Inbound Mapping Contract", "GoSystem POC Execution", "Outbound Mapping Contract", "Roger Review Requirements", "ADO Stories + Acceptance Criteria + POC Readiness"].map((step, index) => <Fragment key={step}><div style={{ background: index < 5 ? "#ffffff" : index < 9 ? "#eff6ff" : "#ecfdf5", border: `1px solid ${index < 5 ? "#cbd5e1" : index < 9 ? "#93c5fd" : "#86efac"}`, borderRadius: "7px", color: C.navy, fontSize: "10px", fontWeight: 750, maxWidth: "180px", padding: "8px 9px", textAlign: "center" }}>{step}</div>{index === 4 || index === 5 || index === 6 || index === 7 || index === 8 || index === 9 || index === 10 ? <span style={{ alignSelf: "center", color: C.teal, fontWeight: 900 }}>→</span> : index < 4 ? <span style={{ alignSelf: "center", color: C.gray, fontWeight: 900 }}>+</span> : null}</Fragment>)}</div></div>
+        <div style={{ marginBottom: "14px" }}><ExecutiveProcessFlow ariaLabel="BA discovery to POC-ready requirements executive process flow" steps={BA_DISCOVERY_FLOW_STEPS} supportNote="The BA connects the work across source teams, while each source team remains responsible for validating its business rules, mappings, interfaces, and technical constraints." outcome="A minimum POC package and validated inbound / outbound contracts can be converted into implementable, testable ADO requirements." /></div>
         <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderLeft: "5px solid #2563eb", borderRadius: "9px", color: "#1e3a5f", fontSize: "11px", lineHeight: "1.5", marginBottom: "24px", padding: "11px 13px" }}>The BA serves as the connector across these teams, but the source teams remain responsible for validating their respective business rules, mappings, interfaces, and technical constraints.</div>
         <Heading eyebrow="9 · status legend" title="Visual Status Legend" />
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>{(["Known / Confirmed", "Known Concept — Detail TBD", "Decision Required", "Blocking Dependency", "Future-State"] as Status[]).map(status => <Chip key={status} status={status} />)}</div>

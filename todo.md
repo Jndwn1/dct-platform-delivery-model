@@ -241,3 +241,4 @@
 - [x] Replace the snapshot with a separate persistent Post Pilot deployment registry, Create Deployment form, required screen capture, and Copy Wiki Markdown control
 - [x] Add State and Provision prototype references to the Post Pilot page
 - [x] Add a Roger State and Provision end-to-end process flow with IMS, GoSystem, and iTax above the prototypes
+- [x] Redesign all Post Pilot process flows for executive readability

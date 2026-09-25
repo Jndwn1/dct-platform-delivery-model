@@ -30,6 +30,7 @@ describe("PI4 Post Pilot delivery", () => {
     const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
     const deploymentSnapshot = readFileSync(resolve(process.cwd(), "client/src/components/PostPilotDeploymentSnapshot.tsx"), "utf8");
     const prototypeFlow = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionPrototypeFlow.tsx"), "utf8");
+    const executiveFlow = readFileSync(resolve(process.cwd(), "client/src/components/ExecutiveProcessFlow.tsx"), "utf8");
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
     const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
 
@@ -77,8 +78,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot.indexOf("<StateProvisionPrototypeFlow />")).toBeLessThan(postPilot.indexOf("State & Provision Prototypes"));
     expect(prototypeFlow).toContain("Roger State &amp; Provision End-to-End Process Flow");
     expect(prototypeFlow).toContain("IMS—not Roger or DCT—owns return-engine routing and payload translation");
-    expect(prototypeFlow).toContain("GoSystem is the representative State POC path");
-    expect(prototypeFlow).toContain("iTax Provision scope and contracts remain to be defined");
+    expect(prototypeFlow).toContain("GoSystem supports the representative State POC");
+    expect(prototypeFlow).toContain("iTax is the planned Provision touchpoint with contract scope TBD");
     expect(prototypeFlow).toContain("System Roles &amp; Ownership");
     expect(prototypeFlow).toContain('system: "Roger"');
     expect(prototypeFlow).toContain('system: "TDC"');
@@ -87,8 +88,14 @@ describe("PI4 Post Pilot delivery", () => {
     expect(prototypeFlow).toContain('system: "GoSystem"');
     expect(prototypeFlow).toContain('system: "iTax"');
     expect(prototypeFlow).toContain("Integration broker");
-    expect(prototypeFlow).toContain("roger-state-provision-end-to-end-process-flow_20c79e7c.png");
-    expect(prototypeFlow).toContain("Open readable flow");
+    expect(prototypeFlow).toContain('import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow"');
+    expect(prototypeFlow).toContain("const FLOW_STEPS");
+    expect(prototypeFlow).toContain("GoSystem / iTax");
+    expect(prototypeFlow).toContain("Returned outcome");
+    expect(prototypeFlow).not.toContain("roger-state-provision-end-to-end-process-flow_20c79e7c.png");
+    expect(executiveFlow).toContain("Executive outcome:");
+    expect(executiveFlow).toContain("Cross-functional support:");
+    expect(executiveFlow).toContain("minHeight: \"126px\"");
     expect(postPilot).toContain("State & Provision Prototypes");
     expect(postPilot).toContain("Roger — State Compliance Prototype");
     expect(postPilot).toContain('href="/state-compliance"');
@@ -132,13 +139,12 @@ describe("PI4 Post Pilot delivery", () => {
     expect(router).toContain("screenName: z.string().min(1).max(256)");
     expect(router).toContain("PPDEP-");
     expect(postPilot).toContain("PI4 Pod Delivery & Data Review Process");
-    expect(postPilot).toContain("POD_DELIVERY_FLOW_IMAGE");
-    expect(postPilot).toContain("/manus-storage/pi4-pod-delivery-data-review-process_8340aaca.png");
-    expect(postPilot).toContain("Pod delivery and data review flow");
-    expect(postPilot).toContain("Open readable flow");
-    expect(postPilot).toContain('target="_blank"');
-    expect(postPilot).toContain("Gary / Data Review");
-    expect(postPilot).toContain("TDC/DCT cross-functional support path");
+    expect(postPilot).toContain('import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow"');
+    expect(postPilot).toContain("POD_DELIVERY_FLOW_STEPS");
+    expect(postPilot).toContain("Gary Review — when needed");
+    expect(postPilot).toContain("PI4 pod delivery and data review executive process flow");
+    expect(postPilot).not.toContain("POD_DELIVERY_FLOW_IMAGE");
+    expect(postPilot).not.toContain("pi4-pod-delivery-data-review-process_8340aaca.png");
     expect(postPilot).toContain("TDC/DCT handles MVP/UAT defects, cross-pod data work, migration/shared technical work, and Scrum of Scrums capacity support");
     expect(postPilot).toContain('import StateProvisionStoryReview from "@/components/StateProvisionStoryReview"');
     expect(postPilot).toContain("<StateProvisionStoryReview />");

@@ -25,6 +25,10 @@ describe("State POC BA Discovery and Mapping Package", () => {
     expect(packageSource).toContain("Inbound Mapping — Current Known Candidate Fields");
     expect(packageSource).toContain("Outbound Mapping — Current Candidate Results");
     expect(packageSource).toContain("BA Discovery → POC-Ready Requirements");
+    expect(packageSource).toContain('import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow"');
+    expect(packageSource).toContain("BA_DISCOVERY_FLOW_STEPS");
+    expect(packageSource).toContain("BA discovery to POC-ready requirements executive process flow");
+    expect(packageSource).toContain("A minimum POC package and validated inbound / outbound contracts");
     expect(packageSource).toContain("Known Concept — Detail TBD");
     expect(packageSource).toContain("Roger_GoSystem_POC_BA_Mapping_Template.xlsx");
     expect(packageSource).toContain("Roger_GoSystem_POC_BA_Mapping_Template_45aa60ff.xlsx");

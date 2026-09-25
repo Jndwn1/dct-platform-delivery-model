@@ -1,4 +1,5 @@
 import { Fragment, useState } from "react";
+import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow";
 
 const C = {
   navy: "#0f1623",
@@ -9,6 +10,13 @@ const C = {
   rose: "#be185d",
   slate: "#475569",
 };
+
+const FEDERAL_STATE_LINKAGE_STEPS: readonly ExecutiveFlowStep[] = [
+  { label: "1 · Reusable input", title: "Shared source data", detail: "Original trial balance and source data may be reusable across deliverables.", accent: C.teal, surface: "#f0fdfa" },
+  { label: "2 · Provision output", title: "Provision deliverable", detail: "Uses its own adjustments and calculated values for the Provision outcome.", accent: C.purple, surface: "#faf5ff" },
+  { label: "3 · Federal output", title: "Federal deliverable", detail: "Provides the governed Federal result that may be required as the State starting context.", accent: "#2563eb", surface: "#eff6ff" },
+  { label: "4 · State outcome", title: "State deliverable", detail: "References the correct Federal deliverable for the entity and tax year before State calculation and review.", accent: C.teal, surface: "#f0fdfa" },
+];
 
 const POC_TRANSCRIPT_SOURCE_URL = "/manus-storage/POC_6327d700.docx";
 
@@ -209,8 +217,7 @@ export function StateGoSystemPocClosingDetails() {
     <div style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "8px", color: C.slate, fontSize: "11px", fontWeight: 750, margin: "12px 0 22px", padding: "10px 12px" }}><strong style={{ color: C.navy }}>Cross-Cutting Metadata:</strong> Taxonomy ID • Source • Lineage • Approval Status • Version • Transmission Correlation ID • Validation Messages</div>
     <section aria-labelledby="federal-state-deliverable-linkage" style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "10px", marginBottom: "22px", padding: "16px" }}>
       <PanelHeading eyebrow="Architecture dependency" title="Federal → State Deliverable Linkage" subtitle="A DCT / architecture / data-model dependency that is separate from the minimum POC package." accent={C.teal} />
-      <div id="federal-state-deliverable-linkage" style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "7px", marginBottom: "10px" }}>{["Shared Source Data", "Provision Deliverable", "Federal Deliverable", "State Deliverable"].map((step, index) => <Fragment key={step}><span style={{ backgroundColor: index === 3 ? C.teal : "#ffffff", border: `1px solid ${C.teal}66`, borderRadius: "6px", color: index === 3 ? "#ffffff" : C.navy, fontSize: "10px", fontWeight: 800, padding: "7px 9px", textAlign: "center" }}>{step}</span>{index < 3 && <span style={{ color: C.teal, fontWeight: 800 }}>→</span>}</Fragment>)}</div>
-      <p style={{ color: "#164e63", fontSize: "10px", lineHeight: "1.5", margin: 0 }}>Original Trial Balance or source data may be reusable, but adjustments and calculated values become deliverable-specific. For TY26, the State workflow must reference the correct Federal deliverable when multiple deliverables exist for the same entity and tax year.</p>
+      <div id="federal-state-deliverable-linkage"><ExecutiveProcessFlow ariaLabel="Federal to State deliverable linkage executive process flow" steps={FEDERAL_STATE_LINKAGE_STEPS} outcome="For TY26, the State workflow uses the correct governed Federal deliverable when multiple deliverables exist for the same entity and tax year." /></div>
     </section>
     <div style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))" }}>
       <div style={{ backgroundColor: "#ffffff", border: "1px solid #fed7aa", borderRadius: "10px", padding: "16px" }}>

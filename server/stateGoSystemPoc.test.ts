@@ -37,6 +37,10 @@ describe("State GoSystem POC extension", () => {
     expect(poc).toContain("BA Requirement for the POC");
     expect(poc).toContain("Full Target State Calculation Package");
     expect(poc).toContain("Federal → State Deliverable Linkage");
+    expect(poc).toContain('import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow"');
+    expect(poc).toContain("FEDERAL_STATE_LINKAGE_STEPS");
+    expect(poc).toContain("Federal to State deliverable linkage executive process flow");
+    expect(poc).toContain("State workflow uses the correct governed Federal deliverable");
     expect(poc).toContain("POC Open Questions");
     expect(poc).toContain("POC Success Criteria");
     expect(poc).not.toContain("Minimum POC State Calculation Flow");

@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow";
 import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc";
 import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
 import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow";
@@ -15,7 +16,6 @@ const PURPLE = "#7c3aed";
 const PURPLE_INK = "#6d28d9";
 const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
-const POD_DELIVERY_FLOW_IMAGE = "/manus-storage/pi4-pod-delivery-data-review-process_8340aaca.png";
 const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/";
 
 type SprintPriorityArea = {
@@ -103,6 +103,15 @@ const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
   { sprint: 3, source: "Backlog snapshot not yet supplied" },
   { sprint: 4, source: "Backlog snapshot not yet supplied" },
   { sprint: 5, source: "Backlog snapshot not yet supplied" },
+];
+
+const POD_DELIVERY_FLOW_STEPS: readonly ExecutiveFlowStep[] = [
+  { label: "1 · Define outcome", title: "PO / Process / Pod Lead", detail: "Set the business outcome, scope boundary, and expected value before a story is decomposed.", accent: PURPLE, surface: PURPLE_SURFACE },
+  { label: "2 · Ready the work", title: "Pod Lead + BA", detail: "Translate the outcome into scoped requirements, dependencies, and testable acceptance criteria.", accent: "#2563eb", surface: "#eff6ff" },
+  { label: "3 · Validate approach", title: "Pod Review", detail: "Confirm implementation approach, ownership, sequencing, and any data-story implications.", accent: "#0369a1", surface: "#f0f9ff" },
+  { label: "4 · Data control", title: "Gary Review — when needed", detail: "Provide final technical review for data, API, persistence, architecture, and repository decisions.", accent: "#b45309", surface: "#fffbeb" },
+  { label: "5 · Build and test", title: "Owning Pod", detail: "Implement, test, and return delivery evidence to the accountable product and business owners.", accent: "#0f766e", surface: "#f0fdfa" },
+  { label: "6 · Confirm outcome", title: "PO + Leadership", detail: "Assess delivered capability, risk, and readiness against the original intended outcome.", accent: PURPLE, surface: PURPLE_SURFACE },
 ];
 
 type MetricCardProps = {
@@ -350,33 +359,15 @@ export default function PostPilotPage() {
         <SectionHeading
           eyebrow="PI4 delivery operating model"
           title="PI4 Pod Delivery & Data Review Process"
-          description="Visual process flow showing how high-level functionality moves through requirements, pod review, Gary data sign-off when needed, pod implementation, accountability, and TDC/DCT cross-functional support."
+          description="Executive delivery sequence from outcome definition through accountable implementation and readiness confirmation. Gary’s review is a decision control for data work, not a delivery approval substitute."
         />
-        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
-          <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between", padding: "11px 14px" }}>
-            <div id="pi4-pod-delivery-flow" style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>Pod delivery and data review flow</div>
-            <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" }}>
-              <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 850 }}>PO / Process · Pod Lead / BAs · Gary / Data Review · Pod Development · TDC/DCT Support</div>
-              <a href={POD_DELIVERY_FLOW_IMAGE} target="_blank" rel="noopener noreferrer" style={{ background: "#0f172a", borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 850, padding: "7px 9px", textDecoration: "none" }}>Open readable flow</a>
-            </div>
-          </div>
-          <div style={{ overflowX: "auto", padding: "14px" }}>
-            <img
-              src={POD_DELIVERY_FLOW_IMAGE}
-              alt="PI4 Pod Delivery and Data Review Process swimlane showing PO, Process Team, Pod Lead, BAs, Gary Data Review, Pod Development Team, and TDC/DCT cross-functional support path"
-              style={{ border: "1px solid #cbd5e1", borderRadius: "8px", display: "block", maxWidth: "100%", minWidth: "980px", width: "100%" }}
-            />
-          </div>
-          <div style={{ background: PURPLE_SURFACE, borderTop: `1px solid ${PURPLE_BORDER}`, color: "#475569", display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", padding: "12px 14px" }}>
-            <div>
-              <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>Main delivery path</div>
-              <p style={{ fontSize: "11px", lineHeight: 1.45, margin: "5px 0 0" }}>PO, Process Team, and Pod Lead define the outcome; Pod Lead and BAs decompose requirements; the pod reviews stories, routes data work to Gary for sign-off, then returns to the pod for implementation and delivery.</p>
-            </div>
-            <div>
-              <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>TDC / DCT support lane</div>
-              <p style={{ fontSize: "11px", lineHeight: 1.45, margin: "5px 0 0" }}>TDC/DCT handles MVP/UAT defects, cross-pod data work, migration/shared technical work, and Scrum of Scrums capacity support when work spans multiple pods or is better handled centrally.</p>
-            </div>
-          </div>
+        <div id="pi4-pod-delivery-flow">
+          <ExecutiveProcessFlow
+            ariaLabel="PI4 pod delivery and data review executive process flow"
+            steps={POD_DELIVERY_FLOW_STEPS}
+            supportNote="TDC/DCT handles MVP/UAT defects, cross-pod data work, migration/shared technical work, and Scrum of Scrums capacity support when work spans multiple pods or is better handled centrally."
+            outcome="Work progresses through clear ownership, with technical data controls applied only where needed and delivery accountability retained by the owning pod."
+          />
         </div>
       </section>
 
