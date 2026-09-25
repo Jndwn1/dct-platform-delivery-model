@@ -131,7 +131,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(review).toContain("Gary’s TDC / Gateway Development Standard");
     expect(review).toContain("Awaiting First Pass");
     expect(review).toContain("State and Provision remain responsible for business capability and application-layer work");
-    expect(review).toContain("/manus-storage/state-provision-ask-buddy-gary-review-flow_a3c9f8fd.png");
+    expect(review).not.toContain("Visual review process");
+    expect(review).not.toContain("state-provision-ask-buddy-gary-review-flow");
     expect(knowledge).toContain("Ask Buddy does **not** replace Gary");
     expect(knowledge).toContain("Tech Story 1494344");
   });

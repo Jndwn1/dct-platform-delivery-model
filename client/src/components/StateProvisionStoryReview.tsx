@@ -20,7 +20,6 @@ const C = {
   redSurface: "#fff1f2",
 };
 
-const REVIEW_FLOW_IMAGE = "/manus-storage/state-provision-ask-buddy-gary-review-flow_a3c9f8fd.png";
 const STORY_ID = "1494344";
 const STORY_TITLE = "Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions";
 const ADO_LINK = "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/_workitems/edit/1494344";
@@ -313,19 +312,6 @@ export default function StateProvisionStoryReview() {
       <div style={{ background: C.amberSurface, border: "1px solid #fde68a", borderRadius: "9px", color: "#713f12", display: "grid", gap: "8px", gridTemplateColumns: "auto 1fr", marginBottom: "14px", padding: "12px 14px" }}>
         <div style={{ alignItems: "center", background: "#fef3c7", borderRadius: "999px", display: "flex", fontSize: "12px", fontWeight: 900, height: "24px", justifyContent: "center", width: "24px" }}>!</div>
         <div><strong style={{ fontSize: "11px" }}>Control point:</strong> <span style={{ fontSize: "11px", lineHeight: 1.45 }}>Ask Buddy / Manus does not replace Gary’s final technical review. Repository, implementation, API, persistence, architectural, and Claude Code context may not be represented in the submitted story.</span></div>
-      </div>
-
-      <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
-        <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: `1px solid ${C.border}`, display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between", padding: "11px 14px" }}>
-          <div>
-            <div style={{ color: C.navy, fontSize: "12px", fontWeight: 900 }}>Visual review process</div>
-            <div style={{ color: C.muted, fontSize: "10px", marginTop: "2px" }}>Worked example: Tech Story {STORY_ID}</div>
-          </div>
-          <a href={REVIEW_FLOW_IMAGE} target="_blank" rel="noopener noreferrer" style={{ background: C.navy, borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 850, padding: "7px 9px", textDecoration: "none" }}>Open readable flow</a>
-        </div>
-        <div style={{ overflowX: "auto", padding: "14px" }}>
-          <img alt="State and Provision story review swimlane showing State or Provision team, Jenniver BA review, Ask Buddy first pass, Gary technical review, and TDC Gateway support" src={REVIEW_FLOW_IMAGE} style={{ border: "1px solid #cbd5e1", borderRadius: "8px", display: "block", maxWidth: "100%", minWidth: "980px", width: "100%" }} />
-        </div>
       </div>
 
       <div style={{ background: C.purpleSurface, border: `1px solid #e9d5ff`, borderRadius: "10px", marginTop: "14px", padding: "14px" }}>
