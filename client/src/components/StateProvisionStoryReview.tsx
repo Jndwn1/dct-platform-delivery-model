@@ -186,6 +186,7 @@ const CURRENT_YEAR_STATE_REVIEW_REPORT_URL = "/manus-storage/Current_Year_State_
 const CURRENT_YEAR_STATE_REVIEW_PACKAGE_URL = "/manus-storage/Current_Year_State_Story_Review_Package_for_Gary_5d3a36f5.zip";
 const GARY_EMAIL = "Gary.Luca@rsmus.com";
 const FIRST_PASS_REVIEW_CYCLE = "PI4 · Batch 2 (9/23–10/6)";
+const PUBLIC_REVIEW_ASSET_ORIGIN = "https://dctdash-6z8sjwgc.manus.space";
 
 const CURRENT_YEAR_STATE_REVIEWS: CurrentYearStateReview[] = [
   {
@@ -298,17 +299,52 @@ function downloadMarkdownReview() {
   URL.revokeObjectURL(url);
 }
 
-function openGaryEmailDraft(recipient: string) {
+function reviewAssetUrl(path: string) {
+  return `${PUBLIC_REVIEW_ASSET_ORIGIN}${path}`;
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>'"]/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;",
+  })[character] ?? character);
+}
+
+function firstPassEmailStatusStyle(status: CurrentYearStateReview["status"]) {
+  const styles: Record<CurrentYearStateReview["status"], { background: string; border: string; color: string }> = {
+    Yellow: { background: "#fffbeb", border: "#fde68a", color: C.amber },
+    "Yellow/Orange": { background: "#fff7ed", border: "#fdba74", color: "#c2410c" },
+    Orange: { background: C.redSurface, border: "#fecdd3", color: C.red },
+  };
+  return styles[status];
+}
+
+function createFirstPassReviewEmail() {
   const subject = "Current-Year State Story First-Pass Review Package";
-  const body = [
+  const packageUrl = reviewAssetUrl(CURRENT_YEAR_STATE_REVIEW_PACKAGE_URL);
+  const reportUrl = reviewAssetUrl(CURRENT_YEAR_STATE_REVIEW_REPORT_URL);
+  const reviewLines = CURRENT_YEAR_STATE_REVIEWS.map((review) => {
+    const reviewUrl = reviewAssetUrl(review.url);
+    return `${review.reviewNumber}. Story ${review.id} | First pass: ${review.reviewedOn}\nReview file: ${reviewUrl}`;
+  });
+  const plainText = [
     "Gary,",
     "",
-    `Attached is the current-year State first-pass review package for ${FIRST_PASS_REVIEW_CYCLE}.`,
+    `Below is the current-year State first-pass review package for ${FIRST_PASS_REVIEW_CYCLE}.`,
     "",
-    `This package contains only the ${CURRENT_YEAR_STATE_REVIEWS.length} recently completed first-pass reviews (all reviewed Sep 24, 2026), plus the consolidated report. Please attach the downloaded ZIP package before sending.`,
+    `This email contains only the ${CURRENT_YEAR_STATE_REVIEWS.length} recently completed first-pass reviews (all reviewed Sep 24, 2026). Each live review-file link is listed below.`,
     "",
-    "Included first-pass review files:",
-    ...CURRENT_YEAR_STATE_REVIEWS.map((review) => `${review.reviewNumber}. Story ${review.id} | First pass: ${review.reviewedOn} | Review file: ${review.reviewFileName}`),
+    "Combined review package:",
+    packageUrl,
+    "",
+    "Consolidated report:",
+    reportUrl,
+    "",
+    "First-pass review files:",
+    ...reviewLines,
     "",
     "Priority technical review items: 1494344 (Orange) and 1494222 (Yellow/Orange).",
     "",
@@ -317,14 +353,77 @@ function openGaryEmailDraft(recipient: string) {
     "Thank you,",
     "Jenniver",
   ].join("\n");
-  window.location.href = `mailto:${encodeURIComponent(recipient.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const tableRows = CURRENT_YEAR_STATE_REVIEWS.map((review, index) => {
+    const statusStyle = firstPassEmailStatusStyle(review.status);
+    const reviewUrl = reviewAssetUrl(review.url);
+    return `<tr style="background:${index % 2 ? "#ffffff" : "#f8fafc"};vertical-align:top">
+      <td style="border:1px solid #e2e8f0;color:#6d28d9;font-size:11px;font-weight:800;padding:9px;text-align:center">${review.reviewNumber}</td>
+      <td style="border:1px solid #e2e8f0;color:#334155;font-size:11px;font-weight:700;padding:9px;white-space:nowrap">${escapeHtml(review.reviewedOn)}</td>
+      <td style="border:1px solid #e2e8f0;color:#0f172a;font-size:11px;font-weight:700;line-height:1.45;padding:9px"><strong style="color:#6d28d9">${escapeHtml(review.id)}</strong> — ${escapeHtml(review.title)}</td>
+      <td style="border:1px solid #e2e8f0;padding:9px"><span style="background:${statusStyle.background};border:1px solid ${statusStyle.border};border-radius:999px;color:${statusStyle.color};display:inline-block;font-size:10px;font-weight:800;padding:3px 7px;white-space:nowrap">${escapeHtml(review.status)}</span></td>
+      <td style="border:1px solid #e2e8f0;color:#334155;font-size:11px;line-height:1.45;padding:9px">${escapeHtml(review.solid)}</td>
+      <td style="border:1px solid #e2e8f0;color:#b45309;font-size:11px;line-height:1.45;padding:9px">${escapeHtml(review.gaps)}</td>
+      <td style="border:1px solid #e2e8f0;font-size:11px;font-weight:800;padding:9px;white-space:nowrap"><a href="${escapeHtml(reviewUrl)}" style="color:#6d28d9;text-decoration:none">Open review (.md) ↗</a></td>
+    </tr>`;
+  }).join("");
+  const html = `<div style="color:#0f172a;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;max-width:1200px">
+    <p>Gary,</p>
+    <p>Below is the current-year State first-pass review package for <strong>${escapeHtml(FIRST_PASS_REVIEW_CYCLE)}</strong>. This email contains only the <strong>${CURRENT_YEAR_STATE_REVIEWS.length} recently completed first-pass reviews</strong> (all reviewed Sep 24, 2026).</p>
+    <p><a href="${escapeHtml(packageUrl)}" style="color:#6d28d9;font-weight:700">Download the combined review package (.zip)</a> &nbsp;|&nbsp; <a href="${escapeHtml(reportUrl)}" style="color:#6d28d9;font-weight:700">Open the consolidated report (.md)</a></p>
+    <p style="color:#475569">Each review-file link in the table opens the story-specific Markdown review. The combined ZIP can also be attached if needed.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e2e8f0;width:100%">
+      <thead><tr style="background:#0f172a;color:#ffffff">
+        <th style="font-size:9px;letter-spacing:.04em;padding:9px;text-align:left;text-transform:uppercase">Review #</th>
+        <th style="font-size:9px;letter-spacing:.04em;padding:9px;text-align:left;text-transform:uppercase">First-pass review date</th>
+        <th style="font-size:9px;letter-spacing:.04em;padding:9px;text-align:left;text-transform:uppercase">Story</th>
+        <th style="font-size:9px;letter-spacing:.04em;padding:9px;text-align:left;text-transform:uppercase">First-pass status</th>
+        <th style="font-size:9px;letter-spacing:.04em;padding:9px;text-align:left;text-transform:uppercase">What looks solid</th>
+        <th style="font-size:9px;letter-spacing:.04em;padding:9px;text-align:left;text-transform:uppercase">Main gaps / questions to resolve</th>
+        <th style="font-size:9px;letter-spacing:.04em;padding:9px;text-align:left;text-transform:uppercase">Review file</th>
+      </tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    <p><strong>Priority technical review items:</strong> 1494344 (Orange) and 1494222 (Yellow/Orange).</p>
+    <p>Please confirm the technical decisions, contract patterns, persistence and lifecycle approach, and any required story split recommendations.</p>
+    <p>Thank you,<br/>Jenniver</p>
+  </div>`;
+  return { html, plainText, subject };
+}
+
+function openGaryEmailDraft(recipient: string) {
+  const { plainText, subject } = createFirstPassReviewEmail();
+  window.location.href = `mailto:${encodeURIComponent(recipient.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(plainText)}`;
+}
+
+async function copyFirstPassReviewEmailTable() {
+  const { html, plainText } = createFirstPassReviewEmail();
+  if (!navigator.clipboard) return "unavailable" as const;
+  if (typeof ClipboardItem === "undefined") {
+    await navigator.clipboard.writeText(plainText);
+    return "plain-text" as const;
+  }
+  await navigator.clipboard.write([
+    new ClipboardItem({
+      "text/html": new Blob([html], { type: "text/html" }),
+      "text/plain": new Blob([plainText], { type: "text/plain" }),
+    }),
+  ]);
+  return "rich" as const;
 }
 
 export default function StateProvisionStoryReview() {
   const [storyFiles, setStoryFiles] = useState<string[]>([]);
   const [standardFiles, setStandardFiles] = useState<string[]>([]);
   const [garyEmail, setGaryEmail] = useState(GARY_EMAIL);
+  const [emailCopyState, setEmailCopyState] = useState<"idle" | "rich" | "plain-text" | "unavailable" | "error">("idle");
   const collectFiles = (setter: (files: string[]) => void) => (event: ChangeEvent<HTMLInputElement>) => setter(Array.from(event.target.files ?? []).map((file) => file.name));
+  const copyLinkedEmailTable = async () => {
+    try {
+      setEmailCopyState(await copyFirstPassReviewEmailTable());
+    } catch {
+      setEmailCopyState("error");
+    }
+  };
 
   return (
     <section aria-labelledby="state-provision-story-review-title" style={{ marginTop: "26px", marginBottom: "26px" }}>
@@ -384,13 +483,23 @@ export default function StateProvisionStoryReview() {
         <div style={{ alignItems: "end", background: "#f8fafc", borderTop: `1px solid ${C.border}`, display: "grid", gap: "10px", gridTemplateColumns: "minmax(230px, 1fr) minmax(190px, 0.7fr) auto", padding: "12px 14px" }}>
           <div>
             <div style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, letterSpacing: "0.075em", textTransform: "uppercase" }}>Email package to Gary</div>
-            <div style={{ color: C.muted, fontSize: "10px", lineHeight: 1.45, marginTop: "3px" }}>The prepared draft is addressed to Gary and lists only the {CURRENT_YEAR_STATE_REVIEWS.length} first-pass reviews in this package. Attach the downloaded ZIP before sending.</div>
+            <div style={{ color: C.muted, fontSize: "10px", lineHeight: 1.45, marginTop: "3px" }}>The linked draft is addressed to Gary and contains only the {CURRENT_YEAR_STATE_REVIEWS.length} first-pass reviews. Copy the Outlook-ready table to preserve the visible review layout and clickable file links.</div>
           </div>
           <label style={{ color: C.navy, display: "grid", fontSize: "9px", fontWeight: 850, gap: "5px" }}>
             Gary’s email address
             <input aria-label="Gary’s email address" onChange={(event) => setGaryEmail(event.target.value)} placeholder={GARY_EMAIL} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "6px", color: C.navy, fontSize: "11px", outline: "none", padding: "8px 9px" }} type="email" value={garyEmail} />
           </label>
-          <button disabled={!garyEmail.trim()} onClick={() => openGaryEmailDraft(garyEmail)} style={{ background: C.navy, border: "none", borderRadius: "6px", color: "#ffffff", cursor: garyEmail.trim() ? "pointer" : "not-allowed", fontSize: "10px", fontWeight: 900, opacity: garyEmail.trim() ? 1 : 0.45, padding: "9px 11px", whiteSpace: "nowrap" }} type="button">Open email draft</button>
+          <div style={{ alignItems: "stretch", display: "flex", flexDirection: "column", gap: "6px" }}>
+            <button disabled={!garyEmail.trim()} onClick={() => openGaryEmailDraft(garyEmail)} style={{ background: C.navy, border: "none", borderRadius: "6px", color: "#ffffff", cursor: garyEmail.trim() ? "pointer" : "not-allowed", fontSize: "10px", fontWeight: 900, opacity: garyEmail.trim() ? 1 : 0.45, padding: "9px 11px", whiteSpace: "nowrap" }} type="button">Open linked email draft</button>
+            <button onClick={() => void copyLinkedEmailTable()} style={{ background: "#ffffff", border: `1px solid ${C.purple}`, borderRadius: "6px", color: C.purpleInk, cursor: "pointer", fontSize: "10px", fontWeight: 900, padding: "8px 10px", whiteSpace: "nowrap" }} type="button">Copy Outlook-ready table</button>
+          </div>
+        </div>
+        <div aria-live="polite" style={{ background: "#f8fafc", borderTop: `1px solid ${C.border}`, color: emailCopyState === "error" || emailCopyState === "unavailable" ? C.amber : C.muted, fontSize: "9px", lineHeight: 1.45, padding: "8px 14px" }}>
+          {emailCopyState === "rich" && "Table copied with formatting and live review-file links. In the opened Outlook draft, paste with Ctrl+V or Cmd+V."}
+          {emailCopyState === "plain-text" && "Plain-text links copied. Paste into the opened Outlook draft; the full review-file URLs will remain available to Gary."}
+          {emailCopyState === "unavailable" && "Clipboard access is unavailable in this browser. The linked email draft still includes the full review-file URLs."}
+          {emailCopyState === "error" && "The table could not be copied. Use the linked email draft, which includes the direct review-file URLs."}
+          {emailCopyState === "idle" && "Open the linked email draft for the direct review-file URLs, then copy and paste the Outlook-ready table when you want the same visible table layout."}
         </div>
         <div style={{ background: C.amberSurface, borderTop: "1px solid #fde68a", color: "#713f12", fontSize: "10px", lineHeight: 1.5, padding: "10px 14px" }}><strong>Technical control:</strong> Gary’s final review remains required for implementation, API, persistence, architectural, and repository-pattern decisions. The individual review files preserve the detailed unresolved questions and split assessment.</div>
       </div>

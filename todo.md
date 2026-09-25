@@ -232,3 +232,4 @@
 - [x] Add a scoped Ask Buddy chat agent beneath the Post Pilot State & Provision Story Review
 - [x] Remove the Worked Example and Example Review Status card from the Post Pilot Story Review
 - [x] Update Gary's recipient, first-pass review email scope, and current review tracking columns
+- [x] Add a formatted Outlook email draft with live links for every first-pass review
