@@ -23,7 +23,6 @@ const C = {
 
 const STORY_ID = "1494344";
 const STORY_TITLE = "Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions";
-const ADO_LINK = "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/_workitems/edit/1494344";
 
 type ReviewStatus = "Known" | "TBD" | "Missing" | "Needs Gary Review" | "Pending";
 
@@ -313,22 +312,6 @@ export default function StateProvisionStoryReview() {
       <div style={{ background: C.amberSurface, border: "1px solid #fde68a", borderRadius: "9px", color: "#713f12", display: "grid", gap: "8px", gridTemplateColumns: "auto 1fr", marginBottom: "14px", padding: "12px 14px" }}>
         <div style={{ alignItems: "center", background: "#fef3c7", borderRadius: "999px", display: "flex", fontSize: "12px", fontWeight: 900, height: "24px", justifyContent: "center", width: "24px" }}>!</div>
         <div><strong style={{ fontSize: "11px" }}>Control point:</strong> <span style={{ fontSize: "11px", lineHeight: 1.45 }}>Ask Buddy / Manus does not replace Gary’s final technical review. Repository, implementation, API, persistence, architectural, and Claude Code context may not be represented in the submitted story.</span></div>
-      </div>
-
-      <div style={{ background: C.purpleSurface, border: `1px solid #e9d5ff`, borderRadius: "10px", marginTop: "14px", padding: "14px" }}>
-        <div style={{ alignItems: "flex-start", display: "grid", gap: "12px", gridTemplateColumns: "minmax(0, 1.35fr) minmax(280px, 0.65fr)" }}>
-          <div>
-            <div style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, letterSpacing: "0.075em", textTransform: "uppercase" }}>Worked example</div>
-            <div style={{ color: C.navy, fontSize: "15px", fontWeight: 900, lineHeight: 1.3, marginTop: "5px" }}>Tech Story {STORY_ID} — {STORY_TITLE}</div>
-            <a href={ADO_LINK} target="_blank" rel="noopener noreferrer" style={{ color: C.purpleInk, display: "inline-block", fontSize: "11px", fontWeight: 850, marginTop: "7px", textDecoration: "none" }}>Open ADO work item {STORY_ID} ↗</a>
-            <p style={{ color: C.muted, fontSize: "11px", lineHeight: 1.5, margin: "9px 0 0" }}>The example demonstrates the review method only. The dashboard does not manufacture story requirements when description, acceptance criteria, attachments, or approved technical evidence have not been supplied.</p>
-          </div>
-          <div style={{ background: "#ffffff", border: `1px solid #ddd6fe`, borderRadius: "8px", padding: "11px" }}>
-            <div style={{ color: C.purpleInk, fontSize: "10px", fontWeight: 900, textTransform: "uppercase" }}>Example review status</div>
-            <div style={{ marginTop: "8px" }}><StatusChip status="Pending" /></div>
-            <div style={{ color: C.muted, fontSize: "10px", lineHeight: 1.45, marginTop: "8px" }}>Awaiting source story content and Ask Buddy first-pass analysis. Final outcome must be validated by Gary.</div>
-          </div>
-        </div>
       </div>
 
       <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", marginTop: "14px", overflow: "hidden" }}>

@@ -230,3 +230,4 @@
 - [x] Remove the Visual Review Process flow from the Post Pilot State & Provision Story Review workspace
 - [x] Remove Batch 1 from the Post Pilot PI4 timeline while retaining Batches 2–5
 - [x] Add a scoped Ask Buddy chat agent beneath the Post Pilot State & Provision Story Review
+- [x] Remove the Worked Example and Example Review Status card from the Post Pilot Story Review

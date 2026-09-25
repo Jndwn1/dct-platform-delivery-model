@@ -137,6 +137,9 @@ describe("PI4 Post Pilot delivery", () => {
     expect(review).toContain("State and Provision remain responsible for business capability and application-layer work");
     expect(review).toContain('import StoryReviewAskBuddy from "@/components/StoryReviewAskBuddy"');
     expect(review).toContain("<StoryReviewAskBuddy />");
+    expect(review).not.toContain("Worked example");
+    expect(review).not.toContain("Example review status");
+    expect(review).not.toContain("Open ADO work item");
     expect(review).not.toContain("Visual review process");
     expect(review).not.toContain("state-provision-ask-buddy-gary-review-flow");
     expect(storyReviewBuddy).toContain("Ask Buddy — Story Review Agent");
