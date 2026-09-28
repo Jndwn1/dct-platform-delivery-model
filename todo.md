@@ -248,3 +248,4 @@
 - [x] Build the persistent Post Pilot TDC Daily Standup Meeting Recaps workspace from the supplied requirements and transcript
 - [x] Show sent meeting recaps only in a compact date, key-focus, and transcript history table
 - [x] Build an evidence-bound Team Roger PI4–Sprint 2 backlog assessment workspace with roadmap, ownership validation, dependency findings, and manual source-refresh framing
+- [x] Expand the Team Roger PI4–Sprint 2 backlog assessment to all parent features with visible child indicators and distinguish captured child evidence from parent-only review

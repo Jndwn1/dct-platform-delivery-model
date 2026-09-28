@@ -4,6 +4,7 @@ import {
   ROGER_PILOT_BACKLOG_SOURCE,
   ROGER_PILOT_BACKLOG_SUMMARY,
   ROGER_PILOT_FEATURES,
+  ROGER_PILOT_FEATURES_WITH_CHILD_DETAIL,
   ROGER_PILOT_WORK_ITEMS,
 } from "../client/src/lib/rogerPilotBacklog";
 import { buildRogerPilotBacklogMarkdown } from "../client/src/pages/RogerPilotBacklogPage";
@@ -12,18 +13,39 @@ const page = readFileSync("client/src/pages/RogerPilotBacklogPage.tsx", "utf8");
 const app = readFileSync("client/src/App.tsx", "utf8");
 const sidebar = readFileSync("client/src/components/Sidebar.tsx", "utf8");
 
+const FEATURE_IDS_WITH_CHILD_INDICATORS = [
+  "1462484", "1470472", "1461160", "1475360", "1458058", "1486001", "1486014", "1486197", "1486189",
+  "1451927", "1471427", "1464702", "1471425", "1441524", "1441528", "1472793", "1489784", "1486002",
+  "1486003", "1441539", "1441546", "1476344", "1476349", "1490944", "1497107",
+];
+
 describe("Roger Pilot backlog assessment workspace", () => {
-  it("uses the supplied PI4-Sprint 2 Team Roger capture as a manual evidence baseline", () => {
+  it("uses the supplied PI4-Sprint 2 Team Roger screenshots as a manual evidence baseline", () => {
     expect(ROGER_PILOT_BACKLOG_SOURCE.sprint).toBe("PI4-Sprint 2");
     expect(ROGER_PILOT_BACKLOG_SOURCE.sourceLabel).toContain("Team Roger / Roger TDC");
+    expect(ROGER_PILOT_BACKLOG_SOURCE.totalListedFeatureCount).toBe(91);
+    expect(ROGER_PILOT_BACKLOG_SOURCE.featureWithChildIndicatorCount).toBe(25);
+    expect(ROGER_PILOT_BACKLOG_SOURCE.coverageNote).toContain("Twenty-five display a visible hierarchy marker");
     expect(ROGER_PILOT_BACKLOG_SOURCE.refreshRule).toContain("Do not infer live status");
-    expect(ROGER_PILOT_FEATURES).toHaveLength(4);
-    expect(ROGER_PILOT_WORK_ITEMS).toHaveLength(18);
-    expect(ROGER_PILOT_BACKLOG_SUMMARY.legacyDctLabelCount).toBe(4);
   });
 
-  it("preserves the captured features, child work-item states, and legacy-label triage", () => {
-    expect(ROGER_PILOT_FEATURES.map((feature) => feature.id)).toEqual(["1441528", "1441524", "1461160", "1490944"]);
+  it("reviews every parent feature that displays a child indicator", () => {
+    expect(ROGER_PILOT_FEATURES).toHaveLength(25);
+    expect(ROGER_PILOT_FEATURES.map((feature) => feature.id)).toEqual(FEATURE_IDS_WITH_CHILD_INDICATORS);
+    expect(ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount).toBe(25);
+    expect(ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildDetailCount).toBe(4);
+    expect(ROGER_PILOT_BACKLOG_SUMMARY.childDetailPendingCount).toBe(21);
+    expect(ROGER_PILOT_BACKLOG_SUMMARY.featureStateCounts).toEqual([
+      { state: "Requirements", count: 3 },
+      { state: "New", count: 16 },
+      { state: "Active", count: 4 },
+      { state: "On Hold", count: 2 },
+    ]);
+  });
+
+  it("keeps child-level findings bounded to the four features with captured child rows", () => {
+    expect(ROGER_PILOT_FEATURES_WITH_CHILD_DETAIL.map((feature) => feature.id)).toEqual(["1461160", "1441524", "1441528", "1490944"]);
+    expect(ROGER_PILOT_WORK_ITEMS).toHaveLength(18);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "Active")).toHaveLength(6);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "Review Ready")).toHaveLength(3);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "QA Ready")).toHaveLength(2);
@@ -32,9 +54,11 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.legacyDctLabel).map((item) => item.id)).toEqual(["1488496", "1488477", "1488494", "1488497"]);
   });
 
-  it("provides the required executive assessment, roadmap, ownership, and refresh surfaces", () => {
-    expect(page).toContain("PI4–Sprint 2 backlog");
-    expect(page).toContain("Sprint roadmap and proposed workstream boundaries");
+  it("provides the complete parent assessment, child-evidence boundary, ownership, roadmap, and refresh surfaces", () => {
+    expect(page).toContain("All features with visible child indicators");
+    expect(page).toContain("Child rows need expansion");
+    expect(page).toContain("Captured child detail for 4 features");
+    expect(page).toContain("Workstream review lanes");
     expect(page).toContain("Team assignment recommendations");
     expect(page).toContain("Dependencies, gaps, and decision questions");
     expect(page).toContain("Deployment Planning");
@@ -53,8 +77,10 @@ describe("Roger Pilot backlog assessment workspace", () => {
   it("exports an evidence-bound review summary", () => {
     const markdown = buildRogerPilotBacklogMarkdown();
     expect(markdown).toContain("# Roger Pilot Backlog Assessment");
-    expect(markdown).toContain("Feature 1490944 — Data — Defect & Bug Management");
-    expect(markdown).toContain("Legacy DCT-labeled items requiring current-team allocation: 4");
+    expect(markdown).toContain("Parent features visible in source list: 91");
+    expect(markdown).toContain("Features with visible child indicator: 25");
+    expect(markdown).toContain("Features requiring child-row expansion: 21");
+    expect(markdown).toContain("Feature 1490944");
     expect(markdown).toContain("Do not infer live status");
   });
 });
