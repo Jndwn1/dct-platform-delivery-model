@@ -98,11 +98,11 @@ function Tracker({ records, onSelect, onSelectAction, selectedId }: { records: M
       <div style={{ borderLeft: "4px solid #1e3a5f", marginBottom: "14px", paddingLeft: "12px" }}>
         <div style={{ color: "#1e3a5f", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Recent Meeting Recaps</div>
         <h2 id="tdc-meeting-recap-tracker" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, margin: "4px 0 0" }}>TDC Meeting Recap Tracker</h2>
-        <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>Newest meeting first. Every draft remains linked to its source transcript.</p>
+        <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>Newest meeting first. Draft and reviewed recaps remain available for final review; sent recaps move to the compact history below.</p>
       </div>
       <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15,23,42,0.04)", overflow: "hidden" }}>
         {records.length === 0 ? (
-          <div style={{ color: "#64748b", fontSize: "12px", padding: "28px", textAlign: "center" }}>No meeting recaps have been generated yet. Upload the daily transcript to create the first draft.</div>
+          <div style={{ color: "#64748b", fontSize: "12px", padding: "28px", textAlign: "center" }}>No draft or reviewed recaps are awaiting action. Upload the daily transcript to create the next draft.</div>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", minWidth: "1100px", width: "100%" }}>
@@ -116,6 +116,34 @@ function Tracker({ records, onSelect, onSelectAction, selectedId }: { records: M
                 <td style={{ padding: "11px 12px" }}><button type="button" onClick={() => onSelectAction(record.id)} style={{ background: "none", border: "none", color: "#0f766e", cursor: "pointer", fontSize: "11px", fontWeight: 850, padding: 0 }}>{record.actionItems.length} item{record.actionItems.length === 1 ? "" : "s"}</button></td>
                 <td style={{ padding: "11px 12px" }}><a href={record.transcriptStorageUrl} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", color: "#1d4ed8", display: "inline-flex", fontSize: "11px", fontWeight: 800, gap: "4px", textDecoration: "none" }}><FileText size={12} />Open</a></td>
                 <td style={{ color: "#64748b", fontSize: "11px", maxWidth: "230px", padding: "11px 12px" }}>{record.notes || "—"}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SentRecapHistory({ records }: { records: MeetingRecord[] }) {
+  return (
+    <section aria-labelledby="sent-meeting-recaps" style={{ marginTop: "30px" }}>
+      <div style={{ borderLeft: "4px solid #059669", marginBottom: "14px", paddingLeft: "12px" }}>
+        <div style={{ color: "#047857", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Delivery history</div>
+        <h2 id="sent-meeting-recaps" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, margin: "4px 0 0" }}>Sent Meeting Recaps</h2>
+        <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>Sent emails are retained as a concise audit record. Use the transcript link to open the uploaded source.</p>
+      </div>
+      <div style={{ background: "#ffffff", border: "1px solid #bbf7d0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15,23,42,0.04)", overflow: "hidden" }}>
+        {records.length === 0 ? (
+          <div style={{ color: "#64748b", fontSize: "12px", padding: "22px 28px", textAlign: "center" }}>No meeting recap emails have been marked Sent.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ borderCollapse: "collapse", minWidth: "650px", width: "100%" }}>
+              <thead><tr style={{ background: "#064e3b", textAlign: "left" }}>{["Meeting Date", "Key Focus", "Transcript"].map((heading) => <th key={heading} style={{ color: "#d1fae5", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{heading}</th>)}</tr></thead>
+              <tbody>{records.map((record, index) => <tr key={record.id} style={{ background: index % 2 ? "#ffffff" : "#f0fdf4", borderTop: "1px solid #d1fae5" }}>
+                <td style={{ color: "#334155", fontSize: "11px", padding: "11px 12px", whiteSpace: "nowrap" }}>{displayDate(record.meetingDate)}</td>
+                <td style={{ color: "#334155", fontSize: "11px", maxWidth: "520px", padding: "11px 12px" }}>{record.keyFocus.length ? record.keyFocus.join(" · ") : "Not specified"}</td>
+                <td style={{ padding: "11px 12px" }}><a href={record.transcriptStorageUrl} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", color: "#047857", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "4px", textDecoration: "none" }}><FileText size={12} />Open transcript</a></td>
               </tr>)}</tbody>
             </table>
           </div>
@@ -143,6 +171,8 @@ function MeetingRecordDetail({ record, onStatusChange }: { record: MeetingRecord
     window.setTimeout(() => setEmailCopied(false), 2200);
   }
 
+  if (record.emailStatus === "Sent") return null;
+
   return (
     <section id={`meeting-recap-${record.id}`} aria-labelledby={`meeting-recap-title-${record.id}`} style={{ marginTop: "28px" }}>
       <div style={{ alignItems: "flex-start", borderLeft: "4px solid #0f766e", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "space-between", marginBottom: "14px", paddingLeft: "12px" }}>
@@ -154,7 +184,7 @@ function MeetingRecordDetail({ record, onStatusChange }: { record: MeetingRecord
         <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" }}>
           <StatusPill status={record.emailStatus} />
           {record.emailStatus === "Draft" && <button type="button" onClick={() => onStatusChange("Reviewed")} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #d97706", borderRadius: "6px", color: "#92400e", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "7px 9px" }}><Check size={13} />Mark Reviewed</button>}
-          {record.emailStatus !== "Sent" && <button type="button" onClick={() => onStatusChange("Sent")} style={{ alignItems: "center", background: "#0f766e", border: "1px solid #0f766e", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "7px 9px" }}><Send size={13} />Mark Sent</button>}
+          <button type="button" onClick={() => onStatusChange("Sent")} style={{ alignItems: "center", background: "#0f766e", border: "1px solid #0f766e", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "7px 9px" }}><Send size={13} />Mark Sent</button>
           <button type="button" onClick={() => setExpanded((value) => !value)} style={{ background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: "6px", color: "#475569", cursor: "pointer", display: "inline-flex", padding: "7px" }} aria-label={expanded ? "Collapse meeting recap" : "Expand meeting recap"}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
         </div>
       </div>
@@ -209,7 +239,9 @@ export default function MeetingRecapsPage() {
   });
   const updateStatus = trpc.tdcMeetingRecaps.updateEmailStatus.useMutation({ onSuccess: () => utils.tdcMeetingRecaps.list.invalidate() });
   const records = meetingRecords as MeetingRecord[];
-  const selectedRecord = records.find((record) => record.id === selectedId) ?? records[0];
+  const activeRecords = records.filter((record) => record.emailStatus !== "Sent");
+  const sentRecords = records.filter((record) => record.emailStatus === "Sent");
+  const selectedRecord = activeRecords.find((record) => record.id === selectedId) ?? activeRecords[0];
 
   async function generateRecap() {
     if (!selectedFile) return;
@@ -243,7 +275,8 @@ export default function MeetingRecapsPage() {
       </section>
 
       {isLoading ? <div style={{ color: "#64748b", fontSize: "12px", padding: "28px 0", textAlign: "center" }}>Loading meeting recap history…</div> : <>
-        <Tracker records={records} selectedId={selectedRecord?.id} onSelect={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-recap-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} onSelectAction={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-action-items-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} />
+        <Tracker records={activeRecords} selectedId={selectedRecord?.id} onSelect={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-recap-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} onSelectAction={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-action-items-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} />
+        <SentRecapHistory records={sentRecords} />
         {selectedRecord && <MeetingRecordDetail record={selectedRecord} onStatusChange={(emailStatus) => updateStatus.mutate({ id: selectedRecord.id, emailStatus })} />}
       </>}
     </div>

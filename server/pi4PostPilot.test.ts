@@ -177,6 +177,12 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain("TDC Meeting Recap Tracker");
     expect(page).toContain("Copy Email for Outlook");
     expect(page).toContain("Mark Sent");
+    expect(page).toContain("Sent Meeting Recaps");
+    expect(page).toContain('["Meeting Date", "Key Focus", "Transcript"]');
+    expect(page).toContain('const activeRecords = records.filter((record) => record.emailStatus !== "Sent")');
+    expect(page).toContain('const sentRecords = records.filter((record) => record.emailStatus === "Sent")');
+    expect(page).toContain('if (record.emailStatus === "Sent") return null;');
+    expect(page).toContain("Open transcript");
     expect(page).toContain("No manual re-entry required.");
     expect(page).toContain("trpc.tdcMeetingRecaps.createFromTranscript.useMutation");
     expect(router).toContain("tdcMeetingRecaps: router");
