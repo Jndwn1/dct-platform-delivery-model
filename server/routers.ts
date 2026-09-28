@@ -8,11 +8,13 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, postPilotDeployments, qaDeployments, qaScreenRecords, uatTestCases, uatDefects, uatRisks, mappingArtifacts, mappingResults, mappingSessions } from "../drizzle/schema";
+import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, postPilotDeployments, qaDeployments, qaScreenRecords, tdcMeetingRecaps, uatTestCases, uatDefects, uatRisks, mappingArtifacts, mappingResults, mappingSessions } from "../drizzle/schema";
 import { storagePut } from "./storage";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 import { createMappingCandidates, isMappableArtifactField, mappingReadiness, parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
 import { buildMasterDataEvidence, isMasterDataQuestion, MASTER_DATA_ANSWER_FALLBACK, selectAuthoritativeMasterDataArtifact } from "./masterDataRegistry";
+import mammoth from "mammoth";
+import { analyzeTdcStandupTranscript, buildTdcStandupEmail, formatMeetingDate } from "./meetingRecaps";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -754,6 +756,97 @@ ${input.notes}` as string },
           adoWorkItemId: input.adoWorkItemId ?? null,
         });
         return { success: true, deploymentId };
+      }),
+  }),
+
+  tdcMeetingRecaps: router({
+    list: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      const records = await db.select().from(tdcMeetingRecaps).orderBy(desc(tdcMeetingRecaps.meetingDate), desc(tdcMeetingRecaps.createdAt));
+      return records.map((record) => ({
+        ...record,
+        id: Number(record.id),
+        attendees: JSON.parse(record.attendeesJson) as string[],
+        keyFocus: JSON.parse(record.keyFocusJson) as string[],
+        developerUpdates: JSON.parse(record.developerUpdatesJson),
+        actionItems: JSON.parse(record.actionItemsJson),
+        blockersRisks: JSON.parse(record.blockersRisksJson) as string[],
+        decisionsCallouts: JSON.parse(record.decisionsCalloutsJson) as string[],
+      }));
+    }),
+    createFromTranscript: publicProcedure
+      .input(z.object({
+        fileName: z.string().min(1).max(512),
+        mimeType: z.string().min(1).max(128),
+        fileBase64: z.string().min(1).max(16 * 1024 * 1024),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!/\.(docx|txt)$/i.test(input.fileName)) {
+          throw new Error("Upload a TDC Daily Standup transcript in DOCX or TXT format.");
+        }
+        const encoded = input.fileBase64.replace(/^data:[^;]+;base64,/, "");
+        const buffer = Buffer.from(encoded, "base64");
+        if (buffer.length > 10 * 1024 * 1024) throw new Error("Transcripts must be 10 MB or smaller.");
+
+        let transcriptText = "";
+        if (/\.docx$/i.test(input.fileName)) {
+          const extracted = await mammoth.extractRawText({ buffer });
+          transcriptText = extracted.value;
+        } else {
+          transcriptText = buffer.toString("utf8");
+        }
+        transcriptText = transcriptText.trim();
+        if (transcriptText.length < 80) throw new Error("The uploaded transcript does not contain enough readable text to generate a recap.");
+
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const stored = await storagePut(`tdc-meeting-recaps/${Date.now()}-${safeName}`, buffer, input.mimeType);
+        const analysis = await analyzeTdcStandupTranscript(transcriptText);
+        const dateLabel = formatMeetingDate(analysis.meetingDate);
+        const emailSubject = `TDC Daily Standup Recap — ${dateLabel}`;
+        const emailBody = buildTdcStandupEmail(analysis);
+
+        const db = await getDb();
+        if (!db) throw new Error("The Meeting Recap Tracker is unavailable. Please try again.");
+        await db.insert(tdcMeetingRecaps).values({
+          meetingDate: analysis.meetingDate,
+          meetingTitle: analysis.meetingTitle,
+          sprint: analysis.sprint,
+          attendeesJson: JSON.stringify(analysis.attendees),
+          keyFocusJson: JSON.stringify(analysis.keyFocus),
+          transcriptFileName: input.fileName,
+          transcriptStorageUrl: stored.url,
+          transcriptText,
+          emailSubject,
+          emailBody,
+          developerUpdatesJson: JSON.stringify(analysis.developerUpdates),
+          actionItemsJson: JSON.stringify(analysis.actionItems),
+          blockersRisksJson: JSON.stringify(analysis.blockersRisks),
+          decisionsCalloutsJson: JSON.stringify(analysis.decisionsCallouts),
+          notes: analysis.notes,
+          emailStatus: "Draft",
+          createdBy: ctx.user?.name ?? null,
+        });
+        const [record] = await db.select().from(tdcMeetingRecaps).orderBy(desc(tdcMeetingRecaps.id)).limit(1);
+        if (!record) throw new Error("The generated recap could not be saved.");
+        return {
+          ...record,
+          id: Number(record.id),
+          attendees: analysis.attendees,
+          keyFocus: analysis.keyFocus,
+          developerUpdates: analysis.developerUpdates,
+          actionItems: analysis.actionItems,
+          blockersRisks: analysis.blockersRisks,
+          decisionsCallouts: analysis.decisionsCallouts,
+        };
+      }),
+    updateEmailStatus: publicProcedure
+      .input(z.object({ id: z.number().int().positive(), emailStatus: z.enum(["Draft", "Reviewed", "Sent"]) }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("The Meeting Recap Tracker is unavailable. Please try again.");
+        await db.update(tdcMeetingRecaps).set({ emailStatus: input.emailStatus }).where(eq(tdcMeetingRecaps.id, input.id));
+        return { success: true };
       }),
   }),
 

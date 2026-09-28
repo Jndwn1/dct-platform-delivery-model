@@ -146,7 +146,9 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain('import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc"');
     expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
     expect(app).toContain('path="/post-pilot" component={PostPilotPage}');
-    expect(sidebar).toContain('["Executive Health", "Post Pilot", "Ask Buddy"]');
+    expect(sidebar).toContain('["Executive Health", "Post Pilot"]');
+    expect(sidebar).toContain('label: "Meeting Recaps", path: "/post-pilot/meeting-recaps"');
+    expect(sidebar).toContain('workspaceShortcuts("executive", ["Ask Buddy"], false)');
     expect(pageContext).toContain('"Roger to GoSystem State Calculation POC"');
     expect(pageContext).toContain('"State Calculation POC"');
     expect(pageContext).toContain('"State / Provision Story Review"');
@@ -159,6 +161,30 @@ describe("PI4 Post Pilot delivery", () => {
     expect(planningModel).toContain('"pi4-ims-translation": "IMS Translation & Import Layer Design"');
     expect(platformContext).toContain("0 closed, 0 active, and 0% delivery progress");
     expect(platformContext).toContain("excluded from all PI4 and MVP delivery metrics");
+  });
+
+  it("adds a separate Post Pilot TDC Daily Standup Meeting Recaps workspace", () => {
+    const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
+    const sidebar = readFileSync(resolve(process.cwd(), "client/src/components/Sidebar.tsx"), "utf8");
+    const page = readFileSync(resolve(process.cwd(), "client/src/pages/MeetingRecapsPage.tsx"), "utf8");
+    const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+    const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
+
+    expect(app).toContain('path="/post-pilot/meeting-recaps" component={MeetingRecapsPage}');
+    expect(sidebar).toContain('label: "Meeting Recaps", path: "/post-pilot/meeting-recaps"');
+    expect(page).toContain("TDC Daily Standup — Meeting Recaps");
+    expect(page).toContain("Generate Daily TDC Standup Recap");
+    expect(page).toContain("TDC Meeting Recap Tracker");
+    expect(page).toContain("Copy Email for Outlook");
+    expect(page).toContain("Mark Sent");
+    expect(page).toContain("No manual re-entry required.");
+    expect(page).toContain("trpc.tdcMeetingRecaps.createFromTranscript.useMutation");
+    expect(router).toContain("tdcMeetingRecaps: router");
+    expect(router).toContain("createFromTranscript");
+    expect(router).toContain("updateEmailStatus");
+    expect(router).toContain("mammoth.extractRawText");
+    expect(schema).toContain('tdcMeetingRecaps = mysqlTable("tdc_meeting_recaps"');
+    expect(schema).toContain('emailStatus: mysqlEnum("tdcMeetingRecapEmailStatus", ["Draft", "Reviewed", "Sent"])');
   });
 
   it("registers the supplied Sprint 2 planned features and ADO dependencies without inventing commitment or sizing", () => {

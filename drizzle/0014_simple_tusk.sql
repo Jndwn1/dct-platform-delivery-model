@@ -1,0 +1,23 @@
+CREATE TABLE `tdc_meeting_recaps` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`meetingDate` varchar(32) NOT NULL,
+	`meetingTitle` varchar(512) NOT NULL,
+	`sprint` varchar(128) NOT NULL DEFAULT 'Not specified',
+	`attendeesJson` mediumtext NOT NULL,
+	`keyFocusJson` mediumtext NOT NULL,
+	`transcriptFileName` varchar(512) NOT NULL,
+	`transcriptStorageUrl` varchar(1024) NOT NULL,
+	`transcriptText` mediumtext NOT NULL,
+	`emailSubject` varchar(512) NOT NULL,
+	`emailBody` mediumtext NOT NULL,
+	`developerUpdatesJson` mediumtext NOT NULL,
+	`actionItemsJson` mediumtext NOT NULL,
+	`blockersRisksJson` mediumtext NOT NULL,
+	`decisionsCalloutsJson` mediumtext NOT NULL,
+	`notes` text,
+	`tdcMeetingRecapEmailStatus` enum('Draft','Reviewed','Sent') NOT NULL DEFAULT 'Draft',
+	`createdBy` varchar(128),
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `tdc_meeting_recaps_id` PRIMARY KEY(`id`)
+);

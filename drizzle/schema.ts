@@ -130,6 +130,38 @@ export const postPilotDeployments = mysqlTable("post_pilot_deployments", {
 export type PostPilotDeployment = typeof postPilotDeployments.$inferSelect;
 export type InsertPostPilotDeployment = typeof postPilotDeployments.$inferInsert;
 
+// ─── TDC Daily Standup Meeting Recaps ────────────────────────────────────────
+/**
+ * Persistent, transcript-backed daily TDC Standup recap records. Transcript
+ * files are stored separately in built-in storage; the record retains only the
+ * source link and the evidence-bound analysis used for the draft email.
+ */
+export const tdcMeetingRecaps = mysqlTable("tdc_meeting_recaps", {
+  id: int("id").autoincrement().primaryKey(),
+  meetingDate: varchar("meetingDate", { length: 32 }).notNull(),
+  meetingTitle: varchar("meetingTitle", { length: 512 }).notNull(),
+  sprint: varchar("sprint", { length: 128 }).notNull().default("Not specified"),
+  attendeesJson: mediumtext("attendeesJson").notNull(),
+  keyFocusJson: mediumtext("keyFocusJson").notNull(),
+  transcriptFileName: varchar("transcriptFileName", { length: 512 }).notNull(),
+  transcriptStorageUrl: varchar("transcriptStorageUrl", { length: 1024 }).notNull(),
+  transcriptText: mediumtext("transcriptText").notNull(),
+  emailSubject: varchar("emailSubject", { length: 512 }).notNull(),
+  emailBody: mediumtext("emailBody").notNull(),
+  developerUpdatesJson: mediumtext("developerUpdatesJson").notNull(),
+  actionItemsJson: mediumtext("actionItemsJson").notNull(),
+  blockersRisksJson: mediumtext("blockersRisksJson").notNull(),
+  decisionsCalloutsJson: mediumtext("decisionsCalloutsJson").notNull(),
+  notes: text("notes"),
+  emailStatus: mysqlEnum("tdcMeetingRecapEmailStatus", ["Draft", "Reviewed", "Sent"]).default("Draft").notNull(),
+  createdBy: varchar("createdBy", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TdcMeetingRecap = typeof tdcMeetingRecaps.$inferSelect;
+export type InsertTdcMeetingRecap = typeof tdcMeetingRecaps.$inferInsert;
+
 // ─── Deployment Screens ──────────────────────────────────────────────────────
 /**
  * Per-screen release notes for a deployment.
