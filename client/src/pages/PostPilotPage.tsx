@@ -162,8 +162,13 @@ export default function PostPilotPage() {
             A PI4 planning dashboard for managing post-pilot planning records, commitments, sizing, business value, and ADO dependencies without treating planning inventory as delivered work.
           </p>
         </div>
-        <div style={{ backgroundColor: "#f5f3ff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "999px", color: PURPLE_INK, fontSize: "10px", fontWeight: 850, letterSpacing: "0.06em", padding: "7px 10px", textTransform: "uppercase" }}>
-          Planning visibility only
+        <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          <Link href="/post-pilot/roger-pilot-backlog" style={{ background: "#003865", borderRadius: "6px", color: "#ffffff", fontSize: "10px", fontWeight: 850, letterSpacing: "0.04em", padding: "8px 10px", textDecoration: "none", textTransform: "uppercase" }}>
+            Roger Pilot Backlog
+          </Link>
+          <div style={{ backgroundColor: "#f5f3ff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "999px", color: PURPLE_INK, fontSize: "10px", fontWeight: 850, letterSpacing: "0.06em", padding: "7px 10px", textTransform: "uppercase" }}>
+            Planning visibility only
+          </div>
         </div>
       </div>
 

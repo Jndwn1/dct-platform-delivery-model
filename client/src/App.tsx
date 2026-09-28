@@ -74,6 +74,7 @@ import OperatingModelHub from "./pages/OperatingModelHub";
 import PI4PlanningWorkspace from "./pages/PI4PlanningWorkspace";
 import PostPilotPage from "./pages/PostPilotPage";
 import MeetingRecapsPage from "./pages/MeetingRecapsPage";
+import RogerPilotBacklogPage from "./pages/RogerPilotBacklogPage";
 import OnboardingHub from "./pages/onboarding/OnboardingHub";
 import StateCompliancePrototype from "./pages/StateCompliancePrototype";
 // Layout
@@ -130,6 +131,7 @@ function Router() {
           <Route path="/pi4-planning" component={PI4PlanningWorkspace} />
           <Route path="/post-pilot" component={PostPilotPage} />
           <Route path="/post-pilot/meeting-recaps" component={MeetingRecapsPage} />
+          <Route path="/post-pilot/roger-pilot-backlog" component={RogerPilotBacklogPage} />
           <Route path="/workspace/roger" component={() => <OperatingModelHub workspaceId="roger" />} />
           <Route path="/workspace/discovery" component={() => <OperatingModelHub workspaceId="discovery" />} />
           <Route path="/workspace/architecture" component={() => <OperatingModelHub workspaceId="architecture" />} />

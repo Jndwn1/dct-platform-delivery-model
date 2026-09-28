@@ -247,3 +247,4 @@
 - [x] Redesign the client-file-to-Roger flow as a five-phase executive process with no crossing connectors
 - [x] Build the persistent Post Pilot TDC Daily Standup Meeting Recaps workspace from the supplied requirements and transcript
 - [x] Show sent meeting recaps only in a compact date, key-focus, and transcript history table
+- [x] Build an evidence-bound Team Roger PI4–Sprint 2 backlog assessment workspace with roadmap, ownership validation, dependency findings, and manual source-refresh framing
