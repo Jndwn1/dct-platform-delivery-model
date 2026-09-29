@@ -7,7 +7,7 @@ export type RogerPilotWorkItem = {
   titleExcerpt: string;
   state: RogerPilotWorkItemState;
   assignedTo: string;
-  legacyDctLabel?: boolean;
+  legacyDataLabel?: boolean;
   candidateTeam: string;
   teamAssessment: string;
 };
@@ -336,21 +336,21 @@ export const ROGER_PILOT_FEATURES: readonly RogerPilotFeature[] = [
     workItems: [
       {
         id: "1488496",
-        titleExcerpt: "DCT | Return Filings | Book Adjustment Cleanup Issue Is Not…",
+        titleExcerpt: "Data | Return Filings | Book Adjustment Cleanup Issue Is Not…",
         state: "Active",
         assignedTo: "Kalakonda, Ara…",
-        legacyDctLabel: true,
+        legacyDataLabel: true,
         candidateTeam: "State / Provision triage required",
-        teamAssessment: "Legacy DCT label. Return-filings and adjustment language requires State-versus-Provision confirmation before reassignment.",
+        teamAssessment: "Legacy Data label. Return-filings and adjustment language requires State-versus-Provision confirmation before reassignment.",
       },
       {
         id: "1488477",
-        titleExcerpt: "DCT | Return Filings | Return Filing Page Counts Each Unma…",
+        titleExcerpt: "Data | Return Filings | Return Filing Page Counts Each Unma…",
         state: "Active",
         assignedTo: "Sajja, Reshma",
-        legacyDctLabel: true,
+        legacyDataLabel: true,
         candidateTeam: "State / Provision triage required",
-        teamAssessment: "Legacy DCT label. The source does not identify whether State or Provision owns the affected filing experience.",
+        teamAssessment: "Legacy Data label. The source does not identify whether State or Provision owns the affected filing experience.",
       },
       {
         id: "1463645",
@@ -370,21 +370,21 @@ export const ROGER_PILOT_FEATURES: readonly RogerPilotFeature[] = [
       },
       {
         id: "1488494",
-        titleExcerpt: "DCT | Return Filings | TB with Line Mapping Issue Is Not Dis…",
+        titleExcerpt: "Data | Return Filings | TB with Line Mapping Issue Is Not Dis…",
         state: "QA Ready",
         assignedTo: "Kalakonda, Ara…",
-        legacyDctLabel: true,
+        legacyDataLabel: true,
         candidateTeam: "State / Provision triage required",
-        teamAssessment: "Legacy DCT label. The current product team must be confirmed before QA ownership and release evidence are assigned.",
+        teamAssessment: "Legacy Data label. The current product team must be confirmed before QA ownership and release evidence are assigned.",
       },
       {
         id: "1488497",
-        titleExcerpt: "DCT | Return Filings | Reclass Adjustment Cleanup Issue Is N…",
+        titleExcerpt: "Data | Return Filings | Reclass Adjustment Cleanup Issue Is N…",
         state: "QA Ready",
         assignedTo: "Kalakonda, Ara…",
-        legacyDctLabel: true,
+        legacyDataLabel: true,
         candidateTeam: "State / Provision triage required",
-        teamAssessment: "Legacy DCT label. The title implies adjustment behavior but does not establish State or Provision ownership.",
+        teamAssessment: "Legacy Data label. The title implies adjustment behavior but does not establish State or Provision ownership.",
       },
       {
         id: "1487890",
@@ -437,7 +437,7 @@ export const ROGER_PILOT_FEATURES: readonly RogerPilotFeature[] = [
     ],
     candidateWorkstream: "Cross-team defect triage — validate",
     deliveryFocus: "Cross-cutting defect, performance-environment, and Roger UI issue triage across the PI4-Sprint 2 backlog.",
-    ownershipFinding: "This feature spans legacy DCT-labeled Return Filings items, Roger UI issues, performance-environment issues, and TDC issues. It needs a triage split by current delivery team before it can serve as a clean team backlog.",
+    ownershipFinding: "This feature spans legacy Data-labeled Return Filings items, Roger UI issues, performance-environment issues, and TDC issues. It needs a triage split by current delivery team before it can serve as a clean team backlog.",
   },
   {
     id: "1497107",
@@ -468,7 +468,7 @@ export const ROGER_PILOT_BACKLOG_SUMMARY = {
   featureWithChildDetailCount: ROGER_PILOT_FEATURES_WITH_CHILD_DETAIL.length,
   childDetailPendingCount: ROGER_PILOT_FEATURES.filter((feature) => feature.childEvidence === "Child indicator shown").length,
   workItemCount: ROGER_PILOT_WORK_ITEMS.length,
-  legacyDctLabelCount: ROGER_PILOT_WORK_ITEMS.filter((item) => item.legacyDctLabel).length,
+  legacyDataLabelCount: ROGER_PILOT_WORK_ITEMS.filter((item) => item.legacyDataLabel).length,
   featureStateCounts: ROGER_PILOT_FEATURE_STATE_ORDER.map((state) => ({
     state,
     count: ROGER_PILOT_FEATURES.filter((feature) => feature.featureState === state).length,

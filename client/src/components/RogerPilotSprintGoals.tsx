@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { ROGER_PILOT_FEATURES } from "@/lib/rogerPilotBacklog";
 import {
   ROGER_PI4_SPRINT_2_ALIGNMENT,
-  ROGER_PI4_SPRINT_2_COLLECTIVE_OUTCOME,
   ROGER_PI4_SPRINT_2_FEATURE_TITLES,
   ROGER_PI4_SPRINT_2_GOALS,
   type RogerSprintGoalWorkstream,
@@ -87,10 +86,6 @@ export default function RogerPilotSprintGoals() {
         </div>
       </div>
 
-      <div style={{ background: "#eaf2f8", border: "1px solid #9dbad0", borderRadius: "10px", marginTop: "14px", padding: "13px 15px" }}>
-        <MiniHeading>Collective end-of-sprint outcome</MiniHeading>
-        <p style={{ color: NAVY_INK, fontSize: "12px", fontWeight: 750, lineHeight: 1.55, margin: "7px 0 0" }}>{ROGER_PI4_SPRINT_2_COLLECTIVE_OUTCOME}</p>
-      </div>
     </section>
   );
 }

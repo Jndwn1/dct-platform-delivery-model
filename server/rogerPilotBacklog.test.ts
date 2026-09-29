@@ -9,7 +9,6 @@ import {
 } from "../client/src/lib/rogerPilotBacklog";
 import {
   ROGER_PI4_SPRINT_2_ALIGNMENT,
-  ROGER_PI4_SPRINT_2_COLLECTIVE_OUTCOME,
   ROGER_PI4_SPRINT_2_GOALS,
 } from "../client/src/lib/rogerPilotSprintGoals";
 import { buildRogerPilotBacklogMarkdown } from "../client/src/pages/RogerPilotBacklogPage";
@@ -57,7 +56,7 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "QA Ready")).toHaveLength(2);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "New")).toHaveLength(3);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "Closed")).toHaveLength(4);
-    expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.legacyDctLabel).map((item) => item.id)).toEqual(["1488496", "1488477", "1488494", "1488497"]);
+    expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.legacyDataLabel).map((item) => item.id)).toEqual(["1488496", "1488477", "1488494", "1488497"]);
   });
 
   it("defines evidence-bound PI4-Sprint 2 goals with TDC first, followed by State and Provision", () => {
@@ -67,7 +66,6 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(ROGER_PI4_SPRINT_2_GOALS.find((goal) => goal.workstream === "TDC")?.supportingFeatures.map((feature) => feature.featureId)).toEqual(["1441522", "1441524", "1441525", "1441526", "1441527", "1461160", "1441528", "1472793", "1489784", "1490944"]);
     expect(ROGER_PI4_SPRINT_2_GOALS.find((goal) => goal.workstream === "TDC")?.supportingFeatures.find((feature) => feature.featureId === "1461160")?.purpose).toContain("Parent feature status: On Hold");
     expect(ROGER_PI4_SPRINT_2_ALIGNMENT).toHaveLength(4);
-    expect(ROGER_PI4_SPRINT_2_COLLECTIVE_OUTCOME).toContain("integrated execution baseline");
   });
 
   it("provides the retained parent assessment, child-evidence boundary, ownership, and roadmap surfaces", () => {
@@ -75,10 +73,10 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(goalSection).toContain("PI4–Sprint 2 goals, objectives, and cross-workstream outcome");
     expect(goalSection).toContain("Supporting features and purpose");
     expect(goalSection).toContain("How the workstreams align and depend on one another");
-    expect(goalSection).toContain("Collective end-of-sprint outcome");
+    expect(goalSection).not.toContain("Collective end-of-sprint outcome");
     expect(page).toContain("All features with visible child indicators");
     expect(page).toContain("Child rows need expansion");
-    expect(page).toContain("Captured child detail for 4 features");
+    expect(page).not.toContain("Captured child detail for 4 features");
     expect(page).toContain("Workstream review lanes");
     expect(page).toContain("Team assignment recommendations");
     expect(page).toContain("Dependencies, gaps, and decision questions");
@@ -88,6 +86,9 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(page).not.toContain("Manual source baseline");
     expect(page).toContain("Export assessment (.md)");
     expect(page).not.toContain("No live Azure DevOps connection is used");
+    expect(page).not.toContain("DCT");
+    expect(JSON.stringify(ROGER_PILOT_FEATURES)).not.toContain("DCT");
+    expect(JSON.stringify(ROGER_PI4_SPRINT_2_GOALS)).not.toContain("DCT");
   });
 
   it("places the leadership snapshot and complete parent-feature review before Sprint 2 goals", () => {
@@ -116,8 +117,9 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(markdown).toContain("### State goal");
     expect(markdown).toContain("### Provision goal");
     expect(markdown).toContain("### TDC goal");
-    expect(markdown).toContain("### Collective end-of-sprint outcome");
-    expect(markdown).toContain("Feature 1490944");
+    expect(markdown).not.toContain("### Collective end-of-sprint outcome");
+    expect(markdown).not.toContain("## Captured child detail");
+    expect(markdown).toContain("| 1490944 |");
     expect(markdown).toContain("Do not infer live status");
   });
 });
