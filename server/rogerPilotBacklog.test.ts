@@ -70,6 +70,8 @@ describe("Roger Pilot backlog assessment workspace", () => {
   });
 
   it("keeps the retained leadership, Sprint goal, readiness, and parent-feature review surfaces without the removed backlog sections", () => {
+    expect(page).toContain("Evidence-bound planning view");
+    expect(page).toContain("Parent-feature evidence register");
     expect(page).toContain("RogerPilotSprintGoals");
     expect(goalSection).toContain("PI4–Sprint 2 goals, objectives, and cross-workstream outcome");
     expect(goalSection).toContain("Supporting features and purpose");
@@ -91,6 +93,13 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(page).not.toContain("DCT");
     expect(JSON.stringify(ROGER_PILOT_FEATURES)).not.toContain("DCT");
     expect(JSON.stringify(ROGER_PI4_SPRINT_2_GOALS)).not.toContain("DCT");
+  });
+
+  it("uses the refined executive leadership treatment for summary and Sprint planning surfaces", () => {
+    expect(page).toContain("linear-gradient(118deg, #002b4f");
+    expect(page).toContain("const SUMMARY_METRICS");
+    expect(goalSection).toContain("Cross-workstream view");
+    expect(goalSection).toContain("linear-gradient(90deg");
   });
 
   it("places Sprint 2 goals after the Leadership Snapshot and restores parent feature review at the page bottom", () => {
