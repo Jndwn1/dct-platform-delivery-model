@@ -40,7 +40,7 @@ export const ROGER_PI4_SPRINT_2_GOALS: readonly RogerSprintGoal[] = [
       { featureId: "1441525", purpose: "Scalability capability that must be considered where Sprint 2 data and calculation paths introduce volume or performance needs." },
       { featureId: "1441526", purpose: "Expandability capability supporting a governed path for future State and Provision scope without prematurely defining an implementation." },
       { featureId: "1441527", purpose: "Data-model and schema-flexibility capability supporting the TDC data foundation and future State/Provision requirements." },
-      { featureId: "1461160", purpose: "Manual client-account and governed data-creation capability with Gateway storage support." },
+      { featureId: "1461160", purpose: "Parent feature status: On Hold. Manual client-account and governed data-creation capability with Gateway storage support." },
       { featureId: "1441528", purpose: "Security and delegated-access prerequisite work across Gateway and related services." },
       { featureId: "1472793", purpose: "Penetration-testing and security-readiness capability supporting a safe technical path before release conclusions." },
       { featureId: "1489784", purpose: "Development and QA environment readiness for Roger Platform work that consumes TDC and Gateway capabilities." },

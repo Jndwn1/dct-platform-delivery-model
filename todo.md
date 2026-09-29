@@ -254,3 +254,4 @@
 - [x] Remove the Manual Source Baseline panel from the Roger Pilot Backlog
 - [x] Move the Leadership Snapshot and Complete Parent Feature Review to the top of the Roger Pilot Backlog
 - [x] Move the TDC PI4–Sprint 2 goal ahead of State in the Roger Pilot Backlog
+- [x] Make the User-Defined Nonstandard TDC Codes On Hold status explicit in the TDC Sprint 2 goal
