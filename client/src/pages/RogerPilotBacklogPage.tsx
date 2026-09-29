@@ -130,8 +130,6 @@ export default function RogerPilotBacklogPage() {
         </div>
       </div>
 
-      <RogerPilotSprintGoals />
-
       <section aria-labelledby="roger-pilot-summary" style={{ marginBottom: "26px" }}>
         <SectionHeading eyebrow="Leadership snapshot" title="PI4–Sprint 2 feature review coverage" description={`Counts distinguish the ${ROGER_PILOT_BACKLOG_SUMMARY.totalListedFeatureCount} parent features visible in the source list, the ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount} parent features with visible child indicators, and the ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildDetailCount} features with captured child-row evidence.`} />
         <div id="roger-pilot-summary" style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(175px, 1fr))" }}>
@@ -165,6 +163,8 @@ export default function RogerPilotBacklogPage() {
           </div>
         </div>
       </section>
+
+      <RogerPilotSprintGoals />
 
       <section aria-labelledby="captured-child-detail" style={{ marginBottom: "26px" }}>
         <SectionHeading eyebrow="Child work item evidence" title="Captured child detail for 4 features" description="These are the only features for which the supplied evidence contained child-level rows. Their child states and assignees are not projected onto the remaining 21 parent features." />

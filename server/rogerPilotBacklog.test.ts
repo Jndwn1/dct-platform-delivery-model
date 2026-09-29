@@ -89,6 +89,16 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(page).not.toContain("No live Azure DevOps connection is used");
   });
 
+  it("places the leadership snapshot and complete parent-feature review before Sprint 2 goals", () => {
+    const leadershipSnapshot = page.indexOf('eyebrow="Leadership snapshot"');
+    const completeParentReview = page.indexOf('eyebrow="Complete parent feature review"');
+    const sprintGoals = page.indexOf("<RogerPilotSprintGoals />");
+
+    expect(leadershipSnapshot).toBeGreaterThan(-1);
+    expect(completeParentReview).toBeGreaterThan(leadershipSnapshot);
+    expect(sprintGoals).toBeGreaterThan(completeParentReview);
+  });
+
   it("adds the child route and Post Pilot navigation entry", () => {
     expect(app).toContain('path="/post-pilot/roger-pilot-backlog"');
     expect(sidebar).toContain('label: "Roger Pilot Backlog"');
