@@ -41,6 +41,13 @@ export default function RogerPilotSprintGoals() {
         <p style={{ color: SLATE, fontSize: "12px", lineHeight: 1.5, margin: "5px 0 0", maxWidth: "980px" }}>This section translates the supplied State and Provision goal captures and the current TDC backlog evidence into one planning view. It lists the supporting backlog features and their purpose, then makes the objective, impact, and dependency path explicit without treating planning intent as a completed commitment.</p>
       </div>
 
+      <div style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", marginTop: "14px", overflow: "hidden" }}>
+        <div style={{ background: NAVY, color: "#ffffff", padding: "11px 14px" }}><div style={{ fontSize: "13px", fontWeight: 900 }}>How the workstreams align and depend on one another</div><div style={{ fontSize: "10px", marginTop: "3px", opacity: 0.86 }}>The relationship statements make the handoffs visible; they do not invent or approve a technical design.</div></div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ borderCollapse: "collapse", minWidth: "900px", width: "100%" }}><thead><tr style={{ background: "#f1f5f9", color: NAVY_INK, textAlign: "left" }}><th style={{ fontSize: "9px", fontWeight: 900, padding: "9px 11px", textTransform: "uppercase" }}>From</th><th style={{ fontSize: "9px", fontWeight: 900, padding: "9px 11px", textTransform: "uppercase" }}>To / impact</th><th style={{ fontSize: "9px", fontWeight: 900, padding: "9px 11px", textTransform: "uppercase" }}>Alignment and dependency</th></tr></thead><tbody>{ROGER_PI4_SPRINT_2_ALIGNMENT.map((relationship, index) => <tr key={`${relationship.from}-${relationship.to}`} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}><td style={{ color: NAVY, fontSize: "11px", fontWeight: 900, padding: "10px 11px", whiteSpace: "nowrap" }}>{relationship.from}</td><td style={{ color: NAVY_INK, fontSize: "11px", fontWeight: 800, padding: "10px 11px", whiteSpace: "nowrap" }}>{relationship.to}</td><td style={{ color: SLATE, fontSize: "11px", lineHeight: 1.5, padding: "10px 11px" }}>{relationship.relationship}</td></tr>)}</tbody></table>
+        </div>
+      </div>
+
       <div style={{ display: "grid", gap: "14px" }}>
         {ROGER_PI4_SPRINT_2_GOALS.map((goal) => {
           const style = WORKSTREAM_STYLE[goal.workstream];
@@ -82,12 +89,7 @@ export default function RogerPilotSprintGoals() {
         })}
       </div>
 
-      <div style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", marginTop: "14px", overflow: "hidden" }}>
-        <div style={{ background: NAVY, color: "#ffffff", padding: "11px 14px" }}><div style={{ fontSize: "13px", fontWeight: 900 }}>How the workstreams align and depend on one another</div><div style={{ fontSize: "10px", marginTop: "3px", opacity: 0.86 }}>The relationship statements make the handoffs visible; they do not invent or approve a technical design.</div></div>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ borderCollapse: "collapse", minWidth: "900px", width: "100%" }}><thead><tr style={{ background: "#f1f5f9", color: NAVY_INK, textAlign: "left" }}><th style={{ fontSize: "9px", fontWeight: 900, padding: "9px 11px", textTransform: "uppercase" }}>From</th><th style={{ fontSize: "9px", fontWeight: 900, padding: "9px 11px", textTransform: "uppercase" }}>To / impact</th><th style={{ fontSize: "9px", fontWeight: 900, padding: "9px 11px", textTransform: "uppercase" }}>Alignment and dependency</th></tr></thead><tbody>{ROGER_PI4_SPRINT_2_ALIGNMENT.map((relationship, index) => <tr key={`${relationship.from}-${relationship.to}`} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}><td style={{ color: NAVY, fontSize: "11px", fontWeight: 900, padding: "10px 11px", whiteSpace: "nowrap" }}>{relationship.from}</td><td style={{ color: NAVY_INK, fontSize: "11px", fontWeight: 800, padding: "10px 11px", whiteSpace: "nowrap" }}>{relationship.to}</td><td style={{ color: SLATE, fontSize: "11px", lineHeight: 1.5, padding: "10px 11px" }}>{relationship.relationship}</td></tr>)}</tbody></table>
-        </div>
-      </div>
+
 
     </section>
   );

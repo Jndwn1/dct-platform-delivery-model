@@ -74,6 +74,7 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(goalSection).toContain("PI4–Sprint 2 goals, objectives, and cross-workstream outcome");
     expect(goalSection).toContain("Supporting features and purpose");
     expect(goalSection).toContain("How the workstreams align and depend on one another");
+    expect(goalSection.indexOf("How the workstreams align and depend on one another")).toBeLessThan(goalSection.indexOf("ROGER_PI4_SPRINT_2_GOALS.map"));
     expect(goalSection).not.toContain("Planning boundary:");
     expect(goalSection).not.toContain("Collective end-of-sprint outcome");
     expect(page).not.toContain("Feature state distribution");
