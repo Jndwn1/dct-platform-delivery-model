@@ -395,6 +395,22 @@ export const ROGER_PILOT_FEATURES: readonly RogerPilotFeature[] = [
         teamAssessment: "Gateway is explicit in the title. Confirm the consuming Roger capability and escalation owner.",
       },
       {
+        id: "1444168",
+        titleExcerpt: "Roger | Adjustments | Book and Reclass adjustments related…",
+        state: "New",
+        assignedTo: "Sajja, Reshma",
+        candidateTeam: "Cross-team defect triage required",
+        teamAssessment: "The supplied capture shows a New Roger Adjustments work item. Confirm the affected practitioner workflow, data dependency, and accountable delivery team.",
+      },
+      {
+        id: "1488637",
+        titleExcerpt: "Perf Env - SignOff is Not Working",
+        state: "New",
+        assignedTo: "Willis, Morgan",
+        candidateTeam: "Cross-team defect triage required",
+        teamAssessment: "The supplied capture shows a New performance-environment SignOff issue. Confirm the environment owner, user impact, and release-readiness dependency.",
+      },
+      {
         id: "1483802",
         titleExcerpt: "Perf Env - TDC - DTUs (100) Reaching 100%",
         state: "New",

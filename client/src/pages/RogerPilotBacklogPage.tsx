@@ -55,7 +55,11 @@ export function buildRogerPilotBacklogMarkdown() {
   const featureInventory = ROGER_PILOT_FEATURES.map((feature) => `| ${feature.id} | ${feature.title} | ${feature.featureState} | ${feature.childEvidence} | ${feature.candidateWorkstream} |`).join("\n");
   const sprintGoalSections = ROGER_PI4_SPRINT_2_GOALS.map((goal) => {
     const objectives = goal.objectives.map((objective, index) => `${index + 1}. ${objective}`).join("\n");
-    const features = goal.supportingFeatures.map((feature) => `| ${feature.featureId} | ${ROGER_PI4_SPRINT_2_FEATURE_TITLES[feature.featureId] ?? "Feature title requires source refresh"} | ${feature.purpose} |`).join("\n");
+    const features = goal.supportingFeatures.map((feature) => {
+      const relatedAdoIds = ROGER_PILOT_FEATURES.find((candidate) => candidate.id === feature.featureId)?.workItems.map((item) => item.id) ?? [];
+      const relatedAdoLabel = relatedAdoIds.length ? ` · Related ADO IDs: ${relatedAdoIds.join(", ")}` : "";
+      return `| ${feature.featureId} | ${ROGER_PI4_SPRINT_2_FEATURE_TITLES[feature.featureId] ?? "Feature title requires source refresh"}${relatedAdoLabel} | ${feature.purpose} |`;
+    }).join("\n");
     const dependencies = goal.dependencies.map((dependency) => `- ${dependency}`).join("\n");
     return `### ${goal.workstream} goal\n\n**Goal:** ${goal.goal}\n\n**Objectives:**\n${objectives}\n\n| Supporting feature | Feature title | Purpose |\n| --- | --- | --- |\n${features}\n\n**Dependencies:**\n${dependencies}\n\n**Sprint impact:** ${goal.impact}\n\n*Source: ${goal.sourceBasis}; ${goal.sourceWindow}*`;
   }).join("\n\n");

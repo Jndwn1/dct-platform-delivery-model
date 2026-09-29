@@ -50,12 +50,13 @@ describe("Roger Pilot backlog assessment workspace", () => {
 
   it("keeps child-level findings bounded to the four features with captured child rows", () => {
     expect(ROGER_PILOT_FEATURES_WITH_CHILD_DETAIL.map((feature) => feature.id)).toEqual(["1461160", "1441524", "1441528", "1490944"]);
-    expect(ROGER_PILOT_WORK_ITEMS).toHaveLength(18);
+    expect(ROGER_PILOT_WORK_ITEMS).toHaveLength(20);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "Active")).toHaveLength(6);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "Review Ready")).toHaveLength(3);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "QA Ready")).toHaveLength(2);
-    expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "New")).toHaveLength(3);
+    expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "New")).toHaveLength(5);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.state === "Closed")).toHaveLength(4);
+    expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.id === "1444168" || item.id === "1488637").map((item) => item.id)).toEqual(["1444168", "1488637"]);
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.legacyDataLabel).map((item) => item.id)).toEqual(["1488496", "1488477", "1488494", "1488497"]);
   });
 
@@ -120,6 +121,7 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(markdown).not.toContain("### Collective end-of-sprint outcome");
     expect(markdown).not.toContain("## Captured child detail");
     expect(markdown).toContain("| 1490944 |");
+    expect(markdown).toContain("Related ADO IDs: 1488496, 1488477, 1463645, 1488332, 1488494, 1488497, 1487890, 1444168, 1488637, 1483802");
     expect(markdown).toContain("Do not infer live status");
   });
 });

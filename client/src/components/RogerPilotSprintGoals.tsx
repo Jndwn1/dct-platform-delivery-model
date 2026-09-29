@@ -24,6 +24,10 @@ function getFeatureTitle(featureId: string) {
     ?? "Feature title requires source refresh";
 }
 
+function getRelatedAdoIds(featureId: string) {
+  return ROGER_PILOT_FEATURES.find((feature) => feature.id === featureId)?.workItems.map((item) => item.id) ?? [];
+}
+
 function MiniHeading({ children, color = NAVY }: { children: ReactNode; color?: string }) {
   return <div style={{ color, fontSize: "9px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>{children}</div>;
 }
@@ -64,7 +68,10 @@ export default function RogerPilotSprintGoals() {
                   <div style={{ border: `1px solid ${BORDER}`, borderRadius: "7px", marginTop: "8px", overflow: "hidden" }}>
                     <table style={{ borderCollapse: "collapse", width: "100%" }}>
                       <thead><tr style={{ background: "#f8fafc", color: NAVY_INK, textAlign: "left" }}><th style={{ fontSize: "9px", fontWeight: 900, padding: "7px 8px", textTransform: "uppercase" }}>Feature</th><th style={{ fontSize: "9px", fontWeight: 900, padding: "7px 8px", textTransform: "uppercase" }}>Purpose in the goal</th></tr></thead>
-                      <tbody>{goal.supportingFeatures.map((feature, index) => <tr key={feature.featureId} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}><td style={{ color: NAVY, fontSize: "10px", fontWeight: 850, lineHeight: 1.35, minWidth: "145px", padding: "8px" }}><span>{feature.featureId}</span><br /><span style={{ color: NAVY_INK, fontWeight: 750 }}>{getFeatureTitle(feature.featureId)}</span></td><td style={{ color: SLATE, fontSize: "10px", lineHeight: 1.4, padding: "8px" }}>{feature.purpose}</td></tr>)}</tbody>
+                      <tbody>{goal.supportingFeatures.map((feature, index) => {
+                        const relatedAdoIds = getRelatedAdoIds(feature.featureId);
+                        return <tr key={feature.featureId} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}><td style={{ color: NAVY, fontSize: "10px", fontWeight: 850, lineHeight: 1.35, minWidth: "145px", padding: "8px" }}><span>{feature.featureId}</span><br /><span style={{ color: NAVY_INK, fontWeight: 750 }}>{getFeatureTitle(feature.featureId)}</span>{relatedAdoIds.length > 0 && <><br /><span style={{ color: "#64748b", fontSize: "9px", fontWeight: 800 }}>Related ADO IDs: {relatedAdoIds.join(", ")}</span></>}</td><td style={{ color: SLATE, fontSize: "10px", lineHeight: 1.4, padding: "8px" }}>{feature.purpose}</td></tr>;
+                      })}</tbody>
                     </table>
                   </div>
                 </div>
