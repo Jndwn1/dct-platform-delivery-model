@@ -10,6 +10,13 @@ import {
   type RogerPilotFeatureState,
   type RogerPilotWorkItemState,
 } from "@/lib/rogerPilotBacklog";
+import {
+  ROGER_PI4_SPRINT_2_ALIGNMENT,
+  ROGER_PI4_SPRINT_2_COLLECTIVE_OUTCOME,
+  ROGER_PI4_SPRINT_2_FEATURE_TITLES,
+  ROGER_PI4_SPRINT_2_GOALS,
+} from "@/lib/rogerPilotSprintGoals";
+import RogerPilotSprintGoals from "@/components/RogerPilotSprintGoals";
 
 const NAVY = "#003865";
 const NAVY_INK = "#0f172a";
@@ -65,12 +72,19 @@ function childEvidenceLabel(feature: (typeof ROGER_PILOT_FEATURES)[number]) {
 export function buildRogerPilotBacklogMarkdown() {
   const featureStateSummary = ROGER_PILOT_BACKLOG_SUMMARY.featureStateCounts.map(({ state, count }) => `- ${state}: ${count}`).join("\n");
   const featureInventory = ROGER_PILOT_FEATURES.map((feature) => `| ${feature.id} | ${feature.title} | ${feature.featureState} | ${feature.childEvidence} | ${feature.candidateWorkstream} |`).join("\n");
+  const sprintGoalSections = ROGER_PI4_SPRINT_2_GOALS.map((goal) => {
+    const objectives = goal.objectives.map((objective, index) => `${index + 1}. ${objective}`).join("\n");
+    const features = goal.supportingFeatures.map((feature) => `| ${feature.featureId} | ${ROGER_PI4_SPRINT_2_FEATURE_TITLES[feature.featureId] ?? "Feature title requires source refresh"} | ${feature.purpose} |`).join("\n");
+    const dependencies = goal.dependencies.map((dependency) => `- ${dependency}`).join("\n");
+    return `### ${goal.workstream} goal\n\n**Goal:** ${goal.goal}\n\n**Objectives:**\n${objectives}\n\n| Supporting feature | Feature title | Purpose |\n| --- | --- | --- |\n${features}\n\n**Dependencies:**\n${dependencies}\n\n**Sprint impact:** ${goal.impact}\n\n*Source: ${goal.sourceBasis}; ${goal.sourceWindow}*`;
+  }).join("\n\n");
+  const sprintAlignment = ROGER_PI4_SPRINT_2_ALIGNMENT.map((relationship) => `| ${relationship.from} | ${relationship.to} | ${relationship.relationship} |`).join("\n");
   const detailedChildSections = ROGER_PILOT_FEATURES_WITH_CHILD_DETAIL.map((feature) => {
     const workItems = feature.workItems.map((item) => `| ${item.id} | ${item.titleExcerpt} | ${item.state} | ${item.assignedTo} | ${item.candidateTeam} |`).join("\n");
     return `## Captured child detail — Feature ${feature.id}: ${feature.title}\n\n${feature.ownershipFinding}\n\n| ADO ID | Title as captured | State | Assigned to | Candidate team / validation state |\n| --- | --- | --- | --- | --- |\n${workItems}`;
   }).join("\n\n");
 
-  return `# Roger Pilot Backlog Assessment\n\n## Source and assessment boundary\n\n- Sprint: ${ROGER_PILOT_BACKLOG_SOURCE.sprint}\n- Source: ${ROGER_PILOT_BACKLOG_SOURCE.sourceLabel}\n- Captured: ${ROGER_PILOT_BACKLOG_SOURCE.capturedOn}\n- ${ROGER_PILOT_BACKLOG_SOURCE.coverageNote}\n- Scope: Planning and backlog assessment only. This is not a live Azure DevOps connection and does not assert delivery completion.\n\n## Executive summary\n\n- Parent features visible in source list: ${ROGER_PILOT_BACKLOG_SUMMARY.totalListedFeatureCount}\n- Features with visible child indicator: ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount}\n- Features with captured child rows: ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildDetailCount}\n- Features requiring child-row expansion: ${ROGER_PILOT_BACKLOG_SUMMARY.childDetailPendingCount}\n- Captured child work items: ${ROGER_PILOT_BACKLOG_SUMMARY.workItemCount}\n\n### Feature-state distribution\n\n${featureStateSummary}\n\n## All parent features with child indicators\n\n| Feature ID | Feature title | Parent state | Child evidence | Candidate workstream |\n| --- | --- | --- | --- | --- |\n${featureInventory}\n\n## Required validation before commitments or scheduling\n\n1. Expand the remaining feature child rows before deriving child scope, owner, readiness, dependency, or delivery dates.\n2. Confirm the accountable team and product owner for each legacy DCT-labeled Return Filings item.\n3. Confirm State and Provision scope, owner, and dependency treatment for every State and Provision parent feature.\n4. Confirm API/data-contract ownership, acceptance criteria, and test evidence for Gateway, TDC, and shared platform capabilities.\n5. Confirm dependency links, sizing, commitments, and delivery dates from an updated ADO export or reviewed artifact.\n\n${detailedChildSections}\n\n## Refresh rule\n\n${ROGER_PILOT_BACKLOG_SOURCE.refreshRule}\n`;
+  return `# Roger Pilot Backlog Assessment\n\n## Source and assessment boundary\n\n- Sprint: ${ROGER_PILOT_BACKLOG_SOURCE.sprint}\n- Source: ${ROGER_PILOT_BACKLOG_SOURCE.sourceLabel}\n- Captured: ${ROGER_PILOT_BACKLOG_SOURCE.capturedOn}\n- ${ROGER_PILOT_BACKLOG_SOURCE.coverageNote}\n- Scope: Planning and backlog assessment only. This is not a live Azure DevOps connection and does not assert delivery completion.\n\n## Executive summary\n\n- Parent features visible in source list: ${ROGER_PILOT_BACKLOG_SUMMARY.totalListedFeatureCount}\n- Features with visible child indicator: ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount}\n- Features with captured child rows: ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildDetailCount}\n- Features requiring child-row expansion: ${ROGER_PILOT_BACKLOG_SUMMARY.childDetailPendingCount}\n- Captured child work items: ${ROGER_PILOT_BACKLOG_SUMMARY.workItemCount}\n\n### Feature-state distribution\n\n${featureStateSummary}\n\n## PI4–Sprint 2 goals, objectives, and cross-workstream outcome\n\nPlanning boundary: State and Provision objectives are taken from the supplied goal captures. TDC objectives are limited to the captured TDC, Gateway, API, security, environment, and defect evidence already present in this backlog. These goals do not assert story commitment, feature completion, deployment readiness, or architecture approval.\n\n${sprintGoalSections}\n\n### Cross-workstream alignment and dependency\n\n| From | To / impact | Alignment and dependency |\n| --- | --- | --- |\n${sprintAlignment}\n\n### Collective end-of-sprint outcome\n\n${ROGER_PI4_SPRINT_2_COLLECTIVE_OUTCOME}\n\n## All parent features with child indicators\n\n| Feature ID | Feature title | Parent state | Child evidence | Candidate workstream |\n| --- | --- | --- | --- | --- |\n${featureInventory}\n\n## Required validation before commitments or scheduling\n\n1. Expand the remaining feature child rows before deriving child scope, owner, readiness, dependency, or delivery dates.\n2. Confirm the accountable team and product owner for each legacy DCT-labeled Return Filings item.\n3. Confirm State and Provision scope, owner, and dependency treatment for every State and Provision parent feature.\n4. Confirm API/data-contract ownership, acceptance criteria, and test evidence for Gateway, TDC, and shared platform capabilities.\n5. Confirm dependency links, sizing, commitments, and delivery dates from an updated ADO export or reviewed artifact.\n\n${detailedChildSections}\n\n## Refresh rule\n\n${ROGER_PILOT_BACKLOG_SOURCE.refreshRule}\n`;
 }
 
 function exportCurrentAssessment() {
@@ -130,6 +144,8 @@ export default function RogerPilotBacklogPage() {
           </div>
         </div>
       </section>
+
+      <RogerPilotSprintGoals />
 
       <section aria-labelledby="roger-pilot-summary" style={{ marginBottom: "26px" }}>
         <SectionHeading eyebrow="Leadership snapshot" title="PI4–Sprint 2 feature review coverage" description={`Counts distinguish the ${ROGER_PILOT_BACKLOG_SUMMARY.totalListedFeatureCount} parent features visible in the source list, the ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount} parent features with visible child indicators, and the ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildDetailCount} features with captured child-row evidence.`} />
