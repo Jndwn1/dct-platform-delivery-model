@@ -3,6 +3,7 @@ import {
   ROGER_PILOT_BACKLOG_SOURCE,
   ROGER_PILOT_BACKLOG_SUMMARY,
   ROGER_PILOT_FEATURES,
+  type RogerPilotFeatureState,
 } from "@/lib/rogerPilotBacklog";
 import {
   ROGER_PI4_SPRINT_2_ALIGNMENT,
@@ -18,12 +19,42 @@ const SLATE = "#475569";
 const LIGHT_GRAY = "#f1f5f9";
 const BORDER = "#cbd5e1";
 
+const FEATURE_STATE_STYLE: Record<RogerPilotFeatureState, { color: string; surface: string }> = {
+  Requirements: { color: "#6d28d9", surface: "#f3e8ff" },
+  New: { color: "#475569", surface: "#e2e8f0" },
+  Active: { color: "#0369a1", surface: "#e0f2fe" },
+  "On Hold": { color: "#b91c1c", surface: "#fee2e2" },
+};
+
+function FeatureStatePill({ state }: { state: RogerPilotFeatureState }) {
+  const style = FEATURE_STATE_STYLE[state];
+  return <span style={{ background: style.surface, border: `1px solid ${style.color}44`, borderRadius: "999px", color: style.color, display: "inline-flex", fontSize: "10px", fontWeight: 850, padding: "3px 7px", whiteSpace: "nowrap" }}>{state}</span>;
+}
+
+function EvidencePill({ label }: { label: string }) {
+  const isCaptured = label === "Child rows captured";
+  return <span style={{ background: isCaptured ? "#ecfdf5" : "#fffbeb", border: `1px solid ${isCaptured ? "#86efac" : "#fcd34d"}`, borderRadius: "999px", color: isCaptured ? "#166534" : "#92400e", display: "inline-flex", fontSize: "9px", fontWeight: 850, padding: "3px 7px", whiteSpace: "nowrap" }}>{label}</span>;
+}
+
 function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <div style={{ borderLeft: `4px solid ${NAVY}`, marginBottom: "14px", paddingLeft: "12px" }}>
       <div style={{ color: NAVY, fontSize: "10px", fontWeight: 900, letterSpacing: "0.09em", textTransform: "uppercase" }}>{eyebrow}</div>
       <h2 style={{ color: NAVY_INK, fontSize: "19px", fontWeight: 900, letterSpacing: "-0.015em", margin: "4px 0 0" }}>{title}</h2>
       <p style={{ color: SLATE, fontSize: "12px", lineHeight: 1.5, margin: "5px 0 0", maxWidth: "970px" }}>{description}</p>
+    </div>
+  );
+}
+
+function childEvidenceLabel(feature: (typeof ROGER_PILOT_FEATURES)[number]) {
+  return feature.childEvidence === "Captured child rows" ? "Child rows captured" : "Child rows need expansion";
+}
+
+function AssessmentSummary({ feature }: { feature: (typeof ROGER_PILOT_FEATURES)[number] }) {
+  return (
+    <div style={{ color: SLATE, fontSize: "10px", lineHeight: 1.45, maxWidth: "380px" }}>
+      <strong style={{ color: NAVY_INK }}>Focus:</strong> {feature.deliveryFocus}<br />
+      <strong style={{ color: NAVY_INK }}>Review finding:</strong> {feature.ownershipFinding}
     </div>
   );
 }
@@ -91,6 +122,34 @@ export default function RogerPilotBacklogPage() {
           <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "14px" }}><div style={{ color: "#b91c1c", fontSize: "11px", fontWeight: 900, textTransform: "uppercase" }}>Scheduling risks</div><ul style={{ color: "#7f1d1d", fontSize: "11px", lineHeight: 1.5, margin: "9px 0 0", paddingLeft: "17px" }}><li>{ROGER_PILOT_BACKLOG_SUMMARY.childDetailPendingCount} reviewed parent features still require expanded child evidence.</li><li>Assignee, sizing, sprint commitment, target date, and dependency link are not available for most parent features.</li><li>Two feature parents are On Hold; the source does not provide the reason, unblock criteria, or impact.</li></ul></div>
         </div>
         <div style={{ background: "#eaf2f8", border: "1px solid #9dbad0", borderRadius: "10px", marginTop: "12px", padding: "13px 14px" }}><div style={{ color: NAVY, fontSize: "11px", fontWeight: 900 }}>Decision questions for the next review</div><ol style={{ color: NAVY_INK, fontSize: "11px", lineHeight: 1.55, margin: "8px 0 0", paddingLeft: "18px" }}><li>Can the remaining 21 marked parent features be expanded so child count, state, owner, and dependencies can be evidenced?</li><li>Which current product team owns each legacy Data-labeled Return Filings child item, and does it affect State, Provision, or both?</li><li>Which named owner approves API/payload, validation, security, environment, and data-contract readiness across the shared capabilities?</li><li>Which parent features are actually committed and release-relevant in PI4–Sprint 2 versus backlog candidates?</li></ol></div>
+      </section>
+
+      <section aria-labelledby="parent-feature-review" style={{ marginBottom: "26px" }}>
+        <SectionHeading eyebrow="Complete parent feature review" title="All 25 features with visible child indicators" description="Each parent feature is shown with the captured source state, child-evidence status, candidate workstream, and review context. Candidate workstreams remain a review aid, not a delivery ownership assignment." />
+        <div id="parent-feature-review" style={{ border: `1px solid ${BORDER}`, borderRadius: "10px", overflowX: "auto" }}>
+          <table style={{ borderCollapse: "collapse", minWidth: "1160px", width: "100%" }}>
+            <thead>
+              <tr style={{ background: NAVY, color: "#ffffff", textAlign: "left" }}>
+                <th style={{ fontSize: "10px", padding: "10px 11px", textTransform: "uppercase" }}>Feature</th>
+                <th style={{ fontSize: "10px", padding: "10px 11px", textTransform: "uppercase" }}>Parent state</th>
+                <th style={{ fontSize: "10px", padding: "10px 11px", textTransform: "uppercase" }}>Child evidence</th>
+                <th style={{ fontSize: "10px", padding: "10px 11px", textTransform: "uppercase" }}>Candidate workstream</th>
+                <th style={{ fontSize: "10px", padding: "10px 11px", textTransform: "uppercase" }}>Review context</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ROGER_PILOT_FEATURES.map((feature, index) => (
+                <tr key={feature.id} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}>
+                  <td style={{ color: NAVY_INK, fontSize: "11px", fontWeight: 800, lineHeight: 1.4, padding: "10px 11px", width: "24%" }}><span style={{ color: NAVY }}>{feature.id}</span> · {feature.title}</td>
+                  <td style={{ padding: "10px 11px" }}><FeatureStatePill state={feature.featureState} /></td>
+                  <td style={{ padding: "10px 11px" }}><EvidencePill label={childEvidenceLabel(feature)} /></td>
+                  <td style={{ color: NAVY_INK, fontSize: "10px", fontWeight: 800, lineHeight: 1.4, padding: "10px 11px", width: "16%" }}>{feature.candidateWorkstream}</td>
+                  <td style={{ padding: "10px 11px", width: "40%" }}><AssessmentSummary feature={feature} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );

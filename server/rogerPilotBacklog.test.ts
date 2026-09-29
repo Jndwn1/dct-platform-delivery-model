@@ -69,7 +69,7 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(ROGER_PI4_SPRINT_2_ALIGNMENT).toHaveLength(4);
   });
 
-  it("keeps the retained leadership, Sprint goal, and readiness surfaces without the removed backlog sections", () => {
+  it("keeps the retained leadership, Sprint goal, readiness, and parent-feature review surfaces without the removed backlog sections", () => {
     expect(page).toContain("RogerPilotSprintGoals");
     expect(goalSection).toContain("PI4–Sprint 2 goals, objectives, and cross-workstream outcome");
     expect(goalSection).toContain("Supporting features and purpose");
@@ -79,7 +79,7 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(goalSection).not.toContain("Collective end-of-sprint outcome");
     expect(page).not.toContain("Feature state distribution");
     expect(page).not.toContain("Workstream review lanes");
-    expect(page).not.toContain("All features with visible child indicators");
+    expect(page).toContain("All 25 features with visible child indicators");
     expect(page).not.toContain("Team assignment recommendations");
     expect(page).toContain("Dependencies, gaps, and decision questions");
     expect(page).not.toContain("Deployment Planning");
@@ -93,14 +93,16 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(JSON.stringify(ROGER_PI4_SPRINT_2_GOALS)).not.toContain("DCT");
   });
 
-  it("places Sprint 2 goals directly after the Leadership Snapshot and before readiness assessment", () => {
+  it("places Sprint 2 goals after the Leadership Snapshot and restores parent feature review at the page bottom", () => {
     const leadershipSnapshot = page.indexOf('eyebrow="Leadership snapshot"');
     const sprintGoals = page.indexOf("<RogerPilotSprintGoals />");
     const readinessAssessment = page.indexOf('aria-labelledby="dependencies-and-gaps"');
+    const parentFeatureReview = page.indexOf('aria-labelledby="parent-feature-review"');
 
     expect(leadershipSnapshot).toBeGreaterThan(-1);
     expect(sprintGoals).toBeGreaterThan(leadershipSnapshot);
     expect(readinessAssessment).toBeGreaterThan(sprintGoals);
+    expect(parentFeatureReview).toBeGreaterThan(readinessAssessment);
   });
 
   it("adds the child route and Post Pilot navigation entry", () => {
