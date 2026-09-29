@@ -69,7 +69,7 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(ROGER_PI4_SPRINT_2_COLLECTIVE_OUTCOME).toContain("integrated execution baseline");
   });
 
-  it("provides the complete parent assessment, child-evidence boundary, ownership, roadmap, and refresh surfaces", () => {
+  it("provides the retained parent assessment, child-evidence boundary, ownership, and roadmap surfaces", () => {
     expect(page).toContain("RogerPilotSprintGoals");
     expect(goalSection).toContain("PI4–Sprint 2 goals, objectives, and cross-workstream outcome");
     expect(goalSection).toContain("Supporting features and purpose");
@@ -81,9 +81,9 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(page).toContain("Workstream review lanes");
     expect(page).toContain("Team assignment recommendations");
     expect(page).toContain("Dependencies, gaps, and decision questions");
-    expect(page).toContain("Deployment Planning");
-    expect(page).toContain("Changes since last backlog review");
-    expect(page).toContain("Manual refresh protocol");
+    expect(page).not.toContain("Deployment Planning");
+    expect(page).not.toContain("Changes since last backlog review");
+    expect(page).not.toContain("Manual refresh protocol");
     expect(page).toContain("Export assessment (.md)");
     expect(page).toContain("No live Azure DevOps connection is used");
   });
