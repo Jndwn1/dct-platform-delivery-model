@@ -41,10 +41,6 @@ export default function RogerPilotSprintGoals() {
         <p style={{ color: SLATE, fontSize: "12px", lineHeight: 1.5, margin: "5px 0 0", maxWidth: "980px" }}>This section translates the supplied State and Provision goal captures and the current TDC backlog evidence into one planning view. It lists the supporting backlog features and their purpose, then makes the objective, impact, and dependency path explicit without treating planning intent as a completed commitment.</p>
       </div>
 
-      <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: "9px", color: "#78350f", fontSize: "11px", lineHeight: 1.5, marginBottom: "14px", padding: "10px 12px" }}>
-        <strong>Planning boundary:</strong> State and Provision objectives are taken from the supplied goal captures. TDC objectives are limited to the captured TDC, Gateway, API, security, environment, and defect evidence already present in this backlog. These goals do not assert story commitment, feature completion, deployment readiness, or architecture approval.
-      </div>
-
       <div style={{ display: "grid", gap: "14px" }}>
         {ROGER_PI4_SPRINT_2_GOALS.map((goal) => {
           const style = WORKSTREAM_STYLE[goal.workstream];
