@@ -256,3 +256,4 @@
 - [x] Move the TDC PI4–Sprint 2 goal ahead of State in the Roger Pilot Backlog
 - [x] Make the User-Defined Nonstandard TDC Codes On Hold status explicit in the TDC Sprint 2 goal
 - [x] Replace visible DCT references with Data and remove the Collective End-of-Sprint Outcome and Captured Child Detail sections from the Roger Pilot Backlog
+- [x] Move the PI4–Sprint 2 goals section directly beneath the Leadership Snapshot in the Roger Pilot Backlog

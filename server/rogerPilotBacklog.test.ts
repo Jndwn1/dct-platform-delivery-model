@@ -91,14 +91,14 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(JSON.stringify(ROGER_PI4_SPRINT_2_GOALS)).not.toContain("DCT");
   });
 
-  it("places the leadership snapshot and complete parent-feature review before Sprint 2 goals", () => {
+  it("places Sprint 2 goals directly after the Leadership Snapshot and before the complete parent-feature review", () => {
     const leadershipSnapshot = page.indexOf('eyebrow="Leadership snapshot"');
     const completeParentReview = page.indexOf('eyebrow="Complete parent feature review"');
     const sprintGoals = page.indexOf("<RogerPilotSprintGoals />");
 
     expect(leadershipSnapshot).toBeGreaterThan(-1);
-    expect(completeParentReview).toBeGreaterThan(leadershipSnapshot);
-    expect(sprintGoals).toBeGreaterThan(completeParentReview);
+    expect(sprintGoals).toBeGreaterThan(leadershipSnapshot);
+    expect(completeParentReview).toBeGreaterThan(sprintGoals);
   });
 
   it("adds the child route and Post Pilot navigation entry", () => {

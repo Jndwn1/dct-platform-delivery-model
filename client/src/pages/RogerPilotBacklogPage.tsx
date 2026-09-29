@@ -121,6 +121,8 @@ export default function RogerPilotBacklogPage() {
         </div>
       </section>
 
+      <RogerPilotSprintGoals />
+
       <section aria-labelledby="parent-feature-review" style={{ marginBottom: "26px" }}>
         <SectionHeading eyebrow="Complete parent feature review" title="All features with visible child indicators" description={`All ${ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount} marked parent features are assessed below from their visible title and feature state. “Child rows need expansion” means the review does not infer story count, child status, assignee, or dependency.`} />
         <div id="parent-feature-review" style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", overflow: "hidden" }}>
@@ -139,8 +141,6 @@ export default function RogerPilotBacklogPage() {
           </div>
         </div>
       </section>
-
-      <RogerPilotSprintGoals />
 
       <section aria-labelledby="roger-sprint-roadmap" style={{ marginBottom: "26px" }}>
         <SectionHeading eyebrow="Executive planning visual" title="Workstream review lanes" description="These lanes organize all reviewed parent features by title-based candidate workstream. They are not formal assignments and must be validated with product and delivery leads." />
