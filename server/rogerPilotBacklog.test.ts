@@ -60,8 +60,8 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(ROGER_PILOT_WORK_ITEMS.filter((item) => item.legacyDctLabel).map((item) => item.id)).toEqual(["1488496", "1488477", "1488494", "1488497"]);
   });
 
-  it("defines evidence-bound PI4-Sprint 2 goals for State, Provision, and TDC", () => {
-    expect(ROGER_PI4_SPRINT_2_GOALS.map((goal) => goal.workstream)).toEqual(["State", "Provision", "TDC"]);
+  it("defines evidence-bound PI4-Sprint 2 goals with TDC first, followed by State and Provision", () => {
+    expect(ROGER_PI4_SPRINT_2_GOALS.map((goal) => goal.workstream)).toEqual(["TDC", "State", "Provision"]);
     expect(ROGER_PI4_SPRINT_2_GOALS.find((goal) => goal.workstream === "State")?.supportingFeatures.map((feature) => feature.featureId)).toEqual(["1451927", "1471427", "1464702", "1471425", "1485999", "1486002", "1486003", "1487518", "1462484"]);
     expect(ROGER_PI4_SPRINT_2_GOALS.find((goal) => goal.workstream === "Provision")?.supportingFeatures.map((feature) => feature.featureId)).toEqual(["1476344", "1476349", "1476352", "1476353", "1476354", "1475360", "1470472"]);
     expect(ROGER_PI4_SPRINT_2_GOALS.find((goal) => goal.workstream === "TDC")?.supportingFeatures.map((feature) => feature.featureId)).toEqual(["1441522", "1441524", "1441525", "1441526", "1441527", "1461160", "1441528", "1472793", "1489784", "1490944"]);

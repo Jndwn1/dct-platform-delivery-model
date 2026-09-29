@@ -24,6 +24,36 @@ export type RogerSprintGoal = {
  */
 export const ROGER_PI4_SPRINT_2_GOALS: readonly RogerSprintGoal[] = [
   {
+    workstream: "TDC",
+    sourceWindow: "PI4–Sprint 2 backlog evidence",
+    sourceBasis: "User-supplied Team Roger / Roger TDC PI4–Sprint 2 child work-item capture",
+    goal: "Provide the governed Tax Data Consolidation (TDC) API, data, access, environment, and defect-resolution foundation that State and Provision need to progress safely.",
+    objectives: [
+      "Confirm the TDC, IMS, and Gateway API and payload-validation path, including the data-type and validation standards needed by consuming Roger experiences.",
+      "Resolve manual-client-account creation and storage, Gateway access configuration, and related security prerequisites with a named owner and review boundary.",
+      "Triage captured TDC, Gateway, performance-environment, Return Filings, and Roger UI defects so their current product owner, user impact, and dependency on State or Provision are explicit.",
+      "Support the Provision decision on DCT API ownership and data location, rather than treating the captured backlog state as an architecture approval.",
+    ],
+    supportingFeatures: [
+      { featureId: "1441522", purpose: "Microservice-design capability supporting the architectural separation and service-boundary questions underlying shared data delivery." },
+      { featureId: "1441524", purpose: "API and payload-definition work, including TDC-to-IMS data-type and validation standards." },
+      { featureId: "1441525", purpose: "Scalability capability that must be considered where Sprint 2 data and calculation paths introduce volume or performance needs." },
+      { featureId: "1441526", purpose: "Expandability capability supporting a governed path for future State and Provision scope without prematurely defining an implementation." },
+      { featureId: "1441527", purpose: "Data-model and schema-flexibility capability supporting the TDC data foundation and future State/Provision requirements." },
+      { featureId: "1461160", purpose: "Manual client-account and governed data-creation capability with Gateway storage support." },
+      { featureId: "1441528", purpose: "Security and delegated-access prerequisite work across Gateway and related services." },
+      { featureId: "1472793", purpose: "Penetration-testing and security-readiness capability supporting a safe technical path before release conclusions." },
+      { featureId: "1489784", purpose: "Development and QA environment readiness for Roger Platform work that consumes TDC and Gateway capabilities." },
+      { featureId: "1490944", purpose: "Cross-team defect and bug-management container for captured TDC, Gateway, Return Filings, performance, and Roger UI issues." },
+    ],
+    dependencies: [
+      "A named contract owner for TDC, IMS, and Gateway interfaces plus explicit consumer confirmation from State and Provision.",
+      "Current-team triage of legacy DCT-labeled Return Filings defects before State or Provision delivery ownership is assumed.",
+      "Environment, access, capacity, and QA evidence for the affected technical paths.",
+    ],
+    impact: "Reduces the risk that State and Provision build against unresolved data, API, security, environment, or defect assumptions and establishes the technical support path for their Sprint 2 objectives.",
+  },
+  {
     workstream: "State",
     sourceWindow: "State source window: Sep 28–Oct 2",
     sourceBasis: "User-supplied State Top 4 Goals capture",
@@ -77,36 +107,6 @@ export const ROGER_PI4_SPRINT_2_GOALS: readonly RogerSprintGoal[] = [
       "Confirmed A1110 initial-year source, subsequent-year source approach, and override/audit-history requirements.",
     ],
     impact: "Creates an executable Provision planning baseline by turning architecture, data location, prior-year sourcing, auditability, and ADO refinement questions into explicit decisions and scoped backlog work.",
-  },
-  {
-    workstream: "TDC",
-    sourceWindow: "PI4–Sprint 2 backlog evidence",
-    sourceBasis: "User-supplied Team Roger / Roger TDC PI4–Sprint 2 child work-item capture",
-    goal: "Provide the governed Tax Data Consolidation (TDC) API, data, access, environment, and defect-resolution foundation that State and Provision need to progress safely.",
-    objectives: [
-      "Confirm the TDC, IMS, and Gateway API and payload-validation path, including the data-type and validation standards needed by consuming Roger experiences.",
-      "Resolve manual-client-account creation and storage, Gateway access configuration, and related security prerequisites with a named owner and review boundary.",
-      "Triage captured TDC, Gateway, performance-environment, Return Filings, and Roger UI defects so their current product owner, user impact, and dependency on State or Provision are explicit.",
-      "Support the Provision decision on DCT API ownership and data location, rather than treating the captured backlog state as an architecture approval.",
-    ],
-    supportingFeatures: [
-      { featureId: "1441522", purpose: "Microservice-design capability supporting the architectural separation and service-boundary questions underlying shared data delivery." },
-      { featureId: "1441524", purpose: "API and payload-definition work, including TDC-to-IMS data-type and validation standards." },
-      { featureId: "1441525", purpose: "Scalability capability that must be considered where Sprint 2 data and calculation paths introduce volume or performance needs." },
-      { featureId: "1441526", purpose: "Expandability capability supporting a governed path for future State and Provision scope without prematurely defining an implementation." },
-      { featureId: "1441527", purpose: "Data-model and schema-flexibility capability supporting the TDC data foundation and future State/Provision requirements." },
-      { featureId: "1461160", purpose: "Manual client-account and governed data-creation capability with Gateway storage support." },
-      { featureId: "1441528", purpose: "Security and delegated-access prerequisite work across Gateway and related services." },
-      { featureId: "1472793", purpose: "Penetration-testing and security-readiness capability supporting a safe technical path before release conclusions." },
-      { featureId: "1489784", purpose: "Development and QA environment readiness for Roger Platform work that consumes TDC and Gateway capabilities." },
-      { featureId: "1490944", purpose: "Cross-team defect and bug-management container for captured TDC, Gateway, Return Filings, performance, and Roger UI issues." },
-    ],
-    dependencies: [
-      "A named contract owner for TDC, IMS, and Gateway interfaces plus explicit consumer confirmation from State and Provision.",
-      "Current-team triage of legacy DCT-labeled Return Filings defects before State or Provision delivery ownership is assumed.",
-      "Environment, access, capacity, and QA evidence for the affected technical paths.",
-    ],
-    impact: "Reduces the risk that State and Provision build against unresolved data, API, security, environment, or defect assumptions and establishes the technical support path for their Sprint 2 objectives.",
   },
 ] as const;
 
