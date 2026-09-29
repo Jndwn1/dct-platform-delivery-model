@@ -258,3 +258,4 @@
 - [x] Replace visible DCT references with Data and remove the Collective End-of-Sprint Outcome and Captured Child Detail sections from the Roger Pilot Backlog
 - [x] Move the PI4–Sprint 2 goals section directly beneath the Leadership Snapshot in the Roger Pilot Backlog
 - [x] Add the supplied captured ADO IDs to the related TDC Sprint 2 feature evidence and export
+- [x] Move the Workstream Review Lanes visual directly beneath the Leadership Snapshot in the Roger Pilot Backlog

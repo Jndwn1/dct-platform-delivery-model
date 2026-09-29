@@ -125,6 +125,17 @@ export default function RogerPilotBacklogPage() {
         </div>
       </section>
 
+      <section aria-labelledby="roger-sprint-roadmap" style={{ marginBottom: "26px" }}>
+        <SectionHeading eyebrow="Executive planning visual" title="Workstream review lanes" description="These lanes organize all reviewed parent features by title-based candidate workstream. They are not formal assignments and must be validated with product and delivery leads." />
+        <div id="roger-sprint-roadmap" style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", overflow: "hidden" }}>
+          <div style={{ background: NAVY, color: "#ffffff", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "space-between", padding: "12px 15px" }}><div style={{ fontSize: "13px", fontWeight: 900 }}>PI4–Sprint 2 · parent-feature review lanes</div><div style={{ fontSize: "10px", opacity: .84 }}>Candidate workstream only — no capacity or delivery sequence asserted</div></div>
+          <div style={{ display: "grid", gap: "0", gridTemplateColumns: "repeat(3, minmax(240px, 1fr))", overflowX: "auto" }}>
+            {[{ label: "State", color: "#0f766e", features: stateFeatures, summary: "State taxable-income, data, calculation, and apportionment scope requires jurisdiction, source, and child-story confirmation." }, { label: "Provision", color: "#6d28d9", features: provisionFeatures, summary: "Return-to-Provision, deferred rollforward, and related prior-year features need package and downstream-output validation." }, { label: "TDC / Gateway", color: "#0369a1", features: tdcGatewayFeatures, summary: "Contract, access, validation, account, and data capability titles need named technical owner and dependency evidence." }].map((lane) => <div key={lane.label} style={{ borderLeft: `4px solid ${lane.color}`, minWidth: "240px", padding: "14px" }}><div style={{ color: lane.color, fontSize: "13px", fontWeight: 900 }}>{lane.label} candidate lane</div><p style={{ color: SLATE, fontSize: "10px", lineHeight: 1.45, margin: "5px 0 9px" }}>{lane.summary}</p><div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>{lane.features.map((feature) => <span key={feature.id} style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderRadius: "6px", color: NAVY_INK, fontSize: "10px", fontWeight: 750, lineHeight: 1.3, padding: "5px 6px" }}><strong style={{ color: lane.color }}>{feature.id}</strong> · {feature.title}</span>)}</div></div>)}
+          </div>
+          <div style={{ background: "#fff7ed", borderTop: "1px solid #fed7aa", color: "#7c2d12", fontSize: "11px", lineHeight: 1.45, padding: "10px 14px" }}>Cross-workstream review point: the remaining parent features—including entity mappings, Book-to-Tax, Roger UI capabilities, security, environment, and defect management—need their expanded child rows before workstream capacity, technical ownership, or deployment sequencing is approved.</div>
+        </div>
+      </section>
+
       <RogerPilotSprintGoals />
 
       <section aria-labelledby="parent-feature-review" style={{ marginBottom: "26px" }}>
@@ -143,17 +154,6 @@ export default function RogerPilotBacklogPage() {
               </tr>)}</tbody>
             </table>
           </div>
-        </div>
-      </section>
-
-      <section aria-labelledby="roger-sprint-roadmap" style={{ marginBottom: "26px" }}>
-        <SectionHeading eyebrow="Executive planning visual" title="Workstream review lanes" description="These lanes organize all reviewed parent features by title-based candidate workstream. They are not formal assignments and must be validated with product and delivery leads." />
-        <div id="roger-sprint-roadmap" style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", overflow: "hidden" }}>
-          <div style={{ background: NAVY, color: "#ffffff", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "space-between", padding: "12px 15px" }}><div style={{ fontSize: "13px", fontWeight: 900 }}>PI4–Sprint 2 · parent-feature review lanes</div><div style={{ fontSize: "10px", opacity: .84 }}>Candidate workstream only — no capacity or delivery sequence asserted</div></div>
-          <div style={{ display: "grid", gap: "0", gridTemplateColumns: "repeat(3, minmax(240px, 1fr))", overflowX: "auto" }}>
-            {[{ label: "State", color: "#0f766e", features: stateFeatures, summary: "State taxable-income, data, calculation, and apportionment scope requires jurisdiction, source, and child-story confirmation." }, { label: "Provision", color: "#6d28d9", features: provisionFeatures, summary: "Return-to-Provision, deferred rollforward, and related prior-year features need package and downstream-output validation." }, { label: "TDC / Gateway", color: "#0369a1", features: tdcGatewayFeatures, summary: "Contract, access, validation, account, and data capability titles need named technical owner and dependency evidence." }].map((lane) => <div key={lane.label} style={{ borderLeft: `4px solid ${lane.color}`, minWidth: "240px", padding: "14px" }}><div style={{ color: lane.color, fontSize: "13px", fontWeight: 900 }}>{lane.label} candidate lane</div><p style={{ color: SLATE, fontSize: "10px", lineHeight: 1.45, margin: "5px 0 9px" }}>{lane.summary}</p><div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>{lane.features.map((feature) => <span key={feature.id} style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderRadius: "6px", color: NAVY_INK, fontSize: "10px", fontWeight: 750, lineHeight: 1.3, padding: "5px 6px" }}><strong style={{ color: lane.color }}>{feature.id}</strong> · {feature.title}</span>)}</div></div>)}
-          </div>
-          <div style={{ background: "#fff7ed", borderTop: "1px solid #fed7aa", color: "#7c2d12", fontSize: "11px", lineHeight: 1.45, padding: "10px 14px" }}>Cross-workstream review point: the remaining parent features—including entity mappings, Book-to-Tax, Roger UI capabilities, security, environment, and defect management—need their expanded child rows before workstream capacity, technical ownership, or deployment sequencing is approved.</div>
         </div>
       </section>
 
