@@ -84,8 +84,9 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(page).not.toContain("Deployment Planning");
     expect(page).not.toContain("Changes since last backlog review");
     expect(page).not.toContain("Manual refresh protocol");
+    expect(page).not.toContain("Manual source baseline");
     expect(page).toContain("Export assessment (.md)");
-    expect(page).toContain("No live Azure DevOps connection is used");
+    expect(page).not.toContain("No live Azure DevOps connection is used");
   });
 
   it("adds the child route and Post Pilot navigation entry", () => {

@@ -251,3 +251,4 @@
 - [x] Expand the Team Roger PI4–Sprint 2 backlog assessment to all parent features with visible child indicators and distinguish captured child evidence from parent-only review
 - [x] Add PI4–Sprint 2 State, Provision, and TDC goals with feature purposes, objectives, alignment, dependencies, impact, and collective outcome
 - [x] Remove Deployment Planning, Backlog Review History, and Manual Refresh Protocol from the Roger Pilot Backlog
+- [x] Remove the Manual Source Baseline panel from the Roger Pilot Backlog

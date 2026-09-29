@@ -24,7 +24,6 @@ const GREEN = "#00843d";
 const SLATE = "#475569";
 const LIGHT_GRAY = "#f1f5f9";
 const BORDER = "#cbd5e1";
-const TEAM_ROGER_BACKLOG_URL = "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/_backlogs/backlog/Team%20Roger/Features";
 
 const WORK_ITEM_STATE_STYLE: Record<RogerPilotWorkItemState, { color: string; surface: string }> = {
   Active: { color: "#0369a1", surface: "#e0f2fe" },
@@ -130,20 +129,6 @@ export default function RogerPilotBacklogPage() {
           <Link href="/post-pilot" style={{ color: NAVY, fontSize: "11px", fontWeight: 850, padding: "9px 2px", textDecoration: "none" }}>← Back to Post Pilot</Link>
         </div>
       </div>
-
-      <section aria-label="Backlog source status" style={{ background: "#eaf2f8", border: "1px solid #9dbad0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", marginBottom: "24px", padding: "15px 16px" }}>
-        <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "14px", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ color: NAVY, fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Manual source baseline</div>
-            <div style={{ color: NAVY_INK, fontSize: "14px", fontWeight: 900, marginTop: "4px" }}>{ROGER_PILOT_BACKLOG_SOURCE.sprint} · {ROGER_PILOT_BACKLOG_SOURCE.sourceLabel}</div>
-            <div style={{ color: SLATE, fontSize: "11px", lineHeight: 1.45, marginTop: "5px" }}>Captured {ROGER_PILOT_BACKLOG_SOURCE.capturedOn}. No live Azure DevOps connection is used, and no missing child scope, owner, dependency, or delivery date is inferred.</div>
-            <a href={TEAM_ROGER_BACKLOG_URL} target="_blank" rel="noopener noreferrer" style={{ color: NAVY, display: "inline-flex", fontSize: "10px", fontWeight: 850, marginTop: "7px", textDecoration: "none" }}>Open Team Roger ADO backlog ↗</a>
-          </div>
-          <div style={{ background: "#ffffff", border: "1px solid #9dbad0", borderRadius: "7px", color: "#164e63", fontSize: "10px", fontWeight: 800, lineHeight: 1.45, maxWidth: "425px", padding: "8px 10px" }}>
-            {ROGER_PILOT_BACKLOG_SOURCE.coverageNote} A parent review is complete for all {ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount} marked features; expand the remaining child rows before issuing child-level readiness or delivery conclusions.
-          </div>
-        </div>
-      </section>
 
       <RogerPilotSprintGoals />
 
