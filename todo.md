@@ -264,3 +264,4 @@
 - [x] Restore the complete parent-feature review table at the bottom of the Roger Pilot Backlog
 - [x] Polish the Roger Pilot Backlog into a compact executive leadership view while retaining its approved content and order
 - [x] Display visible bullet points in the three Roger Pilot Backlog concern cards
+- [x] Remove the Child Evidence column from the Roger Pilot parent-feature evidence register

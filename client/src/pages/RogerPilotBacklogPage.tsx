@@ -63,11 +63,6 @@ function FeatureStatePill({ state }: { state: RogerPilotFeatureState }) {
   return <span style={{ background: style.surface, border: `1px solid ${style.color}44`, borderRadius: "999px", color: style.color, display: "inline-flex", fontSize: "10px", fontWeight: 850, padding: "4px 8px", whiteSpace: "nowrap" }}>{state}</span>;
 }
 
-function EvidencePill({ label }: { label: string }) {
-  const isCaptured = label === "Child rows captured";
-  return <span style={{ background: isCaptured ? "#ecfdf5" : "#fffbeb", border: `1px solid ${isCaptured ? "#86efac" : "#fcd34d"}`, borderRadius: "999px", color: isCaptured ? "#166534" : "#92400e", display: "inline-flex", fontSize: "9px", fontWeight: 850, padding: "4px 8px", whiteSpace: "nowrap" }}>{label}</span>;
-}
-
 function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <div style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderLeft: `4px solid ${NAVY}`, borderRadius: "10px", boxShadow: "0 3px 10px rgba(15, 23, 42, 0.035)", marginBottom: "14px", padding: "13px 15px" }}>
@@ -87,10 +82,6 @@ function SummaryMetric({ label, value, detail, accent, surface }: (typeof SUMMAR
       <div style={{ color: SLATE, fontSize: "10px", lineHeight: 1.35, marginTop: "8px" }}>{detail}</div>
     </div>
   );
-}
-
-function childEvidenceLabel(feature: (typeof ROGER_PILOT_FEATURES)[number]) {
-  return feature.childEvidence === "Captured child rows" ? "Child rows captured" : "Child rows need expansion";
 }
 
 function AssessmentSummary({ feature }: { feature: (typeof ROGER_PILOT_FEATURES)[number] }) {
@@ -180,20 +171,19 @@ export default function RogerPilotBacklogPage() {
       </section>
 
       <section aria-labelledby="parent-feature-review" style={{ marginBottom: "28px" }}>
-        <SectionHeading eyebrow="Complete parent feature review" title="All 25 features with visible child indicators" description="Each parent feature is shown with the captured source state, child-evidence status, candidate workstream, and review context. Candidate workstreams remain a review aid, not a delivery ownership assignment." />
+        <SectionHeading eyebrow="Complete parent feature review" title="All 25 features with visible child indicators" description="Each parent feature is shown with the captured source state, candidate workstream, and review context. Candidate workstreams remain a review aid, not a delivery ownership assignment." />
         <div id="parent-feature-review" style={{ background: "#ffffff", border: `1px solid ${BORDER}`, borderRadius: "11px", boxShadow: CARD_SHADOW, overflowX: "auto" }}>
           <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: `1px solid ${BORDER}`, display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "space-between", padding: "10px 14px" }}>
             <div style={{ color: NAVY_INK, fontSize: "11px", fontWeight: 900 }}>Parent-feature evidence register</div>
             <div style={{ color: SLATE, fontSize: "10px" }}>{ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount} reviewed records · {ROGER_PILOT_BACKLOG_SUMMARY.childDetailPendingCount} awaiting child-row expansion</div>
           </div>
-          <table style={{ borderCollapse: "collapse", minWidth: "980px", tableLayout: "fixed", width: "100%" }}>
+          <table style={{ borderCollapse: "collapse", minWidth: "900px", tableLayout: "fixed", width: "100%" }}>
             <thead>
               <tr style={{ background: NAVY, color: "#ffffff", textAlign: "left" }}>
-                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "24%" }}>Feature</th>
-                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "11%" }}>Parent state</th>
-                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "14%" }}>Child evidence</th>
-                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "18%" }}>Candidate workstream</th>
-                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "33%" }}>Review context</th>
+                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "29%" }}>Feature</th>
+                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "13%" }}>Parent state</th>
+                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "23%" }}>Candidate workstream</th>
+                <th style={{ fontSize: "9px", letterSpacing: "0.06em", padding: "11px 12px", textTransform: "uppercase", width: "35%" }}>Review context</th>
               </tr>
             </thead>
             <tbody>
@@ -201,7 +191,6 @@ export default function RogerPilotBacklogPage() {
                 <tr key={feature.id} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}>
                   <td style={{ color: NAVY_INK, fontSize: "11px", fontWeight: 800, lineHeight: 1.45, overflowWrap: "anywhere", padding: "12px" }}><span style={{ color: NAVY }}>{feature.id}</span> · {feature.title}</td>
                   <td style={{ padding: "12px" }}><FeatureStatePill state={feature.featureState} /></td>
-                  <td style={{ padding: "12px" }}><EvidencePill label={childEvidenceLabel(feature)} /></td>
                   <td style={{ color: NAVY_INK, fontSize: "10px", fontWeight: 800, lineHeight: 1.45, overflowWrap: "anywhere", padding: "12px" }}>{feature.candidateWorkstream}</td>
                   <td style={{ padding: "12px" }}><AssessmentSummary feature={feature} /></td>
                 </tr>

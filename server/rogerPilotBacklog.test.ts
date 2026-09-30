@@ -109,6 +109,16 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect((page.match(/listStyleType: \"disc\"/g) ?? [])).toHaveLength(3);
   });
 
+  it("removes the child-evidence column from the on-page parent-feature register", () => {
+    const parentFeatureRegister = page.slice(page.indexOf('aria-labelledby="parent-feature-review"'));
+
+    expect(parentFeatureRegister).toContain(">Parent state<");
+    expect(parentFeatureRegister).toContain(">Candidate workstream<");
+    expect(parentFeatureRegister).toContain(">Review context<");
+    expect(parentFeatureRegister).not.toContain(">Child evidence<");
+    expect(parentFeatureRegister).not.toContain("EvidencePill");
+  });
+
   it("places Sprint 2 goals after the Leadership Snapshot and restores parent feature review at the page bottom", () => {
     const leadershipSnapshot = page.indexOf('eyebrow="Leadership snapshot"');
     const sprintGoals = page.indexOf("<RogerPilotSprintGoals />");
