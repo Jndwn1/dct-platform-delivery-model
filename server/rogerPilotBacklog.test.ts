@@ -102,6 +102,13 @@ describe("Roger Pilot backlog assessment workspace", () => {
     expect(goalSection).toContain("linear-gradient(90deg");
   });
 
+  it("renders visible bullet markers in each executive concern card", () => {
+    expect(page).toContain("Inter-team dependency signals");
+    expect(page).toContain("Data-contract / API concerns");
+    expect(page).toContain("Scheduling risks");
+    expect((page.match(/listStyleType: \"disc\"/g) ?? [])).toHaveLength(3);
+  });
+
   it("places Sprint 2 goals after the Leadership Snapshot and restores parent feature review at the page bottom", () => {
     const leadershipSnapshot = page.indexOf('eyebrow="Leadership snapshot"');
     const sprintGoals = page.indexOf("<RogerPilotSprintGoals />");

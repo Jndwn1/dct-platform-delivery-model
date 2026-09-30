@@ -263,3 +263,4 @@
 - [x] Move the cross-workstream alignment table directly beneath the Sprint Planning Alignment heading
 - [x] Restore the complete parent-feature review table at the bottom of the Roger Pilot Backlog
 - [x] Polish the Roger Pilot Backlog into a compact executive leadership view while retaining its approved content and order
+- [x] Display visible bullet points in the three Roger Pilot Backlog concern cards
