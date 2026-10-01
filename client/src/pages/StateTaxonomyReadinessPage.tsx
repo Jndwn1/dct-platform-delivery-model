@@ -6,6 +6,10 @@ import {
   OPEN_DECISIONS,
   OPEN_STATE_CONFIRMATION,
   RESPONSIBILITIES,
+  TAXONOMY_ALIGNMENT_TRANSCRIPT,
+  TAXONOMY_ALIGNMENT_TRANSCRIPT_ACTION,
+  TAXONOMY_ALIGNMENT_TRANSCRIPT_NOTE,
+  TAXONOMY_ALIGNMENT_TRANSCRIPT_SOURCE,
   TAXONOMY_DEPENDENCIES,
   TAXONOMY_MEETING_TEMPLATE,
   TDC_QUESTIONS,
@@ -35,6 +39,13 @@ const riskStyle: Record<ReadinessLevel, { background: string; border: string; co
   "Clarification needed": { background: C.amberSurface, border: "#fde68a", color: C.amber, label: "Clarification needed" },
   "Material implementation risk": { background: C.orangeSurface, border: "#fdba74", color: C.orange, label: "Material implementation risk" },
   "Blocking DEV": { background: C.redSurface, border: "#fecdd3", color: C.red, label: "Blocking DEV" },
+};
+
+const transcriptAccent = {
+  teal: { background: C.tealSurface, border: "#99f6e4", color: C.teal },
+  purple: { background: C.purpleSurface, border: "#ddd6fe", color: C.purple },
+  amber: { background: C.amberSurface, border: "#fde68a", color: C.amber },
+  orange: { background: C.orangeSurface, border: "#fdba74", color: C.orange },
 };
 
 function StatusPill({ status }: { status: ReadinessLevel }) {
@@ -104,6 +115,27 @@ export default function StateTaxonomyReadinessPage() {
             <div style={{ color: C.orange, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>Immediate focus</div>
             <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}><strong>1494222</strong> and <strong>1494344</strong> carry the highest implementation risk because unresolved taxonomy decisions directly affect persistence, mapping governance, corrections, versioning, audit history, and effective governed values.</p>
           </div>
+        </div>
+      </section>
+
+      <section id="transcript-alignment-update" style={{ marginBottom: "30px" }}>
+        <SectionHeading eyebrow="Transcript-informed update" title="What the State taxonomy discussion aligned, needs next, and leaves open" description="This working update translates the supplied meeting transcript into readiness content. It distinguishes discussion alignment from confirmed design decisions and keeps unresolved items explicitly open." />
+        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", color: "#1e3a5f", fontSize: "10px", lineHeight: 1.5, marginBottom: "12px", padding: "10px 12px" }}>
+          <strong>Source:</strong> {TAXONOMY_ALIGNMENT_TRANSCRIPT_SOURCE}. <span style={{ color: C.muted }}>{TAXONOMY_ALIGNMENT_TRANSCRIPT_NOTE}</span>
+        </div>
+        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(285px, 1fr))" }}>
+          {TAXONOMY_ALIGNMENT_TRANSCRIPT.map((section) => {
+            const accent = transcriptAccent[section.accent];
+            return <div key={section.title} style={{ background: accent.background, border: `1px solid ${accent.border}`, borderTop: `4px solid ${accent.color}`, borderRadius: "9px", padding: "13px" }}>
+              <div style={{ color: accent.color, fontSize: "11px", fontWeight: 900 }}>{section.title}</div>
+              <ul style={{ color: C.slate, fontSize: "10px", lineHeight: 1.5, listStylePosition: "outside", listStyleType: "disc", margin: "9px 0 0", paddingLeft: "18px" }}>
+                {section.items.map((item) => <li key={item} style={{ marginBottom: "6px" }}>{item}</li>)}
+              </ul>
+            </div>;
+          })}
+        </div>
+        <div style={{ background: C.tealSurface, border: "1px solid #99f6e4", borderRadius: "8px", color: C.slate, fontSize: "11px", lineHeight: 1.55, marginTop: "12px", padding: "11px 13px" }}>
+          <strong style={{ color: C.teal }}>Next action recorded in the transcript — {TAXONOMY_ALIGNMENT_TRANSCRIPT_ACTION.owner}:</strong> {TAXONOMY_ALIGNMENT_TRANSCRIPT_ACTION.action} {TAXONOMY_ALIGNMENT_TRANSCRIPT_ACTION.supportingAction}
         </div>
       </section>
 

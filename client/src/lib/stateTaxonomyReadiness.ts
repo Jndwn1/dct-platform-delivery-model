@@ -13,6 +13,9 @@ export type TaxonomyDependency = {
 
 export const TAXONOMY_DEPENDENCIES: TaxonomyDependency[] = [
   { dependency: "State Taxonomy Definition", needs: "Authoritative structure, concepts, categories, hierarchy, and identifiers/codes.", owner: "State / Tax SME", why: "TDC cannot govern an unknown business classification structure.", stories: "1494222, 1494344", risk: "Material implementation risk" },
+  { dependency: "Structured State Data Inventory", needs: "A shared table/list of State data points, beginning with known ingested data and expanded to apportionment calculations, State modifications, attributes, State TI, and liabilities as each becomes available.", owner: "State / Tax SME", why: "The transcript confirms this inventory is the next State action and is needed to align story scope, data format, and governed dataset design.", stories: "1494198, 1494222", risk: "Clarification needed" },
+  { dependency: "Orchestrator Matching Context", needs: "Agreed source/input characteristics, representative samples, and the attributes most helpful for Orchestrator matching to the normalized data set.", owner: "State / Tax SME + Orchestrator", why: "The transcript confirms existing sample-based matching work but leaves the most useful matching information open.", stories: "1494198, 1494222, 1494344", risk: "Clarification needed" },
+  { dependency: "State Calculation Outcome Scope", needs: "Confirmed treatment of apportionment calculations, State modifications, attributes, State taxable income, and liability outputs within the governed State data scope.", owner: "State / Tax SME + TDC", why: "These were named as the next data areas to lay out, but their persistence, lineage, and taxonomy treatment remain to be confirmed.", stories: "1494222, 1494339", risk: "Material implementation risk" },
   { dependency: "Authoritative Mapping Targets", needs: "Valid destination taxonomy IDs or concepts for Orchestrator and practitioner mappings.", owner: "State / Tax SME", why: "TDC needs valid governed targets rather than inferred labels.", stories: "1494222, 1494344", risk: "Material implementation risk" },
   { dependency: "GoSystem Alignment", needs: "State taxonomy-to-GoSystem fields, forms, lines, classifications, or values crosswalk.", owner: "State / GoSystem SME", why: "Downstream values and the crosswalk must be business-approved.", stories: "1494222, 1494339", risk: "Clarification needed" },
   { dependency: "Tax-Year Applicability", needs: "Tax-year variation, effective dates, and prior-year handling.", owner: "State / Tax SME", why: "TDC must retain applicable tax-year and version context.", stories: "1494198, 1494222", risk: "Clarification needed" },
@@ -88,14 +91,18 @@ export const TDC_TAXONOMY_REQUIREMENTS: TaxonomyRequirement[] = [
   { id: "REQ-TAX-022", title: "Gateway Exposure", statement: "TDC shall expose the approved governed State taxonomy data and required metadata to Gateway for downstream use by Roger." },
   { id: "REQ-TAX-023", title: "No Business-Rule Derivation by TDC", statement: "TDC shall not independently derive State business meaning, taxonomy definitions, or State-specific mapping rules that have not been approved by the State business owner or Tax SME." },
   { id: "REQ-TAX-024", title: "Taxonomy Change Control", statement: "TDC shall preserve the taxonomy/version context under which an existing dataset was created unless an approved process explicitly creates a new governed dataset or mapping version." },
+  { id: "REQ-TAX-025", title: "Structured State Data Inventory", statement: "TDC shall use the approved structured State data inventory to align governed dataset design with the State data points made available for ingestion, calculations, and downstream use." },
+  { id: "REQ-TAX-026", title: "Orchestrator Matching Context", statement: "TDC shall retain or expose the approved source and context attributes required to relate an Orchestrator-proposed mapping to the normalized State data set." },
+  { id: "REQ-TAX-027", title: "Direct User-Loaded Input Source", statement: "TDC shall distinguish approved direct user-loaded State inputs from client-ingested inputs when their source or governance treatment differs." },
+  { id: "REQ-TAX-028", title: "State Calculation Outcome Scope", statement: "TDC shall implement the approved governed treatment for apportionment calculations, State modifications, attributes, State taxable income, and liability outputs after their scope and taxonomy treatment are confirmed." },
 ];
 
 export type StoryImpact = { story: string; title: string; dependency: string; risk: ReadinessLevel; decision: string; owner: string };
 
 export const CURRENT_DEV_STORY_IMPACTS: StoryImpact[] = [
-  { story: "1494188", title: "PDC — Enable Current-Year State Source Documents Without Financial Mappings", dependency: "Approved State-processing context and the condition under which State documents may proceed without financial mappings.", risk: "Clarification needed", decision: "Confirm approved processing context, mapping-applicability signal, and State validation controls.", owner: "State / Tax SME + PDC" },
-  { story: "1494198", title: "PDC — Create and Route Current-Year State Source Submissions for Orchestrator Classification", dependency: "StateFootprintVersion, taxonomy/rule context, and metadata sent to Orchestrator.", risk: "Clarification needed", decision: "Confirm context, version, and routing metadata that accompanies the submission.", owner: "State / Tax SME + PDC + Orchestrator" },
-  { story: "1494222", title: "TDC — Persist and Govern the Orchestrator-Mapped Current-Year State Input Dataset", dependency: "Taxonomy target, dataset identity/lifecycle, mapping status, taxonomy version, payment normalization, validation, and lineage.", risk: "Material implementation risk", decision: "Confirm State taxonomy artifact, valid targets, identity model, lifecycle, statuses, and version triggers before final persistence design.", owner: "State / Tax SME + TDC" },
+  { story: "1494188", title: "PDC — Enable Current-Year State Source Documents Without Financial Mappings", dependency: "Approved State-processing context, including the treatment of direct user-loaded State inputs that are not from client ingestion.", risk: "Clarification needed", decision: "Confirm approved processing context, source-channel distinction, mapping-applicability signal, and State validation controls.", owner: "State / Tax SME + PDC" },
+  { story: "1494198", title: "PDC — Create and Route Current-Year State Source Submissions for Orchestrator Classification", dependency: "Structured State data inventory, StateFootprintVersion, taxonomy/rule context, and the matching information sent to Orchestrator.", risk: "Clarification needed", decision: "Confirm the shared State data table, sample/context attributes most helpful for matching, and routing metadata that accompanies the submission.", owner: "State / Tax SME + PDC + Orchestrator" },
+  { story: "1494222", title: "TDC — Persist and Govern the Orchestrator-Mapped Current-Year State Input Dataset", dependency: "Taxonomy target, structured State data inventory, calculation/outcome scope, dataset identity/lifecycle, mapping status, taxonomy version, payment normalization, validation, and lineage.", risk: "Material implementation risk", decision: "Confirm State taxonomy artifact, valid targets, the incoming inventory, calculation-output scope, identity model, lifecycle, statuses, and version triggers before final persistence design.", owner: "State / Tax SME + TDC" },
   { story: "1494339", title: "Gateway — Provide the Current-Year State Input Dataset to Roger", dependency: "State taxonomy metadata and governed effective values that must be exposed to Roger.", risk: "Clarification needed", decision: "Confirm governed response metadata, version context, and the Gateway non-normalization boundary.", owner: "State / Tax SME + TDC + Gateway + Roger" },
   { story: "1494344", title: "Gateway and TDC — Save State Practitioner Mapping, Correction, and Review Actions", dependency: "Valid mapping targets, practitioner correction, review status, supersession, versioning, audit, and effective value.", risk: "Material implementation risk", decision: "Confirm allowed actions, preserved original mapping, correction/version behavior, audit fields, and effective-result rule.", owner: "State / Tax SME + Roger + TDC + Gateway" },
 ];
@@ -134,7 +141,70 @@ export const OPEN_DECISIONS: OpenDecision[] = [
   { id: "TAX-12", decision: "How does State taxonomy align to GoSystem?", why: "Downstream crosswalk ownership and use must be approved.", stories: "1494222, 1494339", owner: "State / GoSystem SME" },
   { id: "TAX-13", decision: "What are the State payment taxonomy and normalization rules?", why: "TDC cannot infer payment classification.", stories: "1494222", owner: "State / Tax SME" },
   { id: "TAX-14", decision: "What taxonomy metadata must Gateway return to Roger?", why: "The governed response contract must be explicit.", stories: "1494339, 1494344", owner: "State / Tax SME + TDC + Gateway + Roger" },
+  { id: "TAX-15", decision: "What is the minimum shared table structure for the State data-point inventory?", why: "The transcript identifies table structures as a key area of remaining clarity and State's next action is to consolidate the data points for sharing.", stories: "1494198, 1494222", owner: "State / Tax SME" },
+  { id: "TAX-16", decision: "Which source and context attributes are most helpful to Orchestrator AI matching?", why: "Gary raised this explicitly; existing sample-based code does not resolve the approved matching context.", stories: "1494198, 1494222, 1494344", owner: "State / Tax SME + Orchestrator" },
+  { id: "TAX-17", decision: "What user adjustment and mapping-restatement behavior is permitted?", why: "The transcript anticipates user interaction and restated mapping, but the controlled action and audit treatment are not yet confirmed.", stories: "1494344", owner: "State / Tax SME + Roger + TDC" },
+  { id: "TAX-18", decision: "How are apportionment calculations, State modifications, attributes, State taxable income, and liabilities represented in the governed State dataset?", why: "These were named as the next data areas to lay out, with taxonomy-specific handling still to be defined.", stories: "1494222, 1494339", owner: "State / Tax SME + TDC" },
 ];
+
+export type TranscriptAlignmentSection = {
+  title: string;
+  accent: "teal" | "purple" | "amber" | "orange";
+  items: string[];
+};
+
+export const TAXONOMY_ALIGNMENT_TRANSCRIPT_SOURCE = "Roger State Taxonomy Alignment Discussion transcript — supplied October 1, 2026";
+
+export const TAXONOMY_ALIGNMENT_TRANSCRIPT_NOTE = "The source document identifies itself as an AI-generated transcript. It is treated as working discussion evidence; unresolved items remain open until the accountable owner confirms the decision.";
+
+export const TAXONOMY_ALIGNMENT_TRANSCRIPT: TranscriptAlignmentSection[] = [
+  {
+    title: "Working alignment from the session",
+    accent: "teal",
+    items: [
+      "State taxonomy was described as unique identifiers and normalization applied to individual State data points.",
+      "The State work is organized around State filing footprint and apportionment, with prepared data intended to support aligned stories and cross-team data preparation.",
+      "A starting view of ingested State data already exists; the group can use known intake and output UIs to build a fuller shareable data-point list.",
+      "The Orchestrator team has sample-based matching code in progress, with an expected level of user interaction similar to current workbook handling.",
+    ],
+  },
+  {
+    title: "What TDC needs next",
+    accent: "purple",
+    items: [
+      "A consolidated, structured State data-point inventory and table layout from State, beginning with known ingested data.",
+      "Representative source/input examples and the context attributes that help Orchestrator identify the source and map it to the normalized data set.",
+      "A confirmed view of how multiple account codes and multiple States should be laid out and represented in the data table.",
+      "Confirmed scope and governance treatment for direct user-loaded inputs and the next data areas: apportionment calculations, State modifications, attributes, State taxable income, and liabilities.",
+    ],
+  },
+  {
+    title: "Transcript-backed requirement refinement",
+    accent: "amber",
+    items: [
+      "The governed data design needs a structured State inventory, not only a conceptual taxonomy discussion.",
+      "The Orchestrator matching path needs approved source/context information and a traceable relationship to normalized State data.",
+      "The model must accommodate a controlled user adjustment and mapping-restatement path without losing the traceability of the prior mapping.",
+      "State calculation outputs must receive an explicit approved scope before TDC finalizes their persistence, lineage, and taxonomy treatment.",
+    ],
+  },
+  {
+    title: "Open questions and gaps discussed",
+    accent: "orange",
+    items: [
+      "What information is most helpful to Orchestrator for AI matching of the source and inputs to the normalized data set?",
+      "What table structures are required, and where is specific taxonomy detail needed versus a more general data structure?",
+      "Which data points, stories, or action items are reasonable to create now so the work can proceed alongside the other teams?",
+      "What is the formal governed treatment of calculation outputs and direct user-loaded inputs once the State data list is shared?",
+    ],
+  },
+];
+
+export const TAXONOMY_ALIGNMENT_TRANSCRIPT_ACTION = {
+  owner: "State team",
+  action: "Consolidate the State data points and share them across the teams to continue the alignment work.",
+  supportingAction: "Cass will make the recording and transcript accessible for the group to use as working discussion evidence.",
+};
 
 export const TAXONOMY_MEETING_TEMPLATE = [
   "Meeting Date:",

@@ -218,9 +218,23 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain("Taxonomy Meeting Notes");
     expect(page).toContain("Did Anything Change for DEV?");
     expect(data).toContain("REQ-TAX-024");
+    expect(data).toContain("REQ-TAX-025");
+    expect(data).toContain("REQ-TAX-026");
+    expect(data).toContain("REQ-TAX-027");
+    expect(data).toContain("REQ-TAX-028");
+    expect(data).toContain("Roger State Taxonomy Alignment Discussion transcript");
+    expect(data).toContain("Structured State Data Inventory");
+    expect(data).toContain("Orchestrator Matching Context");
+    expect(data).toContain("TAX-15");
+    expect(data).toContain("TAX-18");
     expect(data).toContain("OPEN — State/Tax SME confirmation required.");
     expect(data).toContain("No Business-Rule Derivation by TDC");
     expect(pageContext).toContain('"/post-pilot/state-taxonomy-readiness"');
+    expect(pageContext).toContain("State taxonomy alignment transcript");
+    expect(page).toContain("What the State taxonomy discussion aligned, needs next, and leaves open");
+    expect(page).toContain("Transcript-informed update");
+    expect(page).toContain("Next action recorded in the transcript");
+    expect(page.indexOf('id="transcript-alignment-update"')).toBeLessThan(page.indexOf('id="taxonomy-dependencies"'));
   });
 
   it("registers the supplied Sprint 2 planned features and ADO dependencies without inventing commitment or sizing", () => {

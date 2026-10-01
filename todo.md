@@ -266,3 +266,4 @@
 - [x] Display visible bullet points in the three Roger Pilot Backlog concern cards
 - [x] Remove the Child Evidence column from the Roger Pilot parent-feature evidence register
 - [x] Build the Post Pilot State Taxonomy — TDC Dependencies, Requirements, and Discussion Readiness workspace with evidence-bound dependencies, requirements, story impact, ownership, open decisions, and a reusable meeting template
+- [x] Update State Taxonomy readiness with transcript-backed meeting alignment, TDC needs, proposed requirements, and open gaps

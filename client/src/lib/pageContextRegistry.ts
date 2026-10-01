@@ -60,8 +60,8 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
   "/post-pilot/state-taxonomy-readiness": {
     pageTitle: "State Taxonomy Readiness",
     pageIcon: "◫",
-    description: "Evidence-bound TDC discussion readiness for State taxonomy dependencies, requirements, current DEV story impact, ownership boundaries, open decisions, and meeting capture.",
-    features: ["State Taxonomy Dependencies", "TDC Requirements", "Current DEV Story Impact", "Open Decision Tracker", "Taxonomy Meeting Notes"],
+    description: "Evidence-bound TDC discussion readiness for State taxonomy dependencies, requirements, current DEV story impact, ownership boundaries, open decisions, meeting capture, and the supplied State taxonomy alignment transcript.",
+    features: ["Transcript Alignment Update", "State Taxonomy Dependencies", "TDC Requirements", "Current DEV Story Impact", "Open Decision Tracker", "Taxonomy Meeting Notes"],
     apis: [],
     stories: ["1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Taxonomy Readiness Summary", "Dependency Table", "TDC Questions", "Requirements Register", "Story Impact", "Decision Tracker"],
@@ -70,7 +70,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     businessObjects: ["State Taxonomy", "Taxonomy Version", "Current-Year State Input Dataset", "Proposed Mapping", "Practitioner Decision", "Effective Governed Mapping"],
     integrations: ["PDC", "TDC", "Orchestrator", "Gateway", "Roger", "GoSystem"],
     lastUpdated: "2026-10-01",
-    lastChange: "Created an executive and implementation-readiness reference for State taxonomy discussions, centered on TDC dependency capture and the high-risk State stories 1494222 and 1494344.",
+    lastChange: "Updated from the supplied Roger State Taxonomy Alignment Discussion transcript: State will consolidate and share the data-point inventory; the remaining open areas include table structure, Orchestrator matching context, permitted mapping restatement, and the governed scope of State calculation outputs.",
   },
 
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────
