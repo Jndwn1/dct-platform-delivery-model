@@ -3,11 +3,11 @@ import {
   CURRENT_DEV_STORY_IMPACTS,
   OPEN_DECISIONS,
   OPEN_STATE_CONFIRMATION,
-  RESPONSIBILITIES,
   TAXONOMY_ALIGNMENT_TRANSCRIPT,
   TAXONOMY_ALIGNMENT_TRANSCRIPT_ACTION,
   TAXONOMY_ALIGNMENT_TRANSCRIPT_NOTE,
   TAXONOMY_ALIGNMENT_TRANSCRIPT_SOURCE,
+  TRANSCRIPT_FOLLOW_UPS,
   TRANSCRIPT_TDC_NEEDS,
   TDC_TAXONOMY_REQUIREMENTS,
   type ReadinessLevel,
@@ -75,27 +75,27 @@ export default function StateTaxonomyReadinessPage() {
           <Link href="/post-pilot" style={{ color: C.purple, fontSize: "11px", fontWeight: 850, textDecoration: "none" }}>← Post Pilot</Link>
           <div style={{ color: C.purple, fontSize: "10px", fontWeight: 900, letterSpacing: "0.1em", marginTop: "12px", textTransform: "uppercase" }}>PI4 · State / TDC Discussion Readiness</div>
           <h1 style={{ color: C.navy, fontSize: "26px", fontWeight: 900, letterSpacing: "-0.025em", margin: "5px 0 0" }}>State Taxonomy — TDC Dependencies, Requirements, and Discussion Readiness</h1>
-          <p style={{ color: C.muted, fontSize: "13px", lineHeight: 1.55, margin: "7px 0 0", maxWidth: "990px" }}>An executive and implementation-readiness reference for TDC taxonomy discussions. It records what TDC needs from State, what must be clarified before design decisions, and the governed data-layer responsibilities that follow an approved State definition.</p>
+          <p style={{ color: C.muted, fontSize: "13px", lineHeight: 1.55, margin: "7px 0 0", maxWidth: "990px" }}>A transcript-backed working reference for the State taxonomy discussion. It records the shared data, matching, table-layout, and follow-up needs raised in the session; it does not convert discussion into approved design or delivery commitment.</p>
         </div>
       </div>
 
       <section aria-label="Taxonomy executive summary" style={{ background: C.purpleSurface, border: "1px solid #e9d5ff", borderRadius: "11px", boxShadow: "0 2px 8px rgba(124,58,237,.06)", marginBottom: "26px", overflow: "hidden" }}>
         <div style={{ background: C.navy, color: "#ffffff", padding: "13px 16px" }}>
-          <div style={{ fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Governing principle</div>
-          <div style={{ fontSize: "17px", fontWeight: 900, lineHeight: 1.35, marginTop: "4px" }}>State defines <span style={{ color: "#c4b5fd" }}>WHAT</span> the taxonomy means. TDC defines <span style={{ color: "#c4b5fd" }}>HOW</span> resulting governed data is stored, versioned, audited, retrieved, and exposed.</div>
+          <div style={{ fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Session working focus</div>
+          <div style={{ fontSize: "17px", fontWeight: 900, lineHeight: 1.35, marginTop: "4px" }}>State will consolidate the data points. The teams will use that shared inventory to clarify <span style={{ color: "#c4b5fd" }}>matching context</span>, <span style={{ color: "#c4b5fd" }}>table layout</span>, and appropriate follow-up work.</div>
         </div>
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(285px, 1fr))", padding: "15px" }}>
           <div style={{ background: "#ffffff", border: "1px solid #dbeafe", borderTop: "4px solid #2563eb", borderRadius: "8px", padding: "13px" }}>
-            <div style={{ color: "#1d4ed8", fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>State / Tax SME provides</div>
-            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Authoritative taxonomy structure and targets, State business definitions, GoSystem alignment, applicability rules, filing-footprint context, and taxonomy-versioning expectations. TDC does not determine State business meaning.</p>
+            <div style={{ color: "#1d4ed8", fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>State next action</div>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Consolidate and share the known State data points, beginning with the existing ingested-data view and extending to the next calculation and output areas.</p>
           </div>
           <div style={{ background: "#ffffff", border: "1px solid #99f6e4", borderTop: `4px solid ${C.teal}`, borderRadius: "8px", padding: "13px" }}>
-            <div style={{ color: C.teal, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>TDC governs after definition</div>
-            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Source data, Orchestrator-proposed mappings, taxonomy IDs and versions, mapping status, practitioner decisions and corrections, source lineage, version/audit history, and effective governed values.</p>
+            <div style={{ color: C.teal, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>TDC working need</div>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Use the shared inventory, source examples, and table layout to identify the governed data treatment that can be refined with the State and Orchestrator teams.</p>
           </div>
           <div style={{ background: C.orangeSurface, border: "1px solid #fdba74", borderTop: `4px solid ${C.orange}`, borderRadius: "8px", padding: "13px" }}>
-            <div style={{ color: C.orange, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>Immediate focus</div>
-            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}><strong>1494222</strong> and <strong>1494344</strong> carry the highest implementation risk because unresolved taxonomy decisions directly affect persistence, mapping governance, corrections, versioning, audit history, and effective governed values.</p>
+            <div style={{ color: C.orange, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>Still open</div>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>The session did not decide the controlled user-adjustment path, direct-input treatment, required taxonomy detail, or final representation of the next calculation and output areas.</p>
           </div>
         </div>
       </section>
@@ -143,43 +143,43 @@ export default function StateTaxonomyReadinessPage() {
 
       <section id="tdc-requirements" style={{ marginBottom: "30px" }}>
         <SectionHeading eyebrow="2 · Transcript-backed working requirements" title="TDC taxonomy requirements" description="The requirements below reflect needs raised in the supplied alignment transcript. They are working inputs for validation and refinement; they do not independently approve State business meaning, technical design, or delivery commitment." />
-        <div style={{ background: C.amberSurface, border: "1px solid #fde68a", borderRadius: "8px", color: "#713f12", fontSize: "11px", lineHeight: 1.5, marginBottom: "12px", padding: "11px 13px" }}><strong>Requirements control:</strong> State / Tax SME confirmation is required before the working requirements become approved design, implementation, or delivery commitments. TDC owns the governed data-layer behavior that follows an approved decision.</div>
+        <div style={{ background: C.amberSurface, border: "1px solid #fde68a", borderRadius: "8px", color: "#713f12", fontSize: "11px", lineHeight: 1.5, marginBottom: "12px", padding: "11px 13px" }}><strong>Requirements control:</strong> State / Tax SME confirmation is required before the working requirements become approved design, implementation, or delivery commitments. The transcript does not establish an implementation ownership model.</div>
         <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))" }}>
           {TDC_TAXONOMY_REQUIREMENTS.map((requirement) => <div key={requirement.id} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.teal}`, borderRadius: "8px", padding: "11px 12px" }}><div style={{ color: C.teal, fontSize: "10px", fontWeight: 900 }}>{requirement.id}</div><div style={{ color: C.navy, fontSize: "11px", fontWeight: 900, marginTop: "4px" }}>{requirement.title}</div><p style={{ color: C.slate, fontSize: "10px", lineHeight: 1.5, margin: "5px 0 0" }}>{requirement.statement}</p><div style={{ color: C.muted, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: "9px", fontWeight: 850, marginTop: "8px" }}>Transcript: {requirement.reference}</div></div>)}
         </div>
       </section>
 
       <section id="current-dev-story-impact" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="3 · Current DEV story impact" title="Where unresolved taxonomy decisions affect current work" description="The first-pass State review findings are retained as context. These signals identify discussion and implementation-readiness impact only; they do not approve a solution, endpoint, schema, or story split." />
+        <SectionHeading eyebrow="3 · Transcript impact on current DEV stories" title="Where the discussion may affect current work" description="These rows connect the discussion to the current DEV-story assessment. They do not approve a solution, endpoint, schema, or story change." />
         <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "1170px", width: "100%" }}>
-              <thead><tr style={{ background: C.navy }}><TableHeader>Story</TableHeader><TableHeader>Taxonomy Dependency</TableHeader><TableHeader>Current Risk</TableHeader><TableHeader>Decision Needed</TableHeader><TableHeader>Owner</TableHeader></tr></thead>
-              <tbody>{CURRENT_DEV_STORY_IMPACTS.map((item, index) => <tr key={item.story} style={{ background: item.risk === "Material implementation risk" ? "#fff7ed" : index % 2 ? "#ffffff" : "#f8fafc", borderLeft: item.risk === "Material implementation risk" ? `4px solid ${C.orange}` : "none", borderTop: `1px solid ${C.border}` }}><Cell width="20%"><strong style={{ color: C.purple, fontSize: "12px" }}>{item.story}</strong><div style={{ color: C.navy, fontSize: "10px", fontWeight: 800, lineHeight: 1.4, marginTop: "4px" }}>{item.title}</div></Cell><Cell width="26%">{item.dependency}</Cell><Cell width="13%"><StatusPill status={item.risk} /></Cell><Cell width="25%"><strong style={{ color: C.orange }}>{item.decision}</strong></Cell><Cell width="16%">{item.owner}</Cell></tr>)}</tbody>
+            <table style={{ borderCollapse: "collapse", minWidth: "1290px", width: "100%" }}>
+              <thead><tr style={{ background: C.navy }}><TableHeader>Story</TableHeader><TableHeader>Discussion Impact</TableHeader><TableHeader>Current Risk</TableHeader><TableHeader>Working Next Step</TableHeader><TableHeader>Transcript Reference</TableHeader><TableHeader>Follow-Up Participants</TableHeader></tr></thead>
+              <tbody>{CURRENT_DEV_STORY_IMPACTS.map((item, index) => <tr key={item.story} style={{ background: item.risk === "Material implementation risk" ? "#fff7ed" : index % 2 ? "#ffffff" : "#f8fafc", borderLeft: item.risk === "Material implementation risk" ? `4px solid ${C.orange}` : "none", borderTop: `1px solid ${C.border}` }}><Cell width="18%"><strong style={{ color: C.purple, fontSize: "12px" }}>{item.story}</strong><div style={{ color: C.navy, fontSize: "10px", fontWeight: 800, lineHeight: 1.4, marginTop: "4px" }}>{item.title}</div></Cell><Cell width="24%">{item.discussionImpact}</Cell><Cell width="11%"><StatusPill status={item.risk} /></Cell><Cell width="24%"><strong style={{ color: C.orange }}>{item.nextStep}</strong></Cell><Cell width="10%"><span style={{ color: C.muted, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontWeight: 800 }}>{item.reference}</span></Cell><Cell width="13%">{item.owner}</Cell></tr>)}</tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <section id="taxonomy-ownership" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="4 · RACI-style ownership view" title="Clear responsibility boundaries" description="State and Tax SMEs remain the authority for State business meaning and authoritative mapping decisions. TDC owns the governed data-layer behavior that follows an approved decision." />
+      <section id="transcript-follow-up" style={{ marginBottom: "30px" }}>
+        <SectionHeading eyebrow="4 · Transcript follow-up register" title="Working handoffs from the session" description="Participants are suggested collaborators for the next discussion step; this is not a RACI or an approved ownership model." />
         <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "1040px", width: "100%" }}>
-              <thead><tr style={{ background: "#1e3a5f" }}><TableHeader>Decision / Responsibility</TableHeader><TableHeader>State / Tax SME</TableHeader><TableHeader>TDC</TableHeader><TableHeader>Orchestrator</TableHeader><TableHeader>Gateway</TableHeader><TableHeader>Roger</TableHeader></tr></thead>
-              <tbody>{RESPONSIBILITIES.map((item, index) => <tr key={item.decision} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="26%"><strong style={{ color: C.navy }}>{item.decision}</strong></Cell><Cell width="17%"><strong style={{ color: item.state === "Owner" ? C.teal : C.slate }}>{item.state}</strong></Cell><Cell width="15%"><strong style={{ color: item.tdc === "Owner" ? C.purple : C.slate }}>{item.tdc}</strong></Cell><Cell width="14%">{item.orchestrator}</Cell><Cell width="14%">{item.gateway}</Cell><Cell width="14%">{item.roger}</Cell></tr>)}</tbody>
+            <table style={{ borderCollapse: "collapse", minWidth: "1190px", width: "100%" }}>
+              <thead><tr style={{ background: "#1e3a5f" }}><TableHeader>Area</TableHeader><TableHeader>Discussion Evidence</TableHeader><TableHeader>Working Next Step</TableHeader><TableHeader>Suggested Participants</TableHeader><TableHeader>Transcript Reference</TableHeader><TableHeader>Readiness</TableHeader></tr></thead>
+              <tbody>{TRANSCRIPT_FOLLOW_UPS.map((item, index) => <tr key={item.area} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="17%"><strong style={{ color: C.navy }}>{item.area}</strong></Cell><Cell width="24%">{item.discussionEvidence}</Cell><Cell width="24%"><strong style={{ color: C.orange }}>{item.nextStep}</strong></Cell><Cell width="16%"><span style={{ color: C.teal, fontWeight: 850 }}>{item.participants}</span></Cell><Cell width="10%"><span style={{ color: C.muted, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontWeight: 800 }}>{item.reference}</span></Cell><Cell width="9%"><StatusPill status={item.status} /></Cell></tr>)}</tbody>
             </table>
           </div>
         </div>
       </section>
 
       <section id="open-decisions" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="5 · Dependency tracker" title="Open decisions requiring confirmation" description="These decisions are prepopulated for the State taxonomy discussion. Keep the decision and resolution date blank until an accountable owner confirms the outcome." />
+        <SectionHeading eyebrow="5 · Open transcript gaps" title="Questions that still need a shared answer" description="These are discussion gaps, not prepopulated design decisions. Keep the answer blank until the relevant participants confirm it." />
         <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "1230px", width: "100%" }}>
-              <thead><tr style={{ background: C.navy }}><TableHeader>ID</TableHeader><TableHeader>Open Decision</TableHeader><TableHeader>Why TDC Needs It</TableHeader><TableHeader>Impacted Story</TableHeader><TableHeader>Owner</TableHeader><TableHeader>Status</TableHeader><TableHeader>Decision</TableHeader><TableHeader>Date Resolved</TableHeader></tr></thead>
-              <tbody>{OPEN_DECISIONS.map((item, index) => <tr key={item.id} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="6%"><strong style={{ color: C.purple }}>{item.id}</strong></Cell><Cell width="22%"><strong style={{ color: C.navy }}>{item.decision}</strong></Cell><Cell width="17%">{item.why}</Cell><Cell width="11%"><span style={{ color: C.purple, fontWeight: 850 }}>{item.stories}</span></Cell><Cell width="13%">{item.owner}</Cell><Cell width="10%"><StatusPill status="Clarification needed" /></Cell><Cell width="16%"><span style={{ color: C.amber, fontStyle: "italic" }}>{OPEN_STATE_CONFIRMATION}</span></Cell><Cell width="5%">—</Cell></tr>)}</tbody>
+            <table style={{ borderCollapse: "collapse", minWidth: "1110px", width: "100%" }}>
+              <thead><tr style={{ background: C.navy }}><TableHeader>ID</TableHeader><TableHeader>Open Gap</TableHeader><TableHeader>Why It Remains Open</TableHeader><TableHeader>Impact</TableHeader><TableHeader>Suggested Follow-Up Participants</TableHeader><TableHeader>Transcript Reference</TableHeader><TableHeader>Status</TableHeader></tr></thead>
+              <tbody>{OPEN_DECISIONS.map((item, index) => <tr key={item.id} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="7%"><strong style={{ color: C.purple }}>{item.id}</strong></Cell><Cell width="23%"><strong style={{ color: C.navy }}>{item.gap}</strong></Cell><Cell width="23%">{item.why}</Cell><Cell width="14%"><span style={{ color: C.purple, fontWeight: 850 }}>{item.impact}</span></Cell><Cell width="15%">{item.owner}</Cell><Cell width="11%"><span style={{ color: C.muted, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontWeight: 800 }}>{item.reference}</span></Cell><Cell width="7%"><StatusPill status="Clarification needed" /></Cell></tr>)}</tbody>
             </table>
           </div>
         </div>

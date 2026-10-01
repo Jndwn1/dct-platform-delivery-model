@@ -272,3 +272,4 @@
 - [x] Remove the Taxonomy Discussion Listening Guide and renumber State Taxonomy Sections 3–7 to 2–6
 - [x] Remove current Section 2 Questions TDC Should Ask and renumber State Taxonomy Sections 3–6 to 2–5
 - [x] Replace generic State Taxonomy requirements with the working TDC requirements directly grounded in the alignment transcript
+- [x] Run the Roger State Taxonomy Alignment Discussion transcript across every visible State Taxonomy readiness section, replacing legacy dependency, ownership, and decision content with transcript-backed follow-ups and gaps
