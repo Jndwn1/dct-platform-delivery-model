@@ -215,6 +215,10 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain("Questions TDC should ask");
     expect(page).toContain("TDC taxonomy requirements");
     expect(page).toContain("Open decisions requiring confirmation");
+    expect(page).toContain("What TDC needs next from the State taxonomy discussion");
+    expect(page).toContain("Transcript Reference");
+    expect(page).toContain("TRANSCRIPT_TDC_NEEDS.map");
+    expect(page).not.toContain("TAXONOMY_DEPENDENCIES.map");
     expect(page).not.toContain("Taxonomy Meeting Notes");
     expect(page).not.toContain("Did Anything Change for DEV?");
     expect(page).not.toContain("Copy meeting-notes template");
@@ -228,6 +232,11 @@ describe("PI4 Post Pilot delivery", () => {
     expect(data).toContain("Roger State Taxonomy Alignment Discussion transcript");
     expect(data).toContain("Structured State Data Inventory");
     expect(data).toContain("Orchestrator Matching Context");
+    expect(data).toContain("TRANSCRIPT_TDC_NEEDS");
+    expect(data).toContain("DATA-01");
+    expect(data).toContain("MATCH-02");
+    expect(data).toContain("CALC-06");
+    expect(data).toContain("0:59:32–1:00:38");
     expect(data).toContain("TAX-15");
     expect(data).toContain("TAX-18");
     expect(data).toContain("OPEN — State/Tax SME confirmation required.");

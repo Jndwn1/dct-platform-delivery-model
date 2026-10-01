@@ -268,3 +268,4 @@
 - [x] Build the Post Pilot State Taxonomy — TDC Dependencies, Requirements, and Discussion Readiness workspace with evidence-bound dependencies, requirements, story impact, ownership, open decisions, and a reusable meeting template
 - [x] Update State Taxonomy readiness with transcript-backed meeting alignment, TDC needs, proposed requirements, and open gaps
 - [x] Remove Section 8 Taxonomy Meeting Notes and its header copy action from State Taxonomy Readiness
+- [x] Replace State Taxonomy Section 1 with transcript-specific TDC data, matching, calculation, and follow-up needs

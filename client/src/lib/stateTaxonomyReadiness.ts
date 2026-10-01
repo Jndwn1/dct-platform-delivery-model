@@ -34,6 +34,93 @@ export const TAXONOMY_DEPENDENCIES: TaxonomyDependency[] = [
   { dependency: "Gateway Contract", needs: "Taxonomy metadata and governed State data Roger needs returned.", owner: "Roger + Gateway + TDC", why: "Gateway must expose approved governed data without adding State business meaning.", stories: "1494339, 1494344", risk: "Clarification needed" },
 ];
 
+export type TranscriptTdcNeed = {
+  id: string;
+  need: string;
+  owner: string;
+  why: string;
+  reference: string;
+  workstreams: string;
+  status: ReadinessLevel;
+};
+
+// Evidence-bound to the supplied Roger State Taxonomy Alignment Discussion transcript.
+// These are discussion outcomes and follow-ups, not approved technical design decisions.
+export const TRANSCRIPT_TDC_NEEDS: TranscriptTdcNeed[] = [
+  {
+    id: "DATA-01",
+    need: "State data-point inventory",
+    owner: "State team",
+    why: "State will consolidate the known State data points, including its existing ingested-data view, so the teams can work from one shareable inventory.",
+    reference: "1:01:07–1:01:40",
+    workstreams: "State · TDC · Orchestrator",
+    status: "Clarification needed",
+  },
+  {
+    id: "MATCH-02",
+    need: "Orchestrator matching context",
+    owner: "State + Orchestrator",
+    why: "TDC needs representative source/input examples and the context attributes that help Orchestrator identify a source and map it to normalized State data.",
+    reference: "0:59:32–1:00:38",
+    workstreams: "State · Orchestrator · TDC",
+    status: "Clarification needed",
+  },
+  {
+    id: "TABLE-03",
+    need: "Multi-State and account-code table layout",
+    owner: "State + TDC",
+    why: "The transcript calls for a usable table representation when one item involves multiple account codes and multiple States.",
+    reference: "0:58:26–0:58:56",
+    workstreams: "State · TDC",
+    status: "Clarification needed",
+  },
+  {
+    id: "USER-04",
+    need: "User adjustment and mapping-restatement path",
+    owner: "State + Roger + TDC",
+    why: "The anticipated user interaction and ability to restate a mapping need a confirmed controlled workflow before TDC governs the resulting data.",
+    reference: "0:54:32–0:55:32",
+    workstreams: "State · Roger · TDC",
+    status: "Clarification needed",
+  },
+  {
+    id: "INPUT-05",
+    need: "Direct user-loaded State input treatment",
+    owner: "State + TDC",
+    why: "The group distinguished direct user-loaded State inputs from client ingestion; TDC needs the approved source and governance treatment.",
+    reference: "0:52:28–0:52:48",
+    workstreams: "State · TDC · Roger",
+    status: "Clarification needed",
+  },
+  {
+    id: "CALC-06",
+    need: "Calculation and output inventory",
+    owner: "State + TDC",
+    why: "Apportionment calculations, State modifications, attributes, State taxable income, and liabilities were identified as the next data areas to lay out before governed handling is finalized.",
+    reference: "1:01:52–1:02:10",
+    workstreams: "State · TDC",
+    status: "Material implementation risk",
+  },
+  {
+    id: "TAX-07",
+    need: "Taxonomy versus data-table detail",
+    owner: "State / Tax SME + TDC",
+    why: "The group needs to determine where specific taxonomy detail is required and where a more general data structure is sufficient.",
+    reference: "1:02:46–1:02:55",
+    workstreams: "State · TDC",
+    status: "Clarification needed",
+  },
+  {
+    id: "PLAN-08",
+    need: "Follow-up stories and action items",
+    owner: "State + TDC + Orchestrator",
+    why: "The group will decide which data points, stories, and action items are reasonable to create now so work can progress alongside the other teams.",
+    reference: "1:03:02–1:03:24",
+    workstreams: "State · TDC · Orchestrator",
+    status: "Clarification needed",
+  },
+];
+
 export type ListenForItem = { topic: string; listenFor: string; why: string; followUp: string };
 
 export const LISTEN_FOR_ITEMS: ListenForItem[] = [

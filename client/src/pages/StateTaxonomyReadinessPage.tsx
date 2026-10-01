@@ -9,7 +9,7 @@ import {
   TAXONOMY_ALIGNMENT_TRANSCRIPT_ACTION,
   TAXONOMY_ALIGNMENT_TRANSCRIPT_NOTE,
   TAXONOMY_ALIGNMENT_TRANSCRIPT_SOURCE,
-  TAXONOMY_DEPENDENCIES,
+  TRANSCRIPT_TDC_NEEDS,
   TDC_QUESTIONS,
   TDC_TAXONOMY_REQUIREMENTS,
   type ReadinessLevel,
@@ -132,12 +132,12 @@ export default function StateTaxonomyReadinessPage() {
       </section>
 
       <section id="taxonomy-dependencies" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="1 · TDC taxonomy dependencies" title="What TDC needs from State" description="The dependencies below separate authoritative State meaning from TDC data-governance implementation. Each row remains open until the named owner provides or confirms the decision." />
+        <SectionHeading eyebrow="1 · Transcript-driven TDC needs" title="What TDC needs next from the State taxonomy discussion" description="This register is limited to the data, matching, calculation, and follow-up needs discussed in the supplied transcript. It records working needs and gaps; it does not approve a technical design." />
         <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15,23,42,.045)", overflow: "hidden" }}>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "1260px", width: "100%" }}>
-              <thead><tr style={{ background: C.navy }}><TableHeader>Dependency</TableHeader><TableHeader>What TDC Needs</TableHeader><TableHeader>Owner</TableHeader><TableHeader>Why TDC Needs It</TableHeader><TableHeader>Impacted Story</TableHeader><TableHeader>Risk if Unresolved</TableHeader></tr></thead>
-              <tbody>{TAXONOMY_DEPENDENCIES.map((item, index) => <tr key={item.dependency} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="16%"><strong style={{ color: C.navy, fontSize: "11px" }}>{item.dependency}</strong></Cell><Cell width="26%">{item.needs}</Cell><Cell width="15%"><strong>{item.owner}</strong></Cell><Cell width="23%">{item.why}</Cell><Cell width="10%"><span style={{ color: C.purple, fontWeight: 850 }}>{item.stories}</span></Cell><Cell width="10%"><StatusPill status={item.risk} /></Cell></tr>)}</tbody>
+            <table style={{ borderCollapse: "collapse", minWidth: "1350px", width: "100%" }}>
+              <thead><tr style={{ background: C.navy }}><TableHeader>ID</TableHeader><TableHeader>What TDC Needs Next</TableHeader><TableHeader>Why It Is Needed</TableHeader><TableHeader>Transcript Reference</TableHeader><TableHeader>Owner / Follow-Up</TableHeader><TableHeader>Workstreams</TableHeader><TableHeader>Readiness</TableHeader></tr></thead>
+              <tbody>{TRANSCRIPT_TDC_NEEDS.map((item, index) => <tr key={item.id} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="7%"><strong style={{ color: C.purple, fontSize: "11px" }}>{item.id}</strong></Cell><Cell width="19%"><strong style={{ color: C.navy, fontSize: "11px" }}>{item.need}</strong></Cell><Cell width="29%">{item.why}</Cell><Cell width="11%"><span style={{ color: C.muted, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontWeight: 800 }}>{item.reference}</span></Cell><Cell width="14%"><strong>{item.owner}</strong></Cell><Cell width="11%"><span style={{ color: C.teal, fontWeight: 850 }}>{item.workstreams}</span></Cell><Cell width="9%"><StatusPill status={item.status} /></Cell></tr>)}</tbody>
             </table>
           </div>
         </div>
