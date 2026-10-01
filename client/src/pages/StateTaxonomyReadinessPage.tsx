@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "wouter";
 import {
   CURRENT_DEV_STORY_IMPACTS,
@@ -11,7 +10,6 @@ import {
   TAXONOMY_ALIGNMENT_TRANSCRIPT_NOTE,
   TAXONOMY_ALIGNMENT_TRANSCRIPT_SOURCE,
   TAXONOMY_DEPENDENCIES,
-  TAXONOMY_MEETING_TEMPLATE,
   TDC_QUESTIONS,
   TDC_TAXONOMY_REQUIREMENTS,
   type ReadinessLevel,
@@ -72,28 +70,14 @@ function Cell({ children, width }: { children: React.ReactNode; width?: string }
 }
 
 export default function StateTaxonomyReadinessPage() {
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
-  const copyMeetingTemplate = async () => {
-    try {
-      await navigator.clipboard.writeText(TAXONOMY_MEETING_TEMPLATE);
-      setCopyState("copied");
-    } catch {
-      setCopyState("error");
-    }
-  };
-
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", margin: "0 auto", maxWidth: "1360px", padding: "28px 32px 52px" }}>
-      <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "14px", justifyContent: "space-between", marginBottom: "22px" }}>
+      <div style={{ marginBottom: "22px" }}>
         <div>
           <Link href="/post-pilot" style={{ color: C.purple, fontSize: "11px", fontWeight: 850, textDecoration: "none" }}>← Post Pilot</Link>
           <div style={{ color: C.purple, fontSize: "10px", fontWeight: 900, letterSpacing: "0.1em", marginTop: "12px", textTransform: "uppercase" }}>PI4 · State / TDC Discussion Readiness</div>
           <h1 style={{ color: C.navy, fontSize: "26px", fontWeight: 900, letterSpacing: "-0.025em", margin: "5px 0 0" }}>State Taxonomy — TDC Dependencies, Requirements, and Discussion Readiness</h1>
           <p style={{ color: C.muted, fontSize: "13px", lineHeight: 1.55, margin: "7px 0 0", maxWidth: "990px" }}>An executive and implementation-readiness reference for TDC taxonomy discussions. It records what TDC needs from State, what must be clarified before design decisions, and the governed data-layer responsibilities that follow an approved State definition.</p>
-        </div>
-        <div style={{ alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "7px" }}>
-          <button onClick={() => void copyMeetingTemplate()} type="button" style={{ background: C.navy, border: "none", borderRadius: "6px", color: "#ffffff", cursor: "pointer", fontSize: "10px", fontWeight: 900, padding: "9px 11px" }}>Copy meeting-notes template</button>
-          <div aria-live="polite" style={{ color: copyState === "error" ? C.amber : C.muted, fontSize: "9px", maxWidth: "205px", textAlign: "right" }}>{copyState === "copied" ? "Meeting-notes template copied." : copyState === "error" ? "Clipboard access is unavailable; use the template below." : "Reusable template included below."}</div>
         </div>
       </div>
 
@@ -222,24 +206,6 @@ export default function StateTaxonomyReadinessPage() {
         </div>
       </section>
 
-      <section id="taxonomy-meeting-notes" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="8 · Reusable meeting capture" title="Taxonomy Meeting Notes" description="Use this template to document confirmed decisions, new TDC dependencies, and current DEV impact immediately after a State taxonomy discussion." />
-        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "minmax(0, 1.1fr) minmax(310px, .9fr)" }}>
-          <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", padding: "14px" }}>
-            <div style={{ color: C.navy, fontSize: "12px", fontWeight: 900 }}>Meeting capture template</div>
-            <textarea aria-label="Taxonomy meeting notes template" readOnly value={TAXONOMY_MEETING_TEMPLATE} style={{ background: "#f8fafc", border: `1px dashed #cbd5e1`, borderRadius: "7px", color: C.slate, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: "11px", lineHeight: 1.65, marginTop: "10px", minHeight: "260px", padding: "11px", resize: "vertical", width: "100%" }} />
-          </div>
-          <div style={{ background: C.tealSurface, border: "1px solid #99f6e4", borderRadius: "10px", padding: "14px" }}>
-            <div style={{ color: C.teal, fontSize: "10px", fontWeight: 900, letterSpacing: "0.075em", textTransform: "uppercase" }}>Did Anything Change for DEV?</div>
-            <div style={{ color: C.navy, fontSize: "13px", fontWeight: 900, marginTop: "6px" }}>☐ Yes &nbsp;&nbsp; ☐ No</div>
-            <p style={{ color: C.slate, fontSize: "10px", lineHeight: 1.5, margin: "8px 0 12px" }}>If yes, identify the current story, specific change, DEV impact, action required, and accountable owner. Do not mark a decision as approved until its owner confirms it.</p>
-            <div style={{ border: "1px solid #99f6e4", borderRadius: "7px", overflow: "hidden" }}>
-              <div style={{ background: "#ccfbf1", color: C.teal, display: "grid", fontSize: "8px", fontWeight: 900, gap: "7px", gridTemplateColumns: "1fr 1.4fr 1.2fr 1.2fr 1fr", letterSpacing: "0.04em", padding: "8px", textTransform: "uppercase" }}><span>Story</span><span>Change</span><span>DEV Impact</span><span>Action Required</span><span>Owner</span></div>
-              <div style={{ background: "#ffffff", color: C.muted, display: "grid", fontSize: "10px", gap: "7px", gridTemplateColumns: "1fr 1.4fr 1.2fr 1.2fr 1fr", minHeight: "92px", padding: "8px" }}><span>—</span><span>Document confirmed change</span><span>Assess after confirmation</span><span>Record next action</span><span>Assign confirmed owner</span></div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

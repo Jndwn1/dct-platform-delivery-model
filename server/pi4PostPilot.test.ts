@@ -215,8 +215,11 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain("Questions TDC should ask");
     expect(page).toContain("TDC taxonomy requirements");
     expect(page).toContain("Open decisions requiring confirmation");
-    expect(page).toContain("Taxonomy Meeting Notes");
-    expect(page).toContain("Did Anything Change for DEV?");
+    expect(page).not.toContain("Taxonomy Meeting Notes");
+    expect(page).not.toContain("Did Anything Change for DEV?");
+    expect(page).not.toContain("Copy meeting-notes template");
+    expect(page).not.toContain("taxonomy-meeting-notes");
+    expect(page).not.toContain("TAXONOMY_MEETING_TEMPLATE");
     expect(data).toContain("REQ-TAX-024");
     expect(data).toContain("REQ-TAX-025");
     expect(data).toContain("REQ-TAX-026");

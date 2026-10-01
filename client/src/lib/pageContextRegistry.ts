@@ -60,8 +60,8 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
   "/post-pilot/state-taxonomy-readiness": {
     pageTitle: "State Taxonomy Readiness",
     pageIcon: "◫",
-    description: "Evidence-bound TDC discussion readiness for State taxonomy dependencies, requirements, current DEV story impact, ownership boundaries, open decisions, meeting capture, and the supplied State taxonomy alignment transcript.",
-    features: ["Transcript Alignment Update", "State Taxonomy Dependencies", "TDC Requirements", "Current DEV Story Impact", "Open Decision Tracker", "Taxonomy Meeting Notes"],
+    description: "Evidence-bound TDC discussion readiness for State taxonomy dependencies, requirements, current DEV story impact, ownership boundaries, open decisions, and the supplied State taxonomy alignment transcript.",
+    features: ["Transcript Alignment Update", "State Taxonomy Dependencies", "TDC Requirements", "Current DEV Story Impact", "Open Decision Tracker"],
     apis: [],
     stories: ["1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Taxonomy Readiness Summary", "Dependency Table", "TDC Questions", "Requirements Register", "Story Impact", "Decision Tracker"],
