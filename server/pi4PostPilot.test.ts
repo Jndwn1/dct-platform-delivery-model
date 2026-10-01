@@ -236,6 +236,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(data).toContain("REQ-TAX-001");
     expect(data).toContain("REQ-TAX-008");
     expect(data).toContain("Current_Year_State_Data_Acquisition_PDC_TDC_Schema.xlsx");
+    expect(data).toContain("https://rsmnet.sharepoint.com/:x:/r/sites/CATTO365/");
+    expect(data).toContain("sourceUrl: STATE_CURRENT_YEAR_SCHEMA_REFERENCE.url");
     expect(data).toContain("State-specific normalized dataset");
     expect(data).toContain("CY_LAND");
     expect(data).toContain("IMS locator and GoSystem routing context");
@@ -266,6 +268,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain("State-provided proposed direction · confirmation pending");
     expect(page).toContain("Proposed structured State dataset item");
     expect(page).toContain("State-proposed next actions");
+    expect(page).toContain('href={STATE_CURRENT_YEAR_SCHEMA_REFERENCE.url}');
+    expect(page).toContain("Open State schema workbook ↗");
     expect(page.indexOf('id="transcript-alignment-update"')).toBeLessThan(page.indexOf('id="taxonomy-dependencies"'));
   });
 

@@ -276,3 +276,4 @@
 - [x] Create an evidence-bound recap of the Roger State Taxonomy Alignment Discussion transcript
 - [x] Create an email-ready State Taxonomy meeting recap for the DEV lead from the published readiness workspace
 - [x] Update State Taxonomy Readiness with the State-provided current-year normalized dataset and GoSystem downstream-mapping approach, preserving pending confirmation boundaries
+- [x] Add the supplied SharePoint current-year State schema link to the State-proposed next actions and schema reference

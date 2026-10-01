@@ -124,7 +124,8 @@ export type TaxonomyRequirement = { id: string; title: string; statement: string
 export const STATE_CURRENT_YEAR_SCHEMA_REFERENCE = {
   title: "Current-Year State Data Acquisition PDC/TDC Schema",
   fileName: "Current_Year_State_Data_Acquisition_PDC_TDC_Schema.xlsx",
-  sourceStatus: "State-provided reference; the workbook link/file is not available in this workspace.",
+  url: "https://rsmnet.sharepoint.com/:x:/r/sites/CATTO365/Shared%20Documents/Roger%20-%20state%20and%20provision/State/State%20Requirements%20-%20for%20Tech%20teams/Current_Year_State_Data_Acquisition_PDC_TDC_Schema.xlsx?d=w049e75f1441b473fa3a4ce130a6bf6cd&csf=1&web=1&e=xlHu2p&xsdata=MDV8MDJ8SmVubml2ZXIuU3RhZmZvcmRAcnNtdXMuY29tfGFmYjJkMTk5OWJjNDQwNjVmMTFjMDhkZjFmZWE2NzcxfDFlM2U3MWJlZmNjYTQyODQ5MDMxNjg4Y2M4ZjM3YjZifDB8MHw2MzkyNjQ3NjM3NzU2NjYxOTB8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpGYlhCMGVVMWhjR2tpT25SeWRXVXNJbFlpT2lJd0xqQXVNREF3TUNJc0lsQWlPaUpYYVc0ek1pSXNJa0ZPSWpvaVRXRnBiQ0lzSWxkVUlqb3lmUT09fDB8fHw%3d&sdata=UUs0Ky93YmI2KzA1K1pIYW16OGtod2pBWkh2MFhPOHROeVZGbzAwWDVSYz0%3d",
+  sourceStatus: "State-provided SharePoint workbook.",
   scope: "Current-year Property, Payroll, Sales, and Payments data requirements; source-to-target mapping; intake and routing context; TDC persistence; lineage; practitioner corrections; and proposed dataset structure.",
   decisionStatus: "Proposed approach — State / Tax SME confirmation required before technical design, implementation, or story commitment.",
 } as const;
@@ -150,16 +151,19 @@ export const STATE_NORMALIZATION_NEXT_ACTIONS = [
     action: "Confirm the current-year State Data Acquisition schema as the agreed working approach",
     detail: "Confirm whether the supplied schema is the approach for capturing and governing a State-specific normalized dataset.",
     owner: "State team + State / Tax SME",
+    sourceUrl: STATE_CURRENT_YEAR_SCHEMA_REFERENCE.url,
   },
   {
     action: "Confirm IMS locator context and downstream routing",
     detail: "Work with IMS to confirm the State data, locator context, and routing information needed for downstream GoSystem mapping.",
     owner: "State team + IMS + TDC",
+    sourceUrl: null,
   },
   {
     action: "Expand remaining State feature data requirements",
     detail: "As State features are refined, document data needs for apportionment outputs, State modifications, credits and NOLs, State taxable income, State liability, and review/output processes.",
     owner: "State team + TDC + Roger",
+    sourceUrl: null,
   },
 ] as const;
 
