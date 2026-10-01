@@ -270,3 +270,4 @@
 - [x] Remove Section 8 Taxonomy Meeting Notes and its header copy action from State Taxonomy Readiness
 - [x] Replace State Taxonomy Section 1 with transcript-specific TDC data, matching, calculation, and follow-up needs
 - [x] Remove the Taxonomy Discussion Listening Guide and renumber State Taxonomy Sections 3–7 to 2–6
+- [x] Remove current Section 2 Questions TDC Should Ask and renumber State Taxonomy Sections 3–6 to 2–5
