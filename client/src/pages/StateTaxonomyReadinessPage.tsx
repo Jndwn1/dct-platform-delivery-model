@@ -3,6 +3,9 @@ import {
   CURRENT_DEV_STORY_IMPACTS,
   OPEN_DECISIONS,
   OPEN_STATE_CONFIRMATION,
+  PROPOSED_STATE_NORMALIZED_DATASET,
+  STATE_CURRENT_YEAR_SCHEMA_REFERENCE,
+  STATE_NORMALIZATION_NEXT_ACTIONS,
   TAXONOMY_ALIGNMENT_TRANSCRIPT,
   TAXONOMY_ALIGNMENT_TRANSCRIPT_ACTION,
   TAXONOMY_ALIGNMENT_TRANSCRIPT_NOTE,
@@ -75,27 +78,60 @@ export default function StateTaxonomyReadinessPage() {
           <Link href="/post-pilot" style={{ color: C.purple, fontSize: "11px", fontWeight: 850, textDecoration: "none" }}>← Post Pilot</Link>
           <div style={{ color: C.purple, fontSize: "10px", fontWeight: 900, letterSpacing: "0.1em", marginTop: "12px", textTransform: "uppercase" }}>PI4 · State / TDC Discussion Readiness</div>
           <h1 style={{ color: C.navy, fontSize: "26px", fontWeight: 900, letterSpacing: "-0.025em", margin: "5px 0 0" }}>State Taxonomy — TDC Dependencies, Requirements, and Discussion Readiness</h1>
-          <p style={{ color: C.muted, fontSize: "13px", lineHeight: 1.55, margin: "7px 0 0", maxWidth: "990px" }}>A transcript-backed working reference for the State taxonomy discussion. It records the shared data, matching, table-layout, and follow-up needs raised in the session; it does not convert discussion into approved design or delivery commitment.</p>
+          <p style={{ color: C.muted, fontSize: "13px", lineHeight: 1.55, margin: "7px 0 0", maxWidth: "990px" }}>A transcript- and State-provided working reference for the State taxonomy discussion. It records the shared data, matching, normalized-dataset, table-layout, and follow-up needs; it does not convert discussion into approved design or delivery commitment.</p>
         </div>
       </div>
 
       <section aria-label="Taxonomy executive summary" style={{ background: C.purpleSurface, border: "1px solid #e9d5ff", borderRadius: "11px", boxShadow: "0 2px 8px rgba(124,58,237,.06)", marginBottom: "26px", overflow: "hidden" }}>
         <div style={{ background: C.navy, color: "#ffffff", padding: "13px 16px" }}>
           <div style={{ fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Session working focus</div>
-          <div style={{ fontSize: "17px", fontWeight: 900, lineHeight: 1.35, marginTop: "4px" }}>State will consolidate the data points. The teams will use that shared inventory to clarify <span style={{ color: "#c4b5fd" }}>matching context</span>, <span style={{ color: "#c4b5fd" }}>table layout</span>, and appropriate follow-up work.</div>
+          <div style={{ fontSize: "17px", fontWeight: 900, lineHeight: 1.35, marginTop: "4px" }}>State has provided a proposed current-year normalization and downstream-mapping approach. The teams will validate the <span style={{ color: "#c4b5fd" }}>State-specific dataset</span>, <span style={{ color: "#c4b5fd" }}>IMS routing context</span>, and follow-up work before commitment.</div>
         </div>
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(285px, 1fr))", padding: "15px" }}>
           <div style={{ background: "#ffffff", border: "1px solid #dbeafe", borderTop: "4px solid #2563eb", borderRadius: "8px", padding: "13px" }}>
             <div style={{ color: "#1d4ed8", fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>State next action</div>
-            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Consolidate and share the known State data points, beginning with the existing ingested-data view and extending to the next calculation and output areas.</p>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Confirm whether the current-year State Data Acquisition schema is the agreed approach for capturing and governing a State-specific normalized dataset.</p>
           </div>
           <div style={{ background: "#ffffff", border: "1px solid #99f6e4", borderTop: `4px solid ${C.teal}`, borderRadius: "8px", padding: "13px" }}>
             <div style={{ color: C.teal, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>TDC working need</div>
-            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Use the shared inventory, source examples, and table layout to identify the governed data treatment that can be refined with the State and Orchestrator teams.</p>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Validate the proposed structured State record, its source and review context, and the IMS locator and routing information needed for downstream GoSystem mapping.</p>
           </div>
           <div style={{ background: C.orangeSurface, border: "1px solid #fdba74", borderTop: `4px solid ${C.orange}`, borderRadius: "8px", padding: "13px" }}>
             <div style={{ color: C.orange, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>Still open</div>
-            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>The session did not decide the controlled user-adjustment path, direct-input treatment, required taxonomy detail, or final representation of the next calculation and output areas.</p>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Schema confirmation, controlled user-adjustment treatment, the final State-to-GoSystem mapping approach, and the remaining calculation/output requirements are still open.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="state-normalized-dataset" style={{ marginBottom: "30px" }}>
+        <SectionHeading eyebrow="State-provided proposed direction · confirmation pending" title="Current-year State normalized dataset and downstream mapping" description="State provided a proposed approach for review: standardized categories retain business meaning, while a structured State dataset item retains the State-specific, entity, source, mapping, review, lineage, and version context needed downstream." />
+        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "9px", color: "#1e3a5f", fontSize: "11px", lineHeight: 1.55, marginBottom: "12px", padding: "11px 13px" }}>
+          <strong>Schema reference:</strong> {STATE_CURRENT_YEAR_SCHEMA_REFERENCE.title} (<code>{STATE_CURRENT_YEAR_SCHEMA_REFERENCE.fileName}</code>). {STATE_CURRENT_YEAR_SCHEMA_REFERENCE.scope} <span style={{ color: C.muted }}>{STATE_CURRENT_YEAR_SCHEMA_REFERENCE.sourceStatus}</span>
+        </div>
+        <div style={{ background: C.amberSurface, border: "1px solid #fde68a", borderRadius: "8px", color: "#713f12", fontSize: "11px", lineHeight: 1.55, marginBottom: "12px", padding: "11px 13px" }}>
+          <strong>Decision boundary:</strong> {STATE_CURRENT_YEAR_SCHEMA_REFERENCE.decisionStatus}
+        </div>
+        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "minmax(0, .86fr) minmax(0, 1.14fr)" }}>
+          <div style={{ background: C.tealSurface, border: "1px solid #99f6e4", borderTop: `4px solid ${C.teal}`, borderRadius: "9px", padding: "14px" }}>
+            <div style={{ color: C.teal, fontSize: "11px", fontWeight: 900, letterSpacing: "0.05em", textTransform: "uppercase" }}>Potential normalized dataset approach</div>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.6, margin: "8px 0 0" }}>{PROPOSED_STATE_NORMALIZED_DATASET.principle}</p>
+            <div style={{ background: "#ffffff", border: "1px solid #ccfbf1", borderRadius: "7px", color: C.slate, fontSize: "10px", lineHeight: 1.55, marginTop: "11px", padding: "10px" }}><strong style={{ color: C.teal }}>Illustration — Property → Land:</strong> {PROPOSED_STATE_NORMALIZED_DATASET.example}</div>
+            <div style={{ background: "#ffffff", border: "1px solid #fde68a", borderRadius: "7px", color: "#713f12", fontSize: "10px", lineHeight: 1.55, marginTop: "10px", padding: "10px" }}><strong>Confirmation to obtain:</strong> {PROPOSED_STATE_NORMALIZED_DATASET.confirmationQuestion}</div>
+          </div>
+          <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "9px", overflow: "hidden" }}>
+            <div style={{ background: C.navy, color: "#ffffff", fontSize: "10px", fontWeight: 900, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase" }}>Proposed structured State dataset item</div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ borderCollapse: "collapse", minWidth: "610px", width: "100%" }}>
+                <thead><tr style={{ background: "#f1f5f9" }}><th style={{ color: C.slate, fontSize: "9px", fontWeight: 900, padding: "9px 10px", textAlign: "left", textTransform: "uppercase" }}>Element</th><th style={{ color: C.slate, fontSize: "9px", fontWeight: 900, padding: "9px 10px", textAlign: "left", textTransform: "uppercase" }}>Example / value</th><th style={{ color: C.slate, fontSize: "9px", fontWeight: 900, padding: "9px 10px", textAlign: "left", textTransform: "uppercase" }}>Purpose</th></tr></thead>
+                <tbody>{PROPOSED_STATE_NORMALIZED_DATASET.fields.map((field, index) => <tr key={field.label} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="24%"><strong style={{ color: C.navy }}>{field.label}</strong></Cell><Cell width="30%"><span style={{ color: C.purple, fontWeight: 850 }}>{field.value}</span></Cell><Cell width="46%">{field.purpose}</Cell></tr>)}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "9px", marginTop: "12px", overflow: "hidden" }}>
+          <div style={{ background: "#1e3a5f", color: "#ffffff", fontSize: "10px", fontWeight: 900, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase" }}>State-proposed next actions</div>
+          <div style={{ display: "grid", gap: "0", gridTemplateColumns: "repeat(auto-fit, minmax(265px, 1fr))" }}>
+            {STATE_NORMALIZATION_NEXT_ACTIONS.map((item, index) => <div key={item.action} style={{ borderLeft: index ? `1px solid ${C.border}` : "none", padding: "12px" }}><div style={{ color: C.navy, fontSize: "11px", fontWeight: 900 }}>{item.action}</div><p style={{ color: C.slate, fontSize: "10px", lineHeight: 1.5, margin: "6px 0 0" }}>{item.detail}</p><div style={{ color: C.teal, fontSize: "9px", fontWeight: 900, marginTop: "8px", textTransform: "uppercase" }}>{item.owner}</div></div>)}
           </div>
         </div>
       </section>

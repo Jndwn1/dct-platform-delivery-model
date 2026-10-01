@@ -121,17 +121,59 @@ export const TDC_QUESTIONS: QuestionCategory[] = [
 
 export type TaxonomyRequirement = { id: string; title: string; statement: string; reference: string };
 
+export const STATE_CURRENT_YEAR_SCHEMA_REFERENCE = {
+  title: "Current-Year State Data Acquisition PDC/TDC Schema",
+  fileName: "Current_Year_State_Data_Acquisition_PDC_TDC_Schema.xlsx",
+  sourceStatus: "State-provided reference; the workbook link/file is not available in this workspace.",
+  scope: "Current-year Property, Payroll, Sales, and Payments data requirements; source-to-target mapping; intake and routing context; TDC persistence; lineage; practitioner corrections; and proposed dataset structure.",
+  decisionStatus: "Proposed approach — State / Tax SME confirmation required before technical design, implementation, or story commitment.",
+} as const;
+
+export const PROPOSED_STATE_NORMALIZED_DATASET = {
+  principle: "Rather than representing every State data point as a Federal-style taxonomy account, use a State-specific normalized dataset. Standardized categories identify business meaning while each structured item retains State, entity, source, and review context.",
+  example: "For Property → Land, a client label such as ‘land cost’ can be proposed by Orchestrator as the standardized Roger target Land. After practitioner review or correction, TDC retains the State-specific structured dataset item and its governance context.",
+  exampleCode: "CY_LAND",
+  confirmationQuestion: "Is the intended direction a State-specific normalized dataset and mapping structure, rather than a Federal-style taxonomy account for each State item?",
+  fields: [
+    { label: "Domain", value: "Property", purpose: "Identifies the State data subject area." },
+    { label: "Standardized target", value: "Land", purpose: "Records the normalized business category proposed for Roger use." },
+    { label: "Proposed input code", value: "CY_LAND", purpose: "Associates the category with the State schema’s proposed TDC input code." },
+    { label: "Applicable State and entity", value: "State Filing Footprint + source context", purpose: "Carries the jurisdiction and entity context needed for State-specific use." },
+    { label: "Original client label and value", value: "‘land cost’ + extracted amount", purpose: "Preserves the source expression and value for lineage and review." },
+    { label: "Current approved value", value: "Roger value after authorized correction", purpose: "Represents the effective value after controlled practitioner action." },
+    { label: "Mapping and review context", value: "Status, confidence, reviewer action, source lineage, version", purpose: "Maintains the context needed for display, reconciliation, persistence, and downstream use." },
+  ],
+} as const;
+
+export const STATE_NORMALIZATION_NEXT_ACTIONS = [
+  {
+    action: "Confirm the current-year State Data Acquisition schema as the agreed working approach",
+    detail: "Confirm whether the supplied schema is the approach for capturing and governing a State-specific normalized dataset.",
+    owner: "State team + State / Tax SME",
+  },
+  {
+    action: "Confirm IMS locator context and downstream routing",
+    detail: "Work with IMS to confirm the State data, locator context, and routing information needed for downstream GoSystem mapping.",
+    owner: "State team + IMS + TDC",
+  },
+  {
+    action: "Expand remaining State feature data requirements",
+    detail: "As State features are refined, document data needs for apportionment outputs, State modifications, credits and NOLs, State taxable income, State liability, and review/output processes.",
+    owner: "State team + TDC + Roger",
+  },
+] as const;
+
 // Working requirements derived only from the supplied alignment transcript.
 // State / Tax SME confirmation remains required before design commitment or implementation.
 export const TDC_TAXONOMY_REQUIREMENTS: TaxonomyRequirement[] = [
-  { id: "REQ-TAX-001", title: "Shared State data-point inventory", statement: "TDC requires the State team’s consolidated list of known State data points, starting with the existing ingested-data view, so the teams can align on a shared working inventory.", reference: "1:01:52–1:02:10" },
-  { id: "REQ-TAX-002", title: "Source and matching context", statement: "TDC requires representative source and input examples plus the context attributes that help Orchestrator identify the source and relate it to the normalized State data set.", reference: "1:00:30–1:01:04" },
-  { id: "REQ-TAX-003", title: "Multi-State account-code table layout", statement: "TDC requires an approved table layout for scenarios that involve multiple account codes and multiple States before it can reliably pull the data into the governed set.", reference: "1:01:23–1:01:36" },
-  { id: "REQ-TAX-004", title: "Direct user-loaded input treatment", statement: "TDC requires State confirmation of the source and governance treatment for direct user-loaded inputs that do not come through the client-ingestion process.", reference: "1:01:36–1:01:52" },
-  { id: "REQ-TAX-005", title: "User adjustment and mapping restatement", statement: "TDC requires the permitted user interaction and mapping-restatement behavior to be defined before a changed mapping is treated as a governed result.", reference: "1:00:17–1:00:30" },
-  { id: "REQ-TAX-006", title: "Calculation and output inventory", statement: "TDC requires the data-point scope for apportionment calculations, State modifications, attributes, State taxable income, and liabilities before governing those inputs and outputs.", reference: "1:01:52–1:02:10" },
-  { id: "REQ-TAX-007", title: "Taxonomy versus table-detail decision", statement: "TDC requires State and Tax SMEs to clarify where specific taxonomy detail is needed and where a general table structure is sufficient.", reference: "1:02:46–1:02:55" },
-  { id: "REQ-TAX-008", title: "Follow-up story and action scope", statement: "TDC requires agreed data points, stories, or action items that can progress alongside the other teams after the shared State list is available.", reference: "1:03:02–1:03:16" },
+  { id: "REQ-TAX-001", title: "State-specific normalized dataset direction", statement: "Confirm whether TDC should govern State data through a State-specific normalized dataset and mapping structure rather than create a Federal-style taxonomy account for every State data point.", reference: "State-provided schema follow-up · Confirmation pending" },
+  { id: "REQ-TAX-002", title: "Standardized category and proposed-code mapping", statement: "For each State data point, preserve the standardized business category and proposed input code while retaining the original client label and extracted value for source lineage and review.", reference: "State-provided schema follow-up · Property → Land / CY_LAND example" },
+  { id: "REQ-TAX-003", title: "State, entity, and filing-footprint context", statement: "Each State dataset item needs the applicable State and entity derived from the State Filing Footprint and available source context so downstream use is jurisdiction-aware.", reference: "State-provided schema follow-up" },
+  { id: "REQ-TAX-004", title: "Approved-value and practitioner-correction treatment", statement: "Retain the current approved Roger value after authorized correction while preserving mapping status, reviewer action, and the original source context.", reference: "State-provided schema follow-up + transcript 0:54:32–0:55:32" },
+  { id: "REQ-TAX-005", title: "Mapping, review, lineage, and version context", statement: "The proposed normalized record needs mapping status, confidence, reviewer action, source lineage, and version information to support review, persistence, reconciliation, and downstream use.", reference: "State-provided schema follow-up" },
+  { id: "REQ-TAX-006", title: "IMS locator and GoSystem routing context", statement: "Confirm with IMS the State data, locator context, and routing information required for downstream GoSystem mapping before defining the downstream mapping treatment.", reference: "State-provided next action · Confirmation pending" },
+  { id: "REQ-TAX-007", title: "Calculation and output data requirements", statement: "As State features are refined, document data needs for apportionment outputs, State modifications, credits and NOLs, State taxable income, State liability, and review/output processes.", reference: "State-provided next action + transcript 1:01:52–1:02:10" },
+  { id: "REQ-TAX-008", title: "Schema and story confirmation", statement: "Confirm the supplied current-year schema as the agreed approach before turning the proposed normalized dataset direction into refined requirements, stories, technical design, or delivery commitment.", reference: "State-provided next action · Confirmation pending" },
 ];
 
 export type StoryImpact = { story: string; title: string; discussionImpact: string; risk: ReadinessLevel; nextStep: string; owner: string; reference: string };

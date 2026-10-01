@@ -60,17 +60,17 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
   "/post-pilot/state-taxonomy-readiness": {
     pageTitle: "State Taxonomy Readiness",
     pageIcon: "◫",
-    description: "Transcript-backed working readiness for the State taxonomy discussion: shared data inventory, Orchestrator matching context, table layout, direct inputs, calculation/output scope, DEV-story impact, and follow-up gaps.",
-    features: ["Transcript Alignment Update", "Transcript-Driven TDC Needs", "Working Requirements", "DEV Story Impact", "Transcript Follow-Up Register", "Open Transcript Gaps"],
+    description: "Transcript- and State-provided working readiness for the State taxonomy discussion: a proposed State-specific normalized dataset, State/IMS routing and GoSystem mapping follow-up, shared data inventory, Orchestrator matching context, DEV-story impact, and open gaps.",
+    features: ["State Normalized Dataset Proposal", "State/IMS/GoSystem Follow-Up", "Transcript Alignment Update", "Transcript-Driven TDC Needs", "Working Requirements", "DEV Story Impact", "Transcript Follow-Up Register", "Open Transcript Gaps"],
     apis: [],
     stories: ["1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Taxonomy Readiness Summary", "Transcript Needs Register", "Working Requirements", "DEV Story Impact", "Follow-Up Register", "Open Gaps"],
-    businessRules: ["The page records working discussion evidence and does not approve technical design or delivery commitment", "State’s next action is to consolidate and share the data-point inventory", "Unresolved discussion gaps remain labeled OPEN — State/Tax SME confirmation required"],
+    businessRules: ["The State-specific normalized dataset and mapping direction are proposed only; State / Tax SME confirmation is required", "The page records working discussion evidence and does not approve technical design or delivery commitment", "State and IMS must confirm data, locator context, and routing before downstream GoSystem mapping treatment is defined", "Unresolved discussion gaps remain labeled OPEN — State/Tax SME confirmation required"],
     batches: [],
-    businessObjects: ["State Data-Point Inventory", "Representative Source/Input Example", "Multi-State Table Layout", "Direct User-Loaded Input", "Calculation and Output Inventory"],
-    integrations: ["TDC", "Orchestrator", "Roger", "State"],
+    businessObjects: ["State-Specific Normalized Dataset Item", "Standardized State Category", "Proposed TDC Input Code", "State Filing Footprint + Entity Context", "Original Client Label + Extracted Value", "Mapping and Review Context", "IMS Locator and Routing Context"],
+    integrations: ["TDC", "Orchestrator", "Roger", "State", "IMS", "GoSystem"],
     lastUpdated: "2026-10-01",
-    lastChange: "Aligned every visible readiness section to the supplied Roger State Taxonomy Alignment Discussion transcript. The workspace now distinguishes working follow-ups and open discussion gaps from approved decisions or technical design.",
+    lastChange: "Added the State-provided proposed normalized-dataset direction: standardized State categories with structured State, entity, source, review, lineage, and version context. The page keeps schema confirmation, IMS routing, GoSystem mapping, and implementation decisions explicitly open.",
   },
 
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────

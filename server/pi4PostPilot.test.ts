@@ -205,9 +205,9 @@ describe("PI4 Post Pilot delivery", () => {
     expect(sidebar).toContain('label: "State Taxonomy Readiness", path: "/post-pilot/state-taxonomy-readiness"');
     expect(postPilot).toContain('href="/post-pilot/state-taxonomy-readiness"');
     expect(page).toContain("State Taxonomy — TDC Dependencies, Requirements, and Discussion Readiness");
-    expect(page).toContain("State will consolidate the data points");
-    expect(page).toContain("matching context");
-    expect(page).toContain("table layout");
+    expect(page).toContain("State has provided a proposed current-year normalization and downstream-mapping approach");
+    expect(page).toContain("State-specific dataset");
+    expect(page).toContain("IMS routing context");
     expect(page).toContain("CURRENT_DEV_STORY_IMPACTS.map");
     expect(page).not.toContain("What TDC needs to listen for");
     expect(page).not.toContain("Taxonomy discussion listening guide");
@@ -235,10 +235,11 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).not.toContain("TAXONOMY_MEETING_TEMPLATE");
     expect(data).toContain("REQ-TAX-001");
     expect(data).toContain("REQ-TAX-008");
-    expect(data).toContain("Shared State data-point inventory");
-    expect(data).toContain("Multi-State account-code table layout");
-    expect(data).toContain("Follow-up story and action scope");
-    expect(data).toContain("1:01:23–1:01:36");
+    expect(data).toContain("Current_Year_State_Data_Acquisition_PDC_TDC_Schema.xlsx");
+    expect(data).toContain("State-specific normalized dataset");
+    expect(data).toContain("CY_LAND");
+    expect(data).toContain("IMS locator and GoSystem routing context");
+    expect(data).toContain("Proposed approach — State / Tax SME confirmation required");
     expect(data).not.toContain("REQ-TAX-028");
     expect(data).toContain("Roger State Taxonomy Alignment Discussion transcript");
     expect(data).toContain("TRANSCRIPT_FOLLOW_UPS");
@@ -254,11 +255,17 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain("Transcript: {requirement.reference}");
     expect(pageContext).toContain('"/post-pilot/state-taxonomy-readiness"');
     expect(pageContext).toContain("shared data inventory");
+    expect(pageContext).toContain("State-specific normalized dataset");
+    expect(pageContext).toContain("IMS routing and GoSystem mapping follow-up");
     expect(page).toContain("What the State taxonomy discussion aligned, needs next, and leaves open");
     expect(page).toContain("Transcript-informed update");
     expect(page).toContain("Next action recorded in the transcript");
     expect(page).toContain("Working handoffs from the session");
     expect(page).toContain("Suggested Follow-Up Participants");
+    expect(page).toContain("Current-year State normalized dataset and downstream mapping");
+    expect(page).toContain("State-provided proposed direction · confirmation pending");
+    expect(page).toContain("Proposed structured State dataset item");
+    expect(page).toContain("State-proposed next actions");
     expect(page.indexOf('id="transcript-alignment-update"')).toBeLessThan(page.indexOf('id="taxonomy-dependencies"'));
   });
 

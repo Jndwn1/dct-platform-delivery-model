@@ -275,3 +275,4 @@
 - [x] Run the Roger State Taxonomy Alignment Discussion transcript across every visible State Taxonomy readiness section, replacing legacy dependency, ownership, and decision content with transcript-backed follow-ups and gaps
 - [x] Create an evidence-bound recap of the Roger State Taxonomy Alignment Discussion transcript
 - [x] Create an email-ready State Taxonomy meeting recap for the DEV lead from the published readiness workspace
+- [x] Update State Taxonomy Readiness with the State-provided current-year normalized dataset and GoSystem downstream-mapping approach, preserving pending confirmation boundaries
