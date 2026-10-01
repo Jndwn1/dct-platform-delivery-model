@@ -225,7 +225,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain("Transcript Reference");
     expect(page).toContain("TRANSCRIPT_TDC_NEEDS.map");
     expect(page).not.toContain("TAXONOMY_DEPENDENCIES.map");
-    expect(page).toContain('eyebrow="2 · Proposed governed-data requirements"');
+    expect(page).toContain('eyebrow="2 · Transcript-backed working requirements"');
     expect(page).toContain('eyebrow="3 · Current DEV story impact"');
     expect(page).toContain('eyebrow="4 · RACI-style ownership view"');
     expect(page).toContain('eyebrow="5 · Dependency tracker"');
@@ -235,11 +235,13 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).not.toContain("Copy meeting-notes template");
     expect(page).not.toContain("taxonomy-meeting-notes");
     expect(page).not.toContain("TAXONOMY_MEETING_TEMPLATE");
-    expect(data).toContain("REQ-TAX-024");
-    expect(data).toContain("REQ-TAX-025");
-    expect(data).toContain("REQ-TAX-026");
-    expect(data).toContain("REQ-TAX-027");
-    expect(data).toContain("REQ-TAX-028");
+    expect(data).toContain("REQ-TAX-001");
+    expect(data).toContain("REQ-TAX-008");
+    expect(data).toContain("Shared State data-point inventory");
+    expect(data).toContain("Multi-State account-code table layout");
+    expect(data).toContain("Follow-up story and action scope");
+    expect(data).toContain("1:01:23–1:01:36");
+    expect(data).not.toContain("REQ-TAX-028");
     expect(data).toContain("Roger State Taxonomy Alignment Discussion transcript");
     expect(data).toContain("Structured State Data Inventory");
     expect(data).toContain("Orchestrator Matching Context");
@@ -251,7 +253,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(data).toContain("TAX-15");
     expect(data).toContain("TAX-18");
     expect(data).toContain("OPEN — State/Tax SME confirmation required.");
-    expect(data).toContain("No Business-Rule Derivation by TDC");
+    expect(page).toContain("Transcript: {requirement.reference}");
     expect(pageContext).toContain('"/post-pilot/state-taxonomy-readiness"');
     expect(pageContext).toContain("State taxonomy alignment transcript");
     expect(page).toContain("What the State taxonomy discussion aligned, needs next, and leaves open");

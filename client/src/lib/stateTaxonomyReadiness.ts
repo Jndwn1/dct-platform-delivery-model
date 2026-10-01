@@ -151,37 +151,19 @@ export const TDC_QUESTIONS: QuestionCategory[] = [
   { category: "G. GoSystem / Downstream", questions: ["How does the State taxonomy align to GoSystem?", "Is GoSystem mapping part of the taxonomy or a separate crosswalk?", "Who owns the crosswalk?", "What must TDC return to Gateway/Roger?", "Does Gateway perform any State normalization or only return governed TDC data?"] },
 ];
 
-export type TaxonomyRequirement = { id: string; title: string; statement: string };
+export type TaxonomyRequirement = { id: string; title: string; statement: string; reference: string };
 
+// Working requirements derived only from the supplied alignment transcript.
+// State / Tax SME confirmation remains required before design commitment or implementation.
 export const TDC_TAXONOMY_REQUIREMENTS: TaxonomyRequirement[] = [
-  { id: "REQ-TAX-001", title: "Authoritative Taxonomy Identifier", statement: "TDC shall persist the authoritative State taxonomy identifier associated with each governed mapped State input." },
-  { id: "REQ-TAX-002", title: "Source Value Preservation", statement: "TDC shall retain the original source value and source metadata associated with the mapped State input so that the mapping can be traced to its source." },
-  { id: "REQ-TAX-003", title: "Orchestrator Mapping Preservation", statement: "TDC shall persist the Orchestrator-proposed taxonomy mapping independently from subsequent practitioner decisions." },
-  { id: "REQ-TAX-004", title: "Taxonomy Version", statement: "TDC shall persist the taxonomy version, State profile version, rule version, or other approved version identifier used when the mapping was produced." },
-  { id: "REQ-TAX-005", title: "Tax Year", statement: "TDC shall associate the governed State dataset and applicable taxonomy with the appropriate tax year." },
-  { id: "REQ-TAX-006", title: "Jurisdiction", statement: "TDC shall associate each applicable State taxonomy record with the appropriate jurisdiction." },
-  { id: "REQ-TAX-007", title: "Entity Context", statement: "TDC shall associate State taxonomy data with the appropriate entity, filing group, or other approved filing context." },
-  { id: "REQ-TAX-008", title: "Dataset Identity", statement: "TDC shall provide a deterministic identifier for each governed Current-Year State Input Dataset." },
-  { id: "REQ-TAX-009", title: "Dataset Versioning", statement: "TDC shall version governed State datasets when an approved version-triggering event occurs." },
-  { id: "REQ-TAX-010", title: "Mapping Status", statement: "TDC shall persist the approved mapping status for each mapped State input." },
-  { id: "REQ-TAX-011", title: "Practitioner Decision", statement: "TDC shall persist practitioner review, approval, rejection, correction, or remapping actions separately from the original Orchestrator result." },
-  { id: "REQ-TAX-012", title: "Audit History", statement: "TDC shall retain previous mappings, decisions, corrections, actors, timestamps, reasons, and applicable versions required for auditability." },
-  { id: "REQ-TAX-013", title: "Effective Mapping", statement: "TDC shall identify the currently effective governed mapping without deleting or overwriting prior mappings required for lineage." },
-  { id: "REQ-TAX-014", title: "Supersession", statement: "When a newer governed mapping supersedes a prior mapping, TDC shall retain the superseded record and establish the relationship between the prior and current effective mapping." },
-  { id: "REQ-TAX-015", title: "Validation", statement: "TDC shall enforce approved State taxonomy validation rules including required values, allowed taxonomy targets, valid statuses, and applicable jurisdiction/tax-year constraints." },
-  { id: "REQ-TAX-016", title: "Invalid Mapping Target", statement: "TDC shall reject or flag mappings that reference taxonomy targets that are not valid for the applicable State, tax year, or taxonomy version." },
-  { id: "REQ-TAX-017", title: "Filing Footprint", statement: "TDC shall associate State taxonomy data with the applicable filing footprint or approved filing-context identifier when required by the State data model." },
-  { id: "REQ-TAX-018", title: "Payment Normalization", statement: "TDC shall persist State payment data using the approved State payment taxonomy and normalization rules." },
-  { id: "REQ-TAX-019", title: "Lineage", statement: "TDC shall maintain lineage from source record through Orchestrator mapping, practitioner action, and effective governed result." },
-  { id: "REQ-TAX-020", title: "Retrieval", statement: "TDC shall support retrieval of the effective State taxonomy mapping together with the applicable source, version, jurisdiction, entity context, and review status." },
-  { id: "REQ-TAX-021", title: "Historical Retrieval", statement: "TDC shall support retrieval of historical mappings and practitioner actions required for audit and troubleshooting." },
-  { id: "REQ-TAX-022", title: "Gateway Exposure", statement: "TDC shall expose the approved governed State taxonomy data and required metadata to Gateway for downstream use by Roger." },
-  { id: "REQ-TAX-023", title: "No Business-Rule Derivation by TDC", statement: "TDC shall not independently derive State business meaning, taxonomy definitions, or State-specific mapping rules that have not been approved by the State business owner or Tax SME." },
-  { id: "REQ-TAX-024", title: "Taxonomy Change Control", statement: "TDC shall preserve the taxonomy/version context under which an existing dataset was created unless an approved process explicitly creates a new governed dataset or mapping version." },
-  { id: "REQ-TAX-025", title: "Structured State Data Inventory", statement: "TDC shall use the approved structured State data inventory to align governed dataset design with the State data points made available for ingestion, calculations, and downstream use." },
-  { id: "REQ-TAX-026", title: "Orchestrator Matching Context", statement: "TDC shall retain or expose the approved source and context attributes required to relate an Orchestrator-proposed mapping to the normalized State data set." },
-  { id: "REQ-TAX-027", title: "Direct User-Loaded Input Source", statement: "TDC shall distinguish approved direct user-loaded State inputs from client-ingested inputs when their source or governance treatment differs." },
-  { id: "REQ-TAX-028", title: "State Calculation Outcome Scope", statement: "TDC shall implement the approved governed treatment for apportionment calculations, State modifications, attributes, State taxable income, and liability outputs after their scope and taxonomy treatment are confirmed." },
+  { id: "REQ-TAX-001", title: "Shared State data-point inventory", statement: "TDC requires the State team’s consolidated list of known State data points, starting with the existing ingested-data view, so the teams can align on a shared working inventory.", reference: "1:01:52–1:02:10" },
+  { id: "REQ-TAX-002", title: "Source and matching context", statement: "TDC requires representative source and input examples plus the context attributes that help Orchestrator identify the source and relate it to the normalized State data set.", reference: "1:00:30–1:01:04" },
+  { id: "REQ-TAX-003", title: "Multi-State account-code table layout", statement: "TDC requires an approved table layout for scenarios that involve multiple account codes and multiple States before it can reliably pull the data into the governed set.", reference: "1:01:23–1:01:36" },
+  { id: "REQ-TAX-004", title: "Direct user-loaded input treatment", statement: "TDC requires State confirmation of the source and governance treatment for direct user-loaded inputs that do not come through the client-ingestion process.", reference: "1:01:36–1:01:52" },
+  { id: "REQ-TAX-005", title: "User adjustment and mapping restatement", statement: "TDC requires the permitted user interaction and mapping-restatement behavior to be defined before a changed mapping is treated as a governed result.", reference: "1:00:17–1:00:30" },
+  { id: "REQ-TAX-006", title: "Calculation and output inventory", statement: "TDC requires the data-point scope for apportionment calculations, State modifications, attributes, State taxable income, and liabilities before governing those inputs and outputs.", reference: "1:01:52–1:02:10" },
+  { id: "REQ-TAX-007", title: "Taxonomy versus table-detail decision", statement: "TDC requires State and Tax SMEs to clarify where specific taxonomy detail is needed and where a general table structure is sufficient.", reference: "1:02:46–1:02:55" },
+  { id: "REQ-TAX-008", title: "Follow-up story and action scope", statement: "TDC requires agreed data points, stories, or action items that can progress alongside the other teams after the shared State list is available.", reference: "1:03:02–1:03:16" },
 ];
 
 export type StoryImpact = { story: string; title: string; dependency: string; risk: ReadinessLevel; decision: string; owner: string };
