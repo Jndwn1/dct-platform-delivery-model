@@ -211,7 +211,10 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain('>HOW</span> resulting governed data is stored, versioned, audited, retrieved, and exposed');
     expect(page).toContain("1494222");
     expect(page).toContain("1494344");
-    expect(page).toContain("What TDC needs to listen for");
+    expect(page).not.toContain("What TDC needs to listen for");
+    expect(page).not.toContain("Taxonomy discussion listening guide");
+    expect(page).not.toContain('id="listen-for"');
+    expect(page).not.toContain("LISTEN_FOR_ITEMS");
     expect(page).toContain("Questions TDC should ask");
     expect(page).toContain("TDC taxonomy requirements");
     expect(page).toContain("Open decisions requiring confirmation");
@@ -219,6 +222,12 @@ describe("PI4 Post Pilot delivery", () => {
     expect(page).toContain("Transcript Reference");
     expect(page).toContain("TRANSCRIPT_TDC_NEEDS.map");
     expect(page).not.toContain("TAXONOMY_DEPENDENCIES.map");
+    expect(page).toContain('eyebrow="2 · Targeted clarification"');
+    expect(page).toContain('eyebrow="3 · Proposed governed-data requirements"');
+    expect(page).toContain('eyebrow="4 · Current DEV story impact"');
+    expect(page).toContain('eyebrow="5 · RACI-style ownership view"');
+    expect(page).toContain('eyebrow="6 · Dependency tracker"');
+    expect(page).not.toContain('eyebrow="7 · Dependency tracker"');
     expect(page).not.toContain("Taxonomy Meeting Notes");
     expect(page).not.toContain("Did Anything Change for DEV?");
     expect(page).not.toContain("Copy meeting-notes template");

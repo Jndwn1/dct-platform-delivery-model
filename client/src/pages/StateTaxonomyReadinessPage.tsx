@@ -1,7 +1,6 @@
 import { Link } from "wouter";
 import {
   CURRENT_DEV_STORY_IMPACTS,
-  LISTEN_FOR_ITEMS,
   OPEN_DECISIONS,
   OPEN_STATE_CONFIRMATION,
   RESPONSIBILITIES,
@@ -143,27 +142,15 @@ export default function StateTaxonomyReadinessPage() {
         </div>
       </section>
 
-      <section id="listen-for" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="2 · Taxonomy discussion listening guide" title="What TDC needs to listen for" description="Use this capture guide in State taxonomy discussions. Translate business statements into a named authoritative artifact, governed identifier, lifecycle rule, or explicit open decision." />
-        <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "1080px", width: "100%" }}>
-              <thead><tr style={{ background: "#1e3a5f" }}><TableHeader>Topic</TableHeader><TableHeader>What to Listen For</TableHeader><TableHeader>Why It Matters</TableHeader><TableHeader>TDC Follow-Up Needed</TableHeader></tr></thead>
-              <tbody>{LISTEN_FOR_ITEMS.map((item, index) => <tr key={item.topic} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="16%"><strong style={{ color: C.navy }}>{item.topic}</strong></Cell><Cell width="34%">{item.listenFor}</Cell><Cell width="25%">{item.why}</Cell><Cell width="25%"><strong style={{ color: C.teal }}>{item.followUp}</strong></Cell></tr>)}</tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
       <section id="tdc-questions" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="3 · Targeted clarification" title="Questions TDC should ask" description="Ask only when the information has not been supplied or confirmed. Each question is designed to translate a State decision into a governed TDC requirement or contract boundary." />
+        <SectionHeading eyebrow="2 · Targeted clarification" title="Questions TDC should ask" description="Ask only when the information has not been supplied or confirmed. Each question is designed to translate a State decision into a governed TDC requirement or contract boundary." />
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
           {TDC_QUESTIONS.map((group) => <div key={group.category} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderTop: `4px solid ${C.purple}`, borderRadius: "9px", boxShadow: "0 2px 8px rgba(15,23,42,.04)", padding: "13px" }}><div style={{ color: C.purple, fontSize: "11px", fontWeight: 900 }}>{group.category}</div><ol style={{ color: C.slate, fontSize: "10px", lineHeight: 1.5, margin: "9px 0 0", paddingLeft: "18px" }}>{group.questions.map((question) => <li key={question} style={{ marginBottom: "5px" }}>{question}</li>)}</ol></div>)}
         </div>
       </section>
 
       <section id="tdc-requirements" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="4 · Proposed governed-data requirements" title="TDC taxonomy requirements" description="The statements below are formal TDC requirements for validation and refinement. They do not independently approve State taxonomy definitions or State-specific mapping rules." />
+        <SectionHeading eyebrow="3 · Proposed governed-data requirements" title="TDC taxonomy requirements" description="The statements below are formal TDC requirements for validation and refinement. They do not independently approve State taxonomy definitions or State-specific mapping rules." />
         <div style={{ background: C.amberSurface, border: "1px solid #fde68a", borderRadius: "8px", color: "#713f12", fontSize: "11px", lineHeight: 1.5, marginBottom: "12px", padding: "11px 13px" }}><strong>Requirements control:</strong> requirements that depend on State business meaning remain subject to State / Tax SME confirmation. TDC owns implementation of approved governance, persistence, validation, versioning, retrieval, audit, and exposure behavior.</div>
         <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))" }}>
           {TDC_TAXONOMY_REQUIREMENTS.map((requirement) => <div key={requirement.id} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.teal}`, borderRadius: "8px", padding: "11px 12px" }}><div style={{ color: C.teal, fontSize: "10px", fontWeight: 900 }}>{requirement.id}</div><div style={{ color: C.navy, fontSize: "11px", fontWeight: 900, marginTop: "4px" }}>{requirement.title}</div><p style={{ color: C.slate, fontSize: "10px", lineHeight: 1.5, margin: "5px 0 0" }}>{requirement.statement}</p></div>)}
@@ -171,7 +158,7 @@ export default function StateTaxonomyReadinessPage() {
       </section>
 
       <section id="current-dev-story-impact" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="5 · Current DEV story impact" title="Where unresolved taxonomy decisions affect current work" description="The first-pass State review findings are retained as context. These signals identify discussion and implementation-readiness impact only; they do not approve a solution, endpoint, schema, or story split." />
+        <SectionHeading eyebrow="4 · Current DEV story impact" title="Where unresolved taxonomy decisions affect current work" description="The first-pass State review findings are retained as context. These signals identify discussion and implementation-readiness impact only; they do not approve a solution, endpoint, schema, or story split." />
         <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
           <div style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", minWidth: "1170px", width: "100%" }}>
@@ -183,7 +170,7 @@ export default function StateTaxonomyReadinessPage() {
       </section>
 
       <section id="taxonomy-ownership" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="6 · RACI-style ownership view" title="Clear responsibility boundaries" description="State and Tax SMEs remain the authority for State business meaning and authoritative mapping decisions. TDC owns the governed data-layer behavior that follows an approved decision." />
+        <SectionHeading eyebrow="5 · RACI-style ownership view" title="Clear responsibility boundaries" description="State and Tax SMEs remain the authority for State business meaning and authoritative mapping decisions. TDC owns the governed data-layer behavior that follows an approved decision." />
         <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
           <div style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", minWidth: "1040px", width: "100%" }}>
@@ -195,7 +182,7 @@ export default function StateTaxonomyReadinessPage() {
       </section>
 
       <section id="open-decisions" style={{ marginBottom: "30px" }}>
-        <SectionHeading eyebrow="7 · Dependency tracker" title="Open decisions requiring confirmation" description="These decisions are prepopulated for the State taxonomy discussion. Keep the decision and resolution date blank until an accountable owner confirms the outcome." />
+        <SectionHeading eyebrow="6 · Dependency tracker" title="Open decisions requiring confirmation" description="These decisions are prepopulated for the State taxonomy discussion. Keep the decision and resolution date blank until an accountable owner confirms the outcome." />
         <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
           <div style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", minWidth: "1230px", width: "100%" }}>
