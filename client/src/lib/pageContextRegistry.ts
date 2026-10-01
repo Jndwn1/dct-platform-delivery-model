@@ -57,6 +57,22 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     lastChange: "Added a scoped inline Ask Buddy Story Review Agent beneath the current-year State review package. The agent is grounded to the Post Pilot evidence layer and retains Gary as the final technical reviewer.",
   },
 
+  "/post-pilot/state-taxonomy-readiness": {
+    pageTitle: "State Taxonomy Readiness",
+    pageIcon: "◫",
+    description: "Evidence-bound TDC discussion readiness for State taxonomy dependencies, requirements, current DEV story impact, ownership boundaries, open decisions, and meeting capture.",
+    features: ["State Taxonomy Dependencies", "TDC Requirements", "Current DEV Story Impact", "Open Decision Tracker", "Taxonomy Meeting Notes"],
+    apis: [],
+    stories: ["1494188", "1494198", "1494222", "1494339", "1494344"],
+    screens: ["Taxonomy Readiness Summary", "Dependency Table", "TDC Questions", "Requirements Register", "Story Impact", "Decision Tracker"],
+    businessRules: ["State / Tax SMEs own State business meaning and authoritative taxonomy decisions", "TDC owns governed persistence, versioning, audit, retrieval, and exposure after an approved State definition", "Unresolved decisions must remain labeled OPEN — State/Tax SME confirmation required"],
+    batches: [],
+    businessObjects: ["State Taxonomy", "Taxonomy Version", "Current-Year State Input Dataset", "Proposed Mapping", "Practitioner Decision", "Effective Governed Mapping"],
+    integrations: ["PDC", "TDC", "Orchestrator", "Gateway", "Roger", "GoSystem"],
+    lastUpdated: "2026-10-01",
+    lastChange: "Created an executive and implementation-readiness reference for State taxonomy discussions, centered on TDC dependency capture and the high-risk State stories 1494222 and 1494344.",
+  },
+
   // ─── BATCH CONTROL PANEL ─────────────────────────────────────────────────────
   "/control-panel": {
     pageTitle: "Batch Control Panel",

@@ -198,6 +198,7 @@ function workspaceShortcuts(workspaceId: "executive" | "delivery" | "roger" | "d
 const EXECUTIVE_HEALTH_ITEMS: NavItem[] = [
   ...workspaceShortcuts("executive", ["Executive Health", "Post Pilot"], false),
   { label: "Roger Pilot Backlog", path: "/post-pilot/roger-pilot-backlog", icon: "•", badge: "ADO", badgeColor: "#003865", indent: true },
+  { label: "State Taxonomy Readiness", path: "/post-pilot/state-taxonomy-readiness", icon: "•", badge: "TDC", badgeColor: "#0f766e", indent: true },
   { label: "Meeting Recaps", path: "/post-pilot/meeting-recaps", icon: "•", badge: "TDC", badgeColor: "#0f766e", indent: true },
   ...workspaceShortcuts("executive", ["Ask Buddy"], false),
 ];

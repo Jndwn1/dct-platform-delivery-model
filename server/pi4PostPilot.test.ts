@@ -193,6 +193,36 @@ describe("PI4 Post Pilot delivery", () => {
     expect(schema).toContain('emailStatus: mysqlEnum("tdcMeetingRecapEmailStatus", ["Draft", "Reviewed", "Sent"])');
   });
 
+  it("adds an evidence-bound State Taxonomy readiness workspace beneath Post Pilot", () => {
+    const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
+    const sidebar = readFileSync(resolve(process.cwd(), "client/src/components/Sidebar.tsx"), "utf8");
+    const postPilot = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");
+    const page = readFileSync(resolve(process.cwd(), "client/src/pages/StateTaxonomyReadinessPage.tsx"), "utf8");
+    const data = readFileSync(resolve(process.cwd(), "client/src/lib/stateTaxonomyReadiness.ts"), "utf8");
+    const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
+
+    expect(app).toContain('path="/post-pilot/state-taxonomy-readiness" component={StateTaxonomyReadinessPage}');
+    expect(sidebar).toContain('label: "State Taxonomy Readiness", path: "/post-pilot/state-taxonomy-readiness"');
+    expect(postPilot).toContain('href="/post-pilot/state-taxonomy-readiness"');
+    expect(page).toContain("State Taxonomy — TDC Dependencies, Requirements, and Discussion Readiness");
+    expect(page).toContain('State defines <span');
+    expect(page).toContain('>WHAT</span> the taxonomy means');
+    expect(page).toContain('TDC defines <span');
+    expect(page).toContain('>HOW</span> resulting governed data is stored, versioned, audited, retrieved, and exposed');
+    expect(page).toContain("1494222");
+    expect(page).toContain("1494344");
+    expect(page).toContain("What TDC needs to listen for");
+    expect(page).toContain("Questions TDC should ask");
+    expect(page).toContain("TDC taxonomy requirements");
+    expect(page).toContain("Open decisions requiring confirmation");
+    expect(page).toContain("Taxonomy Meeting Notes");
+    expect(page).toContain("Did Anything Change for DEV?");
+    expect(data).toContain("REQ-TAX-024");
+    expect(data).toContain("OPEN — State/Tax SME confirmation required.");
+    expect(data).toContain("No Business-Rule Derivation by TDC");
+    expect(pageContext).toContain('"/post-pilot/state-taxonomy-readiness"');
+  });
+
   it("registers the supplied Sprint 2 planned features and ADO dependencies without inventing commitment or sizing", () => {
     expect(POST_PILOT_PLANNING_SPRINT).toBe("PI4 · Sprint 2");
     expect(POST_PILOT_PLANNING_SOURCE_SELECTION).toBe("Supplied ADO backlog selection");
