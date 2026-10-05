@@ -62,6 +62,8 @@ export type InvokeParams = {
   tool_choice?: ToolChoice;
   maxTokens?: number;
   max_tokens?: number;
+  /** Optional caller-specific request deadline for a single LLM invocation. */
+  timeoutMs?: number;
   outputSchema?: OutputSchema;
   output_schema?: OutputSchema;
   responseFormat?: ResponseFormat;
@@ -109,6 +111,13 @@ export type ResponseFormat =
   | { type: "text" }
   | { type: "json_object" }
   | { type: "json_schema"; json_schema: JsonSchema };
+
+export class LLMRequestTimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(`LLM request timed out after ${timeoutMs}ms`);
+    this.name = "LLMRequestTimeoutError";
+  }
+}
 
 const ensureArray = (
   value: MessageContent | MessageContent[]
@@ -312,21 +321,39 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.response_format = normalizedResponseFormat;
   }
 
-  const response = await fetch(resolveApiUrl(), {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  const timeoutMs = Number.isFinite(params.timeoutMs) && (params.timeoutMs ?? 0) > 0
+    ? Math.floor(params.timeoutMs as number)
+    : undefined;
+  const controller = timeoutMs ? new AbortController() : undefined;
+  const timeout = controller && timeoutMs
+    ? setTimeout(() => controller.abort(), timeoutMs)
+    : undefined;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
+  try {
+    const response = await fetch(resolveApiUrl(), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${ENV.forgeApiKey}`,
+      },
+      body: JSON.stringify(payload),
+      signal: controller?.signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
+      );
+    }
+
+    return (await response.json()) as InvokeResult;
+  } catch (error) {
+    if (controller?.signal.aborted && timeoutMs) {
+      throw new LLMRequestTimeoutError(timeoutMs);
+    }
+    throw error;
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
-
-  return (await response.json()) as InvokeResult;
 }

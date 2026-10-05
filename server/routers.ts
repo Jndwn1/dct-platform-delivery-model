@@ -799,9 +799,9 @@ ${input.notes}` as string },
         transcriptText = transcriptText.trim();
         if (transcriptText.length < 80) throw new Error("The uploaded transcript does not contain enough readable text to generate a recap.");
 
+        const analysis = await analyzeTdcStandupTranscript(transcriptText);
         const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
         const stored = await storagePut(`tdc-meeting-recaps/${Date.now()}-${safeName}`, buffer, input.mimeType);
-        const analysis = await analyzeTdcStandupTranscript(transcriptText);
         const dateLabel = formatMeetingDate(analysis.meetingDate);
         const emailSubject = `TDC Daily Standup Recap — ${dateLabel}`;
         const emailBody = buildTdcStandupEmail(analysis);

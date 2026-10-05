@@ -64,6 +64,14 @@ function fileToBase64(file: File) {
   });
 }
 
+function recapUploadErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (/Transcript analysis did not complete after two attempts/i.test(message)) {
+    return "The recap service was slow after an automatic retry. No recap was created. Keep the selected transcript and try again in a moment.";
+  }
+  return message || "The transcript could not be analyzed. Keep the selected file and try again.";
+}
+
 function escapeHtml(value: string) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
@@ -229,13 +237,16 @@ export default function MeetingRecapsPage() {
   const { data: meetingRecords = [], isLoading } = trpc.tdcMeetingRecaps.list.useQuery();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedId, setSelectedId] = useState<number | undefined>();
+  const [recapError, setRecapError] = useState<string | null>(null);
   const createRecap = trpc.tdcMeetingRecaps.createFromTranscript.useMutation({
     onSuccess: async (record) => {
       await utils.tdcMeetingRecaps.list.invalidate();
       setSelectedId(record.id);
       setSelectedFile(null);
+      setRecapError(null);
       window.setTimeout(() => document.getElementById(`meeting-recap-${record.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
     },
+    onError: (error) => setRecapError(recapUploadErrorMessage(error)),
   });
   const updateStatus = trpc.tdcMeetingRecaps.updateEmailStatus.useMutation({ onSuccess: () => utils.tdcMeetingRecaps.list.invalidate() });
   const records = meetingRecords as MeetingRecord[];
@@ -245,8 +256,13 @@ export default function MeetingRecapsPage() {
 
   async function generateRecap() {
     if (!selectedFile) return;
-    const fileBase64 = await fileToBase64(selectedFile);
-    createRecap.mutate({ fileName: selectedFile.name, mimeType: selectedFile.type || "application/octet-stream", fileBase64 });
+    setRecapError(null);
+    try {
+      const fileBase64 = await fileToBase64(selectedFile);
+      createRecap.mutate({ fileName: selectedFile.name, mimeType: selectedFile.type || "application/octet-stream", fileBase64 });
+    } catch (error) {
+      setRecapError(recapUploadErrorMessage(error));
+    }
   }
 
   return (
@@ -268,9 +284,9 @@ export default function MeetingRecapsPage() {
           <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" }}>
             <label style={{ alignItems: "center", background: "#ffffff", border: "1px dashed #7c3aed", borderRadius: "6px", color: "#5b21b6", cursor: "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 12px" }}><Upload size={15} />{selectedFile ? selectedFile.name : "Choose transcript (.docx or .txt)"}<input type="file" accept=".docx,.txt" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} style={{ display: "none" }} /></label>
             <button type="button" onClick={generateRecap} disabled={!selectedFile || createRecap.isPending} style={{ alignItems: "center", background: !selectedFile || createRecap.isPending ? "#94a3b8" : "#0f172a", border: "none", borderRadius: "6px", color: "#ffffff", cursor: !selectedFile || createRecap.isPending ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 13px" }}>{createRecap.isPending ? <LoaderCircle className="animate-spin" size={15} /> : <Sparkles size={15} />}{createRecap.isPending ? "Analyzing transcript…" : "Generate Recap"}</button>
-            <span style={{ color: "#64748b", fontSize: "11px" }}>No manual re-entry required.</span>
+            <span style={{ color: "#64748b", fontSize: "11px" }}>No manual re-entry required. Slow analysis retries once automatically.</span>
           </div>
-          {createRecap.error && <div role="alert" style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", color: "#991b1b", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}>{createRecap.error.message}</div>}
+          {(recapError || createRecap.error) && <div role="alert" style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", color: "#991b1b", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}>{recapError ?? recapUploadErrorMessage(createRecap.error)}</div>}
         </div>
       </section>
 

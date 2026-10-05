@@ -277,3 +277,4 @@
 - [x] Create an email-ready State Taxonomy meeting recap for the DEV lead from the published readiness workspace
 - [x] Update State Taxonomy Readiness with the State-provided current-year normalized dataset and GoSystem downstream-mapping approach, preserving pending confirmation boundaries
 - [x] Add the supplied SharePoint current-year State schema link to the State-proposed next actions and schema reference
+- [x] Bound Meeting Recaps analysis requests, retry a timed-out LLM analysis once server-side, and show a clear recovery message instead of a failed fetch

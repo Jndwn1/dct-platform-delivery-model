@@ -1,4 +1,4 @@
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
 
 export const TDC_DEVELOPERS = ["Gary", "Reshma", "Morgan"] as const;
 export type TdcDeveloper = (typeof TDC_DEVELOPERS)[number];
@@ -35,6 +35,28 @@ export type MeetingRecapAnalysis = {
 const NEEDS_CONFIRMATION = "Needs confirmation";
 const NOT_SPECIFIED = "Not specified";
 const NONE_REPORTED = "None reported";
+const RECAP_LLM_TIMEOUT_MS = 75_000;
+const RECAP_LLM_MAX_ATTEMPTS = 2;
+
+export async function retryTimedOutRecapAnalysis<T>(
+  run: () => Promise<T>,
+  maxAttempts = RECAP_LLM_MAX_ATTEMPTS
+) {
+  let lastTimeout: LLMRequestTimeoutError | undefined;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await run();
+    } catch (error) {
+      if (!(error instanceof LLMRequestTimeoutError) || attempt === maxAttempts) {
+        throw error;
+      }
+      lastTimeout = error;
+    }
+  }
+
+  throw lastTimeout ?? new Error("The transcript analysis did not return a result.");
+}
 
 function textOr(value: unknown, fallback: string) {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
@@ -249,20 +271,29 @@ Rules:
 
 Transcript:\n${transcriptText}`;
 
-  const response = await invokeLLM({
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: "Generate the strict meeting recap JSON now." },
-    ],
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "tdc_daily_standup_recap",
-        strict: true,
-        schema: analysisSchema,
+  let response;
+  try {
+    response = await retryTimedOutRecapAnalysis(() => invokeLLM({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: "Generate the strict meeting recap JSON now." },
+      ],
+      timeoutMs: RECAP_LLM_TIMEOUT_MS,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "tdc_daily_standup_recap",
+          strict: true,
+          schema: analysisSchema,
+        },
       },
-    },
-  });
+    }));
+  } catch (error) {
+    if (error instanceof LLMRequestTimeoutError) {
+      throw new Error("Transcript analysis did not complete after two attempts. Please retry; no recap was created.");
+    }
+    throw error;
+  }
 
   const content = response.choices[0]?.message?.content;
   if (typeof content !== "string") throw new Error("The transcript analysis did not return a recap record.");

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildTdcStandupEmail, normalizeMeetingRecapAnalysis } from "./meetingRecaps";
+import { LLMRequestTimeoutError } from "./_core/llm";
+import { buildTdcStandupEmail, normalizeMeetingRecapAnalysis, retryTimedOutRecapAnalysis } from "./meetingRecaps";
 
 describe("TDC Meeting Recaps", () => {
   it("keeps developer updates separate and applies evidence-safe fallback values", () => {
@@ -54,5 +55,29 @@ describe("TDC Meeting Recaps", () => {
     expect(email).toContain("DECISIONS / KEY CALL-OUTS");
     expect(email).toContain("Thanks,\nJenniver");
     expect(email).not.toContain("Email Status: Sent");
+  });
+
+  it("retries one bounded recap analysis timeout before returning a result", async () => {
+    let attempts = 0;
+
+    const result = await retryTimedOutRecapAnalysis(async () => {
+      attempts += 1;
+      if (attempts === 1) throw new LLMRequestTimeoutError(75_000);
+      return "recap-ready";
+    });
+
+    expect(result).toBe("recap-ready");
+    expect(attempts).toBe(2);
+  });
+
+  it("stops after the configured recap-analysis timeout attempts", async () => {
+    let attempts = 0;
+
+    await expect(retryTimedOutRecapAnalysis(async () => {
+      attempts += 1;
+      throw new LLMRequestTimeoutError(75_000);
+    })).rejects.toBeInstanceOf(LLMRequestTimeoutError);
+
+    expect(attempts).toBe(2);
   });
 });
