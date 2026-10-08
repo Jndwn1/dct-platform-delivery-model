@@ -280,3 +280,4 @@
 - [x] Bound Meeting Recaps analysis requests, retry a timed-out LLM analysis once server-side, and show a clear recovery message instead of a failed fetch
 - [x] Optimize Meeting Recaps LLM analysis with a faster structured-output model, bounded output, and parallel evidence extraction for long transcripts
 - [x] Replace Post Pilot Sprint 2 planning metrics with the supplied TDC closeout summary: 12 work items, 9 completed, 3 carried forward, 75% completion, and 25% carryover
+- [x] Add the 14 supplied TDC PI4 Sprint 3 work items, statuses, owners, and parent-feature references to the Post Pilot timeline

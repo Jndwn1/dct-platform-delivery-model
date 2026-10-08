@@ -52,6 +52,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("PI4 · Sprint 2");
     expect(postPilot).toContain("9/23 – 10/6");
     expect(postPilot).toContain("10/7 – 10/20");
+    expect(postPilot).toContain("workItemCount: 14");
     expect(postPilot).toContain("10/21 – 11/3");
     expect(postPilot).toContain("11/4 – 11/17");
     expect(postPilot).toContain("number: 2");
@@ -70,6 +71,16 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("Entity Mapping Requirements");
     expect(postPilot).toContain("Non-Legal Entities");
     expect(postPilot).not.toContain("Sprint 2 goals — Pending Confirmation");
+    expect(postPilot).toContain("Sprint 3 Work-Item Snapshot");
+    expect(postPilot).toContain("14 captured work items");
+    expect(postPilot).toContain("PriorYearAmounts Batch Post returns 500");
+    expect(postPilot).toContain("TDC — Expand MappingCarryForward to Match Confirmed M…");
+    expect(postPilot).toContain("Perf Env - TDC - DTUs (100) Reaching 100%");
+    expect(postPilot).toContain("Define Data Type & Validation Standards for TDC → IMS → …");
+    expect(postPilot).toContain("Implement Persistent Manual Client Accounts as First-Class …");
+    expect(postPilot).toContain("parentFeatureId: 1481607");
+    expect(postPilot).toContain("Feature {item.parentFeatureId}");
+    expect(postPilot).toContain("Individual work-item IDs and any truncated title text were not visible");
     expect(postPilot).toContain("Planned Features and ADO Dependencies");
     expect(postPilot).toContain('import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow"');
     expect(postPilot).toContain("<StateProvisionPrototypeFlow />");
