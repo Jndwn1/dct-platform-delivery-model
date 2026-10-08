@@ -35,8 +35,54 @@ export type MeetingRecapAnalysis = {
 const NEEDS_CONFIRMATION = "Needs confirmation";
 const NOT_SPECIFIED = "Not specified";
 const NONE_REPORTED = "None reported";
-const RECAP_LLM_TIMEOUT_MS = 75_000;
+const RECAP_MODEL = "gpt-5-mini";
+const RECAP_LLM_TIMEOUT_MS = 45_000;
 const RECAP_LLM_MAX_ATTEMPTS = 2;
+const DIRECT_TRANSCRIPT_CHAR_LIMIT = 18_000;
+const TRANSCRIPT_CHUNK_CHAR_LIMIT = 12_000;
+
+export function splitTranscriptForRecap(transcriptText: string, maxChars = TRANSCRIPT_CHUNK_CHAR_LIMIT) {
+  const normalized = transcriptText.replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim();
+  if (normalized.length <= maxChars) return [normalized];
+
+  const chunks: string[] = [];
+  let current = "";
+  const blocks = normalized.split(/\n{2,}/).filter(Boolean);
+
+  const addBlock = (block: string) => {
+    const normalizedBlock = block.trim();
+    if (!normalizedBlock) return;
+    if (normalizedBlock.length <= maxChars) {
+      if (current && current.length + normalizedBlock.length + 2 > maxChars) {
+        chunks.push(current);
+        current = "";
+      }
+      current = current ? `${current}\n\n${normalizedBlock}` : normalizedBlock;
+      return;
+    }
+
+    if (current) {
+      chunks.push(current);
+      current = "";
+    }
+
+    let remaining = normalizedBlock;
+    while (remaining.length > maxChars) {
+      const boundary = Math.max(
+        remaining.lastIndexOf(". ", maxChars),
+        remaining.lastIndexOf(" ", maxChars)
+      );
+      const end = boundary > Math.floor(maxChars * 0.6) ? boundary + 1 : maxChars;
+      chunks.push(remaining.slice(0, end).trim());
+      remaining = remaining.slice(end).trim();
+    }
+    current = remaining;
+  };
+
+  blocks.forEach(addBlock);
+  if (current) chunks.push(current);
+  return chunks;
+}
 
 export async function retryTimedOutRecapAnalysis<T>(
   run: () => Promise<T>,
@@ -250,47 +296,93 @@ const analysisSchema = {
   additionalProperties: false,
 } as const;
 
-export async function analyzeTdcStandupTranscript(transcriptText: string) {
-  const systemPrompt = `You create evidence-bound TDC Daily Standup recap records. Treat the submitted transcript as the authoritative source. Analyze the entire transcript before producing output.
+const evidenceSchema = {
+  type: "object",
+  properties: {
+    evidence: { type: "array", items: { type: "string" } },
+  },
+  required: ["evidence"],
+  additionalProperties: false,
+} as const;
 
+const recapRules = `
 Rules:
-- Do not invent ADO story numbers, owners, due dates, blockers, decisions, statuses, sprint information, assignments, or dependencies.
-- If a detail is unclear, write exactly "Needs confirmation". Do not infer a commitment just because it was discussed.
-- If a developer did not report a blocker, write exactly "None reported" in blockersSupportNeeded. If no next step was explicitly stated, write exactly "Not specified".
-- Create exactly three developer updates, one each for Gary, Reshma, and Morgan. Never combine their work.
-- The meeting date must use YYYY-MM-DD only when the transcript clearly states it; otherwise use "Needs confirmation".
-- Meeting title defaults to "TDC Daily Standup" unless the transcript gives a different title.
-- Sprint is "Not specified" unless explicitly stated in the transcript.
-- Summary bullets: 3–6 concise, executive-ready bullets focused on priority, progress, blockers/risks, decisions, capacity, and cross-team dependencies only when discussed.
-- Action items must be real follow-ups or assignments from the meeting. Include explicit follow-ups Jenniver commits to perform. If no due date was stated, write exactly "Not specified"; use "Needs confirmation" only if the transcript refers to a date but the date is unclear. Do not use generic status labels such as "Pending", "In progress", or "Open" unless the transcript explicitly uses that status; otherwise write the evidenced next step or "Not specified".
-- Treat explicit waiting, requested status, requested review, requested assignment, unresolved investigation, or needed clarification as a blocker/risk or dependency. Include blockersRisks only for those explicit blockers, risks, unresolved questions, or dependencies. Include decisionsCallouts only for explicit decisions, direction, ownership, or organization changes.
-- If a speaker says they are waiting for a named stakeholder's update on QA-ready work, include that waiting item in blockersRisks and create the associated follow-up action item for that speaker. Do not omit it because the stakeholder is not present.
-- Preserve organizational relationships precisely. If the transcript distinguishes the TDC/Gateway team from PDC, do not combine their ownership, product-owner reporting, or scope.
-- Preserve team language including TDC, Gateway, Roger, State, Provision, Federal, PDC, UAT, MVP, QA, DEV, and ADO.
-- Include an ADO story or bug number only when it is clearly and unambiguously stated in the transcript. If the transcription garbles, truncates, or conflicts on a number, omit the number rather than guessing or combining fragments. Do not treat a board position (for example, "9 and 10") as a bug or story identifier unless the transcript independently provides the full identifier.
+- Use only the supplied source. Do not invent ADO numbers, owners, due dates, blockers, decisions, statuses, sprint details, assignments, or dependencies.
+- For unclear details, use exactly "Needs confirmation". For unreported next steps use "Not specified"; for unreported developer blockers use "None reported".
+- Create exactly three separate developer updates: Gary, Reshma, and Morgan.
+- Use YYYY-MM-DD for the meeting date only when clearly stated; otherwise use "Needs confirmation". Default the title to "TDC Daily Standup" and sprint to "Not specified" when unstated.
+- Summary bullets: 3–6 concise, executive-ready points focused only on discussed priority, progress, risk, decision, capacity, or dependency.
+- Include action items only for explicit follow-ups or assignments, including an explicit Jenniver commitment. Treat explicit waiting, requested review, unresolved investigation, or needed clarification as a blocker/risk.
+- Preserve TDC/Gateway versus PDC relationships precisely and retain the terms TDC, Gateway, Roger, State, Provision, Federal, PDC, UAT, MVP, QA, DEV, and ADO when used in the source.
+- Include ADO numbers only when clearly and unambiguously stated. Omit garbled, truncated, or conflicting numbers.
+`;
 
-Transcript:\n${transcriptText}`;
+async function invokeRecapModel(messages: { role: "system" | "user"; content: string }[], schema: typeof analysisSchema | typeof evidenceSchema, maxTokens: number) {
+  return retryTimedOutRecapAnalysis(() => invokeLLM({
+    model: RECAP_MODEL,
+    messages,
+    maxTokens,
+    reasoning: { effort: "minimal" },
+    timeoutMs: RECAP_LLM_TIMEOUT_MS,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: schema === analysisSchema ? "tdc_daily_standup_recap" : "tdc_transcript_evidence",
+        strict: true,
+        schema,
+      },
+    },
+  }));
+}
 
+async function extractTranscriptEvidence(chunk: string, index: number, total: number) {
+  const response = await invokeRecapModel([
+    {
+      role: "system",
+      content: "Extract factual meeting evidence only. Preserve names, assignments, stated risks, decisions, dates, and explicit next steps. Do not summarize by inference or create commitments.",
+    },
+    {
+      role: "user",
+      content: `Transcript part ${index + 1} of ${total}:\n${chunk}`,
+    },
+  ], evidenceSchema, 1_600);
+  const content = response.choices[0]?.message?.content;
+  if (typeof content !== "string") throw new Error("A transcript evidence extraction did not return content.");
+  return stringList(JSON.parse(content).evidence).slice(0, 12);
+}
+
+async function mapWithConcurrency<T, R>(items: T[], worker: (item: T, index: number) => Promise<R>, concurrency = 3) {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const runWorker = async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await worker(items[currentIndex], currentIndex);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, runWorker));
+  return results;
+}
+
+export async function analyzeTdcStandupTranscript(transcriptText: string) {
   let response;
   try {
-    response = await retryTimedOutRecapAnalysis(() => invokeLLM({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: "Generate the strict meeting recap JSON now." },
-      ],
-      timeoutMs: RECAP_LLM_TIMEOUT_MS,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "tdc_daily_standup_recap",
-          strict: true,
-          schema: analysisSchema,
-        },
-      },
-    }));
+    const normalizedTranscript = transcriptText.trim();
+    const chunks = normalizedTranscript.length > DIRECT_TRANSCRIPT_CHAR_LIMIT
+      ? splitTranscriptForRecap(normalizedTranscript)
+      : [normalizedTranscript];
+    const source = chunks.length === 1
+      ? `Transcript:\n${chunks[0]}`
+      : `Evidence extracted in parallel from ${chunks.length} transcript parts:\n${(await mapWithConcurrency(chunks, (chunk, index) => extractTranscriptEvidence(chunk, index, chunks.length))).flat().map((item) => `- ${item}`).join("\n")}`;
+
+    response = await invokeRecapModel([
+      { role: "system", content: `You create evidence-bound TDC Daily Standup recap records. ${recapRules}` },
+      { role: "user", content: `${source}\n\nGenerate the strict meeting recap JSON now.` },
+    ], analysisSchema, 3_600);
   } catch (error) {
     if (error instanceof LLMRequestTimeoutError) {
-      throw new Error("Transcript analysis did not complete after two attempts. Please retry; no recap was created.");
+      throw new Error("Transcript analysis did not complete after two bounded attempts. Please retry; no recap was created.");
     }
     throw error;
   }

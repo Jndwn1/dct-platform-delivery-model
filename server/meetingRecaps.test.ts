@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LLMRequestTimeoutError } from "./_core/llm";
-import { buildTdcStandupEmail, normalizeMeetingRecapAnalysis, retryTimedOutRecapAnalysis } from "./meetingRecaps";
+import { buildTdcStandupEmail, normalizeMeetingRecapAnalysis, retryTimedOutRecapAnalysis, splitTranscriptForRecap } from "./meetingRecaps";
 
 describe("TDC Meeting Recaps", () => {
   it("keeps developer updates separate and applies evidence-safe fallback values", () => {
@@ -79,5 +79,21 @@ describe("TDC Meeting Recaps", () => {
     })).rejects.toBeInstanceOf(LLMRequestTimeoutError);
 
     expect(attempts).toBe(2);
+  });
+
+  it("splits a long transcript at readable boundaries for parallel evidence extraction", () => {
+    const transcript = [
+      "Gary reviewed the architecture decision and will return with an implementation recommendation.",
+      "Reshma completed validation updates and needs guidance on the gateway investigation.",
+      "Morgan is working on the Roger test case and identified a client-data dependency.",
+      "Jenniver will capture the follow-up items for the next standup.",
+    ].join("\n\n");
+
+    const chunks = splitTranscriptForRecap(transcript, 125);
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every((chunk) => chunk.length <= 125)).toBe(true);
+    expect(chunks.join("\n\n")).toContain("Gary reviewed the architecture decision");
+    expect(chunks.join("\n\n")).toContain("Jenniver will capture the follow-up items");
   });
 });

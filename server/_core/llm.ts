@@ -57,11 +57,16 @@ export type ToolChoice =
 
 export type InvokeParams = {
   messages: Message[];
+  /** Optional live-catalog model identifier. Defaults to the project standard model. */
+  model?: string;
   tools?: Tool[];
   toolChoice?: ToolChoice;
   tool_choice?: ToolChoice;
   maxTokens?: number;
   max_tokens?: number;
+  /** Provider-specific extensions forwarded to the Manus LLM proxy. */
+  thinking?: Record<string, unknown>;
+  reasoning?: Record<string, unknown>;
   /** Optional caller-specific request deadline for a single LLM invocation. */
   timeoutMs?: number;
   outputSchema?: OutputSchema;
@@ -279,9 +284,14 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 
   const {
     messages,
+    model,
     tools,
     toolChoice,
     tool_choice,
+    maxTokens,
+    max_tokens,
+    thinking,
+    reasoning,
     outputSchema,
     output_schema,
     responseFormat,
@@ -289,7 +299,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   } = params;
 
   const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
+    model: model || "gemini-2.5-flash",
     messages: messages.map(normalizeMessage),
   };
 
@@ -305,9 +315,22 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  payload.max_tokens = 32768
-  payload.thinking = {
-    "budget_tokens": 128
+  const selectedModel = String(payload.model);
+  const tokenLimit = maxTokens ?? max_tokens ?? 32768;
+  if (selectedModel.startsWith("gpt-")) {
+    payload.max_completion_tokens = tokenLimit;
+  } else {
+    payload.max_tokens = tokenLimit;
+  }
+
+  if (thinking) {
+    payload.thinking = thinking;
+  } else if (selectedModel.startsWith("gemini-")) {
+    payload.thinking = { budget_tokens: 128 };
+  }
+
+  if (reasoning) {
+    payload.reasoning = reasoning;
   }
 
   const normalizedResponseFormat = normalizeResponseFormat({
