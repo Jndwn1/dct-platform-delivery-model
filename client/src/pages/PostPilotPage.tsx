@@ -29,16 +29,6 @@ type Pi4Sprint = {
   sprint: string;
   dates: string;
   priorities?: SprintPriorityArea[];
-  workItemCount?: number;
-};
-
-type SprintWorkItem = {
-  itemNumber: number;
-  title: string;
-  status: "Active" | "New" | "Requirements" | "Review Ready" | "QA Ready" | "Awaiting Approval" | "On Hold";
-  owners: string;
-  parentFeature: string;
-  parentFeatureId: number;
 };
 
 type SprintMetricSnapshot = {
@@ -93,28 +83,49 @@ const SPRINT_2_PRIORITY_AREAS: SprintPriorityArea[] = [
   },
 ];
 
-const PI4_SPRINT_TIMELINE: Pi4Sprint[] = [
-  { number: 2, sprint: "PI4 · Sprint 2", dates: "9/23 – 10/6", priorities: SPRINT_2_PRIORITY_AREAS },
-  { number: 3, sprint: "PI4 · Sprint 3", dates: "10/7 – 10/20", workItemCount: 14 },
-  { number: 4, sprint: "PI4 · Sprint 4", dates: "10/21 – 11/3" },
-  { number: 5, sprint: "PI4 · Sprint 5", dates: "11/4 – 11/17" },
+const SPRINT_3_PRIORITY_AREAS: SprintPriorityArea[] = [
+  {
+    title: "Prior-Year Data Foundation",
+    accent: "#0f766e",
+    bullets: [
+      "Stabilize prior-year posting and persistence",
+      "Advance prior-year financial-amount migration",
+      "Ready the roll-forward path for prior-year/TWB records",
+    ],
+  },
+  {
+    title: "Architecture & Governed Mapping",
+    accent: "#1d4ed8",
+    bullets: [
+      "Implement database architecture enhancements",
+      "Align mapping carry-forward to confirmed mappings",
+      "Define governed State input-code reference data",
+    ],
+  },
+  {
+    title: "Defect Resolution, QA & Performance",
+    accent: "#b45309",
+    bullets: [
+      "Resolve Book Return Review and return-filing accuracy defects",
+      "Address known line-mapping reapproval and Gateway failures",
+      "Improve environment DTU performance readiness",
+    ],
+  },
+  {
+    title: "Contract & Manual-Account Decisions",
+    accent: PURPLE,
+    bullets: [
+      "Advance TDC → IMS data type and validation standards awaiting approval",
+      "Clarify the new-account storage and persistent manual-client-account path",
+    ],
+  },
 ];
 
-const SPRINT_3_WORK_ITEMS: SprintWorkItem[] = [
-  { itemNumber: 1, title: "PriorYearAmounts Batch Post returns 500", status: "Active", owners: "Sajja, Reshma", parentFeature: "Implement TDC Prior Year Data Persistence", parentFeatureId: 1481607 },
-  { itemNumber: 2, title: "TDC — Implement Database Architecture Enhancements and…", status: "New", owners: "Luca, Gary", parentFeature: "Roger Core | TDC — Database Architecture …", parentFeatureId: 1503663 },
-  { itemNumber: 3, title: "TDC — Expand MappingCarryForward to Match Confirmed M…", status: "Requirements", owners: "Luca, Gary", parentFeature: "Data & Workflow Enhancements", parentFeatureId: 1501719 },
-  { itemNumber: 4, title: "TDC — Create Governed State Input Code Reference Data an…", status: "Requirements", owners: "Luca, Gary", parentFeature: "TDC — Governed State Input Code Referen…", parentFeatureId: 1501980 },
-  { itemNumber: 5, title: "TDC - Retrieve and Migrate Prior Year Financial Amounts for …", status: "Review Ready", owners: "Luca, Gary", parentFeature: "Roll-forward (prior yr TWB)", parentFeatureId: 1472917 },
-  { itemNumber: 6, title: "Roger UI | Book Return Review | Line 22 is missing in Book R…", status: "Active", owners: "Willis, Morgan", parentFeature: "Data — Defect & Bug Management", parentFeatureId: 1463645 },
-  { itemNumber: 7, title: "Perf Env - TDC - DTUs (100) Reaching 100%", status: "New", owners: "Luca, Gary", parentFeature: "Data — Defect & Bug Management", parentFeatureId: 1483802 },
-  { itemNumber: 8, title: "TDC | Return Filings | Return Filing Page Counts Each Unma…", status: "QA Ready", owners: "Luca, Gary", parentFeature: "Data — Defect & Bug Management", parentFeatureId: 1488477 },
-  { itemNumber: 9, title: "TDC | Return Filings | TB with Line Mapping Issue Is Not Dis…", status: "QA Ready", owners: "Luca, Gary", parentFeature: "Data — Defect & Bug Management", parentFeatureId: 1488494 },
-  { itemNumber: 10, title: "Roger UAT | Known Line Mappings Require Reapproval and …", status: "QA Ready", owners: "Luca, Gary", parentFeature: "Data — Defect & Bug Management", parentFeatureId: 1497978 },
-  { itemNumber: 11, title: "Perf Env - Gateway Calls Failure", status: "QA Ready", owners: "Luca, Gary", parentFeature: "Data — Defect & Bug Management", parentFeatureId: 1487890 },
-  { itemNumber: 12, title: "Define Data Type & Validation Standards for TDC → IMS → …", status: "Awaiting Approval", owners: "Luca, Gary", parentFeature: "Finding - 5.2 API and Payload Definitions", parentFeatureId: 1433863 },
-  { itemNumber: 13, title: "Data Gateway - Support Creation and Storage of New Acco…", status: "On Hold", owners: "Luca, Gary", parentFeature: "User-Defined Nonstandard TDC Codes", parentFeatureId: 1450150 },
-  { itemNumber: 14, title: "Implement Persistent Manual Client Accounts as First-Class …", status: "On Hold", owners: "Luca, Gary", parentFeature: "User-Defined Nonstandard TDC Codes", parentFeatureId: 1454679 },
+const PI4_SPRINT_TIMELINE: Pi4Sprint[] = [
+  { number: 2, sprint: "PI4 · Sprint 2", dates: "9/23 – 10/6", priorities: SPRINT_2_PRIORITY_AREAS },
+  { number: 3, sprint: "PI4 · Sprint 3", dates: "10/7 – 10/20", priorities: SPRINT_3_PRIORITY_AREAS },
+  { number: 4, sprint: "PI4 · Sprint 4", dates: "10/21 – 11/3" },
+  { number: 5, sprint: "PI4 · Sprint 5", dates: "11/4 – 11/17" },
 ];
 
 const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
@@ -129,7 +140,7 @@ const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
       carryoverRate: 25,
     },
   },
-  { sprint: 3, source: "Backlog snapshot not yet supplied" },
+  { sprint: 3, source: "Supplied Sprint 3 ADO backlog — goals and objectives grouped from captured work" },
   { sprint: 4, source: "Backlog snapshot not yet supplied" },
   { sprint: 5, source: "Backlog snapshot not yet supplied" },
 ];
@@ -231,17 +242,22 @@ export default function PostPilotPage() {
         />
         <div style={{ background: "#ffffff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", padding: "14px" }}>
           <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-            {PI4_SPRINT_TIMELINE.map((item, index) => (
-              <div key={item.sprint} style={{ background: item.priorities ? PURPLE_SURFACE : "#f8fafc", border: `1px solid ${item.priorities ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${item.priorities ? PURPLE : "#94a3b8"}`, borderRadius: "8px", gridColumn: item.priorities || index >= 3 ? "span 2" : undefined, minHeight: "86px", padding: "11px 12px" }}>
+            {PI4_SPRINT_TIMELINE.map((item, index) => {
+              const hasGoals = Boolean(item.priorities?.length);
+              const isSprint2 = item.number === 2;
+              const goalAccent = isSprint2 ? PURPLE : "#1d4ed8";
+              const goalSurface = isSprint2 ? PURPLE_SURFACE : "#eff6ff";
+              const goalBorder = isSprint2 ? PURPLE_BORDER : "#bfdbfe";
+              return (
+              <div key={item.sprint} style={{ background: hasGoals ? goalSurface : "#f8fafc", border: `1px solid ${hasGoals ? goalBorder : "#e2e8f0"}`, borderTop: `4px solid ${hasGoals ? goalAccent : "#94a3b8"}`, borderRadius: "8px", gridColumn: hasGoals || index >= 3 ? "span 2" : undefined, minHeight: "86px", padding: "11px 12px" }}>
                 <div style={{ alignItems: "center", display: "flex", gap: "8px" }}>
-                  <span style={{ alignItems: "center", background: item.priorities ? PURPLE : "#475569", borderRadius: "999px", color: "#ffffff", display: "inline-flex", fontSize: "10px", fontWeight: 900, height: "21px", justifyContent: "center", width: "21px" }}>{item.number}</span>
-                  <span style={{ color: item.priorities ? PURPLE_INK : "#334155", fontSize: "11px", fontWeight: 850 }}>{item.sprint}</span>
+                  <span style={{ alignItems: "center", background: hasGoals ? goalAccent : "#475569", borderRadius: "999px", color: "#ffffff", display: "inline-flex", fontSize: "10px", fontWeight: 900, height: "21px", justifyContent: "center", width: "21px" }}>{item.number}</span>
+                  <span style={{ color: hasGoals ? (isSprint2 ? PURPLE_INK : "#1d4ed8") : "#334155", fontSize: "11px", fontWeight: 850 }}>{item.sprint}</span>
                 </div>
                 <div style={{ color: "#0f172a", fontSize: "16px", fontWeight: 900, letterSpacing: "-0.02em", marginTop: "12px" }}>{item.dates}</div>
-                {item.workItemCount && <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "999px", color: "#1d4ed8", display: "inline-flex", fontSize: "9px", fontWeight: 850, marginTop: "9px", padding: "4px 7px" }}>{item.workItemCount} supplied work items</div>}
                 {item.priorities && (
-                  <div style={{ borderTop: `1px solid ${PURPLE_BORDER}`, marginTop: "12px", paddingTop: "11px" }}>
-                    <div style={{ color: PURPLE_INK, fontSize: "9px", fontWeight: 900, letterSpacing: "0.075em", marginBottom: "8px", textTransform: "uppercase" }}>Sprint 2 Goals &amp; Objectives</div>
+                  <div style={{ borderTop: `1px solid ${goalBorder}`, marginTop: "12px", paddingTop: "11px" }}>
+                    <div style={{ color: isSprint2 ? PURPLE_INK : "#1d4ed8", fontSize: "9px", fontWeight: 900, letterSpacing: "0.075em", marginBottom: "8px", textTransform: "uppercase" }}>Sprint {item.number} Goals &amp; Objectives</div>
                     <div style={{ display: "grid", gap: "7px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
                       {item.priorities.map((area) => (
                         <div key={area.title} style={{ background: "#ffffff", border: `1px solid ${area.accent}33`, borderLeft: `3px solid ${area.accent}`, borderRadius: "6px", padding: "8px" }}>
@@ -255,64 +271,10 @@ export default function PostPilotPage() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
-          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Sprint 2 is visually highlighted as the immediate post-launch planning window.</div>
-        </div>
-      </section>
-
-      <section aria-labelledby="sprint-3-work-items" style={{ marginBottom: "26px" }}>
-        <SectionHeading
-          eyebrow="TDC PI4 · Sprint 3"
-          title="Sprint 3 Work-Item Snapshot"
-          description="Fourteen work items captured from the supplied ADO screenshot, including status, listed owners, and parent-feature references. Titles retain source truncation where the screenshot does not show the full text."
-        />
-        <div style={{ background: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
-          <div style={{ alignItems: "center", background: "#eff6ff", borderBottom: "1px solid #bfdbfe", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between", padding: "11px 14px" }}>
-            <div style={{ color: "#1e3a5f", fontSize: "12px", fontWeight: 900 }}>14 captured work items</div>
-            <div style={{ background: "#ffffff", border: "1px solid #93c5fd", borderRadius: "999px", color: "#1d4ed8", fontSize: "9px", fontWeight: 850, padding: "4px 7px" }}>Screenshot-backed backlog snapshot</div>
-          </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "980px", width: "100%" }}>
-              <thead>
-                <tr style={{ background: "#1e3a5f" }}>
-                  {[
-                    { label: "#", width: "48px" },
-                    { label: "Work item", width: "38%" },
-                    { label: "Status", width: "12%" },
-                    { label: "Listed owner(s)", width: "15%" },
-                    { label: "Parent feature", width: "25%" },
-                  ].map((column) => <th key={column.label} style={{ color: "#ffffff", fontSize: "9px", fontWeight: 900, letterSpacing: "0.06em", padding: "9px 10px", textAlign: "left", textTransform: "uppercase", width: column.width }}>{column.label}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {SPRINT_3_WORK_ITEMS.map((item, index) => {
-                  const statusColors: Record<SprintWorkItem["status"], { background: string; border: string; color: string }> = {
-                    Active: { background: "#eff6ff", border: "#bfdbfe", color: "#1d4ed8" },
-                    New: { background: "#f8fafc", border: "#cbd5e1", color: "#475569" },
-                    Requirements: { background: "#faf5ff", border: "#e9d5ff", color: "#7e22ce" },
-                    "Review Ready": { background: "#fff7ed", border: "#fed7aa", color: "#c2410c" },
-                    "QA Ready": { background: "#f0fdfa", border: "#99f6e4", color: "#0f766e" },
-                    "Awaiting Approval": { background: "#fffbeb", border: "#fde68a", color: "#a16207" },
-                    "On Hold": { background: "#fef2f2", border: "#fecaca", color: "#b91c1c" },
-                  };
-                  const statusColor = statusColors[item.status];
-                  return (
-                    <tr key={`${item.parentFeatureId}-${item.itemNumber}`} style={{ background: index % 2 === 0 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
-                      <td style={{ color: "#64748b", fontSize: "11px", fontWeight: 850, padding: "10px" }}>{item.itemNumber}</td>
-                      <td style={{ color: "#1e293b", fontSize: "11px", fontWeight: 750, lineHeight: 1.4, padding: "10px" }}>{item.title}</td>
-                      <td style={{ padding: "10px" }}><span style={{ background: statusColor.background, border: `1px solid ${statusColor.border}`, borderRadius: "999px", color: statusColor.color, display: "inline-flex", fontSize: "9px", fontWeight: 850, padding: "4px 7px", whiteSpace: "nowrap" }}>{item.status}</span></td>
-                      <td style={{ color: "#475569", fontSize: "10px", lineHeight: 1.4, padding: "10px" }}>{item.owners}</td>
-                      <td style={{ color: "#334155", fontSize: "10px", lineHeight: 1.4, padding: "10px" }}><strong>{item.parentFeature}</strong><br /><span style={{ color: "#64748b" }}>Feature {item.parentFeatureId}</span></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ background: "#f8fafc", borderTop: "1px solid #e2e8f0", color: "#64748b", fontSize: "10px", lineHeight: 1.45, padding: "10px 14px" }}>
-            <strong>Source boundary:</strong> The capture shows parent-feature references and status/owner information. Individual work-item IDs and any truncated title text were not visible and are not inferred here.
-          </div>
+          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Sprint 3 goals are grouped from the supplied backlog snapshot for planning visibility; they do not replace feature-level commitments or acceptance criteria.</div>
         </div>
       </section>
 
