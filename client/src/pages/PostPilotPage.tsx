@@ -34,9 +34,13 @@ type Pi4Sprint = {
 type SprintMetricSnapshot = {
   sprint: Pi4Sprint["number"];
   source: string;
-  featureCount?: number;
-  adoItemCount?: number;
-  stateCounts?: Array<{ label: string; value: number; color: string }>;
+  closeout?: {
+    totalWorkItems: number;
+    completedClosed: number;
+    carriedForward: number;
+    completionRate: number;
+    carryoverRate: number;
+  };
 };
 
 const SPRINT_2_PRIORITY_AREAS: SprintPriorityArea[] = [
@@ -89,16 +93,14 @@ const PI4_SPRINT_TIMELINE: Pi4Sprint[] = [
 const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
   {
     sprint: 2,
-    source: "Supplied ADO backlog selection",
-    featureCount: 4,
-    adoItemCount: 18,
-    stateCounts: [
-      { label: "Active", value: 6, color: "#0369a1" },
-      { label: "Review Ready", value: 3, color: "#7c3aed" },
-      { label: "QA Ready", value: 2, color: "#0f766e" },
-      { label: "New", value: 3, color: "#64748b" },
-      { label: "Closed", value: 4, color: "#15803d" },
-    ],
+    source: "Supplied TDC — PI4 Sprint 2 closeout summary",
+    closeout: {
+      totalWorkItems: 12,
+      completedClosed: 9,
+      carriedForward: 3,
+      completionRate: 75,
+      carryoverRate: 25,
+    },
   },
   { sprint: 3, source: "Backlog snapshot not yet supplied" },
   { sprint: 4, source: "Backlog snapshot not yet supplied" },
@@ -235,32 +237,37 @@ export default function PostPilotPage() {
         <SectionHeading
           eyebrow="PI4 sprint planning"
           title="Sprint Metrics"
-          description="Planning and work-item counts by sprint. These indicators do not represent PI4 delivery completion and are excluded from all PI4 and MVP KPIs."
+          description="TDC Sprint 2 closeout and subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs."
         />
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" }}>
           {POST_PILOT_SPRINT_METRICS.map((metric) => {
-            const featureCount = metric.featureCount ?? 0;
-            const adoItemCount = metric.adoItemCount ?? 0;
-            const stateCounts = metric.stateCounts ?? [];
-            const hasSnapshot = metric.featureCount !== undefined && metric.adoItemCount !== undefined && metric.stateCounts;
+            const closeout = metric.closeout;
+            const hasSnapshot = closeout !== undefined;
             return (
               <div key={metric.sprint} style={{ background: metric.sprint === 2 ? PURPLE_SURFACE : "#ffffff", border: `1px solid ${metric.sprint === 2 ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${metric.sprint === 2 ? PURPLE : "#94a3b8"}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", minHeight: "172px", padding: "14px" }}>
                 <div style={{ alignItems: "center", display: "flex", gap: "8px", justifyContent: "space-between" }}>
-                  <div style={{ color: metric.sprint === 2 ? PURPLE_INK : "#334155", fontSize: "12px", fontWeight: 900 }}>PI4 · Sprint {metric.sprint}</div>
-                  <div style={{ background: hasSnapshot ? "#dcfce7" : "#f8fafc", border: `1px solid ${hasSnapshot ? "#86efac" : "#cbd5e1"}`, borderRadius: "999px", color: hasSnapshot ? "#166534" : "#64748b", fontSize: "9px", fontWeight: 850, padding: "3px 7px" }}>{hasSnapshot ? "Source-backed" : "Pending source"}</div>
+                  <div style={{ color: metric.sprint === 2 ? PURPLE_INK : "#334155", fontSize: "12px", fontWeight: 900 }}>{metric.sprint === 2 ? "TDC · PI4 Sprint 2" : `PI4 · Sprint ${metric.sprint}`}</div>
+                  <div style={{ background: hasSnapshot ? "#dcfce7" : "#f8fafc", border: `1px solid ${hasSnapshot ? "#86efac" : "#cbd5e1"}`, borderRadius: "999px", color: hasSnapshot ? "#166534" : "#64748b", fontSize: "9px", fontWeight: 850, padding: "3px 7px" }}>{hasSnapshot ? "Closeout source" : "Pending source"}</div>
                 </div>
-                {hasSnapshot ? (
+                {closeout ? (
                   <>
                     <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", marginTop: "14px" }}>
-                      <div><div style={{ color: PURPLE_INK, fontSize: "20px", fontWeight: 900, lineHeight: 1 }}>{featureCount}</div><div style={{ color: "#64748b", fontSize: "9px", fontWeight: 800, marginTop: "4px", textTransform: "uppercase" }}>Features</div></div>
-                      <div><div style={{ color: "#334155", fontSize: "20px", fontWeight: 900, lineHeight: 1 }}>{adoItemCount}</div><div style={{ color: "#64748b", fontSize: "9px", fontWeight: 800, marginTop: "4px", textTransform: "uppercase" }}>ADO work items</div></div>
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "12px" }}>
-                      {stateCounts.map((state) => <span key={state.label} style={{ background: "#ffffff", border: `1px solid ${state.color}33`, borderRadius: "999px", color: state.color, fontSize: "9px", fontWeight: 850, padding: "3px 6px" }}>{state.label} {state.value}</span>)}
+                      {[
+                        { label: "Total sprint work items", value: closeout.totalWorkItems, color: PURPLE_INK },
+                        { label: "Completed / closed", value: closeout.completedClosed, color: "#15803d" },
+                        { label: "Carried forward to Sprint 3", value: closeout.carriedForward, color: "#2563eb" },
+                        { label: "Completion rate", value: `${closeout.completionRate}%`, color: "#15803d" },
+                        { label: "Carryover rate", value: `${closeout.carryoverRate}%`, color: "#2563eb" },
+                      ].map((item) => (
+                        <div key={item.label} style={{ background: "#ffffff", border: `1px solid ${item.color}22`, borderLeft: `3px solid ${item.color}`, borderRadius: "6px", padding: "8px" }}>
+                          <div style={{ color: item.color, fontSize: "18px", fontWeight: 900, lineHeight: 1 }}>{item.value}</div>
+                          <div style={{ color: "#64748b", fontSize: "9px", fontWeight: 800, lineHeight: 1.3, marginTop: "4px", textTransform: "uppercase" }}>{item.label}</div>
+                        </div>
+                      ))}
                     </div>
                   </>
                 ) : (
-                  <div style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.5, marginTop: "19px" }}>Feature and ADO work-item metrics will populate when the sprint backlog snapshot is supplied. No values are inferred.</div>
+                  <div style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.5, marginTop: "19px" }}>Closeout metrics will populate when the sprint source summary is supplied. No values are inferred.</div>
                 )}
                 <div style={{ color: "#64748b", fontSize: "9px", lineHeight: 1.4, marginTop: hasSnapshot ? "10px" : "15px" }}>Source: {metric.source}</div>
               </div>
