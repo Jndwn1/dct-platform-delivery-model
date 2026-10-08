@@ -701,17 +701,16 @@ ${input.notes}` as string },
     list: publicProcedure.query(async () => {
       const db = await getDb();
       if (!db) return [];
-      const rows = await db.select().from(postPilotDeployments).orderBy(desc(postPilotDeployments.deploymentDate), desc(postPilotDeployments.createdAt));
+      const rows = await db.select().from(postPilotDeployments).where(eq(postPilotDeployments.platform, "TDC")).orderBy(desc(postPilotDeployments.deploymentDate), desc(postPilotDeployments.createdAt));
       return rows.map((row) => ({ ...row, id: Number(row.id) }));
     }),
     summary: publicProcedure.query(async () => {
       const db = await getDb();
-      if (!db) return { total: 0, production: 0, pdc: 0, tdc: 0, rollbackCandidates: 0 };
-      const all = await db.select().from(postPilotDeployments);
+      if (!db) return { total: 0, production: 0, tdc: 0, rollbackCandidates: 0 };
+      const all = await db.select().from(postPilotDeployments).where(eq(postPilotDeployments.platform, "TDC"));
       return {
         total: all.length,
         production: all.filter((record) => record.environment === "Production" && record.status === "Deployed").length,
-        pdc: all.filter((record) => record.platform === "PDC").length,
         tdc: all.filter((record) => record.platform === "TDC").length,
         rollbackCandidates: all.filter((record) => record.status === "Rolled Back" || record.status === "In Progress").length,
       };
@@ -722,7 +721,7 @@ ${input.notes}` as string },
         deploymentDate: z.string().min(1).max(16),
         deploymentOwner: z.string().min(1).max(128),
         productOwner: z.string().min(1).max(128),
-        platform: z.enum(["PDC", "TDC", "Platform", "Both"]),
+        platform: z.literal("TDC"),
         type: z.enum(["Feature", "Bug", "Technical Story", "Hotfix"]),
         status: z.enum(["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).optional(),
         screenName: z.string().min(1).max(256),

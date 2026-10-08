@@ -282,3 +282,4 @@
 - [x] Replace Post Pilot Sprint 2 planning metrics with the supplied TDC closeout summary: 12 work items, 9 completed, 3 carried forward, 75% completion, and 25% carryover
 - [x] Add the 14 supplied TDC PI4 Sprint 3 work items, statuses, owners, and parent-feature references to the Post Pilot timeline
 - [x] Replace the Sprint 3 work-item snapshot with evidence-bound Sprint 3 goals and objectives grouped from the supplied backlog
+- [x] Make the Post Pilot Deployment Registry TDC-only and remove PDC deployment tracking from its UI, creation flow, and summary API

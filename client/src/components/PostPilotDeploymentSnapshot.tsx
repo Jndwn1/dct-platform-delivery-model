@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
-import { Activity, CheckCircle2, ClipboardCopy, FileText, Layers, Plus, Rocket, RotateCcw, X } from "lucide-react";
+import { Activity, CheckCircle2, ClipboardCopy, FileText, Plus, Rocket, RotateCcw, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
-type PlatformValue = "PDC" | "TDC" | "Platform" | "Both";
 type DeploymentType = "Feature" | "Bug" | "Technical Story" | "Hotfix";
 type DeploymentStatus = "Planned" | "Scheduled" | "In Progress" | "Deployed" | "Rolled Back";
 
@@ -86,7 +85,6 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
     productOwner: "",
-    platform: "TDC" as PlatformValue,
     type: "Feature" as DeploymentType,
     status: "Planned" as DeploymentStatus,
     screenName: "",
@@ -116,7 +114,7 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
       deploymentDate: form.deploymentDate,
       deploymentOwner: form.deploymentOwner,
       productOwner: form.productOwner,
-      platform: form.platform,
+      platform: "TDC",
       type: form.type,
       status: form.status,
       screenName: form.screenName,
@@ -154,10 +152,7 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
             <div><label style={labelStyle}>Product Owner *</label><input required value={form.productOwner} onChange={(event) => set("productOwner", event.target.value)} placeholder="e.g. Product Owner" style={fieldStyle} /></div>
           </div>
           <div><label style={labelStyle}>Affected Screen / Capability *</label><input required value={form.screenName} onChange={(event) => set("screenName", event.target.value)} placeholder="e.g. State Filing Footprint" style={fieldStyle} /></div>
-          <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "1fr 1fr" }}>
-            <div><label style={labelStyle}>Platform *</label><select value={form.platform} onChange={(event) => setForm((previous) => ({ ...previous, platform: event.target.value as PlatformValue }))} style={fieldStyle}>{(["PDC", "TDC", "Platform", "Both"] as PlatformValue[]).map((platform) => <option key={platform}>{platform}</option>)}</select></div>
-            <div><label style={labelStyle}>Type *</label><select value={form.type} onChange={(event) => setForm((previous) => ({ ...previous, type: event.target.value as DeploymentType }))} style={fieldStyle}>{(["Feature", "Bug", "Technical Story", "Hotfix"] as DeploymentType[]).map((type) => <option key={type}>{type}</option>)}</select></div>
-          </div>
+          <div><label style={labelStyle}>Type *</label><select value={form.type} onChange={(event) => setForm((previous) => ({ ...previous, type: event.target.value as DeploymentType }))} style={fieldStyle}>{(["Feature", "Bug", "Technical Story", "Hotfix"] as DeploymentType[]).map((type) => <option key={type}>{type}</option>)}</select></div>
           <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "1fr 1fr" }}>
             <div><label style={labelStyle}>Environment</label><select value={form.environment} onChange={(event) => set("environment", event.target.value)} style={fieldStyle}>{["Production", "UAT", "QA", "Dev"].map((environment) => <option key={environment}>{environment}</option>)}</select></div>
             <div><label style={labelStyle}>ADO Work Item ID</label><input value={form.adoWorkItemId} onChange={(event) => set("adoWorkItemId", event.target.value)} placeholder="e.g. 1494188" style={fieldStyle} /></div>
@@ -182,7 +177,7 @@ export default function PostPilotDeploymentSnapshot() {
   const { data: records = [], isLoading: isRecordsLoading } = trpc.postPilotDeploymentRegistry.list.useQuery();
   const [showCreate, setShowCreate] = useState(false);
   const [wikiCopied, setWikiCopied] = useState(false);
-  const summary = summaryData ?? { total: 0, production: 0, pdc: 0, tdc: 0, rollbackCandidates: 0 };
+  const summary = summaryData ?? { total: 0, production: 0, tdc: 0, rollbackCandidates: 0 };
   const wikiMarkdown = useMemo(() => buildPostPilotDeploymentWiki(records), [records]);
   const isLoading = isSummaryLoading || isRecordsLoading;
 
@@ -207,13 +202,12 @@ export default function PostPilotDeploymentSnapshot() {
             <button type="button" onClick={() => setShowCreate(true)} style={{ alignItems: "center", background: "#0f172a", border: "1px solid #0f172a", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><Plus size={13} />Create Deployment</button>
           </div>
         </div>
-        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>A separate, persistent registry for PI4 / Post Pilot deployments. It starts at zero, does not use historical deployment records, and does not change PI4 sprint progress.</p>
+        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Post Pilot deployments only. It starts at zero, does not use historical deployment records, and does not change PI4 sprint progress.</p>
       </div>
 
       <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", marginBottom: "14px" }}>
         <DeploymentMetricCard label="Total Deployments" value={summary.total} color="#0f172a" icon={<Rocket size={13} />} />
         <DeploymentMetricCard label="Production Releases" value={summary.production} color="#059669" icon={<CheckCircle2 size={13} />} />
-        <DeploymentMetricCard label="PDC Deployments" value={summary.pdc} color="#1d4ed8" icon={<Layers size={13} />} />
         <DeploymentMetricCard label="TDC Deployments" value={summary.tdc} color="#059669" icon={<Activity size={13} />} />
         <DeploymentMetricCard label="Open Rollback Candidates" value={summary.rollbackCandidates} color="#dc2626" icon={<RotateCcw size={13} />} />
       </div>
@@ -233,14 +227,13 @@ export default function PostPilotDeploymentSnapshot() {
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "1100px", width: "100%" }}>
-              <thead><tr style={{ background: "#0f172a", textAlign: "left" }}>{["Date", "Release Name", "Screen / Capability", "Type", "Platform", "Environment", "Deployment Owner", "Product Owner", "Related Feature", "ADO Item"].map((heading) => <th key={heading} style={{ color: "#cbd5e1", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{heading}</th>)}</tr></thead>
+            <table style={{ borderCollapse: "collapse", minWidth: "980px", width: "100%" }}>
+              <thead><tr style={{ background: "#0f172a", textAlign: "left" }}>{["Date", "Release Name", "Screen / Capability", "Type", "Environment", "Deployment Owner", "Product Owner", "Related Feature", "ADO Item"].map((heading) => <th key={heading} style={{ color: "#cbd5e1", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{heading}</th>)}</tr></thead>
               <tbody>{records.map((record, index) => <tr key={record.deploymentId} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
                 <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px", whiteSpace: "nowrap" }}>{record.deploymentDate}</td>
                 <td style={{ color: "#1e293b", fontSize: "11px", fontWeight: 750, maxWidth: "260px", padding: "11px 12px" }}>{record.releaseName}</td>
                 <td style={{ color: "#0f766e", fontSize: "11px", fontWeight: 800, maxWidth: "210px", padding: "11px 12px" }}>{record.screenName}</td>
                 <td style={{ padding: "11px 12px" }}><span style={{ background: "#fef3c7", border: "1px solid #fde68a", borderRadius: "999px", color: "#92400e", display: "inline-flex", fontSize: "9px", fontWeight: 850, padding: "3px 6px", whiteSpace: "nowrap" }}>{record.type}</span></td>
-                <td style={{ color: record.platform === "PDC" ? "#1d4ed8" : "#047857", fontSize: "11px", fontWeight: 800, padding: "11px 12px" }}>{record.platform}</td>
                 <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{record.environment}</td>
                 <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{record.deploymentOwner}</td>
                 <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{record.productOwner}</td>

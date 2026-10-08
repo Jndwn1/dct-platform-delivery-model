@@ -32,6 +32,7 @@ describe("PI4 Post Pilot delivery", () => {
     const prototypeFlow = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionPrototypeFlow.tsx"), "utf8");
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
     const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
+    const postPilotDeploymentRouter = router.slice(router.indexOf("postPilotDeploymentRegistry: router"), router.indexOf("tdcMeetingRecaps: router"));
 
     expect(dashboard).not.toContain("Post Pilot · Planning Visibility Only");
     expect(dashboard).not.toContain("PI4 Planning Visibility");
@@ -130,8 +131,11 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("affected screen / capability is required");
     expect(deploymentSnapshot).toContain("Total Deployments");
     expect(deploymentSnapshot).toContain("Production Releases");
-    expect(deploymentSnapshot).toContain("PDC Deployments");
     expect(deploymentSnapshot).toContain("TDC Deployments");
+    expect(deploymentSnapshot).toContain("Tax Data Consolidation (TDC) PI4 / Post Pilot deployments only");
+    expect(deploymentSnapshot).not.toContain("PDC Deployments");
+    expect(deploymentSnapshot).not.toContain("Platform *");
+    expect(deploymentSnapshot).not.toContain('record.platform === "PDC"');
     expect(deploymentSnapshot).toContain("Open Rollback Candidates");
     expect(deploymentSnapshot).toContain("Post Pilot Deployment Records");
     expect(deploymentSnapshot).toContain("No Post Pilot deployments recorded");
@@ -142,7 +146,9 @@ describe("PI4 Post Pilot delivery", () => {
     expect(schema).toContain('postPilotDeployments = mysqlTable("post_pilot_deployments"');
     expect(schema).toContain('screenName: varchar("screenName", { length: 256 }).notNull()');
     expect(router).toContain("postPilotDeploymentRegistry: router");
-    expect(router).toContain("from(postPilotDeployments)");
+    expect(postPilotDeploymentRouter).toContain('where(eq(postPilotDeployments.platform, "TDC"))');
+    expect(postPilotDeploymentRouter).toContain('platform: z.literal("TDC")');
+    expect(postPilotDeploymentRouter).not.toContain('platform: z.enum(["PDC", "TDC", "Platform", "Both"])');
     expect(router).toContain("screenName: z.string().min(1).max(256)");
     expect(router).toContain("PPDEP-");
     expect(postPilot).toContain("PI4 Pod Delivery & Data Review Process");
