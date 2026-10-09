@@ -76,8 +76,41 @@ function renderBullets(lines: string[], fallback: string) {
   return (lines.length ? lines : [fallback]).map((line) => `- ${toBullet(line)}`).join("\n");
 }
 
+function releaseAnchor(record: DeploymentWikiRecord) {
+  return `release-${record.deploymentDate}-${record.deploymentId}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+}
+
+function extractAdoIds(lines: string[], fallback: string | null) {
+  const source = [...lines, fallback ?? ""].join(" ");
+  return Array.from(new Set(source.match(/\b\d{6,8}\b/g) ?? []));
+}
+
+function formatAdoLinks(ids: string[]) {
+  return ids.length ? ids.map((id) => `[${id}](${ADO_WORK_ITEM_URL}${id})`).join(", ") : "—";
+}
+
+function consolidateReleaseRecords(records: DeploymentWikiRecord[]) {
+  const consolidated = new Map<string, DeploymentWikiRecord>();
+
+  records.forEach((record) => {
+    const key = `${record.deploymentDate}|${record.releaseName}`;
+    const existing = consolidated.get(key);
+    if (!existing) {
+      consolidated.set(key, { ...record });
+      return;
+    }
+
+    existing.adoWorkItemId = [existing.adoWorkItemId, record.adoWorkItemId].filter(Boolean).filter((value, index, values) => values.indexOf(value) === index).join(", ") || null;
+    existing.relatedFeature = [existing.relatedFeature, record.relatedFeature].filter(Boolean).filter((value, index, values) => values.indexOf(value) === index).join("; ") || null;
+    existing.relatedStory = [existing.relatedStory, record.relatedStory].filter(Boolean).filter((value, index, values) => values.indexOf(value) === index).join("; ") || null;
+    existing.summary = [existing.summary, record.summary].filter(Boolean).filter((value, index, values) => values.indexOf(value) === index).join("\n") || null;
+  });
+
+  return Array.from(consolidated.values()).sort((left, right) => right.deploymentDate.localeCompare(left.deploymentDate));
+}
+
 export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
-  const orderedRecords = [...records].sort((left, right) => right.deploymentDate.localeCompare(left.deploymentDate));
+  const orderedRecords = consolidateReleaseRecords(records);
   const lines = [
     "# Data Gateway Release Notes",
     "",
@@ -90,21 +123,46 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
   if (orderedRecords.length === 0) {
     lines.push("No Data Gateway release entries have been recorded in the Post Pilot Deployment Registry.");
   } else {
-    orderedRecords.forEach((record) => {
+    const releaseEntries = orderedRecords.map((record) => {
       const source = splitReleaseSource(record.summary);
       const sourceDetails = source.lead.filter((line) => !line.startsWith("-"));
-      const overview = sourceDetails.slice(0, 2);
-      const implementationDetails = sourceDetails.slice(2);
-      const fallbackAdoItem = record.adoWorkItemId
-        ? [`${record.adoWorkItemId} — Registry-linked work item`]
-        : [];
-      const linkedAdoItems = source.adoItems.length ? source.adoItems : fallbackAdoItem;
+      const overview = sourceDetails.slice(0, 2).join(" ");
+      const adoIds = extractAdoIds(source.adoItems, record.adoWorkItemId);
       const referenceScope = [record.screenName, record.environment, record.type]
         .filter(Boolean)
         .map((value) => escapeWikiCell(value))
         .join(" · ");
 
+      return { adoIds, overview, record, referenceScope, source, sourceDetails };
+    });
+
+    lines.push(
+      "## Release Tracking Table",
+      "",
+      "| Date | Release Name | Screen / Capability | Type | Environment | Deployment Owner | Product Owner | Related Feature | ADO Item | Release Overview |",
+      "|---|---|---|---|---|---|---|---|---|---|",
+    );
+
+    releaseEntries.forEach(({ adoIds, overview, record }) => {
+      lines.push([
+        `| ${formatReleaseDate(record.deploymentDate)}`,
+        `[${escapeWikiCell(record.releaseName)}](#${releaseAnchor(record)})`,
+        escapeWikiCell(record.screenName),
+        escapeWikiCell(record.type),
+        escapeWikiCell(record.environment),
+        escapeWikiCell(record.deploymentOwner),
+        escapeWikiCell(record.productOwner),
+        escapeWikiCell(record.relatedFeature),
+        formatAdoLinks(adoIds),
+        `${escapeWikiCell(overview || `This release record captures ${record.releaseName}.`)} |`,
+      ].join(" | "));
+    });
+
+    releaseEntries.forEach(({ adoIds, overview, record, referenceScope, source, sourceDetails }) => {
+
       lines.push(
+        "",
+        `<a id="${releaseAnchor(record)}"></a>`,
         `## ${record.releaseName} — ${formatReleaseDate(record.deploymentDate)}`,
         "",
         `**Release Date:** ${formatReleaseDate(record.deploymentDate)}`,
@@ -113,27 +171,27 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
         "",
         "### Release Overview",
         "",
-        overview.length
-          ? overview.join(" ")
+        overview
+          ? overview
           : `This release record captures ${record.releaseName} for ${referenceScope || "the Post Pilot deployment registry"}.`,
         "",
         "### Key Enhancements",
         "",
         renderBullets(
-          linkedAdoItems.map((line) => toBullet(line)),
+          source.adoItems.length ? source.adoItems.map((line) => toBullet(line)) : adoIds.map((id) => `${id} — Registry-linked work item`),
           "No discrete enhancement details were captured in this registry record.",
         ),
         "",
         "### ADO Work Items Delivered",
         "",
-        linkedAdoItems.length
-          ? linkedAdoItems.map(formatAdoItem).join("\n")
+        adoIds.length
+          ? adoIds.map((id) => `- [${id}](${ADO_WORK_ITEM_URL}${id})`).join("\n")
           : "- No ADO work item was captured in this registry record.",
         "",
         "### Detailed Features, API Changes, and Bug Fixes",
         "",
         renderBullets(
-          implementationDetails.length ? implementationDetails : sourceDetails,
+          sourceDetails,
           "No additional implementation detail was captured in this registry record.",
         ),
         "",

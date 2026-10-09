@@ -129,6 +129,9 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("Copy Data Gateway Wiki Markdown");
     expect(deploymentSnapshot).toContain("buildPostPilotDeploymentWiki");
     expect(deploymentSnapshot).toContain('"# Data Gateway Release Notes"');
+    expect(deploymentSnapshot).toContain("Release Tracking Table");
+    expect(deploymentSnapshot).toContain("Release Name | Screen / Capability");
+    expect(deploymentSnapshot).toContain("Release Overview |");
     expect(deploymentSnapshot).toContain("Release Overview");
     expect(deploymentSnapshot).toContain("Key Enhancements");
     expect(deploymentSnapshot).toContain("ADO Work Items Delivered");
@@ -142,7 +145,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("(CATT) Center for Advanced Tax Technology");
     expect(deploymentSnapshot).toContain("ADO_WORK_ITEM_URL");
     expect(deploymentSnapshot).toContain("Tax%20AI%20Solutions/_workitems/edit/");
-    expect(deploymentSnapshot).toContain("orderedRecords");
+    expect(deploymentSnapshot).toContain("consolidateReleaseRecords");
+    expect(deploymentSnapshot).toContain("releaseAnchor");
     expect(deploymentSnapshot).not.toContain('"# DCT Platform — Post Pilot Deployment Registry"');
     expect(deploymentSnapshot).toContain("affected screen / capability is required");
     expect(deploymentSnapshot).toContain("Total Deployments");
