@@ -132,6 +132,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain('"data-gateway-release-notes.md"');
     expect(deploymentSnapshot).toContain("buildPostPilotDeploymentWiki");
     expect(deploymentSnapshot).toContain('"# Data Gateway Release Notes"');
+    expect(deploymentSnapshot).toContain("PI4 / Post Pilot Data Gateway release documentation");
+    expect(deploymentSnapshot).toContain("Registry records represented");
     expect(deploymentSnapshot).toContain('"## Release Index"');
     expect(deploymentSnapshot).toContain("Release Name | Screen / Capability");
     expect(deploymentSnapshot).toContain("Release Overview |");
@@ -146,7 +148,9 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).not.toContain("Downstream Consumer Impact");
     expect(deploymentSnapshot).not.toContain("Implementation Considerations");
     expect(deploymentSnapshot).not.toContain("Release Summary");
-    expect(deploymentSnapshot).not.toContain("Jenniver Dawn Stafford");
+    expect(deploymentSnapshot).toContain("Jenniver Dawn Stafford");
+    expect(deploymentSnapshot).toContain("Business Analysis Manager");
+    expect(deploymentSnapshot).toContain("(CATT) Center for Advanced Tax Technology");
     expect(deploymentSnapshot).not.toContain('"# DCT Platform — Post Pilot Deployment Registry"');
     expect(deploymentSnapshot).toContain("affected screen / capability is required");
     expect(deploymentSnapshot).toContain("Total Deployments");

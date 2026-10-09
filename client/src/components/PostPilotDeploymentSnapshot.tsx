@@ -89,7 +89,16 @@ function consolidateReleaseRecords(records: DeploymentWikiRecord[]) {
 
 export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
   const orderedRecords = consolidateReleaseRecords(records);
-  const lines = ["# Data Gateway Release Notes", "", "## Release Index", ""];
+  const lines = [
+    "# Data Gateway Release Notes",
+    "",
+    "> **Scope:** PI4 / Post Pilot Data Gateway release documentation",
+    "> **Ordering:** Reverse chronological by deployment date",
+    `> **Registry records represented:** ${orderedRecords.length}`,
+    "",
+    "## Release Index",
+    "",
+  ];
 
   if (orderedRecords.length === 0) {
     lines.push("No Data Gateway release entries have been recorded in the Post Pilot Deployment Registry.");
@@ -123,6 +132,12 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
     });
   }
 
+  lines.push(
+    "",
+    "**Jenniver Dawn Stafford**  ",
+    "Business Analysis Manager  ",
+    "(CATT) Center for Advanced Tax Technology",
+  );
   return lines.join("\n");
 }
 
