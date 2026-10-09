@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Activity, CheckCircle2, ClipboardCopy, FileText, Plus, Rocket, RotateCcw, X } from "lucide-react";
+import { Activity, CheckCircle2, ClipboardCopy, Download, FileText, Plus, Rocket, RotateCcw, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 type DeploymentType = "Feature" | "Bug" | "Technical Story" | "Hotfix";
@@ -31,8 +31,6 @@ const ADO_WORK_ITEM_URL = "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/
 type ReleaseSourceSections = {
   lead: string[];
   adoItems: string[];
-  scope: string[];
-  consumerImpact: string[];
 };
 
 function formatReleaseDate(date: string) {
@@ -43,7 +41,7 @@ function formatReleaseDate(date: string) {
 }
 
 function splitReleaseSource(summary: string | null | undefined): ReleaseSourceSections {
-  const sections: ReleaseSourceSections = { lead: [], adoItems: [], scope: [], consumerImpact: [] };
+  const sections: ReleaseSourceSections = { lead: [], adoItems: [] };
   let active: keyof ReleaseSourceSections = "lead";
 
   (summary ?? "").split(/\r?\n/).forEach((rawLine) => {
@@ -53,31 +51,11 @@ function splitReleaseSource(summary: string | null | undefined): ReleaseSourceSe
     if (!line) return;
 
     if (line === "ADO Items Delivered") { active = "adoItems"; return; }
-    if (line === "Deployment Scope") { active = "scope"; return; }
-    if (line === "Consumer Impact") { active = "consumerImpact"; return; }
+    if (line === "Deployment Scope" || line === "Consumer Impact") { active = "lead"; return; }
     sections[active].push(line);
   });
 
   return sections;
-}
-
-function toBullet(line: string) {
-  return line.replace(/^-\s*/, "").trim();
-}
-
-function formatAdoItem(line: string) {
-  const cleaned = toBullet(line);
-  const match = cleaned.match(/^(\d+)\s*[—–-]\s*(.+)$/);
-  if (!match) return `- ${cleaned}`;
-  return `- [${match[1]}](${ADO_WORK_ITEM_URL}${match[1]}) — ${match[2]}`;
-}
-
-function renderBullets(lines: string[], fallback: string) {
-  return (lines.length ? lines : [fallback]).map((line) => `- ${toBullet(line)}`).join("\n");
-}
-
-function releaseAnchor(record: DeploymentWikiRecord) {
-  return `release-${record.deploymentDate}-${record.deploymentId}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
 }
 
 function extractAdoIds(lines: string[], fallback: string | null) {
@@ -111,14 +89,7 @@ function consolidateReleaseRecords(records: DeploymentWikiRecord[]) {
 
 export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
   const orderedRecords = consolidateReleaseRecords(records);
-  const lines = [
-    "# Data Gateway Release Notes",
-    "",
-    "> **Scope:** PI4 / Post Pilot Data Gateway release documentation",
-    "> **Ordering:** Reverse chronological by deployment date",
-    `> **Registry records represented:** ${orderedRecords.length}`,
-    "",
-  ];
+  const lines = ["# Data Gateway Release Notes", "", "## Release Index", ""];
 
   if (orderedRecords.length === 0) {
     lines.push("No Data Gateway release entries have been recorded in the Post Pilot Deployment Registry.");
@@ -128,17 +99,10 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
       const sourceDetails = source.lead.filter((line) => !line.startsWith("-"));
       const overview = sourceDetails.slice(0, 2).join(" ");
       const adoIds = extractAdoIds(source.adoItems, record.adoWorkItemId);
-      const referenceScope = [record.screenName, record.environment, record.type]
-        .filter(Boolean)
-        .map((value) => escapeWikiCell(value))
-        .join(" · ");
-
-      return { adoIds, overview, record, referenceScope, source, sourceDetails };
+      return { adoIds, overview, record };
     });
 
     lines.push(
-      "## Release Tracking Table",
-      "",
       "| Date | Release Name | Screen / Capability | Type | Environment | Deployment Owner | Product Owner | Related Feature | ADO Item | Release Overview |",
       "|---|---|---|---|---|---|---|---|---|---|",
     );
@@ -146,7 +110,7 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
     releaseEntries.forEach(({ adoIds, overview, record }) => {
       lines.push([
         `| ${formatReleaseDate(record.deploymentDate)}`,
-        `[${escapeWikiCell(record.releaseName)}](#${releaseAnchor(record)})`,
+        escapeWikiCell(record.releaseName),
         escapeWikiCell(record.screenName),
         escapeWikiCell(record.type),
         escapeWikiCell(record.environment),
@@ -157,79 +121,8 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
         `${escapeWikiCell(overview || `This release record captures ${record.releaseName}.`)} |`,
       ].join(" | "));
     });
-
-    releaseEntries.forEach(({ adoIds, overview, record, referenceScope, source, sourceDetails }) => {
-
-      lines.push(
-        "",
-        `<a id="${releaseAnchor(record)}"></a>`,
-        `## ${record.releaseName} — ${formatReleaseDate(record.deploymentDate)}`,
-        "",
-        `**Release Date:** ${formatReleaseDate(record.deploymentDate)}`,
-        `**Deployment Scope:** ${referenceScope || "Not captured"}`,
-        `**Platform:** ${escapeWikiCell(record.platform)}`,
-        "",
-        "### Release Overview",
-        "",
-        overview
-          ? overview
-          : `This release record captures ${record.releaseName} for ${referenceScope || "the Post Pilot deployment registry"}.`,
-        "",
-        "### Key Enhancements",
-        "",
-        renderBullets(
-          source.adoItems.length ? source.adoItems.map((line) => toBullet(line)) : adoIds.map((id) => `${id} — Registry-linked work item`),
-          "No discrete enhancement details were captured in this registry record.",
-        ),
-        "",
-        "### ADO Work Items Delivered",
-        "",
-        adoIds.length
-          ? adoIds.map((id) => `- [${id}](${ADO_WORK_ITEM_URL}${id})`).join("\n")
-          : "- No ADO work item was captured in this registry record.",
-        "",
-        "### Detailed Features, API Changes, and Bug Fixes",
-        "",
-        renderBullets(
-          sourceDetails,
-          "No additional implementation detail was captured in this registry record.",
-        ),
-        "",
-        "### System Integration and Dependencies",
-        "",
-        renderBullets(
-          source.scope.length ? source.scope : [record.relatedFeature, record.relatedStory].filter((value): value is string => Boolean(value)),
-          "No separate integration dependency was captured in this registry record.",
-        ),
-        "",
-        "### Downstream Consumer Impact",
-        "",
-        renderBullets(
-          source.consumerImpact,
-          "No downstream consumer action was captured in this registry record.",
-        ),
-        "",
-        "### Implementation Considerations",
-        "",
-        `- Deployment owner: ${escapeWikiCell(record.deploymentOwner)}.`,
-        `- Product owner: ${escapeWikiCell(record.productOwner)}.`,
-        "- Confirm downstream integration and testing needs separately from functionality delivered by Data Gateway.",
-        "",
-        "### Release Summary",
-        "",
-        `This ${escapeWikiCell(record.platform)} release is recorded as ${escapeWikiCell(record.status)} in the Post Pilot registry. The functionality listed above is available within the documented release scope; any downstream integration, validation, or consumer adoption remains subject to the recorded dependencies and follow-up activities.`,
-        "",
-        "---",
-        "",
-      );
-    });
   }
 
-  lines.push(
-    "**Jenniver Dawn Stafford**  ",
-    "Business Analysis Manager  ",
-    "(CATT) Center for Advanced Tax Technology",
-  );
   return lines.join("\n");
 }
 
@@ -344,6 +237,7 @@ export default function PostPilotDeploymentSnapshot() {
   const { data: records = [], isLoading: isRecordsLoading } = trpc.postPilotDeploymentRegistry.list.useQuery();
   const [showCreate, setShowCreate] = useState(false);
   const [wikiCopied, setWikiCopied] = useState(false);
+  const [wikiDownloaded, setWikiDownloaded] = useState(false);
   const summary = summaryData ?? { total: 0, production: 0, tdc: 0, rollbackCandidates: 0 };
   const wikiMarkdown = useMemo(() => buildPostPilotDeploymentWiki(records), [records]);
   const isLoading = isSummaryLoading || isRecordsLoading;
@@ -358,6 +252,20 @@ export default function PostPilotDeploymentSnapshot() {
     }
   }
 
+  function downloadWikiMarkdown() {
+    const file = new Blob([wikiMarkdown], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "data-gateway-release-notes.md";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setWikiDownloaded(true);
+    window.setTimeout(() => setWikiDownloaded(false), 2500);
+  }
+
   return (
     <section aria-labelledby="post-pilot-deployment-snapshot" style={{ marginBottom: "26px" }}>
       <div style={{ borderLeft: "4px solid #0f766e", marginBottom: "14px", paddingLeft: "12px" }}>
@@ -365,6 +273,7 @@ export default function PostPilotDeploymentSnapshot() {
         <div style={{ alignItems: "baseline", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
           <h2 id="post-pilot-deployment-snapshot" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, letterSpacing: "-0.015em", margin: "4px 0 0" }}>Post Pilot Deployment Registry</h2>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            <button type="button" onClick={downloadWikiMarkdown} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #2563eb", borderRadius: "6px", color: "#1d4ed8", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><Download size={13} />{wikiDownloaded ? "Markdown Downloaded" : "Download Data Gateway Markdown"}</button>
             <button type="button" onClick={copyWikiMarkdown} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #0f766e", borderRadius: "6px", color: "#0f766e", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><ClipboardCopy size={13} />{wikiCopied ? "Wiki Markdown Copied" : "Copy Data Gateway Wiki Markdown"}</button>
             <button type="button" onClick={() => setShowCreate(true)} style={{ alignItems: "center", background: "#0f172a", border: "1px solid #0f172a", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><Plus size={13} />Create Deployment</button>
           </div>
