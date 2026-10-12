@@ -53,6 +53,21 @@ describe("State and Provision delivery-readiness dashboard", () => {
     );
     expect(dashboard).toContain("State & Provision Capability Readiness");
     expect(dashboard).toContain("Proposed Responsibility Model");
+    expect(dashboard).toContain("Provision — BTP Export");
+    expect(dashboard).toContain("Workstream Responsibility");
+    expect(dashboard).toContain(
+      "Provision uses the BTP export and Bloomberg Tax Provision path; it does not use IMS or GoSystem."
+    );
+    expect(dashboard).toContain(
+      "State: TDC / IMS / GoSystem · Provision: Provision / BTP Export"
+    );
+    expect(dashboard).toContain(
+      "State: IMS / TDC / Roger · Provision: Provision / BTP Export / Bloomberg Tax Provision"
+    );
+    expect(dashboard).not.toContain("IMS / GoSystem / Provision");
+    expect(dashboard).not.toContain("IMS / Provision");
+    expect(dashboard).not.toContain("IMS / TDC / Provision / BTP");
+    expect(dashboard).not.toContain("IMS / GoSystem / Provision / BTP");
     expect(dashboard).toContain("Master Dependency Register");
     expect(dashboard).toContain("State & Provision Validation Tracker");
     expect(dashboard).toContain("Risk Register");

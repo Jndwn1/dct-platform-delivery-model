@@ -252,57 +252,57 @@ const RESPONSIBILITY_ROWS = [
   [
     "Source data intake",
     "TDC governs structured State input data; IMS intake needs contract confirmation.",
-    "Roger prepares Provision data and a planned export package.",
-    "TDC / IMS / Roger",
+    "Roger prepares Provision data and the BTP export package; Provision does not use IMS or GoSystem.",
+    "State: TDC / IMS · Provision: Roger / BTP Export",
     "Pending Confirmation",
   ],
   [
     "Data governance",
     "TDC governs State data, request information, and result correlation.",
     "Provision data governance and final return structure need confirmation.",
-    "TDC / Provision / Roger",
+    "State: TDC · Provision: Provision / Roger",
     "Pending Confirmation",
   ],
   [
     "Field mapping",
     "TDC-to-IMS and IMS-to-GoSystem mapping must be confirmed.",
     "BTP export field mapping and file structure must be confirmed.",
-    "IMS / GoSystem / Provision",
+    "State: TDC / IMS / GoSystem · Provision: Provision / BTP Export",
     "Pending Confirmation",
   ],
   [
     "Transformation and formatting",
     "IMS is the proposed translation layer for approved State package formats.",
-    "Planned BTP Excel structure and formatting have not been confirmed.",
-    "IMS / Provision",
+    "Provision owns BTP Excel export structure and formatting; no IMS transformation is used.",
+    "State: IMS · Provision: Provision / BTP Export",
     "Pending Confirmation",
   ],
   [
     "Validation",
     "TDC, IMS, and GoSystem validation ownership requires agreement.",
     "Provision workflow, export, and BTP validation requirements require confirmation.",
-    "State / Provision / Integration teams",
+    "State: TDC / IMS / GoSystem · Provision: Provision / Roger / BTP",
     "Pending Confirmation",
   ],
   [
     "External calculations",
     "GoSystem performs applicable State calculations after a valid handoff.",
     "Bloomberg Tax Provision performs Provision calculations after a valid export handoff.",
-    "GoSystem / Bloomberg Tax Provision",
+    "State: GoSystem · Provision: Bloomberg Tax Provision",
     "Pending Confirmation",
   ],
   [
     "Results and output",
     "GoSystem response contract must support IMS/TDC correlation and Roger display.",
-    "Output, BTP processing result, and any return path are not established.",
-    "IMS / TDC / Provision / BTP",
+    "Provision outputs follow the BTP export and Bloomberg Tax Provision path; no IMS or GoSystem return path is used.",
+    "State: IMS / TDC / Roger · Provision: Provision / BTP Export / Bloomberg Tax Provision",
     "Pending Confirmation",
   ],
   [
     "Error handling",
     "Integration, translation, processing, and recovery behavior must be agreed.",
     "Export, transfer, and processing error behavior must be agreed.",
-    "IMS / GoSystem / Provision / BTP",
+    "State: IMS / GoSystem / TDC · Provision: Provision / BTP Export / Bloomberg Tax Provision",
     "Pending Confirmation",
   ],
   [
@@ -1339,7 +1339,7 @@ export default function StateGoSystemPoc() {
             <PanelHeading
               eyebrow="5 · Consolidated integration responsibilities"
               title="Proposed Responsibility Model"
-              subtitle="This is a proposed responsibility model, not an approved interface specification. Unestablished ownership remains Pending Confirmation."
+              subtitle="This is a proposed responsibility model, not an approved interface specification. Provision uses the BTP export and Bloomberg Tax Provision path; it does not use IMS or GoSystem. Unestablished ownership remains Pending Confirmation."
               accent={C.teal}
             />
             <div
@@ -1355,8 +1355,8 @@ export default function StateGoSystemPoc() {
                 columns={[
                   "Area",
                   "State — IMS / GoSystem",
-                  "Provision — BTP",
-                  "Responsible Team / System",
+                  "Provision — BTP Export",
+                  "Workstream Responsibility",
                   "Confirmation Status",
                 ]}
                 rows={RESPONSIBILITY_ROWS}

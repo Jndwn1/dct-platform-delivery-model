@@ -294,3 +294,4 @@
 - [x] Consolidate the Post Pilot State and Provision evidence into one delivery-readiness dashboard
 - [x] Clarify demonstrated and not-demonstrated status directly on the Provision workflow path
 - [x] Correct Federal Summary, BTP Export, and Bloomberg Tax Provision statuses to Demonstrated
+- [x] Separate Provision responsibility ownership from the State IMS and GoSystem path in the matrix
