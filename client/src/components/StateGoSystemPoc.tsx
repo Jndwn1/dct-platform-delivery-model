@@ -14,7 +14,7 @@ const C = {
 };
 const POC_TRANSCRIPT_SOURCE_URL = "/manus-storage/POC_6327d700.docx";
 
-const TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
+const STATE_TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
   {
     label: "1 · State data collection",
     title: "Roger UI",
@@ -54,6 +54,49 @@ const TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
       "IMS translates the response, TDC correlates it to the request, and Roger presents returned results for practitioner reconciliation, review, and approval.",
     accent: C.teal,
     surface: "#f0f9ff",
+  },
+];
+
+const PROVISION_TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
+  {
+    label: "Shared Roger foundation",
+    title: "Roger UI — Federal Compliance",
+    detail:
+      "Provision is intended to reuse the first nine Federal Compliance workflow steps. The October 9 demonstration used duplicate return structures and dummy data.",
+    accent: "#7c3aed",
+    surface: "#faf5ff",
+  },
+  {
+    label: "1 · Provision-specific workflow",
+    title: "Return to Provision",
+    detail:
+      "Read-only comparison of prior-year Provision amounts with prior-year tax-return amounts, with filtering, search, and Roger navigation demonstrated using dummy data.",
+    accent: "#0f766e",
+    surface: "#f0fdfa",
+  },
+  {
+    label: "2 · Provision-specific workflow",
+    title: "Deferred Rollforward",
+    detail:
+      "Entity-specific amount entry, saving, custom adjustment columns, and update tracking were demonstrated using dummy data.",
+    accent: "#2563eb",
+    surface: "#eff6ff",
+  },
+  {
+    label: "3 · Placeholder",
+    title: "Federal Summary",
+    detail:
+      "Intended to consolidate relevant Provision information. Requirements were still being refined and the screen was not demonstrated.",
+    accent: "#b45309",
+    surface: "#fffbeb",
+  },
+  {
+    label: "4 · Placeholder",
+    title: "BTP Export",
+    detail:
+      "Intended Excel export for user transfer into Bloomberg Tax Provision. The UI and export functionality were not demonstrated.",
+    accent: "#b45309",
+    surface: "#fffbeb",
   },
 ];
 
@@ -882,18 +925,98 @@ export default function StateGoSystemPoc() {
             style={{ marginBottom: "24px" }}
           >
             <PanelHeading
-              eyebrow="Proposed target architecture · Not completed implementation"
-              title="Target End-to-End POC Architecture"
-              subtitle="The visual describes the intended five-step integration pattern. It does not represent completed or approved implementation."
+              eyebrow="PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
+              title="Target End-to-End Architecture — State & Provision"
+              subtitle="Two distinct processing paths originate in Roger UI. The State path preserves the proposed five-step GoSystem calculation pattern; the Provision path reflects only the supplied October 9 workflow evidence and does not imply an unconfirmed external integration."
               accent="#2563eb"
             />
-            <div id="target-end-to-end-poc-architecture">
-              <ExecutiveProcessFlow
-                ariaLabel="Target end-to-end Roger to GoSystem State calculation POC architecture"
-                steps={TARGET_ARCHITECTURE_STEPS}
-                supportNote="Forward direction: Roger UI → TDC → IMS → GoSystem. Return direction: GoSystem → IMS → TDC → Roger UI. Roger is the practitioner-facing workflow and review experience; TDC governs State data and result correlation; IMS owns proposed integration, transformation, and communication; GoSystem performs State tax calculation."
-                outcome="A representative State calculation can be governed, translated, calculated, returned, correlated, and reviewed only after the outstanding contracts and round-trip validations are confirmed."
-              />
+            <div
+              id="target-end-to-end-poc-architecture"
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #dbe4ee",
+                borderRadius: "10px",
+                padding: "14px",
+              }}
+            >
+              <div
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #bfdbfe",
+                  borderLeft: "4px solid #2563eb",
+                  borderRadius: "8px",
+                  color: C.slate,
+                  fontSize: "11px",
+                  lineHeight: 1.5,
+                  marginBottom: "14px",
+                  padding: "10px 12px",
+                }}
+              >
+                <strong style={{ color: C.navy }}>
+                  Shared origin — Roger UI:
+                </strong>{" "}
+                Roger is the practitioner-facing workflow and review experience.
+                The State and Provision paths below have distinct objectives,
+                demonstrated evidence, and outstanding dependencies.
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gap: "16px",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      background: "#eff6ff",
+                      border: "1px solid #bfdbfe",
+                      borderLeft: "4px solid #2563eb",
+                      borderRadius: "8px",
+                      color: "#1e3a5f",
+                      fontSize: "11px",
+                      fontWeight: 900,
+                      letterSpacing: "0.055em",
+                      marginBottom: "9px",
+                      padding: "9px 11px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    State — GoSystem Calculation Integration
+                  </div>
+                  <ExecutiveProcessFlow
+                    ariaLabel="State GoSystem calculation integration target architecture"
+                    steps={STATE_TARGET_ARCHITECTURE_STEPS}
+                    supportNote="Forward direction: Roger UI → TDC → IMS → GoSystem. Return direction: GoSystem → IMS → TDC → Roger UI. TDC governs State data and result correlation; IMS owns proposed integration, transformation, and communication; GoSystem performs State tax calculation."
+                    outcome="A representative State calculation can be governed, translated, calculated, returned, correlated, and reviewed only after the outstanding contracts and round-trip validations are confirmed."
+                  />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      background: "#faf5ff",
+                      border: "1px solid #e9d5ff",
+                      borderLeft: "4px solid #7c3aed",
+                      borderRadius: "8px",
+                      color: "#581c87",
+                      fontSize: "11px",
+                      fontWeight: 900,
+                      letterSpacing: "0.055em",
+                      marginBottom: "9px",
+                      padding: "9px 11px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Provision — Roger Workflow and Delivery Readiness
+                  </div>
+                  <ExecutiveProcessFlow
+                    ariaLabel="Provision workflow target architecture from Roger UI"
+                    steps={PROVISION_TARGET_ARCHITECTURE_STEPS}
+                    supportNote="The shown Provision path is limited to the shared Roger foundation and the four supplied Provision-specific workflow steps. It does not establish an external calculation, BTP, or other downstream integration."
+                    outcome="Return to Provision and Deferred Rollforward were demonstrated with dummy data; Federal Summary, BTP Export, representative-data validation, integration, QA, and performance validation remain outstanding."
+                  />
+                </div>
+              </div>
             </div>
           </section>
           <section

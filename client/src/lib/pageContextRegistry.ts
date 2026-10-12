@@ -45,7 +45,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     pageTitle: "Post Pilot",
     pageIcon: "◫",
     description: "Executive PI4 Post Pilot planning visibility, planned-feature metrics, the evidence-bound October 9 State Calculation POC, and the October 9 Provision demonstration and delivery-readiness summary.",
-    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "Roger to GoSystem State Calculation POC", "October 9 POC Status", "Target End-to-End POC Architecture", "POC Validation Tracker", "POC Meeting Transcript Source", "Provision October 9 Demonstration", "Provision Delivery Readiness", "State / Provision Story Review", "Current-Year State Review Package", "Inline Story Review Ask Buddy Agent", "Ask Buddy First Pass", "Gary Technical Review", "PI4 Tracker Navigation"],
+    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "Roger to GoSystem State Calculation POC", "October 9 POC Status", "Target End-to-End Architecture — State & Provision", "POC Validation Tracker", "POC Meeting Transcript Source", "Provision October 9 Demonstration", "Provision Delivery Readiness", "State / Provision Story Review", "Current-Year State Review Package", "Inline Story Review Ask Buddy Agent", "Ask Buddy First Pass", "Gary Technical Review", "PI4 Tracker Navigation"],
     apis: [],
     stories: ["1472734", "1471480", "1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Post Pilot Overview", "Planned PI4 Features", "State Calculation POC", "State / Provision Story Review", "Current-Year State Review Package"],

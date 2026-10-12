@@ -59,12 +59,21 @@ describe("State GoSystem POC extension", () => {
       "Partially Demonstrated — End-to-End Integration Not Yet Validated"
     );
     expect(poc).toContain("Last reviewed October 9, 2026");
-    expect(poc).toContain("Target End-to-End POC Architecture");
+    expect(poc).toContain("Target End-to-End Architecture — State & Provision");
     expect(poc).toContain(
-      "Proposed target architecture · Not completed implementation"
+      "PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
     );
+    expect(poc).toContain("State — GoSystem Calculation Integration");
     expect(poc).toContain("Roger UI → TDC → IMS → GoSystem");
     expect(poc).toContain("GoSystem → IMS → TDC → Roger UI");
+    expect(poc).toContain("Provision — Roger Workflow and Delivery Readiness");
+    expect(poc).toContain("Return to Provision");
+    expect(poc).toContain("Deferred Rollforward");
+    expect(poc).toContain("Federal Summary");
+    expect(poc).toContain("BTP Export");
+    expect(poc).toContain(
+      "does not establish an external calculation, BTP, or other downstream integration."
+    );
     expect(poc).toContain(
       "October 9 Demonstration — Delivered Capabilities and Outstanding Integration"
     );

@@ -196,7 +196,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
     const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8");
     expect(poc).toContain("Partially Demonstrated — End-to-End Integration Not Yet Validated");
-    expect(poc).toContain("Target End-to-End POC Architecture");
+    expect(poc).toContain("Target End-to-End Architecture — State & Provision");
     expect(poc).toContain("October 9 Demonstration — Delivered Capabilities and Outstanding Integration");
     expect(poc).toContain("What Still Needs to Be Proven");
     expect(poc).toContain("Pending Confirmation");
