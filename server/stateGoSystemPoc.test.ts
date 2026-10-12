@@ -63,8 +63,8 @@ describe("State GoSystem POC extension", () => {
     expect(poc).toContain(
       "Proposed target architecture · Not completed implementation"
     );
-    expect(poc).toContain("Roger UI → DCT/TDC → IMS → GoSystem");
-    expect(poc).toContain("GoSystem → IMS → DCT/TDC → Roger UI");
+    expect(poc).toContain("Roger UI → TDC → IMS → GoSystem");
+    expect(poc).toContain("GoSystem → IMS → TDC → Roger UI");
     expect(poc).toContain(
       "October 9 Demonstration — Delivered Capabilities and Outstanding Integration"
     );

@@ -24,7 +24,7 @@ const TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
   },
   {
     label: "2 · Govern and correlate",
-    title: "DCT / TDC",
+    title: "TDC",
     detail:
       "Governed State data, relationships, approved information, calculation requests, and returned-result correlation are managed through the agreed data path.",
     accent: "#2563eb",
@@ -48,9 +48,9 @@ const TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
   },
   {
     label: "5 · Return and review",
-    title: "IMS → DCT / TDC → Roger UI",
+    title: "IMS → TDC → Roger UI",
     detail:
-      "IMS translates the response, DCT/TDC correlates it to the request, and Roger presents returned results for practitioner reconciliation, review, and approval.",
+      "IMS translates the response, TDC correlates it to the request, and Roger presents returned results for practitioner reconciliation, review, and approval.",
     accent: C.teal,
     surface: "#f0f9ff",
   },
@@ -890,7 +890,7 @@ export default function StateGoSystemPoc() {
               <ExecutiveProcessFlow
                 ariaLabel="Target end-to-end Roger to GoSystem State calculation POC architecture"
                 steps={TARGET_ARCHITECTURE_STEPS}
-                supportNote="Forward direction: Roger UI → DCT/TDC → IMS → GoSystem. Return direction: GoSystem → IMS → DCT/TDC → Roger UI. Roger is the practitioner-facing workflow and review experience; DCT/TDC governs State data and result correlation; IMS owns proposed integration, transformation, and communication; GoSystem performs State tax calculation."
+                supportNote="Forward direction: Roger UI → TDC → IMS → GoSystem. Return direction: GoSystem → IMS → TDC → Roger UI. Roger is the practitioner-facing workflow and review experience; TDC governs State data and result correlation; IMS owns proposed integration, transformation, and communication; GoSystem performs State tax calculation."
                 outcome="A representative State calculation can be governed, translated, calculated, returned, correlated, and reviewed only after the outstanding contracts and round-trip validations are confirmed."
               />
             </div>
