@@ -198,9 +198,14 @@ describe("PI4 Post Pilot delivery", () => {
     expect(poc).toContain("Partially Demonstrated — End-to-End Integration");
     expect(poc).toContain("Target End-to-End Architecture");
     expect(poc).toContain("State vs. Provision");
-    expect(poc).toContain("State & Provision Validation Tracker");
-    expect(poc).toContain("Pending Confirmation");
-    expect(poc).toContain("Master Dependency Register");
+    expect(poc).toContain("State & Provision Capability Readiness");
+    expect(poc).toContain("Integrated Action Tracker");
+    expect(poc).toContain("Planning Targets Discussed on October 9");
+    expect(poc).toContain("Evidence Sources");
+    expect(poc).not.toContain("Proposed Responsibility Model");
+    expect(poc).not.toContain("Master Dependency Register");
+    expect(poc).not.toContain("State & Provision Validation Tracker");
+    expect(poc).not.toContain("Risk Register");
     expect(poc).toContain("Not Demonstrated</strong> does not mean");
     expect(app).toContain('path="/post-pilot" component={PostPilotPage}');
     expect(sidebar).toContain('["Executive Health", "Post Pilot"]');

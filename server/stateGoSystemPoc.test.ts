@@ -52,28 +52,22 @@ describe("State and Provision delivery-readiness dashboard", () => {
       "Provision does not use GoSystem or the State IMS calculation pathway"
     );
     expect(dashboard).toContain("State & Provision Capability Readiness");
-    expect(dashboard).toContain("Proposed Responsibility Model");
-    expect(dashboard).toContain("Provision — BTP Export");
-    expect(dashboard).toContain("Workstream Responsibility");
-    expect(dashboard).toContain(
-      "Provision uses the BTP export and Bloomberg Tax Provision path; it does not use IMS or GoSystem."
-    );
-    expect(dashboard).toContain(
-      "State: TDC / IMS / GoSystem · Provision: Provision / BTP Export"
-    );
-    expect(dashboard).toContain(
-      "State: IMS / TDC / Roger · Provision: Provision / BTP Export / Bloomberg Tax Provision"
-    );
-    expect(dashboard).not.toContain("IMS / GoSystem / Provision");
-    expect(dashboard).not.toContain("IMS / Provision");
-    expect(dashboard).not.toContain("IMS / TDC / Provision / BTP");
-    expect(dashboard).not.toContain("IMS / GoSystem / Provision / BTP");
-    expect(dashboard).toContain("Master Dependency Register");
-    expect(dashboard).toContain("State & Provision Validation Tracker");
-    expect(dashboard).toContain("Risk Register");
     expect(dashboard).toContain("Integrated Action Tracker");
     expect(dashboard).toContain("Planning Targets Discussed on October 9");
     expect(dashboard).toContain("Evidence Sources");
+    expect(dashboard).toContain(
+      'eyebrow="3 · PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"'
+    );
+    expect(dashboard).toContain('eyebrow="4 · Delivered capabilities');
+    expect(dashboard).toContain('eyebrow="5 · Next steps and action items"');
+    expect(dashboard).toContain('eyebrow="6 · Pilot delivery milestones"');
+    expect(dashboard).toContain(
+      'eyebrow="7 · Supporting documents and references"'
+    );
+    expect(dashboard).not.toContain("Proposed Responsibility Model");
+    expect(dashboard).not.toContain("Master Dependency Register");
+    expect(dashboard).not.toContain("State & Provision Validation Tracker");
+    expect(dashboard).not.toContain("Risk Register");
     expect(dashboard).toContain("Jenniver Dawn Stafford");
     expect(dashboard).toContain("/manus-storage/POC_6327d700.docx");
     expect(dashboard).toContain("No separate source link was");

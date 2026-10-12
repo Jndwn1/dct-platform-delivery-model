@@ -85,7 +85,6 @@ describe("Provision October 9 consolidation", () => {
     );
     expect(dashboard).toContain("Mid-December 2026");
     expect(dashboard).toContain("Mid-January 2027");
-    expect(dashboard).toContain("performance testing");
     expect(dashboard).toContain(
       "no automated API transmission or automated results return is assumed"
     );

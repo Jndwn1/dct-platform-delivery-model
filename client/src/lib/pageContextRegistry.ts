@@ -45,7 +45,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     pageTitle: "Post Pilot",
     pageIcon: "◫",
     description: "Executive PI4 Post Pilot planning visibility, planned-feature metrics, a single evidence-bound October 9 State & Provision delivery-readiness dashboard.",
-    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "State & Provision Delivery Readiness Dashboard", "October 9 Demonstration Comparison", "Target End-to-End Architecture", "Unified Validation Tracker", "Supporting Evidence Sources", "State / Provision Story Review", "Current-Year State Review Package", "Inline Story Review Ask Buddy Agent", "Ask Buddy First Pass", "Gary Technical Review", "PI4 Tracker Navigation"],
+    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "State & Provision Delivery Readiness Dashboard", "October 9 Demonstration Comparison", "Target End-to-End Architecture", "Capability Readiness", "Integrated Action Tracker", "Supporting Evidence Sources", "State / Provision Story Review", "Current-Year State Review Package", "Inline Story Review Ask Buddy Agent", "Ask Buddy First Pass", "Gary Technical Review", "PI4 Tracker Navigation"],
     apis: [],
     stories: ["1472734", "1471480", "1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Post Pilot Overview", "Planned PI4 Features", "State & Provision Delivery Readiness", "State / Provision Story Review", "Current-Year State Review Package"],
