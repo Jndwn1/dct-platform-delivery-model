@@ -293,3 +293,4 @@
 - [x] Expand the Post Pilot target architecture to show the linked State and Provision paths from Roger UI
 - [x] Consolidate the Post Pilot State and Provision evidence into one delivery-readiness dashboard
 - [x] Clarify demonstrated and not-demonstrated status directly on the Provision workflow path
+- [x] Correct Federal Summary, BTP Export, and Bloomberg Tax Provision statuses to Demonstrated
