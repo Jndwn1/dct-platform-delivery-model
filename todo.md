@@ -295,3 +295,4 @@
 - [x] Clarify demonstrated and not-demonstrated status directly on the Provision workflow path
 - [x] Correct Federal Summary, BTP Export, and Bloomberg Tax Provision statuses to Demonstrated
 - [x] Separate Provision responsibility ownership from the State IMS and GoSystem path in the matrix
+- [x] Audit and align every unified State and Provision POC section with the latest October 9 demonstrated Provision status and BTP-only integration path

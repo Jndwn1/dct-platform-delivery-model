@@ -49,12 +49,12 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     apis: [],
     stories: ["1472734", "1471480", "1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Post Pilot Overview", "Planned PI4 Features", "State & Provision Delivery Readiness", "State / Provision Story Review", "Current-Year State Review Package"],
-    businessRules: ["PI4 planning is excluded from MVP delivery metrics", "PI4 delivery progress remains 0% until a separate approved source establishes actual completion", "October 9 POC and Provision statuses distinguish demonstrated, initial structure, placeholder, and not demonstrated evidence without asserting production readiness", "Ask Buddy first-pass analysis does not replace Gary's final technical review", "The PI4 Sprint & Story Tracker remains the detailed planning workspace"],
+    businessRules: ["PI4 planning is excluded from MVP delivery metrics", "PI4 delivery progress remains 0% until a separate approved source establishes actual completion", "October 9 POC statuses remain evidence-bound: State IMS/GoSystem/returned-result activity is unverified; Provision Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are Demonstrated, while BTP transfer and end-to-end validation remain Pending Confirmation", "Provision uses the BTP Export / Bloomberg Tax Provision path, not the State IMS / GoSystem path", "Ask Buddy first-pass analysis does not replace Gary's final technical review", "The PI4 Sprint & Story Tracker remains the detailed planning workspace"],
     batches: [],
     businessObjects: ["PI4 Planning Item", "Post Pilot Plan", "State Calculation Integration POC", "POC Validation Checkpoint", "Provision Demonstration", "Provision Delivery Readiness", "State Calculation Input Package", "State Calculation Review Package", "Current-Year State Review Report", "Story Review File", "Gateway Contract", "TDC Practitioner Action"],
-    integrations: ["PI4 Sprint & Story Tracker", "Ask Buddy", "Roger", "Gateway", "TDC", "Taxonomy", "IMS", "GoSystem"],
+    integrations: ["PI4 Sprint & Story Tracker", "Ask Buddy", "Roger", "Gateway", "TDC", "Taxonomy", "IMS", "GoSystem", "BTP Export", "Bloomberg Tax Provision"],
     lastUpdated: "2026-10-12",
-    lastChange: "Added the October 9 Provision demonstration evidence: initial dummy-data UI capabilities, backend-readiness boundaries, dependencies, and Pilot planning targets without asserting end-to-end readiness.",
+    lastChange: "Aligned every POC section with the latest October 9 status update: Provision Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are Demonstrated; BTP transfer and end-to-end validation remain Pending Confirmation; Provision follows the BTP path rather than the State IMS / GoSystem path.",
   },
 
   "/post-pilot/state-taxonomy-readiness": {

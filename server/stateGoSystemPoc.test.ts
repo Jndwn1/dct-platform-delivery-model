@@ -80,8 +80,9 @@ describe("State and Provision delivery-readiness dashboard", () => {
     expect(dashboard).toContain("attached to this update.");
     expect(dashboard).toContain("Demonstrated with Dummy Data");
     expect(dashboard).toContain("Pending Confirmation");
-    expect(dashboard).toContain("Not Demonstrated</strong> does not mean");
-    expect(dashboard).toContain("Not Developed.");
+    expect(dashboard).toMatch(
+      /Not Demonstrated<\/strong> does not mean Not\s+Developed\./
+    );
 
     expect(dashboard).not.toContain("IMS and GoSystem Responsibilities");
     expect(dashboard).not.toContain(

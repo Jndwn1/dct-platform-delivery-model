@@ -62,21 +62,21 @@ const COMPARISON_ROWS = [
     "Summary Output",
     "GoSystem calculation results not shown",
     "Not Demonstrated",
-    "Federal Summary demonstrated",
+    "Federal Summary demonstrated; detailed validation scope remains to be confirmed",
     "Demonstrated",
   ],
   [
     "Downstream Integration",
     "IMS translation and transmission to GoSystem not shown",
     "Not Demonstrated",
-    "BTP Excel Export demonstrated",
+    "BTP Excel Export demonstrated; transfer evidence remains to be confirmed",
     "Demonstrated",
   ],
   [
     "External Calculation",
     "GoSystem execution not shown",
     "Not Demonstrated",
-    "Bloomberg Tax Provision calculation demonstrated",
+    "Bloomberg Tax Provision calculation demonstrated; detailed result evidence remains to be confirmed",
     "Demonstrated",
   ],
   [
@@ -160,7 +160,7 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     label: "4 · Demonstrated",
     title: "Federal Summary",
     detail:
-      "Federal Summary was demonstrated; detailed validation scope remains to be confirmed.",
+      "Demonstrated October 9; confirm validation scope and retain supporting evidence.",
     accent: C.green,
     surface: "#ecfdf5",
   },
@@ -168,7 +168,7 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     label: "5 · Demonstrated",
     title: "BTP Export",
     detail:
-      "BTP Excel Export was demonstrated; transfer and validation details remain to be confirmed.",
+      "Demonstrated October 9; confirm BTP transfer approach and validation detail.",
     accent: C.green,
     surface: "#ecfdf5",
   },
@@ -176,7 +176,7 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     label: "6 · Demonstrated",
     title: "Bloomberg Tax Provision",
     detail:
-      "Bloomberg Tax Provision calculation was demonstrated; end-to-end result and validation details remain to be confirmed.",
+      "Calculation demonstrated October 9; confirm end-to-end output and validation detail.",
     accent: C.green,
     surface: "#ecfdf5",
   },
@@ -228,21 +228,21 @@ const DELIVERED_ROWS = [
   [
     "Provision",
     "Federal Summary",
-    "Demonstrated",
+    "Demonstrated October 9; detailed validation scope not supplied",
     "Confirm validation scope and retain supporting evidence",
     "Demonstrated",
   ],
   [
     "Provision",
     "BTP Excel Export",
-    "Demonstrated",
+    "Demonstrated October 9; BTP transfer evidence not supplied",
     "Confirm transfer approach and validation detail",
     "Demonstrated",
   ],
   [
     "Provision",
     "Bloomberg Tax Provision calculation",
-    "Demonstrated",
+    "Demonstrated October 9; end-to-end output evidence not supplied",
     "Confirm end-to-end output and validation detail",
     "Demonstrated",
   ],
@@ -478,8 +478,8 @@ const DEPENDENCY_ROWS = [
   [
     "D-18",
     "Provision",
-    "BTP validation",
-    "Validate BTP handoff, calculation processing, downstream outputs, and reconciliation expectations.",
+    "BTP transfer and end-to-end validation",
+    "Confirm BTP transfer evidence, downstream outputs, reconciliation expectations, and detailed validation results.",
     "Provision / BTP",
     "Required for end-to-end readiness.",
     "Pending Confirmation",
@@ -618,20 +618,20 @@ const VALIDATION_ROWS = [
   [
     "V-12",
     "Provision",
-    "Validate completed Federal Summary functionality.",
+    "Record Federal Summary validation scope and supporting evidence.",
     "Provision / Roger",
     "Demonstrated",
-    "Federal Summary marked Demonstrated; detailed validation scope not supplied",
+    "Federal Summary demonstrated October 9; detailed validation scope not supplied",
     "Confirmed validation scope",
     "Capture supporting validation detail",
   ],
   [
     "V-13",
     "Provision",
-    "Generate and validate the BTP Excel export.",
+    "Record BTP Excel Export transfer and validation detail.",
     "Provision / BTP",
     "Demonstrated",
-    "BTP Excel Export marked Demonstrated; detailed validation scope not supplied",
+    "BTP Excel Export demonstrated October 9; transfer and detailed validation evidence not supplied",
     "Confirmed export and validation detail",
     "Capture export and validation detail",
   ],
@@ -648,10 +648,10 @@ const VALIDATION_ROWS = [
   [
     "V-15",
     "Provision",
-    "Validate applicable BTP calculation processing.",
+    "Record Bloomberg Tax Provision calculation validation detail.",
     "Provision / BTP",
     "Demonstrated",
-    "Bloomberg Tax Provision calculation marked Demonstrated; detailed validation scope not supplied",
+    "Bloomberg Tax Provision calculation demonstrated October 9; detailed validation scope not supplied",
     "Confirmed calculation validation detail",
     "Capture calculation validation detail",
   ],
@@ -1103,9 +1103,11 @@ export default function StateGoSystemPoc() {
                 October 9 demonstration showed initial Return to Provision and
                 Deferred Rollforward functionality using dummy data. Initial
                 Provision database tables were created. Federal Summary, BTP
-                Export, and Bloomberg Tax Provision calculation are
-                demonstrated. BTP transfer, end-to-end output, and detailed
-                validation evidence remain pending confirmation.
+                Export, and Bloomberg Tax Provision calculation were also
+                demonstrated. This confirms demonstrated capability, not a
+                validated automated integration. BTP transfer, end-to-end
+                output, and detailed validation evidence remain pending
+                confirmation.
               </Notice>
             </div>
             <div
@@ -1133,7 +1135,7 @@ export default function StateGoSystemPoc() {
             <PanelHeading
               eyebrow="2 · October 9 demonstration"
               title="State vs. Provision"
-              subtitle="One comparison table summarizes what the October 9 session established for each workstream."
+              subtitle="The comparison reflects the latest October 9 status update: Provision Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are Demonstrated; transfer and end-to-end validation remain pending."
               accent={C.teal}
             />
             <div
@@ -1170,9 +1172,11 @@ export default function StateGoSystemPoc() {
               capability shown during the session;{" "}
               <strong>Partially Demonstrated</strong> means supporting
               functionality was shown but the complete requirement was not;{" "}
-              <strong>Placeholder</strong> means planned but not demonstrated;
-              and <strong>Not Demonstrated</strong> does not mean Not Developed.
-              Implementation status requires separate evidence.
+              <strong>Initial Structure Created</strong> means a foundation was
+              reported; and <strong>Not Demonstrated</strong> does not mean Not
+              Developed. Demonstration status does not by itself establish an
+              automated integration, production readiness, or end-to-end
+              validation.
             </p>
           </section>
 
@@ -1183,7 +1187,7 @@ export default function StateGoSystemPoc() {
             <PanelHeading
               eyebrow="PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
               title="Target End-to-End Architecture"
-              subtitle="The State and Provision architectures originate in Roger but use distinct external calculation and output paths."
+              subtitle="The State and Provision architectures originate in Roger but use distinct external calculation and output paths. Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path."
               accent={C.blue}
             />
             <div
@@ -1280,18 +1284,18 @@ export default function StateGoSystemPoc() {
                         lineHeight: 1.4,
                       }}
                     >
-                      Demonstrated path: Roger Core, Return to Provision,
-                      Deferred Rollforward, Federal Summary, BTP Export, and
-                      Bloomberg Tax Provision calculation. Transfer, end-to-end
-                      output, and detailed validation evidence remain pending
-                      confirmation.
+                      Updated October 9 evidence: Roger Core, Return to
+                      Provision, Deferred Rollforward, Federal Summary, BTP
+                      Export, and Bloomberg Tax Provision calculation were
+                      demonstrated. BTP transfer, end-to-end output, and
+                      detailed validation evidence remain pending confirmation.
                     </span>
                   </div>
                   <ExecutiveProcessFlow
                     ariaLabel="Provision Bloomberg Tax Provision target workflow"
                     steps={PROVISION_ARCHITECTURE_STEPS}
-                    supportNote="Provision does not use GoSystem or the State IMS calculation pathway. The BTP handoff is an Excel export; no automated API transmission or automated results return is assumed."
-                    outcome="Roger Core, Return to Provision, Deferred Rollforward, Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are demonstrated. Transfer, end-to-end outputs, and detailed validation evidence remain pending confirmation."
+                    supportNote="Provision does not use GoSystem or the State IMS calculation pathway. The BTP handoff uses BTP Export; no automated API transmission or automated results return is assumed."
+                    outcome="Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are demonstrated alongside the Roger Core, Return to Provision, and Deferred Rollforward workflow. BTP transfer, end-to-end outputs, and detailed validation evidence remain pending confirmation."
                   />
                 </div>
               </div>
@@ -1644,7 +1648,11 @@ export default function StateGoSystemPoc() {
                   }}
                 >
                   Supplied October 9 meeting notes and Provision demonstration
-                  transcript window (12:11–16:52). No separate source link was
+                  transcript window (12:11–16:52), together with the latest
+                  supplied October 9 demonstration-status update. Federal
+                  Summary, BTP Export, and Bloomberg Tax Provision calculation
+                  are marked Demonstrated; BTP transfer and end-to-end
+                  validation remain pending. No separate source link was
                   attached to this update.
                 </p>
               </div>

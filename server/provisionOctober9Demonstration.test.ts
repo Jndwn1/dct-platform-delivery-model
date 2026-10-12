@@ -16,6 +16,10 @@ describe("Provision October 9 consolidation", () => {
       resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"),
       "utf8"
     );
+    const pageContext = readFileSync(
+      resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"),
+      "utf8"
+    );
     const legacyProvisionComponent = resolve(
       process.cwd(),
       "client/src/components/ProvisionOctober9Demonstration.tsx"
@@ -41,7 +45,7 @@ describe("Provision October 9 consolidation", () => {
     expect(dashboard).toContain("5 · Demonstrated");
     expect(dashboard).toContain("6 · Demonstrated");
     expect(dashboard).toContain(
-      "Demonstrated path: Roger Core, Return to Provision,"
+      "Updated October 9 evidence: Roger Core, Return to"
     );
     expect(dashboard).toContain("Demonstrated with Dummy Data");
     expect(dashboard).toContain("Prototype Demonstrated");
@@ -57,8 +61,27 @@ describe("Provision October 9 consolidation", () => {
       "Bloomberg Tax Provision calculation not shown"
     );
     expect(dashboard).toContain("Pending Confirmation");
+    expect(dashboard).toContain(
+      "Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path."
+    );
+    expect(dashboard).toMatch(
+      /BTP transfer,\s+end-to-end\s+output,\s+and detailed validation evidence remain pending/
+    );
+    expect(dashboard).toMatch(
+      /latest\s+supplied October 9 demonstration-status update/
+    );
+    expect(dashboard).not.toContain("BTP handoff is a planned Excel export");
     expect(knowledgeBase).toContain(
       "Federal Summary, BTP Excel Export, and Bloomberg Tax Provision calculation are marked **Demonstrated**"
+    );
+    expect(knowledgeBase).toContain(
+      "the BTP handoff uses BTP Export, and no automated API transmission or return path is assumed"
+    );
+    expect(pageContext).toContain(
+      "Provision Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are Demonstrated"
+    );
+    expect(pageContext).toContain(
+      "Provision uses the BTP Export / Bloomberg Tax Provision path"
     );
     expect(dashboard).toContain("Mid-December 2026");
     expect(dashboard).toContain("Mid-January 2027");
