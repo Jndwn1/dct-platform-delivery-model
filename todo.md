@@ -287,3 +287,4 @@
 - [x] Restore the Post Pilot Deployment Records consolidated Data Gateway release table with linked release-detail anchors, clickable ADO IDs, business-friendly overviews, duplicate-release consolidation, reverse-date ordering, detailed release notes, and one author attribution block
 - [x] Replace detailed Markdown release notes beneath the deployment table with a table-only Data Gateway release index and generate a fresh downloadable Markdown file
 - [x] Restore the Data Gateway release index introduction and Jenniver Dawn Stafford attribution while retaining a table-only release body
+- [x] Repair the Batch Control Panel hook order so /control-panel renders consistently

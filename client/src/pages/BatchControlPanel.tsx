@@ -1275,6 +1275,14 @@ export default function BatchControlPanel() {
   const [openS4, setOpenS4] = useState(false);
   const [openS6, setOpenS6] = useState(false);
   const [openPO, setOpenPO] = useState(false);
+  const [exportFilter, setExportFilter] = useState<{pi:string;system:string;status:string;demoReady:boolean;govOnly:boolean}>({
+    pi: "all", system: "all", status: "all", demoReady: false, govOnly: false,
+  });
+  const [emailTemplate, setEmailTemplate] = useState<"executive" | "po-weekly" | "qa-readiness">("po-weekly");
+  const [execRecapCopied, setExecRecapCopied] = useState(false);
+  const [allPoNotesCopied, setAllPoNotesCopied] = useState(false);
+  const [showContractMatrix, setShowContractMatrix] = useState(true);
+  const [contractFilter, setContractFilter] = useState<"all" | "published" | "in-progress" | "missing">("all");
   const prevLastUpdated = useRef<string | null>(null);
 
   // Flash the sync indicator whenever a status update propagates
@@ -1941,13 +1949,6 @@ export default function BatchControlPanel() {
           };
           const DEMO_READY_KEYS = new Set(["foundation-core","1","2","2a","3","4","5","6","7"]);
           const GOV_KEYS = new Set(["3","4","6","7","9","11","12","14","16","24","25"]);
-
-          const [exportFilter, setExportFilter] = useState<{pi:string;system:string;status:string;demoReady:boolean;govOnly:boolean}>({
-            pi:"all", system:"all", status:"all", demoReady:false, govOnly:false
-          });
-          const [emailTemplate, setEmailTemplate] = useState<"executive"|"po-weekly"|"qa-readiness">("po-weekly");
-          const [execRecapCopied, setExecRecapCopied] = useState(false);
-          const [allPoNotesCopied, setAllPoNotesCopied] = useState(false);
 
           const applyFilter = (batches: typeof DELIVERED_BATCHES) => batches.filter(b => {
             const s = statuses[b.key as BatchKey] ?? "Not Started";
@@ -2755,9 +2756,6 @@ export default function BatchControlPanel() {
         });
 
         const batchOrder = ["Batch FC", "Batch 1", "Batch 2", "Batch 2A", "Batch 3", "Batch 4", "Batch 5", "Batch 6", "Batch 7", "Batch 8"];
-
-        const [showContractMatrix, setShowContractMatrix] = useState(true);
-        const [contractFilter, setContractFilter] = useState<"all" | "published" | "in-progress" | "missing">("all");
 
         const filteredBatches = batchOrder.filter(bn => {
           const meta = CONTRACT_META[bn];
