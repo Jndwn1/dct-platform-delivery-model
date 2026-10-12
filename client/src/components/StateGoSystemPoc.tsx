@@ -2,6 +2,7 @@ import { useState } from "react";
 import ExecutiveProcessFlow, {
   type ExecutiveFlowStep,
 } from "@/components/ExecutiveProcessFlow";
+import { ProvisionOctober9DemonstrationDetails } from "@/components/ProvisionOctober9Demonstration";
 
 const C = {
   navy: "#0f1623",
@@ -1331,6 +1332,7 @@ export default function StateGoSystemPoc() {
               />
             </div>
           </section>
+          <ProvisionOctober9DemonstrationDetails />
         </div>
       </div>
     </section>

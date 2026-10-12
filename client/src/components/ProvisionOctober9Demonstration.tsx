@@ -301,61 +301,116 @@ function Callout({
   );
 }
 
-export default function ProvisionOctober9Demonstration() {
+export function ProvisionOctober9DemonstrationDetails() {
+  return <ProvisionOctober9Demonstration embedded />;
+}
+
+export default function ProvisionOctober9Demonstration({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   return (
     <section
       id="provision-october-9-demonstration"
-      style={{ marginBottom: "30px" }}
+      style={{ marginBottom: embedded ? 0 : "30px" }}
     >
       <div
-        style={{
-          background: "#ffffff",
-          border: "1px solid #e9d5ff",
-          borderRadius: "12px",
-          boxShadow: "0 2px 9px rgba(15,23,42,0.06)",
-          overflow: "hidden",
-        }}
+        style={
+          embedded
+            ? undefined
+            : {
+                background: "#ffffff",
+                border: "1px solid #e9d5ff",
+                borderRadius: "12px",
+                boxShadow: "0 2px 9px rgba(15,23,42,0.06)",
+                overflow: "hidden",
+              }
+        }
       >
-        <div
-          style={{
-            background:
-              "linear-gradient(120deg, #0f1623 0%, #4c1d95 65%, #7c3aed 100%)",
-            padding: "20px 22px",
-          }}
-        >
+        {embedded ? (
           <div
             style={{
-              color: "#e9d5ff",
-              fontSize: "10px",
-              fontWeight: 850,
-              letterSpacing: "0.09em",
-              marginBottom: "5px",
-              textTransform: "uppercase",
+              borderTop: `2px solid ${C.purple}`,
+              marginBottom: "18px",
+              paddingTop: "20px",
             }}
           >
-            Provision extension · Evidence-bound delivery readiness
+            <div
+              style={{
+                color: C.purple,
+                fontSize: "10px",
+                fontWeight: 850,
+                letterSpacing: "0.09em",
+                marginBottom: "5px",
+                textTransform: "uppercase",
+              }}
+            >
+              Provision extension · Evidence-bound delivery readiness
+            </div>
+            <h3 style={{ color: C.navy, fontSize: "17px", margin: 0 }}>
+              Provision — October 9 Demonstration and Delivery Readiness
+            </h3>
+            <p
+              style={{
+                color: C.slate,
+                fontSize: "11px",
+                lineHeight: 1.55,
+                margin: "7px 0 0",
+                maxWidth: "1040px",
+              }}
+            >
+              The October 9 demonstration showed initial Roger Provision
+              workflow screens. Provision is intended to reuse the first nine
+              Federal Compliance workflow steps and then add four
+              Provision-specific steps. The session used duplicate return
+              structures and dummy data because production-like Provision data
+              was not yet available.
+            </p>
           </div>
-          <h2 style={{ color: "#ffffff", fontSize: "20px", margin: 0 }}>
-            Provision — October 9 Demonstration and Delivery Readiness
-          </h2>
-          <p
+        ) : (
+          <div
             style={{
-              color: "#ede9fe",
-              fontSize: "12px",
-              lineHeight: 1.55,
-              margin: "8px 0 0",
-              maxWidth: "1040px",
+              background:
+                "linear-gradient(120deg, #0f1623 0%, #4c1d95 65%, #7c3aed 100%)",
+              padding: "20px 22px",
             }}
           >
-            The October 9 demonstration showed initial Roger Provision workflow
-            screens. Provision is intended to reuse the first nine Federal
-            Compliance workflow steps and then add four Provision-specific
-            steps. The session used duplicate return structures and dummy data
-            because production-like Provision data was not yet available.
-          </p>
-        </div>
+            <div
+              style={{
+                color: "#e9d5ff",
+                fontSize: "10px",
+                fontWeight: 850,
+                letterSpacing: "0.09em",
+                marginBottom: "5px",
+                textTransform: "uppercase",
+              }}
+            >
+              Provision extension · Evidence-bound delivery readiness
+            </div>
+            <h2 style={{ color: "#ffffff", fontSize: "20px", margin: 0 }}>
+              Provision — October 9 Demonstration and Delivery Readiness
+            </h2>
+            <p
+              style={{
+                color: "#ede9fe",
+                fontSize: "12px",
+                lineHeight: 1.55,
+                margin: "8px 0 0",
+                maxWidth: "1040px",
+              }}
+            >
+              The October 9 demonstration showed initial Roger Provision
+              workflow screens. Provision is intended to reuse the first nine
+              Federal Compliance workflow steps and then add four
+              Provision-specific steps. The session used duplicate return
+              structures and dummy data because production-like Provision data
+              was not yet available.
+            </p>
+          </div>
+        )}
 
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: embedded ? 0 : "20px" }}>
           <section
             aria-labelledby="provision-progress-summary"
             style={{

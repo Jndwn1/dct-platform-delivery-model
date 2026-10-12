@@ -4,7 +4,6 @@ import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/S
 import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
 import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow";
 import StateProvisionStoryReview from "@/components/StateProvisionStoryReview";
-import ProvisionOctober9Demonstration from "@/components/ProvisionOctober9Demonstration";
 import PostPilotDeploymentSnapshot from "@/components/PostPilotDeploymentSnapshot";
 import {
   POST_PILOT_PLANNING_INVENTORY,
@@ -434,7 +433,6 @@ export default function PostPilotPage() {
 
       <StateProvisionStoryReview />
       <StateGoSystemPoc />
-      <ProvisionOctober9Demonstration />
       <StatePocBaDiscoveryPackage />
       <StateGoSystemPocClosingDetails />
     </div>

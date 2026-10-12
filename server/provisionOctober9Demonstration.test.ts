@@ -15,6 +15,10 @@ describe("Provision October 9 demonstration", () => {
       ),
       "utf8"
     );
+    const statePoc = readFileSync(
+      resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"),
+      "utf8"
+    );
     const pageContext = readFileSync(
       resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"),
       "utf8"
@@ -25,14 +29,17 @@ describe("Provision October 9 demonstration", () => {
     );
 
     expect(postPilot).toContain(
-      'import ProvisionOctober9Demonstration from "@/components/ProvisionOctober9Demonstration"'
+      'import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc"'
+    );
+    expect(postPilot).not.toContain("ProvisionOctober9Demonstration");
+    expect(statePoc).toContain(
+      'import { ProvisionOctober9DemonstrationDetails } from "@/components/ProvisionOctober9Demonstration"'
     );
     expect(
-      postPilot.indexOf("<ProvisionOctober9Demonstration />")
-    ).toBeGreaterThan(postPilot.indexOf("<StateGoSystemPoc />"));
-    expect(
-      postPilot.indexOf("<ProvisionOctober9Demonstration />")
-    ).toBeLessThan(postPilot.indexOf("<StatePocBaDiscoveryPackage />"));
+      statePoc.indexOf("<ProvisionOctober9DemonstrationDetails />")
+    ).toBeGreaterThan(statePoc.indexOf("Next Actions and Action Items"));
+    expect(provision).toContain("embedded = false");
+    expect(provision).toContain("marginBottom: embedded ? 0");
 
     expect(provision).toContain(
       "Provision — October 9 Demonstration and Delivery Readiness"
@@ -41,7 +48,9 @@ describe("Provision October 9 demonstration", () => {
     expect(provision).toContain(
       "Partially Demonstrated — Initial UI Capabilities Available;"
     );
-    expect(provision).toContain("End-to-End Provision Workflow Not Yet Validated");
+    expect(provision).toContain(
+      "End-to-End Provision Workflow Not Yet Validated"
+    );
     expect(provision).toContain(
       "Roger Federal Compliance — First Nine Shared Steps"
     );
