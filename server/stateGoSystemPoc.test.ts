@@ -55,17 +55,19 @@ describe("State and Provision delivery-readiness dashboard", () => {
     expect(dashboard).toContain(
       "Provision does not use GoSystem or the State IMS calculation pathway"
     );
-    expect(dashboard).toContain("State & Provision Capability Readiness");
-    expect(dashboard).toContain("Integrated Action Tracker");
     expect(dashboard).toContain("Planning Targets Discussed on October 9");
     expect(dashboard).toContain("Evidence Sources");
     expect(dashboard).toContain(
       'eyebrow="3 · PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"'
     );
-    expect(dashboard).toContain('eyebrow="4 · Delivered capabilities');
-    expect(dashboard).toContain('eyebrow="5 · Next steps and action items"');
-    expect(dashboard).toContain('eyebrow="6 · Pilot delivery milestones"');
+    expect(dashboard).toContain('eyebrow="4 · Pilot delivery milestones"');
     expect(dashboard).toContain(
+      'eyebrow="5 · Supporting documents and references"'
+    );
+    expect(dashboard).not.toContain("State & Provision Capability Readiness");
+    expect(dashboard).not.toContain("Integrated Action Tracker");
+    expect(dashboard).not.toContain('eyebrow="6 · Pilot delivery milestones"');
+    expect(dashboard).not.toContain(
       'eyebrow="7 · Supporting documents and references"'
     );
     expect(dashboard).not.toContain("Proposed Responsibility Model");
@@ -77,7 +79,7 @@ describe("State and Provision delivery-readiness dashboard", () => {
     expect(dashboard).toContain("No separate source link was");
     expect(dashboard).toContain("attached to this update.");
     expect(dashboard).toContain("Demonstrated with Dummy Data");
-    expect(dashboard).toContain("Pending Confirmation");
+    expect(dashboard).toContain("remain pending confirmation");
     expect(dashboard).toMatch(
       /Not Demonstrated<\/strong> does not mean Not\s+Developed\./
     );

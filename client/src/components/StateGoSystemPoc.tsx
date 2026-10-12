@@ -182,139 +182,6 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
   },
 ];
 
-const DELIVERED_ROWS = [
-  [
-    "State",
-    "Roger State workflow",
-    "Tax Portal-to-Roger ingestion, source mapping, practitioner confirmation, factor-input organization, and reconciliation",
-    "Validate integration handoff, calculation execution, and returned results",
-    "Demonstrated",
-  ],
-  [
-    "State",
-    "Governed State data",
-    "Structured inputs and approved mappings shown",
-    "Confirm complete TDC integration handoff and result correlation",
-    "Partially Demonstrated",
-  ],
-  [
-    "State",
-    "IMS / GoSystem integration",
-    "No end-to-end translation, transmission, calculation, or returned-result evidence",
-    "Confirm contracts, round trip, error handling, and representative calculation",
-    "Pending Confirmation",
-  ],
-  [
-    "Provision",
-    "Return to Provision",
-    "Read-only prior-year comparison, filtering, search, and Roger navigation",
-    "Validate with representative data",
-    "Demonstrated with Dummy Data",
-  ],
-  [
-    "Provision",
-    "Deferred Rollforward",
-    "Entity amount entry, saving, custom adjustment columns, and update tracking",
-    "Validate persistence and recalculation behavior against approved requirements",
-    "Demonstrated with Dummy Data",
-  ],
-  [
-    "Provision",
-    "Data foundation",
-    "Initial Provision database tables created",
-    "Introduce representative test data and align the final return structure",
-    "Initial Structure Created",
-  ],
-  [
-    "Provision",
-    "Federal Summary",
-    "Demonstrated October 9; detailed validation scope not supplied",
-    "Confirm validation scope and retain supporting evidence",
-    "Demonstrated",
-  ],
-  [
-    "Provision",
-    "BTP Excel Export",
-    "Demonstrated October 9; BTP transfer evidence not supplied",
-    "Confirm transfer approach and validation detail",
-    "Demonstrated",
-  ],
-  [
-    "Provision",
-    "Bloomberg Tax Provision calculation",
-    "Demonstrated October 9; end-to-end output evidence not supplied",
-    "Confirm end-to-end output and validation detail",
-    "Demonstrated",
-  ],
-] as const;
-
-const ACTION_ROWS = [
-  [
-    "Confirm State IMS interface contracts, payload structures, and mapping ownership.",
-    "State",
-    "IMS / TDC / GoSystem",
-    "Approved integration baseline for the State POC.",
-    "Proposed",
-    "Not supplied",
-  ],
-  [
-    "Confirm GoSystem supported fields, formats, constraints, and result/error behavior.",
-    "State",
-    "GoSystem / Tax SMEs",
-    "Validated representative State calculation scope.",
-    "Proposed",
-    "Not supplied",
-  ],
-  [
-    "Finalize the representative State scenario and execute the outbound, calculation, and return tests.",
-    "State",
-    "State / TDC / IMS / GoSystem",
-    "Evidence for the State end-to-end round trip.",
-    "Proposed",
-    "Not supplied",
-  ],
-  [
-    "Complete Tax Portal multi-file upload and process-selection enhancements.",
-    "State",
-    "State / Tax Portal",
-    "Support for required broader State ingestion scenarios.",
-    "Proposed",
-    "Not supplied",
-  ],
-  [
-    "Confirm demonstrated Federal Summary scope and validation detail.",
-    "Provision",
-    "Provision / Roger",
-    "Evidence-bound Federal Summary validation record.",
-    "Proposed",
-    "Not supplied",
-  ],
-  [
-    "Confirm demonstrated BTP Excel export scope, transfer approach, and validation detail.",
-    "Provision",
-    "Provision / BTP",
-    "Evidence-bound BTP handoff and validation record.",
-    "Proposed",
-    "Not supplied",
-  ],
-  [
-    "Introduce representative Provision data and validate Return to Provision and Deferred Rollforward.",
-    "Provision",
-    "Provision / Data teams",
-    "Validation beyond dummy-data demonstrations.",
-    "Proposed",
-    "Not supplied",
-  ],
-  [
-    "Confirm final Roger workflow navigation, return structure, QA/UAT, and performance-testing scope.",
-    "Shared",
-    "Provision / Roger Core / QA",
-    "Integrated Pilot-readiness test plan.",
-    "Proposed",
-    "Not supplied",
-  ],
-] as const;
-
 const PILOT_MILESTONES = [
   ["Development completion", "Mid-December 2026"],
   [
@@ -553,10 +420,9 @@ export default function StateGoSystemPoc() {
             }}
           >
             A single evidence-bound view of the October 9, 2026 State and
-            Provision demonstrations, target architectures, capability
-            readiness, proposed actions, planning targets, and source
-            references. This page does not establish production readiness or
-            approved integration contracts.
+            Provision demonstrations, target architectures, planning targets,
+            and source references. This page does not establish production
+            readiness or approved integration contracts.
           </p>
         </div>
 
@@ -791,80 +657,11 @@ export default function StateGoSystemPoc() {
           </section>
 
           <section
-            aria-labelledby="delivered-outstanding-work"
-            style={{ marginBottom: "24px" }}
-          >
-            <PanelHeading
-              eyebrow="4 · Delivered capabilities and outstanding work"
-              title="State & Provision Capability Readiness"
-              subtitle="Prototype or dummy-data demonstrations are not represented as production-complete capabilities."
-              accent={C.green}
-            />
-            <div
-              id="delivered-outstanding-work"
-              style={{
-                background: "#ffffff",
-                border: "1px solid #e2e8f0",
-                borderRadius: "10px",
-                overflow: "hidden",
-              }}
-            >
-              <DataTable
-                columns={[
-                  "Workstream",
-                  "Capability",
-                  "Demonstrated / Delivered",
-                  "Remaining Work",
-                  "Status",
-                ]}
-                rows={DELIVERED_ROWS}
-                statusColumns={[4]}
-                minWidth="1120px"
-              />
-            </div>
-          </section>
-
-          <section
-            aria-labelledby="next-steps-actions"
-            style={{ marginBottom: "24px" }}
-          >
-            <PanelHeading
-              eyebrow="5 · Next steps and action items"
-              title="Integrated Action Tracker"
-              subtitle="All actions and owners are proposed pending confirmed commitment. No target date has been inferred where one was not supplied."
-              accent={C.green}
-            />
-            <div
-              id="next-steps-actions"
-              style={{
-                background: "#ffffff",
-                border: "1px solid #e2e8f0",
-                borderRadius: "10px",
-                overflow: "hidden",
-              }}
-            >
-              <DataTable
-                columns={[
-                  "Action",
-                  "Workstream",
-                  "Responsible Team",
-                  "Expected Outcome",
-                  "Status",
-                  "Target Date",
-                ]}
-                rows={ACTION_ROWS}
-                statusColumns={[4]}
-                minWidth="1250px"
-              />
-            </div>
-          </section>
-
-          <section
             aria-labelledby="pilot-milestones"
             style={{ marginBottom: "24px" }}
           >
             <PanelHeading
-              eyebrow="6 · Pilot delivery milestones"
+              eyebrow="4 · Pilot delivery milestones"
               title="Planning Targets Discussed on October 9"
               subtitle="These are planning targets, not verified delivery commitments. Performance testing requires confirmation in the integrated delivery plan."
               accent={C.purple}
@@ -888,7 +685,7 @@ export default function StateGoSystemPoc() {
 
           <section aria-labelledby="supporting-documents">
             <PanelHeading
-              eyebrow="7 · Supporting documents and references"
+              eyebrow="5 · Supporting documents and references"
               title="Evidence Sources"
               subtitle="Only verified source links are provided; no demonstration-note, contract, or ADO link has been invented."
               accent={C.teal}

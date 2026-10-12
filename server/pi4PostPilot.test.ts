@@ -200,10 +200,10 @@ describe("PI4 Post Pilot delivery", () => {
     expect(poc).toContain(
       "October 9 Demonstrated Capabilities — State & Provision"
     );
-    expect(poc).toContain("State & Provision Capability Readiness");
-    expect(poc).toContain("Integrated Action Tracker");
     expect(poc).toContain("Planning Targets Discussed on October 9");
     expect(poc).toContain("Evidence Sources");
+    expect(poc).not.toContain("State & Provision Capability Readiness");
+    expect(poc).not.toContain("Integrated Action Tracker");
     expect(poc).not.toContain("Proposed Responsibility Model");
     expect(poc).not.toContain("Master Dependency Register");
     expect(poc).not.toContain("State & Provision Validation Tracker");

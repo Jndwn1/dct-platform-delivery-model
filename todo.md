@@ -298,3 +298,4 @@
 - [x] Audit and align every unified State and Provision POC section with the latest October 9 demonstrated Provision status and BTP-only integration path
 - [x] Remove unified POC sections 5–8 and renumber the remaining POC sections
 - [x] Restore an explicit State and Provision demonstrated-capabilities table in the Post Pilot POC
+- [x] Remove only POC sections 4 and 5, then renumber the retained closing POC sections

@@ -62,7 +62,7 @@ describe("Provision October 9 consolidation", () => {
     expect(dashboard).not.toContain(
       "Bloomberg Tax Provision calculation not shown"
     );
-    expect(dashboard).toContain("Pending Confirmation");
+    expect(dashboard).toContain("remain pending confirmation");
     expect(dashboard).toContain(
       "Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path."
     );
