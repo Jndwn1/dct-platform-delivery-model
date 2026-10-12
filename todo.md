@@ -289,3 +289,4 @@
 - [x] Restore the Data Gateway release index introduction and Jenniver Dawn Stafford attribution while retaining a table-only release body
 - [x] Repair the Batch Control Panel hook order so /control-panel renders consistently
 - [x] Update the existing Post Pilot Roger → GoSystem POC with evidence-bound October 9 demonstration status, target architecture, integration validation tracker, risks, and proposed next actions
+- [x] Add the evidence-bound October 9 Provision demonstration and delivery-readiness section to Post Pilot

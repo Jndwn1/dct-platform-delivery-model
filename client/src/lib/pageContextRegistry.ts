@@ -44,17 +44,17 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
   "/post-pilot": {
     pageTitle: "Post Pilot",
     pageIcon: "◫",
-    description: "Executive PI4 Post Pilot planning visibility, planned-feature metrics, and the evidence-bound October 9 Roger to GoSystem State Calculation POC status, alongside State / Provision story review outputs.",
-    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "Roger to GoSystem State Calculation POC", "October 9 POC Status", "Target End-to-End POC Architecture", "POC Validation Tracker", "POC Meeting Transcript Source", "State / Provision Story Review", "Current-Year State Review Package", "Inline Story Review Ask Buddy Agent", "Ask Buddy First Pass", "Gary Technical Review", "PI4 Tracker Navigation"],
+    description: "Executive PI4 Post Pilot planning visibility, planned-feature metrics, the evidence-bound October 9 State Calculation POC, and the October 9 Provision demonstration and delivery-readiness summary.",
+    features: ["PI4 Planning Visibility", "Planned PI4 Feature Metrics", "Roger to GoSystem State Calculation POC", "October 9 POC Status", "Target End-to-End POC Architecture", "POC Validation Tracker", "POC Meeting Transcript Source", "Provision October 9 Demonstration", "Provision Delivery Readiness", "State / Provision Story Review", "Current-Year State Review Package", "Inline Story Review Ask Buddy Agent", "Ask Buddy First Pass", "Gary Technical Review", "PI4 Tracker Navigation"],
     apis: [],
     stories: ["1472734", "1471480", "1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Post Pilot Overview", "Planned PI4 Features", "State Calculation POC", "State / Provision Story Review", "Current-Year State Review Package"],
-    businessRules: ["PI4 planning is excluded from MVP delivery metrics", "PI4 delivery progress remains 0% until a separate approved source establishes actual completion", "October 9 POC status distinguishes demonstrated, partially demonstrated, and not demonstrated evidence without asserting implementation status", "Ask Buddy first-pass analysis does not replace Gary's final technical review", "The PI4 Sprint & Story Tracker remains the detailed planning workspace"],
+    businessRules: ["PI4 planning is excluded from MVP delivery metrics", "PI4 delivery progress remains 0% until a separate approved source establishes actual completion", "October 9 POC and Provision statuses distinguish demonstrated, initial structure, placeholder, and not demonstrated evidence without asserting production readiness", "Ask Buddy first-pass analysis does not replace Gary's final technical review", "The PI4 Sprint & Story Tracker remains the detailed planning workspace"],
     batches: [],
-    businessObjects: ["PI4 Planning Item", "Post Pilot Plan", "State Calculation Integration POC", "POC Validation Checkpoint", "State Calculation Input Package", "State Calculation Review Package", "Current-Year State Review Report", "Story Review File", "Gateway Contract", "TDC Practitioner Action"],
+    businessObjects: ["PI4 Planning Item", "Post Pilot Plan", "State Calculation Integration POC", "POC Validation Checkpoint", "Provision Demonstration", "Provision Delivery Readiness", "State Calculation Input Package", "State Calculation Review Package", "Current-Year State Review Report", "Story Review File", "Gateway Contract", "TDC Practitioner Action"],
     integrations: ["PI4 Sprint & Story Tracker", "Ask Buddy", "Roger", "Gateway", "TDC", "Taxonomy", "IMS", "GoSystem"],
-    lastUpdated: "2026-10-09",
-    lastChange: "Updated the existing Roger to GoSystem POC with the October 9 evidence boundary: Roger-side workflow demonstrated, DCT/TDC partially demonstrated, and IMS, GoSystem, and round-trip results not demonstrated or validated.",
+    lastUpdated: "2026-10-12",
+    lastChange: "Added the October 9 Provision demonstration evidence: initial dummy-data UI capabilities, backend-readiness boundaries, dependencies, and Pilot planning targets without asserting end-to-end readiness.",
   },
 
   "/post-pilot/state-taxonomy-readiness": {

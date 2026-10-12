@@ -1127,13 +1127,14 @@ Before documenting any new requirement for the State or Provision workstream, de
   "/post-pilot": {
     pageTitle: "Post Pilot",
     pagePath: "/post-pilot",
-    summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, the evidence-bound October 9 Roger to GoSystem State Calculation POC status, and the State / Provision Ask Buddy first-pass plus Gary technical-review process.",
+    summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, the evidence-bound October 9 State Calculation POC, the October 9 Provision demonstration and delivery readiness, and the State / Provision review process.",
     suggestedQuestions: [
       "What did the October 9 Roger to GoSystem POC demonstration establish?",
       "Which POC capabilities are demonstrated, partially demonstrated, or not demonstrated?",
       "What still needs to be proven for an end-to-end State calculation round trip?",
       "What must IMS and GoSystem confirm before the POC can be validated?",
       "What are the proposed next actions and outstanding POC risks?",
+      "What did the October 9 Provision demonstration establish, and what remains pending?",
       "How should Ask Buddy perform a first-pass review of a State or Provision story?",
       "What does Gary review after the Ask Buddy first pass?",
       "What is the review status for Tech Story 1494344?",
@@ -1150,6 +1151,14 @@ Before documenting any new requirement for the State or Provision workstream, de
 - **Open integration design:** IMS and GoSystem must confirm interface contracts, request/response schemas, field mappings, date/boolean/text/percentage/monetary/null formats, precision, validation ownership, error handling, results correlation, and representative POC scope. Do not present examples as approved contracts.
 - **What still needs to be proven:** Approved representative package handoff to IMS; IMS translation; IMS-to-GoSystem transmission; GoSystem calculation; structured results back to IMS; return through DCT/TDC; Roger result review; and negative-path behavior for invalid values, failed transmissions, and calculation errors. Each checkpoint is **Pending Confirmation**.
 - **Next actions:** The listed IMS-contract confirmation, GoSystem constraint confirmation, scenario finalization, outbound payload validation, calculation test, returned-result validation, and Portal enhancement actions are proposed until team commitments and ownership are confirmed.
+
+## Provision — October 9 Demonstration and Delivery Readiness
+
+- **Evidence boundary and overall status:** The supplied October 9 meeting notes and Provision demonstration transcript window (12:11–16:52) support **Partially Demonstrated — Initial UI Capabilities Available; End-to-End Provision Workflow Not Yet Validated**. The session used duplicate return structures and dummy data because production-like Provision data was not available.
+- **Demonstrated using dummy data:** Return to Provision showed read-only prior-year Provision versus tax-return comparison, entity filtering, search/filtering, and Roger Core navigation. Deferred Rollforward showed entity filtering, entity-specific amount entry and saving, custom adjustment columns, column deletion, and timestamps.
+- **Placeholder / not yet demonstrated:** Federal Summary and BTP Export were not demonstrated. Do not represent BTP Export as an automated Bloomberg Tax Provision integration. State Summary was not demonstrated and is expected in the separate State workflow.
+- **Initial structure and pending alignment:** Initial Provision database tables have been created, but representative test data, final workflow integration, final return-structure alignment, integration, QA, and performance validation remain outstanding.
+- **Planning targets, not commitments:** Development completion was discussed for mid-December 2026; internal testing/QA/UAT before the holiday break; significant defect remediation in early January 2027; and Pilot launch in mid-January 2027. These are planning targets only.
 
 ## State & Provision Story Review — Ask Buddy First Pass + Gary Technical Review
 
