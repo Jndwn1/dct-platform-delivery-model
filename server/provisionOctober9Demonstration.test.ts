@@ -29,7 +29,9 @@ describe("Provision October 9 consolidation", () => {
     expect(postPilot).not.toContain("ProvisionOctober9Demonstration");
     expect(existsSync(legacyProvisionComponent)).toBe(false);
 
-    expect(dashboard).toContain("State vs. Provision");
+    expect(dashboard).toContain(
+      "October 9 Demonstrated Capabilities — State & Provision"
+    );
     expect(dashboard).toContain("Provision — Bloomberg Tax Provision Workflow");
     expect(dashboard).toContain("Roger Core");
     expect(dashboard).toContain("Return to Provision");

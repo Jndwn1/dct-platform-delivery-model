@@ -622,8 +622,8 @@ export default function StateGoSystemPoc() {
           >
             <PanelHeading
               eyebrow="2 · October 9 demonstration"
-              title="State vs. Provision"
-              subtitle="The comparison reflects the latest October 9 status update: Provision Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are Demonstrated; transfer and end-to-end validation remain pending."
+              title="October 9 Demonstrated Capabilities — State & Provision"
+              subtitle="This table shows the State and Provision capabilities demonstrated on October 9, with their evidence-bound status. Provision Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are Demonstrated; transfer and end-to-end validation remain pending."
               accent={C.teal}
             />
             <div
@@ -638,9 +638,9 @@ export default function StateGoSystemPoc() {
               <DataTable
                 columns={[
                   "Capability",
-                  "State — October 9",
+                  "State — Demonstrated Capability",
                   "State Status",
-                  "Provision — October 9",
+                  "Provision — Demonstrated Capability",
                   "Provision Status",
                 ]}
                 rows={COMPARISON_ROWS}

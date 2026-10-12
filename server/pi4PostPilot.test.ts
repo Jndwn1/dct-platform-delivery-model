@@ -197,7 +197,9 @@ describe("PI4 Post Pilot delivery", () => {
     const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8");
     expect(poc).toContain("Partially Demonstrated — End-to-End Integration");
     expect(poc).toContain("Target End-to-End Architecture");
-    expect(poc).toContain("State vs. Provision");
+    expect(poc).toContain(
+      "October 9 Demonstrated Capabilities — State & Provision"
+    );
     expect(poc).toContain("State & Provision Capability Readiness");
     expect(poc).toContain("Integrated Action Tracker");
     expect(poc).toContain("Planning Targets Discussed on October 9");

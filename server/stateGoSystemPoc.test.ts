@@ -40,7 +40,11 @@ describe("State and Provision delivery-readiness dashboard", () => {
       "Partially Demonstrated — End-to-End Integration"
     );
     expect(dashboard).toContain("Not Yet Validated");
-    expect(dashboard).toContain("State vs. Provision");
+    expect(dashboard).toContain(
+      "October 9 Demonstrated Capabilities — State & Provision"
+    );
+    expect(dashboard).toContain("State — Demonstrated Capability");
+    expect(dashboard).toContain("Provision — Demonstrated Capability");
     expect(dashboard).toContain("Target End-to-End Architecture");
     expect(dashboard).toContain(
       "PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
