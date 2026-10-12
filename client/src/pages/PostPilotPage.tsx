@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow";
-import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc";
+import StateGoSystemPoc from "@/components/StateGoSystemPoc";
 import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
 import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow";
 import StateProvisionStoryReview from "@/components/StateProvisionStoryReview";
@@ -434,7 +434,6 @@ export default function PostPilotPage() {
       <StateProvisionStoryReview />
       <StateGoSystemPoc />
       <StatePocBaDiscoveryPackage />
-      <StateGoSystemPocClosingDetails />
     </div>
   );
 }

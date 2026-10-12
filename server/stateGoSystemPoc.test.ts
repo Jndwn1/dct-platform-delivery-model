@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-describe("State GoSystem POC extension", () => {
-  it("keeps the October 9 evidence-bound POC within the Post Pilot page", () => {
+describe("State and Provision delivery-readiness dashboard", () => {
+  it("consolidates October 9 evidence in the existing Post Pilot page", () => {
     const workspace = readFileSync(
       resolve(
         process.cwd(),
@@ -15,7 +15,7 @@ describe("State GoSystem POC extension", () => {
       resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"),
       "utf8"
     );
-    const poc = readFileSync(
+    const dashboard = readFileSync(
       resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"),
       "utf8"
     );
@@ -23,84 +23,57 @@ describe("State GoSystem POC extension", () => {
       resolve(process.cwd(), "client/src/App.tsx"),
       "utf8"
     );
-    const knowledgeBase = readFileSync(
-      resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"),
-      "utf8"
-    );
-    const pageContext = readFileSync(
-      resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"),
-      "utf8"
-    );
-    const postPilotKnowledge = knowledgeBase.slice(
-      knowledgeBase.indexOf('"/post-pilot"'),
-      knowledgeBase.indexOf('"/qa-deployment-registry"')
-    );
 
     expect(workspace).not.toContain("StateGoSystemPoc");
     expect(postPilot).toContain(
-      'import StateGoSystemPoc, { StateGoSystemPocClosingDetails } from "@/components/StateGoSystemPoc"'
+      'import StateGoSystemPoc from "@/components/StateGoSystemPoc"'
     );
-    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(
-      postPilot.indexOf("Post Pilot feature inventory")
-    );
+    expect(postPilot).toContain("<StateGoSystemPoc />");
+    expect(postPilot).not.toContain("StateGoSystemPocClosingDetails");
     expect(postPilot.indexOf("<StatePocBaDiscoveryPackage />")).toBeGreaterThan(
       postPilot.indexOf("<StateGoSystemPoc />")
     );
-    expect(
-      postPilot.indexOf("<StateGoSystemPocClosingDetails />")
-    ).toBeGreaterThan(postPilot.indexOf("<StatePocBaDiscoveryPackage />"));
     expect(app).not.toContain("/state-poc");
 
-    expect(poc).toContain(
-      "Roger → GoSystem POC: State Calculation Integration"
+    expect(dashboard).toContain("State & Provision Delivery Readiness");
+    expect(dashboard).toContain(
+      "Partially Demonstrated — End-to-End Integration"
     );
-    expect(poc).toContain("October 9, 2026 POC Progress");
-    expect(poc).toContain(
-      "Partially Demonstrated — End-to-End Integration Not Yet Validated"
-    );
-    expect(poc).toContain("Last reviewed October 9, 2026");
-    expect(poc).toContain("Target End-to-End Architecture — State & Provision");
-    expect(poc).toContain(
+    expect(dashboard).toContain("Not Yet Validated");
+    expect(dashboard).toContain("State vs. Provision");
+    expect(dashboard).toContain("Target End-to-End Architecture");
+    expect(dashboard).toContain(
       "PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
     );
-    expect(poc).toContain("State — GoSystem Calculation Integration");
-    expect(poc).toContain("Roger UI → TDC → IMS → GoSystem");
-    expect(poc).toContain("GoSystem → IMS → TDC → Roger UI");
-    expect(poc).toContain("Provision — Roger Workflow and Delivery Readiness");
-    expect(poc).toContain("Return to Provision");
-    expect(poc).toContain("Deferred Rollforward");
-    expect(poc).toContain("Federal Summary");
-    expect(poc).toContain("BTP Export");
-    expect(poc).toContain(
-      "does not establish an external calculation, BTP, or other downstream integration."
+    expect(dashboard).toContain("State — GoSystem Calculation Integration");
+    expect(dashboard).toContain("Provision — Bloomberg Tax Provision Workflow");
+    expect(dashboard).toContain("Bloomberg Tax Provision");
+    expect(dashboard).toContain(
+      "Provision does not use GoSystem or the State IMS calculation pathway"
     );
-    expect(poc).toContain(
-      "October 9 Demonstration — Delivered Capabilities and Outstanding Integration"
-    );
-    expect(poc).toContain("Partially Demonstrated");
-    expect(poc).toContain("Not Demonstrated");
-    expect(poc).toContain(
-      "Not Demonstrated” does not mean Not Developed or Not Implemented"
-    );
-    expect(poc).toContain("Capabilities Demonstrated on October 9");
-    expect(poc).toContain("greater-than-5% review threshold");
-    expect(poc).toContain(
-      "They do not prove that GoSystem calculations were executed."
-    );
-    expect(poc).toContain("IMS and GoSystem Responsibilities");
-    expect(poc).toContain("Integration Dependencies and Open Questions");
-    expect(poc).toContain("What Still Needs to Be Proven");
-    expect(poc).toContain("Pending Confirmation");
-    expect(poc).toContain("Risks and Dependencies");
-    expect(poc).toContain("They are not characterized as active defects.");
-    expect(poc).toContain("Next Actions and Action Items");
-    expect(poc).toContain("Pending confirmed commitment and ownership");
-    expect(poc).toContain("POC Meeting Transcript (DOCX)");
-    expect(poc).toContain("/manus-storage/POC_6327d700.docx");
-    expect(poc).not.toContain("Open demonstration notes");
+    expect(dashboard).toContain("State & Provision Capability Readiness");
+    expect(dashboard).toContain("Proposed Responsibility Model");
+    expect(dashboard).toContain("Master Dependency Register");
+    expect(dashboard).toContain("State & Provision Validation Tracker");
+    expect(dashboard).toContain("Risk Register");
+    expect(dashboard).toContain("Integrated Action Tracker");
+    expect(dashboard).toContain("Planning Targets Discussed on October 9");
+    expect(dashboard).toContain("Evidence Sources");
+    expect(dashboard).toContain("Jenniver Dawn Stafford");
+    expect(dashboard).toContain("/manus-storage/POC_6327d700.docx");
+    expect(dashboard).toContain("No separate source link was");
+    expect(dashboard).toContain("attached to this update.");
+    expect(dashboard).toContain("Demonstrated with Dummy Data");
+    expect(dashboard).toContain("Pending Confirmation");
+    expect(dashboard).toContain("Not Demonstrated</strong> does not mean");
+    expect(dashboard).toContain("Not Developed.");
 
-    expect(postPilotKnowledge).toContain("Partially Demonstrated");
-    expect(postPilotKnowledge).toContain("Not Demonstrated");
-    expect(pageContext).toContain("October 9 POC Status");
+    expect(dashboard).not.toContain("IMS and GoSystem Responsibilities");
+    expect(dashboard).not.toContain(
+      "Integration Dependencies and Open Questions"
+    );
+    expect(dashboard).not.toContain("What Still Needs to Be Proven");
+    expect(dashboard).not.toContain("Risks and Dependencies");
+    expect(dashboard).not.toContain("Next Actions and Action Items");
   });
 });

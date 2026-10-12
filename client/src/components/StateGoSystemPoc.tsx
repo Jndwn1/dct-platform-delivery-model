@@ -1,41 +1,115 @@
-import { useState } from "react";
+import type { ReactNode } from "react";
 import ExecutiveProcessFlow, {
   type ExecutiveFlowStep,
 } from "@/components/ExecutiveProcessFlow";
-import { ProvisionOctober9DemonstrationDetails } from "@/components/ProvisionOctober9Demonstration";
 
 const C = {
   navy: "#0f1623",
-  blue: "#1e3a5f",
-  teal: "#0369a1",
-  green: "#047857",
-  purple: "#7c3aed",
   slate: "#475569",
+  blue: "#2563eb",
+  teal: "#0f766e",
+  purple: "#7c3aed",
+  amber: "#b45309",
+  green: "#047857",
 };
+
 const POC_TRANSCRIPT_SOURCE_URL = "/manus-storage/POC_6327d700.docx";
 
-const STATE_TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
+const COMPARISON_ROWS = [
+  [
+    "Workflow Foundation",
+    "Tax Portal-to-Roger State workflow",
+    "Demonstrated",
+    "Reuse of first nine Federal Compliance steps",
+    "Prototype Demonstrated",
+  ],
+  [
+    "Data Collection",
+    "State source-file extraction and mapping",
+    "Demonstrated",
+    "Duplicate return structure with dummy Provision data",
+    "Demonstrated with Dummy Data",
+  ],
+  [
+    "Data Review",
+    "Practitioner review and approval of source mappings",
+    "Demonstrated",
+    "Return to Provision read-only comparison and filtering",
+    "Demonstrated with Dummy Data",
+  ],
+  [
+    "Data Entry / Maintenance",
+    "State apportionment inputs by entity, jurisdiction, and factor",
+    "Demonstrated",
+    "Deferred Rollforward entity amount editing and custom adjustment columns",
+    "Demonstrated with Dummy Data",
+  ],
+  [
+    "Reconciliation",
+    "Check figures, differences, variance percentages, and review threshold",
+    "Demonstrated",
+    "Prior-year Provision vs. tax-return comparison",
+    "Demonstrated with Dummy Data",
+  ],
+  [
+    "Data Governance",
+    "Structured inputs and approved mappings shown; complete TDC integration handoff unverified",
+    "Partially Demonstrated",
+    "Initial Provision database tables created",
+    "Initial Structure Created",
+  ],
+  [
+    "Summary Output",
+    "GoSystem calculation results not shown",
+    "Not Demonstrated",
+    "Federal Summary remained a placeholder",
+    "Not Demonstrated",
+  ],
+  [
+    "Downstream Integration",
+    "IMS translation and transmission to GoSystem not shown",
+    "Not Demonstrated",
+    "BTP Excel Export remained a placeholder",
+    "Not Demonstrated",
+  ],
+  [
+    "External Calculation",
+    "GoSystem execution not shown",
+    "Not Demonstrated",
+    "Bloomberg Tax Provision calculation not shown",
+    "Not Demonstrated",
+  ],
+  [
+    "End-to-End Results",
+    "No GoSystem-calculated results returned to Roger",
+    "Not Demonstrated",
+    "No validated end-to-end BTP processing flow",
+    "Not Demonstrated",
+  ],
+] as const;
+
+const STATE_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
   {
     label: "1 · State data collection",
     title: "Roger UI",
     detail:
-      "Tax Portal source files, mapped State inputs, and practitioner review are organized by entity, jurisdiction, and applicable factor category.",
-    accent: "#0f766e",
+      "Collect and review State tax inputs from Tax Portal source files, mappings, and practitioner review.",
+    accent: C.teal,
     surface: "#f0fdfa",
   },
   {
     label: "2 · Govern and correlate",
     title: "TDC",
     detail:
-      "Governed State data, relationships, approved information, calculation requests, and returned-result correlation are managed through the agreed data path.",
-    accent: "#2563eb",
+      "Govern structured State data and calculation-request information through the agreed data path.",
+    accent: C.blue,
     surface: "#eff6ff",
   },
   {
     label: "3 · Translate and transmit",
     title: "IMS",
     detail:
-      "The proposed integration boundary receives the agreed package, applies confirmed mappings and formats, transmits to GoSystem, and handles agreed responses or errors.",
+      "Translate the approved package and communicate with GoSystem using confirmed contracts and formats.",
     accent: C.purple,
     surface: "#faf5ff",
   },
@@ -43,514 +117,718 @@ const STATE_TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     label: "4 · Calculate",
     title: "GoSystem",
     detail:
-      "The proposed calculation engine receives translated inputs, performs applicable State calculations, and returns structured results or processing errors to IMS.",
-    accent: "#b45309",
+      "Perform applicable State tax calculations and produce calculation results or processing errors.",
+    accent: C.amber,
     surface: "#fffbeb",
   },
   {
     label: "5 · Return and review",
-    title: "IMS → TDC → Roger UI",
+    title: "IMS → TDC → Roger",
     detail:
-      "IMS translates the response, TDC correlates it to the request, and Roger presents returned results for practitioner reconciliation, review, and approval.",
-    accent: C.teal,
+      "Return calculated results for practitioner reconciliation, review, and approval.",
+    accent: "#0369a1",
     surface: "#f0f9ff",
   },
 ];
 
-const PROVISION_TARGET_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
+const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
   {
-    label: "Shared Roger foundation",
-    title: "Roger UI — Federal Compliance",
+    label: "1 · Shared foundation",
+    title: "Roger Core",
     detail:
-      "Provision is intended to reuse the first nine Federal Compliance workflow steps. The October 9 demonstration used duplicate return structures and dummy data.",
-    accent: "#7c3aed",
+      "Reuse the first nine Federal Compliance workflow steps as the Provision foundation.",
+    accent: C.purple,
     surface: "#faf5ff",
   },
   {
-    label: "1 · Provision-specific workflow",
+    label: "2 · Provision workflow",
     title: "Return to Provision",
     detail:
-      "Read-only comparison of prior-year Provision amounts with prior-year tax-return amounts, with filtering, search, and Roger navigation demonstrated using dummy data.",
-    accent: "#0f766e",
+      "Compare prior-year Provision amounts against the prior-year tax return in a read-only review experience.",
+    accent: C.teal,
     surface: "#f0fdfa",
   },
   {
-    label: "2 · Provision-specific workflow",
+    label: "3 · Provision workflow",
     title: "Deferred Rollforward",
     detail:
-      "Entity-specific amount entry, saving, custom adjustment columns, and update tracking were demonstrated using dummy data.",
-    accent: "#2563eb",
+      "Maintain temporary-difference information through entity-specific amounts and custom adjustment columns.",
+    accent: C.blue,
     surface: "#eff6ff",
   },
   {
-    label: "3 · Placeholder",
+    label: "4 · Planned output",
     title: "Federal Summary",
     detail:
-      "Intended to consolidate relevant Provision information. Requirements were still being refined and the screen was not demonstrated.",
-    accent: "#b45309",
+      "Consolidate Provision information; requirements and screen development remain pending.",
+    accent: C.amber,
     surface: "#fffbeb",
   },
   {
-    label: "4 · Placeholder",
+    label: "5 · Planned output",
     title: "BTP Export",
     detail:
-      "Intended Excel export for user transfer into Bloomberg Tax Provision. The UI and export functionality were not demonstrated.",
-    accent: "#b45309",
+      "Generate an Excel output for user transfer into Bloomberg Tax Provision; functionality was not demonstrated.",
+    accent: C.amber,
     surface: "#fffbeb",
+  },
+  {
+    label: "6 · External processing",
+    title: "Bloomberg Tax Provision",
+    detail:
+      "Perform Provision calculation processing only after the export handoff and calculation validation are confirmed.",
+    accent: "#64748b",
+    surface: "#f8fafc",
   },
 ];
 
-const DEMONSTRATION_ROWS = [
+const DELIVERED_ROWS = [
   [
-    "1",
-    "Roger State Data Collection",
+    "State",
+    "Roger State workflow",
+    "Tax Portal-to-Roger ingestion, source mapping, practitioner confirmation, factor-input organization, and reconciliation",
+    "Validate integration handoff, calculation execution, and returned results",
     "Demonstrated",
-    "Tax Portal-to-Roger data ingestion, source mapping, factor inputs, practitioner confirmation, and reconciliation functionality were demonstrated.",
   ],
   [
-    "2",
-    "DCT/TDC State Data Governance",
+    "State",
+    "Governed State data",
+    "Structured inputs and approved mappings shown",
+    "Confirm complete TDC integration handoff and result correlation",
     "Partially Demonstrated",
-    "Structured State inputs and approved mappings were shown. Complete end-to-end data-package governance and integration handoff were not established by the demonstration evidence.",
   ],
   [
-    "3",
-    "IMS Translation and Transmission",
-    "Not Demonstrated",
-    "No confirmed demonstration of translating State data and transmitting it from IMS to GoSystem.",
+    "State",
+    "IMS / GoSystem integration",
+    "No end-to-end translation, transmission, calculation, or returned-result evidence",
+    "Confirm contracts, round trip, error handling, and representative calculation",
+    "Pending Confirmation",
   ],
   [
-    "4",
-    "GoSystem State Calculations",
-    "Not Demonstrated",
-    "No confirmed execution of State tax calculations within GoSystem was shown.",
+    "Provision",
+    "Return to Provision",
+    "Read-only prior-year comparison, filtering, search, and Roger navigation",
+    "Validate with representative data",
+    "Demonstrated with Dummy Data",
   ],
   [
-    "5",
-    "Returned Calculation Results in Roger",
-    "Not Demonstrated",
-    "Roger reconciliation functionality was shown, but not the receipt and display of returned GoSystem calculation results.",
+    "Provision",
+    "Deferred Rollforward",
+    "Entity amount entry, saving, custom adjustment columns, and update tracking",
+    "Validate persistence and recalculation behavior against approved requirements",
+    "Demonstrated with Dummy Data",
   ],
-] as const;
-
-const CAPABILITY_AREAS = [
-  {
-    title: "Tax Portal and Roger Integration",
-    accent: "#0f766e",
-    items: [
-      "A connected Tax Portal-to-Roger workflow was demonstrated.",
-      "Uploaded source data was associated with the applicable filing context.",
-      "Source data could be extracted and mapped to Roger target fields.",
-      "Practitioners could review and adjust proposed source mappings.",
-      "Approved mappings supported organization of State inputs by jurisdiction and factor category.",
-    ],
-  },
-  {
-    title: "State Input Processing",
-    accent: "#2563eb",
-    items: [
-      "State apportionment inputs for property, payroll, sales, and payments were demonstrated.",
-      "Mapping across varied client file structures was supported.",
-      "Practitioner confirmation of proposed mappings was demonstrated.",
-      "Deterministic processing with AI assistance was illustrated where source structures or aggregations were more complex.",
-    ],
-  },
-  {
-    title: "Reconciliation",
-    accent: C.purple,
-    items: [
-      "Calculated totals were reconciled against check figures.",
-      "Comparisons could use Federal groupings, selected accounts, or user-provided values.",
-      "Differences and percentage variances were displayed, including the existing greater-than-5% review threshold.",
-      "Reconciliation identified differences for practitioner review without automatically changing working values.",
-    ],
-  },
-  {
-    title: "Complex Data Handling",
-    accent: "#b45309",
-    items: [
-      "Complex property-data patterns were processed.",
-      "Scenarios included multiple tabs, current-year and prior-year data, and aggregated values.",
-      "Additional validation was identified as needed for certain extracted aggregation patterns.",
-    ],
-  },
+  [
+    "Provision",
+    "Data foundation",
+    "Initial Provision database tables created",
+    "Introduce representative test data and align the final return structure",
+    "Initial Structure Created",
+  ],
+  [
+    "Provision",
+    "Federal Summary and BTP Export",
+    "Neither screen or export function was demonstrated",
+    "Finalize requirements, develop functionality, and validate BTP handoff",
+    "Not Demonstrated",
+  ],
 ] as const;
 
 const RESPONSIBILITY_ROWS = [
   [
-    "Data Intake",
-    "Receive the structured State integration payload.",
-    "Accept the translated State data.",
+    "Source data intake",
+    "TDC governs structured State input data; IMS intake needs contract confirmation.",
+    "Roger prepares Provision data and a planned export package.",
+    "TDC / IMS / Roger",
+    "Pending Confirmation",
   ],
   [
-    "Field Mapping",
-    "Translate TDC input fields into the required GoSystem structure.",
-    "Interpret the received fields according to its supported tax software contract.",
+    "Data governance",
+    "TDC governs State data, request information, and result correlation.",
+    "Provision data governance and final return structure need confirmation.",
+    "TDC / Provision / Roger",
+    "Pending Confirmation",
   ],
   [
-    "Data Formatting",
-    "Apply agreed date, boolean, numeric, text, and null transformations.",
-    "Confirm supported field formats and constraints.",
+    "Field mapping",
+    "TDC-to-IMS and IMS-to-GoSystem mapping must be confirmed.",
+    "BTP export field mapping and file structure must be confirmed.",
+    "IMS / GoSystem / Provision",
+    "Pending Confirmation",
   ],
   [
-    "Data Validation",
-    "Apply validation assigned to IMS under the integration contract.",
-    "Apply applicable GoSystem tax software validation.",
+    "Transformation and formatting",
+    "IMS is the proposed translation layer for approved State package formats.",
+    "Planned BTP Excel structure and formatting have not been confirmed.",
+    "IMS / Provision",
+    "Pending Confirmation",
   ],
   [
-    "Calculations",
-    "Transport data; does not own State tax calculations.",
-    "Perform applicable State tax calculations.",
+    "Validation",
+    "TDC, IMS, and GoSystem validation ownership requires agreement.",
+    "Provision workflow, export, and BTP validation requirements require confirmation.",
+    "State / Provision / Integration teams",
+    "Pending Confirmation",
   ],
   [
-    "Results",
-    "Receive, translate, and return calculation outputs.",
-    "Generate calculation results or error responses.",
+    "External calculations",
+    "GoSystem performs applicable State calculations after a valid handoff.",
+    "Bloomberg Tax Provision performs Provision calculations after a valid export handoff.",
+    "GoSystem / Bloomberg Tax Provision",
+    "Pending Confirmation",
   ],
   [
-    "Error Handling",
-    "Return integration and translation errors through the agreed interface.",
-    "Return applicable processing and calculation errors.",
+    "Results and output",
+    "GoSystem response contract must support IMS/TDC correlation and Roger display.",
+    "Output, BTP processing result, and any return path are not established.",
+    "IMS / TDC / Provision / BTP",
+    "Pending Confirmation",
+  ],
+  [
+    "Error handling",
+    "Integration, translation, processing, and recovery behavior must be agreed.",
+    "Export, transfer, and processing error behavior must be agreed.",
+    "IMS / GoSystem / Provision / BTP",
+    "Pending Confirmation",
+  ],
+  [
+    "Practitioner review",
+    "Roger presents State inputs and, when validated, calculated results for review.",
+    "Roger supports Return to Provision review and Deferred Rollforward maintenance.",
+    "Roger / Practitioners",
+    "State Demonstrated; Provision Demonstrated with Dummy Data",
+  ],
+  [
+    "Reconciliation",
+    "Roger check figures and variance review were demonstrated; GoSystem result reconciliation was not.",
+    "Prior-year Provision-to-return comparison was demonstrated using dummy data.",
+    "Roger / Practitioners",
+    "Partially Demonstrated",
   ],
 ] as const;
 
 const DEPENDENCY_ROWS = [
   [
-    "Interface Contract",
-    "Confirm the approved request/response interfaces, schemas, and payload structures.",
-    "TDC needs the contract to construct and correlate integration data packages.",
+    "D-01",
+    "State",
+    "IMS interface contract",
+    "Confirm request/response interfaces, schemas, and payload structures.",
+    "IMS / TDC / GoSystem",
+    "Blocks governed package handoff and round trip.",
+    "Pending Confirmation",
   ],
   [
-    "Field Mapping",
-    "Identify which TDC State inputs map to which IMS/GoSystem fields.",
-    "TDC must expose the required State attributes.",
+    "D-02",
+    "State",
+    "Field mapping",
+    "Confirm TDC-to-IMS and IMS-to-GoSystem field mappings.",
+    "TDC / IMS / GoSystem",
+    "Blocks accurate translation and calculation input.",
+    "Pending Confirmation",
   ],
   [
-    "Date Format",
-    "Confirm field-specific date formats such as MM/YYYY or MM/DD/YYYY.",
-    "Determines required formatting and transformation behavior.",
+    "D-03",
+    "State",
+    "Data formats",
+    "Confirm date and boolean formats.",
+    "IMS / GoSystem",
+    "Blocks transformation rules.",
+    "Pending Confirmation",
   ],
   [
-    "Boolean Format",
-    "Confirm checkbox representations such as X, true/false, or 1/0.",
-    "Supports accurate downstream translation.",
+    "D-04",
+    "State",
+    "Text handling",
+    "Confirm text length, truncation, narrative formatting, and line-break behavior.",
+    "IMS / GoSystem",
+    "Prevents formatting and transmission failures.",
+    "Pending Confirmation",
   ],
   [
-    "Text Length",
-    "Confirm maximum lengths and which system handles truncation.",
-    "Determines validation and error-handling rules.",
+    "D-05",
+    "State",
+    "Numeric handling",
+    "Confirm percentage precision, monetary rounding, and cents support.",
+    "IMS / GoSystem",
+    "Prevents calculation-input ambiguity.",
+    "Pending Confirmation",
   ],
   [
-    "Text Formatting",
-    "Confirm allowed characters, narrative formatting, and line-break support.",
-    "Prevents transmission or translation failures.",
+    "D-06",
+    "State",
+    "Missing values",
+    "Confirm null, blank, missing, and zero handling.",
+    "TDC / IMS / GoSystem",
+    "Prevents data loss or misinterpretation.",
+    "Pending Confirmation",
   ],
   [
-    "Percentage Format",
-    "Confirm percentage representation and supported decimal precision.",
-    "Ensures percentage values retain their intended meaning.",
+    "D-07",
+    "State",
+    "Validation ownership",
+    "Confirm validation ownership across TDC, IMS, and GoSystem.",
+    "TDC / IMS / GoSystem",
+    "Prevents gaps or conflicting validation.",
+    "Pending Confirmation",
   ],
   [
-    "Monetary Values",
-    "Confirm rounding, precision, and whether cents are supported.",
-    "Defines numeric conversion rules.",
+    "D-08",
+    "State",
+    "Error recovery",
+    "Confirm rejection, warning, retry, and recovery behavior.",
+    "IMS / GoSystem / TDC",
+    "Required for controlled failure handling.",
+    "Pending Confirmation",
   ],
   [
-    "Null Handling",
-    "Confirm how missing, blank, null, and zero values are interpreted.",
-    "Prevents loss or misinterpretation of information.",
+    "D-09",
+    "State",
+    "Results contract",
+    "Confirm calculation-result and error response identifiers and correlation.",
+    "IMS / GoSystem / TDC",
+    "Required for Roger result review.",
+    "Pending Confirmation",
   ],
   [
-    "Validation Ownership",
-    "Confirm which checks are performed by TDC, IMS, and GoSystem.",
-    "Prevents conflicting or duplicated validation logic.",
+    "D-10",
+    "State",
+    "Representative scenario",
+    "Confirm POC tax period, fields, calculation outputs, and scenario scope.",
+    "State / Tax SMEs / GoSystem",
+    "Bounds the proof of feasibility.",
+    "Pending Confirmation",
   ],
   [
-    "Error Handling",
-    "Confirm rejected-data responses, warnings, retry behavior, and failed transactions.",
-    "Supports defined integration error handling and recovery.",
+    "D-11",
+    "State",
+    "Portal enhancements",
+    "Confirm multi-file upload and process-selection enhancements.",
+    "State / Tax Portal",
+    "Supports required ingestion scenarios.",
+    "Pending Confirmation",
   ],
   [
-    "Results Contract",
-    "Confirm how GoSystem calculation outputs and errors are returned and identified.",
-    "Enables correlation, persistence, and practitioner review.",
+    "D-12",
+    "State",
+    "Complex extraction",
+    "Validate complex State property extraction and aggregation patterns.",
+    "State / TDC / Roger",
+    "Supports reliable mapped inputs.",
+    "Pending Confirmation",
   ],
   [
-    "POC Scope",
-    "Confirm the representative State scenario, tax period, fields, and calculation outputs.",
-    "Limits integration implementation to the approved proof-of-feasibility scope.",
+    "D-13",
+    "Provision",
+    "Federal Summary",
+    "Finalize requirements and develop Federal Summary functionality.",
+    "Provision / Roger",
+    "Blocks consolidated Provision output.",
+    "Pending Confirmation",
+  ],
+  [
+    "D-14",
+    "Provision",
+    "BTP Excel export",
+    "Confirm export requirements and file structure; develop export functionality.",
+    "Provision / BTP",
+    "Blocks BTP handoff.",
+    "Pending Confirmation",
+  ],
+  [
+    "D-15",
+    "Provision",
+    "Data readiness",
+    "Confirm Provision database readiness and introduce representative test data.",
+    "Provision / TDC / Roger",
+    "Limits workflow validation beyond dummy data.",
+    "Pending Confirmation",
+  ],
+  [
+    "D-16",
+    "Provision",
+    "Shared workflow",
+    "Confirm integration with shared Roger Core workflows and final navigation.",
+    "Provision / Roger Core",
+    "Required for a coherent practitioner workflow.",
+    "Pending Confirmation",
+  ],
+  [
+    "D-17",
+    "Provision",
+    "Return structure",
+    "Confirm final return-structure design and the State Provision workflow relationship.",
+    "Provision / State / Roger",
+    "Prevents temporary-design rework.",
+    "Pending Confirmation",
+  ],
+  [
+    "D-18",
+    "Provision",
+    "BTP validation",
+    "Validate BTP handoff, calculation processing, downstream outputs, and reconciliation expectations.",
+    "Provision / BTP",
+    "Required for end-to-end readiness.",
+    "Pending Confirmation",
+  ],
+  [
+    "D-19",
+    "Shared",
+    "QA / UAT",
+    "Confirm QA/UAT scope, test evidence, and performance testing.",
+    "State / Provision / QA",
+    "Required for Pilot readiness assessment.",
+    "Pending Confirmation",
+  ],
+  [
+    "D-20",
+    "Shared",
+    "Integration sequencing",
+    "Confirm cross-team sequencing and ownership for dependent work.",
+    "State / Provision / Integration teams",
+    "May affect Pilot delivery timing.",
+    "Pending Confirmation",
   ],
 ] as const;
 
 const VALIDATION_ROWS = [
   [
-    "Confirm that TDC can provide the approved representative State data package to IMS.",
+    "V-01",
+    "State",
+    "Confirm representative State data package from TDC to IMS.",
     "TDC / IMS",
+    "Pending Confirmation",
     "No end-to-end confirmation supplied",
     "Approved representative package and interface",
     "Confirm package handoff approach",
   ],
   [
-    "Demonstrate IMS mapping and translation of that package.",
+    "V-02",
+    "State",
+    "Validate IMS mapping and transformation.",
     "IMS / TDC",
-    "Not demonstrated in October 9 session",
+    "Pending Confirmation",
+    "Not demonstrated on October 9",
     "Confirmed mapping and transformation rules",
     "Confirm translation design",
   ],
   [
-    "Demonstrate successful transmission from IMS to GoSystem.",
+    "V-03",
+    "State",
+    "Confirm IMS transmission to GoSystem.",
     "IMS / GoSystem",
-    "Not demonstrated in October 9 session",
+    "Pending Confirmation",
+    "Not demonstrated on October 9",
     "Approved interface and connectivity",
     "Execute transmission test",
   ],
   [
-    "Confirm that GoSystem can consume the data and execute the applicable State calculation.",
+    "V-04",
+    "State",
+    "Execute representative GoSystem State calculation.",
     "GoSystem / Tax SMEs",
-    "Not demonstrated in October 9 session",
-    "Supported calculation scenario and GoSystem contract",
+    "Pending Confirmation",
+    "Not demonstrated on October 9",
+    "Supported calculation scenario and contract",
     "Execute calculation test",
   ],
   [
-    "Demonstrate GoSystem returning structured results to IMS.",
+    "V-05",
+    "State",
+    "Validate GoSystem results returned to IMS.",
     "IMS / GoSystem",
-    "Not demonstrated in October 9 session",
+    "Pending Confirmation",
+    "Not demonstrated on October 9",
     "Results and error-response contract",
     "Validate result response",
   ],
   [
-    "Demonstrate the results returning through the agreed DCT/TDC integration path.",
+    "V-06",
+    "State",
+    "Validate IMS/TDC results correlation.",
     "IMS / TDC",
-    "No round-trip evidence supplied",
-    "Correlation and return-path design",
-    "Validate return handoff",
+    "Pending Confirmation",
+    "No end-to-end confirmation supplied",
+    "Correlation identifiers and response contract",
+    "Validate correlation path",
   ],
   [
-    "Confirm Roger can display the results for practitioner reconciliation, review, and approval.",
-    "Roger UI / TDC / IMS",
-    "Returned GoSystem results not demonstrated",
-    "Returned result structure and correlation",
-    "Validate Roger result presentation",
+    "V-07",
+    "State",
+    "Display calculated State results in Roger.",
+    "Roger / TDC",
+    "Pending Confirmation",
+    "Returned GoSystem results were not shown",
+    "Correlated result package",
+    "Validate practitioner review",
   ],
   [
-    "Validate the expected behavior for invalid values, failed transmissions, and calculation errors.",
-    "TDC / IMS / GoSystem",
-    "No end-to-end error validation supplied",
-    "Validation and error ownership",
-    "Define and execute negative scenarios",
+    "V-08",
+    "State",
+    "Validate negative scenarios and errors.",
+    "IMS / GoSystem / TDC",
+    "Pending Confirmation",
+    "No negative-path evidence supplied",
+    "Defined error and recovery behavior",
+    "Execute negative-path tests",
+  ],
+  [
+    "V-09",
+    "Provision",
+    "Validate Return to Provision using representative data.",
+    "Provision / Roger",
+    "Demonstrated with Dummy Data",
+    "Read-only comparison and filtering shown using dummy data",
+    "Representative Provision data",
+    "Repeat with representative data",
+  ],
+  [
+    "V-10",
+    "Provision",
+    "Validate Deferred Rollforward persistence and recalculation behavior against approved requirements.",
+    "Provision / Roger",
+    "Demonstrated with Dummy Data",
+    "Editing, custom columns, and timestamps shown using dummy data",
+    "Approved requirements and representative data",
+    "Confirm persistence and recalculation criteria",
+  ],
+  [
+    "V-11",
+    "Provision",
+    "Confirm integration with final Roger workflow navigation.",
+    "Provision / Roger Core",
+    "Pending Confirmation",
+    "Temporary demonstrated structure",
+    "Final workflow-group design",
+    "Validate final navigation",
+  ],
+  [
+    "V-12",
+    "Provision",
+    "Validate completed Federal Summary functionality.",
+    "Provision / Roger",
+    "Pending Confirmation",
+    "Federal Summary was not demonstrated",
+    "Finalized requirements and development",
+    "Complete and validate Federal Summary",
+  ],
+  [
+    "V-13",
+    "Provision",
+    "Generate and validate the BTP Excel export.",
+    "Provision / BTP",
+    "Pending Confirmation",
+    "BTP Export was not demonstrated",
+    "Export requirements and file structure",
+    "Develop and validate export",
+  ],
+  [
+    "V-14",
+    "Provision",
+    "Confirm successful transfer of exported data into BTP.",
+    "Provision / BTP",
+    "Pending Confirmation",
+    "No transfer evidence supplied",
+    "Validated export and handoff approach",
+    "Execute transfer test",
+  ],
+  [
+    "V-15",
+    "Provision",
+    "Validate applicable BTP calculation processing.",
+    "Provision / BTP",
+    "Pending Confirmation",
+    "No calculation evidence supplied",
+    "Successful BTP handoff",
+    "Execute calculation validation",
+  ],
+  [
+    "V-16",
+    "Provision",
+    "Confirm downstream outputs and required reconciliation or review.",
+    "Provision / BTP / Roger",
+    "Pending Confirmation",
+    "No end-to-end output evidence supplied",
+    "Validated BTP processing and outputs",
+    "Confirm output and review path",
+  ],
+  [
+    "V-17",
+    "Provision",
+    "Validate Provision error handling and QA/UAT scenarios.",
+    "Provision / QA / BTP",
+    "Pending Confirmation",
+    "No error-path or QA/UAT evidence supplied",
+    "Defined error handling and test scope",
+    "Execute QA/UAT and error scenarios",
   ],
 ] as const;
 
 const RISK_ROWS = [
   [
-    "Unconfirmed IMS / GoSystem field and integration contracts",
-    "May prevent a reliable, governed payload and response design.",
-    "Confirm request, response, mapping, and error responsibilities before integration testing.",
+    "R-01",
+    "State",
+    "IMS/GoSystem contract readiness remains unconfirmed.",
+    "Blocks verified data handoff and calculation testing.",
+    "Confirm contract, schemas, mappings, and validation ownership.",
     "IMS / GoSystem / TDC",
+    "Open",
   ],
   [
-    "Incomplete State input-to-downstream field mapping",
-    "Required inputs may be unavailable, misunderstood, or mapped inconsistently.",
-    "Finalize representative-scenario mapping through the agreed contract.",
-    "TDC / IMS / Tax SMEs",
+    "R-02",
+    "State",
+    "State calculation round trip is unverified.",
+    "No evidence of calculation results returning to Roger.",
+    "Execute the representative end-to-end scenario and negative paths.",
+    "State / IMS / GoSystem / TDC",
+    "Open",
   ],
   [
-    "Unvalidated calculation round trip",
-    "Roger-side capability may not yet produce a usable calculated State result.",
-    "Run an evidence-captured, representative end-to-end test.",
-    "IMS / GoSystem / TDC / Roger UI",
-  ],
-  [
-    "Data format or precision mismatch",
-    "Values may be rejected, rounded, or interpreted incorrectly.",
-    "Confirm examples for dates, booleans, text, percentages, monetary values, and nulls.",
-    "IMS / GoSystem / TDC",
-  ],
-  [
-    "Unconfirmed validation and error-recovery ownership",
-    "Failures may not be detected, routed, or recoverable consistently.",
-    "Assign validation, warning, retry, and rejection handling in the integration design.",
+    "R-03",
+    "State",
+    "Mapping and format rules may be inconsistent.",
+    "May create rejected, misinterpreted, or inaccurate calculation inputs.",
+    "Confirm formats, precision, null handling, and transformation rules.",
     "TDC / IMS / GoSystem",
+    "Open",
   ],
   [
-    "Portal multi-file and broader process-selection dependencies",
-    "The broader State intake scenario may not be available when needed.",
-    "Confirm enhancement scope and sequencing separately from the representative POC.",
-    "State / Tax Portal",
+    "R-04",
+    "State",
+    "Complex source-data extraction needs additional validation.",
+    "May affect reliable State inputs and reconciliation.",
+    "Validate complex property extraction and aggregation patterns.",
+    "State / TDC / Roger",
+    "Open",
   ],
   [
-    "Complex State property-data extraction patterns",
-    "Aggregations or source patterns may need further validation before use.",
-    "Continue focused validation of identified complex patterns.",
-    "State / Roger",
+    "R-05",
+    "Provision",
+    "Federal Summary and BTP Export are not demonstrated.",
+    "Blocks completed Provision output and BTP handoff.",
+    "Finalize requirements, develop functions, and validate them.",
+    "Provision / Roger",
+    "Open",
+  ],
+  [
+    "R-06",
+    "Provision",
+    "Provision depends on shared Roger workflow decisions.",
+    "May require workflow or navigation rework.",
+    "Confirm shared workflow and final return-structure design.",
+    "Provision / Roger Core",
+    "Open",
+  ],
+  [
+    "R-07",
+    "Provision",
+    "Representative Provision test data is not available in the supplied demonstration evidence.",
+    "Limits readiness conclusions beyond dummy data.",
+    "Introduce representative data and repeat validation.",
+    "Provision / Data teams",
+    "Open",
+  ],
+  [
+    "R-08",
+    "Shared",
+    "Cross-team integration sequencing is unconfirmed.",
+    "May affect Pilot readiness timing and accountability.",
+    "Confirm dependencies, sequence, and owner commitments.",
+    "State / Provision / Integration teams",
+    "Open",
+  ],
+  [
+    "R-09",
+    "Shared",
+    "Pilot QA/UAT and performance readiness is not confirmed.",
+    "Prevents evidence-based Pilot readiness assessment.",
+    "Confirm integrated test plan, evidence, and performance scope.",
+    "QA / State / Provision",
+    "Open",
   ],
 ] as const;
 
-const NEXT_ACTION_ROWS = [
+const ACTION_ROWS = [
   [
-    "Confirm the IMS integration contract.",
-    "IMS / TDC",
-    "Agreed interface and transformation standards.",
+    "Confirm State IMS interface contracts, payload structures, and mapping ownership.",
+    "State",
+    "IMS / TDC / GoSystem",
+    "Approved integration baseline for the State POC.",
+    "Proposed",
+    "Not supplied",
   ],
   [
-    "Confirm GoSystem field constraints and calculation requirements.",
+    "Confirm GoSystem supported fields, formats, constraints, and result/error behavior.",
+    "State",
     "GoSystem / Tax SMEs",
-    "Supported field and calculation contract.",
+    "Validated representative State calculation scope.",
+    "Proposed",
+    "Not supplied",
   ],
   [
-    "Finalize representative POC State scenario and outputs.",
-    "State / Product / Tax SMEs",
-    "Approved end-to-end test scenario.",
+    "Finalize the representative State scenario and execute the outbound, calculation, and return tests.",
+    "State",
+    "State / TDC / IMS / GoSystem",
+    "Evidence for the State end-to-end round trip.",
+    "Proposed",
+    "Not supplied",
   ],
   [
-    "Validate outbound State data payload.",
-    "TDC / IMS",
-    "Successful handoff and data translation.",
-  ],
-  [
-    "Execute GoSystem calculation test.",
-    "IMS / GoSystem",
-    "Confirmed calculation execution.",
-  ],
-  [
-    "Validate returned results in Roger.",
-    "IMS / TDC / Roger UI",
-    "End-to-end results displayed for practitioner review.",
-  ],
-  [
-    "Complete Portal upload and process-selection enhancements.",
+    "Complete Tax Portal multi-file upload and process-selection enhancements.",
+    "State",
     "State / Tax Portal",
-    "Support for the required broader State ingestion scenarios.",
+    "Support for required broader State ingestion scenarios.",
+    "Proposed",
+    "Not supplied",
+  ],
+  [
+    "Finalize Federal Summary requirements and develop the associated screen.",
+    "Provision",
+    "Provision / Roger",
+    "Validated Federal Summary capability.",
+    "Proposed",
+    "Not supplied",
+  ],
+  [
+    "Define, develop, and validate the BTP Excel export and transfer approach.",
+    "Provision",
+    "Provision / BTP",
+    "Evidence-bound BTP handoff readiness.",
+    "Proposed",
+    "Not supplied",
+  ],
+  [
+    "Introduce representative Provision data and validate Return to Provision and Deferred Rollforward.",
+    "Provision",
+    "Provision / Data teams",
+    "Validation beyond dummy-data demonstrations.",
+    "Proposed",
+    "Not supplied",
+  ],
+  [
+    "Confirm final Roger workflow navigation, return structure, QA/UAT, and performance-testing scope.",
+    "Shared",
+    "Provision / Roger Core / QA",
+    "Integrated Pilot-readiness test plan.",
+    "Proposed",
+    "Not supplied",
   ],
 ] as const;
 
-const FUTURE_PACKAGE = [
-  {
-    title: "Filing Footprint + Configuration",
-    accent: C.teal,
-    items: [
-      "Client / tax year",
-      "Filer and filing group",
-      "Jurisdiction and filing designation",
-      "Federal starting point",
-      "Apportionment method and weighting",
-      "State-specific options and approval status",
-    ],
-  },
-  {
-    title: "PBC Inputs",
-    accent: C.blue,
-    items: [
-      "Property, payroll, and sales",
-      "State / entity assignment",
-      "Within / everywhere treatment",
-      "Approved mapping and supporting detail",
-      "Payments and applicable references",
-    ],
-  },
-  {
-    title: "Calculated or Rolled Values",
-    accent: C.purple,
-    items: [
-      "State additions and subtractions",
-      "Supported calculated or rolled amounts",
-      "State attributes and carryforwards",
-      "Source, authority, and approval context",
-    ],
-  },
+const PILOT_MILESTONES = [
+  ["Development completion", "Mid-December 2026"],
+  [
+    "Internal testing / QA / UAT readiness",
+    "Targeted before the holiday break",
+  ],
+  ["Significant defect remediation", "Early January 2027"],
+  ["Pilot launch", "Mid-January 2027"],
 ] as const;
-
-const FEDERAL_STATE_LINKAGE_STEPS: readonly ExecutiveFlowStep[] = [
-  {
-    label: "1 · Reusable input",
-    title: "Shared source data",
-    detail:
-      "Original trial balance and source data may be reusable across deliverables.",
-    accent: C.teal,
-    surface: "#f0fdfa",
-  },
-  {
-    label: "2 · Provision output",
-    title: "Provision deliverable",
-    detail:
-      "Uses its own adjustments and calculated values for the Provision outcome.",
-    accent: C.purple,
-    surface: "#faf5ff",
-  },
-  {
-    label: "3 · Federal output",
-    title: "Federal deliverable",
-    detail:
-      "Provides the governed Federal result that may be required as the State starting context.",
-    accent: "#2563eb",
-    surface: "#eff6ff",
-  },
-  {
-    label: "4 · State outcome",
-    title: "State deliverable",
-    detail:
-      "References the correct Federal deliverable for the entity and tax year before State calculation and review.",
-    accent: C.teal,
-    surface: "#f0fdfa",
-  },
-];
-
-const OPEN_QUESTIONS = [
-  "What exact fields must be sent to GoSystem, and what data already exists there?",
-  "Which values should be read rather than pushed?",
-  "What exact fields must come back from GoSystem, and at what review granularity?",
-  "Can additions and subtractions be aggregated, or must individual State modifications return?",
-  "Do practitioners need every apportionment component and how much accrual detail is necessary?",
-  "Are NOL and credit details required during the initial POC?",
-  "How should State modifications and State-specific variations be mapped?",
-  "Which representative States / scenarios should be used for the POC?",
-  "How will Federal and State deliverables be linked, and where will the relationship persist?",
-  "What belongs in POC / MVP scope versus later implementation?",
-  "Who owns each remaining business, Taxonomy, integration, and architecture decision?",
-] as const;
-
-const SUCCESS_CRITERIA = [
-  "The approved representative State package can be handed to IMS.",
-  "IMS can map and transmit the package to GoSystem using confirmed contracts.",
-  "GoSystem can execute the representative State calculation and return a structured response.",
-  "The response can return through the agreed IMS and DCT/TDC path with correlation to the request.",
-  "Roger can present returned results for practitioner review and reconciliation.",
-  "Negative scenarios have defined handling for invalid data, transmission failure, and calculation errors.",
-] as const;
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const onCopy = async () => {
-    await navigator.clipboard?.writeText(text);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1600);
-  };
-  return (
-    <button
-      type="button"
-      onClick={onCopy}
-      style={{
-        backgroundColor: "#ffffff",
-        border: "1px solid #cbd5e1",
-        borderRadius: "6px",
-        color: C.navy,
-        cursor: "pointer",
-        fontSize: "10px",
-        fontWeight: 800,
-        padding: "6px 9px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {copied ? "Copied" : "Copy POC summary"}
-    </button>
-  );
-}
 
 function PanelHeading({
   eyebrow,
   title,
   subtitle,
-  accent = C.teal,
+  accent = C.blue,
 }: {
   eyebrow: string;
   title: string;
@@ -569,7 +847,7 @@ function PanelHeading({
         style={{
           color: accent,
           fontSize: "10px",
-          fontWeight: 800,
+          fontWeight: 850,
           letterSpacing: "0.08em",
           marginBottom: "4px",
           textTransform: "uppercase",
@@ -577,14 +855,14 @@ function PanelHeading({
       >
         {eyebrow}
       </div>
-      <h3 style={{ color: C.navy, fontSize: "16px", margin: 0 }}>{title}</h3>
+      <h2 style={{ color: C.navy, fontSize: "18px", margin: 0 }}>{title}</h2>
       {subtitle && (
         <p
           style={{
             color: C.slate,
             fontSize: "11px",
-            lineHeight: "1.45",
-            margin: "4px 0 0",
+            lineHeight: 1.5,
+            margin: "5px 0 0",
           }}
         >
           {subtitle}
@@ -595,24 +873,32 @@ function PanelHeading({
 }
 
 function StatusPill({ status }: { status: string }) {
-  const styles =
-    status === "Demonstrated"
+  const tone =
+    status.includes("Demonstrated") && !status.includes("Not Demonstrated")
       ? { background: "#dcfce7", border: "#86efac", color: "#166534" }
-      : status === "Partially Demonstrated"
-        ? { background: "#fef3c7", border: "#fcd34d", color: "#92400e" }
-        : { background: "#f1f5f9", border: "#cbd5e1", color: C.slate };
+      : status.includes("Partially") || status.includes("Initial Structure")
+        ? { background: "#dbeafe", border: "#93c5fd", color: "#1d4ed8" }
+        : status.includes("Placeholder") ||
+            status.includes("Pending") ||
+            status.includes("Proposed")
+          ? { background: "#fef3c7", border: "#fcd34d", color: "#92400e" }
+          : status.includes("Not Demonstrated") || status === "Open"
+            ? { background: "#f1f5f9", border: "#cbd5e1", color: C.slate }
+            : { background: "#f8fafc", border: "#cbd5e1", color: C.slate };
+
   return (
     <span
       style={{
-        background: styles.background,
-        border: `1px solid ${styles.border}`,
+        background: tone.background,
+        border: `1px solid ${tone.border}`,
         borderRadius: "999px",
-        color: styles.color,
+        color: tone.color,
         display: "inline-flex",
-        fontSize: "10px",
+        fontSize: "9px",
         fontWeight: 850,
         lineHeight: 1.25,
         padding: "4px 7px",
+        whiteSpace: "normal",
       }}
     >
       {status}
@@ -623,10 +909,12 @@ function StatusPill({ status }: { status: string }) {
 function DataTable({
   columns,
   rows,
+  statusColumns = [],
   minWidth = "900px",
 }: {
   columns: readonly string[];
   rows: readonly (readonly string[])[];
+  statusColumns?: readonly number[];
   minWidth?: string;
 }) {
   return (
@@ -659,7 +947,7 @@ function DataTable({
         <tbody>
           {rows.map((row, index) => (
             <tr
-              key={row[0]}
+              key={`${row[0]}-${index}`}
               style={{
                 background: index % 2 ? "#ffffff" : "#f8fafc",
                 borderTop: "1px solid #e2e8f0",
@@ -677,7 +965,11 @@ function DataTable({
                     padding: "10px 11px",
                   }}
                 >
-                  {cell}
+                  {statusColumns.includes(cellIndex) ? (
+                    <StatusPill status={cell} />
+                  ) : (
+                    cell
+                  )}
                 </td>
               ))}
             </tr>
@@ -688,20 +980,41 @@ function DataTable({
   );
 }
 
-export default function StateGoSystemPoc() {
-  const copyText = [
-    "Roger → GoSystem POC: State Calculation Integration",
-    "Last reviewed: October 9, 2026.",
-    "Overall POC Status: Partially Demonstrated — End-to-End Integration Not Yet Validated.",
-    "Demonstrated: Roger-side source-data ingestion, mapping, practitioner confirmation, and reconciliation of State apportionment inputs.",
-    "Not demonstrated: IMS translation/transmission, GoSystem calculation execution, and returned GoSystem results in Roger.",
-  ].join("\n");
+function Notice({
+  children,
+  accent = C.blue,
+}: {
+  children: ReactNode;
+  accent?: string;
+}) {
   return (
-    <section id="roger-gosystem-state-poc" style={{ marginBottom: "48px" }}>
+    <div
+      style={{
+        background: "#f8fafc",
+        border: `1px solid ${accent}33`,
+        borderLeft: `5px solid ${accent}`,
+        borderRadius: "8px",
+        color: C.slate,
+        fontSize: "11px",
+        lineHeight: 1.5,
+        padding: "12px 13px",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export default function StateGoSystemPoc() {
+  return (
+    <section
+      id="state-provision-delivery-readiness"
+      style={{ marginBottom: "38px" }}
+    >
       <div
         style={{
-          backgroundColor: "#ffffff",
-          border: "1px solid #bae6fd",
+          background: "#ffffff",
+          border: "1px solid #dbe4ee",
           borderRadius: "12px",
           boxShadow: "0 2px 9px rgba(15,23,42,0.06)",
           overflow: "hidden",
@@ -710,228 +1023,156 @@ export default function StateGoSystemPoc() {
         <div
           style={{
             background:
-              "linear-gradient(120deg, #0f1623 0%, #1e3a5f 68%, #0369a1 100%)",
+              "linear-gradient(120deg, #0f1623 0%, #1e3a5f 60%, #2563eb 100%)",
             padding: "20px 22px",
           }}
         >
           <div
             style={{
-              alignItems: "flex-start",
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "14px",
-              justifyContent: "space-between",
+              color: "#bfdbfe",
+              fontSize: "10px",
+              fontWeight: 850,
+              letterSpacing: "0.09em",
+              marginBottom: "5px",
+              textTransform: "uppercase",
             }}
           >
-            <div style={{ maxWidth: "1000px" }}>
-              <div
-                style={{
-                  color: "#bae6fd",
-                  fontSize: "10px",
-                  fontWeight: 800,
-                  letterSpacing: "0.09em",
-                  marginBottom: "5px",
-                  textTransform: "uppercase",
-                }}
-              >
-                State architecture extension · Evidence-bound proof of concept
-              </div>
-              <h2 style={{ color: "#ffffff", fontSize: "20px", margin: 0 }}>
-                Roger → GoSystem POC: State Calculation Integration
-              </h2>
-              <p
-                style={{
-                  color: "#dbeafe",
-                  fontSize: "12px",
-                  lineHeight: "1.55",
-                  margin: "8px 0 0",
-                }}
-              >
-                Demonstrate that Roger can collect, structure, and validate
-                State tax preparation inputs; DCT/TDC can govern and correlate
-                the State data package; IMS can translate and transmit the
-                information to GoSystem; GoSystem can perform applicable State
-                tax calculations; and calculated results can return to Roger for
-                practitioner reconciliation, review, and approval.
-              </p>
-            </div>
-            <CopyButton text={copyText} />
+            Post Pilot · Unified delivery readiness dashboard
           </div>
+          <h1 style={{ color: "#ffffff", fontSize: "21px", margin: 0 }}>
+            State & Provision Delivery Readiness
+          </h1>
+          <p
+            style={{
+              color: "#dbeafe",
+              fontSize: "12px",
+              lineHeight: 1.55,
+              margin: "8px 0 0",
+              maxWidth: "1040px",
+            }}
+          >
+            A single evidence-bound view of the October 9, 2026 State and
+            Provision demonstrations, target architectures, dependencies,
+            validations, risks, and proposed actions. This page does not
+            establish production readiness or approved integration contracts.
+          </p>
         </div>
+
         <div style={{ padding: "20px" }}>
           <section
-            aria-labelledby="poc-progress-summary"
-            style={{
-              backgroundColor: "#f0f9ff",
-              border: "1px solid #bae6fd",
-              borderLeft: `5px solid ${C.teal}`,
-              borderRadius: "9px",
-              marginBottom: "18px",
-              padding: "14px 15px",
-            }}
+            aria-labelledby="executive-overview"
+            style={{ marginBottom: "24px" }}
           >
+            <PanelHeading
+              eyebrow="1 · Executive overview"
+              title="State & Provision Readiness Summary"
+              subtitle="Demonstration findings are separated from proposed architecture and unverified integration work."
+            />
             <div
+              id="executive-overview"
               style={{
-                alignItems: "flex-start",
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "12px",
-                justifyContent: "space-between",
+                display: "grid",
+                gap: "14px",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
               }}
             >
-              <div style={{ maxWidth: "930px" }}>
-                <div
-                  id="poc-progress-summary"
-                  style={{
-                    color: C.teal,
-                    fontSize: "10px",
-                    fontWeight: 850,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  October 9, 2026 POC Progress · Last reviewed October 9, 2026
-                </div>
-                <p
-                  style={{
-                    color: C.navy,
-                    fontSize: "12px",
-                    lineHeight: 1.55,
-                    margin: "7px 0 0",
-                  }}
-                >
-                  The State team demonstrated Roger-side source-data ingestion,
-                  mapping, practitioner confirmation, and reconciliation of
-                  State apportionment inputs. This is progress toward the
-                  proposed end-to-end architecture, but the session did not
-                  establish IMS translation and transmission to GoSystem, State
-                  calculation execution in GoSystem, or the return of calculated
-                  results to Roger.
-                </p>
-                <p
-                  style={{
-                    color: C.slate,
-                    fontSize: "11px",
-                    lineHeight: 1.5,
-                    margin: "7px 0 0",
-                  }}
-                >
-                  <strong style={{ color: C.navy }}>
-                    Expected business value:
-                  </strong>{" "}
-                  Establish the technical feasibility of integrating Roger with
-                  GoSystem for State tax calculations while maintaining clear
-                  responsibilities for governance, translation, calculation, and
-                  practitioner review.
-                </p>
-              </div>
-              <div
-                style={{
-                  background: "#fef3c7",
-                  border: "1px solid #fcd34d",
-                  borderRadius: "8px",
-                  color: "#92400e",
-                  fontSize: "10px",
-                  fontWeight: 900,
-                  lineHeight: 1.35,
-                  maxWidth: "255px",
-                  padding: "9px 10px",
-                  textAlign: "center",
-                }}
-              >
-                Overall POC Status
-                <br />
-                Partially Demonstrated — End-to-End Integration Not Yet
-                Validated
-              </div>
+              <Notice accent={C.blue}>
+                <strong style={{ color: C.navy }}>State:</strong> The October 9
+                demonstration showed Tax Portal-to-Roger ingestion, State
+                source-data mapping, practitioner confirmation, apportionment
+                input organization, and reconciliation functionality. It did not
+                establish successful IMS translation, GoSystem calculation
+                execution, or calculated-results return to Roger.
+              </Notice>
+              <Notice accent={C.purple}>
+                <strong style={{ color: C.navy }}>Provision:</strong> The
+                October 9 demonstration showed initial Return to Provision and
+                Deferred Rollforward functionality using dummy data. Initial
+                Provision database tables were created. Federal Summary, BTP
+                Export, the complete workflow, and BTP transfer process were not
+                demonstrated.
+              </Notice>
             </div>
-          </section>
-          <section
-            aria-labelledby="poc-source-document"
-            style={{
-              backgroundColor: "#f8fafc",
-              border: "1px solid #cbd5e1",
-              borderLeft: `5px solid ${C.teal}`,
-              borderRadius: "9px",
-              marginBottom: "22px",
-              padding: "13px 15px",
-            }}
-          >
             <div
               style={{
-                alignItems: "flex-start",
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "12px",
-                justifyContent: "space-between",
+                background: "#fef3c7",
+                border: "1px solid #fcd34d",
+                borderRadius: "8px",
+                color: "#92400e",
+                fontSize: "11px",
+                fontWeight: 850,
+                lineHeight: 1.45,
+                marginTop: "14px",
+                padding: "10px 12px",
               }}
             >
-              <div style={{ maxWidth: "850px" }}>
-                <div
-                  style={{
-                    color: C.teal,
-                    fontSize: "10px",
-                    fontWeight: 800,
-                    letterSpacing: "0.08em",
-                    marginBottom: "5px",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Source document
-                </div>
-                <div
-                  id="poc-source-document"
-                  style={{ color: C.navy, fontSize: "13px", fontWeight: 850 }}
-                >
-                  POC Meeting Transcript (DOCX)
-                </div>
-                <p
-                  style={{
-                    color: C.slate,
-                    fontSize: "11px",
-                    lineHeight: "1.5",
-                    margin: "5px 0 0",
-                  }}
-                >
-                  The transcript documents the proposed operating model, design
-                  questions, and feasibility considerations. It is not an
-                  approved implementation specification. October 9 demonstration
-                  findings below are limited to the supplied evidence; no
-                  separate demonstration-notes link has been provided.
-                </p>
-              </div>
-              <a
-                href={POC_TRANSCRIPT_SOURCE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  backgroundColor: "#ffffff",
-                  border: `1px solid ${C.teal}66`,
-                  borderRadius: "6px",
-                  color: C.teal,
-                  fontSize: "10px",
-                  fontWeight: 800,
-                  padding: "7px 10px",
-                  textDecoration: "none",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Open transcript (DOCX)
-              </a>
+              Overall Status: Partially Demonstrated — End-to-End Integration
+              Not Yet Validated
             </div>
           </section>
+
           <section
-            aria-labelledby="target-end-to-end-poc-architecture"
+            aria-labelledby="october-9-comparison"
+            style={{ marginBottom: "24px" }}
+          >
+            <PanelHeading
+              eyebrow="2 · October 9 demonstration"
+              title="State vs. Provision"
+              subtitle="One comparison table summarizes what the October 9 session established for each workstream."
+              accent={C.teal}
+            />
+            <div
+              id="october-9-comparison"
+              style={{
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
+                overflow: "hidden",
+              }}
+            >
+              <DataTable
+                columns={[
+                  "Capability",
+                  "State — October 9",
+                  "State Status",
+                  "Provision — October 9",
+                  "Provision Status",
+                ]}
+                rows={COMPARISON_ROWS}
+                statusColumns={[2, 4]}
+                minWidth="1220px"
+              />
+            </div>
+            <p
+              style={{
+                color: C.slate,
+                fontSize: "10px",
+                lineHeight: 1.5,
+                margin: "9px 0 0",
+              }}
+            >
+              <strong>Terminology:</strong> <strong>Demonstrated</strong> means
+              capability shown during the session;{" "}
+              <strong>Partially Demonstrated</strong> means supporting
+              functionality was shown but the complete requirement was not;{" "}
+              <strong>Placeholder</strong> means planned but not demonstrated;
+              and <strong>Not Demonstrated</strong> does not mean Not Developed.
+              Implementation status requires separate evidence.
+            </p>
+          </section>
+
+          <section
+            aria-labelledby="target-end-to-end-architecture"
             style={{ marginBottom: "24px" }}
           >
             <PanelHeading
               eyebrow="PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
-              title="Target End-to-End Architecture — State & Provision"
-              subtitle="Two distinct processing paths originate in Roger UI. The State path preserves the proposed five-step GoSystem calculation pattern; the Provision path reflects only the supplied October 9 workflow evidence and does not imply an unconfirmed external integration."
-              accent="#2563eb"
+              title="Target End-to-End Architecture"
+              subtitle="The State and Provision architectures originate in Roger but use distinct external calculation and output paths."
+              accent={C.blue}
             />
             <div
-              id="target-end-to-end-poc-architecture"
+              id="target-end-to-end-architecture"
               style={{
                 background: "#f8fafc",
                 border: "1px solid #dbe4ee",
@@ -939,26 +1180,6 @@ export default function StateGoSystemPoc() {
                 padding: "14px",
               }}
             >
-              <div
-                style={{
-                  background: "#ffffff",
-                  border: "1px solid #bfdbfe",
-                  borderLeft: "4px solid #2563eb",
-                  borderRadius: "8px",
-                  color: C.slate,
-                  fontSize: "11px",
-                  lineHeight: 1.5,
-                  marginBottom: "14px",
-                  padding: "10px 12px",
-                }}
-              >
-                <strong style={{ color: C.navy }}>
-                  Shared origin — Roger UI:
-                </strong>{" "}
-                Roger is the practitioner-facing workflow and review experience.
-                The State and Provision paths below have distinct objectives,
-                demonstrated evidence, and outstanding dependencies.
-              </div>
               <div
                 style={{
                   display: "grid",
@@ -971,7 +1192,7 @@ export default function StateGoSystemPoc() {
                     style={{
                       background: "#eff6ff",
                       border: "1px solid #bfdbfe",
-                      borderLeft: "4px solid #2563eb",
+                      borderLeft: `4px solid ${C.blue}`,
                       borderRadius: "8px",
                       color: "#1e3a5f",
                       fontSize: "11px",
@@ -986,9 +1207,9 @@ export default function StateGoSystemPoc() {
                   </div>
                   <ExecutiveProcessFlow
                     ariaLabel="State GoSystem calculation integration target architecture"
-                    steps={STATE_TARGET_ARCHITECTURE_STEPS}
-                    supportNote="Forward direction: Roger UI → TDC → IMS → GoSystem. Return direction: GoSystem → IMS → TDC → Roger UI. TDC governs State data and result correlation; IMS owns proposed integration, transformation, and communication; GoSystem performs State tax calculation."
-                    outcome="A representative State calculation can be governed, translated, calculated, returned, correlated, and reviewed only after the outstanding contracts and round-trip validations are confirmed."
+                    steps={STATE_ARCHITECTURE_STEPS}
+                    supportNote="Forward direction: Roger UI → TDC → IMS → GoSystem. Return direction: GoSystem → IMS → TDC → Roger. IMS is the proposed integration and translation layer; GoSystem performs applicable State calculations."
+                    outcome="The State round trip is not validated until the representative package, translation, calculation, returned results, correlation, and practitioner review are confirmed."
                   />
                 </div>
                 <div>
@@ -996,7 +1217,7 @@ export default function StateGoSystemPoc() {
                     style={{
                       background: "#faf5ff",
                       border: "1px solid #e9d5ff",
-                      borderLeft: "4px solid #7c3aed",
+                      borderLeft: `4px solid ${C.purple}`,
                       borderRadius: "8px",
                       color: "#581c87",
                       fontSize: "11px",
@@ -1007,30 +1228,31 @@ export default function StateGoSystemPoc() {
                       textTransform: "uppercase",
                     }}
                   >
-                    Provision — Roger Workflow and Delivery Readiness
+                    Provision — Bloomberg Tax Provision Workflow
                   </div>
                   <ExecutiveProcessFlow
-                    ariaLabel="Provision workflow target architecture from Roger UI"
-                    steps={PROVISION_TARGET_ARCHITECTURE_STEPS}
-                    supportNote="The shown Provision path is limited to the shared Roger foundation and the four supplied Provision-specific workflow steps. It does not establish an external calculation, BTP, or other downstream integration."
-                    outcome="Return to Provision and Deferred Rollforward were demonstrated with dummy data; Federal Summary, BTP Export, representative-data validation, integration, QA, and performance validation remain outstanding."
+                    ariaLabel="Provision Bloomberg Tax Provision target workflow"
+                    steps={PROVISION_ARCHITECTURE_STEPS}
+                    supportNote="Provision does not use GoSystem or the State IMS calculation pathway. The planned BTP handoff is an Excel export; no automated API transmission or automated results return is assumed."
+                    outcome="Return to Provision and Deferred Rollforward were demonstrated using dummy data. Federal Summary, BTP Export, BTP transfer, external calculation processing, and downstream results validation remain unconfirmed."
                   />
                 </div>
               </div>
             </div>
           </section>
+
           <section
-            aria-labelledby="october-9-demonstration"
+            aria-labelledby="delivered-outstanding-work"
             style={{ marginBottom: "24px" }}
           >
             <PanelHeading
-              eyebrow="Evidence from supplied October 9 findings"
-              title="October 9 Demonstration — Delivered Capabilities and Outstanding Integration"
-              subtitle="Status describes what the session established. “Not Demonstrated” does not mean Not Developed or Not Implemented; implementation status requires separate confirmation."
-              accent="#b45309"
+              eyebrow="4 · Delivered capabilities and outstanding work"
+              title="State & Provision Capability Readiness"
+              subtitle="Prototype or dummy-data demonstrations are not represented as production-complete capabilities."
+              accent={C.green}
             />
             <div
-              id="october-9-demonstration"
+              id="delivered-outstanding-work"
               style={{
                 background: "#ffffff",
                 border: "1px solid #e2e8f0",
@@ -1038,185 +1260,36 @@ export default function StateGoSystemPoc() {
                 overflow: "hidden",
               }}
             >
-              <div style={{ overflowX: "auto" }}>
-                <table
-                  style={{
-                    borderCollapse: "collapse",
-                    minWidth: "950px",
-                    width: "100%",
-                  }}
-                >
-                  <thead>
-                    <tr
-                      style={{
-                        background: "#1e293b",
-                        color: "#ffffff",
-                        textAlign: "left",
-                      }}
-                    >
-                      {[
-                        "Step",
-                        "POC Capability",
-                        "Demonstration Status",
-                        "October 9 Findings",
-                      ].map(column => (
-                        <th
-                          key={column}
-                          style={{
-                            fontSize: "9px",
-                            fontWeight: 850,
-                            letterSpacing: "0.055em",
-                            padding: "10px 11px",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {column}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {DEMONSTRATION_ROWS.map((row, index) => (
-                      <tr
-                        key={row[0]}
-                        style={{
-                          background: index % 2 ? "#ffffff" : "#f8fafc",
-                          borderTop: "1px solid #e2e8f0",
-                          verticalAlign: "top",
-                        }}
-                      >
-                        <td
-                          style={{
-                            color: C.navy,
-                            fontSize: "12px",
-                            fontWeight: 900,
-                            padding: "10px 11px",
-                            textAlign: "center",
-                          }}
-                        >
-                          {row[0]}
-                        </td>
-                        <td
-                          style={{
-                            color: C.navy,
-                            fontSize: "10px",
-                            fontWeight: 800,
-                            lineHeight: 1.45,
-                            padding: "10px 11px",
-                          }}
-                        >
-                          {row[1]}
-                        </td>
-                        <td style={{ padding: "10px 11px" }}>
-                          <StatusPill status={row[2]} />
-                        </td>
-                        <td
-                          style={{
-                            color: C.slate,
-                            fontSize: "10px",
-                            lineHeight: 1.45,
-                            padding: "10px 11px",
-                          }}
-                        >
-                          {row[3]}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div
-                style={{
-                  background: "#fffbeb",
-                  borderTop: "1px solid #fde68a",
-                  color: "#78350f",
-                  fontSize: "10px",
-                  lineHeight: 1.5,
-                  padding: "10px 12px",
-                }}
-              >
-                <strong>Terminology:</strong> <strong>Demonstrated</strong>{" "}
-                means the capability was shown during the session.{" "}
-                <strong>Partially Demonstrated</strong> means supporting
-                functionality was shown but the complete POC requirement was not
-                demonstrated. <strong>Not Demonstrated</strong> means the
-                meeting notes do not establish that the capability was shown.
-              </div>
+              <DataTable
+                columns={[
+                  "Workstream",
+                  "Capability",
+                  "Demonstrated / Delivered",
+                  "Remaining Work",
+                  "Status",
+                ]}
+                rows={DELIVERED_ROWS}
+                statusColumns={[4]}
+                minWidth="1120px"
+              />
             </div>
           </section>
+
           <section
-            aria-labelledby="demonstrated-roger-capabilities"
+            aria-labelledby="integration-responsibilities"
             style={{ marginBottom: "24px" }}
           >
             <PanelHeading
-              eyebrow="Demonstrated Roger / State workflow"
-              title="Capabilities Demonstrated on October 9"
-              subtitle="These capabilities demonstrate the Roger / State workflow. They do not prove that GoSystem calculations were executed."
-              accent={C.green}
+              eyebrow="5 · Consolidated integration responsibilities"
+              title="Proposed Responsibility Model"
+              subtitle="This is a proposed responsibility model, not an approved interface specification. Unestablished ownership remains Pending Confirmation."
+              accent={C.teal}
             />
             <div
-              id="demonstrated-roger-capabilities"
-              style={{
-                display: "grid",
-                gap: "12px",
-                gridTemplateColumns: "repeat(auto-fit, minmax(245px, 1fr))",
-              }}
-            >
-              {CAPABILITY_AREAS.map(area => (
-                <article
-                  key={area.title}
-                  style={{
-                    background: "#ffffff",
-                    border: `1px solid ${area.accent}33`,
-                    borderTop: `4px solid ${area.accent}`,
-                    borderRadius: "9px",
-                    padding: "13px",
-                  }}
-                >
-                  <div
-                    style={{
-                      color: area.accent,
-                      fontSize: "12px",
-                      fontWeight: 900,
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {area.title}
-                  </div>
-                  <ul
-                    style={{
-                      color: C.slate,
-                      fontSize: "10px",
-                      lineHeight: 1.45,
-                      margin: "9px 0 0",
-                      paddingLeft: "16px",
-                    }}
-                  >
-                    {area.items.map(item => (
-                      <li key={item} style={{ marginBottom: "5px" }}>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
-          </section>
-          <section
-            aria-labelledby="ims-gosystem-responsibilities"
-            style={{ marginBottom: "24px" }}
-          >
-            <PanelHeading
-              eyebrow="Proposed responsibility model · Confirmation pending"
-              title="IMS and GoSystem Responsibilities"
-              subtitle="This model is a proposed integration responsibility view. It is subject to confirmation through IMS / GoSystem integration design and does not establish approved contracts."
-              accent={C.purple}
-            />
-            <div
-              id="ims-gosystem-responsibilities"
+              id="integration-responsibilities"
               style={{
                 background: "#ffffff",
-                border: "1px solid #e9d5ff",
+                border: "1px solid #e2e8f0",
                 borderRadius: "10px",
                 overflow: "hidden",
               }}
@@ -1224,409 +1297,318 @@ export default function StateGoSystemPoc() {
               <DataTable
                 columns={[
                   "Area",
-                  "IMS Responsibility",
-                  "GoSystem Responsibility",
+                  "State — IMS / GoSystem",
+                  "Provision — BTP",
+                  "Responsible Team / System",
+                  "Confirmation Status",
                 ]}
                 rows={RESPONSIBILITY_ROWS}
+                statusColumns={[4]}
+                minWidth="1250px"
               />
             </div>
           </section>
+
           <section
-            aria-labelledby="integration-dependencies"
+            aria-labelledby="dependencies-open-questions"
             style={{ marginBottom: "24px" }}
           >
             <PanelHeading
-              eyebrow="Proposed integration design · Open confirmation required"
-              title="Integration Dependencies and Open Questions"
-              subtitle="Examples make the unknowns understandable; they do not define approved IMS or GoSystem schemas, formats, or contracts."
-              accent="#b45309"
+              eyebrow="6 · Consolidated dependencies and open questions"
+              title="Master Dependency Register"
+              subtitle="State, Provision, and Shared dependencies are identified in one numbering sequence. Status does not infer commitments or approved ownership."
+              accent={C.amber}
             />
             <div
-              id="integration-dependencies"
+              id="dependencies-open-questions"
               style={{
                 background: "#ffffff",
-                border: "1px solid #fed7aa",
+                border: "1px solid #e2e8f0",
                 borderRadius: "10px",
                 overflow: "hidden",
               }}
             >
               <DataTable
                 columns={[
+                  "ID",
+                  "Workstream",
                   "Dependency Area",
-                  "What IMS / GoSystem Must Confirm",
-                  "TDC Impact",
+                  "Open Question / Required Confirmation",
+                  "Responsible Team",
+                  "Impact",
+                  "Status",
                 ]}
                 rows={DEPENDENCY_ROWS}
+                statusColumns={[6]}
+                minWidth="1400px"
               />
             </div>
           </section>
+
           <section
-            aria-labelledby="what-still-needs-to-be-proven"
+            aria-labelledby="unified-validation-tracker"
             style={{ marginBottom: "24px" }}
           >
             <PanelHeading
-              eyebrow="Validation tracker"
-              title="What Still Needs to Be Proven"
-              subtitle="Every unverified checkpoint begins as Pending Confirmation. No completion date or completed status is inferred."
-              accent="#2563eb"
+              eyebrow="7 · Unified validation tracker"
+              title="State & Provision Validation Tracker"
+              subtitle="Each item is independently tracked. End-to-end workflows are not marked Passed without evidence."
+              accent={C.blue}
             />
             <div
-              id="what-still-needs-to-be-proven"
+              id="unified-validation-tracker"
               style={{
                 background: "#ffffff",
-                border: "1px solid #bfdbfe",
-                borderRadius: "10px",
-                overflow: "hidden",
-              }}
-            >
-              <div style={{ overflowX: "auto" }}>
-                <table
-                  style={{
-                    borderCollapse: "collapse",
-                    minWidth: "1250px",
-                    width: "100%",
-                  }}
-                >
-                  <thead>
-                    <tr
-                      style={{
-                        background: "#1e293b",
-                        color: "#ffffff",
-                        textAlign: "left",
-                      }}
-                    >
-                      {[
-                        "Validation Item",
-                        "Responsible Team",
-                        "Status",
-                        "Evidence",
-                        "Dependency",
-                        "Next Action",
-                      ].map(column => (
-                        <th
-                          key={column}
-                          style={{
-                            fontSize: "9px",
-                            fontWeight: 850,
-                            letterSpacing: "0.055em",
-                            padding: "10px 11px",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {column}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {VALIDATION_ROWS.map((row, index) => (
-                      <tr
-                        key={row[0]}
-                        style={{
-                          background: index % 2 ? "#ffffff" : "#f8fafc",
-                          borderTop: "1px solid #e2e8f0",
-                          verticalAlign: "top",
-                        }}
-                      >
-                        <td
-                          style={{
-                            color: C.navy,
-                            fontSize: "10px",
-                            fontWeight: 800,
-                            lineHeight: 1.45,
-                            padding: "10px 11px",
-                          }}
-                        >
-                          {index + 1}. {row[0]}
-                        </td>
-                        <td
-                          style={{
-                            color: C.slate,
-                            fontSize: "10px",
-                            lineHeight: 1.45,
-                            padding: "10px 11px",
-                          }}
-                        >
-                          {row[1]}
-                        </td>
-                        <td style={{ padding: "10px 11px" }}>
-                          <span
-                            style={{
-                              background: "#f8fafc",
-                              border: "1px solid #cbd5e1",
-                              borderRadius: "999px",
-                              color: C.slate,
-                              display: "inline-flex",
-                              fontSize: "9px",
-                              fontWeight: 850,
-                              padding: "4px 7px",
-                            }}
-                          >
-                            Pending Confirmation
-                          </span>
-                        </td>
-                        <td
-                          style={{
-                            color: C.slate,
-                            fontSize: "10px",
-                            lineHeight: 1.45,
-                            padding: "10px 11px",
-                          }}
-                        >
-                          {row[2]}
-                        </td>
-                        <td
-                          style={{
-                            color: C.slate,
-                            fontSize: "10px",
-                            lineHeight: 1.45,
-                            padding: "10px 11px",
-                          }}
-                        >
-                          {row[3]}
-                        </td>
-                        <td
-                          style={{
-                            color: C.slate,
-                            fontSize: "10px",
-                            lineHeight: 1.45,
-                            padding: "10px 11px",
-                          }}
-                        >
-                          {row[4]}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-          <section
-            aria-labelledby="poc-risks-dependencies"
-            style={{ marginBottom: "24px" }}
-          >
-            <PanelHeading
-              eyebrow="Risk and dependency register"
-              title="Risks and Dependencies"
-              subtitle="These are risks and dependencies to manage. They are not characterized as active defects."
-              accent="#b45309"
-            />
-            <div
-              id="poc-risks-dependencies"
-              style={{
-                background: "#ffffff",
-                border: "1px solid #fed7aa",
+                border: "1px solid #e2e8f0",
                 borderRadius: "10px",
                 overflow: "hidden",
               }}
             >
               <DataTable
                 columns={[
-                  "Risk / Dependency",
-                  "Potential Impact",
-                  "Mitigation",
+                  "ID",
+                  "Workstream",
+                  "Validation Item",
                   "Responsible Team",
+                  "Status",
+                  "Evidence",
+                  "Dependency",
+                  "Next Action",
                 ]}
-                rows={RISK_ROWS}
-                minWidth="1080px"
+                rows={VALIDATION_ROWS}
+                statusColumns={[4]}
+                minWidth="1500px"
               />
             </div>
           </section>
-          <section aria-labelledby="poc-next-actions">
+
+          <section
+            aria-labelledby="risks-mitigations"
+            style={{ marginBottom: "24px" }}
+          >
             <PanelHeading
-              eyebrow="Proposed next steps · Pending confirmed commitment and ownership"
-              title="Next Actions and Action Items"
-              subtitle="The actions below are proposed until teams confirm commitment and ownership."
+              eyebrow="8 · Consolidated risks and mitigations"
+              title="Risk Register"
+              subtitle="Risks are open delivery-readiness considerations; they are not characterized as active defects without source evidence."
+              accent={C.amber}
+            />
+            <div
+              id="risks-mitigations"
+              style={{
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
+                overflow: "hidden",
+              }}
+            >
+              <DataTable
+                columns={[
+                  "Risk ID",
+                  "Workstream",
+                  "Risk",
+                  "Potential Impact",
+                  "Mitigation",
+                  "Owner",
+                  "Status",
+                ]}
+                rows={RISK_ROWS}
+                statusColumns={[6]}
+                minWidth="1400px"
+              />
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="next-steps-actions"
+            style={{ marginBottom: "24px" }}
+          >
+            <PanelHeading
+              eyebrow="9 · Next steps and action items"
+              title="Integrated Action Tracker"
+              subtitle="All actions and owners are proposed pending confirmed commitment. No target date has been inferred where one was not supplied."
               accent={C.green}
             />
             <div
-              id="poc-next-actions"
+              id="next-steps-actions"
               style={{
                 background: "#ffffff",
-                border: "1px solid #bbf7d0",
+                border: "1px solid #e2e8f0",
                 borderRadius: "10px",
                 overflow: "hidden",
               }}
             >
               <DataTable
-                columns={["Action", "Responsible Team", "Expected Outcome"]}
-                rows={NEXT_ACTION_ROWS}
+                columns={[
+                  "Action",
+                  "Workstream",
+                  "Responsible Team",
+                  "Expected Outcome",
+                  "Status",
+                  "Target Date",
+                ]}
+                rows={ACTION_ROWS}
+                statusColumns={[4]}
+                minWidth="1250px"
               />
             </div>
           </section>
-          <ProvisionOctober9DemonstrationDetails />
-        </div>
-      </div>
-    </section>
-  );
-}
 
-export function StateGoSystemPocClosingDetails() {
-  return (
-    <section id="poc-closing-details" style={{ marginBottom: "48px" }}>
-      <PanelHeading
-        eyebrow="Broader implementation model · Proposed confirmation required"
-        title="Illustrative Future-State State Calculation Package"
-        subtitle="This future-state package is distinct from the October 9 demonstration status and should not be treated as an approved integration contract."
-      />
-      <div
-        style={{
-          display: "grid",
-          gap: "12px",
-          gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))",
-        }}
-      >
-        {FUTURE_PACKAGE.map(column => (
-          <div
-            key={column.title}
-            style={{
-              background: "#ffffff",
-              border: `1px solid ${column.accent}44`,
-              borderTop: `5px solid ${column.accent}`,
-              borderRadius: "10px",
-              padding: "13px",
-            }}
+          <section
+            aria-labelledby="pilot-milestones"
+            style={{ marginBottom: "24px" }}
           >
+            <PanelHeading
+              eyebrow="10 · Pilot delivery milestones"
+              title="Planning Targets Discussed on October 9"
+              subtitle="These are planning targets, not verified delivery commitments. Performance testing requires confirmation in the integrated delivery plan."
+              accent={C.purple}
+            />
+            <div
+              id="pilot-milestones"
+              style={{
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
+                overflow: "hidden",
+              }}
+            >
+              <DataTable
+                columns={["Milestone", "Planning Target"]}
+                rows={PILOT_MILESTONES}
+                minWidth="650px"
+              />
+            </div>
+          </section>
+
+          <section aria-labelledby="supporting-documents">
+            <PanelHeading
+              eyebrow="11 · Supporting documents and references"
+              title="Evidence Sources"
+              subtitle="Only verified source links are provided; no demonstration-note, contract, or ADO link has been invented."
+              accent={C.teal}
+            />
+            <div
+              id="supporting-documents"
+              style={{
+                display: "grid",
+                gap: "12px",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              }}
+            >
+              <div
+                style={{
+                  background: "#f0f9ff",
+                  border: "1px solid #bae6fd",
+                  borderRadius: "9px",
+                  padding: "13px",
+                }}
+              >
+                <div
+                  style={{
+                    color: "#0369a1",
+                    fontSize: "10px",
+                    fontWeight: 850,
+                    letterSpacing: "0.07em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  State POC transcript
+                </div>
+                <div
+                  style={{
+                    color: C.navy,
+                    fontSize: "13px",
+                    fontWeight: 850,
+                    marginTop: "4px",
+                  }}
+                >
+                  Roger → GoSystem POC Meeting Transcript
+                </div>
+                <p
+                  style={{
+                    color: C.slate,
+                    fontSize: "10px",
+                    lineHeight: 1.45,
+                    margin: "6px 0 10px",
+                  }}
+                >
+                  Working-session source for proposed architecture, design
+                  questions, and feasibility considerations; not an approved
+                  implementation specification.
+                </p>
+                <a
+                  href={POC_TRANSCRIPT_SOURCE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: "#0369a1",
+                    fontSize: "10px",
+                    fontWeight: 850,
+                  }}
+                >
+                  Open transcript (DOCX) ↗
+                </a>
+              </div>
+              <div
+                style={{
+                  background: "#faf5ff",
+                  border: "1px solid #e9d5ff",
+                  borderRadius: "9px",
+                  padding: "13px",
+                }}
+              >
+                <div
+                  style={{
+                    color: C.purple,
+                    fontSize: "10px",
+                    fontWeight: 850,
+                    letterSpacing: "0.07em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Provision demonstration evidence
+                </div>
+                <div
+                  style={{
+                    color: C.navy,
+                    fontSize: "13px",
+                    fontWeight: 850,
+                    marginTop: "4px",
+                  }}
+                >
+                  October 9 Meeting Notes and Demo Transcript Window
+                </div>
+                <p
+                  style={{
+                    color: C.slate,
+                    fontSize: "10px",
+                    lineHeight: 1.45,
+                    margin: "6px 0 0",
+                  }}
+                >
+                  Supplied October 9 meeting notes and Provision demonstration
+                  transcript window (12:11–16:52). No separate source link was
+                  attached to this update.
+                </p>
+              </div>
+            </div>
             <div
               style={{
-                color: column.accent,
-                fontSize: "12px",
-                fontWeight: 850,
-              }}
-            >
-              {column.title}
-            </div>
-            <ul
-              style={{
+                borderTop: "1px solid #e2e8f0",
                 color: C.slate,
-                fontSize: "10px",
-                lineHeight: 1.45,
-                margin: "10px 0 0",
-                paddingLeft: "16px",
+                fontSize: "11px",
+                lineHeight: 1.5,
+                marginTop: "20px",
+                paddingTop: "16px",
               }}
             >
-              {column.items.map(item => (
-                <li key={item} style={{ marginBottom: "4px" }}>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-      <div
-        style={{
-          background: "#f8fafc",
-          border: "1px solid #cbd5e1",
-          borderRadius: "8px",
-          color: C.slate,
-          fontSize: "11px",
-          fontWeight: 750,
-          margin: "12px 0 22px",
-          padding: "10px 12px",
-        }}
-      >
-        <strong style={{ color: C.navy }}>
-          Cross-Cutting Metadata — proposed examples:
-        </strong>{" "}
-        Taxonomy ID • Source • Lineage • Approval Status • Version •
-        Transmission Correlation ID • Validation Messages
-      </div>
-      <section
-        aria-labelledby="federal-state-deliverable-linkage"
-        style={{
-          backgroundColor: "#f0f9ff",
-          border: "1px solid #bae6fd",
-          borderRadius: "10px",
-          marginBottom: "22px",
-          padding: "16px",
-        }}
-      >
-        <PanelHeading
-          eyebrow="Architecture dependency"
-          title="Federal → State Deliverable Linkage"
-          subtitle="A DCT / architecture / data-model dependency that is separate from the October 9 demonstration scope."
-          accent={C.teal}
-        />
-        <div id="federal-state-deliverable-linkage">
-          <ExecutiveProcessFlow
-            ariaLabel="Federal to State deliverable linkage executive process flow"
-            steps={FEDERAL_STATE_LINKAGE_STEPS}
-            outcome="For TY26, the State workflow should use the correct governed Federal deliverable when multiple deliverables exist for the same entity and tax year; confirmation and implementation remain pending."
-          />
-        </div>
-      </section>
-      <div
-        style={{
-          display: "grid",
-          gap: "16px",
-          gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#ffffff",
-            border: "1px solid #fed7aa",
-            borderRadius: "10px",
-            padding: "16px",
-          }}
-        >
-          <PanelHeading
-            eyebrow="Decisions required"
-            title="POC Open Questions"
-            subtitle="Keep unresolved business, Taxonomy, integration, and architecture decisions explicit rather than embedding assumptions in implementation."
-            accent="#d97706"
-          />
-          <ol style={{ columns: 2, margin: 0, paddingLeft: "18px" }}>
-            {OPEN_QUESTIONS.map(item => (
-              <li
-                key={item}
-                style={{
-                  breakInside: "avoid",
-                  color: "#78350f",
-                  fontSize: "10px",
-                  lineHeight: "1.45",
-                  marginBottom: "7px",
-                  paddingRight: "10px",
-                }}
-              >
-                {item}
-              </li>
-            ))}
-          </ol>
-        </div>
-        <div
-          style={{
-            backgroundColor: "#f0fdf4",
-            border: "1px solid #bbf7d0",
-            borderRadius: "10px",
-            padding: "16px",
-          }}
-        >
-          <PanelHeading
-            eyebrow="End-to-end proof criteria"
-            title="POC Success Criteria"
-            subtitle="These criteria remain pending until the full governed input-to-review pattern has evidence."
-            accent={C.green}
-          />
-          <ol style={{ columns: 2, margin: 0, paddingLeft: "18px" }}>
-            {SUCCESS_CRITERIA.map(item => (
-              <li
-                key={item}
-                style={{
-                  breakInside: "avoid",
-                  color: "#166534",
-                  fontSize: "10px",
-                  lineHeight: "1.45",
-                  marginBottom: "7px",
-                  paddingRight: "10px",
-                }}
-              >
-                {item}
-              </li>
-            ))}
-          </ol>
+              <strong style={{ color: C.navy }}>Jenniver Dawn Stafford</strong>
+              <br />
+              Business Analysis Manager
+              <br />
+              (CATT) Center for Advanced Tax Technology
+            </div>
+          </section>
         </div>
       </div>
     </section>
