@@ -288,3 +288,4 @@
 - [x] Replace detailed Markdown release notes beneath the deployment table with a table-only Data Gateway release index and generate a fresh downloadable Markdown file
 - [x] Restore the Data Gateway release index introduction and Jenniver Dawn Stafford attribution while retaining a table-only release body
 - [x] Repair the Batch Control Panel hook order so /control-panel renders consistently
+- [x] Update the existing Post Pilot Roger → GoSystem POC with evidence-bound October 9 demonstration status, target architecture, integration validation tracker, risks, and proposed next actions

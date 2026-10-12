@@ -1127,13 +1127,13 @@ Before documenting any new requirement for the State or Provision workstream, de
   "/post-pilot": {
     pageTitle: "Post Pilot",
     pagePath: "/post-pilot",
-    summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, the Roger to GoSystem State Calculation POC, and the State / Provision Ask Buddy first-pass plus Gary technical-review process.",
+    summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, the evidence-bound October 9 Roger to GoSystem State Calculation POC status, and the State / Provision Ask Buddy first-pass plus Gary technical-review process.",
     suggestedQuestions: [
-      "What does the Roger to GoSystem State Calculation POC need to prove?",
-      "What is included in the minimum POC input package for DCT?",
-      "What data moves into GoSystem and what review information returns to Roger?",
-      "What are the ownership boundaries in the State calculation POC?",
-      "What are the POC success criteria and unresolved questions?",
+      "What did the October 9 Roger to GoSystem POC demonstration establish?",
+      "Which POC capabilities are demonstrated, partially demonstrated, or not demonstrated?",
+      "What still needs to be proven for an end-to-end State calculation round trip?",
+      "What must IMS and GoSystem confirm before the POC can be validated?",
+      "What are the proposed next actions and outstanding POC risks?",
       "How should Ask Buddy perform a first-pass review of a State or Provision story?",
       "What does Gary review after the Ask Buddy first pass?",
       "What is the review status for Tech Story 1494344?",
@@ -1142,15 +1142,14 @@ Before documenting any new requirement for the State or Provision workstream, de
     context: `
 ## Post Pilot — Roger → GoSystem POC: State Calculation Integration
 
-- **Source evidence:** The **POC Meeting Transcript (DOCX)** is the working-session source for this overview. It records a proposed proof-of-feasibility and open design questions; it does not establish an approved implementation contract.
-- **Purpose:** This proof-of-feasibility establishes whether Roger can collect and structure required State preparation data, DCT can govern the data package, IMS can transmit and retrieve through the integration boundary, GoSystem can calculate, and Roger can present a transparent review package for practitioner reconciliation and approval.
-- **Minimum POC input package for DCT:** The immediate proof path is one representative State scenario with core filing context; a Federal taxable-income starting value or governed Federal-deliverable reference; minimum calculation configuration; Property, Payroll, and Sales inputs; one representative State modification; and Taxonomy/mapping, correlation, source, version, and lineage metadata. This is sufficient to identify the filing, execute one State calculation, and correlate the response back to the correct run.
-- **POC scope boundary:** NOLs, credits, payments, every State modification, all 50-State variations, and full production-scale mapping patterns are future-state expansion items; they must not block the representative proof of feasibility.
-- **Inbound package:** Roger → DCT → Taxonomy Mapping → IMS → GoSystem. DCT builds the governed minimum POC package, Taxonomy maps concepts, and IMS transmits it to GoSystem. The POC must decide whether the Federal starting value is sent directly or referenced through the associated Federal deliverable.
-- **Outbound package:** GoSystem → IMS → Taxonomy Mapping → DCT → Roger. The POC must return sufficient structured detail for practitioner review, including apportionment factors, State control/taxable-income components, liability/accrual outputs, and required NOL, credit, carryforward, and utilization values.
-- **Ownership:** Roger is the practitioner experience. DCT provides governed persistence, retrieval, lineage, and integration support. Taxonomy defines repeatable business-to-system mapping. IMS is the GoSystem translation boundary. GoSystem is the State tax calculation engine. Process / State owns business rules, calculation requirements, and review requirements.
-- **Key architecture dependency:** Federal → State Deliverable Linkage is a DCT architecture/data-model concern. The State deliverable must identify the correct Federal deliverable for an entity and tax year when multiple Federal deliverables exist; shared source data may be reusable, but adjustments and calculated values are deliverable-specific.
-- **Success:** The POC succeeds when the governed input package is transmitted, GoSystem executes the expected State calculation, outputs are retrieved and mapped into DCT/Roger structures, the practitioner can reconcile the result, and the pattern can reasonably scale beyond representative scenarios.
+- **Evidence boundary and overall status:** The POC transcript is a working-session source, not an approved implementation specification. The supplied **October 9, 2026** demonstration evidence supports **Partially Demonstrated — End-to-End Integration Not Yet Validated**.
+- **What was demonstrated:** The Roger / State workflow showed Tax Portal-to-Roger ingestion, source mapping, Property/Payroll/Sales/payments factor inputs, practitioner confirmation, reconciliation with check figures and variance display, and complex property-data handling. These do **not** prove GoSystem calculation execution.
+- **What was partially demonstrated:** Structured State inputs and approved mappings were shown for DCT/TDC. The demonstration did not establish complete end-to-end data-package governance or integration handoff.
+- **What was not demonstrated:** The meeting evidence did not establish IMS translation/transmission to GoSystem, State calculation execution in GoSystem, or return and display of calculated GoSystem results in Roger. **Not Demonstrated** does not mean Not Developed or Not Implemented; implementation status must be separately confirmed.
+- **Target architecture, not completed implementation:** Roger UI → DCT/TDC → IMS → GoSystem, with the return path GoSystem → IMS → DCT/TDC → Roger UI. Roger owns practitioner workflow and review; DCT/TDC governs State data and result correlation; IMS is the proposed integration, transformation, and communication boundary; GoSystem performs State tax calculation.
+- **Open integration design:** IMS and GoSystem must confirm interface contracts, request/response schemas, field mappings, date/boolean/text/percentage/monetary/null formats, precision, validation ownership, error handling, results correlation, and representative POC scope. Do not present examples as approved contracts.
+- **What still needs to be proven:** Approved representative package handoff to IMS; IMS translation; IMS-to-GoSystem transmission; GoSystem calculation; structured results back to IMS; return through DCT/TDC; Roger result review; and negative-path behavior for invalid values, failed transmissions, and calculation errors. Each checkpoint is **Pending Confirmation**.
+- **Next actions:** The listed IMS-contract confirmation, GoSystem constraint confirmation, scenario finalization, outbound payload validation, calculation test, returned-result validation, and Portal enhancement actions are proposed until team commitments and ownership are confirmed.
 
 ## State & Provision Story Review — Ask Buddy First Pass + Gary Technical Review
 
