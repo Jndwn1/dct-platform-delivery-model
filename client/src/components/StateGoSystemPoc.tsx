@@ -133,7 +133,7 @@ const STATE_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
 
 const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
   {
-    label: "1 · Shared foundation",
+    label: "1 · Prototype demonstrated",
     title: "Roger Core",
     detail:
       "Reuse the first nine Federal Compliance workflow steps as the Provision foundation.",
@@ -141,7 +141,7 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     surface: "#faf5ff",
   },
   {
-    label: "2 · Provision workflow",
+    label: "2 · Demonstrated with dummy data",
     title: "Return to Provision",
     detail:
       "Compare prior-year Provision amounts against the prior-year tax return in a read-only review experience.",
@@ -149,7 +149,7 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     surface: "#f0fdfa",
   },
   {
-    label: "3 · Provision workflow",
+    label: "3 · Demonstrated with dummy data",
     title: "Deferred Rollforward",
     detail:
       "Maintain temporary-difference information through entity-specific amounts and custom adjustment columns.",
@@ -157,7 +157,7 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     surface: "#eff6ff",
   },
   {
-    label: "4 · Planned output",
+    label: "4 · Not demonstrated",
     title: "Federal Summary",
     detail:
       "Consolidate Provision information; requirements and screen development remain pending.",
@@ -165,7 +165,7 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     surface: "#fffbeb",
   },
   {
-    label: "5 · Planned output",
+    label: "5 · Not demonstrated",
     title: "BTP Export",
     detail:
       "Generate an Excel output for user transfer into Bloomberg Tax Provision; functionality was not demonstrated.",
@@ -173,7 +173,7 @@ const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     surface: "#fffbeb",
   },
   {
-    label: "6 · External processing",
+    label: "6 · Not demonstrated",
     title: "Bloomberg Tax Provision",
     detail:
       "Perform Provision calculation processing only after the export handoff and calculation validation are confirmed.",
@@ -1229,6 +1229,46 @@ export default function StateGoSystemPoc() {
                     }}
                   >
                     Provision — Bloomberg Tax Provision Workflow
+                  </div>
+                  <div
+                    style={{
+                      alignItems: "center",
+                      background: "#faf5ff",
+                      border: "1px solid #e9d5ff",
+                      borderRadius: "8px",
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "7px",
+                      marginBottom: "9px",
+                      padding: "9px 10px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "#581c87",
+                        fontSize: "10px",
+                        fontWeight: 850,
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      October 9 workflow evidence
+                    </span>
+                    <StatusPill status="Prototype Demonstrated" />
+                    <StatusPill status="Demonstrated with Dummy Data" />
+                    <StatusPill status="Initial Structure Created" />
+                    <StatusPill status="Not Demonstrated" />
+                    <span
+                      style={{
+                        color: C.slate,
+                        fontSize: "10px",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Demonstrated path: Roger Core, Return to Provision, and
+                      Deferred Rollforward. Federal Summary, BTP Export, and
+                      Bloomberg Tax Provision calculation were not demonstrated.
+                    </span>
                   </div>
                   <ExecutiveProcessFlow
                     ariaLabel="Provision Bloomberg Tax Provision target workflow"

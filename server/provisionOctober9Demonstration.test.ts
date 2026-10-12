@@ -29,8 +29,20 @@ describe("Provision October 9 consolidation", () => {
     expect(dashboard).toContain("Federal Summary");
     expect(dashboard).toContain("BTP Export");
     expect(dashboard).toContain("Bloomberg Tax Provision");
+    expect(dashboard).toContain("October 9 workflow evidence");
+    expect(dashboard).toContain("1 · Prototype demonstrated");
+    expect(dashboard).toContain("2 · Demonstrated with dummy data");
+    expect(dashboard).toContain("3 · Demonstrated with dummy data");
+    expect(dashboard).toContain("4 · Not demonstrated");
+    expect(dashboard).toContain("5 · Not demonstrated");
+    expect(dashboard).toContain("6 · Not demonstrated");
+    expect(dashboard).toContain(
+      "Demonstrated path: Roger Core, Return to Provision, and"
+    );
     expect(dashboard).toContain("Demonstrated with Dummy Data");
+    expect(dashboard).toContain("Prototype Demonstrated");
     expect(dashboard).toContain("Initial Structure Created");
+    expect(dashboard).toContain("Not Demonstrated");
     expect(dashboard).toContain("Pending Confirmation");
     expect(dashboard).toContain("Mid-December 2026");
     expect(dashboard).toContain("Mid-January 2027");

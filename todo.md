@@ -292,3 +292,4 @@
 - [x] Add the evidence-bound October 9 Provision demonstration and delivery-readiness section to Post Pilot
 - [x] Expand the Post Pilot target architecture to show the linked State and Provision paths from Roger UI
 - [x] Consolidate the Post Pilot State and Provision evidence into one delivery-readiness dashboard
+- [x] Clarify demonstrated and not-demonstrated status directly on the Provision workflow path
