@@ -48,7 +48,7 @@ describe("PI4 Sprint & Story Tracker", () => {
     expect(appSource).toContain('path="/pi4-planning"');
     expect(navSource).toContain('label: "PI4 Sprint Tracker"');
     expect(navSource).toContain('path: "/pi4-planning"');
-    expect(postPilotSource).toContain('href="/pi4-planning"');
+    expect(postPilotSource).not.toContain('href="/pi4-planning"');
     expect(pageContext).toMatchObject({ pageTitle: "PI4 Sprint & Story Tracker" });
     expect(pageContext?.businessRules).toContain("State stories 1472734 and 1471480 are refined and DCT-owned; PI4 sprint assignment remains pending baseline approval");
 

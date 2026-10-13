@@ -39,8 +39,9 @@ describe("PI4 Post Pilot delivery", () => {
     expect(home).not.toContain('{ label: "PI 4", metric: piCompletion.pi4 }');
 
     expect(postPilot).toContain("Post Pilot");
-    expect(postPilot).toContain("Post Pilot · Planning Visibility Only");
-    expect(postPilot).toContain("0%");
+    expect(postPilot).not.toContain("Post Pilot · Planning Visibility Only");
+    expect(postPilot).not.toContain('aria-labelledby="pi4-post-pilot-title"');
+    expect(postPilot).not.toContain("Open PI4 Sprint &amp; Feature Tracker");
     expect(postPilot).not.toContain("MVP Dashboard Metrics");
     expect(postPilot).not.toContain("Live portfolio baseline");
     expect(postPilot).not.toContain("MVP Features Complete");
@@ -103,9 +104,16 @@ describe("PI4 Post Pilot delivery", () => {
     expect(prototypeFlow).not.toContain("Executive view:");
     expect(prototypeFlow).not.toContain("client-file-to-roger-federal-state-provision-process-flow_94710632.png");
     expect(postPilot).toContain("State & Provision Prototypes");
-    expect(postPilot).toContain("Roger — State Compliance Prototype");
-    expect(postPilot).toContain('href="/state-compliance"');
-    expect(postPilot).toContain("Open State Prototype");
+    expect(postPilot).toContain(
+      'const STATE_QA_ENVIRONMENT_URL = "https://qa-roger.rsmus.com/return-filings/465f575d451c47c75b"'
+    );
+    expect(postPilot).toContain("Roger — QA Environment");
+    expect(postPilot).toContain(
+      "automated data ingestion (workflow step 1) fully connected to Tax Portal Roger"
+    );
+    expect(postPilot).toContain("Open State QA Environment");
+    expect(postPilot).not.toContain("Roger — State Compliance Prototype");
+    expect(postPilot).not.toContain('href="/state-compliance"');
     expect(postPilot).toContain('const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/"');
     expect(postPilot).toContain("Roger — Tax Provision Prototype");
     expect(postPilot).toContain("Open Provision Prototype");
@@ -194,8 +202,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("deriveMvpMetrics");
     expect(postPilot).not.toContain("getRogerScreenReadinessSummary");
     expect(postPilot).not.toContain("POST_PILOT_PLANNING_INVENTORY");
-    expect(postPilot).toContain("excluded from all PI4 and MVP delivery metrics");
-    expect(postPilot).toContain('href="/pi4-planning"');
+    expect(postPilot).not.toContain("excluded from all PI4 and MVP delivery metrics");
+    expect(postPilot).not.toContain('href="/pi4-planning"');
     expect(postPilot).not.toContain("Closed PI4 Features");
     expect(postPilot).not.toContain("Active PI4 Features");
     expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');

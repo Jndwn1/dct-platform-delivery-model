@@ -12,6 +12,7 @@ const PURPLE_INK = "#6d28d9";
 const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
 const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/";
+const STATE_QA_ENVIRONMENT_URL = "https://qa-roger.rsmus.com/return-filings/465f575d451c47c75b";
 
 type SprintPriorityArea = {
   title: string;
@@ -185,24 +186,7 @@ export default function PostPilotPage() {
         </div>
       </div>
 
-      <section aria-labelledby="pi4-post-pilot-title" style={{ backgroundColor: PURPLE_SURFACE, border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(124, 58, 237, 0.07)", marginBottom: "26px", overflow: "hidden" }}>
-        <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "18px", justifyContent: "space-between", padding: "18px 20px 14px" }}>
-          <div>
-            <div style={{ color: "#0f172a", fontSize: "16px", fontWeight: 900 }} id="pi4-post-pilot-title">PI 4</div>
-            <div style={{ color: PURPLE, fontSize: "11px", fontWeight: 850, letterSpacing: "0.07em", marginTop: "3px", textTransform: "uppercase" }}>Post Pilot · Planning Visibility Only</div>
-          </div>
-          <div style={{ color: PURPLE, fontSize: "24px", fontWeight: 900, lineHeight: 1 }}>0%</div>
-        </div>
-        <div style={{ height: "6px", backgroundColor: "#e2e8f0", borderRadius: "3px", margin: "0 20px" }} />
-        <div style={{ borderTop: `1px solid ${PURPLE_BORDER}`, marginTop: "14px", padding: "14px 20px 18px" }}>
-          <div style={{ color: "#64748b", fontSize: "11px", fontStyle: "italic" }}>
-            Planning visibility only — excluded from all PI4 and MVP delivery metrics. The PI4 Sprint &amp; Feature Tracker retains the detailed planning inventory.
-          </div>
-          <Link href="/pi4-planning" style={{ color: PURPLE_INK, display: "inline-flex", fontSize: "12px", fontWeight: 850, marginTop: "12px", textDecoration: "none" }}>
-            Open PI4 Sprint &amp; Feature Tracker →
-          </Link>
-        </div>
-      </section>
+
 
       <section aria-labelledby="pi4-sprint-timeline" style={{ marginBottom: "26px" }}>
         <SectionHeading
@@ -303,10 +287,10 @@ export default function PostPilotPage() {
         />
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
           <div style={{ background: "#f0fdfa", border: "1px solid #99f6e4", borderLeft: "4px solid #0f766e", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", padding: "16px" }}>
-            <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>State prototype</div>
-            <div id="post-pilot-prototypes" style={{ color: "#0f172a", fontSize: "15px", fontWeight: 900, marginTop: "6px" }}>Roger — State Compliance Prototype</div>
-            <p style={{ color: "#475569", fontSize: "12px", lineHeight: 1.55, margin: "8px 0 14px" }}>Roger-aligned State filing workflow reference from Return Filings through Outputs &amp; Tracking. It supports PI4 State planning while preserving the separate Federal experience.</p>
-            <Link href="/state-compliance" style={{ alignItems: "center", background: "#0f766e", borderRadius: "6px", color: "#ffffff", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "9px 12px", textDecoration: "none" }}>Open State Prototype →</Link>
+            <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>State QA environment</div>
+            <div id="post-pilot-prototypes" style={{ color: "#0f172a", fontSize: "15px", fontWeight: 900, marginTop: "6px" }}>Roger — QA Environment</div>
+            <p style={{ color: "#475569", fontSize: "12px", lineHeight: 1.55, margin: "8px 0 14px" }}>Live integrated Filing screens, including the first two pre-workflow screens and automated data ingestion (workflow step 1) fully connected to Tax Portal Roger.</p>
+            <a href={STATE_QA_ENVIRONMENT_URL} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", background: "#0f766e", borderRadius: "6px", color: "#ffffff", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "9px 12px", textDecoration: "none" }}>Open State QA Environment ↗</a>
           </div>
           <div style={{ background: PURPLE_SURFACE, border: `1px solid ${PURPLE_BORDER}`, borderLeft: `4px solid ${PURPLE}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", padding: "16px" }}>
             <div style={{ color: PURPLE, fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Provision prototype</div>
