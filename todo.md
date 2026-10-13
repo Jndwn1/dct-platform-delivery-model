@@ -301,3 +301,4 @@
 - [x] Remove only POC sections 4 and 5, then renumber the retained closing POC sections
 - [x] Remove the Post Pilot PI4 planning metrics and planned-feature dependency inventory sections
 - [x] Replace the Post Pilot State prototype reference with the supplied Roger QA environment and remove the PI4 Planning Visibility card
+- [x] Remove the remaining Planning Visibility Only header badge from Post Pilot

@@ -40,6 +40,7 @@ describe("PI4 Post Pilot delivery", () => {
 
     expect(postPilot).toContain("Post Pilot");
     expect(postPilot).not.toContain("Post Pilot · Planning Visibility Only");
+    expect(postPilot).not.toContain("Planning visibility only");
     expect(postPilot).not.toContain('aria-labelledby="pi4-post-pilot-title"');
     expect(postPilot).not.toContain("Open PI4 Sprint &amp; Feature Tracker");
     expect(postPilot).not.toContain("MVP Dashboard Metrics");
