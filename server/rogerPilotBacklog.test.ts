@@ -56,10 +56,11 @@ describe("Team Roger Executive PI4 Dashboard", () => {
     expect(page).toContain("Priority Must Have");
     expect(page).toContain("Defects");
     expect(page).toContain("Dependencies");
-    expect(page).toContain("All-workstream metric capture");
-    expect(page).toContain(
-      "Not supplied — requires reviewed team-level extract"
-    );
+    expect(page).toContain("All-workstream focus");
+    expect(page).toContain("PI Goal / Focus");
+    expect(page).not.toContain("metricColumns");
+    expect(page).not.toContain("metricStatus");
+    expect(page).not.toContain('"Metric Status"');
     expect(page).toContain("<RogerPilotPiGoals />");
     expect(page).not.toContain("Parent-Feature Review Register");
     expect(page).not.toContain("parent-feature-review");

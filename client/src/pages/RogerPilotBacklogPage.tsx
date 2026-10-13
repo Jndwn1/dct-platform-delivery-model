@@ -16,7 +16,6 @@ const WORKSTREAM_SCORECARD_ROWS = ROGER_PI4_EXECUTIVE_METRICS.workstreams.map(
     goal:
       ROGER_PI4_GOALS.find(candidate => candidate.workstream === workstream)
         ?.goal ?? "PI goal requires workstream confirmation.",
-    metricStatus: "Not supplied — requires reviewed team-level extract",
   })
 );
 
@@ -177,13 +176,6 @@ function SummaryMetric({
 }
 
 function WorkstreamScorecardTable() {
-  const metricColumns = [
-    "Features",
-    "Priority Must Have",
-    "Defects",
-    "Dependencies",
-  ];
-
   return (
     <div
       style={{
@@ -211,7 +203,7 @@ function WorkstreamScorecardTable() {
             textTransform: "uppercase",
           }}
         >
-          All-workstream metric capture
+          All-workstream focus
         </div>
         <div
           style={{
@@ -221,26 +213,20 @@ function WorkstreamScorecardTable() {
             marginTop: "3px",
           }}
         >
-          The table establishes a leadership scorecard shell for every Team
-          Roger workstream. Metric values remain Not supplied until a reviewed
-          team-level source is provided.
+          A concise PI-wide view of each Team Roger workstream and its stated
+          delivery focus.
         </div>
       </div>
       <table
         style={{
           borderCollapse: "collapse",
-          minWidth: "1040px",
+          minWidth: "640px",
           width: "100%",
         }}
       >
         <thead>
           <tr style={{ background: NAVY, color: "#ffffff", textAlign: "left" }}>
-            {[
-              "Workstream",
-              "PI Goal / Focus",
-              ...metricColumns,
-              "Metric Status",
-            ].map(column => (
+            {["Workstream", "PI Goal / Focus"].map(column => (
               <th
                 key={column}
                 style={{
@@ -272,6 +258,7 @@ function WorkstreamScorecardTable() {
                   fontWeight: 900,
                   padding: "11px 12px",
                   whiteSpace: "nowrap",
+                  width: "24%",
                 }}
               >
                 {row.workstream}
@@ -281,36 +268,10 @@ function WorkstreamScorecardTable() {
                   color: SLATE,
                   fontSize: "10px",
                   lineHeight: 1.45,
-                  minWidth: "330px",
                   padding: "11px 12px",
                 }}
               >
                 {row.goal}
-              </td>
-              {metricColumns.map(metric => (
-                <td
-                  key={metric}
-                  style={{
-                    color: "#64748b",
-                    fontSize: "10px",
-                    fontStyle: "italic",
-                    padding: "11px 12px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Not supplied
-                </td>
-              ))}
-              <td
-                style={{
-                  color: "#7c2d12",
-                  fontSize: "10px",
-                  fontWeight: 750,
-                  lineHeight: 1.4,
-                  padding: "11px 12px",
-                }}
-              >
-                {row.metricStatus}
               </td>
             </tr>
           ))}
@@ -538,8 +499,8 @@ export default function RogerPilotBacklogPage() {
           }}
         >
           <strong>Metric boundary:</strong> The supplied Executive PI4 Dashboard
-          establishes only the aggregate portfolio counts shown above. Populate
-          individual workstream scorecards after a reviewed team-level extract
+          establishes only the aggregate portfolio counts shown above. Add
+          workstream-level metrics only after a reviewed team-level extract
           provides per-team scope, status, defect, dependency, and priority
           evidence.
         </div>

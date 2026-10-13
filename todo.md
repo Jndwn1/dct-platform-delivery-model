@@ -307,3 +307,4 @@
 - [x] Align the Post Pilot POC BA deliverables table to the State data-movement working-session agenda, gap register, and Tech Story 1433863
 - [x] Reframe the Roger Pilot Backlog as a Team Roger Executive PI4 Dashboard with all-team metrics, PI-wide goals, objectives, and cross-workstream outcome
 - [x] Remove the Parent-Feature Review Register from the Team Roger Executive PI4 Dashboard
+- [x] Simplify the Team Roger all-workstream table to Workstream and PI Goal / Focus only
