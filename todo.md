@@ -306,3 +306,4 @@
 - [x] Align Post Pilot and State prototype scope to the supplied State MVP Product Vision and Scope PI4 deck
 - [x] Align the Post Pilot POC BA deliverables table to the State data-movement working-session agenda, gap register, and Tech Story 1433863
 - [x] Reframe the Roger Pilot Backlog as a Team Roger Executive PI4 Dashboard with all-team metrics, PI-wide goals, objectives, and cross-workstream outcome
+- [x] Remove the Parent-Feature Review Register from the Team Roger Executive PI4 Dashboard

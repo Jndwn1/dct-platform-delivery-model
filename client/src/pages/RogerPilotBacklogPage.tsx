@@ -1,11 +1,5 @@
 import { Link } from "wouter";
-import {
-  ROGER_PI4_EXECUTIVE_METRICS,
-  ROGER_PILOT_BACKLOG_SOURCE,
-  ROGER_PILOT_BACKLOG_SUMMARY,
-  ROGER_PILOT_FEATURES,
-  type RogerPilotFeatureState,
-} from "@/lib/rogerPilotBacklog";
+import { ROGER_PI4_EXECUTIVE_METRICS } from "@/lib/rogerPilotBacklog";
 import { ROGER_PI4_GOALS } from "@/components/RogerPilotPiGoals";
 import RogerPilotPiGoals from "@/components/RogerPilotPiGoals";
 
@@ -15,16 +9,6 @@ const GREEN = "#00843d";
 const SLATE = "#475569";
 const BORDER = "#cbd5e1";
 const CARD_SHADOW = "0 8px 20px rgba(15, 23, 42, 0.06)";
-
-const FEATURE_STATE_STYLE: Record<
-  RogerPilotFeatureState,
-  { color: string; surface: string }
-> = {
-  Requirements: { color: "#6d28d9", surface: "#f3e8ff" },
-  New: { color: "#475569", surface: "#e2e8f0" },
-  Active: { color: "#0369a1", surface: "#e0f2fe" },
-  "On Hold": { color: "#b91c1c", surface: "#fee2e2" },
-};
 
 const WORKSTREAM_SCORECARD_ROWS = ROGER_PI4_EXECUTIVE_METRICS.workstreams.map(
   workstream => ({
@@ -66,27 +50,6 @@ const SUMMARY_METRICS = [
     surface: "#faf5ff",
   },
 ] as const;
-
-function FeatureStatePill({ state }: { state: RogerPilotFeatureState }) {
-  const style = FEATURE_STATE_STYLE[state];
-  return (
-    <span
-      style={{
-        background: style.surface,
-        border: `1px solid ${style.color}44`,
-        borderRadius: "999px",
-        color: style.color,
-        display: "inline-flex",
-        fontSize: "10px",
-        fontWeight: 850,
-        padding: "4px 8px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {state}
-    </span>
-  );
-}
 
 function SectionHeading({
   eyebrow,
@@ -357,39 +320,12 @@ function WorkstreamScorecardTable() {
   );
 }
 
-function AssessmentSummary({
-  feature,
-}: {
-  feature: (typeof ROGER_PILOT_FEATURES)[number];
-}) {
-  return (
-    <div
-      style={{
-        color: SLATE,
-        fontSize: "10px",
-        lineHeight: 1.5,
-        maxWidth: "420px",
-      }}
-    >
-      <strong style={{ color: NAVY_INK }}>Focus:</strong>{" "}
-      {feature.deliveryFocus}
-      <br />
-      <strong style={{ color: NAVY_INK }}>Review finding:</strong>{" "}
-      {feature.ownershipFinding}
-    </div>
-  );
-}
-
 export function buildRogerPilotBacklogMarkdown() {
-  const featureInventory = ROGER_PILOT_FEATURES.map(
-    feature =>
-      `| ${feature.id} | ${feature.title} | ${feature.featureState} | ${feature.candidateWorkstream} |`
-  ).join("\n");
   const piGoals = ROGER_PI4_GOALS.map(
     goal =>
       `### ${goal.workstream}\n\n**PI goal:** ${goal.goal}\n\n**Objectives:**\n${goal.objectives.map((objective, index) => `${index + 1}. ${objective}`).join("\n")}\n\n**Dependencies:**\n${goal.dependencies.map(dependency => `- ${dependency}`).join("\n")}\n\n**PI outcome:** ${goal.outcome}`
   ).join("\n\n");
-  return `# Team Roger Executive PI4 Dashboard\n\n## Leadership snapshot\n\n- Total features: ${ROGER_PI4_EXECUTIVE_METRICS.totalFeatures}\n- Priority Must Have features: ${ROGER_PI4_EXECUTIVE_METRICS.priorityMustHaveFeatures}\n- Defects: ${ROGER_PI4_EXECUTIVE_METRICS.defects}\n- Dependencies: ${ROGER_PI4_EXECUTIVE_METRICS.dependencies}\n- Workstreams: ${ROGER_PI4_EXECUTIVE_METRICS.workstreams.join(", ")}\n- Source: ${ROGER_PI4_EXECUTIVE_METRICS.sourceLabel}\n- Captured: ${ROGER_PI4_EXECUTIVE_METRICS.capturedOn}\n- Boundary: ${ROGER_PI4_EXECUTIVE_METRICS.scopeNote}\n\n## PI4 goals, objectives, and cross-workstream outcome\n\n${piGoals}\n\n## Detailed parent-feature evidence register\n\nThe register is a 25-record evidence subset with visible child indicators, not a current full-inventory or team-metric extract.\n\n| Feature ID | Feature title | Parent state | Candidate workstream |\n| --- | --- | --- | --- |\n${featureInventory}\n\n## Leadership actions required\n\n1. Refresh the team-level extract with each workstream’s feature, Priority Must Have, defect, dependency, owner, state, scope, and delivery-date evidence.\n2. Confirm the eight cross-workstream dependencies, accountable owners, and decision dates.\n3. Expand the remaining ${ROGER_PILOT_BACKLOG_SUMMARY.childDetailPendingCount} hierarchy-marked parent records before deriving child-level commitment, readiness, or delivery conclusions.\n4. Confirm shared data, contract, environment, and defect decisions that affect Federal POD 1, Federal POD 2, TDC, State, and Provision.\n\n## Refresh rule\n\n${ROGER_PILOT_BACKLOG_SOURCE.refreshRule}\n`;
+  return `# Team Roger Executive PI4 Dashboard\n\n## Leadership snapshot\n\n- Total features: ${ROGER_PI4_EXECUTIVE_METRICS.totalFeatures}\n- Priority Must Have features: ${ROGER_PI4_EXECUTIVE_METRICS.priorityMustHaveFeatures}\n- Defects: ${ROGER_PI4_EXECUTIVE_METRICS.defects}\n- Dependencies: ${ROGER_PI4_EXECUTIVE_METRICS.dependencies}\n- Workstreams: ${ROGER_PI4_EXECUTIVE_METRICS.workstreams.join(", ")}\n- Source: ${ROGER_PI4_EXECUTIVE_METRICS.sourceLabel}\n- Captured: ${ROGER_PI4_EXECUTIVE_METRICS.capturedOn}\n- Boundary: ${ROGER_PI4_EXECUTIVE_METRICS.scopeNote}\n\n## PI4 goals, objectives, and cross-workstream outcome\n\n${piGoals}\n\n## Leadership actions required\n\n1. Refresh the team-level extract with each workstream’s feature, Priority Must Have, defect, dependency, owner, state, scope, and delivery-date evidence.\n2. Confirm the eight cross-workstream dependencies, accountable owners, and decision dates.\n3. Provide a current workstream-specific feature extract before deriving detailed scope, readiness, ownership, or delivery conclusions.\n4. Confirm shared data, contract, environment, and defect decisions that affect Federal POD 1, Federal POD 2, TDC, State, and Provision.\n\n## Refresh rule\n\nUse a newer user-supplied Azure DevOps export, dashboard screenshot, or reviewed artifact to refresh PI-wide metrics. Do not infer team-level scope, progress, ownership, or readiness from aggregate counts.\n`;
 }
 
 function exportCurrentAssessment() {
@@ -473,7 +409,7 @@ export default function RogerPilotBacklogPage() {
             >
               PI-wide leadership snapshot for all Team Roger workstreams:
               portfolio metrics, goals, objectives, cross-workstream outcomes,
-              dependencies, and evidence-bound detailed feature review.
+              dependencies, and evidence-bound leadership actions.
             </p>
           </div>
           <div
@@ -763,8 +699,8 @@ export default function RogerPilotBacklogPage() {
                 date from the aggregate snapshot.
               </li>
               <li>
-                Refresh the detailed evidence register before using it as a
-                PI-wide capacity or delivery-control view.
+                Use a reviewed team-level source before using this dashboard as
+                a PI-wide capacity or delivery-control view.
               </li>
             </ul>
           </div>
@@ -818,157 +754,6 @@ export default function RogerPilotBacklogPage() {
               scorecards without inferring status or completion.
             </li>
           </ol>
-        </div>
-      </section>
-
-      <section
-        aria-labelledby="parent-feature-review"
-        style={{ marginBottom: "28px" }}
-      >
-        <SectionHeading
-          eyebrow="Detailed evidence subset"
-          title="Parent-Feature Review Register"
-          description="The retained 25-record register provides captured feature-level context from a prior detailed evidence subset. It supports review and refresh activities but is not the current 93-feature team dashboard."
-        />
-        <div
-          id="parent-feature-review"
-          style={{
-            background: "#ffffff",
-            border: `1px solid ${BORDER}`,
-            borderRadius: "11px",
-            boxShadow: CARD_SHADOW,
-            overflowX: "auto",
-          }}
-        >
-          <div
-            style={{
-              alignItems: "center",
-              background: "#f8fafc",
-              borderBottom: `1px solid ${BORDER}`,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "8px",
-              justifyContent: "space-between",
-              padding: "10px 14px",
-            }}
-          >
-            <div style={{ color: NAVY_INK, fontSize: "11px", fontWeight: 900 }}>
-              Parent-feature evidence register
-            </div>
-            <div style={{ color: SLATE, fontSize: "10px" }}>
-              {ROGER_PILOT_BACKLOG_SUMMARY.featureWithChildIndicatorCount}{" "}
-              captured records ·{" "}
-              {ROGER_PILOT_BACKLOG_SUMMARY.childDetailPendingCount} awaiting
-              child-row expansion
-            </div>
-          </div>
-          <table
-            style={{
-              borderCollapse: "collapse",
-              minWidth: "900px",
-              tableLayout: "fixed",
-              width: "100%",
-            }}
-          >
-            <thead>
-              <tr
-                style={{
-                  background: NAVY,
-                  color: "#ffffff",
-                  textAlign: "left",
-                }}
-              >
-                <th
-                  style={{
-                    fontSize: "9px",
-                    letterSpacing: "0.06em",
-                    padding: "11px 12px",
-                    textTransform: "uppercase",
-                    width: "29%",
-                  }}
-                >
-                  Feature
-                </th>
-                <th
-                  style={{
-                    fontSize: "9px",
-                    letterSpacing: "0.06em",
-                    padding: "11px 12px",
-                    textTransform: "uppercase",
-                    width: "13%",
-                  }}
-                >
-                  Captured state
-                </th>
-                <th
-                  style={{
-                    fontSize: "9px",
-                    letterSpacing: "0.06em",
-                    padding: "11px 12px",
-                    textTransform: "uppercase",
-                    width: "23%",
-                  }}
-                >
-                  Candidate workstream
-                </th>
-                <th
-                  style={{
-                    fontSize: "9px",
-                    letterSpacing: "0.06em",
-                    padding: "11px 12px",
-                    textTransform: "uppercase",
-                    width: "35%",
-                  }}
-                >
-                  Review context
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {ROGER_PILOT_FEATURES.map((feature, index) => (
-                <tr
-                  key={feature.id}
-                  style={{
-                    background: index % 2 ? "#ffffff" : "#f8fafc",
-                    borderTop: "1px solid #e2e8f0",
-                    verticalAlign: "top",
-                  }}
-                >
-                  <td
-                    style={{
-                      color: NAVY_INK,
-                      fontSize: "11px",
-                      fontWeight: 800,
-                      lineHeight: 1.45,
-                      overflowWrap: "anywhere",
-                      padding: "12px",
-                    }}
-                  >
-                    <span style={{ color: NAVY }}>{feature.id}</span> ·{" "}
-                    {feature.title}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <FeatureStatePill state={feature.featureState} />
-                  </td>
-                  <td
-                    style={{
-                      color: NAVY_INK,
-                      fontSize: "10px",
-                      fontWeight: 800,
-                      lineHeight: 1.45,
-                      overflowWrap: "anywhere",
-                      padding: "12px",
-                    }}
-                  >
-                    {feature.candidateWorkstream}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <AssessmentSummary feature={feature} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
     </div>

@@ -1,13 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import {
-  ROGER_PI4_EXECUTIVE_METRICS,
-  ROGER_PILOT_BACKLOG_SOURCE,
-  ROGER_PILOT_BACKLOG_SUMMARY,
-  ROGER_PILOT_FEATURES,
-  ROGER_PILOT_FEATURES_WITH_CHILD_DETAIL,
-  ROGER_PILOT_WORK_ITEMS,
-} from "../client/src/lib/rogerPilotBacklog";
+import { ROGER_PI4_EXECUTIVE_METRICS } from "../client/src/lib/rogerPilotBacklog";
 import { ROGER_PI4_GOALS } from "../client/src/components/RogerPilotPiGoals";
 import { buildRogerPilotBacklogMarkdown } from "../client/src/pages/RogerPilotBacklogPage";
 
@@ -37,20 +30,6 @@ describe("Team Roger Executive PI4 Dashboard", () => {
       "State",
       "Provision",
     ]);
-    expect(ROGER_PILOT_BACKLOG_SOURCE.totalListedFeatureCount).toBe(93);
-    expect(ROGER_PILOT_BACKLOG_SOURCE.coverageNote).toContain(
-      "25-record evidence subset"
-    );
-  });
-
-  it("retains the detailed evidence subset without presenting it as the current portfolio", () => {
-    expect(ROGER_PILOT_FEATURES).toHaveLength(25);
-    expect(ROGER_PILOT_FEATURES_WITH_CHILD_DETAIL).toHaveLength(4);
-    expect(ROGER_PILOT_BACKLOG_SUMMARY.childDetailPendingCount).toBe(21);
-    expect(ROGER_PILOT_WORK_ITEMS).toHaveLength(20);
-    expect(
-      ROGER_PILOT_WORK_ITEMS.filter(item => item.state === "Active")
-    ).toHaveLength(6);
   });
 
   it("defines all five PI workstream goals without inferring completion or burndown", () => {
@@ -82,6 +61,8 @@ describe("Team Roger Executive PI4 Dashboard", () => {
       "Not supplied — requires reviewed team-level extract"
     );
     expect(page).toContain("<RogerPilotPiGoals />");
+    expect(page).not.toContain("Parent-Feature Review Register");
+    expect(page).not.toContain("parent-feature-review");
     const removedCycleLabel = "Sprint" + " 2";
     expect(page).not.toContain(removedCycleLabel);
     expect(goals).not.toContain(removedCycleLabel);
@@ -107,6 +88,9 @@ describe("Team Roger Executive PI4 Dashboard", () => {
     expect(markdown).toContain(
       "## PI4 goals, objectives, and cross-workstream outcome"
     );
+    expect(markdown).not.toContain("Parent-Feature Review Register");
+    expect(markdown).not.toContain("Detailed parent-feature evidence register");
+    expect(markdown).not.toContain("25-record evidence subset");
     expect(markdown).not.toContain("Sprint" + " 2");
   });
 
