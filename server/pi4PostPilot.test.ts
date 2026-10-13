@@ -198,8 +198,9 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("POD_DELIVERY_FLOW_IMAGE");
     expect(postPilot).not.toContain("pi4-pod-delivery-data-review-process_8340aaca.png");
     expect(postPilot).toContain("TDC/DCT handles MVP/UAT defects, cross-pod data work, migration/shared technical work, and Scrum of Scrums capacity support");
-    expect(postPilot).toContain('import StateProvisionStoryReview from "@/components/StateProvisionStoryReview"');
-    expect(postPilot).toContain("<StateProvisionStoryReview />");
+    expect(postPilot).not.toContain('import StateProvisionStoryReview from "@/components/StateProvisionStoryReview"');
+    expect(postPilot).not.toContain("<StateProvisionStoryReview />");
+    expect(postPilot).not.toContain("First-pass findings for Gary");
     expect(postPilot).not.toContain("deriveMvpMetrics");
     expect(postPilot).not.toContain("getRogerScreenReadinessSummary");
     expect(postPilot).not.toContain("POST_PILOT_PLANNING_INVENTORY");
@@ -208,7 +209,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("Closed PI4 Features");
     expect(postPilot).not.toContain("Active PI4 Features");
     expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
-    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("<StateProvisionStoryReview />"));
+    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("PI4 Pod Delivery & Data Review Process"));
     const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8");
     expect(poc).toContain("Partially Demonstrated — End-to-End Integration");
     expect(poc).toContain("Target End-to-End Architecture");
@@ -230,7 +231,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(sidebar).toContain('workspaceShortcuts("executive", ["Ask Buddy"], false)');
     expect(pageContext).toContain('"State & Provision Delivery Readiness Dashboard"');
     expect(pageContext).toContain('"State & Provision Delivery Readiness"');
-    expect(pageContext).toContain('"State / Provision Story Review"');
+    expect(pageContext).not.toContain('"State / Provision Story Review"');
+    expect(pageContext).not.toContain('"Current-Year State Review Package"');
     expect(pageContext).toContain('"1494344"');
 
     expect(planningModel).toContain('"pi4-manual-client-account-management": "Manual Custom Client Account Management"');
@@ -452,8 +454,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(review).toContain("Gary’s final review remains required");
     expect(knowledge).toContain("Current-year State review package");
     expect(knowledge).toContain("1494222 needs the greatest TDC scrutiny");
-    expect(pageContext).toContain("Current-Year State Review Package");
-    expect(pageContext).toContain("Inline Story Review Ask Buddy Agent");
+    expect(pageContext).not.toContain("Current-Year State Review Package");
+    expect(pageContext).not.toContain("Inline Story Review Ask Buddy Agent");
     expect(pageContext).toContain("1494188");
   });
 });

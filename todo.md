@@ -302,3 +302,4 @@
 - [x] Remove the Post Pilot PI4 planning metrics and planned-feature dependency inventory sections
 - [x] Replace the Post Pilot State prototype reference with the supplied Roger QA environment and remove the PI4 Planning Visibility card
 - [x] Remove the remaining Planning Visibility Only header badge from Post Pilot
+- [x] Remove the Post Pilot State & Provision Story Review section and its page-level grounding

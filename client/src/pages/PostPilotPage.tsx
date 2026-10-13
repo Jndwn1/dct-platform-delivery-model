@@ -3,7 +3,6 @@ import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/Execu
 import StateGoSystemPoc from "@/components/StateGoSystemPoc";
 import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage";
 import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow";
-import StateProvisionStoryReview from "@/components/StateProvisionStoryReview";
 import PostPilotDeploymentSnapshot from "@/components/PostPilotDeploymentSnapshot";
 
 
@@ -316,7 +315,6 @@ export default function PostPilotPage() {
         </div>
       </section>
 
-      <StateProvisionStoryReview />
       <StateGoSystemPoc />
       <StatePocBaDiscoveryPackage />
     </div>
