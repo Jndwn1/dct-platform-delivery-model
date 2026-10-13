@@ -28,19 +28,110 @@ const STATUS: Record<Status, { bg: string; border: string; text: string }> = {
   "Future-State": { bg: "#f8fafc", border: "#cbd5e1", text: "#64748b" },
 };
 
-const DELIVERABLES: Array<{ deliverable: string; purpose: string; contents: string; source: string; action: string; status: Status; criteria: string }> = [
-  { deliverable: "POC Scope Statement", purpose: "Define exactly what the POC is proving.", contents: "Selected State; entity / filing scenario; included calculation flow; exclusions; POC versus future-state boundary.", source: "PO, State, DCT, IMS", action: "Confirm the representative scenario and document in-scope / out-of-scope items.", status: "Draft", criteria: "Approved by participating teams." },
-  { deliverable: "Minimum POC Input Package", purpose: "Define the smallest data set required to execute one representative State calculation.", contents: "Candidate inputs, required / optional decision, taxonomy and correlation requirements.", source: "State / Process, IMS / GoSystem, DCT", action: "Validate each candidate as Required, Optional, or Not Needed for the POC.", status: "Draft", criteria: "GoSystem / IMS and State SMEs confirm the minimum package." },
-  { deliverable: "Inbound Data Contract", purpose: "Define Roger / DCT → GoSystem fields and business rules.", contents: "Source/target fields, data type, valid values, transformation, applicability, validation, owner, and open question.", source: "Roger, DCT, Taxonomy, IMS", action: "Complete exact source / target definitions and resolve critical TBDs.", status: "Draft", criteria: "No POC-critical fields remain undefined." },
-  { deliverable: "Outbound Data Contract", purpose: "Define GoSystem → DCT / Roger returned results.", contents: "Minimum results, source, granularity, review purpose, and open questions.", source: "State / Process, IMS / GoSystem, DCT, Roger", action: "Confirm exact output fields, source, granularity, and review need.", status: "Draft", criteria: "Minimum returned review package is approved." },
-  { deliverable: "Taxonomy Mapping Matrix", purpose: "Define governed mappings between business concepts and GoSystem.", contents: "Business concept, taxonomy ID, source/target field, mapping rule, valid values, variation, owner, status.", source: "Taxonomy Team / TDC master-data owners", action: "Identify reusable mappings and document new mapping gaps.", status: "Not Started", criteria: "POC mappings approved." },
-  { deliverable: "Business Data Dictionary", purpose: "Define the business meaning of every POC data element.", contents: "Business term, definition, business rule, applicability level, and owner.", source: "State / Process SMEs, DCT, existing requirements", action: "Validate definitions and ownership.", status: "In Progress", criteria: "Every POC-required field has an agreed definition." },
-  { deliverable: "Review Requirements", purpose: "Define what the practitioner must see in Roger to trust and validate the result.", contents: "Federal starting point, apportionment values, modifications, State taxable income, liability, and supporting detail.", source: "State / Process, Roger", action: "Confirm summary versus detailed display requirements and reconciliation needs.", status: "Not Started", criteria: "State / Process approves the review package." },
-  { deliverable: "Decision / Open Question Log", purpose: "Track unresolved requirements and decisions.", contents: "Question, why it matters, owner, status, needed-by date, and final decision.", source: "All participating teams", action: "Maintain ownership and escalation for POC-blocking items.", status: "In Progress", criteria: "All POC-blocking decisions resolved." },
-  { deliverable: "System Responsibility Matrix", purpose: "Clearly define ownership boundaries.", contents: "Roger, DCT, Taxonomy, IMS, GoSystem, State / Process, TDC / PDC, and QA responsibilities.", source: "Architecture, State, Roger, DCT, IMS", action: "Confirm each team accepts its responsibility boundary.", status: "Draft", criteria: "Ownership accepted by all teams." },
-  { deliverable: "POC Acceptance Criteria", purpose: "Define objective proof of success.", contents: "Valid request; mapped inbound fields; successful transmission; expected GoSystem calculation; returned output; mapped return; correct correlation; Roger display; practitioner review and reconciliation.", source: "QA, PO, State, DCT, IMS", action: "Convert approved criteria into testable ADO acceptance criteria.", status: "Not Started", criteria: "Criteria are testable and accepted by QA / PO / State / DCT / IMS." },
-];
+const WORKING_SESSION_AGENDA = [
+  [
+    "1. Confirm target business process and initial apportionment scope",
+    "Set the representative State business scenario and the initial apportionment proof point for the POC.",
+    "State Business SMEs; Roger State team",
+    "POC Scope Statement",
+    "Selected State, entity / filing scenario, apportionment method, and in-scope outcome are not yet confirmed.",
+    "Confirm scope, exclusions, and the one calculation / review scenario the POC must prove.",
+  ],
+  [
+    "2. Review the three inbound / outbound data movements",
+    "Walk each pattern separately so owners can identify mapping, routing, and data-shape differences.",
+    "Roger State team; IMS input on complexities",
+    "Inbound and Outbound Data Contracts",
+    "The three movement-specific mapping materials and direction-specific contract views have not yet been confirmed.",
+    "Agree the three movement boundaries, owner for each mapping, and the questions that require IMS or GoSystem confirmation.",
+  ],
+  [
+    "3. Confirm required data elements and granularity",
+    "Identify the minimum business data, metadata, and level of detail needed for each movement and the representative State calculation.",
+    "State Process; TDC Taxonomy; Process Mapping; IMS key metadata for routing / calculations",
+    "Minimum POC Input Package; Business Data Dictionary",
+    "Exact GoSystem-required fields, formats, routing / calculation metadata, and granular prior-year data requirements remain unconfirmed.",
+    "Confirm required versus optional data elements and granularity. Use Tech Story 1433863: Define Data Type & Validation Standards for TDC → IMS → GoSystem Translation to document the standards work; completion is not assumed.",
+  ],
+  [
+    "4. Align TDC taxonomy and GoSystem mappings",
+    "Compare existing taxonomy and Process mappings to the GoSystem target requirements and identify reuse versus new mapping work.",
+    "State Process (Krista); TDC (Gary); Process Mapping (Bryce, Dhaval)",
+    "Taxonomy Mapping Matrix",
+    "Current taxonomy status, Process mapping status, reusable identifiers, and GoSystem target mapping are not yet reconciled.",
+    "Confirm mapping source of truth, reusable mappings, new mapping gaps, and accountable owners.",
+  ],
+  [
+    "5. Resolve totals, overrides, and transmission patterns",
+    "Establish how totals, practitioner overrides, and approved data packages are handled across the three movements.",
+    "State Business SMEs; IMS; Roger State team",
+    "Decision / Open Question Log; Review Requirements",
+    "Totals treatment, override authority, transmission patterns, correlation, validation, and error handling remain open.",
+    "Record decisions, owners, dependencies, and POC-blocking escalation points.",
+  ],
+  [
+    "6. Define next steps, owners, dependencies, and outcome timing",
+    "Convert working-session decisions and gaps into sequenced follow-up work without asserting commitments not yet confirmed.",
+    "Roger State team; participating teams",
+    "POC Acceptance Criteria; System Responsibility Matrix",
+    "Named owners, dependency sequence, dates, and validation evidence are not yet confirmed.",
+    "Publish a confirmed action list, ownership model, dependencies, and working-session outcomes.",
+  ],
+] as const;
 
+const DATA_MOVEMENT_ROWS = [
+  [
+    "1. Prior-year property-detail ingestion",
+    "GoSystem-origin prior-year property detail into the receiving Roger / TDC workflow through the applicable integration path.",
+    "Availability, granular detail, correct locator, rollover behavior, source format, and receiving-system ownership.",
+    "Proposed discussion framing — direction and interface are Pending Confirmation.",
+  ],
+  [
+    "2. State apportionment-detail export",
+    "Roger / TDC State apportionment detail to IMS for the GoSystem-facing package.",
+    "Minimum field set, entity / jurisdiction granularity, taxonomy mapping, data types, validation standards, and routing metadata.",
+    "Proposed discussion framing — payload, format, and transmission pattern are Pending Confirmation.",
+  ],
+  [
+    "3. GoSystem calculated-value ingestion / return",
+    "GoSystem-calculated values through IMS and TDC for Roger practitioner review.",
+    "Returned-result fields, correlation, totals, calculation transparency, errors, reconciliation, and display requirements.",
+    "Proposed discussion framing — returned-result contract and end-to-end validation are Pending Confirmation.",
+  ],
+] as const;
+
+const WORKING_SESSION_GAPS = [
+  [
+    "Exact GoSystem data movement inventory",
+    "Confirm the exact data to be pulled from, imported into, and exported from GoSystem.",
+    "No approved field-level inventory or interface specification is attached to the POC package.",
+    "Roger State team with Krista / Spencer; GoSystem / IMS input",
+  ],
+  [
+    "Three distinct mapping materials",
+    "Separate working materials for each data movement so field, transformation, and ownership differences are visible.",
+    "The current package has candidate inbound / outbound mappings but not three confirmed movement-specific mapping sets.",
+    "Roger State team to share; IMS to explain the distinction",
+  ],
+  [
+    "Taxonomy and Process mapping status",
+    "Obtain the current State taxonomy status and Process-team mapping status.",
+    "No confirmed source-of-truth status, reuse decision, or mapped target set is recorded here.",
+    "Ranini with Krista",
+  ],
+  [
+    "Initial IMS-usable data subset",
+    "Identify the smallest State data-point subset IMS can route for the representative POC.",
+    "The candidate field list is not yet reduced to an IMS-confirmed minimum set.",
+    "Krista; Bryce / Dhaval; Rod / Cass",
+  ],
+  [
+    "Prior-year data behavior",
+    "Confirm prior-year data availability, granular detail, rollover behavior, and the correct locator.",
+    "Availability, source location, grain, and roll-forward rules remain unconfirmed.",
+    "IMS; State Process inputs",
+  ],
+] as const;
 const SOURCES = [
   { team: "State / Process SMEs", own: "Business rules, State calculation requirements, State-specific variations, and review expectations.", needs: "Minimum business inputs; calculation settings; required review outputs; exceptions; representative State scenario.", questions: "What does GoSystem need? What is required versus optional? What must the practitioner see? Which modification proves the POC?" },
   { team: "Taxonomy Team", own: "Governed business-to-system mappings.", needs: "Existing taxonomy IDs; mapping patterns; source-to-target structures; mapping gaps; State-specific rules.", questions: "Does this mapping exist? What taxonomy ID applies? What new mapping is needed?" },
@@ -132,8 +223,13 @@ export default function StatePocBaDiscoveryPackage() {
         <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderLeft: "5px solid #2563eb", borderRadius: "9px", color: "#1e3a5f", fontSize: "12px", lineHeight: "1.55", marginBottom: "12px", padding: "13px 15px" }}>The BA objective for the Roger → GoSystem POC is to translate State business requirements into a clear, testable inbound and outbound data contract that Taxonomy, DCT, IMS, Roger, and GoSystem teams can implement and validate.</div>
         <div style={{ background: "#faf5ff", border: "1px solid #e9d5ff", borderRadius: "9px", color: "#312e81", fontSize: "12px", fontWeight: 800, lineHeight: "1.55", marginBottom: "14px", padding: "13px 15px" }}>“What is the smallest set of business inputs GoSystem must receive to successfully calculate one representative State return scenario, and what minimum results must come back for the practitioner to validate that calculation?”</div>
         <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "9px", color: "#166534", fontSize: "11px", lineHeight: "1.55", marginBottom: "24px", padding: "12px 14px" }}><strong>The BA is not expected to know the technical mappings in advance.</strong> The BA structures discovery, identifies the correct source / owner, documents business meaning, captures decisions and gaps, and converts approved requirements into implementable stories and acceptance criteria.</div>
-        <Heading eyebrow="2 · BA deliverables" title="BA Deliverables for the POC" subtitle="Each row is a discovery work product. Expand the table horizontally to review the primary source, action, and completion test." />
-        <div style={{ marginBottom: "24px" }}><MatrixTable columns={["Deliverable", "Purpose", "What It Contains", "Primary Source", "BA Action", "Status", "Completion Criteria"]} rows={DELIVERABLES.map(row => [row.deliverable, row.purpose, row.contents, row.source, row.action, row.status, row.criteria])} /></div>
+        <Heading eyebrow="2 · working-session agenda" title="State Data-Movement Working Session — Agenda & Readiness Gaps" subtitle="A two-part, five-function cross-functional session to align the State apportionment data that must move between Roger / TDC, IMS, and GoSystem. This table records discussion goals and gaps; it does not establish approved interfaces, schemas, or commitments." />
+        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderLeft: "5px solid #2563eb", borderRadius: "9px", color: "#1e3a5f", fontSize: "11px", lineHeight: "1.55", marginBottom: "14px", padding: "12px 14px" }}><strong>Standards work item:</strong> <strong>Tech Story 1433863 — Define Data Type &amp; Validation Standards for TDC → IMS → GoSystem Translation</strong> supports the required-data-elements discussion. The story is a planning and definition activity; completion or an approved interface contract is not assumed.</div>
+        <div style={{ marginBottom: "24px" }}><MatrixTable columns={["Agenda Item", "Working-Session Objective", "Primary Participants", "Existing POC Work Product", "Gap to Resolve", "Required Outcome"]} rows={WORKING_SESSION_AGENDA} /></div>
+        <Heading eyebrow="2A · data movement register" title="Three Data Movements to Separate for Review" subtitle="These are working-session discussion paths based on the supplied agenda. Each direction, interface, and handoff remains subject to confirmation by the accountable teams." />
+        <div style={{ marginBottom: "24px" }}><MatrixTable columns={["Data Movement", "Proposed Discussion Path", "Topics to Confirm", "Current Boundary"]} rows={DATA_MOVEMENT_ROWS} /></div>
+        <Heading eyebrow="2B · readiness gaps" title="Pre-Session Inputs and Gaps to Close" subtitle="Use this register to obtain the materials needed to make the two sessions decision-ready. Gaps are not defects; they are unconfirmed inputs that require accountable-team confirmation." />
+        <div style={{ marginBottom: "24px" }}><MatrixTable columns={["Readiness Item", "What Is Needed", "Current Gap", "Proposed Source / Owner"]} rows={WORKING_SESSION_GAPS} /></div>
         <Heading eyebrow="3 · sources and responsibilities" title="Where the BA Gets the Requirements" subtitle="Use these ownership boundaries to route discovery questions without asking the BA to infer a team’s answer." />
         <div style={{ marginBottom: "24px" }}><MatrixTable columns={["Team / Role", "What They Own", "What the BA Needs", "Example Questions"]} rows={SOURCES.map(row => [row.team, row.own, row.needs, row.questions])} /></div>
         <Heading eyebrow="4 · prepopulated mapping" title="Inbound Mapping — Current Known Candidate Fields" subtitle="Known concepts are prepopulated for working sessions; exact GoSystem fields and transformations remain TBD until validated by source owners." />

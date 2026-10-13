@@ -1136,6 +1136,9 @@ Before documenting any new requirement for the State or Provision workstream, de
       "What are the proposed next actions and outstanding POC risks?",
       "What did the October 9 Provision demonstration establish, and what remains pending?",
       "What is in scope for the State MVP product vision?",
+      "What are the three State POC data movements for the working session?",
+      "What gaps must be closed before the State data-movement sessions can make decisions?",
+      "How does Tech Story 1433863 support the TDC to IMS to GoSystem POC discussion?",
       "How should Ask Buddy perform a first-pass review of a State or Provision story?",
       "What does Gary review after the Ask Buddy first pass?",
       "What is the review status for Tech Story 1494344?",
@@ -1151,6 +1154,7 @@ Before documenting any new requirement for the State or Provision workstream, de
 - **Unified dependencies and validations:** State contract, mapping, formatting, validation ownership, error handling, result-correlation, representative scenario, portal enhancements, and complex extraction remain **Pending Confirmation**. Provision BTP transfer, end-to-end outputs, representative data, final workflow/return-structure alignment, QA/UAT, and performance testing remain **Pending Confirmation**. Dummy-data workflow observations are not production-readiness evidence.
 - **Planning targets, not commitments:** Development completion was discussed for mid-December 2026; internal testing/QA/UAT before the holiday break; significant defect remediation in early January 2027; and Pilot launch in mid-January 2027. These require confirmed integrated delivery-plan commitments.
 - **State PI4 product-vision boundary:** The supplied State deck identifies a staged MVP: filing footprint and current-year inputs; entity-level, jurisdiction-specific apportionment and State Tax Control; controlled group context for comparison; and downstream completion packages. It preserves transparent calculation review in Roger, assigns return-level roll-up and filing behavior to GoSystem, and identifies full State tax-accrual calculation as post-MVP. This source establishes product direction, not a completion claim or approved integration contract.
+- **State data-movement working session:** The supplied two-session agenda separates (1) prior-year property-detail ingestion from GoSystem, (2) State apportionment-detail export from Roger / TDC through IMS, and (3) GoSystem calculated-value return for TDC / Roger review. Exact direction, contracts, schemas, field lists, routing, ownership, and validation evidence remain **Pending Confirmation**. Pre-session gaps are the exact GoSystem movement inventory, three distinct mapping materials, current taxonomy and Process mapping status, the IMS-usable minimum data subset, and prior-year availability / grain / rollover / locator behavior. **Tech Story 1433863 — Define Data Type & Validation Standards for TDC → IMS → GoSystem Translation** supports the required-data-elements and granularity discussion; it does not establish that standards or an interface are complete.
 ## State & Provision Story Review — Ask Buddy First Pass + Gary Technical Review
 
 - **Purpose:** This repeatable process applies to State and Provision stories that require TDC, Gateway, or shared data-layer work. It reduces manual review burden by using Ask Buddy / Manus for an evidence-grounded first pass before Gary completes final technical validation.

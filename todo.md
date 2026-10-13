@@ -304,3 +304,4 @@
 - [x] Remove the remaining Planning Visibility Only header badge from Post Pilot
 - [x] Remove the Post Pilot State & Provision Story Review section and its page-level grounding
 - [x] Align Post Pilot and State prototype scope to the supplied State MVP Product Vision and Scope PI4 deck
+- [x] Align the Post Pilot POC BA deliverables table to the State data-movement working-session agenda, gap register, and Tech Story 1433863

@@ -14,13 +14,34 @@ describe("State POC BA Discovery and Mapping Package", () => {
     expect(postPilot.indexOf("<StatePocBaDiscoveryPackage />")).toBeGreaterThan(postPilot.indexOf("<StateGoSystemPoc />"));
     expect(packageSource).toContain("POC BA Discovery & Mapping Package");
     expect(packageSource).toContain("The BA objective for the Roger → GoSystem POC");
-    expect(packageSource).toContain("BA Deliverables for the POC");
-    expect(packageSource).toContain("Minimum POC Input Package");
-    expect(packageSource).toContain("Inbound Data Contract");
-    expect(packageSource).toContain("Outbound Data Contract");
-    expect(packageSource).toContain("Taxonomy Mapping Matrix");
-    expect(packageSource).toContain("System Responsibility Matrix");
-    expect(packageSource).toContain("POC Acceptance Criteria");
+    expect(packageSource).toContain(
+      "State Data-Movement Working Session — Agenda & Readiness Gaps"
+    );
+    expect(packageSource).toContain(
+      "Confirm target business process and initial apportionment scope"
+    );
+    expect(packageSource).toContain(
+      "Review the three inbound / outbound data movements"
+    );
+    expect(packageSource).toContain(
+      "Confirm required data elements and granularity"
+    );
+    expect(packageSource).toContain(
+      "Tech Story 1433863: Define Data Type & Validation Standards for TDC → IMS → GoSystem Translation"
+    );
+    expect(packageSource).toContain(
+      "Three Data Movements to Separate for Review"
+    );
+    expect(packageSource).toContain("Prior-year property-detail ingestion");
+    expect(packageSource).toContain("State apportionment-detail export");
+    expect(packageSource).toContain(
+      "GoSystem calculated-value ingestion / return"
+    );
+    expect(packageSource).toContain("Pre-Session Inputs and Gaps to Close");
+    expect(packageSource).toContain("Three distinct mapping materials");
+    expect(packageSource).toContain("Initial IMS-usable data subset");
+    expect(packageSource).toContain("Prior-year data behavior");
+    expect(packageSource).toContain("completion is not assumed");
     expect(packageSource).toContain("Where the BA Gets the Requirements");
     expect(packageSource).toContain("Inbound Mapping — Current Known Candidate Fields");
     expect(packageSource).toContain("Outbound Mapping — Current Candidate Results");
