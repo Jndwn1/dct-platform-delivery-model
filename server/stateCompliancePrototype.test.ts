@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("Roger-aligned State Compliance prototype", () => {
-  it("provides the revised State filer-first landing, TIM controls, and full State workflow", () => {
+  it("provides the revised State filer-first landing and the PI4 MVP workflow", () => {
     const page = readFileSync(resolve(process.cwd(), "client/src/pages/StateCompliancePrototype.tsx"), "utf8");
     const routes = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
     const navigation = readFileSync(resolve(process.cwd(), "client/src/lib/operatingModelNavigation.ts"), "utf8");
@@ -32,15 +32,16 @@ describe("Roger-aligned State Compliance prototype", () => {
     expect(page).toContain("State Modifications");
     expect(page).toContain("Payment Inputs");
     expect(page).toContain("State Tax Control");
-    expect(page).toContain("State Tax Accrual");
     expect(page).toContain("Outputs & Tracking");
     expect(page).toContain("Review factor inputs before calculation");
     expect(page).toContain("Weighted apportionment by State");
     expect(page).toContain("Year 1 uses a static common-modification list");
     expect(page).toContain("State and local payment workpaper");
     expect(page).toContain("State taxable income to liability");
-    expect(page).toContain("Global State tax accrual calculation");
-    expect(page).toContain("This single State Tax workspace will house future outputs and tracking requirements.");
+    expect(page).toContain("This single State Tax workspace will house future outputs");
+    expect(page).toContain("full State tax-accrual calculation is post-MVP");
+    expect(page).not.toContain("State Tax Accrual");
+    expect(page).not.toContain("Global State tax accrual calculation");
   });
 
   it("preserves Federal filing content while applying revisions only to State content", () => {

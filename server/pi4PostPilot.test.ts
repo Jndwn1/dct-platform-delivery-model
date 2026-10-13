@@ -113,6 +113,13 @@ describe("PI4 Post Pilot delivery", () => {
       "automated data ingestion (workflow step 1) fully connected to Tax Portal Roger"
     );
     expect(postPilot).toContain("Open State QA Environment");
+    expect(postPilot).toContain("STATE_MVP_PRODUCT_VISION_URL");
+    expect(postPilot).toContain("Open State MVP Vision");
+    expect(postPilot).toContain("transparent entity-and-jurisdiction workflow and calculations in Roger");
+    expect(postPilot).toContain("SPRINT_4_PRIORITY_AREAS");
+    expect(postPilot).toContain("Apportionment calculations");
+    expect(postPilot).toContain("SPRINT_5_PRIORITY_AREAS");
+    expect(postPilot).toContain("GoSystem retrieval and simple multi-entity aggregation review");
     expect(postPilot).not.toContain("Roger — State Compliance Prototype");
     expect(postPilot).not.toContain('href="/state-compliance"');
     expect(postPilot).toContain('const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/"');
@@ -231,6 +238,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(sidebar).toContain('workspaceShortcuts("executive", ["Ask Buddy"], false)');
     expect(pageContext).toContain('"State & Provision Delivery Readiness Dashboard"');
     expect(pageContext).toContain('"State & Provision Delivery Readiness"');
+    expect(pageContext).toContain("full State tax-accrual calculation is post-MVP");
     expect(pageContext).not.toContain('"State / Provision Story Review"');
     expect(pageContext).not.toContain('"Current-Year State Review Package"');
     expect(pageContext).toContain('"1494344"');

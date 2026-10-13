@@ -1127,7 +1127,7 @@ Before documenting any new requirement for the State or Provision workstream, de
   "/post-pilot": {
     pageTitle: "Post Pilot",
     pagePath: "/post-pilot",
-    summary: "Executive PI4 planning page for the planned-feature inventory, ADO dependencies, the unified evidence-bound October 9 State & Provision delivery-readiness dashboard, and the State / Provision review process.",
+    summary: "Executive PI4 Post Pilot page with sprint cadence, prototypes, deployment tracking, one evidence-bound October 9 State & Provision delivery-readiness dashboard, and the State team’s PI4 Product Vision and Scope.",
     suggestedQuestions: [
       "What did the October 9 Roger to GoSystem POC demonstration establish?",
       "Which POC capabilities are demonstrated, partially demonstrated, or not demonstrated?",
@@ -1135,6 +1135,7 @@ Before documenting any new requirement for the State or Provision workstream, de
       "What must IMS and GoSystem confirm before the POC can be validated?",
       "What are the proposed next actions and outstanding POC risks?",
       "What did the October 9 Provision demonstration establish, and what remains pending?",
+      "What is in scope for the State MVP product vision?",
       "How should Ask Buddy perform a first-pass review of a State or Provision story?",
       "What does Gary review after the Ask Buddy first pass?",
       "What is the review status for Tech Story 1494344?",
@@ -1146,9 +1147,10 @@ Before documenting any new requirement for the State or Provision workstream, de
 - **Evidence boundary and overall status:** The State POC transcript, supplied October 9 meeting notes, Provision demonstration transcript window (12:11–16:52), and the latest supplied October 9 Provision status update are working-session evidence, not approved implementation specifications. Overall status: **Partially Demonstrated — End-to-End Integration Not Yet Validated**.
 - **State demonstrated:** Tax Portal-to-Roger ingestion, source mapping, Property/Payroll/Sales/payments factor inputs, practitioner confirmation, check-figure and variance review, and complex property-data handling. Structured State inputs and approved mappings were partially demonstrated; the evidence did not establish IMS translation/transmission, GoSystem calculation execution, or results returned to Roger.
 - **Provision demonstrated:** Return to Provision and Deferred Rollforward UI capabilities were shown using duplicate return structures and dummy data. Initial Provision database tables were created. Federal Summary, BTP Excel Export, and Bloomberg Tax Provision calculation are marked **Demonstrated** by the latest October 9 status update. BTP transfer, end-to-end outputs, and detailed validation evidence remain **Pending Confirmation**.
-- **Target architecture, not completed implementation:** State is Roger UI → TDC → IMS → GoSystem with GoSystem → IMS → TDC → Roger return. IMS is the proposed State integration/translation layer and GoSystem performs State calculation. Provision is Roger Core → Return to Provision → Deferred Rollforward → Federal Summary → BTP Export → Bloomberg Tax Provision. Provision does **not** use GoSystem or the State IMS calculation path; the BTP handoff uses BTP Export, and no automated API transmission or return path is assumed.
+- **Target architecture, not completed implementation:** State is Roger UI → TDC → IMS → GoSystem with GoSystem → IMS → TDC → Roger return. IMS is the proposed State integration/translation layer. The State team’s PI4 Product Vision and Scope positions Roger as the transparent entity-and-jurisdiction workflow and calculation-review experience; GoSystem supports apportionment comparison plus return-level roll-up and filing behavior. Provision is Roger Core → Return to Provision → Deferred Rollforward → Federal Summary → BTP Export → Bloomberg Tax Provision. Provision does **not** use GoSystem or the State IMS calculation path; the BTP handoff uses BTP Export, and no automated API transmission or return path is assumed.
 - **Unified dependencies and validations:** State contract, mapping, formatting, validation ownership, error handling, result-correlation, representative scenario, portal enhancements, and complex extraction remain **Pending Confirmation**. Provision BTP transfer, end-to-end outputs, representative data, final workflow/return-structure alignment, QA/UAT, and performance testing remain **Pending Confirmation**. Dummy-data workflow observations are not production-readiness evidence.
 - **Planning targets, not commitments:** Development completion was discussed for mid-December 2026; internal testing/QA/UAT before the holiday break; significant defect remediation in early January 2027; and Pilot launch in mid-January 2027. These require confirmed integrated delivery-plan commitments.
+- **State PI4 product-vision boundary:** The supplied State deck identifies a staged MVP: filing footprint and current-year inputs; entity-level, jurisdiction-specific apportionment and State Tax Control; controlled group context for comparison; and downstream completion packages. It preserves transparent calculation review in Roger, assigns return-level roll-up and filing behavior to GoSystem, and identifies full State tax-accrual calculation as post-MVP. This source establishes product direction, not a completion claim or approved integration contract.
 ## State & Provision Story Review — Ask Buddy First Pass + Gary Technical Review
 
 - **Purpose:** This repeatable process applies to State and Provision stories that require TDC, Gateway, or shared data-layer work. It reduces manual review burden by using Ask Buddy / Manus for an evidence-grounded first pass before Gary completes final technical validation.

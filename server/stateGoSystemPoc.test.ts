@@ -49,7 +49,8 @@ describe("State and Provision delivery-readiness dashboard", () => {
     expect(dashboard).toContain(
       "PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
     );
-    expect(dashboard).toContain("State — GoSystem Calculation Integration");
+    expect(dashboard).toContain("State — GoSystem Roll-Up & Filing Integration");
+    expect(dashboard).not.toContain("State — GoSystem Calculation Integration");
     expect(dashboard).toContain("Provision — Bloomberg Tax Provision Workflow");
     expect(dashboard).toContain("Bloomberg Tax Provision");
     expect(dashboard).toContain(
@@ -57,6 +58,16 @@ describe("State and Provision delivery-readiness dashboard", () => {
     );
     expect(dashboard).toContain("Planning Targets Discussed on October 9");
     expect(dashboard).toContain("Evidence Sources");
+    expect(dashboard).toContain(
+      "Roger State MVP Product Vision and Scope — PI4"
+    );
+    expect(dashboard).toContain("Open State MVP vision deck");
+    expect(dashboard).toMatch(
+      /entity and\s+jurisdiction remain the calculation authority/
+    );
+    expect(dashboard).toContain("return-level roll-up and filing behavior");
+    expect(dashboard).toMatch(/Full State\s+tax-accrual calculation/);
+    expect(dashboard).toContain("post-MVP");
     expect(dashboard).toContain(
       'eyebrow="3 · PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"'
     );

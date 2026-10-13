@@ -14,6 +14,8 @@ const C = {
 };
 
 const POC_TRANSCRIPT_SOURCE_URL = "/manus-storage/POC_6327d700.docx";
+const STATE_MVP_PRODUCT_VISION_URL =
+  "https://rsmnet.sharepoint.com/:p:/r/sites/CATTO365/Shared%20Documents/Roger%20-%20state%20and%20provision/State/Product%20focuses/Roger_State_MVP_Product_Vision_and_Scope_PI-4.pptx?d=w6829d1e3d87c4691bfd1e6809b3b3187&csf=1&web=1&e=kCScRg";
 
 const COMPARISON_ROWS = [
   [
@@ -114,10 +116,10 @@ const STATE_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     surface: "#faf5ff",
   },
   {
-    label: "4 · Calculate",
+    label: "4 · Compare, roll up and file",
     title: "GoSystem",
     detail:
-      "Perform applicable State tax calculations and produce calculation results or processing errors.",
+      "Support apportionment comparison plus return-level roll-up and filing behavior after the governed State package is received.",
     accent: C.amber,
     surface: "#fffbeb",
   },
@@ -125,7 +127,7 @@ const STATE_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
     label: "5 · Return and review",
     title: "IMS → TDC → Roger",
     detail:
-      "Return calculated results for practitioner reconciliation, review, and approval.",
+      "Return processing and roll-up results for correlation, practitioner reconciliation, review, and approval.",
     accent: "#0369a1",
     surface: "#f0f9ff",
   },
@@ -541,7 +543,7 @@ export default function StateGoSystemPoc() {
             <PanelHeading
               eyebrow="3 · PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
               title="Target End-to-End Architecture"
-              subtitle="The State and Provision architectures originate in Roger but use distinct external calculation and output paths. Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path."
+              subtitle="The State and Provision architectures originate in Roger but use distinct external calculation and output paths. State MVP vision retains transparent entity-and-jurisdiction calculations in Roger, while GoSystem supports return-level roll-up and filing behavior. Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path."
               accent={C.blue}
             />
             <div
@@ -576,13 +578,13 @@ export default function StateGoSystemPoc() {
                       textTransform: "uppercase",
                     }}
                   >
-                    State — GoSystem Calculation Integration
+                    State — GoSystem Roll-Up & Filing Integration
                   </div>
                   <ExecutiveProcessFlow
-                    ariaLabel="State GoSystem calculation integration target architecture"
+                    ariaLabel="State GoSystem roll-up and filing integration target architecture"
                     steps={STATE_ARCHITECTURE_STEPS}
-                    supportNote="Forward direction: Roger UI → TDC → IMS → GoSystem. Return direction: GoSystem → IMS → TDC → Roger. IMS is the proposed integration and translation layer; GoSystem performs applicable State calculations."
-                    outcome="The State round trip is not validated until the representative package, translation, calculation, returned results, correlation, and practitioner review are confirmed."
+                    supportNote="Forward direction: Roger UI → TDC → IMS → GoSystem. Return direction: GoSystem → IMS → TDC → Roger. IMS is the proposed integration and translation layer; Roger retains transparent entity-and-jurisdiction calculation review, while GoSystem supports return-level roll-up and filing behavior."
+                    outcome="The State round trip is not validated until the representative package, translation, GoSystem comparison or roll-up behavior, returned results, correlation, and practitioner review are confirmed."
                   />
                 </div>
                 <div>
@@ -750,6 +752,63 @@ export default function StateGoSystemPoc() {
                   }}
                 >
                   Open transcript (DOCX) ↗
+                </a>
+              </div>
+              <div
+                style={{
+                  background: "#ecfdf5",
+                  border: "1px solid #a7f3d0",
+                  borderRadius: "9px",
+                  padding: "13px",
+                }}
+              >
+                <div
+                  style={{
+                    color: C.green,
+                    fontSize: "10px",
+                    fontWeight: 850,
+                    letterSpacing: "0.07em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  State PI4 product vision and scope
+                </div>
+                <div
+                  style={{
+                    color: C.navy,
+                    fontSize: "13px",
+                    fontWeight: 850,
+                    marginTop: "4px",
+                  }}
+                >
+                  Roger State MVP Product Vision and Scope — PI4
+                </div>
+                <p
+                  style={{
+                    color: C.slate,
+                    fontSize: "10px",
+                    lineHeight: 1.45,
+                    margin: "6px 0 10px",
+                  }}
+                >
+                  State-team source for the PI4 MVP boundary: entity and
+                  jurisdiction remain the calculation authority in the Roger
+                  workflow; controlled group context supports comparison without
+                  silently changing that authority; GoSystem supports
+                  return-level roll-up and filing behavior. Full State
+                  tax-accrual calculation is identified as post-MVP.
+                </p>
+                <a
+                  href={STATE_MVP_PRODUCT_VISION_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: C.green,
+                    fontSize: "10px",
+                    fontWeight: 850,
+                  }}
+                >
+                  Open State MVP vision deck ↗
                 </a>
               </div>
               <div

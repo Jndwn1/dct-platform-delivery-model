@@ -12,6 +12,7 @@ const PURPLE_SURFACE = "#faf5ff";
 const PURPLE_BORDER = "#e9d5ff";
 const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/";
 const STATE_QA_ENVIRONMENT_URL = "https://qa-roger.rsmus.com/return-filings/465f575d451c47c75b";
+const STATE_MVP_PRODUCT_VISION_URL = "https://rsmnet.sharepoint.com/:p:/r/sites/CATTO365/Shared%20Documents/Roger%20-%20state%20and%20provision/State/Product%20focuses/Roger_State_MVP_Product_Vision_and_Scope_PI-4.pptx?d=w6829d1e3d87c4691bfd1e6809b3b3187&csf=1&web=1&e=kCScRg";
 
 type SprintPriorityArea = {
   title: string;
@@ -116,11 +117,19 @@ const SPRINT_3_PRIORITY_AREAS: SprintPriorityArea[] = [
   },
 ];
 
+const SPRINT_4_PRIORITY_AREAS: SprintPriorityArea[] = [
+  { title: "State", accent: "#0f766e", bullets: ["Apportionment calculations", "Modifications Workspace design", "Prior-year data integration"] },
+];
+
+const SPRINT_5_PRIORITY_AREAS: SprintPriorityArea[] = [
+  { title: "State", accent: "#0f766e", bullets: ["State modifications and State Tax Control integration with Federal", "Output approvals and triggering", "GoSystem retrieval and simple multi-entity aggregation review"] },
+];
+
 const PI4_SPRINT_TIMELINE: Pi4Sprint[] = [
   { number: 2, sprint: "PI4 · Sprint 2", dates: "9/23 – 10/6", priorities: SPRINT_2_PRIORITY_AREAS },
   { number: 3, sprint: "PI4 · Sprint 3", dates: "10/7 – 10/20", priorities: SPRINT_3_PRIORITY_AREAS },
-  { number: 4, sprint: "PI4 · Sprint 4", dates: "10/21 – 11/3" },
-  { number: 5, sprint: "PI4 · Sprint 5", dates: "11/4 – 11/17" },
+  { number: 4, sprint: "PI4 · Sprint 4", dates: "10/21 – 11/3", priorities: SPRINT_4_PRIORITY_AREAS },
+  { number: 5, sprint: "PI4 · Sprint 5", dates: "11/4 – 11/17", priorities: SPRINT_5_PRIORITY_AREAS },
 ];
 
 const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
@@ -188,7 +197,7 @@ export default function PostPilotPage() {
         <SectionHeading
           eyebrow="PI4 delivery calendar"
           title="PI4 Sprint Timeline"
-          description="Planning cadence for Sprints 2–5. Dates reflect the supplied PI4 delivery schedule."
+          description="Planning cadence for Sprints 2–5. State priority areas reflect the supplied State MVP Product Vision and Scope deck; they are planning direction, not verified delivery completion."
         />
         <div style={{ background: "#ffffff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", padding: "14px" }}>
           <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
@@ -285,8 +294,9 @@ export default function PostPilotPage() {
           <div style={{ background: "#f0fdfa", border: "1px solid #99f6e4", borderLeft: "4px solid #0f766e", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", padding: "16px" }}>
             <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>State QA environment</div>
             <div id="post-pilot-prototypes" style={{ color: "#0f172a", fontSize: "15px", fontWeight: 900, marginTop: "6px" }}>Roger — QA Environment</div>
-            <p style={{ color: "#475569", fontSize: "12px", lineHeight: 1.55, margin: "8px 0 14px" }}>Live integrated Filing screens, including the first two pre-workflow screens and automated data ingestion (workflow step 1) fully connected to Tax Portal Roger.</p>
-            <a href={STATE_QA_ENVIRONMENT_URL} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", background: "#0f766e", borderRadius: "6px", color: "#ffffff", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "9px 12px", textDecoration: "none" }}>Open State QA Environment ↗</a>
+            <p style={{ color: "#475569", fontSize: "12px", lineHeight: 1.55, margin: "8px 0 8px" }}>Live integrated Filing screens, including the first two pre-workflow screens and automated data ingestion (workflow step 1) fully connected to Tax Portal Roger.</p>
+            <p style={{ color: "#475569", fontSize: "11px", lineHeight: 1.5, margin: "0 0 14px" }}>State MVP scope retains transparent entity-and-jurisdiction workflow and calculations in Roger; controlled group context supports review while GoSystem supports return-level roll-up and filing behavior.</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}><a href={STATE_QA_ENVIRONMENT_URL} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", background: "#0f766e", borderRadius: "6px", color: "#ffffff", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "9px 12px", textDecoration: "none" }}>Open State QA Environment ↗</a><a href={STATE_MVP_PRODUCT_VISION_URL} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", background: "#ffffff", border: "1px solid #0f766e", borderRadius: "6px", color: "#0f766e", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "9px 12px", textDecoration: "none" }}>Open State MVP Vision ↗</a></div>
           </div>
           <div style={{ background: PURPLE_SURFACE, border: `1px solid ${PURPLE_BORDER}`, borderLeft: `4px solid ${PURPLE}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", padding: "16px" }}>
             <div style={{ color: PURPLE, fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Provision prototype</div>
