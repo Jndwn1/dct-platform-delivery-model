@@ -46,7 +46,14 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("MVP Features Complete");
     expect(postPilot).not.toContain("Roger QA Screens");
     expect(postPilot).not.toContain('label: "Unique Features"');
-    expect(postPilot).toContain("Post Pilot Metrics");
+    expect(postPilot).not.toContain("PI4 planning inventory");
+    expect(postPilot).not.toContain("Post Pilot Metrics");
+    expect(postPilot).not.toContain("PI4 Planning Records");
+    expect(postPilot).not.toContain("Linked ADO Dependencies");
+    expect(postPilot).not.toContain("Planning inventory detail");
+    expect(postPilot).not.toContain("Planned Features and ADO Dependencies");
+    expect(postPilot).not.toContain("PI4 · Sprint 2 feature inventory");
+    expect(postPilot).not.toContain("POST_PILOT_PLANNING_INVENTORY");
     expect(postPilot).toContain("PI4 Sprint Timeline");
     expect(postPilot).not.toContain("PI4 · Batch");
     expect(postPilot).not.toContain("9/16 – 9/22");
@@ -83,7 +90,6 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("Sprint 3 Work-Item Snapshot");
     expect(postPilot).not.toContain("sprint-3-work-items");
     expect(postPilot).not.toContain("SPRINT_3_WORK_ITEMS");
-    expect(postPilot).toContain("Planned Features and ADO Dependencies");
     expect(postPilot).toContain('import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow"');
     expect(postPilot).toContain("<StateProvisionPrototypeFlow />");
     expect(prototypeFlow).toContain("Client File to Roger — Federal, State &amp; Provision Process Flow");
@@ -103,7 +109,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain('const PROVISION_PROTOTYPE_URL = "https://rogertaxpro-bkwikmrm.manus.space/"');
     expect(postPilot).toContain("Roger — Tax Provision Prototype");
     expect(postPilot).toContain("Open Provision Prototype");
-    expect(postPilot.indexOf("State & Provision Prototypes")).toBeGreaterThan(postPilot.indexOf("Planned Features and ADO Dependencies"));
+    expect(postPilot.indexOf("State & Provision Prototypes")).toBeGreaterThan(postPilot.indexOf("<PostPilotDeploymentSnapshot />"));
     expect(postPilot.indexOf("<StateProvisionPrototypeFlow />")).toBeGreaterThan(postPilot.indexOf("State & Provision Prototypes"));
     expect(postPilot.indexOf("<StateProvisionPrototypeFlow />")).toBeLessThan(postPilot.indexOf("PI4 Pod Delivery & Data Review Process"));
     expect(postPilot).toContain("Sprint Metrics");
@@ -187,13 +193,13 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain("<StateProvisionStoryReview />");
     expect(postPilot).not.toContain("deriveMvpMetrics");
     expect(postPilot).not.toContain("getRogerScreenReadinessSummary");
-    expect(postPilot).toContain("POST_PILOT_PLANNING_INVENTORY");
+    expect(postPilot).not.toContain("POST_PILOT_PLANNING_INVENTORY");
     expect(postPilot).toContain("excluded from all PI4 and MVP delivery metrics");
     expect(postPilot).toContain('href="/pi4-planning"');
     expect(postPilot).not.toContain("Closed PI4 Features");
     expect(postPilot).not.toContain("Active PI4 Features");
     expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
-    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
+    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("<StateProvisionStoryReview />"));
     const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8");
     expect(poc).toContain("Partially Demonstrated — End-to-End Integration");
     expect(poc).toContain("Target End-to-End Architecture");

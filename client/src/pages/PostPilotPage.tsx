@@ -5,12 +5,7 @@ import StatePocBaDiscoveryPackage from "@/components/StatePocBaDiscoveryPackage"
 import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow";
 import StateProvisionStoryReview from "@/components/StateProvisionStoryReview";
 import PostPilotDeploymentSnapshot from "@/components/PostPilotDeploymentSnapshot";
-import {
-  POST_PILOT_PLANNING_INVENTORY,
-  POST_PILOT_PLANNING_SOURCE_SELECTION,
-  POST_PILOT_PLANNING_SUMMARY,
-  POST_PILOT_PLANNING_SPRINT,
-} from "@/lib/postPilotPlanningInventory";
+
 
 const PURPLE = "#7c3aed";
 const PURPLE_INK = "#6d28d9";
@@ -154,25 +149,6 @@ const POD_DELIVERY_FLOW_STEPS: readonly ExecutiveFlowStep[] = [
   { label: "6 · Confirm outcome", title: "PO + Leadership", detail: "Assess delivered capability, risk, and readiness against the original intended outcome.", accent: PURPLE, surface: PURPLE_SURFACE },
 ];
 
-type MetricCardProps = {
-  label: string;
-  value: string | number;
-  detail: string;
-  color: string;
-  surface?: string;
-  border?: string;
-};
-
-function MetricCard({ label, value, detail, color, surface = "#ffffff", border = "#e2e8f0" }: MetricCardProps) {
-  return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderTop: `4px solid ${color}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", minHeight: "124px", padding: "14px" }}>
-      <div style={{ color: "#64748b", fontSize: "10px", fontWeight: 850, letterSpacing: "0.075em", textTransform: "uppercase" }}>{label}</div>
-      <div style={{ color, fontSize: "28px", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1, marginTop: "12px" }}>{value}</div>
-      <div style={{ color: "#64748b", fontSize: "10px", lineHeight: 1.45, marginTop: "7px" }}>{detail}</div>
-    </div>
-  );
-}
-
 function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <div style={{ borderLeft: `4px solid ${PURPLE}`, marginBottom: "14px", paddingLeft: "12px" }}>
@@ -184,13 +160,7 @@ function SectionHeading({ eyebrow, title, description }: { eyebrow: string; titl
 }
 
 export default function PostPilotPage() {
-  const planningMetrics: MetricCardProps[] = [
-    { label: "PI4 Planning Records", value: POST_PILOT_PLANNING_SUMMARY.planningRecordCount, detail: `${POST_PILOT_PLANNING_SPRINT} feature rows`, color: PURPLE, surface: PURPLE_SURFACE, border: PURPLE_BORDER },
-    { label: "Committed", value: POST_PILOT_PLANNING_SUMMARY.markedCommittedCount, detail: "No commitments captured", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
-    { label: "Sized", value: POST_PILOT_PLANNING_SUMMARY.sizedCount, detail: "No sizing captured", color: "#64748b", surface: "#f8fafc", border: "#cbd5e1" },
-    { label: "High Business Value", value: POST_PILOT_PLANNING_SUMMARY.highValueCount, detail: "Rated 9 or 10 in source", color: "#0f766e", surface: "#f0fdfa", border: "#99f6e4" },
-    { label: "Linked ADO Dependencies", value: POST_PILOT_PLANNING_SUMMARY.linkedAdoDependencyCount, detail: POST_PILOT_PLANNING_SUMMARY.unresolvedDependencyCount === 0 ? "All supplied dependencies are identified" : `${POST_PILOT_PLANNING_SUMMARY.unresolvedDependencyCount} records show TBD`, color: "#b45309", surface: "#fffbeb", border: "#fde68a" },
-  ];
+
 
   return (
     <div style={{ maxWidth: "1320px", margin: "0 auto", padding: "28px 32px 48px", fontFamily: "system-ui, sans-serif" }}>
@@ -199,7 +169,7 @@ export default function PostPilotPage() {
           <div style={{ color: PURPLE, fontSize: "10px", fontWeight: 850, letterSpacing: "0.1em", textTransform: "uppercase" }}>Executive Health</div>
           <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 900, letterSpacing: "-0.02em", margin: "5px 0 0" }}>Post Pilot</h1>
           <p style={{ color: "#64748b", fontSize: "13px", lineHeight: 1.5, margin: "6px 0 0", maxWidth: "760px" }}>
-            A PI4 planning dashboard for managing post-pilot planning records, commitments, sizing, business value, and ADO dependencies without treating planning inventory as delivered work.
+            A PI4 Post Pilot workspace for sprint cadence, delivery readiness, prototypes, and evidence-based planning without implying PI4 portfolio delivery progress.
           </p>
         </div>
         <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -226,7 +196,7 @@ export default function PostPilotPage() {
         <div style={{ height: "6px", backgroundColor: "#e2e8f0", borderRadius: "3px", margin: "0 20px" }} />
         <div style={{ borderTop: `1px solid ${PURPLE_BORDER}`, marginTop: "14px", padding: "14px 20px 18px" }}>
           <div style={{ color: "#64748b", fontSize: "11px", fontStyle: "italic" }}>
-            Planning visibility only — excluded from all PI4 and MVP delivery metrics. Commitment and sizing fields are displayed as supplied; neither has been captured for this inventory.
+            Planning visibility only — excluded from all PI4 and MVP delivery metrics. The PI4 Sprint &amp; Feature Tracker retains the detailed planning inventory.
           </div>
           <Link href="/pi4-planning" style={{ color: PURPLE_INK, display: "inline-flex", fontSize: "12px", fontWeight: 850, marginTop: "12px", textDecoration: "none" }}>
             Open PI4 Sprint &amp; Feature Tracker →
@@ -323,73 +293,7 @@ export default function PostPilotPage() {
 
       <PostPilotDeploymentSnapshot />
 
-      <section aria-labelledby="pi4-planning-metrics" style={{ marginBottom: "26px" }}>
-        <SectionHeading
-          eyebrow="PI4 planning inventory"
-          title="Post Pilot Metrics"
-          description="These values describe the submitted planning inventory only. They do not represent active or completed PI4 delivery."
-        />
-        <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))" }}>
-          {planningMetrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-        </div>
-      </section>
 
-      <section aria-labelledby="planned-pi4-features">
-        <SectionHeading
-          eyebrow="Planning inventory detail"
-          title="Planned Features and ADO Dependencies"
-          description={`${POST_PILOT_PLANNING_SPRINT} feature and dependency details transcribed from the supplied ADO backlog snapshot. Commitment and sizing remain marked as not captured.`}
-        />
-        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
-          <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "space-between", padding: "11px 14px" }}>
-            <div id="planned-pi4-features" style={{ color: "#0f172a", fontSize: "12px", fontWeight: 850 }}>{POST_PILOT_PLANNING_SPRINT} feature inventory</div>
-            <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 850 }}>{POST_PILOT_PLANNING_SOURCE_SELECTION} · No PI4 delivery commitment recorded</div>
-          </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "1060px", width: "100%" }}>
-              <thead>
-                <tr style={{ background: "#1e293b", color: "#ffffff", textAlign: "left" }}>
-                  {[
-                    "Obj. #",
-                    "Feature / Objective Description",
-                    "Committed?",
-                    "Business Value (1–10)",
-                    "Sizing",
-                    "ADO Story / Dependency IDs",
-                  ].map((label) => (
-                    <th key={label} style={{ fontSize: "10px", fontWeight: 850, letterSpacing: "0.055em", padding: "10px 12px", textTransform: "uppercase" }}>{label}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {POST_PILOT_PLANNING_INVENTORY.map((record, index) => {
-                  const dependencyIsTbd = record.adoDependencies === "TBD";
-                  const dependencyText = Array.isArray(record.adoDependencies) ? record.adoDependencies.join(", ") : "TBD";
-                  return (
-                    <tr key={`${record.featureId}-${record.objectiveNumber || index}`} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}>
-                      <td style={{ color: "#475569", fontSize: "12px", fontWeight: 800, padding: "11px 12px", textAlign: "center", width: "6%" }}>{record.objectiveNumber || "—"}</td>
-                      <td style={{ padding: "11px 12px", width: "39%" }}>
-                        <div style={{ color: PURPLE_INK, fontSize: "10px", fontWeight: 850 }}>FEATURE {record.featureId}</div>
-                        <div style={{ color: "#1e293b", fontSize: "12px", fontWeight: 700, lineHeight: 1.4, marginTop: "3px" }}>{record.objectiveDescription}</div>
-                      </td>
-                      <td style={{ color: "#64748b", fontSize: "11px", padding: "11px 12px", width: "12%" }}>{record.committed}</td>
-                      <td style={{ padding: "11px 12px", width: "13%" }}>
-                        {record.businessValue === null ? <span style={{ color: "#94a3b8", fontSize: "11px" }}>Not provided</span> : (
-                          <span style={{ background: record.businessValue === 10 ? "#dcfce7" : "#eff6ff", border: `1px solid ${record.businessValue === 10 ? "#86efac" : "#bfdbfe"}`, borderRadius: "99px", color: record.businessValue === 10 ? "#166534" : "#1d4ed8", display: "inline-flex", fontSize: "11px", fontWeight: 850, padding: "3px 7px" }}>{record.businessValue}</span>
-                        )}
-                      </td>
-                      <td style={{ color: "#64748b", fontSize: "11px", padding: "11px 12px", width: "12%" }}>{record.sizing}</td>
-                      <td style={{ padding: "11px 12px", width: "18%" }}>
-                        {dependencyIsTbd ? <span style={{ color: "#b45309", fontSize: "11px", fontWeight: 850 }}>TBD</span> : <span style={{ color: "#334155", fontSize: "11px", lineHeight: 1.45 }}>{dependencyText}</span>}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
 
       <section aria-labelledby="post-pilot-prototypes" style={{ marginTop: "26px", marginBottom: "26px" }}>
         <SectionHeading
