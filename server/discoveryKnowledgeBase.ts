@@ -1124,6 +1124,28 @@ Before documenting any new requirement for the State or Provision workstream, de
 `,
   },
 
+  "/post-pilot/roger-pilot-backlog": {
+    pageTitle: "Team Roger Executive PI4 Dashboard",
+    pagePath: "/post-pilot/roger-pilot-backlog",
+    summary: "PI-wide Team Roger leadership dashboard for all five workstreams, with supplied aggregate metrics, goals and objectives, cross-workstream outcomes, dependencies, defects, and a bounded detailed evidence subset.",
+    suggestedQuestions: [
+      "What are the Team Roger PI4 portfolio metrics?",
+      "Which workstreams are included in the PI-wide leadership snapshot?",
+      "What are the PI-wide goals and cross-workstream outcomes?",
+      "What information is still needed for team-level scorecards?",
+      "How should the 23 defects and 8 dependencies be governed?",
+    ],
+    context: `
+## Team Roger Executive PI4 Dashboard
+
+- **Supplied PI-wide leadership metrics:** The first all-team snapshot reports **93 total features**, **50 Priority Must Have features**, **23 defects**, and **8 dependencies** across **Federal NV POD 1**, **Federal NV POD 2**, **TDC**, **State**, and **Provision**. The source is the user-supplied Team Roger Executive PI4 Dashboard and Priority Feature Level Query screenshots.
+- **Evidence boundary:** Aggregate metrics do not establish per-team scope, remaining work, completed percentage, burndown, owner, target date, defect assignment, or dependency impact. Ask Buddy must not calculate or infer those details. A reviewed team-level extract is required before scorecards or performance measures are populated.
+- **PI-wide goal framing:** Federal PODs advance their assigned Priority Must Have capabilities; TDC provides governed data, contract, integration, environment, and defect-resolution support; State advances its MVP filing, data, taxonomy, apportionment, and calculation-review foundations; Provision advances Return-to-Provision, Deferred Rollforward, summary, export, and BTP readiness. These are planning outcomes, not delivery commitments or technical approvals.
+- **Leadership controls:** Confirm each of the 8 dependencies with an accountable owner, affected workstreams, required decision, and date. Triage each of the 23 defects by workstream, severity, practitioner impact, blocker status, and release relevance. Keep defect count separate from feature scope and completion reporting.
+- **Detailed evidence subset:** The existing 25-record parent-feature register remains a prior detailed evidence subset with visible hierarchy markers. It is not a replacement for the current 93-feature inventory and must not be used to infer all-team progress.
+`,
+  },
+
   "/post-pilot": {
     pageTitle: "Post Pilot",
     pagePath: "/post-pilot",

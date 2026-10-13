@@ -41,6 +41,22 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     lastChange: "Positioned as the Executive Health workspace while retaining the governed delivery dashboard and all underlying delivery content.",
   },
 
+  "/post-pilot/roger-pilot-backlog": {
+    pageTitle: "Team Roger Executive PI4 Dashboard",
+    pageIcon: "◫",
+    description: "PI-wide Team Roger leadership dashboard with aggregate all-workstream feature, Priority Must Have, defect, and dependency metrics; PI goals, objectives, cross-workstream outcomes, and a detailed evidence subset.",
+    features: ["PI-wide Leadership Snapshot", "PI Goals & Objectives", "Cross-Workstream Outcome", "Dependency Action Register", "Defect Triage Control", "Detailed Parent-Feature Evidence Register"],
+    apis: [],
+    stories: [],
+    screens: ["Leadership Snapshot", "PI-wide Workstream Goals", "Cross-Workstream Alignment", "Leadership Action Register", "Parent-Feature Evidence Register"],
+    businessRules: ["The first PI-wide snapshot reports 93 total features, 50 Priority Must Have features, 23 defects, and 8 dependencies across Federal NV POD 1, Federal NV POD 2, TDC, State, and Provision", "Team-level scope, status, remaining work, completion, burndown, owner, and target date must not be inferred from aggregate metrics", "The retained 25-record parent-feature register is a detailed evidence subset, not a full current team dashboard", "Leadership goals and cross-workstream outcomes are PI planning statements and do not establish delivery commitments or architecture approval"],
+    batches: [],
+    businessObjects: ["PI4 Feature", "Priority Must Have Feature", "Defect", "Dependency", "Workstream Goal", "Cross-Workstream Outcome", "Parent-Feature Evidence Record"],
+    integrations: ["Team Roger Executive PI4 Dashboard", "Priority Feature Level Query", "Azure DevOps"],
+    lastUpdated: "2026-10-13",
+    lastChange: "Reframed the Roger Pilot Backlog as a PI-wide Team Roger Executive Dashboard. Added supplied aggregate portfolio metrics, five-workstream goals and objectives, cross-workstream outcomes, and metric gaps for a future team-level refresh; removed page-level cycle-specific references.",
+  },
+
   "/post-pilot": {
     pageTitle: "Post Pilot",
     pageIcon: "◫",
