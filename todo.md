@@ -309,3 +309,4 @@
 - [x] Remove the Parent-Feature Review Register from the Team Roger Executive PI4 Dashboard
 - [x] Simplify the Team Roger all-workstream table to Workstream and PI Goal / Focus only
 - [x] Bound Meeting Recaps analysis requests and replace generic fetch failures with actionable retry guidance
+- [x] Route the Meeting Recaps transcript upload through a single tRPC request rather than the batch transport
