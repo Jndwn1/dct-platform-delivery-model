@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LLMRequestTimeoutError } from "./_core/llm";
-import { buildTdcStandupEmail, normalizeMeetingRecapAnalysis, retryTimedOutRecapAnalysis, splitTranscriptForRecap } from "./meetingRecaps";
+import { analyzeTdcStandupTranscript, buildTdcStandupEmail, MAX_RECAP_TRANSCRIPT_CHARS, normalizeMeetingRecapAnalysis, retryTimedOutRecapAnalysis, splitTranscriptForRecap } from "./meetingRecaps";
 
 describe("TDC Meeting Recaps", () => {
   it("keeps developer updates separate and applies evidence-safe fallback values", () => {
@@ -95,5 +95,11 @@ describe("TDC Meeting Recaps", () => {
     expect(chunks.every((chunk) => chunk.length <= 125)).toBe(true);
     expect(chunks.join("\n\n")).toContain("Gary reviewed the architecture decision");
     expect(chunks.join("\n\n")).toContain("Jenniver will capture the follow-up items");
+  });
+
+  it("rejects an oversized transcript before making recap-model calls", async () => {
+    await expect(analyzeTdcStandupTranscript("x".repeat(MAX_RECAP_TRANSCRIPT_CHARS + 1))).rejects.toThrow(
+      "more than 48,000 readable characters"
+    );
   });
 });

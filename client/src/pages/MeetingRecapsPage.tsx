@@ -67,7 +67,10 @@ function fileToBase64(file: File) {
 function recapUploadErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   if (/Transcript analysis did not complete after two attempts/i.test(message)) {
-    return "The recap service was slow after an automatic retry. No recap was created. Keep the selected transcript and try again in a moment.";
+    return "The recap service did not complete within the safe processing window after an automatic retry. No recap was created. Keep the selected transcript and try again in a moment.";
+  }
+  if (/Failed to fetch|request aborted|network error/i.test(message)) {
+    return "The connection closed before recap generation completed. No recap was created and the selected transcript remains available. Refresh the page, then try again; processing now stops early rather than waiting for the browser connection to expire.";
   }
   return message || "The transcript could not be analyzed. Keep the selected file and try again.";
 }
@@ -284,7 +287,7 @@ export default function MeetingRecapsPage() {
           <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" }}>
             <label style={{ alignItems: "center", background: "#ffffff", border: "1px dashed #7c3aed", borderRadius: "6px", color: "#5b21b6", cursor: "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 12px" }}><Upload size={15} />{selectedFile ? selectedFile.name : "Choose transcript (.docx or .txt)"}<input type="file" accept=".docx,.txt" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} style={{ display: "none" }} /></label>
             <button type="button" onClick={generateRecap} disabled={!selectedFile || createRecap.isPending} style={{ alignItems: "center", background: !selectedFile || createRecap.isPending ? "#94a3b8" : "#0f172a", border: "none", borderRadius: "6px", color: "#ffffff", cursor: !selectedFile || createRecap.isPending ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 13px" }}>{createRecap.isPending ? <LoaderCircle className="animate-spin" size={15} /> : <Sparkles size={15} />}{createRecap.isPending ? "Analyzing transcript…" : "Generate Recap"}</button>
-            <span style={{ color: "#64748b", fontSize: "11px" }}>No manual re-entry required. Longer transcripts are distilled in parallel; slow requests retry once automatically.</span>
+            <span style={{ color: "#64748b", fontSize: "11px" }}>No manual re-entry required. Longer transcripts are distilled in parallel; each analysis is time-bounded and retries once automatically.</span>
           </div>
           {(recapError || createRecap.error) && <div role="alert" style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", color: "#991b1b", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}>{recapError ?? recapUploadErrorMessage(createRecap.error)}</div>}
         </div>

@@ -36,10 +36,21 @@ const NEEDS_CONFIRMATION = "Needs confirmation";
 const NOT_SPECIFIED = "Not specified";
 const NONE_REPORTED = "None reported";
 const RECAP_MODEL = "gpt-5-mini";
-const RECAP_LLM_TIMEOUT_MS = 45_000;
+// Keep the full tRPC request safely below the browser-preview gateway deadline.
+// gpt-5-mini normally completes a recap in seconds; a slow attempt is retried once.
+const RECAP_LLM_TIMEOUT_MS = 15_000;
 const RECAP_LLM_MAX_ATTEMPTS = 2;
 const DIRECT_TRANSCRIPT_CHAR_LIMIT = 18_000;
 const TRANSCRIPT_CHUNK_CHAR_LIMIT = 12_000;
+export const MAX_RECAP_TRANSCRIPT_CHARS = 48_000;
+
+function assertTranscriptWithinRecapLimit(transcriptText: string) {
+  if (transcriptText.length > MAX_RECAP_TRANSCRIPT_CHARS) {
+    throw new Error(
+      "The transcript contains more than 48,000 readable characters. Split the meeting into smaller transcript files and generate a recap for each file."
+    );
+  }
+}
 
 export function splitTranscriptForRecap(transcriptText: string, maxChars = TRANSCRIPT_CHUNK_CHAR_LIMIT) {
   const normalized = transcriptText.replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim();
@@ -369,12 +380,13 @@ export async function analyzeTdcStandupTranscript(transcriptText: string) {
   let response;
   try {
     const normalizedTranscript = transcriptText.trim();
+    assertTranscriptWithinRecapLimit(normalizedTranscript);
     const chunks = normalizedTranscript.length > DIRECT_TRANSCRIPT_CHAR_LIMIT
       ? splitTranscriptForRecap(normalizedTranscript)
       : [normalizedTranscript];
     const source = chunks.length === 1
       ? `Transcript:\n${chunks[0]}`
-      : `Evidence extracted in parallel from ${chunks.length} transcript parts:\n${(await mapWithConcurrency(chunks, (chunk, index) => extractTranscriptEvidence(chunk, index, chunks.length))).flat().map((item) => `- ${item}`).join("\n")}`;
+      : `Evidence extracted in parallel from ${chunks.length} transcript parts:\n${(await mapWithConcurrency(chunks, (chunk, index) => extractTranscriptEvidence(chunk, index, chunks.length), 4)).flat().map((item) => `- ${item}`).join("\n")}`;
 
     response = await invokeRecapModel([
       { role: "system", content: `You create evidence-bound TDC Daily Standup recap records. ${recapRules}` },
