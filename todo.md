@@ -310,3 +310,4 @@
 - [x] Simplify the Team Roger all-workstream table to Workstream and PI Goal / Focus only
 - [x] Bound Meeting Recaps analysis requests and replace generic fetch failures with actionable retry guidance
 - [x] Route the Meeting Recaps transcript upload through a single tRPC request rather than the batch transport
+- [x] Expand Post Pilot deployment capability and ADO ID fields to preserve valid multi-item entries and prevent creation errors

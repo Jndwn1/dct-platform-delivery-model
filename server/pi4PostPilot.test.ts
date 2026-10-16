@@ -8,8 +8,17 @@ import {
   POST_PILOT_PLANNING_SUMMARY,
   POST_PILOT_PLANNING_SPRINT,
 } from "../client/src/lib/postPilotPlanningInventory";
+import { buildPostPilotDeploymentWiki } from "../client/src/components/PostPilotDeploymentSnapshot";
 
 describe("PI4 Post Pilot delivery", () => {
+  it("preserves the complete saved deployment summary in the Data Gateway wiki export", () => {
+    const wiki = buildPostPilotDeploymentWiki([{ deploymentId: "PPDEP-2026-1016-001", deploymentDate: "2026-10-16", releaseName: "State data package deployment", screenName: "State filing and data-package capabilities", type: "Technical Story", platform: "TDC", status: "Deployed", environment: "QA", deploymentOwner: "Gary Luca", productOwner: "Jenniver Stafford", relatedFeature: "State integration", relatedStory: "Story 1501980", adoWorkItemId: "1501980, 1501981, 1501982, 1501983, 1501984", summary: "Initial deployment summary.\nValidation notes are retained.\nThird summary detail must be retained in the wiki export." }]);
+    expect(wiki).toContain("Initial deployment summary.");
+    expect(wiki).toContain("Validation notes are retained.");
+    expect(wiki).toContain("Third summary detail must be retained in the wiki export.");
+    expect(wiki).toContain("[1501984]");
+  });
+
   it("keeps PI4 at zero delivery progress because planning items are visibility-only", () => {
     expect(derivePICompletion(DEFAULT_STATUS).pi4).toEqual({ total: 0, complete: 0, pct: 0 });
     expect(DEFAULT_STATUS["pi4-manual-client-account-management"]).toBe("Not Started");
@@ -190,12 +199,19 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("does not change PI4 sprint progress");
     expect(deploymentSnapshot).not.toContain('href="/deployment-registry"');
     expect(schema).toContain('postPilotDeployments = mysqlTable("post_pilot_deployments"');
-    expect(schema).toContain('screenName: varchar("screenName", { length: 256 }).notNull()');
+    expect(schema).toContain('screenName: text("screenName").notNull()');
+    expect(schema).toContain('adoWorkItemId: text("adoWorkItemId")');
     expect(router).toContain("postPilotDeploymentRegistry: router");
     expect(postPilotDeploymentRouter).toContain('where(eq(postPilotDeployments.platform, "TDC"))');
     expect(postPilotDeploymentRouter).toContain('platform: z.literal("TDC")');
     expect(postPilotDeploymentRouter).not.toContain('platform: z.enum(["PDC", "TDC", "Platform", "Both"])');
-    expect(router).toContain("screenName: z.string().min(1).max(256)");
+    expect(postPilotDeploymentRouter).toContain("screenName: z.string().min(1).max(8000)");
+    expect(postPilotDeploymentRouter).toContain("adoWorkItemId: z.string().max(4000).optional()");
+    expect(deploymentSnapshot).toContain("ADO Work Item IDs");
+    expect(deploymentSnapshot).toContain("maxLength={8000}");
+    expect(deploymentSnapshot).toContain("maxLength={4000}");
+    expect(deploymentSnapshot).toContain("record.summary?.trim()");
+    expect(deploymentSnapshot).toContain("escapeWikiCell(overview)");
     expect(router).toContain("PPDEP-");
     expect(postPilot).toContain("PI4 Pod Delivery & Data Review Process");
     expect(postPilot).toContain('import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow"');

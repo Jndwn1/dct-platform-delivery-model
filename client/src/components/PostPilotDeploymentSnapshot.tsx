@@ -105,8 +105,7 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
   } else {
     const releaseEntries = orderedRecords.map((record) => {
       const source = splitReleaseSource(record.summary);
-      const sourceDetails = source.lead.filter((line) => !line.startsWith("-"));
-      const overview = sourceDetails.slice(0, 2).join(" ");
+      const overview = record.summary?.trim() || `This release record captures ${record.releaseName}.`;
       const adoIds = extractAdoIds(source.adoItems, record.adoWorkItemId);
       return { adoIds, overview, record };
     });
@@ -127,7 +126,7 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
         escapeWikiCell(record.productOwner),
         escapeWikiCell(record.relatedFeature),
         formatAdoLinks(adoIds),
-        `${escapeWikiCell(overview || `This release record captures ${record.releaseName}.`)} |`,
+        `${escapeWikiCell(overview)} |`,
       ].join(" | "));
     });
   }
@@ -226,11 +225,19 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
             <div><label style={labelStyle}>Deployment Owner *</label><input required value={form.deploymentOwner} onChange={(event) => set("deploymentOwner", event.target.value)} placeholder="e.g. Gary Luca" style={fieldStyle} /></div>
             <div><label style={labelStyle}>Product Owner *</label><input required value={form.productOwner} onChange={(event) => set("productOwner", event.target.value)} placeholder="e.g. Product Owner" style={fieldStyle} /></div>
           </div>
-          <div><label style={labelStyle}>Affected Screen / Capability *</label><input required value={form.screenName} onChange={(event) => set("screenName", event.target.value)} placeholder="e.g. State Filing Footprint" style={fieldStyle} /></div>
+          <div>
+            <label style={labelStyle}>Affected Screen / Capability *</label>
+            <textarea required maxLength={8000} value={form.screenName} onChange={(event) => set("screenName", event.target.value)} placeholder="e.g. State Filing Footprint; Data Gateway routing updates" style={{ ...fieldStyle, minHeight: "64px", resize: "vertical" }} />
+            <div style={{ color: "#64748b", fontSize: "10px", marginTop: "4px" }}>List multiple affected screens or capabilities when needed · {form.screenName.length.toLocaleString()} / 8,000 characters</div>
+          </div>
           <div><label style={labelStyle}>Type *</label><select value={form.type} onChange={(event) => setForm((previous) => ({ ...previous, type: event.target.value as DeploymentType }))} style={fieldStyle}>{(["Feature", "Bug", "Technical Story", "Hotfix"] as DeploymentType[]).map((type) => <option key={type}>{type}</option>)}</select></div>
           <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "1fr 1fr" }}>
             <div><label style={labelStyle}>Environment</label><select value={form.environment} onChange={(event) => set("environment", event.target.value)} style={fieldStyle}>{["Production", "UAT", "QA", "Dev"].map((environment) => <option key={environment}>{environment}</option>)}</select></div>
-            <div><label style={labelStyle}>ADO Work Item ID</label><input value={form.adoWorkItemId} onChange={(event) => set("adoWorkItemId", event.target.value)} placeholder="e.g. 1494188" style={fieldStyle} /></div>
+            <div>
+              <label style={labelStyle}>ADO Work Item IDs</label>
+              <textarea maxLength={4000} value={form.adoWorkItemId} onChange={(event) => set("adoWorkItemId", event.target.value)} placeholder="e.g. 1494188, 1494189" style={{ ...fieldStyle, minHeight: "64px", resize: "vertical" }} />
+              <div style={{ color: "#64748b", fontSize: "10px", marginTop: "4px" }}>Use commas or separate lines for multiple items · {form.adoWorkItemId.length.toLocaleString()} / 4,000 characters</div>
+            </div>
           </div>
           <div><label style={labelStyle}>Related Feature</label><input value={form.relatedFeature} onChange={(event) => set("relatedFeature", event.target.value)} placeholder="e.g. Filing Footprint" style={fieldStyle} /></div>
           <div><label style={labelStyle}>Related Story / Bug</label><input value={form.relatedStory} onChange={(event) => set("relatedStory", event.target.value)} placeholder="e.g. Story 1494188" style={fieldStyle} /></div>

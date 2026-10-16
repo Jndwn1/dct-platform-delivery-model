@@ -116,13 +116,14 @@ export const postPilotDeployments = mysqlTable("post_pilot_deployments", {
   platform: mysqlEnum("postPilotPlatform", ["PDC", "TDC", "Platform", "Both"]).notNull(),
   type: mysqlEnum("postPilotDeploymentType", ["Feature", "Bug", "Technical Story", "Hotfix"]).notNull(),
   status: mysqlEnum("postPilotDeploymentStatus", ["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"]).default("Planned").notNull(),
-  /** Required screen/capability captured for the deployment tracking table. */
-  screenName: varchar("screenName", { length: 256 }).notNull(),
+  /** Required screen/capability list captured for the deployment tracking table. */
+  screenName: text("screenName").notNull(),
   summary: text("summary"),
   relatedFeature: varchar("relatedFeature", { length: 256 }),
   relatedStory: varchar("relatedStory", { length: 256 }),
   environment: varchar("environment", { length: 64 }).default("Production").notNull(),
-  adoWorkItemId: varchar("adoWorkItemId", { length: 32 }),
+  /** Comma- or line-separated Azure DevOps work item IDs. */
+  adoWorkItemId: text("adoWorkItemId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
