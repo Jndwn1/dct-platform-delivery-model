@@ -105,29 +105,40 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
   } else {
     const releaseEntries = orderedRecords.map((record) => {
       const source = splitReleaseSource(record.summary);
-      const overview = record.summary?.trim() || `This release record captures ${record.releaseName}.`;
       const adoIds = extractAdoIds(source.adoItems, record.adoWorkItemId);
-      return { adoIds, overview, record };
+      const deployment = [
+        `**Release:** ${escapeWikiCell(record.releaseName)}`,
+        `**Date:** ${formatReleaseDate(record.deploymentDate)}`,
+        `**Environment:** ${escapeWikiCell(record.environment)}`,
+        `**Type:** ${escapeWikiCell(record.type)}`,
+      ].join("<br>");
+      const scope = [
+        `**Affected capability:** ${escapeWikiCell(record.screenName)}`,
+        record.relatedFeature
+          ? `**Related feature:** ${escapeWikiCell(record.relatedFeature)}`
+          : null,
+        record.relatedStory
+          ? `**Related story / bug:** ${escapeWikiCell(record.relatedStory)}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join("<br>");
+      const summary = [
+        `**Summary:** ${escapeWikiCell(record.summary)}`,
+        `**ADO work items:** ${formatAdoLinks(adoIds)}`,
+        `**Deployment owner:** ${escapeWikiCell(record.deploymentOwner)}`,
+        `**Product owner:** ${escapeWikiCell(record.productOwner)}`,
+      ].join("<br>");
+      return { deployment, scope, summary };
     });
 
     lines.push(
-      "| Date | Release Name | Screen / Capability | Type | Environment | Deployment Owner | Product Owner | Related Feature | ADO Item | Release Overview |",
-      "|---|---|---|---|---|---|---|---|---|---|",
+      "| Deployment | Scope / Capability | Deployment Summary & Traceability |",
+      "|---|---|---|",
     );
 
-    releaseEntries.forEach(({ adoIds, overview, record }) => {
-      lines.push([
-        `| ${formatReleaseDate(record.deploymentDate)}`,
-        escapeWikiCell(record.releaseName),
-        escapeWikiCell(record.screenName),
-        escapeWikiCell(record.type),
-        escapeWikiCell(record.environment),
-        escapeWikiCell(record.deploymentOwner),
-        escapeWikiCell(record.productOwner),
-        escapeWikiCell(record.relatedFeature),
-        formatAdoLinks(adoIds),
-        `${escapeWikiCell(overview)} |`,
-      ].join(" | "));
+    releaseEntries.forEach(({ deployment, scope, summary }) => {
+      lines.push(`| ${deployment} | ${scope} | ${summary} |`);
     });
   }
 

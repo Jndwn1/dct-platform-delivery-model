@@ -17,6 +17,13 @@ describe("PI4 Post Pilot delivery", () => {
     expect(wiki).toContain("Validation notes are retained.");
     expect(wiki).toContain("Third summary detail must be retained in the wiki export.");
     expect(wiki).toContain("[1501984]");
+    expect(wiki).toContain(
+      "| Deployment | Scope / Capability | Deployment Summary & Traceability |"
+    );
+    expect(wiki).toContain("**ADO work items:**");
+    expect(wiki).not.toContain(
+      "| Date | Release Name | Screen / Capability | Type | Environment |"
+    );
   });
 
   it("keeps PI4 at zero delivery progress because planning items are visibility-only", () => {
@@ -166,8 +173,13 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("PI4 / Post Pilot Data Gateway release documentation");
     expect(deploymentSnapshot).toContain("Registry records represented");
     expect(deploymentSnapshot).toContain('"## Release Index"');
-    expect(deploymentSnapshot).toContain("Release Name | Screen / Capability");
-    expect(deploymentSnapshot).toContain("Release Overview |");
+    expect(deploymentSnapshot).toContain(
+      "Deployment | Scope / Capability | Deployment Summary & Traceability"
+    );
+    expect(deploymentSnapshot).toContain("**ADO work items:**");
+    expect(deploymentSnapshot).not.toContain(
+      "Date | Release Name | Screen / Capability | Type | Environment |"
+    );
     expect(deploymentSnapshot).toContain("ADO_WORK_ITEM_URL");
     expect(deploymentSnapshot).toContain("Tax%20AI%20Solutions/_workitems/edit/");
     expect(deploymentSnapshot).toContain("consolidateReleaseRecords");
@@ -210,8 +222,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("ADO Work Item IDs");
     expect(deploymentSnapshot).toContain("maxLength={8000}");
     expect(deploymentSnapshot).toContain("maxLength={4000}");
-    expect(deploymentSnapshot).toContain("record.summary?.trim()");
-    expect(deploymentSnapshot).toContain("escapeWikiCell(overview)");
+    expect(deploymentSnapshot).toContain("escapeWikiCell(record.summary)");
+    expect(deploymentSnapshot).toContain("**Deployment owner:**");
     expect(router).toContain("PPDEP-");
     expect(postPilot).toContain("PI4 Pod Delivery & Data Review Process");
     expect(postPilot).toContain('import ExecutiveProcessFlow, { type ExecutiveFlowStep } from "@/components/ExecutiveProcessFlow"');

@@ -311,3 +311,4 @@
 - [x] Bound Meeting Recaps analysis requests and replace generic fetch failures with actionable retry guidance
 - [x] Route the Meeting Recaps transcript upload through a single tRPC request rather than the batch transport
 - [x] Expand Post Pilot deployment capability and ADO ID fields to preserve valid multi-item entries and prevent creation errors
+- [x] Simplify the Data Gateway wiki release index into wide top-aligned summary columns
