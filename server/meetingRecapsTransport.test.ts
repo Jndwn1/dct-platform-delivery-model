@@ -14,4 +14,28 @@ describe("Meeting Recaps transport", () => {
     expect(transport).toContain("true: httpLink({");
     expect(transport).toContain("false: httpBatchLink({");
   });
+
+  it("keeps transcript text out of the recap-history response and retries transient history failures", () => {
+    const router = readFileSync("server/routers.ts", "utf8");
+    const page = readFileSync("client/src/pages/MeetingRecapsPage.tsx", "utf8");
+    const listProcedure = router.slice(
+      router.indexOf("tdcMeetingRecaps: router({"),
+      router.indexOf("createFromTranscript: publicProcedure")
+    );
+    const createResponse = router.slice(
+      router.indexOf(
+        "const [record] = await db.select().from(tdcMeetingRecaps)"
+      ),
+      router.indexOf("updateEmailStatus: publicProcedure")
+    );
+
+    expect(listProcedure).toContain(
+      "transcriptStorageUrl: tdcMeetingRecaps.transcriptStorageUrl"
+    );
+    expect(listProcedure).not.toContain("transcriptText:");
+    expect(createResponse).not.toContain("...record,");
+    expect(page).toContain("tdcMeetingRecaps.list.useQuery(undefined, {");
+    expect(page).toContain("retry: 2,");
+    expect(page).toContain("Retry loading history");
+  });
 });

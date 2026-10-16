@@ -237,7 +237,10 @@ function MeetingRecordDetail({ record, onStatusChange }: { record: MeetingRecord
 
 export default function MeetingRecapsPage() {
   const utils = trpc.useUtils();
-  const { data: meetingRecords = [], isLoading } = trpc.tdcMeetingRecaps.list.useQuery();
+  const { data: meetingRecords = [], isError: isMeetingHistoryError, isLoading, refetch: refetchMeetingHistory } = trpc.tdcMeetingRecaps.list.useQuery(undefined, {
+    retry: 2,
+    retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 2_000),
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedId, setSelectedId] = useState<number | undefined>();
   const [recapError, setRecapError] = useState<string | null>(null);
@@ -293,7 +296,7 @@ export default function MeetingRecapsPage() {
         </div>
       </section>
 
-      {isLoading ? <div style={{ color: "#64748b", fontSize: "12px", padding: "28px 0", textAlign: "center" }}>Loading meeting recap history…</div> : <>
+      {isLoading ? <div style={{ color: "#64748b", fontSize: "12px", padding: "28px 0", textAlign: "center" }}>Loading meeting recap history…</div> : isMeetingHistoryError ? <div role="alert" style={{ alignItems: "center", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "8px", color: "#9a3412", display: "flex", flexWrap: "wrap", fontSize: "12px", gap: "12px", justifyContent: "space-between", marginTop: "28px", padding: "14px 16px" }}><span><strong>Meeting recap history could not be loaded.</strong> The connection was interrupted after automatic retries; no recap records were changed.</span><button type="button" onClick={() => void refetchMeetingHistory()} style={{ background: "#ffffff", border: "1px solid #d97706", borderRadius: "6px", color: "#92400e", cursor: "pointer", fontSize: "11px", fontWeight: 850, padding: "7px 10px" }}>Retry loading history</button></div> : <>
         <Tracker records={activeRecords} selectedId={selectedRecord?.id} onSelect={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-recap-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} onSelectAction={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-action-items-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} />
         <SentRecapHistory records={sentRecords} />
         {selectedRecord && <MeetingRecordDetail record={selectedRecord} onStatusChange={(emailStatus) => updateStatus.mutate({ id: selectedRecord.id, emailStatus })} />}

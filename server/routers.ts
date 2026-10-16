@@ -762,7 +762,27 @@ ${input.notes}` as string },
     list: publicProcedure.query(async () => {
       const db = await getDb();
       if (!db) return [];
-      const records = await db.select().from(tdcMeetingRecaps).orderBy(desc(tdcMeetingRecaps.meetingDate), desc(tdcMeetingRecaps.createdAt));
+      // The retained transcript remains in storage and is opened through its source link.
+      // Do not return transcriptText in the history query: it makes each page load needlessly
+      // large and can cause transient browser transport failures.
+      const records = await db.select({
+        id: tdcMeetingRecaps.id,
+        meetingDate: tdcMeetingRecaps.meetingDate,
+        meetingTitle: tdcMeetingRecaps.meetingTitle,
+        sprint: tdcMeetingRecaps.sprint,
+        attendeesJson: tdcMeetingRecaps.attendeesJson,
+        keyFocusJson: tdcMeetingRecaps.keyFocusJson,
+        transcriptFileName: tdcMeetingRecaps.transcriptFileName,
+        transcriptStorageUrl: tdcMeetingRecaps.transcriptStorageUrl,
+        emailSubject: tdcMeetingRecaps.emailSubject,
+        emailBody: tdcMeetingRecaps.emailBody,
+        developerUpdatesJson: tdcMeetingRecaps.developerUpdatesJson,
+        actionItemsJson: tdcMeetingRecaps.actionItemsJson,
+        blockersRisksJson: tdcMeetingRecaps.blockersRisksJson,
+        decisionsCalloutsJson: tdcMeetingRecaps.decisionsCalloutsJson,
+        notes: tdcMeetingRecaps.notes,
+        emailStatus: tdcMeetingRecaps.emailStatus,
+      }).from(tdcMeetingRecaps).orderBy(desc(tdcMeetingRecaps.meetingDate), desc(tdcMeetingRecaps.createdAt));
       return records.map((record) => ({
         ...record,
         id: Number(record.id),
@@ -829,8 +849,16 @@ ${input.notes}` as string },
         const [record] = await db.select().from(tdcMeetingRecaps).orderBy(desc(tdcMeetingRecaps.id)).limit(1);
         if (!record) throw new Error("The generated recap could not be saved.");
         return {
-          ...record,
           id: Number(record.id),
+          meetingDate: record.meetingDate,
+          meetingTitle: record.meetingTitle,
+          sprint: record.sprint,
+          transcriptFileName: record.transcriptFileName,
+          transcriptStorageUrl: record.transcriptStorageUrl,
+          emailSubject: record.emailSubject,
+          emailBody: record.emailBody,
+          notes: record.notes,
+          emailStatus: record.emailStatus,
           attendees: analysis.attendees,
           keyFocus: analysis.keyFocus,
           developerUpdates: analysis.developerUpdates,
