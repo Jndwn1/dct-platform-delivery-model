@@ -106,39 +106,40 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
     const releaseEntries = orderedRecords.map((record) => {
       const source = splitReleaseSource(record.summary);
       const adoIds = extractAdoIds(source.adoItems, record.adoWorkItemId);
-      const deployment = [
-        `**Release:** ${escapeWikiCell(record.releaseName)}`,
-        `**Date:** ${formatReleaseDate(record.deploymentDate)}`,
-        `**Environment:** ${escapeWikiCell(record.environment)}`,
-        `**Type:** ${escapeWikiCell(record.type)}`,
-      ].join("<br>");
-      const scope = [
-        `**Affected capability:** ${escapeWikiCell(record.screenName)}`,
-        record.relatedFeature
-          ? `**Related feature:** ${escapeWikiCell(record.relatedFeature)}`
-          : null,
-        record.relatedStory
-          ? `**Related story / bug:** ${escapeWikiCell(record.relatedStory)}`
-          : null,
-      ]
-        .filter(Boolean)
-        .join("<br>");
-      const summary = [
-        `**Summary:** ${escapeWikiCell(record.summary)}`,
-        `**ADO work items:** ${formatAdoLinks(adoIds)}`,
-        `**Deployment owner:** ${escapeWikiCell(record.deploymentOwner)}`,
-        `**Product owner:** ${escapeWikiCell(record.productOwner)}`,
-      ].join("<br>");
-      return { deployment, scope, summary };
+      return { adoIds, record };
     });
 
     lines.push(
-      "| Deployment | Scope / Capability | Deployment Summary & Traceability |",
-      "|---|---|---|",
+      "| # | Deployment | Scope / Capability | Deployment Summary & Traceability |",
+      "|---:|---|---|---|",
     );
 
-    releaseEntries.forEach(({ deployment, scope, summary }) => {
-      lines.push(`| ${deployment} | ${scope} | ${summary} |`);
+    releaseEntries.forEach(({ record }, index) => {
+      const deploymentNumber = index + 1;
+      lines.push(
+        `| ${deploymentNumber} | ${formatReleaseDate(record.deploymentDate)} — ${escapeWikiCell(record.releaseName)} | ${escapeWikiCell(record.screenName)} | See **Deployment ${deploymentNumber}** below |`,
+      );
+    });
+
+    releaseEntries.forEach(({ adoIds, record }, index) => {
+      const deploymentNumber = index + 1;
+      lines.push(
+        "",
+        `## Deployment ${deploymentNumber} — ${escapeWikiCell(record.releaseName)}`,
+        "",
+        "| Field | Details |",
+        "|---|---|",
+        `| Date | ${formatReleaseDate(record.deploymentDate)} |`,
+        `| Environment | ${escapeWikiCell(record.environment)} |`,
+        `| Type | ${escapeWikiCell(record.type)} |`,
+        `| Scope / Capability | ${escapeWikiCell(record.screenName)} |`,
+        `| Related Feature | ${escapeWikiCell(record.relatedFeature)} |`,
+        `| Related Story / Bug | ${escapeWikiCell(record.relatedStory)} |`,
+        `| Deployment Summary | ${escapeWikiCell(record.summary)} |`,
+        `| ADO Work Items | ${formatAdoLinks(adoIds)} |`,
+        `| Deployment Owner | ${escapeWikiCell(record.deploymentOwner)} |`,
+        `| Product Owner | ${escapeWikiCell(record.productOwner)} |`,
+      );
     });
   }
 
@@ -336,19 +337,48 @@ export default function PostPilotDeploymentSnapshot() {
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "980px", width: "100%" }}>
-              <thead><tr style={{ background: "#0f172a", textAlign: "left" }}>{["Date", "Release Name", "Screen / Capability", "Type", "Environment", "Deployment Owner", "Product Owner", "Related Feature", "ADO Item"].map((heading) => <th key={heading} style={{ color: "#cbd5e1", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{heading}</th>)}</tr></thead>
-              <tbody>{records.map((record, index) => <tr key={record.deploymentId} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
-                <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px", whiteSpace: "nowrap" }}>{record.deploymentDate}</td>
-                <td style={{ color: "#1e293b", fontSize: "11px", fontWeight: 750, maxWidth: "260px", padding: "11px 12px" }}>{record.releaseName}</td>
-                <td style={{ color: "#0f766e", fontSize: "11px", fontWeight: 800, maxWidth: "210px", padding: "11px 12px" }}>{record.screenName}</td>
-                <td style={{ padding: "11px 12px" }}><span style={{ background: "#fef3c7", border: "1px solid #fde68a", borderRadius: "999px", color: "#92400e", display: "inline-flex", fontSize: "9px", fontWeight: 850, padding: "3px 6px", whiteSpace: "nowrap" }}>{record.type}</span></td>
-                <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{record.environment}</td>
-                <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{record.deploymentOwner}</td>
-                <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{record.productOwner}</td>
-                <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{record.relatedFeature ?? "—"}</td>
-                <td style={{ color: "#475569", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: "10px", padding: "11px 12px" }}>{record.adoWorkItemId ?? "—"}</td>
-              </tr>)}</tbody>
+            <table style={{ borderCollapse: "collapse", minWidth: "1220px", tableLayout: "fixed", width: "100%" }}>
+              <colgroup>
+                <col style={{ width: "56px" }} />
+                <col style={{ width: "260px" }} />
+                <col style={{ width: "380px" }} />
+                <col />
+              </colgroup>
+              <thead>
+                <tr style={{ background: "#0f172a", textAlign: "left" }}>
+                  {["#", "Deployment", "Scope / Capability", "Deployment Summary & Traceability"].map((heading) => (
+                    <th key={heading} scope="col" style={{ color: "#cbd5e1", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", verticalAlign: "top" }}>{heading}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((record, index) => {
+                  const adoIds = extractAdoIds(splitReleaseSource(record.summary).adoItems, record.adoWorkItemId);
+                  const cellStyle: React.CSSProperties = { color: "#475569", fontSize: "11px", lineHeight: 1.5, overflowWrap: "anywhere", padding: "14px 12px", verticalAlign: "top", whiteSpace: "pre-wrap" };
+                  return (
+                    <tr key={record.deploymentId} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}>
+                      <td style={{ ...cellStyle, color: "#0f766e", fontSize: "14px", fontWeight: 900, textAlign: "center" }}>{index + 1}</td>
+                      <td style={{ ...cellStyle, color: "#1e293b" }}>
+                        <div style={{ fontWeight: 850 }}>{record.releaseName}</div>
+                        <div style={{ marginTop: "7px" }}><strong>Date:</strong> {record.deploymentDate}</div>
+                        <div><strong>Environment:</strong> {record.environment}</div>
+                        <div><strong>Type:</strong> {record.type}</div>
+                      </td>
+                      <td style={{ ...cellStyle, color: "#0f766e" }}>
+                        <div style={{ fontWeight: 800 }}>{record.screenName}</div>
+                        {record.relatedFeature && <div style={{ color: "#475569", marginTop: "8px" }}><strong>Related feature:</strong> {record.relatedFeature}</div>}
+                        {record.relatedStory && <div style={{ color: "#475569" }}><strong>Related story / bug:</strong> {record.relatedStory}</div>}
+                      </td>
+                      <td style={cellStyle}>
+                        <div><strong>Summary:</strong> {record.summary ?? "—"}</div>
+                        <div style={{ marginTop: "9px" }}><strong>ADO work items:</strong> {adoIds.length ? " " : " —"}{adoIds.map((id, adoIndex) => <span key={id}>{adoIndex > 0 ? ", " : ""}<a href={`${ADO_WORK_ITEM_URL}${id}`} target="_blank" rel="noreferrer" style={{ color: "#2563eb", fontWeight: 750 }}>{id}</a></span>)}</div>
+                        <div><strong>Deployment owner:</strong> {record.deploymentOwner}</div>
+                        <div><strong>Product owner:</strong> {record.productOwner}</div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
           </div>
         )}
