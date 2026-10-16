@@ -18,7 +18,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(wiki).toContain("Third summary detail must be retained in the wiki export.");
     expect(wiki).toContain("[1501984]");
     expect(wiki).toContain(
-      "| # | Deployment | Scope / Capability | Deployment Summary & Traceability |"
+      "| Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability |"
     );
     expect(wiki).toContain("| 1 | October 16, 2026");
     expect(wiki).toContain(
@@ -29,6 +29,20 @@ describe("PI4 Post Pilot delivery", () => {
     expect(wiki).not.toContain(
       "| Date | Release Name | Screen / Capability | Type | Environment |"
     );
+  });
+
+  it("numbers deployments chronologically while displaying the release index newest first", () => {
+    const wiki = buildPostPilotDeploymentWiki([
+      { deploymentId: "PPDEP-2026-1007-001", deploymentDate: "2026-10-07", releaseName: "Initial deployment", screenName: "State foundation", type: "Feature", platform: "TDC", status: "Deployed", environment: "Dev", deploymentOwner: "Gary Luca", productOwner: "Jenniver Stafford", relatedFeature: null, relatedStory: null, adoWorkItemId: null, summary: "Initial release." },
+      { deploymentId: "PPDEP-2026-1014-001", deploymentDate: "2026-10-14", releaseName: "Contract deployment", screenName: "State contract", type: "Technical Story", platform: "TDC", status: "Deployed", environment: "QA", deploymentOwner: "Gary Luca", productOwner: "Jenniver Stafford", relatedFeature: null, relatedStory: null, adoWorkItemId: null, summary: "Contract release." },
+      { deploymentId: "PPDEP-2026-1016-001", deploymentDate: "2026-10-16", releaseName: "Latest deployment", screenName: "State data package", type: "Technical Story", platform: "TDC", status: "Deployed", environment: "QA", deploymentOwner: "Gary Luca", productOwner: "Jenniver Stafford", relatedFeature: null, relatedStory: null, adoWorkItemId: null, summary: "Latest release." },
+    ]);
+
+    expect(wiki).toContain("> **Numbering:** Chronological by deployment date (earliest deployment is #1)");
+    expect(wiki.indexOf("| 3 | October 16, 2026")).toBeLessThan(wiki.indexOf("| 2 | October 14, 2026"));
+    expect(wiki.indexOf("| 2 | October 14, 2026")).toBeLessThan(wiki.indexOf("| 1 | October 7, 2026"));
+    expect(wiki).toContain("## Deployment 3 — Latest deployment");
+    expect(wiki).toContain("## Deployment 1 — Initial deployment");
   });
 
   it("keeps PI4 at zero delivery progress because planning items are visibility-only", () => {
@@ -179,7 +193,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("Registry records represented");
     expect(deploymentSnapshot).toContain('"## Release Index"');
     expect(deploymentSnapshot).toContain(
-      "# | Deployment | Scope / Capability | Deployment Summary & Traceability"
+      "Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability"
     );
     expect(deploymentSnapshot).toContain("## Deployment ${deploymentNumber}");
     expect(deploymentSnapshot).toContain("Deployment Summary & Traceability");
@@ -231,7 +245,8 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("escapeWikiCell(record.summary)");
     expect(deploymentSnapshot).toContain('tableLayout: "fixed"');
     expect(deploymentSnapshot).toContain('verticalAlign: "top"');
-    expect(deploymentSnapshot).toContain("index + 1");
+    expect(deploymentSnapshot).toContain("buildChronologicalDeploymentNumbers");
+    expect(deploymentSnapshot).toContain("earliest record as #1");
     expect(deploymentSnapshot).toContain("ADO work items:");
     expect(router).toContain("PPDEP-");
     expect(postPilot).toContain("PI4 Pod Delivery & Data Review Process");

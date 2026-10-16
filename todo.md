@@ -313,3 +313,4 @@
 - [x] Expand Post Pilot deployment capability and ADO ID fields to preserve valid multi-item entries and prevent creation errors
 - [x] Simplify the Data Gateway wiki release index into wide top-aligned summary columns
 - [x] Align the wiki and in-app Deployment Registry to a numbered, wide-column, top-aligned summary layout
+- [x] Number deployment registry records chronologically by deployment date while retaining reverse-chronological display

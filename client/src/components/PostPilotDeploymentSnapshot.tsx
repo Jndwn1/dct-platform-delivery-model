@@ -87,13 +87,23 @@ function consolidateReleaseRecords(records: DeploymentWikiRecord[]) {
   return Array.from(consolidated.values()).sort((left, right) => right.deploymentDate.localeCompare(left.deploymentDate));
 }
 
+function deploymentSequenceKey(record: Pick<DeploymentWikiRecord, "deploymentDate" | "deploymentId">) {
+  return `${record.deploymentDate}|${record.deploymentId}`;
+}
+
+function buildChronologicalDeploymentNumbers(records: Array<Pick<DeploymentWikiRecord, "deploymentDate" | "deploymentId">>) {
+  return new Map([...records].sort((left, right) => left.deploymentDate.localeCompare(right.deploymentDate) || left.deploymentId.localeCompare(right.deploymentId)).map((record, index) => [deploymentSequenceKey(record), index + 1]));
+}
+
 export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
   const orderedRecords = consolidateReleaseRecords(records);
+  const chronologicalDeploymentNumbers = buildChronologicalDeploymentNumbers(orderedRecords);
   const lines = [
     "# Data Gateway Release Notes",
     "",
     "> **Scope:** PI4 / Post Pilot Data Gateway release documentation",
     "> **Ordering:** Reverse chronological by deployment date",
+    "> **Numbering:** Chronological by deployment date (earliest deployment is #1)",
     `> **Registry records represented:** ${orderedRecords.length}`,
     "",
     "## Release Index",
@@ -110,19 +120,19 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
     });
 
     lines.push(
-      "| # | Deployment | Scope / Capability | Deployment Summary & Traceability |",
+      "| Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability |",
       "|---:|---|---|---|",
     );
 
-    releaseEntries.forEach(({ record }, index) => {
-      const deploymentNumber = index + 1;
+    releaseEntries.forEach(({ record }) => {
+      const deploymentNumber = chronologicalDeploymentNumbers.get(deploymentSequenceKey(record)) ?? 1;
       lines.push(
         `| ${deploymentNumber} | ${formatReleaseDate(record.deploymentDate)} — ${escapeWikiCell(record.releaseName)} | ${escapeWikiCell(record.screenName)} | See **Deployment ${deploymentNumber}** below |`,
       );
     });
 
-    releaseEntries.forEach(({ adoIds, record }, index) => {
-      const deploymentNumber = index + 1;
+    releaseEntries.forEach(({ adoIds, record }) => {
+      const deploymentNumber = chronologicalDeploymentNumbers.get(deploymentSequenceKey(record)) ?? 1;
       lines.push(
         "",
         `## Deployment ${deploymentNumber} — ${escapeWikiCell(record.releaseName)}`,
@@ -274,6 +284,7 @@ export default function PostPilotDeploymentSnapshot() {
   const [wikiDownloaded, setWikiDownloaded] = useState(false);
   const summary = summaryData ?? { total: 0, production: 0, tdc: 0, rollbackCandidates: 0 };
   const wikiMarkdown = useMemo(() => buildPostPilotDeploymentWiki(records), [records]);
+  const chronologicalDeploymentNumbers = useMemo(() => buildChronologicalDeploymentNumbers(records), [records]);
   const isLoading = isSummaryLoading || isRecordsLoading;
 
   async function copyWikiMarkdown() {
@@ -312,7 +323,7 @@ export default function PostPilotDeploymentSnapshot() {
             <button type="button" onClick={() => setShowCreate(true)} style={{ alignItems: "center", background: "#0f172a", border: "1px solid #0f172a", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><Plus size={13} />Create Deployment</button>
           </div>
         </div>
-        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Post Pilot deployments only. It starts at zero, does not use historical deployment records, and does not change PI4 sprint progress.</p>
+        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Post Pilot deployments only. Entries display newest first; deployment numbers follow chronological date order, with the earliest record as #1, and the registry does not change PI4 sprint progress.</p>
       </div>
 
       <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", marginBottom: "14px" }}>
@@ -339,14 +350,14 @@ export default function PostPilotDeploymentSnapshot() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", minWidth: "1220px", tableLayout: "fixed", width: "100%" }}>
               <colgroup>
-                <col style={{ width: "56px" }} />
+                <col style={{ width: "94px" }} />
                 <col style={{ width: "260px" }} />
                 <col style={{ width: "380px" }} />
                 <col />
               </colgroup>
               <thead>
                 <tr style={{ background: "#0f172a", textAlign: "left" }}>
-                  {["#", "Deployment", "Scope / Capability", "Deployment Summary & Traceability"].map((heading) => (
+                  {["Chronological #", "Deployment", "Scope / Capability", "Deployment Summary & Traceability"].map((heading) => (
                     <th key={heading} scope="col" style={{ color: "#cbd5e1", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", verticalAlign: "top" }}>{heading}</th>
                   ))}
                 </tr>
@@ -354,10 +365,11 @@ export default function PostPilotDeploymentSnapshot() {
               <tbody>
                 {records.map((record, index) => {
                   const adoIds = extractAdoIds(splitReleaseSource(record.summary).adoItems, record.adoWorkItemId);
+                  const deploymentNumber = chronologicalDeploymentNumbers.get(deploymentSequenceKey(record)) ?? 1;
                   const cellStyle: React.CSSProperties = { color: "#475569", fontSize: "11px", lineHeight: 1.5, overflowWrap: "anywhere", padding: "14px 12px", verticalAlign: "top", whiteSpace: "pre-wrap" };
                   return (
                     <tr key={record.deploymentId} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}>
-                      <td style={{ ...cellStyle, color: "#0f766e", fontSize: "14px", fontWeight: 900, textAlign: "center" }}>{index + 1}</td>
+                      <td style={{ ...cellStyle, color: "#0f766e", fontSize: "14px", fontWeight: 900, textAlign: "center" }}>{deploymentNumber}</td>
                       <td style={{ ...cellStyle, color: "#1e293b" }}>
                         <div style={{ fontWeight: 850 }}>{record.releaseName}</div>
                         <div style={{ marginTop: "7px" }}><strong>Date:</strong> {record.deploymentDate}</div>
