@@ -4,6 +4,9 @@ import {
   OPEN_DECISIONS,
   OPEN_STATE_CONFIRMATION,
   PROPOSED_STATE_NORMALIZED_DATASET,
+  STATE_IMS_GOSYSTEM_PRE_SESSION_INPUTS,
+  STATE_IMS_GOSYSTEM_SESSION_AGENDA,
+  STATE_IMS_GOSYSTEM_WORKING_SESSION,
   STATE_CURRENT_YEAR_SCHEMA_REFERENCE,
   STATE_NORMALIZATION_NEXT_ACTIONS,
   TAXONOMY_ALIGNMENT_TRANSCRIPT,
@@ -12,6 +15,7 @@ import {
   TAXONOMY_ALIGNMENT_TRANSCRIPT_SOURCE,
   TRANSCRIPT_FOLLOW_UPS,
   TRANSCRIPT_TDC_NEEDS,
+  TDC_WORKING_SESSION_COVERAGE,
   TDC_TAXONOMY_REQUIREMENTS,
   type ReadinessLevel,
 } from "@/lib/stateTaxonomyReadiness";
@@ -85,7 +89,7 @@ export default function StateTaxonomyReadinessPage() {
       <section aria-label="Taxonomy executive summary" style={{ background: C.purpleSurface, border: "1px solid #e9d5ff", borderRadius: "11px", boxShadow: "0 2px 8px rgba(124,58,237,.06)", marginBottom: "26px", overflow: "hidden" }}>
         <div style={{ background: C.navy, color: "#ffffff", padding: "13px 16px" }}>
           <div style={{ fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Session working focus</div>
-          <div style={{ fontSize: "17px", fontWeight: 900, lineHeight: 1.35, marginTop: "4px" }}>State has provided a proposed current-year normalization and downstream-mapping approach. The teams will validate the <span style={{ color: "#c4b5fd" }}>State-specific dataset</span>, <span style={{ color: "#c4b5fd" }}>IMS routing context</span>, and follow-up work before commitment.</div>
+          <div style={{ fontSize: "17px", fontWeight: 900, lineHeight: 1.35, marginTop: "4px" }}>State has provided a proposed current-year normalization and downstream-mapping approach. The teams will validate the <span style={{ color: "#c4b5fd" }}>State-specific dataset</span>, <span style={{ color: "#c4b5fd" }}>IMS routing context</span>, the three <span style={{ color: "#c4b5fd" }}>State ↔ IMS ↔ GoSystem data movements</span>, and follow-up work before commitment.</div>
         </div>
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(285px, 1fr))", padding: "15px" }}>
           <div style={{ background: "#ffffff", border: "1px solid #dbeafe", borderTop: "4px solid #2563eb", borderRadius: "8px", padding: "13px" }}>
@@ -93,14 +97,44 @@ export default function StateTaxonomyReadinessPage() {
             <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Confirm whether the current-year State Data Acquisition schema is the agreed approach for capturing and governing a State-specific normalized dataset.</p>
           </div>
           <div style={{ background: "#ffffff", border: "1px solid #99f6e4", borderTop: `4px solid ${C.teal}`, borderRadius: "8px", padding: "13px" }}>
-            <div style={{ color: C.teal, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>TDC working need</div>
-            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Validate the proposed structured State record, its source and review context, and the IMS locator and routing information needed for downstream GoSystem mapping.</p>
+            <div style={{ color: C.teal, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>TDC working-session focus</div>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Validate the proposed structured State record, separate prior-year Property, apportionment outbound, and calculated-results inbound movements, and identify the IMS locator, routing, data-type, and validation inputs needed before contract decisions.</p>
           </div>
           <div style={{ background: C.orangeSurface, border: "1px solid #fdba74", borderTop: `4px solid ${C.orange}`, borderRadius: "8px", padding: "13px" }}>
             <div style={{ color: C.orange, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>Still open</div>
-            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Schema confirmation, controlled user-adjustment treatment, the final State-to-GoSystem mapping approach, and the remaining calculation/output requirements are still open.</p>
+            <p style={{ color: C.slate, fontSize: "11px", lineHeight: 1.55, margin: "7px 0 0" }}>Schema confirmation, controlled user-adjustment treatment, field/grain and matching keys, data-type and validation standards, mapping boundaries, routing, persistence, reconciliation, and calculation/output requirements are still open.</p>
           </div>
         </div>
+      </section>
+
+      <section id="state-ims-gosystem-working-session" style={{ marginBottom: "30px" }}>
+        <SectionHeading eyebrow="Scheduled two-part working session · TDC coverage" title="State ↔ IMS ↔ GoSystem — TDC coverage and decision agenda" description="This working-session register records the supplied TDC discovery coverage and the decisions needed to move each transfer path forward. It complements the State taxonomy discussion; it does not replace the current taxonomy work or convert the session into an approved integration design." />
+        <div style={{ background: C.amberSurface, border: "1px solid #fde68a", borderRadius: "8px", color: "#713f12", fontSize: "11px", lineHeight: 1.55, marginBottom: "12px", padding: "11px 13px" }}><strong>Planning boundary:</strong> {STATE_IMS_GOSYSTEM_WORKING_SESSION.planningStatus} {STATE_IMS_GOSYSTEM_WORKING_SESSION.objective}</div>
+        <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15,23,42,.045)", marginBottom: "14px", overflow: "hidden" }}>
+          <div style={{ background: C.navy, color: "#ffffff", fontSize: "10px", fontWeight: 900, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase" }}>TDC coverage by data movement</div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ borderCollapse: "collapse", minWidth: "1340px", width: "100%" }}>
+              <thead><tr style={{ background: C.navy }}><TableHeader>Team</TableHeader><TableHeader>What It Does</TableHeader><TableHeader>Related Work Item</TableHeader><TableHeader>Title</TableHeader><TableHeader>Planning Status</TableHeader><TableHeader>Context / Notes</TableHeader></tr></thead>
+              <tbody>{TDC_WORKING_SESSION_COVERAGE.map((item, index) => <tr key={item.workItem} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="7%"><strong style={{ color: C.teal, fontSize: "11px" }}>{item.team}</strong></Cell><Cell width="17%"><strong style={{ color: C.navy, fontSize: "11px" }}>{item.coverage}</strong></Cell><Cell width="9%"><a href={item.sourceUrl} target="_blank" rel="noreferrer" style={{ color: C.purple, fontWeight: 900, textDecoration: "none" }}>{item.workItem} ↗</a></Cell><Cell width="20%"><strong style={{ color: C.navy, fontSize: "10px", lineHeight: 1.4 }}>{item.title}</strong></Cell><Cell width="12%"><span style={{ color: C.orange, fontSize: "9px", fontWeight: 900, textTransform: "uppercase" }}>{item.planningStatus}</span></Cell><Cell width="35%">{item.contextNotes}</Cell></tr>)}</tbody>
+            </table>
+          </div>
+        </div>
+        <div style={{ display: "grid", gap: "14px", gridTemplateColumns: "minmax(0, 1.25fr) minmax(320px, .75fr)" }}>
+          <div style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
+            <div style={{ background: "#1e3a5f", color: "#ffffff", fontSize: "10px", fontWeight: 900, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase" }}>Two-part working-session agenda</div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ borderCollapse: "collapse", minWidth: "920px", width: "100%" }}>
+                <thead><tr style={{ background: "#1e3a5f" }}><TableHeader>Session</TableHeader><TableHeader>Agenda / Question</TableHeader><TableHeader>Lead / Input</TableHeader><TableHeader>Proposed Deliverable</TableHeader><TableHeader>Decision / Open Item</TableHeader></tr></thead>
+                <tbody>{STATE_IMS_GOSYSTEM_SESSION_AGENDA.map((item, index) => <tr key={`${item.session}-${item.question}`} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: `1px solid ${C.border}` }}><Cell width="17%"><strong style={{ color: C.purple }}>{item.session}</strong></Cell><Cell width="26%">{item.question}</Cell><Cell width="18%"><span style={{ color: C.teal, fontWeight: 850 }}>{item.lead}</span></Cell><Cell width="22%">{item.deliverable}</Cell><Cell width="17%"><strong style={{ color: C.orange }}>{item.decision}</strong></Cell></tr>)}</tbody>
+              </table>
+            </div>
+          </div>
+          <div style={{ background: C.tealSurface, border: "1px solid #99f6e4", borderRadius: "10px", padding: "13px" }}>
+            <div style={{ color: C.teal, fontSize: "10px", fontWeight: 900, letterSpacing: "0.07em", textTransform: "uppercase" }}>Pre-session inputs needed</div>
+            {STATE_IMS_GOSYSTEM_PRE_SESSION_INPUTS.map((item, index) => <div key={item.input} style={{ borderTop: index ? "1px solid #99f6e4" : "none", marginTop: index ? "10px" : "7px", paddingTop: index ? "10px" : "0" }}><div style={{ color: C.navy, fontSize: "10px", fontWeight: 900 }}>{item.input}</div><div style={{ color: C.slate, fontSize: "10px", lineHeight: 1.45, marginTop: "3px" }}><strong>Owner:</strong> {item.owner}</div><div style={{ color: C.slate, fontSize: "10px", lineHeight: 1.45, marginTop: "3px" }}><strong>Evidence:</strong> {item.evidence}</div><div style={{ color: C.orange, fontSize: "9px", fontWeight: 850, lineHeight: 1.4, marginTop: "4px" }}>{item.gap}</div></div>)}
+          </div>
+        </div>
+        <div style={{ color: C.muted, fontSize: "10px", fontStyle: "italic", lineHeight: 1.45, marginTop: "9px" }}>Source: {STATE_IMS_GOSYSTEM_WORKING_SESSION.source}. Participants and outputs are expected working-session inputs, not an approved RACI, interface contract, or commitment.</div>
       </section>
 
       <section id="state-normalized-dataset" style={{ marginBottom: "30px" }}>

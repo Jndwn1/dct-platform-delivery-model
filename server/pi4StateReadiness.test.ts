@@ -25,4 +25,32 @@ describe("PI4 State delivery readiness", () => {
     expect(source).toContain("Cross-Team Dependencies · Roger UI");
     expect(source).toContain("PI 4 High-Level Scope");
   });
+
+  it("records evidence-bound TDC coverage for the scheduled State ↔ IMS ↔ GoSystem working session", () => {
+    const page = readFileSync(resolve(process.cwd(), "client/src/pages/StateTaxonomyReadinessPage.tsx"), "utf8");
+    const data = readFileSync(resolve(process.cwd(), "client/src/lib/stateTaxonomyReadiness.ts"), "utf8");
+
+    expect(page).toContain('id="state-ims-gosystem-working-session"');
+    expect(page).toContain("TDC_WORKING_SESSION_COVERAGE.map");
+    expect(page).toContain("STATE_IMS_GOSYSTEM_SESSION_AGENDA.map");
+    expect(page).toContain("STATE_IMS_GOSYSTEM_PRE_SESSION_INPUTS.map");
+    expect(page).toContain("Team");
+    expect(page).toContain("What It Does");
+    expect(page).toContain("Context / Notes");
+    expect(data).toContain("Discovery only — no approved interface contract, committed timeline, or production readiness implied.");
+    expect(data).toContain("1514276");
+    expect(data).toContain("TDC — Support State Apportionment Data Retrieval and Outbound Integration to IMS");
+    expect(data).toContain("1514277");
+    expect(data).toContain("TDC — Support Ingestion and Persistence of GoSystem State Calculated Results");
+    expect(data).toContain("1433863");
+    expect(data).toContain("Define Data Type & Validation Standards for TDC → IMS → GoSystem Translation");
+    expect(data).toContain("outbound TDC → IMS → GoSystem translation");
+    expect(data).toContain("Spike / Discovery — Not Implemented");
+    expect(data).toContain("Related Dependency / Validate");
+    expect(data).toContain("Taxonomy classification is not the same as GoSystem translation.");
+    expect(data).toContain("1464780, 1502182, 1502155");
+    expect(data).toContain("REQ-TAX-009");
+    expect(data).toContain("GAP-08");
+    expect(data).toContain("GAP-09");
+  });
 });

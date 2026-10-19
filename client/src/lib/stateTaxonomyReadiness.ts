@@ -167,6 +167,72 @@ export const STATE_NORMALIZATION_NEXT_ACTIONS = [
   },
 ] as const;
 
+export const STATE_IMS_GOSYSTEM_WORKING_SESSION = {
+  planningStatus: "Discovery only — no approved interface contract, committed timeline, or production readiness implied.",
+  objective: "Use a two-part working session to distinguish prior-year Property detail, State apportionment outbound movement, and calculated-results inbound movement before design or delivery commitments.",
+  source: "State ↔ IMS ↔ GoSystem | Two-Part Working Session Plan — supplied October 19, 2026",
+} as const;
+
+export type WorkingSessionTdcCoverage = {
+  team: string;
+  coverage: string;
+  workItem: string;
+  title: string;
+  planningStatus: string;
+  contextNotes: string;
+  sourceUrl: string;
+};
+
+// Evidence-bound to the supplied two-part working-session plan. These items are
+// discovery / validation activities; they do not evidence an implemented interface.
+export const TDC_WORKING_SESSION_COVERAGE: WorkingSessionTdcCoverage[] = [
+  {
+    team: "TDC",
+    coverage: "Retrieve and deliver governed State apportionment details outbound to IMS",
+    workItem: "1514276",
+    title: "TDC — Support State Apportionment Data Retrieval and Outbound Integration to IMS",
+    planningStatus: "Spike / Discovery — Not Implemented",
+    contextNotes: "Part 1/2 working session: confirm the target business process, initial apportionment scope, outbound source data and grain (entity, State, tax year, precision), Roger taxonomy, approval/override/totals semantics, IMS transformation/routing payload, and GoSystem mapping. Cross-reference 1464780, 1502182, 1502155, and data-type standards 1433863. State SMEs, Process (Krista; Bryce/Dhaval), TDC/Gary, IMS, and Roger State must record the decision, accountable owner, and next-step date before implementation planning.",
+    sourceUrl: "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/_workitems/edit/1514276",
+  },
+  {
+    team: "TDC",
+    coverage: "Ingest and persist GoSystem State calculated results returned via IMS",
+    workItem: "1514277",
+    title: "TDC — Support Ingestion and Persistence of GoSystem State Calculated Results",
+    planningStatus: "Spike / Discovery — Not Implemented",
+    contextNotes: "Part 1/2 working session: identify exactly which GoSystem calculated fields return, required granularity and key metadata, the inbound contract and routing, calculation/run identity, tax year/entity/State context, version and lineage, reconciliation, error handling, and persistence destination. Clarify when totals or overrides are source-as-calculated. State SMEs, Process mapping, IMS, Roger State, and Roger Data/TDC must agree the discovery scope before implementation planning.",
+    sourceUrl: "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/_workitems/edit/1514277",
+  },
+  {
+    team: "TDC",
+    coverage: "Define data types and validation for outbound TDC → IMS → GoSystem translation",
+    workItem: "1433863",
+    title: "Define Data Type & Validation Standards for TDC → IMS → GoSystem Translation",
+    planningStatus: "Related Dependency / Validate",
+    contextNotes: "Confirm shared field data types, null/zero semantics, precision, valid values, required metadata, and validation/error responsibility with Process, TDC, and IMS. Apply the standards work to outbound 1514276 and assess its relevance to inbound 1514277. The work item supports discovery and validation; it does not establish completed standards or an approved interface contract.",
+    sourceUrl: "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/_workitems/edit/1433863",
+  },
+];
+
+export const STATE_IMS_GOSYSTEM_SESSION_AGENDA = [
+  { session: "Part 1 · Business / data movement", question: "Confirm the target business process and initial State apportionment scope.", lead: "State business SMEs + Roger State", deliverable: "In-scope States, workflows, data outputs, and an initial acceptance boundary.", decision: "Scope remains open until the participating teams confirm it." },
+  { session: "Part 1 · Business / data movement", question: "Walk through all three movements separately, including extraction/ingestion steps and edge cases.", lead: "Roger State + IMS", deliverable: "Three agreed flow diagrams and handoffs.", decision: "Keep prior-year Property, current-year outbound, and calculated-results inbound distinct." },
+  { session: "Part 1 · Business / data movement", question: "Clarify totals, practitioner overrides, approval/lock status, and triggering/transmission patterns.", lead: "State SMEs + IMS + Roger State", deliverable: "Business rules and triggering/retry decision record.", decision: "Confirm when values are transmitted, overwritten, or retained." },
+  { session: "Part 2 · Data contracts / mapping", question: "Confirm required elements, record grain, data types, and validation conventions for each movement.", lead: "Process + TDC + IMS", deliverable: "Field inventory, grain, routing metadata, and validation inputs.", decision: "Entity, State, tax year, period, version, and run matching keys remain open." },
+  { session: "Part 2 · Data contracts / mapping", question: "Align Roger taxonomy and separate GoSystem mapping workstreams.", lead: "Krista + Gary · Bryce + Dhaval · IMS", deliverable: "Mapping ownership matrix and source-to-target crosswalk inputs.", decision: "Taxonomy classification is not the same as GoSystem translation." },
+  { session: "Part 2 · Data contracts / mapping", question: "Identify a representative field subset and validate IMS translation/routing needs.", lead: "Krista · Bryce/Dhaval · Rod · Cass · IMS", deliverable: "Testable sample inputs/outputs and mapping inputs.", decision: "A small proof must not be presented as an approved end-to-end contract." },
+  { session: "Part 2 · Decisions / planning", question: "Record decisions, story boundaries, handoffs, dependencies, and target outcomes.", lead: "Roger State + participating functions", deliverable: "Named follow-up, date, evidence, and next-step record.", decision: "Spike outcomes are required before implementation estimates." },
+] as const;
+
+export const STATE_IMS_GOSYSTEM_PRE_SESSION_INPUTS = [
+  { owner: "Roger State + Krista/Spencer", input: "Exact GoSystem import, export, and pull data requirements", collaborators: "State SMEs · Process", evidence: "Field-level scope and example records", movement: "All three", gap: "Source-of-truth list is not yet confirmed." },
+  { owner: "Roger State + IMS", input: "Separate mapping documents for each data movement", collaborators: "Process · TDC", evidence: "Three independent mappings / transfer diagrams", movement: "All three", gap: "IMS needs to identify pattern-specific complexity." },
+  { owner: "Ranjini + Krista", input: "Roger taxonomy and Process mapping readiness/status", collaborators: "Bryce · Dhaval · Gary", evidence: "Coverage list with pending decisions", movement: "Outbound / inbound", gap: "Mapping and taxonomy remain separate workstreams." },
+  { owner: "Krista + Bryce/Dhaval", input: "Initial sample field list for IMS", collaborators: "Rod · Cass", evidence: "Sample input/output with expected transformations", movement: "Outbound / inbound", gap: "Fields, data types, and destination availability remain unconfirmed." },
+  { owner: "IMS + Process", input: "Prior-year availability, grain, rollover rules, and correct locator", collaborators: "State SMEs · Roger State", evidence: "GoSystem prior-year Property extraction source and locator evidence", movement: "Prior-year Property", gap: "Availability and record grain remain unverified." },
+] as const;
+
 // Working requirements derived only from the supplied alignment transcript.
 // State / Tax SME confirmation remains required before design commitment or implementation.
 export const TDC_TAXONOMY_REQUIREMENTS: TaxonomyRequirement[] = [
@@ -178,6 +244,7 @@ export const TDC_TAXONOMY_REQUIREMENTS: TaxonomyRequirement[] = [
   { id: "REQ-TAX-006", title: "IMS locator and GoSystem routing context", statement: "Confirm with IMS the State data, locator context, and routing information required for downstream GoSystem mapping before defining the downstream mapping treatment.", reference: "State-provided next action · Confirmation pending" },
   { id: "REQ-TAX-007", title: "Calculation and output data requirements", statement: "As State features are refined, document data needs for apportionment outputs, State modifications, credits and NOLs, State taxable income, State liability, and review/output processes.", reference: "State-provided next action + transcript 1:01:52–1:02:10" },
   { id: "REQ-TAX-008", title: "Schema and story confirmation", statement: "Confirm the supplied current-year schema as the agreed approach before turning the proposed normalized dataset direction into refined requirements, stories, technical design, or delivery commitment.", reference: "State-provided next action · Confirmation pending" },
+  { id: "REQ-TAX-009", title: "Data type and validation standards for State transfer paths", statement: "Use Tech Story 1433863 to validate shared data types, null/zero semantics, precision, valid values, required matching/routing metadata, and validation/error responsibility for the TDC → IMS → GoSystem translation discussion. This does not establish completed standards or an approved interface.", reference: "State ↔ IMS ↔ GoSystem working-session plan · 1433863 · Related Dependency / Validate" },
 ];
 
 export type StoryImpact = { story: string; title: string; discussionImpact: string; risk: ReadinessLevel; nextStep: string; owner: string; reference: string };
@@ -211,6 +278,8 @@ export const OPEN_DECISIONS: OpenDecision[] = [
   { id: "GAP-05", gap: "Where is specific taxonomy detail required versus a general data table?", why: "Cass identified both table structures and places where specific taxonomy are needed, without deciding the boundary.", impact: "Data model and taxonomy discussion", owner: "State team + TDC", reference: "1:02:46–1:02:55" },
   { id: "GAP-06", gap: "How are calculation and output data areas represented in the shared inventory?", why: "Apportionment calculations, State modifications, attributes, State taxable income, and liabilities were named as next data areas, not as finalized design.", impact: "Calculation/output working scope", owner: "State team + TDC", reference: "1:01:52–1:02:10" },
   { id: "GAP-07", gap: "Which stories or action items can be created now?", why: "The group expected follow-ups, but the transcript does not establish a committed backlog or delivery plan.", impact: "Cross-team sequencing", owner: "State team + TDC + Orchestrator", reference: "1:03:02–1:03:24" },
+  { id: "GAP-08", gap: "Which data types, validation rules, matching metadata, and error responsibilities apply to each State movement?", why: "The working-session plan identifies these as a validation discussion supported by Tech Story 1433863; it does not provide an approved standard or interface contract.", impact: "TDC → IMS → GoSystem translation and validation readiness", owner: "Process + TDC + IMS", reference: "Working-session plan · 1433863" },
+  { id: "GAP-09", gap: "How should GoSystem State calculated results be keyed, persisted, reconciled, and handled when totals or overrides differ?", why: "The planned inbound-results spike identifies the questions but does not establish a storage, reconciliation, or exception decision.", impact: "Calculated-results inbound discovery scope", owner: "State SMEs + Process + IMS + Roger Data/TDC", reference: "Working-session plan · 1514277 · Spike / Discovery — Not Implemented" },
 ];
 
 export type TranscriptAlignmentSection = {
