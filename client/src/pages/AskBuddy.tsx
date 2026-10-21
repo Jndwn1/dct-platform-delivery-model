@@ -623,9 +623,10 @@ export default function AskBuddy() {
 
     const history = messages
       .filter((m) => m.id !== "welcome")
+      .slice(-2)
       .map((m) => ({
         role: m.role === "user" ? "user" as const : "assistant" as const,
-        content: m.text,
+        content: m.text.slice(-2_000),
       }));
 
     chatMutation.mutate({

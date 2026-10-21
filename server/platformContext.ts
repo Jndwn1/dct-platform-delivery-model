@@ -925,7 +925,10 @@ type CompactBuddyPromptInput = {
   liveSnapshot?: LiveSnapshotInput;
 };
 
-const COMPACT_CONTEXT_CHARS = 1_800;
+const COMPACT_CONTEXT_CHARS = 900;
+const COMPACT_STOP_WORDS = new Set([
+  "about", "after", "all", "and", "are", "can", "does", "for", "from", "have", "how", "into", "own", "owner", "owners", "owns", "show", "should", "that", "the", "this", "what", "which", "with",
+]);
 
 function compactText(value: string, maxChars = COMPACT_CONTEXT_CHARS) {
   const normalized = value.replace(/\s+/g, " ").trim();
@@ -934,13 +937,40 @@ function compactText(value: string, maxChars = COMPACT_CONTEXT_CHARS) {
     : normalized;
 }
 
+function compactTextAroundMatch(value: string, queryTokens: string[], maxChars = COMPACT_CONTEXT_CHARS) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  const matchingIndex = queryTokens
+    .map((token) => normalized.toLowerCase().indexOf(token))
+    .filter((index) => index >= 0)
+    .sort((a, b) => a - b)[0];
+
+  if (matchingIndex === undefined || matchingIndex <= maxChars) return compactText(normalized, maxChars);
+
+  const headingIndex = normalized.lastIndexOf("###", matchingIndex);
+  const start = headingIndex >= 0 ? headingIndex : Math.max(0, matchingIndex - Math.floor(maxChars / 3));
+  const excerpt = normalized.slice(start, start + maxChars).trim();
+  return `${start > 0 ? "…" : ""}${excerpt}${start + maxChars < normalized.length ? "…" : ""}`;
+}
+
 function compactTokens(value: string) {
-  return value.toLowerCase().match(/[a-z0-9]{3,}/g) ?? [];
+  return (value.toLowerCase().match(/[a-z0-9]{3,}/g) ?? []).filter((token) => !COMPACT_STOP_WORDS.has(token));
 }
 
 function matchesCompactQuestion(value: string, queryTokens: string[]) {
   const searchable = value.toLowerCase();
   return queryTokens.some((token) => searchable.includes(token));
+}
+
+function compactMatchScore(value: string, queryTokens: string[]) {
+  const searchable = value.toLowerCase();
+  return queryTokens.reduce((score, token) => {
+    let index = searchable.indexOf(token);
+    while (index >= 0) {
+      score += 1;
+      index = searchable.indexOf(token, index + token.length);
+    }
+    return score;
+  }, 0);
 }
 
 /**
@@ -954,7 +984,7 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
   const lines = [
     "# Ask Buddy — Governed Evidence Response",
     "You are Ask Buddy, a Business Analysis Assistant for the DCT Platform.",
-    "Answer only from the supplied evidence. Do not infer, fabricate APIs, merge conflicting sources, or treat planning material as implemented functionality.",
+    "For DCT-specific facts, answer only from the supplied evidence. Do not infer, fabricate APIs, merge conflicting sources, or treat planning material as implemented functionality. For a general business-analysis method question that does not request a DCT fact, provide helpful general guidance and label it as general guidance.",
     "Source priority: current Control Panel / governed record for delivery state; registered Swagger/OpenAPI for technical contracts; Discovery and page artifacts for business context.",
     "If the supplied evidence does not establish the answer, say exactly: \"I could not find enough confirmed information in the DCT Platform to answer this without making an assumption.\"",
     "Keep the response concise. Use Answer, Evidence, Status, DCT Impact, TDC Impact, PDC Impact, and Next Action only when the supplied evidence supports those headings.",
@@ -965,56 +995,61 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
   if (pageContext) {
     lines.push("\n## Current page context — explanatory only");
     lines.push(`Page: ${pageContext.pageTitle}`);
-    lines.push(`Description: ${compactText(pageContext.description, 900)}`);
-    if (pageContext.features.length) lines.push(`Documented features: ${pageContext.features.slice(0, 8).join("; ")}`);
-    if (pageContext.apis.length) lines.push(`Documented APIs: ${pageContext.apis.slice(0, 8).join("; ")}`);
+    lines.push(`Description: ${compactText(pageContext.description, 450)}`);
+    if (pageContext.features.length) lines.push(`Documented features: ${pageContext.features.slice(0, 4).join("; ")}`);
+    if (pageContext.apis.length) lines.push(`Documented APIs: ${pageContext.apis.slice(0, 4).join("; ")}`);
   }
 
-  const selectedDiscovery = Object.values(DISCOVERY_KNOWLEDGE_BASE)
-    .filter((entry) => entry.pagePath === currentPagePath || matchesCompactQuestion(`${entry.pageTitle} ${entry.summary} ${entry.suggestedQuestions.join(" ")}`, queryTokens))
-    .slice(0, 3);
+  const discoveryMatches = Object.values(DISCOVERY_KNOWLEDGE_BASE)
+    .filter((entry) => matchesCompactQuestion(`${entry.pageTitle} ${entry.summary} ${entry.suggestedQuestions.join(" ")}`, queryTokens))
+    .sort((a, b) => compactMatchScore(`${b.pageTitle} ${b.summary} ${b.suggestedQuestions.join(" ")}`, queryTokens) - compactMatchScore(`${a.pageTitle} ${a.summary} ${a.suggestedQuestions.join(" ")}`, queryTokens));
+  const currentDiscovery = Object.values(DISCOVERY_KNOWLEDGE_BASE).find((entry) => entry.pagePath === currentPagePath);
+  const selectedDiscovery = currentDiscovery
+    ? [currentDiscovery, ...discoveryMatches.filter((entry) => entry.pagePath !== currentDiscovery.pagePath)].slice(0, 2)
+    : discoveryMatches.slice(0, 2);
   if (selectedDiscovery.length) {
     lines.push("\n## Discovery evidence");
     for (const entry of selectedDiscovery) {
       lines.push(`### ${entry.pageTitle} (${entry.pagePath})`);
-      lines.push(`Source summary: ${compactText(entry.summary, 700)}`);
-      lines.push(`Source context: ${compactText(entry.context)}`);
+      lines.push(`Source summary: ${compactText(entry.summary, 400)}`);
+      lines.push(`Source context: ${compactTextAroundMatch(entry.context, queryTokens, 600)}`);
     }
   }
 
   const selectedBatches = getAllBatches()
     .filter((batch) => matchesCompactQuestion(`${batch.id} ${batch.name} ${batch.fullName} ${batch.area} ${batch.description} ${(batch.dependencies ?? []).join(" ")}`, queryTokens))
-    .slice(0, 4);
+    .sort((a, b) => compactMatchScore(`${b.id} ${b.name} ${b.fullName} ${b.area} ${b.description} ${(b.dependencies ?? []).join(" ")}`, queryTokens) - compactMatchScore(`${a.id} ${a.name} ${a.fullName} ${a.area} ${a.description} ${(a.dependencies ?? []).join(" ")}`, queryTokens))
+    .slice(0, 2);
   if (selectedBatches.length) {
     lines.push("\n## Control Panel batch evidence");
     for (const batch of selectedBatches) {
       const liveStatus = liveSnapshot && Object.entries(liveSnapshot.statuses).find(([key]) => key.toLowerCase().replace(/^b/, "") === batch.id.toLowerCase().replace(/^b/, ""))?.[1];
-      lines.push(`- ${batch.id} — ${batch.fullName} | PI: ${batch.piLabel} | Area: ${batch.area} | Status: ${liveStatus ?? batch.status} | Purpose: ${compactText(batch.description, 600)}${batch.dependencies?.length ? ` | Dependencies: ${batch.dependencies.join(", ")}` : ""}`);
+      lines.push(`- ${batch.id} — ${batch.fullName} | PI: ${batch.piLabel} | Area: ${batch.area} | Status: ${liveStatus ?? batch.status} | Purpose: ${compactText(batch.description, 300)}${batch.dependencies?.length ? ` | Dependencies: ${batch.dependencies.slice(0, 3).join(", ")}` : ""}`);
     }
   }
 
   const selectedAdrs = ADR_REGISTRY
     .filter((adr) => matchesCompactQuestion(`${adr.id} ${adr.title} ${adr.impact} ${adr.decision}`, queryTokens))
-    .slice(0, 3);
+    .slice(0, 1);
   if (selectedAdrs.length) {
     lines.push("\n## Architecture decision evidence");
-    for (const adr of selectedAdrs) lines.push(`- ${adr.id}: ${adr.title} | Status: ${adr.status} | Decision: ${compactText(adr.decision, 650)}`);
+    for (const adr of selectedAdrs) lines.push(`- ${adr.id}: ${adr.title} | Status: ${adr.status} | Decision: ${compactText(adr.decision, 300)}`);
   }
 
   const selectedOpenItems = OPEN_ITEMS
     .filter((item) => matchesCompactQuestion(`${item.id} ${item.title} ${item.description} ${item.owner}`, queryTokens))
-    .slice(0, 3);
+    .slice(0, 1);
   if (selectedOpenItems.length) {
     lines.push("\n## Open-item evidence");
-    for (const item of selectedOpenItems) lines.push(`- ${item.id}: ${item.title} | Owner: ${item.owner} | Status: ${item.status} | ${compactText(item.description, 650)}`);
+    for (const item of selectedOpenItems) lines.push(`- ${item.id}: ${item.title} | Owner: ${item.owner} | Status: ${item.status} | ${compactText(item.description, 300)}`);
   }
 
   const selectedOwnership = SYSTEM_OWNERSHIP
     .filter((system) => matchesCompactQuestion(JSON.stringify(system), queryTokens))
-    .slice(0, 4);
+    .slice(0, 2);
   if (selectedOwnership.length) {
     lines.push("\n## Ownership evidence");
-    for (const system of selectedOwnership) lines.push(`- ${compactText(JSON.stringify(system), 1_000)}`);
+    for (const system of selectedOwnership) lines.push(`- ${compactText(JSON.stringify(system), 320)}`);
   }
 
   if (liveSnapshot && /\b(batch|pi\s?\d|mvp|delivery|readiness|active|complete|planned|review|status|gate)\b/i.test(question)) {
@@ -1025,5 +1060,30 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
   }
 
   lines.push("\nUse the supplied records as the complete evidence packet for this answer. If none directly address the question, return the required no-assumption statement and identify the missing artifact or clarification.");
+  return lines.join("\n");
+}
+
+/**
+ * Builds a small prompt for general business-analysis methods. The server still
+ * searches current-page and DCT knowledge before this prompt is used; it simply
+ * avoids sending unrelated DCT records to the model when no DCT fact is asked.
+ */
+export function buildGeneralAskBuddyPrompt(currentPagePath?: string): string {
+  const lines = [
+    "# Ask Buddy — General Business-Analysis Guidance",
+    "You are Ask Buddy, a Business Analysis Assistant for the DCT Platform.",
+    "The user is asking for general business-analysis guidance, not a DCT platform fact. Give a practical, conversational answer that can be reused in discovery, requirements, process mapping, backlog refinement, acceptance criteria, facilitation, or documentation.",
+    "Label the answer as General Guidance. Do not represent general guidance as a verified DCT capability, decision, contract, or delivery commitment.",
+    "The current-page context and governed DCT knowledge base were checked before this response. If the user asks a DCT-specific fact, request or use governed evidence instead of making an assumption.",
+    "Keep the response concise and actionable. Prefer a clear structure or short steps over generic narrative.",
+  ];
+
+  const pageContext = currentPagePath ? PAGE_CONTEXT_REGISTRY[currentPagePath] : undefined;
+  if (pageContext) {
+    lines.push("\n## Current page context — navigation only");
+    lines.push(`Page: ${pageContext.pageTitle}`);
+    lines.push(`Description: ${compactText(pageContext.description, 240)}`);
+  }
+
   return lines.join("\n");
 }

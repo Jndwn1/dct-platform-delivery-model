@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildCompactAskBuddyPrompt } from "./platformContext";
+import { buildCompactAskBuddyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { appendBuddyProvenance, buildBuddyGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -17,6 +17,28 @@ import { buildMasterDataEvidence, isMasterDataQuestion, MASTER_DATA_ANSWER_FALLB
 import { parseAskBuddyAttachmentRecord, parseStructuredAttachmentFields, prepareAskBuddyAttachment } from "./askBuddyAttachmentEngine";
 import mammoth from "mammoth";
 import { analyzeTdcStandupTranscript, buildTdcStandupEmail, formatMeetingDate } from "./meetingRecaps";
+
+const DCT_PLATFORM_QUESTION = /\b(dct|tdc|pdc|roger|ims|gosystem|tax portal|control panel|swagger|openapi|batch|gate|guardrail|lineage|adrs?|ado|pilot|mvp|state taxonomy)\b/i;
+
+function buildGeneralBusinessGuidanceFallback(question: string) {
+  if (/workshop|requirements session|elicitation/i.test(question)) {
+    return `### General Guidance
+
+Use a short, decision-oriented workshop agenda:
+
+1. **Purpose and decisions** — confirm the business outcome, decisions needed, and scope boundary.
+2. **Current state and evidence** — review the process, source artifacts, assumptions, and constraints already known.
+3. **Requirements and scenarios** — walk through priority user scenarios, business rules, exceptions, and data needs.
+4. **Gaps and dependencies** — identify unanswered questions, cross-team dependencies, risks, and required SME follow-up.
+5. **Decisions and next actions** — capture owners, due dates, and the next backlog or documentation artifact.
+
+**Facilitation tip:** Send the objective, pre-read, and decision questions in advance; use the session to resolve choices rather than read material aloud.`;
+  }
+
+  return `### General Guidance
+
+Start with the outcome and decision the work must support. Then capture the current-state evidence, priority scenarios, business rules, data needs, gaps, dependencies, and accountable next actions. Keep confirmed facts separate from assumptions, and turn unresolved items into clearly owned follow-ups.`;
+}
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -134,19 +156,32 @@ Do not infer content from this file.`
           : "";
         const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
         const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
+        const requiresPlatformEvidence = DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(input.attachmentArtifactId);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
           ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
           : "";
         const entryContext = currentPagePath
           ? `\n\nEntry-page context: ${currentPagePath}. This is a navigation cue only. Do not use it as a factual source or allow it to alter the authoritative answer. You may add a brief optional page-relevance sentence only after answering from the central evidence layer.`
           : "";
-        const systemPrompt = buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot }) + grounding.evidenceBlock + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + attachmentReferenceNote + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
+        const generalBusinessGuidance = requiresPlatformEvidence
+          ? ""
+          : `\n\nGENERAL BUSINESS-ANALYSIS MODE\nThe user is asking a general business-analysis question rather than a DCT platform fact. Provide practical, conversational guidance for discovery, requirements, process mapping, backlog refinement, acceptance criteria, facilitation, or documentation. You may use general professional knowledge, but label any non-DCT guidance as general guidance and do not present it as a verified DCT capability, decision, or delivery commitment.`;
+        const evidencePacket = requiresPlatformEvidence
+          ? grounding.evidenceBlock
+          : `\n\nDCT KNOWLEDGE-BASE CHECK\nThe current-page context and governed DCT knowledge base were checked before this response. No DCT-specific fact is required to answer this general business-analysis question. If the user asks about a DCT capability, return to the supplied governed evidence and do not infer platform facts.`;
+        const basePrompt = requiresPlatformEvidence
+          ? buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
+          : buildGeneralAskBuddyPrompt(currentPagePath);
+        const systemPrompt = basePrompt + evidencePacket + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + attachmentReferenceNote + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
 
+        const recentMessages = requiresPlatformEvidence
+          ? input.messages.slice(-2)
+          : input.messages.slice(-1);
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
-          ...input.messages.slice(-4).map((m) => ({
+          ...recentMessages.map((m) => ({
             role: m.role as "user" | "assistant",
-            content: m.content.slice(-6_000),
+            content: m.content.slice(requiresPlatformEvidence ? -2_000 : -1_000),
           })),
         ];
 
@@ -155,17 +190,19 @@ Do not infer content from this file.`
         const hasAttachmentEvidence = attachmentEvidence.length > 0;
         if (isMasterDataQuestion(question) && !masterEvidence.hasEvidence) {
           responseText = `${MASTER_DATA_ANSWER_FALLBACK}\n\n### Source Boundary\n${attachmentArtifact ? `The uploaded ${attachmentRecord?.format ?? "file"} remains a user-provided reference and cannot establish authoritative Master Data.` : "No uploaded source was supplied."}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`;
-        } else if (!grounding.hasSufficientEvidence && !hasStoryReviewEvidence && !hasAttachmentEvidence) {
+        } else if (requiresPlatformEvidence && !grounding.hasSufficientEvidence && !hasStoryReviewEvidence && !hasAttachmentEvidence) {
           responseText = attachmentRecord?.analysisStatus === "Reference Only"
             ? `The attached ${attachmentRecord.format} is retained as a source reference, but its contents were not extracted for analysis. ${attachmentRecord.note}\n\n### Next Action\nUpload a readable Word (.docx), Excel/CSV, or text-based version of the source, or provide the relevant content in the question.`
             : buildInsufficientEvidenceResponse(grounding);
         } else {
           try {
+            const responseBudgetMs = requiresPlatformEvidence ? 4_400 : 4_700;
+            const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
             const result = await invokeLLM({
-              model: "gpt-6-luna",
-              reasoning: { effort: "none" },
-              maxTokens: 650,
-              timeoutMs: 4_200,
+              model: "gemini-3.8-flash",
+              thinking: { budget_tokens: 0 },
+              maxTokens: requiresPlatformEvidence ? 280 : 180,
+              timeoutMs: Math.min(requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
               messages: llmMessages,
             });
             const choice = result.choices[0];
@@ -182,7 +219,9 @@ Do not infer content from this file.`
             }
           } catch (error) {
             if (error instanceof LLMRequestTimeoutError) {
-              responseText = "Ask Buddy could not complete an evidence-grounded response within the response-time limit. No answer has been inferred. Please retry or narrow the question.";
+              responseText = requiresPlatformEvidence
+                ? "Ask Buddy could not complete an evidence-grounded response within the response-time limit. No answer has been inferred. Please retry or narrow the question."
+                : buildGeneralBusinessGuidanceFallback(question);
             } else {
               console.error("[askBuddy] response generation failed", error);
               responseText = "Ask Buddy could not complete an evidence-grounded response. No answer has been inferred. Please retry the question.";
@@ -204,7 +243,7 @@ Do not infer content from this file.`
         }
 
         const responseElapsedMs = Date.now() - requestStartedAt;
-        if (responseElapsedMs > 4_500) console.warn(`[askBuddy] response exceeded 4.5 seconds (${responseElapsedMs}ms)`);
+        if (responseElapsedMs > 4_000) console.warn(`[askBuddy] response exceeded 4 seconds (${responseElapsedMs}ms)`);
 
         return {
           text,

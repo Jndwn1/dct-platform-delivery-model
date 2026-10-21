@@ -23,10 +23,13 @@ vi.mock("./platformContext", () => ({
   buildCompactAskBuddyPrompt: vi.fn().mockReturnValue(
     "You are Ask Buddy, a DCT platform assistant. [mock compact system prompt]"
   ),
+  buildGeneralAskBuddyPrompt: vi.fn().mockReturnValue(
+    "You are Ask Buddy, a Business Analysis Assistant. [mock general guidance prompt]"
+  ),
 }));
 
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildCompactAskBuddyPrompt } from "./platformContext";
+import { buildCompactAskBuddyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -61,10 +64,10 @@ describe("askBuddy.chat", () => {
     expect(callArgs.messages[0].role).toBe("system");
     expect(callArgs.messages[1]).toEqual({ role: "user", content: "List all ADRs" });
     expect(callArgs).toMatchObject({
-      model: "gpt-6-luna",
-      reasoning: { effort: "none" },
-      maxTokens: 650,
-      timeoutMs: 4200,
+      model: "gemini-3.8-flash",
+      thinking: { budget_tokens: 0 },
+      maxTokens: 280,
+      timeoutMs: 4300,
     });
   });
 
@@ -79,6 +82,21 @@ describe("askBuddy.chat", () => {
     expect(result.sources.length).toBeGreaterThan(0);
   });
 
+  it("answers a general business-analysis question without misrepresenting it as a DCT platform fact", async () => {
+    const caller = appRouter.createCaller(createTestCtx());
+    const result = await caller.askBuddy.chat({
+      messages: [{ role: "user", content: "How should I prepare for a requirements workshop?" }],
+      currentPagePath: "/ask-buddy",
+    });
+
+    expect(invokeLLM).toHaveBeenCalledOnce();
+    const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(buildGeneralAskBuddyPrompt).toHaveBeenCalledWith("/ask-buddy");
+    expect(callArgs.messages[0].content).toContain("GENERAL BUSINESS-ANALYSIS MODE");
+    expect(callArgs.messages[0].content).toContain("DCT KNOWLEDGE-BASE CHECK");
+    expect(result.text).toContain("### Sources Used");
+  });
+
   it("handles multi-turn conversation history", async () => {
     const caller = appRouter.createCaller(createTestCtx());
     const result = await caller.askBuddy.chat({
@@ -90,8 +108,8 @@ describe("askBuddy.chat", () => {
     });
     expect(result.text).toBeTruthy();
     const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    // system + 3 user/assistant messages = 4 total
-    expect(callArgs.messages).toHaveLength(4);
+    // system + the most recent two user/assistant messages = 3 total
+    expect(callArgs.messages).toHaveLength(3);
   });
 
   it("limits provider conversation history to the most recent two turns", async () => {
@@ -108,9 +126,9 @@ describe("askBuddy.chat", () => {
       ],
     });
     const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(callArgs.messages).toHaveLength(5);
+    expect(callArgs.messages).toHaveLength(3);
     expect(callArgs.messages.at(-1)).toEqual({ role: "user", content: "What does TDC own?" });
-    expect(callArgs.messages[1]).toEqual({ role: "assistant", content: "Answer two" });
+    expect(callArgs.messages[1]).toEqual({ role: "assistant", content: "Answer three" });
   });
 
   it("injects documented Pilot story-review evidence for the scoped review agent", async () => {
@@ -145,5 +163,18 @@ describe("askBuddy.chat", () => {
     expect(result.text).toContain("response-time limit");
     expect(result.text).toContain("No answer has been inferred");
     expect(result.text).toContain("### Sources Used");
+  });
+
+  it("returns practical general BA guidance when the fast-model deadline is reached", async () => {
+    (invokeLLM as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new LLMRequestTimeoutError("timeout"));
+    const caller = appRouter.createCaller(createTestCtx());
+    const result = await caller.askBuddy.chat({
+      messages: [{ role: "user", content: "How should I structure a requirements workshop agenda?" }],
+      currentPagePath: "/ask-buddy",
+    });
+
+    expect(result.text).toContain("decision-oriented workshop agenda");
+    expect(result.text).toContain("Facilitation tip");
+    expect(result.text).not.toContain("No answer has been inferred");
   });
 });

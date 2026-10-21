@@ -324,3 +324,4 @@
 - [x] Add a direct Ask Buddy attachment control that combines an Excel/CSV source with a user question for governed gap and dependency analysis
 - [x] Update Ask Buddy’s welcome message with the exact supplied wording
 - [x] Reduce typical Ask Buddy response time to under five seconds with compact evidence packets, bounded history, and an explicit fast model
+- [x] Keep Ask Buddy’s grounded responses under five seconds by using a tested fast model and a bounded evidence/chat payload

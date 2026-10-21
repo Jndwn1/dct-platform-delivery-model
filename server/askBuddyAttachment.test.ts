@@ -38,4 +38,11 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(transport).toContain('op.path === "askBuddy.uploadAttachment"');
     expect(transport).toContain("true: httpLink({");
   });
+
+  it("routes interactive chat directly and sends only the bounded recent history window", () => {
+    expect(transport).toContain('op.path === "askBuddy.chat"');
+    expect(askBuddyPage).toContain('.filter((m) => m.id !== "welcome")\n      .slice(-2)');
+    expect(askBuddyPage).toContain("content: m.text.slice(-2_000)");
+    expect(askBuddyPage).toContain("currentPagePath: \"/ask-buddy\"");
+  });
 });

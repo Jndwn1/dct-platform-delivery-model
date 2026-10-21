@@ -50,7 +50,8 @@ const trpcClient = trpc.createClient({
           op.type === "mutation" &&
           (op.path === "tdcMeetingRecaps.createFromTranscript" ||
             op.path === "dataMapping.uploadArtifact" ||
-            op.path === "askBuddy.uploadAttachment")
+            op.path === "askBuddy.uploadAttachment" ||
+            op.path === "askBuddy.chat")
         );
       },
       true: httpLink({
