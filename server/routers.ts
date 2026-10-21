@@ -14,6 +14,7 @@ import { eq, desc, and, like, or, sql } from "drizzle-orm";
 import { createMappingCandidates, isMappableArtifactField, mappingReadiness, parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
 import { analyzeStateInputReferenceContract, buildStateContractMappingWorkbook } from "./stateContractAnalysis";
 import { buildMasterDataEvidence, isMasterDataQuestion, MASTER_DATA_ANSWER_FALLBACK, selectAuthoritativeMasterDataArtifact } from "./masterDataRegistry";
+import { parseAskBuddyAttachmentRecord, parseStructuredAttachmentFields, prepareAskBuddyAttachment } from "./askBuddyAttachmentEngine";
 import mammoth from "mammoth";
 import { analyzeTdcStandupTranscript, buildTdcStandupEmail, formatMeetingDate } from "./meetingRecaps";
 
@@ -88,13 +89,48 @@ export const appRouter = router({
         const [masterArtifacts, attachmentArtifacts] = await Promise.all([masterArtifactsPromise, attachmentArtifactPromise]);
         const attachmentArtifact = attachmentArtifacts[0];
         if (input.attachmentArtifactId && !attachmentArtifact) {
-          throw new Error("The uploaded attachment could not be found. Please attach the workbook again.");
+          throw new Error("The uploaded attachment could not be found. Please attach the file again.");
         }
-        const attachmentAnalysis = attachmentArtifact
-          ? analyzeStateInputReferenceContract(JSON.parse(attachmentArtifact.fieldsJson) as ArtifactField[], attachmentArtifact.fileName, attachmentArtifact.versionLabel)
+        const attachmentRecord = attachmentArtifact ? parseAskBuddyAttachmentRecord(attachmentArtifact.fieldsJson) : null;
+        const structuredAttachmentFields = attachmentArtifact ? parseStructuredAttachmentFields(attachmentArtifact.fieldsJson) : null;
+        const attachmentAnalysis = attachmentArtifact && structuredAttachmentFields
+          ? analyzeStateInputReferenceContract(structuredAttachmentFields, attachmentArtifact.fileName, attachmentArtifact.versionLabel)
           : null;
         const attachmentEvidence = attachmentAnalysis && attachmentArtifact
-          ? `\n\nUPLOADED STRUCTURED SOURCE REVIEW — REVIEW ONLY, NOT AN APPROVED MAPPING OR INTERFACE\nSource: ${attachmentArtifact.fileName} · ${attachmentArtifact.versionLabel}\nCaptured State input rows: ${attachmentAnalysis.source.inputRows}; field-contract rows: ${attachmentAnalysis.source.fieldContractRows}; validation-rule rows: ${attachmentAnalysis.source.validationRules}; open-question rows: ${attachmentAnalysis.source.openQuestions}; TCC relationships needing review: ${attachmentAnalysis.source.unclassifiedTccPatterns}.\n\nPriority gaps from the uploaded source:\n${attachmentAnalysis.gaps.map(gap => `- ${gap.id} | ${gap.area}: ${gap.finding} Next action: ${gap.nextAction}`).join("\n")}\n\nCross-team dependencies from the uploaded source:\n${attachmentAnalysis.dependencies.map(dependency => `- ${dependency.workstream} | ${dependency.dependency} (${dependency.status}): ${dependency.evidence} Next action: ${dependency.nextAction}`).join("\n")}\n\nUse the uploaded source to answer the user's question. Clearly distinguish source-backed findings, open gaps, and dependencies from confirmed or approved decisions.`
+          ? `
+
+UPLOADED STRUCTURED SOURCE REVIEW — REVIEW ONLY, NOT AN APPROVED MAPPING OR INTERFACE
+Source: ${attachmentArtifact.fileName} · ${attachmentArtifact.versionLabel}
+Captured State input rows: ${attachmentAnalysis.source.inputRows}; field-contract rows: ${attachmentAnalysis.source.fieldContractRows}; validation-rule rows: ${attachmentAnalysis.source.validationRules}; open-question rows: ${attachmentAnalysis.source.openQuestions}; TCC relationships needing review: ${attachmentAnalysis.source.unclassifiedTccPatterns}.
+
+Priority gaps from the uploaded source:
+${attachmentAnalysis.gaps.map(gap => `- ${gap.id} | ${gap.area}: ${gap.finding} Next action: ${gap.nextAction}`).join("\n")}
+
+Cross-team dependencies from the uploaded source:
+${attachmentAnalysis.dependencies.map(dependency => `- ${dependency.workstream} | ${dependency.dependency} (${dependency.status}): ${dependency.evidence} Next action: ${dependency.nextAction}`).join("\n")}
+
+Use the uploaded source to answer the user's question. Clearly distinguish source-backed findings, open gaps, and dependencies from confirmed or approved decisions.`
+          : attachmentRecord?.analysisStatus === "Extracted"
+            ? `
+
+UPLOADED ATTACHMENT — EXTRACTED CONTENT, REFERENCE ONLY
+Source: ${attachmentArtifact?.fileName} · ${attachmentArtifact?.versionLabel}
+Format: ${attachmentRecord.format}
+Extraction note: ${attachmentRecord.note}
+
+Extracted source excerpt:
+${attachmentRecord.textExcerpt}
+
+Use only this extracted content when addressing the user's question. Clearly distinguish source-backed findings from confirmed decisions, and do not infer content beyond the excerpt.`
+            : "";
+        const attachmentReferenceNote = attachmentRecord?.analysisStatus === "Reference Only"
+          ? `
+
+UPLOADED ATTACHMENT — REFERENCE ONLY
+Source: ${attachmentArtifact?.fileName} · ${attachmentArtifact?.versionLabel}
+Format: ${attachmentRecord.format}
+${attachmentRecord.note}
+Do not infer content from this file.`
           : "";
         const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
         const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
@@ -104,7 +140,7 @@ export const appRouter = router({
         const entryContext = currentPagePath
           ? `\n\nEntry-page context: ${currentPagePath}. This is a navigation cue only. Do not use it as a factual source or allow it to alter the authoritative answer. You may add a brief optional page-relevance sentence only after answering from the central evidence layer.`
           : "";
-        const systemPrompt = buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot }) + grounding.evidenceBlock + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
+        const systemPrompt = buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot }) + grounding.evidenceBlock + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + attachmentReferenceNote + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
 
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
@@ -117,9 +153,11 @@ export const appRouter = router({
         let responseText: string;
         const hasStoryReviewEvidence = storyReviewEvidence.length > 0;
         const hasAttachmentEvidence = attachmentEvidence.length > 0;
-        if ((!grounding.hasSufficientEvidence && !hasStoryReviewEvidence && !hasAttachmentEvidence) || (isMasterDataQuestion(question) && !masterEvidence.hasEvidence && !hasAttachmentEvidence)) {
-          responseText = isMasterDataQuestion(question) && !masterEvidence.hasEvidence
-            ? `${MASTER_DATA_ANSWER_FALLBACK}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`
+        if (isMasterDataQuestion(question) && !masterEvidence.hasEvidence) {
+          responseText = `${MASTER_DATA_ANSWER_FALLBACK}\n\n### Source Boundary\n${attachmentArtifact ? `The uploaded ${attachmentRecord?.format ?? "file"} remains a user-provided reference and cannot establish authoritative Master Data.` : "No uploaded source was supplied."}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`;
+        } else if (!grounding.hasSufficientEvidence && !hasStoryReviewEvidence && !hasAttachmentEvidence) {
+          responseText = attachmentRecord?.analysisStatus === "Reference Only"
+            ? `The attached ${attachmentRecord.format} is retained as a source reference, but its contents were not extracted for analysis. ${attachmentRecord.note}\n\n### Next Action\nUpload a readable Word (.docx), Excel/CSV, or text-based version of the source, or provide the relevant content in the question.`
             : buildInsufficientEvidenceResponse(grounding);
         } else {
           try {
@@ -171,7 +209,7 @@ export const appRouter = router({
         return {
           text,
           sources: attachmentArtifact
-            ? [...grounding.sources, { id: `uploaded-artifact-${attachmentArtifact.id}`, label: `Uploaded source: ${attachmentArtifact.fileName}`, path: attachmentArtifact.storageUrl, authority: "User-provided governed source attachment", lastUpdated: attachmentArtifact.createdAt.toISOString(), artifactStatus: "Reference" as const }]
+            ? [...grounding.sources, { id: `uploaded-artifact-${attachmentArtifact.id}`, label: `${attachmentRecord?.analysisStatus === "Extracted" ? "User-provided, unverified — Extracted" : "Reference only — contents not analyzed"}: ${attachmentArtifact.fileName}`, path: attachmentArtifact.storageUrl, authority: "User-provided attachment; not an authoritative platform source", lastUpdated: attachmentArtifact.createdAt.toISOString(), artifactStatus: "Reference" as const }]
             : grounding.sources,
           conflicts: grounding.conflicts,
           status: grounding.status,
@@ -179,6 +217,23 @@ export const appRouter = router({
           latestSource: grounding.latestSource,
         };
       }),
+    uploadAttachment: publicProcedure
+      .input(z.object({ fileName: z.string().min(1).max(512), versionLabel: z.string().min(1).max(256), mimeType: z.string().min(1).max(128), fileBase64: z.string().min(1) }))
+      .mutation(async ({ input, ctx }) => {
+        const encoded = input.fileBase64.replace(/^data:[^;]+;base64,/, "");
+        const buffer = Buffer.from(encoded, "base64");
+        if (buffer.length > 10 * 1024 * 1024) throw new Error("Attachments must be 10 MB or smaller.");
+        const prepared = await prepareAskBuddyAttachment(buffer, input.fileName, input.mimeType, input.versionLabel);
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const stored = await storagePut(`ask-buddy/${Date.now()}-${safeName}`, buffer, input.mimeType);
+        const db = await getDb();
+        if (!db) throw new Error("The Ask Buddy attachment store is unavailable. Please try again.");
+        await db.insert(mappingArtifacts).values({ artifactType: "Other", sourceType: "Upload", fileName: input.fileName, versionLabel: input.versionLabel, mimeType: input.mimeType, storageUrl: stored.url, fieldsJson: prepared.fieldsJson, uploadedBy: ctx.user?.name ?? null });
+        const [artifact] = await db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.id)).limit(1);
+        if (!artifact) throw new Error("The uploaded attachment could not be registered. Please try again.");
+        return { artifact, analysis: { status: prepared.analysisStatus, format: prepared.format, note: prepared.note } };
+      }),
+
   }),
 
   dataMapping: router({
@@ -194,7 +249,8 @@ export const appRouter = router({
         if (!db) throw new Error("The governed mapping store is unavailable. Please try again.");
         const [artifact] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.artifactId)).limit(1);
         if (!artifact) throw new Error("The selected source artifact was not found.");
-        const fields = JSON.parse(artifact.fieldsJson) as ArtifactField[];
+        const fields = parseStructuredAttachmentFields(artifact.fieldsJson);
+        if (!fields) throw new Error("State contract analysis requires a structured Excel or CSV source.");
         return analyzeStateInputReferenceContract(fields, artifact.fileName, artifact.versionLabel);
       }),
     exportStateContractAnalysis: publicProcedure
@@ -204,7 +260,9 @@ export const appRouter = router({
         if (!db) throw new Error("The governed mapping store is unavailable. Please try again.");
         const [artifact] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.artifactId)).limit(1);
         if (!artifact) throw new Error("The selected source artifact was not found.");
-        const analysis = analyzeStateInputReferenceContract(JSON.parse(artifact.fieldsJson) as ArtifactField[], artifact.fileName, artifact.versionLabel);
+        const fields = parseStructuredAttachmentFields(artifact.fieldsJson);
+        if (!fields) throw new Error("State contract analysis requires a structured Excel or CSV source.");
+        const analysis = analyzeStateInputReferenceContract(fields, artifact.fileName, artifact.versionLabel);
         return {
           fileBase64: buildStateContractMappingWorkbook(analysis),
           fileName: `${artifact.fileName.replace(/\.(xlsx|xls|csv)$/i, "")}-mapping-review.xlsx`,

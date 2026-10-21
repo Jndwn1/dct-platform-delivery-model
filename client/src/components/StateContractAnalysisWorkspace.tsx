@@ -99,8 +99,9 @@ export default function StateContractAnalysisWorkspace() {
     () =>
       artifacts.filter(
         artifact =>
-          artifact.artifactType === "Other" ||
-          /state|contract|taxonomy|reference/i.test(artifact.fileName)
+          /\.(xlsx|xls|csv)$/i.test(artifact.fileName) &&
+          (artifact.artifactType === "Other" ||
+            /state|contract|taxonomy|reference/i.test(artifact.fileName))
       ),
     [artifacts]
   );

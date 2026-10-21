@@ -6,13 +6,16 @@ const router = readFileSync("server/routers.ts", "utf8");
 const transport = readFileSync("client/src/main.tsx", "utf8");
 
 describe("Ask Buddy direct attachment workflow", () => {
-  it("provides a workbook attachment control beside the question composer", () => {
+  it("provides a general file attachment control beside the question composer", () => {
     expect(askBuddyPage).toContain('id="ask-buddy-attachment"');
-    expect(askBuddyPage).toContain("Attach Excel / CSV");
+    expect(askBuddyPage).toContain("Attach File");
+    expect(askBuddyPage).toContain("Attach file for Ask Buddy analysis");
+    expect(askBuddyPage).not.toContain('accept=".xlsx,.xls,.csv"');
     expect(askBuddyPage).toContain("Analyze & Ask");
     expect(askBuddyPage).toContain("Source version/date (optional)");
+    expect(askBuddyPage).toContain("Ask a question about the attached file");
     expect(askBuddyPage).toContain(
-      "Ask a question about the attached workbook"
+      "Word (.docx), Excel/CSV, and readable text formats"
     );
   });
 
@@ -27,8 +30,12 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(router).toContain("The uploaded attachment could not be found");
   });
 
-  it("uses an unbatched request for the workbook upload", () => {
-    expect(transport).toContain('op.path === "dataMapping.uploadArtifact"');
+  it("uses an unbatched request for general file uploads", () => {
+    expect(askBuddyPage).toContain(
+      "trpc.askBuddy.uploadAttachment.useMutation()"
+    );
+    expect(router).toContain("uploadAttachment: publicProcedure");
+    expect(transport).toContain('op.path === "askBuddy.uploadAttachment"');
     expect(transport).toContain("true: httpLink({");
   });
 });
