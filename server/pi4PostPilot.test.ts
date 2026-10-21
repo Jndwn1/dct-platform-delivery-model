@@ -123,7 +123,7 @@ describe("PI4 Pilot delivery", () => {
     expect(postPilot).toContain("Contract & Manual-Account Decisions");
     expect(postPilot).toContain("Stabilize prior-year posting and persistence");
     expect(postPilot).toContain("Advance TDC → IMS data type and validation standards awaiting approval");
-    expect(postPilot).toContain("Sprint 3 goals are grouped from the supplied backlog snapshot");
+    expect(postPilot).toContain("Sprint 3 and Sprint 4 goals are grouped from supplied backlog snapshots");
     expect(postPilot).not.toContain("Sprint 3 Work-Item Snapshot");
     expect(postPilot).not.toContain("sprint-3-work-items");
     expect(postPilot).not.toContain("SPRINT_3_WORK_ITEMS");
@@ -152,6 +152,16 @@ describe("PI4 Pilot delivery", () => {
     expect(postPilot).toContain("Open State MVP Vision");
     expect(postPilot).toContain("transparent entity-and-jurisdiction workflow and calculations in Roger");
     expect(postPilot).toContain("SPRINT_4_PRIORITY_AREAS");
+    expect(postPilot).toContain("TDC v2 Foundation & Workflow");
+    expect(postPilot).toContain("Create the tdc_v2 schema and DbContext foundation");
+    expect(postPilot).toContain("Advance workflow-management APIs");
+    expect(postPilot).toContain("Database Architecture & Data Standards");
+    expect(postPilot).toContain("Define TDC → IMS → GoSystem data types and validation standards");
+    expect(postPilot).toContain("Reliability & Performance");
+    expect(postPilot).toContain("Accounts & Prior-Year Data");
+    expect(postPilot).toContain("State Integration Discovery");
+    expect(postPilot).toContain("Backlog goals source");
+    expect(postPilot).toContain("Supplied Team Roger TDC PI4 Sprint 4 backlog snapshot");
     expect(postPilot).toContain("Apportionment calculations");
     expect(postPilot).toContain("SPRINT_5_PRIORITY_AREAS");
     expect(postPilot).toContain("GoSystem retrieval and simple multi-entity aggregation review");

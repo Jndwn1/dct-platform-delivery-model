@@ -30,6 +30,7 @@ type Pi4Sprint = {
 type SprintMetricSnapshot = {
   sprint: Pi4Sprint["number"];
   source: string;
+  backlogGoalSource?: boolean;
   closeout?: {
     totalWorkItems: number;
     completedClosed: number;
@@ -118,7 +119,51 @@ const SPRINT_3_PRIORITY_AREAS: SprintPriorityArea[] = [
 ];
 
 const SPRINT_4_PRIORITY_AREAS: SprintPriorityArea[] = [
-  { title: "State", accent: "#0f766e", bullets: ["Apportionment calculations", "Modifications Workspace design", "Prior-year data integration"] },
+  {
+    title: "TDC v2 Foundation & Workflow",
+    accent: "#1e3a5f",
+    bullets: [
+      "Create the tdc_v2 schema and DbContext foundation",
+      "Advance workflow-management APIs",
+    ],
+  },
+  {
+    title: "Database Architecture & Data Standards",
+    accent: "#1d4ed8",
+    bullets: [
+      "Implement database architecture enhancements",
+      "Define TDC → IMS → GoSystem data types and validation standards",
+    ],
+  },
+  {
+    title: "Reliability & Performance",
+    accent: "#b45309",
+    bullets: [
+      "Resolve Performance Environment sign-off issues",
+      "Address TDC DTU capacity reaching 100%",
+    ],
+  },
+  {
+    title: "Accounts & Prior-Year Data",
+    accent: "#0f766e",
+    bullets: [
+      "Implement persistent manual client accounts and new-account storage",
+      "Migrate prior-year financial amounts and configure delegated CEM access",
+    ],
+  },
+  {
+    title: "State Integration Discovery",
+    accent: PURPLE,
+    bullets: [
+      "Advance State apportionment outbound discovery",
+      "Advance GoSystem calculated-results ingestion and persistence discovery",
+    ],
+  },
+  {
+    title: "State",
+    accent: "#0f766e",
+    bullets: ["Apportionment calculations", "Modifications Workspace design", "Prior-year data integration"],
+  },
 ];
 
 const SPRINT_5_PRIORITY_AREAS: SprintPriorityArea[] = [
@@ -145,7 +190,11 @@ const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
     },
   },
   { sprint: 3, source: "Supplied Sprint 3 ADO backlog — goals and objectives grouped from captured work" },
-  { sprint: 4, source: "Backlog snapshot not yet supplied" },
+  {
+    sprint: 4,
+    source: "Supplied Team Roger TDC PI4 Sprint 4 backlog snapshot — goals grouped from captured work",
+    backlogGoalSource: true,
+  },
   { sprint: 5, source: "Backlog snapshot not yet supplied" },
 ];
 
@@ -197,7 +246,7 @@ export default function PostPilotPage() {
         <SectionHeading
           eyebrow="PI4 delivery calendar"
           title="PI4 Sprint Timeline"
-          description="Planning cadence for Sprints 2–5. State priority areas reflect the supplied State MVP Product Vision and Scope deck; they are planning direction, not verified delivery completion."
+          description="Planning cadence for Sprints 2–5. State and TDC priority areas reflect supplied planning sources; they are planning direction, not verified delivery completion."
         />
         <div style={{ background: "#ffffff", border: `1px solid ${PURPLE_BORDER}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", padding: "14px" }}>
           <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
@@ -233,7 +282,7 @@ export default function PostPilotPage() {
               );
             })}
           </div>
-          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Sprint 3 goals are grouped from the supplied backlog snapshot for planning visibility; they do not replace feature-level commitments or acceptance criteria.</div>
+          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Sprint 3 and Sprint 4 goals are grouped from supplied backlog snapshots for planning visibility; they do not replace feature-level commitments or acceptance criteria.</div>
         </div>
       </section>
 
@@ -247,11 +296,13 @@ export default function PostPilotPage() {
           {POST_PILOT_SPRINT_METRICS.map((metric) => {
             const closeout = metric.closeout;
             const hasSnapshot = closeout !== undefined;
+            const hasBacklogGoalSource = metric.backlogGoalSource === true;
+            const sourceLabel = hasSnapshot ? "Closeout source" : hasBacklogGoalSource ? "Backlog goals source" : "Pending source";
             return (
               <div key={metric.sprint} style={{ background: metric.sprint === 2 ? PURPLE_SURFACE : "#ffffff", border: `1px solid ${metric.sprint === 2 ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${metric.sprint === 2 ? PURPLE : "#94a3b8"}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", minHeight: "172px", padding: "14px" }}>
                 <div style={{ alignItems: "center", display: "flex", gap: "8px", justifyContent: "space-between" }}>
                   <div style={{ color: metric.sprint === 2 ? PURPLE_INK : "#334155", fontSize: "12px", fontWeight: 900 }}>{metric.sprint === 2 ? "TDC · PI4 Sprint 2" : `PI4 · Sprint ${metric.sprint}`}</div>
-                  <div style={{ background: hasSnapshot ? "#dcfce7" : "#f8fafc", border: `1px solid ${hasSnapshot ? "#86efac" : "#cbd5e1"}`, borderRadius: "999px", color: hasSnapshot ? "#166534" : "#64748b", fontSize: "9px", fontWeight: 850, padding: "3px 7px" }}>{hasSnapshot ? "Closeout source" : "Pending source"}</div>
+                  <div style={{ background: hasSnapshot ? "#dcfce7" : hasBacklogGoalSource ? "#eff6ff" : "#f8fafc", border: `1px solid ${hasSnapshot ? "#86efac" : hasBacklogGoalSource ? "#bfdbfe" : "#cbd5e1"}`, borderRadius: "999px", color: hasSnapshot ? "#166534" : hasBacklogGoalSource ? "#1d4ed8" : "#64748b", fontSize: "9px", fontWeight: 850, padding: "3px 7px" }}>{sourceLabel}</div>
                 </div>
                 {closeout ? (
                   <>
@@ -271,7 +322,7 @@ export default function PostPilotPage() {
                     </div>
                   </>
                 ) : (
-                  <div style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.5, marginTop: "19px" }}>Closeout metrics will populate when the sprint source summary is supplied. No values are inferred.</div>
+                  <div style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.5, marginTop: "19px" }}>{hasBacklogGoalSource ? "Backlog goals are reflected in the timeline. Closeout metrics will populate when the sprint source summary is supplied; no values are inferred." : "Closeout metrics will populate when the sprint source summary is supplied. No values are inferred."}</div>
                 )}
                 <div style={{ color: "#64748b", fontSize: "9px", lineHeight: 1.4, marginTop: hasSnapshot ? "10px" : "15px" }}>Source: {metric.source}</div>
               </div>
