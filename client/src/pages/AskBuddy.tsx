@@ -364,6 +364,20 @@ const CAPABILITIES: Capability[] = [
     ],
   },
   {
+    id: "cross-team-dependencies",
+    icon: "🔗",
+    label: "Cross-Team Dependencies",
+    color: "#0f766e",
+    bg: "#f0fdfa",
+    border: "#5eead4",
+    description: "Analyze evidence-backed ownership, ADO work, gaps, dependencies, working-session questions, and proposed delivery sequencing across teams.",
+    sampleQuestions: [
+      "What are the TDC dependencies and what does TDC need to own?",
+      "What must State, TDC, IMS, and Roger align before State apportionment delivery?",
+      "Which dependencies should be documented in ADO before development begins?",
+    ],
+  },
+  {
     id: "mapping",
     icon: "🧩",
     label: "Data Mapping Assistant",

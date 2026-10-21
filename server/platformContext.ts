@@ -1063,6 +1063,69 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
   return lines.join("\n");
 }
 
+
+/**
+ * Adds a compact, evidence-bound framework for cross-team ownership,
+ * dependency, ADO, and delivery-impact analysis. It does not create facts or
+ * broaden the evidence boundary beyond the supplied governed records.
+ */
+export function buildCrossTeamDependencyPrompt({ question, currentPagePath, liveSnapshot }: CompactBuddyPromptInput): string {
+  const queryTokens = compactTokens(question);
+  const lines = [
+    buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot }),
+    "",
+    "# Cross-Team Dependencies, Ownership, and Delivery Impact Analysis",
+    "The user selected the Cross-Team Dependencies analysis mode. Deliver a concise, evidence-bound analysis for Business Analysts, Product Owners, Scrum Masters, technical leads, and delivery teams.",
+    "Do not treat a proposed direction as an approved decision. Do not invent ADO IDs, owners, dates, completion statuses, contracts, mappings, acceptance criteria, or predecessor/successor relationships. When supporting evidence is unavailable, say so and mark the item Open – Requires Confirmation.",
+    "Use established boundaries only as a baseline, not as proof of source-specific ownership: PDC manages financial-data ingestion, normalization, canonical financial data, and source lineage; TDC manages governed tax-domain data, taxonomy, reference data, persistence, validation, and supported retrieval; State / Process owns State-specific business requirements, approved definitions, jurisdictional rules, and business mapping decisions; IMS owns approved downstream integration responsibilities and interfaces; Roger UI owns user workflows, review, and interaction; the AI Orchestrator Layer executes calculations according to approved architecture.",
+    "Do not assign ownership merely because a team interacts with a capability. Separate confirmed ownership, proposed ownership requiring validation, represented implementation work, missing requirements, and responsibilities belonging to another team.",
+  ];
+
+  const dependencyEvidence = DEPENDENCIES
+    .filter((item) => matchesCompactQuestion(JSON.stringify(item), queryTokens))
+    .slice(0, 4);
+  const openItemEvidence = OPEN_ITEMS
+    .filter((item) => matchesCompactQuestion(`${item.id} ${item.title} ${item.description} ${item.owner}`, queryTokens))
+    .slice(0, 3);
+  const ownershipEvidence = SYSTEM_OWNERSHIP
+    .filter((item) => matchesCompactQuestion(JSON.stringify(item), queryTokens))
+    .slice(0, 3);
+  const roadmapEvidence = BATCH_ROADMAP
+    .filter((item) => matchesCompactQuestion(JSON.stringify(item), queryTokens))
+    .slice(0, 3);
+
+  if (dependencyEvidence.length || openItemEvidence.length || ownershipEvidence.length || roadmapEvidence.length) {
+    lines.push("", "## Cross-team evidence — bounded governed records");
+    for (const item of dependencyEvidence) lines.push(`- Dependency record: ${compactText(JSON.stringify(item), 380)}`);
+    for (const item of openItemEvidence) lines.push(`- Open-item record: ${item.id} | ${item.title} | Owner: ${item.owner} | Status: ${item.status} | ${compactText(item.description, 240)}`);
+    for (const item of ownershipEvidence) lines.push(`- Ownership record: ${compactText(JSON.stringify(item), 280)}`);
+    for (const item of roadmapEvidence) lines.push(`- Roadmap record: ${compactText(JSON.stringify(item), 300)}`);
+  }
+
+  lines.push(
+    "",
+    "## Required response format",
+    "### 1. Executive Summary",
+    "Explain the requested team/capability, major dependencies, delivery impact, and key unresolved decisions.",
+    "### 2. What [Team] Needs to Own",
+    "Provide a Markdown table: Team Responsibility | Expected Deliverable | Existing ADO Story / Reference | Status. Then state the ownership boundary in plain language.",
+    "### 3. Cross-Team Dependencies",
+    "Provide a Markdown table: Dependency ID | Dependency | Required Input or Decision | Responsible Team | Affected Story | Impact if Unresolved | Status. Use D-01, D-02, and so on. Identify upstream/downstream dependencies and distinguish blockers from nonblocking follow-up work.",
+    "### 4. Existing ADO Work",
+    "List only evidenced ADO items with ID, title, documented purpose, related dependencies, and implementation readiness. Label any new-record suggestion as a recommendation, never as an existing record.",
+    "### 5. Questions for the Working Session",
+    "Provide concise, prioritized questions on business/calculation authority, data and mapping, ownership, integration, validation/persistence, reconciliation, development readiness, and testing/release coordination. Identify an answering team only where evidence supports it.",
+    "### 6. Recommended Delivery Sequence",
+    "Show a simple predecessor/successor text flow. Clearly label it Proposed unless an approval is in the evidence, and note activities that may occur in parallel.",
+    "### 7. What Needs to Be Documented in ADO",
+    "Identify dependency description, predecessor, successor, accountable owner, responsible team, date, status, blocked work, risk/impact, and decision/approval reference requiring formal tracking. Identify missing relationships without inventing them.",
+    "### 8. Bottom Line",
+    "Conclude with accountable delivery, inputs required from other teams, decisions to finalize, and the next action needed to protect delivery commitments.",
+    "Reference supporting documents, ADO IDs, or decisions when supplied. Keep tables limited to source-supported records and preserve the required no-assumption statement when evidence cannot support a conclusion."
+  );
+  return lines.join("\\n");
+}
+
 /**
  * Builds a small prompt for general business-analysis methods. The server still
  * searches current-page and DCT knowledge before this prompt is used; it simply

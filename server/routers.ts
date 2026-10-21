@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildCompactAskBuddyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
+import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { appendBuddyProvenance, buildBuddyGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -156,7 +156,8 @@ Do not infer content from this file.`
           : "";
         const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
         const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
-        const requiresPlatformEvidence = DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(input.attachmentArtifactId);
+        const crossTeamDependenciesMode = input.capability === "cross-team-dependencies";
+        const requiresPlatformEvidence = crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(input.attachmentArtifactId);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
           ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
           : "";
@@ -169,9 +170,11 @@ Do not infer content from this file.`
         const evidencePacket = requiresPlatformEvidence
           ? grounding.evidenceBlock
           : `\n\nDCT KNOWLEDGE-BASE CHECK\nThe current-page context and governed DCT knowledge base were checked before this response. No DCT-specific fact is required to answer this general business-analysis question. If the user asks about a DCT capability, return to the supplied governed evidence and do not infer platform facts.`;
-        const basePrompt = requiresPlatformEvidence
-          ? buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
-          : buildGeneralAskBuddyPrompt(currentPagePath);
+        const basePrompt = crossTeamDependenciesMode
+          ? buildCrossTeamDependencyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
+          : requiresPlatformEvidence
+            ? buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
+            : buildGeneralAskBuddyPrompt(currentPagePath);
         const systemPrompt = basePrompt + evidencePacket + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + attachmentReferenceNote + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
 
         const recentMessages = requiresPlatformEvidence
@@ -196,13 +199,13 @@ Do not infer content from this file.`
             : buildInsufficientEvidenceResponse(grounding);
         } else {
           try {
-            const responseBudgetMs = requiresPlatformEvidence ? 4_400 : 4_700;
+            const responseBudgetMs = crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
             const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
             const result = await invokeLLM({
               model: "gemini-3.8-flash",
               thinking: { budget_tokens: 0 },
-              maxTokens: requiresPlatformEvidence ? 280 : 180,
-              timeoutMs: Math.min(requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
+              maxTokens: crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
+              timeoutMs: Math.min(crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
               messages: llmMessages,
             });
             const choice = result.choices[0];

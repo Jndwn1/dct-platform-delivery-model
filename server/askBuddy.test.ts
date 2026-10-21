@@ -23,13 +23,16 @@ vi.mock("./platformContext", () => ({
   buildCompactAskBuddyPrompt: vi.fn().mockReturnValue(
     "You are Ask Buddy, a DCT platform assistant. [mock compact system prompt]"
   ),
+  buildCrossTeamDependencyPrompt: vi.fn().mockReturnValue(
+    "You are Ask Buddy, a cross-team dependencies assistant. [mock dependency prompt]"
+  ),
   buildGeneralAskBuddyPrompt: vi.fn().mockReturnValue(
     "You are Ask Buddy, a Business Analysis Assistant. [mock general guidance prompt]"
   ),
 }));
 
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildCompactAskBuddyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
+import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -80,6 +83,24 @@ describe("askBuddy.chat", () => {
     expect(result.text).toContain("### Sources Used");
     expect(result.knowledgeCheckedAt).toBeTruthy();
     expect(result.sources.length).toBeGreaterThan(0);
+  });
+
+  it("uses the cross-team dependency framework only when that capability is selected", async () => {
+    const caller = appRouter.createCaller(createTestCtx());
+    await caller.askBuddy.chat({
+      messages: [{ role: "user", content: "What are the TDC dependencies and what does TDC need to own?" }],
+      currentPagePath: "/post-pilot/state-taxonomy-readiness",
+      capability: "cross-team-dependencies",
+    });
+
+    expect(buildCrossTeamDependencyPrompt).toHaveBeenCalledOnce();
+    const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(callArgs.messages[0].content).toContain("mock dependency prompt");
+    expect(callArgs).toMatchObject({
+      model: "gemini-3.8-flash",
+      maxTokens: 720,
+      timeoutMs: 4600,
+    });
   });
 
   it("answers a general business-analysis question without misrepresenting it as a DCT platform fact", async () => {

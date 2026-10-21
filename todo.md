@@ -325,3 +325,4 @@
 - [x] Update Ask Buddy’s welcome message with the exact supplied wording
 - [x] Reduce typical Ask Buddy response time to under five seconds with compact evidence packets, bounded history, and an explicit fast model
 - [x] Keep Ask Buddy’s grounded responses under five seconds by using a tested fast model and a bounded evidence/chat payload
+- [x] Add an evidence-bound Ask Buddy Cross-Team Dependencies mode using the supplied ownership, ADO, gap, sequencing, and delivery-impact response framework
