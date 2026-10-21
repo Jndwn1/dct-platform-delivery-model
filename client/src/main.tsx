@@ -48,7 +48,8 @@ const trpcClient = trpc.createClient({
       condition(op) {
         return (
           op.type === "mutation" &&
-          op.path === "tdcMeetingRecaps.createFromTranscript"
+          (op.path === "tdcMeetingRecaps.createFromTranscript" ||
+            op.path === "dataMapping.uploadArtifact")
         );
       },
       true: httpLink({

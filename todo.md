@@ -321,3 +321,4 @@
 - [x] Add evidence-bound TDC PI4 Sprint 4 goals from the supplied Team Roger backlog snapshot
 - [x] Update the TDC PI4 Sprint 3 metrics card with the supplied closeout summary
 - [x] Replace Ask Buddy’s opening message with the Business Analyst Assistant introduction
+- [x] Add a direct Ask Buddy attachment control that combines an Excel/CSV source with a user question for governed gap and dependency analysis

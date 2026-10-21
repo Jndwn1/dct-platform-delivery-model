@@ -47,6 +47,8 @@ export const appRouter = router({
           currentPagePath: z.string().optional(),
           // Selected assistant changes analysis style, not the sources available to Buddy
           capability: z.string().optional(),
+          // Optional structured source uploaded from the Ask Buddy composer. Analysis is retrieved server-side.
+          attachmentArtifactId: z.number().int().positive().optional(),
           // Live batch snapshot from the client's BatchStatusContext
           liveSnapshot: z.object({
             asOf: z.string(),
@@ -76,6 +78,18 @@ export const appRouter = router({
         const question = [...input.messages].reverse().find((message) => message.role === "user")?.content ?? "";
         const db = await getDb();
         const masterArtifacts = db ? await db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt)) : [];
+        const [attachmentArtifact] = input.attachmentArtifactId && db
+          ? await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.attachmentArtifactId)).limit(1)
+          : [];
+        if (input.attachmentArtifactId && !attachmentArtifact) {
+          throw new Error("The uploaded attachment could not be found. Please attach the workbook again.");
+        }
+        const attachmentAnalysis = attachmentArtifact
+          ? analyzeStateInputReferenceContract(JSON.parse(attachmentArtifact.fieldsJson) as ArtifactField[], attachmentArtifact.fileName, attachmentArtifact.versionLabel)
+          : null;
+        const attachmentEvidence = attachmentAnalysis && attachmentArtifact
+          ? `\n\nUPLOADED STRUCTURED SOURCE REVIEW — REVIEW ONLY, NOT AN APPROVED MAPPING OR INTERFACE\nSource: ${attachmentArtifact.fileName} · ${attachmentArtifact.versionLabel}\nCaptured State input rows: ${attachmentAnalysis.source.inputRows}; field-contract rows: ${attachmentAnalysis.source.fieldContractRows}; validation-rule rows: ${attachmentAnalysis.source.validationRules}; open-question rows: ${attachmentAnalysis.source.openQuestions}; TCC relationships needing review: ${attachmentAnalysis.source.unclassifiedTccPatterns}.\n\nPriority gaps from the uploaded source:\n${attachmentAnalysis.gaps.map(gap => `- ${gap.id} | ${gap.area}: ${gap.finding} Next action: ${gap.nextAction}`).join("\n")}\n\nCross-team dependencies from the uploaded source:\n${attachmentAnalysis.dependencies.map(dependency => `- ${dependency.workstream} | ${dependency.dependency} (${dependency.status}): ${dependency.evidence} Next action: ${dependency.nextAction}`).join("\n")}\n\nUse the uploaded source to answer the user's question. Clearly distinguish source-backed findings, open gaps, and dependencies from confirmed or approved decisions.`
+          : "";
         const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
         const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
@@ -84,7 +98,7 @@ export const appRouter = router({
         const entryContext = currentPagePath
           ? `\n\nEntry-page context: ${currentPagePath}. This is a navigation cue only. Do not use it as a factual source or allow it to alter the authoritative answer. You may add a brief optional page-relevance sentence only after answering from the central evidence layer.`
           : "";
-        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + grounding.evidenceBlock + masterEvidence.evidenceBlock + storyReviewEvidence + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
+        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + grounding.evidenceBlock + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
 
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
@@ -96,7 +110,8 @@ export const appRouter = router({
 
         let responseText: string;
         const hasStoryReviewEvidence = storyReviewEvidence.length > 0;
-        if ((!grounding.hasSufficientEvidence && !hasStoryReviewEvidence) || (isMasterDataQuestion(question) && !masterEvidence.hasEvidence)) {
+        const hasAttachmentEvidence = attachmentEvidence.length > 0;
+        if ((!grounding.hasSufficientEvidence && !hasStoryReviewEvidence && !hasAttachmentEvidence) || (isMasterDataQuestion(question) && !masterEvidence.hasEvidence && !hasAttachmentEvidence)) {
           responseText = isMasterDataQuestion(question) && !masterEvidence.hasEvidence
             ? `${MASTER_DATA_ANSWER_FALLBACK}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`
             : buildInsufficientEvidenceResponse(grounding);
@@ -135,7 +150,9 @@ export const appRouter = router({
 
         return {
           text,
-          sources: grounding.sources,
+          sources: attachmentArtifact
+            ? [...grounding.sources, { id: `uploaded-artifact-${attachmentArtifact.id}`, label: `Uploaded source: ${attachmentArtifact.fileName}`, path: attachmentArtifact.storageUrl, authority: "User-provided governed source attachment", lastUpdated: attachmentArtifact.createdAt.toISOString(), artifactStatus: "Reference" as const }]
+            : grounding.sources,
           conflicts: grounding.conflicts,
           status: grounding.status,
           knowledgeCheckedAt: grounding.checkedAt,
