@@ -368,12 +368,12 @@ const CAPABILITIES: Capability[] = [
     color: "#1e3a5f",
     bg: "#eff6ff",
     border: "#93c5fd",
-    description: "Compare Master Data and Prior Year Inventory artifacts, return only evidence-based Input Code mappings, and route unresolved items for review.",
+    description: "Upload governed Excel or CSV sources, create separate mapping-review workbooks, and surface evidence-bound gaps and cross-team dependencies using registered MVP-to-Pilot knowledge. Buddy never approves a mapping or fills a source gap by assumption.",
     sampleQuestions: [
-      "Upload Master Data and Prior Year Inventory",
-      "Map the Input Codes",
-      "Show unresolved mapping exceptions",
-      "Is this mapping exercise ready?",
+      "Upload a State, TDC, Process, or IMS workbook",
+      "Build a State input mapping-review spreadsheet",
+      "Show cross-team mapping gaps and dependencies",
+      "What requires human validation before implementation?",
     ],
   },
 ];

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Download, FileSpreadsheet, Search, ShieldCheck, Upload, AlertTriangle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import StateContractAnalysisWorkspace from "@/components/StateContractAnalysisWorkspace";
 
 type FilterStatus = "All" | "Confirmed" | "Candidate" | "Ambiguous" | "No Match" | "Conflict" | "Missing Input Code" | "Missing Rule Code";
 
@@ -84,6 +85,7 @@ export default function DataMappingWorkspace() {
       <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 16 }}><ShieldCheck size={20} /> Data Mapping Assistant</div>
       <div style={{ fontSize: 12, opacity: .86, marginTop: 5 }}>Evidence-based field mapping for DCT Discovery. Buddy never invents an Input Code; semantic similarity creates a Candidate only.</div>
     </div>
+    <StateContractAnalysisWorkspace />
     <div style={{ background: "#eff6ff", borderLeft: "4px solid #1e3a5f", borderRadius: 7, padding: "9px 12px", color: "#1e3a5f", fontSize: 12, marginBottom: 12 }}><strong>Implemented mapping precedence:</strong> approved crosswalk → Master Data Input Code → Prior Year Inventory Input Code → BA-confirmed historical mapping → semantic candidate. Taxonomy/data-dictionary and registered API sources are not yet registered in this workspace and are not used to create mappings.</div>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 12, marginBottom: 12 }}>
       <ArtifactUploader artifactType="Master Data" onSaved={updateArtifacts} />

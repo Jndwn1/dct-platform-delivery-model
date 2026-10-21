@@ -9,6 +9,8 @@ export interface ArtifactField {
   ruleCode?: string;
   dataType?: string;
   taxContext?: string;
+  /** Raw source values retained for structured contract analysis; no mapping is inferred from them. */
+  attributes?: Record<string, string>;
   worksheet: string;
   rowNumber: number;
 }
@@ -66,12 +68,15 @@ export function parseArtifactBuffer(buffer: Buffer, fileName: string, versionLab
     const headerRows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "" });
     const headerIndex = headerRows.slice(0, 25).reduce((best, row, index) => {
       const values = row.map(value => String(value).trim()).filter(Boolean);
-      const score = values.filter(value => /field|attribute|column|code|name|description|label|type|line|rule|account|criteria/i.test(value)).length;
+      const score = values.filter(value => /field|attribute|column|code|name|description|label|type|line|rule|account|criteria|input|question|owner|status|purpose|impact|evidence|effective|period|policy|validation|mapping|table|worksheet|api|^id$/i.test(value)).length;
       return score > best.score ? { index, score } : best;
     }, { index: 0, score: 0 }).index;
     const headers = (headerRows[headerIndex] ?? []).map(value => String(value).trim()).filter(Boolean);
     const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { range: headerIndex, defval: "" });
-    const fieldHeader = headerFor(headers, [/^field$/, /field name/, /source field/, /attribute/, /column name/, /^name$/, /account.?code/, /account.?name/, /taxonomy.?code/, /form.?code/, /line.?code/, /rule.?code/, /template.?code/, /concept.?code/, /criteria.?code/]);
+    // State reference contracts name their business key "Rule Input". Prefer it
+    // over the companion Rule Code so each contract row remains individually traceable.
+    const stateRuleInputHeader = headerFor(headers, [/^rule input$/]);
+    const fieldHeader = stateRuleInputHeader ?? headerFor(headers, [/^field$/, /field name/, /source field/, /source column/, /attribute/, /column name/, /^name$/, /account.?code/, /account.?name/, /taxonomy.?code/, /form.?code/, /line.?code/, /rule.?code/, /template.?code/, /concept.?code/, /criteria.?code/, /^validation rule$/, /^open question$/, /^contract rule$/]);
     const descriptionHeader = headerFor(headers, [/description/, /business meaning/, /definition/]);
     const inputHeader = headerFor(headers, [/input.?code/, /^input$/]);
     const ruleHeader = headerFor(headers, [/rule.?code/, /^rule$/]);
@@ -90,6 +95,7 @@ export function parseArtifactBuffer(buffer: Buffer, fileName: string, versionLab
         ruleCode: ruleHeader ? String(row[ruleHeader] || "").trim() || undefined : undefined,
         dataType: typeHeader ? String(row[typeHeader] || "").trim() || undefined : undefined,
         taxContext: taxHeader ? String(row[taxHeader] || "").trim() || undefined : undefined,
+        attributes: Object.fromEntries(headers.map((header) => [header, String(row[header] || "").trim()]).filter(([, value]) => Boolean(value))),
         worksheet,
         rowNumber: rowIndex + headerIndex + 2,
       });

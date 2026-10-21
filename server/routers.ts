@@ -12,6 +12,7 @@ import { askBuddyAudits, integrationQuestions, deployments, deploymentScreens, p
 import { storagePut } from "./storage";
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 import { createMappingCandidates, isMappableArtifactField, mappingReadiness, parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
+import { analyzeStateInputReferenceContract, buildStateContractMappingWorkbook } from "./stateContractAnalysis";
 import { buildMasterDataEvidence, isMasterDataQuestion, MASTER_DATA_ANSWER_FALLBACK, selectAuthoritativeMasterDataArtifact } from "./masterDataRegistry";
 import mammoth from "mammoth";
 import { analyzeTdcStandupTranscript, buildTdcStandupEmail, formatMeetingDate } from "./meetingRecaps";
@@ -149,6 +150,29 @@ export const appRouter = router({
       if (!db) return [];
       return db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt));
     }),
+    analyzeStateContract: publicProcedure
+      .input(z.object({ artifactId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("The governed mapping store is unavailable. Please try again.");
+        const [artifact] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.artifactId)).limit(1);
+        if (!artifact) throw new Error("The selected source artifact was not found.");
+        const fields = JSON.parse(artifact.fieldsJson) as ArtifactField[];
+        return analyzeStateInputReferenceContract(fields, artifact.fileName, artifact.versionLabel);
+      }),
+    exportStateContractAnalysis: publicProcedure
+      .input(z.object({ artifactId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("The governed mapping store is unavailable. Please try again.");
+        const [artifact] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.artifactId)).limit(1);
+        if (!artifact) throw new Error("The selected source artifact was not found.");
+        const analysis = analyzeStateInputReferenceContract(JSON.parse(artifact.fieldsJson) as ArtifactField[], artifact.fileName, artifact.versionLabel);
+        return {
+          fileBase64: buildStateContractMappingWorkbook(analysis),
+          fileName: `${artifact.fileName.replace(/\.(xlsx|xls|csv)$/i, "")}-mapping-review.xlsx`,
+        };
+      }),
     uploadArtifact: publicProcedure
       .input(z.object({
         artifactType: z.enum(["Master Data", "Prior Year Inventory", "Approved Crosswalk", "Other"]),
