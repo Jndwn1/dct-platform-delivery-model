@@ -84,7 +84,7 @@ describe("askBuddy.chat", () => {
       messages: [{ role: "user", content: "What are the platform guardrails?" }],
     });
     expect(result.text).toContain("This is a mock LLM response about the DCT platform.");
-    expect(result.text).toContain("### Sources Used");
+    expect(result.text).not.toContain("### Sources Used");
     expect(result.knowledgeCheckedAt).toBeTruthy();
     expect(result.sources.length).toBeGreaterThan(0);
   });
@@ -135,7 +135,7 @@ describe("askBuddy.chat", () => {
     expect(buildGeneralAskBuddyPrompt).toHaveBeenCalledWith("/ask-buddy");
     expect(callArgs.messages[0].content).toContain("GENERAL BUSINESS-ANALYSIS MODE");
     expect(callArgs.messages[0].content).toContain("DCT KNOWLEDGE-BASE CHECK");
-    expect(result.text).toContain("### Sources Used");
+    expect(result.text).not.toContain("### Sources Used");
   });
 
   it("handles multi-turn conversation history", async () => {
@@ -203,7 +203,7 @@ describe("askBuddy.chat", () => {
     });
     expect(result.text).toContain("response-time limit");
     expect(result.text).toContain("No answer has been inferred");
-    expect(result.text).toContain("### Sources Used");
+    expect(result.text).not.toContain("### Sources Used");
   });
 
   it("returns practical general BA guidance when the fast-model deadline is reached", async () => {

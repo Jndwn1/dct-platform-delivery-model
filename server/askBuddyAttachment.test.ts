@@ -45,4 +45,11 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(askBuddyPage).toContain("content: m.text.slice(-2_000)");
     expect(askBuddyPage).toContain("currentPagePath: \"/ask-buddy\"");
   });
+
+  it("keeps evidence and audit metadata internal instead of rendering source provenance", () => {
+    expect(router).toContain("const text = responseText;");
+    expect(router).not.toContain("appendBuddyProvenance(responseText, grounding)");
+    expect(askBuddyPage).toContain("withoutVisibleSourceProvenance");
+    expect(askBuddyPage).not.toContain("msg.sources && msg.sources.length > 0");
+  });
 });

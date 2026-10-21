@@ -3,7 +3,7 @@
 // NON-PRODUCTION ARCHITECTURE REFERENCE
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Copy, Check, ExternalLink, Paperclip, ShieldCheck, X } from "lucide-react";
+import { Copy, Check, Paperclip, ShieldCheck, X } from "lucide-react";
 import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import DataMappingWorkspace from "@/components/DataMappingWorkspace";
@@ -55,6 +55,10 @@ interface Capability {
 }
 
 const BUDDY_WELCOME_MESSAGE = "Hello, I'm Ask Buddy your Business Analysis Assistant to help you with all your tasks.";
+
+function withoutVisibleSourceProvenance(content: string) {
+  return content.replace(/\n---\s*\n### Sources Used[\s\S]*$/i, "").trim();
+}
 
 // ─── PLATFORM TOUR STEPS ─────────────────────────────────────────────────────
 
@@ -431,7 +435,7 @@ export default function AskBuddy() {
 
   const [messages, setMessages] = useState<Message[]>(() => {
     const shared = readSharedBuddyConversation();
-    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.id === "welcome" && message.role === "assistant" ? BUDDY_WELCOME_MESSAGE : message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.id === "welcome" && message.role === "assistant" ? BUDDY_WELCOME_MESSAGE : message.role === "assistant" ? withoutVisibleSourceProvenance(message.content) : message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
     return [{ id: "welcome", role: "buddy", text: BUDDY_WELCOME_MESSAGE, timestamp: new Date(), capability: "welcome", sources: [] }];
   });
   const [input, setInput] = useState(initialPrompt);
@@ -476,7 +480,7 @@ export default function AskBuddy() {
       const currentIds = current.map(message => message.id).join("|");
       const sharedIds = shared.map(message => message.id).join("|");
       if (currentIds === sharedIds) return current;
-      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.id === "welcome" && message.role === "assistant" ? BUDDY_WELCOME_MESSAGE : message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.id === "welcome" && message.role === "assistant" ? BUDDY_WELCOME_MESSAGE : message.role === "assistant" ? withoutVisibleSourceProvenance(message.content) : message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
     });
   }), []);
 
@@ -1174,13 +1178,6 @@ Attached file: ${attachmentFile.name}${attachmentVersion.trim() ? ` · ${attachm
                         · {CAPABILITIES.find((c) => c.id === msg.capability)?.label ?? msg.capability}
                       </span>
                     )}
-                    {msg.sources && msg.sources.length > 0 && msg.sources.map((src, i) => typeof src === "string" ? (
-                      <span key={i} style={{ fontSize: "0.62rem", background: "#f0fdf4", color: "#059669", border: "1px solid #86efac", borderRadius: 3, padding: "0.1rem 0.4rem", fontWeight: 600 }}>{src}</span>
-                    ) : (
-                      <a key={src.id} href={src.path} title={`${src.authority} · updated ${src.lastUpdated}`} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: "0.62rem", background: src.artifactStatus === "Open" ? "#fffbeb" : "#f0fdf4", color: src.artifactStatus === "Open" ? "#92400e" : "#047857", border: `1px solid ${src.artifactStatus === "Open" ? "#fde68a" : "#86efac"}`, borderRadius: 3, padding: "0.1rem 0.4rem", fontWeight: 600, textDecoration: "none" }}><ExternalLink size={9} /> {src.label}</a>
-                    ))}
-                    {msg.answerStatus && <span style={{ fontSize: "0.62rem", color: msg.answerStatus === "Confirmed" ? "#047857" : msg.answerStatus === "Conflict" ? "#b45309" : "#92400e", fontWeight: 700 }}>· {msg.answerStatus}</span>}
-                    {msg.knowledgeCheckedAt && <span style={{ fontSize: "0.62rem", color: "#64748b" }}>· Checked {new Date(msg.knowledgeCheckedAt).toLocaleString()}</span>}
                     {msg.role === "buddy" && (
                       <button
                         onClick={() => {

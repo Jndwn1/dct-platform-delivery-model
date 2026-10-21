@@ -3,7 +3,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
 import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse, isStateApportionmentDependencyQuestion } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
-import { appendBuddyProvenance, buildBuddyGrounding, buildFocusedCrossTeamGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
+import { buildBuddyGrounding, buildFocusedCrossTeamGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -240,7 +240,9 @@ Do not infer content from this file.`
           }
         }
 
-        const text = appendBuddyProvenance(responseText, grounding);
+        // Evidence and audit metadata remain retained on the response object and in the
+        // audit record, but source provenance is not appended to the user-facing answer.
+        const text = responseText;
         if (db) {
           void db.insert(askBuddyAudits).values({
               question,

@@ -327,3 +327,4 @@
 - [x] Keep Ask Buddy’s grounded responses under five seconds by using a tested fast model and a bounded evidence/chat payload
 - [x] Add an evidence-bound Ask Buddy Cross-Team Dependencies mode using the supplied ownership, ADO, gap, sequencing, and delivery-impact response framework
 - [x] Return immediate State Apportionment ownership and dependency analysis from the State Taxonomy working-session evidence when the fast model would time out
+- [x] Hide Ask Buddy source provenance from response bodies and response footers while retaining governed evidence and audit metadata
