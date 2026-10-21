@@ -54,6 +54,8 @@ interface Capability {
   sampleQuestions: string[];
 }
 
+const BUDDY_WELCOME_MESSAGE = "Hi, I'm your Business Analyst Assistant. I'm here to help you with your discovery needs, analysis, requirements gathering, or mapping.";
+
 // ─── PLATFORM TOUR STEPS ─────────────────────────────────────────────────────
 
 interface TourStep {
@@ -78,7 +80,7 @@ const TOUR_STEPS: TourStep[] = [
     accentColor: "#0d9488",
     buddyMessage: `Welcome to the DCT Platform.
 
-I'm Buddy, your DCT Business Analysis Assistant.
+I'm your Business Analyst Assistant. I can help with discovery needs, analysis, requirements gathering, or mapping.
 
 Think of me as your guide to everything in this workspace.
 
@@ -408,8 +410,8 @@ export default function AskBuddy() {
 
   const [messages, setMessages] = useState<Message[]>(() => {
     const shared = readSharedBuddyConversation();
-    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
-    return [{ id: "welcome", role: "buddy", text: "Hi, I'm Ask Buddy — the DCT Discovery intelligence assistant. I use current platform evidence across delivery, Discovery, architecture, governance, requirements, QA, and registered API documentation. I do not fill Discovery gaps with assumptions.", timestamp: new Date(), capability: "welcome", sources: [] }];
+    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.id === "welcome" && message.role === "assistant" ? BUDDY_WELCOME_MESSAGE : message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+    return [{ id: "welcome", role: "buddy", text: BUDDY_WELCOME_MESSAGE, timestamp: new Date(), capability: "welcome", sources: [] }];
   });
   const [input, setInput] = useState(initialPrompt);
   const [activeCapability, setActiveCapability] = useState<string | null>(null);
@@ -448,7 +450,7 @@ export default function AskBuddy() {
       const currentIds = current.map(message => message.id).join("|");
       const sharedIds = shared.map(message => message.id).join("|");
       if (currentIds === sharedIds) return current;
-      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.id === "welcome" && message.role === "assistant" ? BUDDY_WELCOME_MESSAGE : message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
     });
   }), []);
 
@@ -488,7 +490,7 @@ export default function AskBuddy() {
       {
         id: "welcome",
         role: "buddy",
-        text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. I pull live data directly from the Control Panel — batch status, stories, invariants, ownership, gates, agents, and governance rules. Ask me anything.",
+        text: BUDDY_WELCOME_MESSAGE,
         timestamp: new Date(),
         capability: "welcome",
         sources: [],
@@ -784,7 +786,7 @@ export default function AskBuddy() {
                 setMessages([{
                   id: "welcome",
                   role: "buddy",
-                  text: "Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant. I pull live data directly from the Control Panel — batch status, stories, invariants, ownership, gates, agents, and governance rules. Ask me anything.",
+                  text: BUDDY_WELCOME_MESSAGE,
                   timestamp: new Date(),
                   capability: "welcome",
                   sources: [],

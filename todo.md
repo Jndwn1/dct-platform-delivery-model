@@ -320,3 +320,4 @@
 - [x] Enable Ask Buddy to upload governed structured artifacts, generate review-only mapping spreadsheets, and analyze cross-team gaps and dependencies using MVP-to-Pilot evidence
 - [x] Add evidence-bound TDC PI4 Sprint 4 goals from the supplied Team Roger backlog snapshot
 - [x] Update the TDC PI4 Sprint 3 metrics card with the supplied closeout summary
+- [x] Replace Ask Buddy’s opening message with the Business Analyst Assistant introduction
