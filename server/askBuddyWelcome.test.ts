@@ -10,7 +10,7 @@ const askBuddyPage = readFileSync(
 describe("Ask Buddy welcome message", () => {
   it("uses the Business Analyst Assistant introduction for new and reset conversations", () => {
     expect(askBuddyPage).toContain(
-      "Hello, I'm Ask Buddy your Business Analysis Assistant to help you with all your business analysis tasks."
+      "Hello, I'm Ask Buddy your Business Analysis Assistant to help you with all your tasks."
     );
     expect(askBuddyPage).toContain("text: BUDDY_WELCOME_MESSAGE");
     expect(askBuddyPage).toContain(

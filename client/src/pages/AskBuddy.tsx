@@ -54,7 +54,7 @@ interface Capability {
   sampleQuestions: string[];
 }
 
-const BUDDY_WELCOME_MESSAGE = "Hello, I'm Ask Buddy your Business Analysis Assistant to help you with all your business analysis tasks.";
+const BUDDY_WELCOME_MESSAGE = "Hello, I'm Ask Buddy your Business Analysis Assistant to help you with all your tasks.";
 
 // ─── PLATFORM TOUR STEPS ─────────────────────────────────────────────────────
 
