@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("State POC BA Discovery and Mapping Package", () => {
-  it("places the BA requirements package beneath the Post Pilot POC details", () => {
+  it("places the BA requirements package beneath the Pilot POC details", () => {
     const workspace = readFileSync(resolve(process.cwd(), "client/src/pages/onboarding/DiscoveryWorkspace.tsx"), "utf8");
     const postPilot = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");
     const packageSource = readFileSync(resolve(process.cwd(), "client/src/components/StatePocBaDiscoveryPackage.tsx"), "utf8");

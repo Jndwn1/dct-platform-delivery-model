@@ -274,7 +274,7 @@ export default function MeetingRecapsPage() {
   return (
     <div style={{ margin: "0 auto", maxWidth: "1340px", padding: "28px 32px 54px" }}>
       <div style={{ borderBottom: "1px solid #e2e8f0", marginBottom: "26px", paddingBottom: "18px" }}>
-        <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase" }}>Post Pilot · Meeting Recaps</div>
+        <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase" }}>Pilot · Meeting Recaps</div>
         <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 900, letterSpacing: "-0.025em", margin: "5px 0 0" }}>TDC Daily Standup — Meeting Recaps</h1>
         <p style={{ color: "#64748b", fontSize: "13px", lineHeight: 1.55, margin: "7px 0 0", maxWidth: "810px" }}>A central working tool and historical record for generating, reviewing, and tracking evidence-bound TDC Daily Standup recap emails.</p>
       </div>

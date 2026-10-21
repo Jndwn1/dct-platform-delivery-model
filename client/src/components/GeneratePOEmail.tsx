@@ -134,7 +134,7 @@ function buildEmailHTML(
 
       const piLabel = pi === "PI 2" ? "PI 2 — Complete" :
                       pi === "PI 3" ? "PI 3 — MVP Target" :
-                      pi === "PI 4" ? "PI 4 — Post-Pilot" :
+                      pi === "PI 4" ? "PI 4 — Pilot" :
                       pi === "PI 5" ? "PI 5 — Future Roadmap" :
                       pi === "Future" ? "Future Roadmap" :
                       pi === "Parked" ? "Parked / Superseded" : pi;

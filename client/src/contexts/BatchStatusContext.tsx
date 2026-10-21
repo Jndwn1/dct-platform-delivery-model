@@ -345,7 +345,7 @@ export const DEFAULT_STATUS: BatchStatusMap = {
   "pi4-security-readiness": "Not Started",
   "pi4-deferred-work": "Not Started",
   "pi4-ims-translation": "Not Started",
-  // ── PI 4 — Future (Post-Pilot) ───────────────────────────────────────────
+  // ── PI 4 — Future (Pilot) ───────────────────────────────────────────
   "19": "Not Started",  // B19 — Audit Tax-Expense Cross-LOB Outbound (9/21–9/28)
   "40": "Not Started",  // B40 — Client-Level Line Mapping Reuse
   "35": "Not Started",  // B35 — S-Corp Specialization

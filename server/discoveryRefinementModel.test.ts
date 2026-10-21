@@ -101,7 +101,7 @@ describe("Provision and State Discovery refinement model", () => {
     expect(renderedWorkspace).not.toContain("<StatePocBaDiscoveryPackage />");
     expect(renderedWorkspace).toContain("<ExistingCapabilities />");
     expect(renderedWorkspace).toContain("<AskBuddySection />");
-    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Post Pilot feature inventory"));
+    expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("Pilot feature inventory"));
     expect(buddySource).toContain("State Refinement & DCT Ownership — Current Two Backend Stories");
     expect(buddySource).toContain("Both stories are refined and **DCT-owned**");
     expect(buddySource).toContain("Roger owns practitioner-facing UI and actions but does not own State tax records.");

@@ -16,7 +16,7 @@ describe("PI4 executive planning presentation", () => {
   it("adds executive hierarchy, navigation, planning status, KPI treatment, summary, and leadership attention without changing planning values", () => {
     const source = workspaceSource();
 
-    expect(source).toContain("PI4 Post-Pilot Planning");
+    expect(source).toContain("PI4 Pilot Planning");
     expect(source).toContain("PI4 Sprint &amp; Story Tracker");
     expect(source).toContain("Planning inventory only — not committed delivery");
     expect(source).toContain("Planning view refreshed");

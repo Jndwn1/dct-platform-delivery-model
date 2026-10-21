@@ -407,7 +407,7 @@ export default function StateGoSystemPoc() {
               textTransform: "uppercase",
             }}
           >
-            Post Pilot · Unified delivery readiness dashboard
+            Pilot · Unified delivery readiness dashboard
           </div>
           <h1 style={{ color: "#ffffff", fontSize: "21px", margin: 0 }}>
             State & Provision Delivery Readiness

@@ -79,7 +79,7 @@ export default function StateTaxonomyReadinessPage() {
     <div style={{ fontFamily: "system-ui, sans-serif", margin: "0 auto", maxWidth: "1360px", padding: "28px 32px 52px" }}>
       <div style={{ marginBottom: "22px" }}>
         <div>
-          <Link href="/post-pilot" style={{ color: C.purple, fontSize: "11px", fontWeight: 850, textDecoration: "none" }}>← Post Pilot</Link>
+          <Link href="/post-pilot" style={{ color: C.purple, fontSize: "11px", fontWeight: 850, textDecoration: "none" }}>← Pilot</Link>
           <div style={{ color: C.purple, fontSize: "10px", fontWeight: 900, letterSpacing: "0.1em", marginTop: "12px", textTransform: "uppercase" }}>PI4 · State / TDC Discussion Readiness</div>
           <h1 style={{ color: C.navy, fontSize: "26px", fontWeight: 900, letterSpacing: "-0.025em", margin: "5px 0 0" }}>State Taxonomy — TDC Dependencies, Requirements, and Discussion Readiness</h1>
           <p style={{ color: C.muted, fontSize: "13px", lineHeight: 1.55, margin: "7px 0 0", maxWidth: "990px" }}>A transcript- and State-provided working reference for the State taxonomy discussion. It records the shared data, matching, normalized-dataset, table-layout, and follow-up needs; it does not convert discussion into approved design or delivery commitment.</p>

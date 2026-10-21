@@ -176,9 +176,9 @@ export default function PostPilotPage() {
       <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "14px", justifyContent: "space-between", marginBottom: "22px" }}>
         <div>
           <div style={{ color: PURPLE, fontSize: "10px", fontWeight: 850, letterSpacing: "0.1em", textTransform: "uppercase" }}>Executive Health</div>
-          <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 900, letterSpacing: "-0.02em", margin: "5px 0 0" }}>Post Pilot</h1>
+          <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 900, letterSpacing: "-0.02em", margin: "5px 0 0" }}>Pilot</h1>
           <p style={{ color: "#64748b", fontSize: "13px", lineHeight: 1.5, margin: "6px 0 0", maxWidth: "760px" }}>
-            A PI4 Post Pilot workspace for sprint cadence, delivery readiness, prototypes, and evidence-based planning without implying PI4 portfolio delivery progress.
+            A PI4 Pilot workspace for sprint cadence, delivery readiness, prototypes, and evidence-based planning without implying PI4 portfolio delivery progress.
           </p>
         </div>
         <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -286,7 +286,7 @@ export default function PostPilotPage() {
 
       <section aria-labelledby="post-pilot-prototypes" style={{ marginTop: "26px", marginBottom: "26px" }}>
         <SectionHeading
-          eyebrow="Post Pilot experience references"
+          eyebrow="Pilot experience references"
           title="State & Provision Prototypes"
           description="Interactive Roger-aligned reference experiences supporting PI4 planning, story refinement, and stakeholder walkthroughs."
         />

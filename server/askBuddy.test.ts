@@ -87,7 +87,7 @@ describe("askBuddy.chat", () => {
     expect(callArgs.messages).toHaveLength(4);
   });
 
-  it("injects documented Post Pilot story-review evidence for the scoped review agent", async () => {
+  it("injects documented Pilot story-review evidence for the scoped review agent", async () => {
     const caller = appRouter.createCaller(createTestCtx());
     await caller.askBuddy.chat({
       messages: [{ role: "user", content: "What are the key gaps that Gary should review for Story 1494344?" }],

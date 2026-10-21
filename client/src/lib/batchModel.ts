@@ -462,7 +462,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "Client Communication read contract extends Engagement Operations from Batch 12",
     ],
     deferred: true,
-    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / FUTURE PI — Client communication tracking and outstanding item management. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI post-pilot.' Do not include in PI 3 MVP planning or 9/21 pilot scope.",
+    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / FUTURE PI — Client communication tracking and outstanding item management. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI after Pilot.' Do not include in PI 3 MVP planning or 9/21 pilot scope.",
   },
   {
     id: "B23",
@@ -481,7 +481,7 @@ const BATCH_REGISTRY: BatchEntry[] = [
       "Outlier indicators visible — positions deviating from peer group surfaced",
     ],
     deferred: true,
-    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / DEFERRED — Benchmark and peer analytics against industry peers. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI post-pilot.' Do not include in PI 3 MVP planning or 9/21 pilot scope.",
+    deferredNote: "Roadmap v4.0 explicit deferral: 'POST-MVP / DEFERRED — Benchmark and peer analytics against industry peers. Removed from PI 3 MVP scope. No MVP dates apply. Deferred to a future PI after Pilot.' Do not include in PI 3 MVP planning or 9/21 pilot scope.",
   },
   {
     id: "B24",
@@ -779,8 +779,8 @@ export const PI_GROUPS: PIGroup[] = [
   {
     id: "PI4",
     label: "PI 4",
-    subtitle: "Governance, QC & Analytics (Post-Pilot)",
-    // Post-Pilot: B19, B21 TDC, B26 TDC, B35, B40, B22, B23
+    subtitle: "Governance, QC & Analytics (Pilot)",
+    // Pilot: B19, B21 TDC, B26 TDC, B35, B40, B22, B23
     batchIds: ["B19", "B35", "B40", "B22", "B23"],
     color: "text-amber-700",
     bgColor: "bg-amber-50",

@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("State and Provision delivery-readiness dashboard", () => {
-  it("consolidates October 9 evidence in the existing Post Pilot page", () => {
+  it("consolidates October 9 evidence in the existing Pilot page", () => {
     const workspace = readFileSync(
       resolve(
         process.cwd(),

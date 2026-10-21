@@ -705,10 +705,10 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
     open: [
       "POST-MVP / FUTURE PI — removed from PI 3 MVP scope",
       "No MVP dates apply",
-      "Deferred to a future PI post-pilot",
+      "Deferred to a future PI after Pilot",
     ],
-    readiness: "POST-MVP / FUTURE PI — Client communication tracking and outstanding item management. Removed from PI 3 MVP scope. Deferred to a future PI post-pilot.",
-    poNote: "Batch 22 is POST-MVP. Client communication tracking and outstanding item management have been removed from PI 3 MVP scope. No MVP dates apply. Will be planned post-pilot. Source: Roadmap v4_corrected.",
+    readiness: "POST-MVP / FUTURE PI — Client communication tracking and outstanding item management. Removed from PI 3 MVP scope. Deferred to a future PI after Pilot.",
+    poNote: "Batch 22 is POST-MVP. Client communication tracking and outstanding item management have been removed from PI 3 MVP scope. No MVP dates apply. Will be planned after Pilot. Source: Roadmap v4_corrected.",
   },
   {
     key: "23",
@@ -720,10 +720,10 @@ const DELIVERED_BATCHES: DeliveredBatch[] = [
     open: [
       "POST-MVP / DEFERRED — removed from PI 3 MVP scope",
       "No MVP dates apply",
-      "Deferred to a future PI post-pilot",
+      "Deferred to a future PI after Pilot",
     ],
-    readiness: "POST-MVP / DEFERRED — Benchmark and peer analytics against industry peers. Removed from PI 3 MVP scope. Deferred to a future PI post-pilot.",
-    poNote: "Batch 23 is POST-MVP. Benchmark and peer analytics have been removed from PI 3 MVP scope. No MVP dates apply. Will be planned post-pilot. Source: Roadmap v4_corrected.",
+    readiness: "POST-MVP / DEFERRED — Benchmark and peer analytics against industry peers. Removed from PI 3 MVP scope. Deferred to a future PI after Pilot.",
+    poNote: "Batch 23 is POST-MVP. Benchmark and peer analytics have been removed from PI 3 MVP scope. No MVP dates apply. Will be planned after Pilot. Source: Roadmap v4_corrected.",
   },
   {
     key: "26",

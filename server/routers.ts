@@ -733,7 +733,7 @@ ${input.notes}` as string },
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
-        if (!db) throw new Error("The Post Pilot deployment registry is unavailable. Please try again.");
+        if (!db) throw new Error("The Pilot deployment registry is unavailable. Please try again.");
         const dateStr = input.deploymentDate.replace(/-/g, "").slice(0, 8);
         const existing = await db.select().from(postPilotDeployments);
         const sequence = String(existing.length + 1).padStart(3, "0");

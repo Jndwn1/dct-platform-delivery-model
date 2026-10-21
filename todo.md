@@ -316,3 +316,4 @@
 - [x] Number deployment registry records chronologically by deployment date while retaining reverse-chronological display
 - [x] Reduce Meeting Recaps history payloads and add retry handling for transient query failures
 - [x] Align State Taxonomy Readiness with the supplied two-part State ↔ IMS ↔ GoSystem working-session plan and TDC coverage
+- [x] Rename all user-facing Post Pilot terminology to Pilot while retaining legacy /post-pilot routes and technical identifiers

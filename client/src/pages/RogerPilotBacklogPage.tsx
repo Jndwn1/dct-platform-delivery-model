@@ -346,7 +346,7 @@ export default function RogerPilotBacklogPage() {
                 textTransform: "uppercase",
               }}
             >
-              Executive Health · Post Pilot
+              Executive Health · Pilot
             </div>
             <h1
               style={{
@@ -430,7 +430,7 @@ export default function RogerPilotBacklogPage() {
                   textDecoration: "none",
                 }}
               >
-                ← Back to Post Pilot
+                ← Back to Pilot
               </Link>
             </div>
           </div>

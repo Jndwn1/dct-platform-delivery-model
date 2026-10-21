@@ -253,7 +253,7 @@ export default function PI4PlanningWorkspace() {
       <header id="executive-overview" style={{ scrollMarginTop: "16px", background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 62%, #0f766e 100%)", borderRadius: "14px", padding: "24px", boxShadow: "0 14px 32px rgba(15, 23, 42, 0.18)", marginBottom: "14px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(260px, 0.34fr)", gap: "22px", alignItems: "stretch" }}>
           <div>
-            <div style={{ color: "#bfdbfe", fontSize: "11px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase" }}>PI4 Post-Pilot Planning</div>
+            <div style={{ color: "#bfdbfe", fontSize: "11px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase" }}>PI4 Pilot Planning</div>
             <h1 style={{ color: "#ffffff", fontSize: "31px", lineHeight: 1.12, letterSpacing: "-0.028em", fontWeight: 850, margin: "7px 0 0" }}>PI4 Sprint &amp; Story Tracker</h1>
             <p style={{ color: "#dbeafe", fontSize: "13px", lineHeight: 1.6, maxWidth: "800px", margin: "11px 0 0" }}>A single planning workspace for the supplied DCT Platform, State, and Provision feature-to-story mappings. Use it to prepare the PI4 sprint baseline without treating planning inventory as committed delivery work.</p>
           </div>

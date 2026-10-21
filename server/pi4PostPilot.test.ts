@@ -10,7 +10,7 @@ import {
 } from "../client/src/lib/postPilotPlanningInventory";
 import { buildPostPilotDeploymentWiki } from "../client/src/components/PostPilotDeploymentSnapshot";
 
-describe("PI4 Post Pilot delivery", () => {
+describe("PI4 Pilot delivery", () => {
   it("preserves the complete saved deployment summary in the Data Gateway wiki export", () => {
     const wiki = buildPostPilotDeploymentWiki([{ deploymentId: "PPDEP-2026-1016-001", deploymentDate: "2026-10-16", releaseName: "State data package deployment", screenName: "State filing and data-package capabilities", type: "Technical Story", platform: "TDC", status: "Deployed", environment: "QA", deploymentOwner: "Gary Luca", productOwner: "Jenniver Stafford", relatedFeature: "State integration", relatedStory: "Story 1501980", adoWorkItemId: "1501980, 1501981, 1501982, 1501983, 1501984", summary: "Initial deployment summary.\nValidation notes are retained.\nThird summary detail must be retained in the wiki export." }]);
     expect(wiki).toContain("Initial deployment summary.");
@@ -54,7 +54,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(DEFAULT_STATUS["pi4-ims-translation"]).toBe("Not Started");
   });
 
-  it("moves the PI4 planning card from the landing page to the dedicated Post Pilot page", () => {
+  it("moves the PI4 planning card from the landing page to the dedicated Pilot page", () => {
     const dashboard = readFileSync(resolve(process.cwd(), "client/src/components/ExecDashboard.tsx"), "utf8");
     const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
     const postPilot = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");
@@ -69,12 +69,12 @@ describe("PI4 Post Pilot delivery", () => {
     const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
     const postPilotDeploymentRouter = router.slice(router.indexOf("postPilotDeploymentRegistry: router"), router.indexOf("tdcMeetingRecaps: router"));
 
-    expect(dashboard).not.toContain("Post Pilot · Planning Visibility Only");
+    expect(dashboard).not.toContain("Pilot · Planning Visibility Only");
     expect(dashboard).not.toContain("PI4 Planning Visibility");
     expect(home).not.toContain('{ label: "PI 4", metric: piCompletion.pi4 }');
 
-    expect(postPilot).toContain("Post Pilot");
-    expect(postPilot).not.toContain("Post Pilot · Planning Visibility Only");
+    expect(postPilot).toContain("Pilot");
+    expect(postPilot).not.toContain("Pilot · Planning Visibility Only");
     expect(postPilot).not.toContain("Planning visibility only");
     expect(postPilot).not.toContain('aria-labelledby="pi4-post-pilot-title"');
     expect(postPilot).not.toContain("Open PI4 Sprint &amp; Feature Tracker");
@@ -84,7 +84,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).not.toContain("Roger QA Screens");
     expect(postPilot).not.toContain('label: "Unique Features"');
     expect(postPilot).not.toContain("PI4 planning inventory");
-    expect(postPilot).not.toContain("Post Pilot Metrics");
+    expect(postPilot).not.toContain("Pilot Metrics");
     expect(postPilot).not.toContain("PI4 Planning Records");
     expect(postPilot).not.toContain("Linked ADO Dependencies");
     expect(postPilot).not.toContain("Planning inventory detail");
@@ -178,18 +178,18 @@ describe("PI4 Post Pilot delivery", () => {
     expect(postPilot).toContain('import PostPilotDeploymentSnapshot from "@/components/PostPilotDeploymentSnapshot"');
     expect(postPilot).toContain("<PostPilotDeploymentSnapshot />");
     expect(postPilot.indexOf("<PostPilotDeploymentSnapshot />")).toBeGreaterThan(postPilot.indexOf("pi4-sprint-metrics"));
-    expect(deploymentSnapshot).toContain("Post Pilot Deployment Registry");
+    expect(deploymentSnapshot).toContain("Pilot Deployment Registry");
     expect(deploymentSnapshot).toContain("trpc.postPilotDeploymentRegistry.summary.useQuery()");
     expect(deploymentSnapshot).toContain("trpc.postPilotDeploymentRegistry.list.useQuery()");
     expect(deploymentSnapshot).toContain("Create Deployment");
-    expect(deploymentSnapshot).toContain("Create Post Pilot Deployment");
+    expect(deploymentSnapshot).toContain("Create Pilot Deployment");
     expect(deploymentSnapshot).toContain("Copy Data Gateway Wiki Markdown");
     expect(deploymentSnapshot).toContain("Download Data Gateway Markdown");
     expect(deploymentSnapshot).toContain("downloadWikiMarkdown");
     expect(deploymentSnapshot).toContain('"data-gateway-release-notes.md"');
     expect(deploymentSnapshot).toContain("buildPostPilotDeploymentWiki");
     expect(deploymentSnapshot).toContain('"# Data Gateway Release Notes"');
-    expect(deploymentSnapshot).toContain("PI4 / Post Pilot Data Gateway release documentation");
+    expect(deploymentSnapshot).toContain("PI4 / Pilot Data Gateway release documentation");
     expect(deploymentSnapshot).toContain("Registry records represented");
     expect(deploymentSnapshot).toContain('"## Release Index"');
     expect(deploymentSnapshot).toContain(
@@ -214,18 +214,18 @@ describe("PI4 Post Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("Jenniver Dawn Stafford");
     expect(deploymentSnapshot).toContain("Business Analysis Manager");
     expect(deploymentSnapshot).toContain("(CATT) Center for Advanced Tax Technology");
-    expect(deploymentSnapshot).not.toContain('"# DCT Platform — Post Pilot Deployment Registry"');
+    expect(deploymentSnapshot).not.toContain('"# DCT Platform — Pilot Deployment Registry"');
     expect(deploymentSnapshot).toContain("affected screen / capability is required");
     expect(deploymentSnapshot).toContain("Total Deployments");
     expect(deploymentSnapshot).toContain("Production Releases");
     expect(deploymentSnapshot).toContain("TDC Deployments");
-    expect(deploymentSnapshot).toContain("Tax Data Consolidation (TDC) PI4 / Post Pilot deployments only");
+    expect(deploymentSnapshot).toContain("Tax Data Consolidation (TDC) PI4 / Pilot deployments only");
     expect(deploymentSnapshot).not.toContain("PDC Deployments");
     expect(deploymentSnapshot).not.toContain("Platform *");
     expect(deploymentSnapshot).not.toContain('record.platform === "PDC"');
     expect(deploymentSnapshot).toContain("Open Rollback Candidates");
-    expect(deploymentSnapshot).toContain("Post Pilot Deployment Records");
-    expect(deploymentSnapshot).toContain("No Post Pilot deployments recorded");
+    expect(deploymentSnapshot).toContain("Pilot Deployment Records");
+    expect(deploymentSnapshot).toContain("No Pilot deployments recorded");
     expect(deploymentSnapshot).toContain("Screen / Capability");
     expect(deploymentSnapshot).toContain("Release Index");
     expect(deploymentSnapshot).toContain("does not change PI4 sprint progress");
@@ -285,7 +285,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(poc).not.toContain("Risk Register");
     expect(poc).toContain("Not Demonstrated</strong> does not mean");
     expect(app).toContain('path="/post-pilot" component={PostPilotPage}');
-    expect(sidebar).toContain('["Executive Health", "Post Pilot"]');
+    expect(sidebar).toContain('["Executive Health", "Pilot"]');
     expect(sidebar).toContain('label: "Meeting Recaps", path: "/post-pilot/meeting-recaps"');
     expect(sidebar).toContain('workspaceShortcuts("executive", ["Ask Buddy"], false)');
     expect(pageContext).toContain('"State & Provision Delivery Readiness Dashboard"');
@@ -304,7 +304,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(platformContext).toContain("excluded from all PI4 and MVP delivery metrics");
   });
 
-  it("adds a separate Post Pilot TDC Daily Standup Meeting Recaps workspace", () => {
+  it("adds a separate Pilot TDC Daily Standup Meeting Recaps workspace", () => {
     const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
     const sidebar = readFileSync(resolve(process.cwd(), "client/src/components/Sidebar.tsx"), "utf8");
     const page = readFileSync(resolve(process.cwd(), "client/src/pages/MeetingRecapsPage.tsx"), "utf8");
@@ -334,7 +334,7 @@ describe("PI4 Post Pilot delivery", () => {
     expect(schema).toContain('emailStatus: mysqlEnum("tdcMeetingRecapEmailStatus", ["Draft", "Reviewed", "Sent"])');
   });
 
-  it("adds an evidence-bound State Taxonomy readiness workspace beneath Post Pilot", () => {
+  it("adds an evidence-bound State Taxonomy readiness workspace beneath Pilot", () => {
     const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
     const sidebar = readFileSync(resolve(process.cwd(), "client/src/components/Sidebar.tsx"), "utf8");
     const postPilot = readFileSync(resolve(process.cwd(), "client/src/pages/PostPilotPage.tsx"), "utf8");

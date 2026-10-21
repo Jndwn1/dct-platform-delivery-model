@@ -503,7 +503,7 @@ DCT (Data Coordination Technology) is RSM's governed, batch-driven architecture 
 - **PI 1:** FC, B1, B2, B2A, B3 — Foundation & AI Mapping
 - **PI 2:** B4–B11, B43 — Entity, Workflow & Tax Ready
 - **PI 3 MVP:** B42, B17, B20, B21, B26, B28, B29, B31, B9A, B39, B33 — Target: Sep 21, 2026
-- **PI 4 / Post-Pilot:** B19, B21-TDC, B26-TDC, B35, B40, B22, B23
+- **PI 4 / Pilot:** B19, B21-TDC, B26-TDC, B35, B40, B22, B23
 
 ### Key TDC Business Objects
 TaxProfile, MappingDecision, MappingRule, TaxFormTemplate, Adjustment, SignOffRecord, EligibilityRecord, FilingRecord, ExceptionRecord, RemedyAction, AuditRecord, LineageRecord, ConfidenceBand, EngagementId, EntityId
@@ -1147,9 +1147,9 @@ Before documenting any new requirement for the State or Provision workstream, de
   },
 
   "/post-pilot": {
-    pageTitle: "Post Pilot",
+    pageTitle: "Pilot",
     pagePath: "/post-pilot",
-    summary: "Executive PI4 Post Pilot page with sprint cadence, prototypes, deployment tracking, one evidence-bound October 9 State & Provision delivery-readiness dashboard, and the State team’s PI4 Product Vision and Scope.",
+    summary: "Executive PI4 Pilot page with sprint cadence, prototypes, deployment tracking, one evidence-bound October 9 State & Provision delivery-readiness dashboard, and the State team’s PI4 Product Vision and Scope.",
     suggestedQuestions: [
       "What did the October 9 Roger to GoSystem POC demonstration establish?",
       "Which POC capabilities are demonstrated, partially demonstrated, or not demonstrated?",
@@ -1167,7 +1167,7 @@ Before documenting any new requirement for the State or Provision workstream, de
       "What are the first-pass findings for the current-year State story package?",
     ],
     context: `
-## Post Pilot — Unified State & Provision Delivery Readiness Dashboard
+## Pilot — Unified State & Provision Delivery Readiness Dashboard
 
 - **Evidence boundary and overall status:** The State POC transcript, supplied October 9 meeting notes, Provision demonstration transcript window (12:11–16:52), and the latest supplied October 9 Provision status update are working-session evidence, not approved implementation specifications. Overall status: **Partially Demonstrated — End-to-End Integration Not Yet Validated**.
 - **State demonstrated:** Tax Portal-to-Roger ingestion, source mapping, Property/Payroll/Sales/payments factor inputs, practitioner confirmation, check-figure and variance review, and complex property-data handling. Structured State inputs and approved mappings were partially demonstrated; the evidence did not establish IMS translation/transmission, GoSystem calculation execution, or results returned to Roger.

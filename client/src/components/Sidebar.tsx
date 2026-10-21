@@ -77,7 +77,7 @@ const PI3_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B33 — State Tax (Apportionment, NOL, Forms)",       path: "/batch/33",              batchKey: "33" },
 ];
 
-// PI 4 / Post-Pilot batch items — per Roadmap v8
+// PI 4 / Pilot batch items — per Roadmap v8
 const PI4_BATCH_ITEMS: { label: string; path: string; batchKey: string }[] = [
   { label: "B19 — Audit Tax-Expense Cross-LOB Outbound",        path: "/batch/19",              batchKey: "19" },
   { label: "B21 | TDC — Quality Control Review Records",        path: "/batch/21-tdc",          batchKey: "21" },
@@ -196,7 +196,7 @@ function workspaceShortcuts(workspaceId: "executive" | "delivery" | "roger" | "d
 }
 
 const EXECUTIVE_HEALTH_ITEMS: NavItem[] = [
-  ...workspaceShortcuts("executive", ["Executive Health", "Post Pilot"], false),
+  ...workspaceShortcuts("executive", ["Executive Health", "Pilot"], false),
   { label: "Roger Pilot Backlog", path: "/post-pilot/roger-pilot-backlog", icon: "•", badge: "ADO", badgeColor: "#003865", indent: true },
   { label: "State Taxonomy Readiness", path: "/post-pilot/state-taxonomy-readiness", icon: "•", badge: "TDC", badgeColor: "#0f766e", indent: true },
   { label: "Meeting Recaps", path: "/post-pilot/meeting-recaps", icon: "•", badge: "TDC", badgeColor: "#0f766e", indent: true },
@@ -590,7 +590,7 @@ export default function Sidebar({ activeSection }: SidebarProps) {
                 onClick={() => togglePi("pi4")}
                 style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "6px 12px 2px", background: "none", border: "none", cursor: "pointer" }}
               >
-                <span style={{ fontSize: "9px", fontWeight: 700, color: "#f59e0b", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 4 — Governance, QC &amp; Analytics (Post-Pilot)</span>
+                <span style={{ fontSize: "9px", fontWeight: 700, color: "#f59e0b", letterSpacing: "0.08em", textTransform: "uppercase" }}>PI 4 — Governance, QC &amp; Analytics (Pilot)</span>
                 <span style={{ fontSize: "9px", color: "#f59e0b" }}>{piOpen.pi4 ? "▲" : "▼"}</span>
               </button>
               {piOpen.pi4 && PI4_BATCH_ITEMS.map((def) => {

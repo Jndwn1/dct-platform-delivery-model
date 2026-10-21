@@ -101,7 +101,7 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
   const lines = [
     "# Data Gateway Release Notes",
     "",
-    "> **Scope:** PI4 / Post Pilot Data Gateway release documentation",
+    "> **Scope:** PI4 / Pilot Data Gateway release documentation",
     "> **Ordering:** Reverse chronological by deployment date",
     "> **Numbering:** Chronological by deployment date (earliest deployment is #1)",
     `> **Registry records represented:** ${orderedRecords.length}`,
@@ -111,7 +111,7 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
   ];
 
   if (orderedRecords.length === 0) {
-    lines.push("No Data Gateway release entries have been recorded in the Post Pilot Deployment Registry.");
+    lines.push("No Data Gateway release entries have been recorded in the Pilot Deployment Registry.");
   } else {
     const releaseEntries = orderedRecords.map((record) => {
       const source = splitReleaseSource(record.summary);
@@ -224,11 +224,11 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
 
   return (
     <div style={{ alignItems: "stretch", background: "rgba(15, 23, 42, 0.34)", display: "flex", inset: 0, justifyContent: "flex-end", position: "fixed", zIndex: 60 }}>
-      <div role="dialog" aria-modal="true" aria-label="Create Post Pilot deployment" style={{ background: "#ffffff", boxShadow: "-4px 0 24px rgba(15, 23, 42, 0.18)", display: "flex", flexDirection: "column", maxWidth: "100vw", overflowY: "auto", width: "510px" }}>
+      <div role="dialog" aria-modal="true" aria-label="Create Pilot deployment" style={{ background: "#ffffff", boxShadow: "-4px 0 24px rgba(15, 23, 42, 0.18)", display: "flex", flexDirection: "column", maxWidth: "100vw", overflowY: "auto", width: "510px" }}>
         <div style={{ alignItems: "flex-start", background: "#0f172a", display: "flex", justifyContent: "space-between", padding: "20px 22px" }}>
           <div>
-            <div style={{ color: "#ffffff", fontSize: "15px", fontWeight: 850 }}>Create Post Pilot Deployment</div>
-            <div style={{ color: "#cbd5e1", fontSize: "11px", marginTop: "3px" }}>Creates a record only in the separate Post Pilot registry.</div>
+            <div style={{ color: "#ffffff", fontSize: "15px", fontWeight: 850 }}>Create Pilot Deployment</div>
+            <div style={{ color: "#cbd5e1", fontSize: "11px", marginTop: "3px" }}>Creates a record only in the separate Pilot registry.</div>
           </div>
           <button type="button" onClick={onClose} aria-label="Close create deployment form" style={{ background: "transparent", border: "none", color: "#cbd5e1", cursor: "pointer", padding: "0" }}><X size={19} /></button>
         </div>
@@ -314,16 +314,16 @@ export default function PostPilotDeploymentSnapshot() {
   return (
     <section aria-labelledby="post-pilot-deployment-snapshot" style={{ marginBottom: "26px" }}>
       <div style={{ borderLeft: "4px solid #0f766e", marginBottom: "14px", paddingLeft: "12px" }}>
-        <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>PI4 / Post Pilot delivery register</div>
+        <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>PI4 / Pilot delivery register</div>
         <div style={{ alignItems: "baseline", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between" }}>
-          <h2 id="post-pilot-deployment-snapshot" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, letterSpacing: "-0.015em", margin: "4px 0 0" }}>Post Pilot Deployment Registry</h2>
+          <h2 id="post-pilot-deployment-snapshot" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, letterSpacing: "-0.015em", margin: "4px 0 0" }}>Pilot Deployment Registry</h2>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             <button type="button" onClick={downloadWikiMarkdown} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #2563eb", borderRadius: "6px", color: "#1d4ed8", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><Download size={13} />{wikiDownloaded ? "Markdown Downloaded" : "Download Data Gateway Markdown"}</button>
             <button type="button" onClick={copyWikiMarkdown} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #0f766e", borderRadius: "6px", color: "#0f766e", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><ClipboardCopy size={13} />{wikiCopied ? "Wiki Markdown Copied" : "Copy Data Gateway Wiki Markdown"}</button>
             <button type="button" onClick={() => setShowCreate(true)} style={{ alignItems: "center", background: "#0f172a", border: "1px solid #0f172a", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><Plus size={13} />Create Deployment</button>
           </div>
         </div>
-        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Post Pilot deployments only. Entries display newest first; deployment numbers follow chronological date order, with the earliest record as #1, and the registry does not change PI4 sprint progress.</p>
+        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Pilot deployments only. Entries display newest first; deployment numbers follow chronological date order, with the earliest record as #1, and the registry does not change PI4 sprint progress.</p>
       </div>
 
       <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", marginBottom: "14px" }}>
@@ -335,16 +335,16 @@ export default function PostPilotDeploymentSnapshot() {
 
       <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.045)", overflow: "hidden" }}>
         <div style={{ alignItems: "center", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "space-between", padding: "10px 14px" }}>
-          <div style={{ alignItems: "center", color: "#0f172a", display: "flex", fontSize: "12px", fontWeight: 850, gap: "6px" }}><FileText size={13} color="#0f766e" />Post Pilot Deployment Records</div>
+          <div style={{ alignItems: "center", color: "#0f172a", display: "flex", fontSize: "12px", fontWeight: 850, gap: "6px" }}><FileText size={13} color="#0f766e" />Pilot Deployment Records</div>
           <div style={{ color: "#64748b", fontSize: "10px" }}>{isLoading ? "Loading registry…" : `${records.length} record${records.length === 1 ? "" : "s"}`}</div>
         </div>
         {isLoading ? (
-          <div style={{ color: "#64748b", fontSize: "12px", padding: "26px", textAlign: "center" }}>Loading Post Pilot deployment records…</div>
+          <div style={{ color: "#64748b", fontSize: "12px", padding: "26px", textAlign: "center" }}>Loading Pilot deployment records…</div>
         ) : records.length === 0 ? (
           <div style={{ padding: "26px", textAlign: "center" }}>
             <Rocket size={28} style={{ color: "#cbd5e1", marginBottom: "9px" }} />
-            <div style={{ color: "#475569", fontSize: "12px", fontWeight: 800 }}>No Post Pilot deployments recorded</div>
-            <div style={{ color: "#94a3b8", fontSize: "11px", lineHeight: 1.45, margin: "5px auto 0", maxWidth: "510px" }}>Use <strong>Create Deployment</strong> to add the first Post Pilot release record. The affected screen / capability is required for every record.</div>
+            <div style={{ color: "#475569", fontSize: "12px", fontWeight: 800 }}>No Pilot deployments recorded</div>
+            <div style={{ color: "#94a3b8", fontSize: "11px", lineHeight: 1.45, margin: "5px auto 0", maxWidth: "510px" }}>Use <strong>Create Deployment</strong> to add the first Pilot release record. The affected screen / capability is required for every record.</div>
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
