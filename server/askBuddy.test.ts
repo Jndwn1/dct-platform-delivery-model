@@ -123,6 +123,23 @@ describe("askBuddy.chat", () => {
     expect(result.sources.map((source) => source.label)).toEqual(["State Taxonomy Readiness"]);
   });
 
+  it("resolves a natural State dependency follow-up from the recent conversation", async () => {
+    const caller = appRouter.createCaller(createTestCtx());
+    const result = await caller.askBuddy.chat({
+      messages: [
+        { role: "user", content: "For State Apportionment, what must TDC own before the spikes move toward implementation?" },
+        { role: "assistant", content: "The working session identifies three TDC responsibilities." },
+        { role: "user", content: "What are the requirements for those three TDC responsibilities?" },
+      ],
+      currentPagePath: "/ask-buddy",
+      capability: "discovery",
+    });
+
+    expect(buildStateApportionmentDependencyResponse).toHaveBeenCalledOnce();
+    expect(invokeLLM).not.toHaveBeenCalled();
+    expect(result.text).toContain("State Apportionment working-session evidence.");
+  });
+
   it("answers a general business-analysis question without misrepresenting it as a DCT platform fact", async () => {
     const caller = appRouter.createCaller(createTestCtx());
     const result = await caller.askBuddy.chat({

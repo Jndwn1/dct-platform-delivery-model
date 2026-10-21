@@ -154,7 +154,14 @@ Format: ${attachmentRecord.format}
 ${attachmentRecord.note}
 Do not infer content from this file.`
           : "";
-        const stateApportionmentDependencyQuestion = isStateApportionmentDependencyQuestion(question);
+        const priorConversation = input.messages
+          .slice(0, -1)
+          .slice(-2)
+          .map((message) => message.content)
+          .join("\n");
+        const followUpReference = /\b(those|these|them|the three|prior|previous|above)\b/i.test(question);
+        const stateApportionmentDependencyQuestion = isStateApportionmentDependencyQuestion(question)
+          || (followUpReference && isStateApportionmentDependencyQuestion(priorConversation));
         const crossTeamDependenciesMode = input.capability === "cross-team-dependencies" || stateApportionmentDependencyQuestion;
         const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
         const grounding = crossTeamDependenciesMode
@@ -178,19 +185,17 @@ Do not infer content from this file.`
           : requiresPlatformEvidence
             ? buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
             : buildGeneralAskBuddyPrompt(currentPagePath);
-        const attachmentPrimacy = crossTeamDependenciesMode && attachmentArtifact
-          ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for this analysis. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
+        const attachmentPrimacy = attachmentArtifact
+          ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for the scope it covers. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
           : "";
         const systemPrompt = basePrompt + evidencePacket + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + attachmentReferenceNote + attachmentPrimacy + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
-        const recentMessages = requiresPlatformEvidence
-          ? input.messages.slice(-2)
-          : input.messages.slice(-1);
+        const recentMessages = input.messages.slice(-2);
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
           ...recentMessages.map((m) => ({
             role: m.role as "user" | "assistant",
-            content: m.content.slice(requiresPlatformEvidence ? -2_000 : -1_000),
+            content: m.content.slice(requiresPlatformEvidence ? -2_000 : -1_200),
           })),
         ];
 
