@@ -370,7 +370,7 @@ const CAPABILITIES: Capability[] = [
     color: "#0f766e",
     bg: "#f0fdfa",
     border: "#5eead4",
-    description: "Analyze evidence-backed ownership, ADO work, gaps, dependencies, working-session questions, and proposed delivery sequencing across teams.",
+    description: "Analyze one selected capability or uploaded source for directly relevant ownership, ADO work, gaps, dependencies, working-session questions, and proposed delivery sequencing. Unrelated platform data is excluded.",
     sampleQuestions: [
       "What are the TDC dependencies and what does TDC need to own?",
       "What must State, TDC, IMS, and Roger align before State apportionment delivery?",

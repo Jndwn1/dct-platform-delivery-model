@@ -152,6 +152,47 @@ For substantive or Discovery questions, structure the response as: **Answer**, *
   return { sources, conflicts, status, checkedAt, latestSource, evidenceBlock, hasSufficientEvidence };
 }
 
+/**
+ * Cross-team analysis uses only sources directly tied to the selected
+ * capability. It intentionally does not fall back to generic delivery, batch,
+ * or platform references when the source relationship is not explicit.
+ */
+export function buildFocusedCrossTeamGrounding(question: string, currentPagePath?: string, masterDataSource?: MasterDataSource | null): BuddyGrounding {
+  const checkedAt = new Date().toISOString();
+  const stateApportionmentScope = /\b(state|apportionment|gosystem|ims|taxonomy|1514276|1514277|1433863|1501980|1501796)\b/i.test(question)
+    || currentPagePath === "/post-pilot/state-taxonomy-readiness";
+  const selected = new Map<string, BuddySource>();
+  const add = (source: BuddySource | null) => { if (source) selected.set(source.id, source); };
+
+  if (stateApportionmentScope) add(pageSource("/post-pilot/state-taxonomy-readiness"));
+  if (!stateApportionmentScope && currentPagePath) {
+    const currentSource = pageSource(currentPagePath);
+    if (currentSource && sourceMatchesQuestion(currentSource, tokens(question))) add(currentSource);
+  }
+  if (masterDataSource && /\b(master data|taxonomy|reference data)\b/i.test(question)) add(masterDataSource);
+
+  const sources = Array.from(selected.values()).slice(0, 2);
+  const hasSufficientEvidence = sources.length > 0;
+  const status: BuddyAnswerStatus = hasSufficientEvidence
+    ? sources.some((source) => source.artifactStatus === "Open") ? "Open" : "Confirmed"
+    : "Missing";
+  const latestSource = sources.filter((source) => source.lastUpdated !== "Not dated").sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated))[0] ?? null;
+  const sourceLines = sources.length
+    ? sources.map((source) => `- ${source.label} | Authority: ${source.authority} | Source updated: ${source.lastUpdated} | Status: ${source.artifactStatus}`).join("\n")
+    : "- No capability-specific governed source matched the question.";
+  const evidenceBlock = `
+## Capability-Specific Evidence Packet
+Use only the sources below and any uploaded source explicitly supplied with this request. Exclude unrelated sprint batches, dashboards, projects, platform dependencies, and ADO work. A generic reference to the same team is not enough to establish relevance.
+
+### Sources consulted
+${sourceLines}
+
+### Mandatory response guardrail
+Classify findings as Confirmed, Existing ADO Work, Proposed, Open, or Not Applicable. Do not infer a delivery dependency, ownership decision, current story status, contract, mapping, or implementation readiness. If no direct source supports a conclusion, mark it Open – Requires Confirmation and state the missing artifact or decision.`;
+
+  return { sources, conflicts: [], status, checkedAt, latestSource, evidenceBlock, hasSufficientEvidence };
+}
+
 export function buildInsufficientEvidenceResponse(grounding: BuddyGrounding): string {
   const checked = grounding.sources.map((source) => source.label).join("; ");
   return `I could not find enough confirmed information in the DCT Platform to answer this without making an assumption.\n\n### What I found\n${checked || "No matching platform artifact"}.\n\n### What is missing\nA current approved artifact that directly addresses this question.\n\n### Discovery clarification\nThis appears to require Discovery clarification before it can be treated as a confirmed DCT capability or requirement.`;

@@ -30,6 +30,13 @@ import {
 } from "../client/src/lib/rogerGovernanceData";
 import { DISCOVERY_KNOWLEDGE_BASE } from "./discoveryKnowledgeBase";
 import { PAGE_CONTEXT_REGISTRY } from "../client/src/lib/pageContextRegistry";
+import {
+  OPEN_DECISIONS,
+  STATE_IMS_GOSYSTEM_PRE_SESSION_INPUTS,
+  STATE_IMS_GOSYSTEM_SESSION_AGENDA,
+  TDC_TAXONOMY_REQUIREMENTS,
+  TDC_WORKING_SESSION_COVERAGE,
+} from "../client/src/lib/stateTaxonomyReadiness";
 
 export interface LiveSnapshotInput {
   asOf: string;
@@ -1065,65 +1072,146 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
 
 
 /**
- * Adds a compact, evidence-bound framework for cross-team ownership,
- * dependency, ADO, and delivery-impact analysis. It does not create facts or
- * broaden the evidence boundary beyond the supplied governed records.
+ * Builds a capability-specific dependency-analysis prompt. It deliberately
+ * excludes general batches, dashboards, and platform dependency records unless
+ * the supplied State Apportionment evidence directly supports the question.
  */
-export function buildCrossTeamDependencyPrompt({ question, currentPagePath, liveSnapshot }: CompactBuddyPromptInput): string {
-  const queryTokens = compactTokens(question);
+export function buildCrossTeamDependencyPrompt({ question, currentPagePath }: CompactBuddyPromptInput): string {
+  const stateApportionmentScope = /\b(state|apportionment|gosystem|ims|taxonomy|1514276|1514277|1433863|1501980|1501796)\b/i.test(question)
+    || currentPagePath === "/post-pilot/state-taxonomy-readiness";
   const lines = [
-    buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot }),
-    "",
-    "# Cross-Team Dependencies, Ownership, and Delivery Impact Analysis",
-    "The user selected the Cross-Team Dependencies analysis mode. Deliver a concise, evidence-bound analysis for Business Analysts, Product Owners, Scrum Masters, technical leads, and delivery teams.",
-    "Do not treat a proposed direction as an approved decision. Do not invent ADO IDs, owners, dates, completion statuses, contracts, mappings, acceptance criteria, or predecessor/successor relationships. When supporting evidence is unavailable, say so and mark the item Open – Requires Confirmation.",
-    "Use established boundaries only as a baseline, not as proof of source-specific ownership: PDC manages financial-data ingestion, normalization, canonical financial data, and source lineage; TDC manages governed tax-domain data, taxonomy, reference data, persistence, validation, and supported retrieval; State / Process owns State-specific business requirements, approved definitions, jurisdictional rules, and business mapping decisions; IMS owns approved downstream integration responsibilities and interfaces; Roger UI owns user workflows, review, and interaction; the AI Orchestrator Layer executes calculations according to approved architecture.",
-    "Do not assign ownership merely because a team interacts with a capability. Separate confirmed ownership, proposed ownership requiring validation, represented implementation work, missing requirements, and responsibilities belonging to another team.",
+    "# Ask Buddy — Context-Aware Dependency and Ownership Analysis",
+    "You are Ask Buddy, a Senior Business Analyst supporting the Roger Core program.",
+    "Analyze the specific capability, workstream, and question requested. Relevance to the requested capability takes priority over keyword matches, document popularity, or general knowledge-base retrieval.",
+    "Do not substitute general platform information for the specific capability or document being analyzed. Exclude unrelated sprint batches, dashboards, projects, platform dependencies, and ADO records—even when they mention the same team.",
+    "If an uploaded document is supplied, treat it as the primary source. Use supplementary DCT evidence only when it has a demonstrable relationship to the requested scope.",
+    "Classify each finding as Confirmed, Existing ADO Work, Proposed, Open, or Not Applicable. When source evidence is missing, mark the item Open – Requires Confirmation. Never describe a proposed responsibility as approved, and never invent ADO IDs, owners, dates, completion statuses, contracts, mappings, acceptance criteria, or predecessor/successor relationships.",
+    "Use established boundaries only as a baseline, not proof of source-specific ownership: TDC governs tax-domain data, taxonomy, reference data, persistence, validation, and supported retrieval; State / Process owns State-specific business requirements, approved definitions, jurisdictional rules, and business mapping decisions; IMS owns approved downstream interfaces; Roger UI owns user workflows and review; GoSystem performs calculation behavior only where the evidence says it does.",
   ];
 
-  const dependencyEvidence = DEPENDENCIES
-    .filter((item) => matchesCompactQuestion(JSON.stringify(item), queryTokens))
-    .slice(0, 4);
-  const openItemEvidence = OPEN_ITEMS
-    .filter((item) => matchesCompactQuestion(`${item.id} ${item.title} ${item.description} ${item.owner}`, queryTokens))
-    .slice(0, 3);
-  const ownershipEvidence = SYSTEM_OWNERSHIP
-    .filter((item) => matchesCompactQuestion(JSON.stringify(item), queryTokens))
-    .slice(0, 3);
-  const roadmapEvidence = BATCH_ROADMAP
-    .filter((item) => matchesCompactQuestion(JSON.stringify(item), queryTokens))
-    .slice(0, 3);
+  if (stateApportionmentScope) {
+    lines.push(
+      "",
+      "## Directly relevant State Apportionment evidence",
+      "Scope: State ↔ IMS ↔ GoSystem working-session plan and State Taxonomy Readiness. These are discovery / validation inputs, not approved interface contracts or delivery commitments.",
+      "Do not introduce Batch 28, Batch 3, AI Tax Mapping, or another generic platform dependency unless the user separately supplies direct evidence that it is required for this State Apportionment scope.",
+      "",
+      "### Existing ADO work directly evidenced"
+    );
+    for (const item of TDC_WORKING_SESSION_COVERAGE) {
+      lines.push(`- ${item.workItem} | ${item.title} | ${item.planningStatus} | ${compactText(item.coverage, 220)} | ${compactText(item.contextNotes, 520)}`);
+    }
+    lines.push("- Candidate references requiring scope verification: 1501980 — Governed State Input Code Reference Data and Retrieval API; 1501796 — Population of Approved State Input Reference Data. Do not present either as applicable Existing ADO Work unless a directly related source confirms the relationship.");
 
-  if (dependencyEvidence.length || openItemEvidence.length || ownershipEvidence.length || roadmapEvidence.length) {
-    lines.push("", "## Cross-team evidence — bounded governed records");
-    for (const item of dependencyEvidence) lines.push(`- Dependency record: ${compactText(JSON.stringify(item), 380)}`);
-    for (const item of openItemEvidence) lines.push(`- Open-item record: ${item.id} | ${item.title} | Owner: ${item.owner} | Status: ${item.status} | ${compactText(item.description, 240)}`);
-    for (const item of ownershipEvidence) lines.push(`- Ownership record: ${compactText(JSON.stringify(item), 280)}`);
-    for (const item of roadmapEvidence) lines.push(`- Roadmap record: ${compactText(JSON.stringify(item), 300)}`);
+    lines.push("", "### Direct working-session dependencies and gaps");
+    for (const item of STATE_IMS_GOSYSTEM_PRE_SESSION_INPUTS) {
+      lines.push(`- ${item.movement}: ${item.input} | Owner / collaborators: ${item.owner}; ${item.collaborators} | Open gap: ${item.gap}`);
+    }
+    for (const item of OPEN_DECISIONS.filter((item) => ["GAP-06", "GAP-08", "GAP-09"].includes(item.id))) {
+      lines.push(`- ${item.id}: ${item.gap} | Owner: ${item.owner} | Impact: ${item.impact} | Status: Open`);
+    }
+    lines.push("", "### TDC-relevant requirements and decisions");
+    for (const item of TDC_TAXONOMY_REQUIREMENTS.filter((item) => ["REQ-TAX-006", "REQ-TAX-007", "REQ-TAX-009"].includes(item.id))) {
+      lines.push(`- ${item.id}: ${compactText(item.statement, 420)} | Reference: ${item.reference}`);
+    }
+    lines.push("", "### Working-session decision agenda");
+    for (const item of STATE_IMS_GOSYSTEM_SESSION_AGENDA) {
+      lines.push(`- ${item.session}: ${item.question} | Lead: ${item.lead} | Output: ${item.deliverable} | Decision status: ${item.decision}`);
+    }
+  } else {
+    lines.push(
+      "",
+      "## Direct evidence check",
+      "No capability-specific cross-team evidence set was identified from the current question. Do not broaden the answer to generic platform records. State the evidence gap and ask for the relevant capability, ADO record, or uploaded source."
+    );
   }
 
   lines.push(
     "",
     "## Required response format",
     "### 1. Executive Summary",
-    "Explain the requested team/capability, major dependencies, delivery impact, and key unresolved decisions.",
+    "Summarize only the requested capability, the directly supported dependencies, delivery impact, and unresolved decisions.",
     "### 2. What [Team] Needs to Own",
-    "Provide a Markdown table: Team Responsibility | Expected Deliverable | Existing ADO Story / Reference | Status. Then state the ownership boundary in plain language.",
+    "Provide a Markdown table: Responsibility | Expected Deliverable | Existing ADO Reference | Status. Then explain which responsibilities belong to other teams.",
     "### 3. Cross-Team Dependencies",
-    "Provide a Markdown table: Dependency ID | Dependency | Required Input or Decision | Responsible Team | Affected Story | Impact if Unresolved | Status. Use D-01, D-02, and so on. Identify upstream/downstream dependencies and distinguish blockers from nonblocking follow-up work.",
+    "Provide a Markdown table: ID | Dependency | Required Input / Decision | Responsible Team | Affected ADO Story | Impact if Unresolved | Status. Use D-01, D-02, and so on. Distinguish confirmed dependencies from proposed follow-up work.",
     "### 4. Existing ADO Work",
-    "List only evidenced ADO items with ID, title, documented purpose, related dependencies, and implementation readiness. Label any new-record suggestion as a recommendation, never as an existing record.",
+    "List only directly evidenced ADO records with ID, title, purpose, required deliverable, related dependency, remaining decision, and implementation readiness. Do not claim a current status beyond the supplied evidence.",
     "### 5. Questions for the Working Session",
-    "Provide concise, prioritized questions on business/calculation authority, data and mapping, ownership, integration, validation/persistence, reconciliation, development readiness, and testing/release coordination. Identify an answering team only where evidence supports it.",
+    "Provide prioritized questions on calculation authority, source/target mappings, State data granularity, data entry versus organizer/override, IMS outbound integration, GoSystem calculated-results retrieval, mismatch resolution, approved treatment/retention, and development readiness. Identify an answering team only where supported.",
     "### 6. Recommended Delivery Sequence",
-    "Show a simple predecessor/successor text flow. Clearly label it Proposed unless an approval is in the evidence, and note activities that may occur in parallel.",
+    "Show a simple predecessor/successor text flow. Label it Proposed unless the relationship is explicitly approved; identify work that may proceed in parallel.",
     "### 7. What Needs to Be Documented in ADO",
-    "Identify dependency description, predecessor, successor, accountable owner, responsible team, date, status, blocked work, risk/impact, and decision/approval reference requiring formal tracking. Identify missing relationships without inventing them.",
+    "Identify the accountable team, predecessor, successor, unresolved requirement, delivery impact, status, decision/approval reference, and recommended next action needed for formal tracking. Do not claim a dependency has already been recorded unless the evidence confirms it.",
     "### 8. Bottom Line",
     "Conclude with accountable delivery, inputs required from other teams, decisions to finalize, and the next action needed to protect delivery commitments.",
-    "Reference supporting documents, ADO IDs, or decisions when supplied. Keep tables limited to source-supported records and preserve the required no-assumption statement when evidence cannot support a conclusion."
+    "",
+    "## Mandatory quality check before responding",
+    "Confirm that every material conclusion has an identifiable supporting source; irrelevant platform information is excluded; actual deliverables and upstream/downstream dependencies are identified; Confirmed facts are separated from Existing ADO Work, Proposed items, and Open items; and all eight sections are present. If any check fails, revise before responding."
   );
   return lines.join("\\n");
+}
+
+/**
+ * Recognizes a State Apportionment dependency question even when the user has
+ * not selected the dedicated Cross-Team Dependencies lens in the UI.
+ */
+export function isStateApportionmentDependencyQuestion(question: string): boolean {
+  const stateScope = /\b(state|apportionment|gosystem|ims|1514276|1514277|1433863)\b/i.test(question);
+  const dependencyIntent = /\b(dependenc|must\s+(?:tdc\s+)?own|must\s+(?:teams?\s+)?align|confirm|before\s+(?:implementation|development)|working\s+session|spikes?|implement)\b/i.test(question);
+  return stateScope && dependencyIntent;
+}
+
+/**
+ * Renders the State working-session findings directly from the governed
+ * readiness data. This keeps the time-sensitive dependency view useful when a
+ * model response would exceed the five-second Ask Buddy response budget.
+ */
+export function buildStateApportionmentDependencyResponse(): string {
+  const coverage = new Map(TDC_WORKING_SESSION_COVERAGE.map((item) => [item.workItem, item]));
+  const outbound = coverage.get("1514276");
+  const inbound = coverage.get("1514277");
+  const standards = coverage.get("1433863");
+
+  return [
+    "### 1. Executive Summary",
+    "**Status: Open — working-session discovery.** The supplied State ↔ IMS ↔ GoSystem plan identifies two TDC spikes and one related validation dependency. It does not confirm an approved interface, field contract, implementation sequence, or delivery commitment.",
+    "",
+    "### 2. What TDC Needs to Own",
+    "| Responsibility | Expected Deliverable | Existing ADO Reference | Status |",
+    "| --- | --- | --- | --- |",
+    `| Govern State apportionment retrieval for the outbound discussion | Discovery scope for governed State data, record grain, and required routing / validation inputs | ${outbound?.workItem} — ${outbound?.title} | ${outbound?.planningStatus} |`,
+    `| Ingest and persist returned State calculation results | Discovery scope for calculated fields, identity, lineage, reconciliation, errors, and persistence destination | ${inbound?.workItem} — ${inbound?.title} | ${inbound?.planningStatus} |`,
+    `| Participate in shared data-type and validation decisions | Confirmed data-type, null / zero, precision, metadata, and validation / error ownership inputs | ${standards?.workItem} — ${standards?.title} | ${standards?.planningStatus} |`,
+    "",
+    "State business SMEs and Roger State own the business process and initial apportionment scope. Process owns taxonomy and GoSystem mapping inputs. IMS owns the downstream transformation and routing discussion. These responsibility boundaries remain subject to confirmation in the working session.",
+    "",
+    "### 3. Cross-Team Dependencies",
+    "| ID | Dependency | Required Input / Decision | Responsible Team | Affected ADO Story | Impact if Unresolved | Status |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
+    "| D-01 | Business process and initial State apportionment scope | In-scope States, workflows, data outputs, and acceptance boundary | State business SMEs + Roger State | 1514276, 1514277 | TDC cannot finalize the intended data movement | Open – Requires Confirmation |",
+    "| D-02 | Three separate movement definitions | Independent flows for prior-year Property, current-year outbound, and calculated-results inbound | Roger State + IMS | 1514276, 1514277 | Scope and handoffs may be conflated | Open – Requires Confirmation |",
+    "| D-03 | Data elements, grain, and validation | Entity, State, tax year, period, version, run keys, types, precision, null / zero and error ownership | Process + TDC + IMS | 1433863; 1514276; 1514277 | Translation and persistence decisions remain untestable | Open – Requires Confirmation |",
+    "| D-04 | Taxonomy and GoSystem mapping alignment | Separate taxonomy classification and GoSystem crosswalk / translation inputs | Process + TDC + IMS | 1514276, 1514277 | Mapping ownership and target behavior remain unclear | Open – Requires Confirmation |",
+    "| D-05 | Calculated-results reconciliation | Source-as-calculated treatment for totals / overrides, reconciliation and exception handling | State SMEs + Process + IMS + Roger Data/TDC | 1514277 | Inbound results cannot be governed or reconciled consistently | Open – Requires Confirmation |",
+    "",
+    "### 4. Existing ADO Work",
+    `- **${outbound?.workItem} — ${outbound?.title}:** ${outbound?.coverage}. ${outbound?.planningStatus}.`,
+    `- **${inbound?.workItem} — ${inbound?.title}:** ${inbound?.coverage}. ${inbound?.planningStatus}.`,
+    `- **${standards?.workItem} — ${standards?.title}:** ${standards?.coverage}. ${standards?.planningStatus}.`,
+    "",
+    "### 5. Questions for the Working Session",
+    ...STATE_IMS_GOSYSTEM_SESSION_AGENDA.map((item, index) => `${index + 1}. **${item.session}:** ${item.question} Expected output: ${item.deliverable}`),
+    "",
+    "### 6. Recommended Delivery Sequence",
+    "**Proposed:** confirm business scope and the three movements → establish field inventory, grain, metadata, and validation inputs → align taxonomy and GoSystem mapping ownership → validate a representative subset with IMS → record decisions, story boundaries, and handoffs → refine spike outcomes for implementation planning. The two TDC spikes may proceed in parallel only after their distinct outbound and inbound discovery boundaries are confirmed.",
+    "",
+    "### 7. What Needs to Be Documented in ADO",
+    "For each spike, record the accountable team, required upstream decision, scope boundary, accepted evidence, unresolved requirement, cross-team handoff, delivery impact, and decision / approval reference. Do not mark an item implementation-ready until the participating teams confirm the relevant contract and acceptance boundary.",
+    "",
+    "### 8. Bottom Line",
+    "TDC has directly evidenced discovery work for outbound State apportionment retrieval and inbound calculated-results persistence, plus a related data-type / validation dependency. The immediate next step is the two-part working session: confirm scope, movements, data and mapping inputs, then record owners and decisions before turning spike outcomes into implementation commitments.",
+  ].join("\n");
 }
 
 /**

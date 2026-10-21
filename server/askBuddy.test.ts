@@ -29,10 +29,14 @@ vi.mock("./platformContext", () => ({
   buildGeneralAskBuddyPrompt: vi.fn().mockReturnValue(
     "You are Ask Buddy, a Business Analysis Assistant. [mock general guidance prompt]"
   ),
+  isStateApportionmentDependencyQuestion: vi.fn((question: string) => /state apportionment/i.test(question)),
+  buildStateApportionmentDependencyResponse: vi.fn().mockReturnValue(
+    "### 1. Executive Summary\nState Apportionment working-session evidence."
+  ),
 }));
 
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
+import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse } from "./platformContext";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -101,6 +105,22 @@ describe("askBuddy.chat", () => {
       maxTokens: 720,
       timeoutMs: 4600,
     });
+    expect(callArgs.messages[0].content).toContain("Capability-Specific Evidence Packet");
+    expect(callArgs.messages[0].content).not.toContain("Full Batch Registry");
+  });
+
+  it("returns the State Apportionment working-session analysis without waiting on the model", async () => {
+    const caller = appRouter.createCaller(createTestCtx());
+    const result = await caller.askBuddy.chat({
+      messages: [{ role: "user", content: "For State Apportionment, what must TDC own before the spikes move toward implementation?" }],
+      currentPagePath: "/ask-buddy",
+      capability: "discovery",
+    });
+
+    expect(buildStateApportionmentDependencyResponse).toHaveBeenCalledOnce();
+    expect(invokeLLM).not.toHaveBeenCalled();
+    expect(result.text).toContain("State Apportionment working-session evidence.");
+    expect(result.sources.map((source) => source.label)).toEqual(["State Taxonomy Readiness"]);
   });
 
   it("answers a general business-analysis question without misrepresenting it as a DCT platform fact", async () => {

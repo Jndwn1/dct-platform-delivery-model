@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
+import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse, isStateApportionmentDependencyQuestion } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
-import { appendBuddyProvenance, buildBuddyGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
+import { appendBuddyProvenance, buildBuddyGrounding, buildFocusedCrossTeamGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -154,9 +154,12 @@ Format: ${attachmentRecord.format}
 ${attachmentRecord.note}
 Do not infer content from this file.`
           : "";
+        const stateApportionmentDependencyQuestion = isStateApportionmentDependencyQuestion(question);
+        const crossTeamDependenciesMode = input.capability === "cross-team-dependencies" || stateApportionmentDependencyQuestion;
         const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
-        const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
-        const crossTeamDependenciesMode = input.capability === "cross-team-dependencies";
+        const grounding = crossTeamDependenciesMode
+          ? buildFocusedCrossTeamGrounding(question, currentPagePath, masterEvidence.source)
+          : buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
         const requiresPlatformEvidence = crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(input.attachmentArtifactId);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
           ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
@@ -175,7 +178,10 @@ Do not infer content from this file.`
           : requiresPlatformEvidence
             ? buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
             : buildGeneralAskBuddyPrompt(currentPagePath);
-        const systemPrompt = basePrompt + evidencePacket + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + attachmentReferenceNote + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
+        const attachmentPrimacy = crossTeamDependenciesMode && attachmentArtifact
+          ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for this analysis. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
+          : "";
+        const systemPrompt = basePrompt + evidencePacket + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + attachmentReferenceNote + attachmentPrimacy + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
         const recentMessages = requiresPlatformEvidence
           ? input.messages.slice(-2)
@@ -191,7 +197,9 @@ Do not infer content from this file.`
         let responseText: string;
         const hasStoryReviewEvidence = storyReviewEvidence.length > 0;
         const hasAttachmentEvidence = attachmentEvidence.length > 0;
-        if (isMasterDataQuestion(question) && !masterEvidence.hasEvidence) {
+        if (stateApportionmentDependencyQuestion && !attachmentArtifact) {
+          responseText = buildStateApportionmentDependencyResponse();
+        } else if (isMasterDataQuestion(question) && !masterEvidence.hasEvidence) {
           responseText = `${MASTER_DATA_ANSWER_FALLBACK}\n\n### Source Boundary\n${attachmentArtifact ? `The uploaded ${attachmentRecord?.format ?? "file"} remains a user-provided reference and cannot establish authoritative Master Data.` : "No uploaded source was supplied."}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`;
         } else if (requiresPlatformEvidence && !grounding.hasSufficientEvidence && !hasStoryReviewEvidence && !hasAttachmentEvidence) {
           responseText = attachmentRecord?.analysisStatus === "Reference Only"
