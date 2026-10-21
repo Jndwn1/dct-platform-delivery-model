@@ -323,3 +323,4 @@
 - [x] Replace Ask Buddy’s opening message with the Business Analyst Assistant introduction
 - [x] Add a direct Ask Buddy attachment control that combines an Excel/CSV source with a user question for governed gap and dependency analysis
 - [x] Update Ask Buddy’s welcome message with the exact supplied wording
+- [x] Reduce typical Ask Buddy response time to under five seconds with compact evidence packets, bounded history, and an explicit fast model

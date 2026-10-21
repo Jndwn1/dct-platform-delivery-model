@@ -28,6 +28,8 @@ import {
   HEATMAP_DATA,
   ADR_CARDS,
 } from "../client/src/lib/rogerGovernanceData";
+import { DISCOVERY_KNOWLEDGE_BASE } from "./discoveryKnowledgeBase";
+import { PAGE_CONTEXT_REGISTRY } from "../client/src/lib/pageContextRegistry";
 
 export interface LiveSnapshotInput {
   asOf: string;
@@ -914,5 +916,114 @@ export function buildPlatformSystemPrompt(liveSnapshot?: LiveSnapshotInput): str
   lines.push(`---`);
   lines.push(`End of DCT Platform Knowledge Base. Answer all questions using only the data above. Be accurate, complete, and cite your sources.`);
 
+  return lines.join("\n");
+}
+
+type CompactBuddyPromptInput = {
+  question: string;
+  currentPagePath?: string;
+  liveSnapshot?: LiveSnapshotInput;
+};
+
+const COMPACT_CONTEXT_CHARS = 1_800;
+
+function compactText(value: string, maxChars = COMPACT_CONTEXT_CHARS) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized.length > maxChars
+    ? `${normalized.slice(0, maxChars).trimEnd()}…`
+    : normalized;
+}
+
+function compactTokens(value: string) {
+  return value.toLowerCase().match(/[a-z0-9]{3,}/g) ?? [];
+}
+
+function matchesCompactQuestion(value: string, queryTokens: string[]) {
+  const searchable = value.toLowerCase();
+  return queryTokens.some((token) => searchable.includes(token));
+}
+
+/**
+ * Builds the bounded evidence packet used for interactive Ask Buddy responses.
+ * It deliberately includes only relevant governed records; when a record cannot
+ * be found, the router returns the existing no-assumption response rather than
+ * expanding to the entire platform knowledge base.
+ */
+export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot }: CompactBuddyPromptInput): string {
+  const queryTokens = compactTokens(question);
+  const lines = [
+    "# Ask Buddy — Governed Evidence Response",
+    "You are Ask Buddy, a Business Analysis Assistant for the DCT Platform.",
+    "Answer only from the supplied evidence. Do not infer, fabricate APIs, merge conflicting sources, or treat planning material as implemented functionality.",
+    "Source priority: current Control Panel / governed record for delivery state; registered Swagger/OpenAPI for technical contracts; Discovery and page artifacts for business context.",
+    "If the supplied evidence does not establish the answer, say exactly: \"I could not find enough confirmed information in the DCT Platform to answer this without making an assumption.\"",
+    "Keep the response concise. Use Answer, Evidence, Status, DCT Impact, TDC Impact, PDC Impact, and Next Action only when the supplied evidence supports those headings.",
+    "DCT means Data Consolidation Team on first mention. IMS owns return-engine routing and translation; do not state that DCT integrates directly with a return engine unless supplied evidence explicitly says so.",
+  ];
+
+  const pageContext = currentPagePath ? PAGE_CONTEXT_REGISTRY[currentPagePath] : undefined;
+  if (pageContext) {
+    lines.push("\n## Current page context — explanatory only");
+    lines.push(`Page: ${pageContext.pageTitle}`);
+    lines.push(`Description: ${compactText(pageContext.description, 900)}`);
+    if (pageContext.features.length) lines.push(`Documented features: ${pageContext.features.slice(0, 8).join("; ")}`);
+    if (pageContext.apis.length) lines.push(`Documented APIs: ${pageContext.apis.slice(0, 8).join("; ")}`);
+  }
+
+  const selectedDiscovery = Object.values(DISCOVERY_KNOWLEDGE_BASE)
+    .filter((entry) => entry.pagePath === currentPagePath || matchesCompactQuestion(`${entry.pageTitle} ${entry.summary} ${entry.suggestedQuestions.join(" ")}`, queryTokens))
+    .slice(0, 3);
+  if (selectedDiscovery.length) {
+    lines.push("\n## Discovery evidence");
+    for (const entry of selectedDiscovery) {
+      lines.push(`### ${entry.pageTitle} (${entry.pagePath})`);
+      lines.push(`Source summary: ${compactText(entry.summary, 700)}`);
+      lines.push(`Source context: ${compactText(entry.context)}`);
+    }
+  }
+
+  const selectedBatches = getAllBatches()
+    .filter((batch) => matchesCompactQuestion(`${batch.id} ${batch.name} ${batch.fullName} ${batch.area} ${batch.description} ${(batch.dependencies ?? []).join(" ")}`, queryTokens))
+    .slice(0, 4);
+  if (selectedBatches.length) {
+    lines.push("\n## Control Panel batch evidence");
+    for (const batch of selectedBatches) {
+      const liveStatus = liveSnapshot && Object.entries(liveSnapshot.statuses).find(([key]) => key.toLowerCase().replace(/^b/, "") === batch.id.toLowerCase().replace(/^b/, ""))?.[1];
+      lines.push(`- ${batch.id} — ${batch.fullName} | PI: ${batch.piLabel} | Area: ${batch.area} | Status: ${liveStatus ?? batch.status} | Purpose: ${compactText(batch.description, 600)}${batch.dependencies?.length ? ` | Dependencies: ${batch.dependencies.join(", ")}` : ""}`);
+    }
+  }
+
+  const selectedAdrs = ADR_REGISTRY
+    .filter((adr) => matchesCompactQuestion(`${adr.id} ${adr.title} ${adr.impact} ${adr.decision}`, queryTokens))
+    .slice(0, 3);
+  if (selectedAdrs.length) {
+    lines.push("\n## Architecture decision evidence");
+    for (const adr of selectedAdrs) lines.push(`- ${adr.id}: ${adr.title} | Status: ${adr.status} | Decision: ${compactText(adr.decision, 650)}`);
+  }
+
+  const selectedOpenItems = OPEN_ITEMS
+    .filter((item) => matchesCompactQuestion(`${item.id} ${item.title} ${item.description} ${item.owner}`, queryTokens))
+    .slice(0, 3);
+  if (selectedOpenItems.length) {
+    lines.push("\n## Open-item evidence");
+    for (const item of selectedOpenItems) lines.push(`- ${item.id}: ${item.title} | Owner: ${item.owner} | Status: ${item.status} | ${compactText(item.description, 650)}`);
+  }
+
+  const selectedOwnership = SYSTEM_OWNERSHIP
+    .filter((system) => matchesCompactQuestion(JSON.stringify(system), queryTokens))
+    .slice(0, 4);
+  if (selectedOwnership.length) {
+    lines.push("\n## Ownership evidence");
+    for (const system of selectedOwnership) lines.push(`- ${compactText(JSON.stringify(system), 1_000)}`);
+  }
+
+  if (liveSnapshot && /\b(batch|pi\s?\d|mvp|delivery|readiness|active|complete|planned|review|status|gate)\b/i.test(question)) {
+    lines.push("\n## Live delivery snapshot — authoritative for current status");
+    lines.push(`As of: ${liveSnapshot.asOf}`);
+    lines.push(`Gates: G1 ${liveSnapshot.gates.g1}; G2 ${liveSnapshot.gates.g2}; G3 ${liveSnapshot.gates.g3}; G4 ${liveSnapshot.gates.g4}.`);
+    lines.push(`PI completion: PI1 ${liveSnapshot.piCompletion.pi1.pct}%; PI2 ${liveSnapshot.piCompletion.pi2.pct}%; PI3 ${liveSnapshot.piCompletion.pi3.pct}%; PI4 ${liveSnapshot.piCompletion.pi4.pct}%; overall ${liveSnapshot.piCompletion.overall.pct}%.`);
+  }
+
+  lines.push("\nUse the supplied records as the complete evidence packet for this answer. If none directly address the question, return the required no-assumption statement and identify the missing artifact or clarification.");
   return lines.join("\n");
 }

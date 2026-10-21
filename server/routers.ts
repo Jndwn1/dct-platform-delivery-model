@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
-import { invokeLLM } from "./_core/llm";
-import { buildPlatformSystemPrompt } from "./platformContext";
+import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
+import { buildCompactAskBuddyPrompt } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { appendBuddyProvenance, buildBuddyGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -74,13 +74,19 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
+        const requestStartedAt = Date.now();
         const currentPagePath = input.currentPagePath ?? input.discoveryPagePath;
         const question = [...input.messages].reverse().find((message) => message.role === "user")?.content ?? "";
         const db = await getDb();
-        const masterArtifacts = db ? await db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt)) : [];
-        const [attachmentArtifact] = input.attachmentArtifactId && db
-          ? await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.attachmentArtifactId)).limit(1)
-          : [];
+        const masterDataQuestion = isMasterDataQuestion(question);
+        const masterArtifactsPromise = db && masterDataQuestion
+          ? db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt)).limit(8)
+          : Promise.resolve([]);
+        const attachmentArtifactPromise = input.attachmentArtifactId && db
+          ? db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.attachmentArtifactId)).limit(1)
+          : Promise.resolve([]);
+        const [masterArtifacts, attachmentArtifacts] = await Promise.all([masterArtifactsPromise, attachmentArtifactPromise]);
+        const attachmentArtifact = attachmentArtifacts[0];
         if (input.attachmentArtifactId && !attachmentArtifact) {
           throw new Error("The uploaded attachment could not be found. Please attach the workbook again.");
         }
@@ -93,18 +99,18 @@ export const appRouter = router({
         const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
         const grounding = buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
-          ? buildDiscoveryContextBlock("/post-pilot")
+          ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
           : "";
         const entryContext = currentPagePath
           ? `\n\nEntry-page context: ${currentPagePath}. This is a navigation cue only. Do not use it as a factual source or allow it to alter the authoritative answer. You may add a brief optional page-relevance sentence only after answering from the central evidence layer.`
           : "";
-        const systemPrompt = buildPlatformSystemPrompt(input.liveSnapshot) + grounding.evidenceBlock + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
+        const systemPrompt = buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot }) + grounding.evidenceBlock + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + entryContext + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes how you analyze evidence, not what platform evidence you may use.`;
 
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
-          ...input.messages.map((m) => ({
+          ...input.messages.slice(-4).map((m) => ({
             role: m.role as "user" | "assistant",
-            content: m.content,
+            content: m.content.slice(-6_000),
           })),
         ];
 
@@ -116,25 +122,39 @@ export const appRouter = router({
             ? `${MASTER_DATA_ANSWER_FALLBACK}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`
             : buildInsufficientEvidenceResponse(grounding);
         } else {
-          const result = await invokeLLM({ messages: llmMessages });
-          const choice = result.choices[0];
-          const content = choice?.message?.content;
-          if (typeof content === "string") {
-            responseText = content;
-          } else if (Array.isArray(content)) {
-            responseText = content
-              .filter((c) => c.type === "text")
-              .map((c) => (c as { type: "text"; text: string }).text)
-              .join("\n");
-          } else {
-            responseText = "I was unable to generate a response. Please try again.";
+          try {
+            const result = await invokeLLM({
+              model: "gpt-6-luna",
+              reasoning: { effort: "none" },
+              maxTokens: 650,
+              timeoutMs: 4_200,
+              messages: llmMessages,
+            });
+            const choice = result.choices[0];
+            const content = choice?.message?.content;
+            if (typeof content === "string") {
+              responseText = content;
+            } else if (Array.isArray(content)) {
+              responseText = content
+                .filter((c) => c.type === "text")
+                .map((c) => (c as { type: "text"; text: string }).text)
+                .join("\n");
+            } else {
+              responseText = "I was unable to generate a response. Please try again.";
+            }
+          } catch (error) {
+            if (error instanceof LLMRequestTimeoutError) {
+              responseText = "Ask Buddy could not complete an evidence-grounded response within the response-time limit. No answer has been inferred. Please retry or narrow the question.";
+            } else {
+              console.error("[askBuddy] response generation failed", error);
+              responseText = "Ask Buddy could not complete an evidence-grounded response. No answer has been inferred. Please retry the question.";
+            }
           }
         }
 
         const text = appendBuddyProvenance(responseText, grounding);
         if (db) {
-          try {
-            await db.insert(askBuddyAudits).values({
+          void db.insert(askBuddyAudits).values({
               question,
               currentPagePath: currentPagePath ?? null,
               capability: input.capability ?? null,
@@ -142,11 +162,11 @@ export const appRouter = router({
               sourcesJson: JSON.stringify(grounding.sources.map((source) => ({ id: source.id, label: source.label, path: source.path }))),
               sourceVersionsJson: JSON.stringify(grounding.sources.map((source) => ({ id: source.id, lastUpdated: source.lastUpdated, artifactStatus: source.artifactStatus }))),
               conflictsJson: grounding.conflicts.length > 0 ? JSON.stringify(grounding.conflicts) : null,
-            });
-          } catch (error) {
-            console.warn("[askBuddy] audit metadata was not persisted", error);
-          }
+            }).catch((error) => console.warn("[askBuddy] audit metadata was not persisted", error));
         }
+
+        const responseElapsedMs = Date.now() - requestStartedAt;
+        if (responseElapsedMs > 4_500) console.warn(`[askBuddy] response exceeded 4.5 seconds (${responseElapsedMs}ms)`);
 
         return {
           text,

@@ -15,17 +15,18 @@ vi.mock("./_core/llm", () => ({
       },
     ],
   }),
+  LLMRequestTimeoutError: class LLMRequestTimeoutError extends Error {},
 }));
 
 // ── Mock platformContext ──────────────────────────────────────────────────────
 vi.mock("./platformContext", () => ({
-  buildPlatformSystemPrompt: vi.fn().mockReturnValue(
-    "You are Ask Buddy, a DCT platform assistant. [mock system prompt]"
+  buildCompactAskBuddyPrompt: vi.fn().mockReturnValue(
+    "You are Ask Buddy, a DCT platform assistant. [mock compact system prompt]"
   ),
 }));
 
-import { invokeLLM } from "./_core/llm";
-import { buildPlatformSystemPrompt } from "./platformContext";
+import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
+import { buildCompactAskBuddyPrompt } from "./platformContext";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -42,12 +43,12 @@ describe("askBuddy.chat", () => {
     vi.clearAllMocks();
   });
 
-  it("calls buildPlatformSystemPrompt to build the system context", async () => {
+  it("calls buildCompactAskBuddyPrompt to build the bounded system context", async () => {
     const caller = appRouter.createCaller(createTestCtx());
     await caller.askBuddy.chat({
       messages: [{ role: "user", content: "What is Batch 6?" }],
     });
-    expect(buildPlatformSystemPrompt).toHaveBeenCalledOnce();
+    expect(buildCompactAskBuddyPrompt).toHaveBeenCalledOnce();
   });
 
   it("passes the system prompt + user messages to invokeLLM", async () => {
@@ -59,6 +60,12 @@ describe("askBuddy.chat", () => {
     const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(callArgs.messages[0].role).toBe("system");
     expect(callArgs.messages[1]).toEqual({ role: "user", content: "List all ADRs" });
+    expect(callArgs).toMatchObject({
+      model: "gpt-6-luna",
+      reasoning: { effort: "none" },
+      maxTokens: 650,
+      timeoutMs: 4200,
+    });
   });
 
   it("returns the LLM response text", async () => {
@@ -87,6 +94,25 @@ describe("askBuddy.chat", () => {
     expect(callArgs.messages).toHaveLength(4);
   });
 
+  it("limits provider conversation history to the most recent two turns", async () => {
+    const caller = appRouter.createCaller(createTestCtx());
+    await caller.askBuddy.chat({
+      messages: [
+        { role: "user", content: "Question one" },
+        { role: "assistant", content: "Answer one" },
+        { role: "user", content: "Question two" },
+        { role: "assistant", content: "Answer two" },
+        { role: "user", content: "Question three" },
+        { role: "assistant", content: "Answer three" },
+        { role: "user", content: "What does TDC own?" },
+      ],
+    });
+    const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(callArgs.messages).toHaveLength(5);
+    expect(callArgs.messages.at(-1)).toEqual({ role: "user", content: "What does TDC own?" });
+    expect(callArgs.messages[1]).toEqual({ role: "assistant", content: "Answer two" });
+  });
+
   it("injects documented Pilot story-review evidence for the scoped review agent", async () => {
     const caller = appRouter.createCaller(createTestCtx());
     await caller.askBuddy.chat({
@@ -108,5 +134,16 @@ describe("askBuddy.chat", () => {
       messages: [{ role: "user", content: "What is the platform guardrail?" }],
     });
     expect(result.text).toContain("unable to generate");
+  });
+
+  it("returns an evidence-safe response when the fast-model deadline is reached", async () => {
+    (invokeLLM as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new LLMRequestTimeoutError("timeout"));
+    const caller = appRouter.createCaller(createTestCtx());
+    const result = await caller.askBuddy.chat({
+      messages: [{ role: "user", content: "What does TDC own?" }],
+    });
+    expect(result.text).toContain("response-time limit");
+    expect(result.text).toContain("No answer has been inferred");
+    expect(result.text).toContain("### Sources Used");
   });
 });
