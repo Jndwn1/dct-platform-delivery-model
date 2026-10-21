@@ -189,7 +189,17 @@ const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
       carryoverRate: 25,
     },
   },
-  { sprint: 3, source: "Supplied Sprint 3 ADO backlog — goals and objectives grouped from captured work" },
+  {
+    sprint: 3,
+    source: "Supplied TDC — PI4 Sprint 3 closeout summary",
+    closeout: {
+      totalWorkItems: 15,
+      completedClosed: 11,
+      carriedForward: 4,
+      completionRate: 73,
+      carryoverRate: 27,
+    },
+  },
   {
     sprint: 4,
     source: "Supplied Team Roger TDC PI4 Sprint 4 backlog snapshot — goals grouped from captured work",
@@ -290,7 +300,7 @@ export default function PostPilotPage() {
         <SectionHeading
           eyebrow="PI4 sprint planning"
           title="Sprint Metrics"
-          description="TDC Sprint 2 closeout and subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs."
+          description="TDC Sprint 2 and Sprint 3 closeout, with subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs."
         />
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" }}>
           {POST_PILOT_SPRINT_METRICS.map((metric) => {
@@ -298,19 +308,22 @@ export default function PostPilotPage() {
             const hasSnapshot = closeout !== undefined;
             const hasBacklogGoalSource = metric.backlogGoalSource === true;
             const sourceLabel = hasSnapshot ? "Closeout source" : hasBacklogGoalSource ? "Backlog goals source" : "Pending source";
+            const metricAccent = hasSnapshot ? PURPLE : "#94a3b8";
+            const metricSurface = hasSnapshot ? PURPLE_SURFACE : "#ffffff";
+            const metricBorder = hasSnapshot ? PURPLE_BORDER : "#e2e8f0";
             return (
-              <div key={metric.sprint} style={{ background: metric.sprint === 2 ? PURPLE_SURFACE : "#ffffff", border: `1px solid ${metric.sprint === 2 ? PURPLE_BORDER : "#e2e8f0"}`, borderTop: `4px solid ${metric.sprint === 2 ? PURPLE : "#94a3b8"}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", minHeight: "172px", padding: "14px" }}>
+              <div key={metric.sprint} style={{ background: metricSurface, border: `1px solid ${metricBorder}`, borderTop: `4px solid ${metricAccent}`, borderRadius: "10px", boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)", minHeight: "172px", padding: "14px" }}>
                 <div style={{ alignItems: "center", display: "flex", gap: "8px", justifyContent: "space-between" }}>
-                  <div style={{ color: metric.sprint === 2 ? PURPLE_INK : "#334155", fontSize: "12px", fontWeight: 900 }}>{metric.sprint === 2 ? "TDC · PI4 Sprint 2" : `PI4 · Sprint ${metric.sprint}`}</div>
+                  <div style={{ color: hasSnapshot ? PURPLE_INK : "#334155", fontSize: "12px", fontWeight: 900 }}>{hasSnapshot ? `TDC · PI4 Sprint ${metric.sprint}` : `PI4 · Sprint ${metric.sprint}`}</div>
                   <div style={{ background: hasSnapshot ? "#dcfce7" : hasBacklogGoalSource ? "#eff6ff" : "#f8fafc", border: `1px solid ${hasSnapshot ? "#86efac" : hasBacklogGoalSource ? "#bfdbfe" : "#cbd5e1"}`, borderRadius: "999px", color: hasSnapshot ? "#166534" : hasBacklogGoalSource ? "#1d4ed8" : "#64748b", fontSize: "9px", fontWeight: 850, padding: "3px 7px" }}>{sourceLabel}</div>
                 </div>
                 {closeout ? (
                   <>
                     <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", marginTop: "14px" }}>
-                      {[
-                        { label: "Total sprint work items", value: closeout.totalWorkItems, color: PURPLE_INK },
-                        { label: "Completed / closed", value: closeout.completedClosed, color: "#15803d" },
-                        { label: "Carried forward to Sprint 3", value: closeout.carriedForward, color: "#2563eb" },
+                        {[
+                          { label: "Total sprint work items", value: closeout.totalWorkItems, color: PURPLE_INK },
+                          { label: "Completed / closed", value: closeout.completedClosed, color: "#15803d" },
+                          { label: `Carried forward to Sprint ${metric.sprint + 1}`, value: closeout.carriedForward, color: "#2563eb" },
                         { label: "Completion rate", value: `${closeout.completionRate}%`, color: "#15803d" },
                         { label: "Carryover rate", value: `${closeout.carryoverRate}%`, color: "#2563eb" },
                       ].map((item) => (

@@ -177,9 +177,16 @@ describe("PI4 Pilot delivery", () => {
     expect(postPilot).toContain("Closeout source");
     expect(postPilot).toContain("Pending source");
     expect(postPilot).toContain("Supplied TDC — PI4 Sprint 2 closeout summary");
+    expect(postPilot).toContain("Supplied TDC — PI4 Sprint 3 closeout summary");
+    expect(postPilot).toContain("TDC · PI4 Sprint ${metric.sprint}");
+    expect(postPilot).toContain("totalWorkItems: 15");
+    expect(postPilot).toContain("completedClosed: 11");
+    expect(postPilot).toContain("carriedForward: 4");
+    expect(postPilot).toContain("completionRate: 73");
+    expect(postPilot).toContain("carryoverRate: 27");
+    expect(postPilot).toContain("Carried forward to Sprint ${metric.sprint + 1}");
     expect(postPilot).toContain("Total sprint work items");
     expect(postPilot).toContain("Completed / closed");
-    expect(postPilot).toContain("Carried forward to Sprint 3");
     expect(postPilot).toContain("completionRate: 75");
     expect(postPilot).toContain("carryoverRate: 25");
     expect(postPilot).toContain("Closeout metrics will populate");
