@@ -4,11 +4,13 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Copy, Check, Paperclip, ShieldCheck, X } from "lucide-react";
+import { Streamdown } from "streamdown";
 import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import DataMappingWorkspace from "@/components/DataMappingWorkspace";
 import { readSharedBuddyConversation, subscribeSharedBuddyConversation, writeSharedBuddyConversation } from "@/lib/askBuddyConversation";
 import { ADO_FOLLOW_UP_TYPES, buildAdoFollowUpMarkdown, buildAdoWorkItemFormText, getAdoFollowUpReview, getAdoFollowUpReviewKey, getConfirmedDependencyFollowUps, type AdoFollowUpDraft, type AdoFollowUpReviews, type AdoFollowUpType } from "@/lib/askBuddyAdoFollowUps";
+import { toDocumentFriendlyText } from "@/lib/askBuddyDocumentFormat";
 import { trpc } from "@/lib/trpc";
 import { useBatchStatus, buildLiveSnapshot } from "@/contexts/BatchStatusContext";
 
@@ -725,20 +727,33 @@ ${attachmentLabel}`;
     }
   };
 
-  const formatText = (text: string) => {
-    return text
-      .split("\n")
-      .map((line) => {
-        line = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-        if (line.startsWith("• ")) {
-          return `<li style="margin-left:1.2rem;list-style:disc;margin-bottom:0.15rem">${line.slice(2)}</li>`;
-        }
-        if (line.startsWith("  ↳ ")) {
-          return `<p style="margin-left:1.5rem;color:#64748b;font-size:0.8rem;margin-bottom:0.1rem">${line.slice(4)}</p>`;
-        }
-        return `<p style="margin-bottom:0.2rem">${line}</p>`;
-      })
-      .join("");
+  const copyBuddyResponseForDocument = async (message: Message) => {
+    const plainText = toDocumentFriendlyText(message.text);
+    const renderedResponse = document.getElementById(`ask-buddy-response-${message.id}`);
+
+    try {
+      if (renderedResponse?.innerHTML && navigator.clipboard?.write && typeof ClipboardItem !== "undefined") {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([renderedResponse.innerHTML], { type: "text/html" }),
+            "text/plain": new Blob([plainText], { type: "text/plain" }),
+          }),
+        ]);
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(plainText);
+      } else {
+        const fallback = document.createElement("textarea");
+        fallback.value = plainText;
+        document.body.appendChild(fallback);
+        fallback.select();
+        document.execCommand("copy");
+        document.body.removeChild(fallback);
+      }
+      setMessages((previous) => previous.map((item) => item.id === message.id ? { ...item, copied: true } : item));
+      window.setTimeout(() => setMessages((previous) => previous.map((item) => item.id === message.id ? { ...item, copied: false } : item)), 2_000);
+    } catch {
+      setMessages((previous) => previous.map((item) => item.id === message.id ? { ...item, copied: false } : item));
+    }
   };
 
   const createAdoFollowUps = (message: Message) => {
@@ -1244,7 +1259,9 @@ ${attachmentLabel}`;
                   lineHeight: 1.6,
                 }}>
                   {msg.role === "buddy" ? (
-                    <div dangerouslySetInnerHTML={{ __html: formatText(msg.text) }} />
+                    <div id={`ask-buddy-response-${msg.id}`} className="ask-buddy-document-response">
+                      <Streamdown controls={false}>{msg.text}</Streamdown>
+                    </div>
                   ) : (
                     <p style={{ margin: 0 }}>{msg.text}</p>
                   )}
@@ -1259,12 +1276,8 @@ ${attachmentLabel}`;
                     )}
                     {msg.role === "buddy" && (
                       <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(msg.text);
-                          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, copied: true } : m));
-                          setTimeout(() => setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, copied: false } : m)), 2000);
-                        }}
-                        title="Copy release notes"
+                        onClick={() => void copyBuddyResponseForDocument(msg)}
+                        title="Copy a document-friendly version of this Buddy response"
                         style={{
                           display: "flex", alignItems: "center", gap: "3px",
                           background: msg.copied ? "#f0fdf4" : "#f8fafc",
@@ -1275,7 +1288,7 @@ ${attachmentLabel}`;
                           cursor: "pointer",
                         }}
                       >
-                        {msg.copied ? <><Check size={10} /> Copied</> : <><Copy size={10} /> Copy</>}
+                        {msg.copied ? <><Check size={10} /> Copied</> : <><Copy size={10} /> Copy for Document</>}
                       </button>
                     )}
                     {msg.role === "buddy" && msg.id !== "welcome" && !msg.id.startsWith("tour-") && msg.capability !== "error" && (
