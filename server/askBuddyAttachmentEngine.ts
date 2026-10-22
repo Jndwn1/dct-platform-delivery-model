@@ -215,61 +215,39 @@ function matchingEvidenceLines(text: string, expression: RegExp, limit: number) 
 }
 
 /**
- * Provides a useful, evidence-only first pass when a model response exceeds
- * the bounded document-analysis window. It never attempts to synthesize facts
- * beyond the extracted document text.
+ * Preserves a small set of direct source statements when the analytical model
+ * cannot complete. It deliberately does not masquerade as a BA assessment or
+ * promote keyword matches into requirements, dependencies, or ownership.
  */
 export function buildAttachmentEvidenceFallback({
   question,
   textExcerpt,
 }: Pick<AskBuddyAttachmentRecord, "textExcerpt"> & { question: string }) {
-  const ownershipLines = matchingEvidenceLines(
-    textExcerpt,
-    /\b(TDC|taxonomy|validation|data type|persist|govern|reference data)\b/i,
-    5
-  );
-  const dependencyLines = matchingEvidenceLines(
-    textExcerpt,
-    /\b(IMS|Roger|GoSystem|State|Process|mapping|routing|outbound|inbound|dependency|integration)\b/i,
-    7
-  ).filter((line) => !/^\s*TDC\s+must\b/i.test(line) && !/\bADO\s*\d{4,}\b/i.test(line));
-  const adoLines = matchingEvidenceLines(
-    textExcerpt,
-    /\b(ado\s*\d{4,}|feature\s*\d{4,}|story\s*\d{4,}|bug\s*\d{4,}|spike\s*\d{4,}|\d{5,}\s*[—-])/i,
-    5
-  );
+  const questionTerms = question
+    .toLowerCase()
+    .match(/[a-z][a-z0-9-]{2,}/g)
+    ?.filter((term) => !["about", "attached", "document", "identify", "review", "what", "with"].includes(term))
+    .slice(0, 8) ?? [];
+  const sourceLines = textExcerpt
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter((line) => line.length >= 18)
+    .filter((line, index, lines) => lines.indexOf(line) === index);
+  const directlyRelevantLines = questionTerms.length
+    ? sourceLines.filter((line) => questionTerms.some((term) => line.toLowerCase().includes(term)))
+    : sourceLines;
+  const evidenceLines = (directlyRelevantLines.length ? directlyRelevantLines : sourceLines).slice(0, 5);
 
   return [
-    "### 1. Executive Assessment",
-    `**Question addressed:** ${question}`,
-    "This is an evidence-bound first pass from matching extracted statements in the attached document. It identifies potential requirements and dependencies for validation; it does not infer missing ownership, approvals, ADO coverage, or delivery commitments.",
+    "### Document Analysis Did Not Complete",
+    `Ask Buddy read the attached source for: **${question}**. The analytical response did not complete before the document-analysis deadline, so no requirement, dependency, ownership, ADO, or readiness conclusion has been inferred from keyword matches.`,
     "",
-    "### 2. Requirements Analysis",
-    "| Requirement or potential requirement | Business / technical explanation | Supporting document evidence | Classification | Recommended validation or action |",
-    "| --- | --- | --- | --- | --- |",
-    ownershipLines.length
-      ? ownershipLines.map((line) => `| ${line.replace(/\|/g, "\\|")} | The statement indicates a potential governance, taxonomy, validation, persistence, or reference-data requirement that should be evaluated for implementation scope. | ${line.replace(/\|/g, "\\|")} | Inferred | Determine whether this statement is an approved requirement and capture the specific implementation boundary and accountable owner. |`).join("\n")
-      : "| No explicit TDC requirement statement was located | The excerpt did not establish a TDC requirement. | Not stated in extracted text | Open | Provide the applicable requirement or decision section. |",
+    "### Direct Source Statements Available for Retry",
+    ...(evidenceLines.length
+      ? evidenceLines.map((line) => `- ${line}`)
+      : ["- No readable source statement matched the request."]),
     "",
-    "### 3. Cross-Team Dependency Analysis",
-    "| Dependency | Requesting or affected team | Providing or decision-making team | Required input, decision, or deliverable | Delivery impact | Status |",
-    "| --- | --- | --- | --- | --- | --- |",
-    dependencyLines.length
-      ? dependencyLines.map((line) => `| ${line.replace(/\|/g, "\\|")} | Teams named in the statement; final affected team is not stated. | Not stated in source | ${line.replace(/\|/g, "\\|")} | Requirements, integration, or testing may be delayed until the referenced input or decision is resolved. | Potential |`).join("\n")
-      : "| No explicit cross-team dependency statement was located | Not stated in source | Not stated in source | Provide the related integration, mapping, or working-session section. | Delivery impact cannot be assessed from the excerpt. | Open |",
-    "",
-    "### 4. Gaps and Open Questions",
-    "- **Ownership and approval status:** The extracted text does not establish final accountable ownership or approval. This matters because a mention of TDC, IMS, Roger, State, or GoSystem does not itself create a delivery commitment.",
-    "- **Complete source scope:** This first pass uses matching extracted statements only. This matters because the full requirement, interface, mapping, or test context may be elsewhere in the document.",
-    "",
-    "### 5. Existing ADO Coverage",
-    ...(adoLines.length
-      ? adoLines.map((line) => `- **Directly mentioned ADO reference:** ${line} Treat as Existing ADO Work only; validate scope, status, and relationship before refinement or implementation planning.`)
-      : ["No related ADO item was directly identified in the extracted text. Validate existing backlog coverage before creating, refining, or linking an ADO work item."]),
-    "",
-    "### 6. Recommended Next Actions",
-    "1. Review the quoted statements with the accountable SMEs or decision-makers identified in the source. **Expected outcome:** confirmed requirement, dependency, and ownership status.",
-    "2. Compare the confirmed findings with the governing backlog. **Expected outcome:** a decision on whether to refine existing ADO work, create a new review-only draft, or continue discovery.",
-    "3. Capture unresolved decisions, evidence, and delivery impact in the working-session notes. **Expected outcome:** traceable inputs for backlog refinement and implementation planning.",
+    "### Next Action",
+    "Retry the same document analysis. The completed response will provide the full BA assessment rather than an extraction-style report.",
   ].join("\n");
 }

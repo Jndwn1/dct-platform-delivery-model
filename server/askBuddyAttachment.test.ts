@@ -53,13 +53,17 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(askBuddyPage).not.toContain("msg.sources && msg.sources.length > 0");
   });
 
-  it("uses an attachment-led analysis path and an evidence-only fallback for extracted documents", () => {
+  it("uses a quality-first analytical path and explicit timeout notice for extracted documents", () => {
     expect(router).toContain("const attachmentAnalysisMode = attachmentRecord?.analysisStatus === \"Extracted\"");
     expect(router).toContain("const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact)");
     expect(router).toContain("const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode");
     expect(router).toContain("buildAttachmentAnalysisPrompt(question)");
-    expect(router).toContain("attachmentAnalysisMode ? 4_700");
-    expect(router).toContain("attachmentAnalysisMode ? 4_300");
+    expect(router).toContain('DOCUMENT_ANALYSIS_MODEL = "gpt-6-luna"');
+    expect(router).toContain("DOCUMENT_ANALYSIS_TIMEOUT_MS = 14_000");
+    expect(router).toContain("DOCUMENT_ANALYSIS_MAX_TOKENS = 1_000");
+    expect(router).toContain("attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL");
+    expect(router).toContain("attachmentAnalysisMode ? DOCUMENT_ANALYSIS_TIMEOUT_MS");
+    expect(router).toContain("Document evidence supplied to this analysis is truncated");
     expect(router).toContain("buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })");
     expect(router).toContain("buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)");
   });

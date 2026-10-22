@@ -22,6 +22,10 @@ const DCT_PLATFORM_QUESTION = /\b(dct|tdc|pdc|roger|ims|gosystem|tax portal|cont
 const ADO_URL_PATTERN = /https?:\/\/dev\.azure\.com\/[^\s)\]]+\/[^\s)\]]*\/_workitems\/edit\/(\d{4,})[^\s)\]]*/gi;
 const ADO_ID_PATTERN = /\b(?:ado\s*(?:work\s*item\s*)?(?:id\s*)?[#: -]?\s*|feature\s*|user\s*story\s*|technical\s*story\s*|spike\s*|bug\s*|task\s*)(\d{4,})\b/gi;
 const STANDALONE_ADO_ID_PATTERN = /\b\d{6,8}\b/g;
+const DOCUMENT_ANALYSIS_MODEL = "gpt-6-luna";
+const DOCUMENT_ANALYSIS_TIMEOUT_MS = 14_000;
+const DOCUMENT_ANALYSIS_MAX_TOKENS = 1_000;
+const DOCUMENT_EVIDENCE_MAX_CHARS = 10_000;
 
 function getSuppliedAdoReferences(text: string) {
   const references = new Map<string, { id: string; url?: string }>();
@@ -260,7 +264,10 @@ Do not infer content from this file.`
           ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for the scope it covers. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
           : "";
         const suppliedAdoReferenceContext = buildSuppliedAdoReferenceContext(question);
-        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + attachmentEvidence.slice(0, documentAndDependencyAnalysisMode ? 12_000 : 8_000) + attachmentReferenceNote + attachmentPrimacy + suppliedAdoReferenceContext + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
+        const attachmentEvidenceForModel = attachmentEvidence.length > DOCUMENT_EVIDENCE_MAX_CHARS
+          ? `${attachmentEvidence.slice(0, DOCUMENT_EVIDENCE_MAX_CHARS).trimEnd()}\n\n[Document evidence supplied to this analysis is truncated at ${DOCUMENT_EVIDENCE_MAX_CHARS.toLocaleString()} characters. Do not draw conclusions from later content.]`
+          : attachmentEvidence;
+        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + (attachmentAnalysisMode ? attachmentEvidenceForModel : attachmentEvidence.slice(0, structuredAttachmentAnalysisMode ? 12_000 : 8_000)) + attachmentReferenceNote + attachmentPrimacy + suppliedAdoReferenceContext + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
         const recentMessages = documentAndDependencyAnalysisMode ? input.messages.slice(-1) : input.messages.slice(-2);
         const llmMessages = [
@@ -284,13 +291,13 @@ Do not infer content from this file.`
             : buildInsufficientEvidenceResponse(grounding);
         } else {
           try {
-            const responseBudgetMs = attachmentAnalysisMode ? 4_700 : crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
+            const responseBudgetMs = attachmentAnalysisMode ? DOCUMENT_ANALYSIS_TIMEOUT_MS : crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
             const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
             const result = await invokeLLM({
-              model: "gemini-3.8-flash",
-              thinking: { budget_tokens: 0 },
-              maxTokens: attachmentAnalysisMode ? 720 : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
-              timeoutMs: Math.min(attachmentAnalysisMode ? 4_300 : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
+              model: attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL : "gemini-3.8-flash",
+              thinking: attachmentAnalysisMode ? undefined : { budget_tokens: 0 },
+              maxTokens: attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MAX_TOKENS : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
+              timeoutMs: Math.min(attachmentAnalysisMode ? DOCUMENT_ANALYSIS_TIMEOUT_MS : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
               messages: llmMessages,
             });
             const choice = result.choices[0];

@@ -60,6 +60,8 @@ describe("Ask Buddy primary Business Analysis intelligence policy", () => {
     }
 
     expect(attachment).toContain("document evidence primary");
+    expect(attachment).toContain("\n### 1. Executive Assessment");
+    expect(attachment).not.toContain("\\n### 1. Executive Assessment");
     expect(dependencies).toContain("all six sections are present");
   });
 });

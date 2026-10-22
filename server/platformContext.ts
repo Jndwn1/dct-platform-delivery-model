@@ -1026,7 +1026,7 @@ export function buildDocumentAndDependencyAnalysisInstruction(): string {
     "Provide concrete, prioritized actions with a suggested validation owner only where supported and an expected outcome. A recommendation is not an approved commitment or a live Azure DevOps action.",
     "When the scope is Roger State Apportionment, retain the same six-section discipline but use these headings: 1. Executive Assessment; 2. TDC Requirements; 3. Cross-Team Dependencies; 4. Spike 1514276 Readiness Assessment; 5. Spike 1514277 Readiness Assessment; 6. Prioritized Decisions and Actions. Evaluate calculation authority, Property/Payroll/Sales, detailed versus summarized values, within/everywhere transmission, taxonomy alignment, IMS routing, GoSystem mapping, TDC outbound retrieval, TDC inbound results persistence, correlation identifiers, contracts, validation, errors, testing, and readiness only where evidence supports relevance. Evaluate the two supplied spike titles and descriptions even if the attached source does not repeat their IDs; do not claim to have retrieved their full ADO records.",
     "Keep the analysis compact enough for an interactive response. When evidence is sparse, retain all six sections with an explicit evidence boundary rather than filling gaps by assumption.",
-  ].join("\\n");
+  ].join("\n");
 }
 
 export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot }: CompactBuddyPromptInput): string {
@@ -1126,7 +1126,7 @@ export function buildAttachmentAnalysisPrompt(question: string): string {
     "Analyze the attached document as the primary evidence for the user's question. Do not substitute unrelated platform context for the document's scope. When current-page or DCT evidence is directly related, use it only to provide context or check existing ADO coverage; identify any conflict without resolving it by assumption.",
     "If the attached excerpt does not establish an answer, retain the six-part structure, state the precise evidence boundary, and request the document section or confirmation needed. Do not append a source list or expose internal provenance metadata.",
     `User question: ${question}`,
-  ].join("\\n");
+  ].join("\n");
 }
 
 /**
@@ -1190,7 +1190,7 @@ export function buildCrossTeamDependencyPrompt({ question, currentPagePath }: Co
     "## Mandatory quality check before responding",
     "Confirm that every material conclusion has an identifiable supporting source; irrelevant platform information is excluded; actual deliverables and upstream/downstream dependencies are identified; Confirmed, Potential, Proposed, Inferred, and Open items are separated; and all six sections are present. If any check fails, revise before responding."
   );
-  return lines.join("\\n");
+  return lines.join("\n");
 }
 
 /**
