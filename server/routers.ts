@@ -23,9 +23,16 @@ const ADO_URL_PATTERN = /https?:\/\/dev\.azure\.com\/[^\s)\]]+\/[^\s)\]]*\/_work
 const ADO_ID_PATTERN = /\b(?:ado\s*(?:work\s*item\s*)?(?:id\s*)?[#: -]?\s*|feature\s*|user\s*story\s*|technical\s*story\s*|spike\s*|bug\s*|task\s*)(\d{4,})\b/gi;
 const STANDALONE_ADO_ID_PATTERN = /\b\d{6,8}\b/g;
 const DOCUMENT_ANALYSIS_MODEL = "gpt-6-luna";
-const DOCUMENT_ANALYSIS_TIMEOUT_MS = 14_000;
-const DOCUMENT_ANALYSIS_MAX_TOKENS = 1_000;
+const DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000;
+const DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800;
 const DOCUMENT_EVIDENCE_MAX_CHARS = 10_000;
+const REQUIRED_DOCUMENT_ANALYSIS_SECTIONS = [1, 2, 3, 4, 5, 6];
+
+function hasCompleteDocumentAnalysis(content: string) {
+  return REQUIRED_DOCUMENT_ANALYSIS_SECTIONS.every((section) =>
+    new RegExp(`(?:^|\\n)#{0,4}\\s*${section}[.)]\\s+`, "m").test(content)
+  );
+}
 
 function getSuppliedAdoReferences(text: string) {
   const references = new Map<string, { id: string; url?: string }>();
@@ -267,7 +274,10 @@ Do not infer content from this file.`
         const attachmentEvidenceForModel = attachmentEvidence.length > DOCUMENT_EVIDENCE_MAX_CHARS
           ? `${attachmentEvidence.slice(0, DOCUMENT_EVIDENCE_MAX_CHARS).trimEnd()}\n\n[Document evidence supplied to this analysis is truncated at ${DOCUMENT_EVIDENCE_MAX_CHARS.toLocaleString()} characters. Do not draw conclusions from later content.]`
           : attachmentEvidence;
-        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + (attachmentAnalysisMode ? attachmentEvidenceForModel : attachmentEvidence.slice(0, structuredAttachmentAnalysisMode ? 12_000 : 8_000)) + attachmentReferenceNote + attachmentPrimacy + suppliedAdoReferenceContext + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
+        const relatedStateReadinessEvidence = attachmentAnalysisMode && crossTeamDependenciesMode
+          ? `\n\nRELATED GOVERNED STATE READINESS CONTEXT — use only to corroborate or extend the attached document's directly related State Apportionment scope. It does not override the uploaded source.\n${grounding.evidenceBlock.slice(0, 6_000)}`
+          : "";
+        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + (attachmentAnalysisMode ? attachmentEvidenceForModel : attachmentEvidence.slice(0, structuredAttachmentAnalysisMode ? 12_000 : 8_000)) + attachmentReferenceNote + attachmentPrimacy + relatedStateReadinessEvidence + suppliedAdoReferenceContext + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
         const recentMessages = documentAndDependencyAnalysisMode ? input.messages.slice(-1) : input.messages.slice(-2);
         const llmMessages = [
@@ -295,6 +305,7 @@ Do not infer content from this file.`
             const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
             const result = await invokeLLM({
               model: attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL : "gemini-3.8-flash",
+              reasoning: attachmentAnalysisMode ? { effort: "low" } : undefined,
               thinking: attachmentAnalysisMode ? undefined : { budget_tokens: 0 },
               maxTokens: attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MAX_TOKENS : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
               timeoutMs: Math.min(attachmentAnalysisMode ? DOCUMENT_ANALYSIS_TIMEOUT_MS : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
@@ -311,6 +322,9 @@ Do not infer content from this file.`
                 .join("\n");
             } else {
               responseText = "I was unable to generate a response. Please try again.";
+            }
+            if (attachmentAnalysisMode && !hasCompleteDocumentAnalysis(responseText)) {
+              responseText = "### Document Analysis Did Not Complete\n\nAsk Buddy's analytical response did not return all required assessment sections, so it has not been presented as a finished analysis. Please retry the document analysis; no partial requirement, dependency, ownership, or readiness conclusion has been retained.";
             }
           } catch (error) {
             if (error instanceof LLMRequestTimeoutError) {

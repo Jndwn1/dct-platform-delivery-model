@@ -59,10 +59,13 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(router).toContain("const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode");
     expect(router).toContain("buildAttachmentAnalysisPrompt(question)");
     expect(router).toContain('DOCUMENT_ANALYSIS_MODEL = "gpt-6-luna"');
-    expect(router).toContain("DOCUMENT_ANALYSIS_TIMEOUT_MS = 14_000");
-    expect(router).toContain("DOCUMENT_ANALYSIS_MAX_TOKENS = 1_000");
+    expect(router).toContain("DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000");
+    expect(router).toContain("DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800");
     expect(router).toContain("attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL");
     expect(router).toContain("attachmentAnalysisMode ? DOCUMENT_ANALYSIS_TIMEOUT_MS");
+    expect(router).toContain("hasCompleteDocumentAnalysis(responseText)");
+    expect(router).toContain("RELATED GOVERNED STATE READINESS CONTEXT");
+    expect(router).toContain('reasoning: attachmentAnalysisMode ? { effort: "low" }');
     expect(router).toContain("Document evidence supplied to this analysis is truncated");
     expect(router).toContain("buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })");
     expect(router).toContain("buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)");

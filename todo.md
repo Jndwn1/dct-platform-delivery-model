@@ -340,3 +340,4 @@
 - [x] Strengthen Ask Buddy analysis and safe user-supplied ADO reference handling without a live ADO connection
 - [x] Add a dedicated multi-link ADO reference input to Ask Buddy
 - [x] Replace document extraction-style timeout output with a quality-first Ask Buddy analysis path
+- [x] Enforce complete six-section State document analysis with ADO and readiness context

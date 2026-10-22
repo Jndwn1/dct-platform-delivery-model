@@ -63,5 +63,8 @@ describe("Ask Buddy primary Business Analysis intelligence policy", () => {
     expect(attachment).toContain("\n### 1. Executive Assessment");
     expect(attachment).not.toContain("\\n### 1. Executive Assessment");
     expect(dependencies).toContain("all six sections are present");
+    expect(activeInstruction).toContain("return exactly these six complete headings");
+    expect(activeInstruction).toContain("Do not stop after section 1");
+    expect(activeInstruction).toContain("specific effect on retrieval, persistence, validation, or reconciliation");
   });
 });
