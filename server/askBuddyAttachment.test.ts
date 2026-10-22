@@ -47,39 +47,44 @@ describe("Ask Buddy direct attachment workflow", () => {
   });
 
   it("keeps evidence and audit metadata internal instead of rendering source provenance", () => {
-    expect(router).toContain("const text = responseText;");
+    expect(router).toContain("const text = appendAdoAccessBoundary(responseText, adoIntent);");
     expect(router).not.toContain("appendBuddyProvenance(responseText, grounding)");
     expect(askBuddyPage).toContain("withoutVisibleSourceProvenance");
     expect(askBuddyPage).not.toContain("msg.sources && msg.sources.length > 0");
   });
 
-  it("uses a quality-first analytical path and explicit timeout notice for extracted documents", () => {
+  it("uses a reasoning-first, intent-led analytical path for extracted documents", () => {
     expect(router).toContain("const attachmentAnalysisMode = attachmentRecord?.analysisStatus === \"Extracted\"");
     expect(router).toContain("const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact)");
     expect(router).toContain("const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode");
     expect(router).toContain("buildAttachmentAnalysisPrompt(question)");
+    expect(router).toContain("buildAttachmentDirectQuestionPrompt(question)");
+    expect(router).toContain("const fullDocumentAssessmentMode");
+    expect(router).toContain("const targetedAttachmentQuestionMode");
     expect(router).toContain('DOCUMENT_ANALYSIS_MODEL = "gpt-6-luna"');
     expect(router).toContain("DEEP_DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000");
     expect(router).toContain("DEEP_DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800");
     expect(router).toContain("CONCISE_DOCUMENT_ANALYSIS_TIMEOUT_MS = 18_000");
     expect(router).toContain("CONCISE_DOCUMENT_ANALYSIS_MAX_TOKENS = 1_600");
-    expect(router).toContain("attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL");
-    expect(router).toContain("attachmentAnalysisMode ? documentAnalysisTimeoutMs");
+    expect(router).toContain("model: uploadedAnalysisMode ? DOCUMENT_ANALYSIS_MODEL");
+    expect(router).toContain("fullDocumentAssessmentMode");
+    expect(router).toContain("documentAnalysisTimeoutMs");
     expect(router).toContain("hasCompleteDocumentAnalysis(responseText)");
     expect(router).toContain("RELATED GOVERNED STATE READINESS CONTEXT");
-    expect(router).toContain('reasoning: attachmentAnalysisMode ? { effort: "low" }');
+    expect(router).toContain('reasoning: uploadedAnalysisMode ? { effort: "low" }');
+    expect(router).toContain('thinking: uploadedAnalysisMode ? undefined : { budget_tokens: 256 }');
     expect(router).toContain("Document evidence supplied to this analysis is truncated");
     expect(router).toContain("buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })");
     expect(router).toContain("buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)");
   });
 
-  it("offers concise or detailed document analysis, progress feedback, and a completion badge", () => {
+  it("offers targeted or full document analysis, progress feedback, and a completion badge", () => {
     expect(askBuddyPage).toContain('aria-label="Document analysis depth"');
-    expect(askBuddyPage).toContain("Concise · six-section summary");
-    expect(askBuddyPage).toContain("Detailed · requirements & readiness");
+    expect(askBuddyPage).toContain("Concise · targeted answer");
+    expect(askBuddyPage).toContain("Detailed · full assessment when requested");
     expect(askBuddyPage).toContain("Deep document analysis in progress");
     expect(askBuddyPage).toContain("Reading evidence, assessing requirements, and checking dependencies and ADO readiness.");
-    expect(askBuddyPage).toContain("6/6 sections complete");
+    expect(askBuddyPage).toContain("Full assessment complete");
     expect(askBuddyPage).toContain("analysisDepth,");
     expect(router).toContain('analysisDepth: z.enum(["concise", "detailed"]).optional()');
     expect(router).toContain("DOCUMENT ANALYSIS DEPTH:");

@@ -12,8 +12,9 @@ describe("Ask Buddy conversational document follow-ups", () => {
     expect(prompt).toContain("Document Follow-Up Analysis");
     expect(prompt).toContain("Answer the user's current question directly");
     expect(prompt).toContain("Do not regenerate the six-section assessment");
-    expect(prompt).toContain("Dependency | Related work item | Proposed responsible team | Required deliverable | Blocker classification");
+    expect(prompt).toContain("Dependency | Affected ADO work item | Team needing information | Proposed providing team | Required deliverable or decision | Development or test impact | Classification | Sequencing recommendation");
     expect(prompt).toContain("Confirmed blocker");
+    expect(prompt).toContain("Proposed — validate");
     expect(prompt).not.toContain("### 1. Executive Assessment");
   });
 
@@ -24,7 +25,7 @@ describe("Ask Buddy conversational document follow-ups", () => {
     expect(router).toContain("buildAttachmentFollowUpPrompt(question)");
     expect(router).toContain("ORIGINAL DOCUMENT ANALYSIS REQUEST");
     expect(router).toContain("DOCUMENT_FOLLOW_UP_TIMEOUT_MS = 12_000");
-    expect(router).toContain("!documentFollowUpMode && !hasCompleteDocumentAnalysis(responseText)");
+    expect(router).toContain("fullDocumentAssessmentMode && !hasCompleteDocumentAnalysis(responseText)");
   });
 
   it("shows users when a document context is active and lets them pause it", () => {

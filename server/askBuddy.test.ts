@@ -23,6 +23,9 @@ vi.mock("./platformContext", () => ({
   buildAttachmentAnalysisPrompt: vi.fn().mockReturnValue(
     "You are Ask Buddy, an attachment-led Business Analysis Assistant. [mock attachment prompt]"
   ),
+  buildAttachmentDirectQuestionPrompt: vi.fn().mockReturnValue(
+    "You are Ask Buddy, a targeted document-analysis assistant. [mock direct attachment prompt]"
+  ),
   buildCompactAskBuddyPrompt: vi.fn().mockReturnValue(
     "You are Ask Buddy, a DCT platform assistant. [mock compact system prompt]"
   ),
@@ -33,13 +36,10 @@ vi.mock("./platformContext", () => ({
     "You are Ask Buddy, a Business Analysis Assistant. [mock general guidance prompt]"
   ),
   isStateApportionmentDependencyQuestion: vi.fn((question: string) => /state apportionment/i.test(question)),
-  buildStateApportionmentDependencyResponse: vi.fn().mockReturnValue(
-    "### 1. Executive Summary\nState Apportionment working-session evidence."
-  ),
 }));
 
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildAttachmentAnalysisPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse } from "./platformContext";
+import { buildAttachmentAnalysisPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt } from "./platformContext";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -75,10 +75,11 @@ describe("askBuddy.chat", () => {
     expect(callArgs.messages[1]).toEqual({ role: "user", content: "List all ADRs" });
     expect(callArgs).toMatchObject({
       model: "gemini-3.8-flash",
-      thinking: { budget_tokens: 0 },
-      maxTokens: 280,
-      timeoutMs: 4300,
+      thinking: { budget_tokens: 256 },
+      maxTokens: 600,
     });
+    expect(callArgs.timeoutMs).toBeLessThanOrEqual(6000);
+    expect(callArgs.timeoutMs).toBeGreaterThan(400);
   });
 
   it("returns the LLM response text", async () => {
@@ -105,14 +106,16 @@ describe("askBuddy.chat", () => {
     expect(callArgs.messages[0].content).toContain("mock dependency prompt");
     expect(callArgs).toMatchObject({
       model: "gemini-3.8-flash",
-      maxTokens: 720,
-      timeoutMs: 4600,
+      thinking: { budget_tokens: 256 },
+      maxTokens: 1400,
     });
+    expect(callArgs.timeoutMs).toBeLessThanOrEqual(12000);
+    expect(callArgs.timeoutMs).toBeGreaterThan(400);
     expect(callArgs.messages[0].content).toContain("Capability-Specific Evidence Packet");
     expect(callArgs.messages[0].content).not.toContain("Full Batch Registry");
   });
 
-  it("returns the State Apportionment working-session analysis without waiting on the model", async () => {
+  it("uses the reasoning model for a State Apportionment dependency question", async () => {
     const caller = appRouter.createCaller(createTestCtx());
     const result = await caller.askBuddy.chat({
       messages: [{ role: "user", content: "For State Apportionment, what must TDC own before the spikes move toward implementation?" }],
@@ -120,13 +123,16 @@ describe("askBuddy.chat", () => {
       capability: "discovery",
     });
 
-    expect(buildStateApportionmentDependencyResponse).toHaveBeenCalledOnce();
-    expect(invokeLLM).not.toHaveBeenCalled();
-    expect(result.text).toContain("State Apportionment working-session evidence.");
+    expect(buildCrossTeamDependencyPrompt).toHaveBeenCalledOnce();
+    expect(invokeLLM).toHaveBeenCalledOnce();
+    const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(callArgs.thinking).toEqual({ budget_tokens: 256 });
+    expect(result.text).toContain("mock LLM response");
+    expect(result.text).toContain("Ask Buddy has no live Azure DevOps connection");
     expect(result.sources.map((source) => source.label)).toEqual(["State Taxonomy Readiness"]);
   });
 
-  it("resolves a natural State dependency follow-up from the recent conversation", async () => {
+  it("uses reasoning for a natural State dependency follow-up from the recent conversation", async () => {
     const caller = appRouter.createCaller(createTestCtx());
     const result = await caller.askBuddy.chat({
       messages: [
@@ -138,9 +144,23 @@ describe("askBuddy.chat", () => {
       capability: "discovery",
     });
 
-    expect(buildStateApportionmentDependencyResponse).toHaveBeenCalledOnce();
-    expect(invokeLLM).not.toHaveBeenCalled();
-    expect(result.text).toContain("State Apportionment working-session evidence.");
+    expect(buildCrossTeamDependencyPrompt).toHaveBeenCalledOnce();
+    expect(invokeLLM).toHaveBeenCalledOnce();
+    expect(result.text).toContain("Ask Buddy has no live Azure DevOps connection");
+  });
+
+  it("adds the no-live-ADO boundary for a dependency recommendation even without a supplied ID", async () => {
+    const caller = appRouter.createCaller(createTestCtx());
+    const result = await caller.askBuddy.chat({
+      messages: [{ role: "user", content: "Recommend ADO dependencies for this integration." }],
+      currentPagePath: "/ask-buddy",
+    });
+
+    expect(invokeLLM).toHaveBeenCalledOnce();
+    const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(callArgs.thinking).toEqual({ budget_tokens: 256 });
+    expect(result.text).toContain("Ask Buddy has no live Azure DevOps connection in this workspace");
+    expect(result.text).toContain("cannot open, retrieve, query, or update ADO work items");
   });
 
   it("answers a general business-analysis question without misrepresenting it as a DCT platform fact", async () => {

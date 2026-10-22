@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildAskBuddyPrimaryInstruction,
   buildAttachmentAnalysisPrompt,
+  buildAttachmentDirectQuestionPrompt,
   buildCompactAskBuddyPrompt,
   buildCrossTeamDependencyPrompt,
   buildDocumentAndDependencyAnalysisInstruction,
@@ -18,6 +19,8 @@ describe("Ask Buddy primary Business Analysis intelligence policy", () => {
     expect(policy).toContain("a user-provided document, spreadsheet, meeting transcript, or attachment");
     expect(policy).toContain("Do not require the user to select a specialist prompt");
     expect(policy).toContain("Confirmed only when evidence establishes it");
+    expect(policy).toContain("Apply AI reasoning to every request");
+    expect(policy).toContain("Answer the specific question first");
     expect(policy).toContain("Resolve references such as ‘those’, ‘the three responsibilities’");
   });
 
@@ -39,17 +42,18 @@ describe("Ask Buddy primary Business Analysis intelligence policy", () => {
     }
 
     expect(compact).toContain("Current Control Panel/governed records establish current delivery state");
-    expect(dependencies).toContain("Active document and dependency analysis instruction");
+    expect(dependencies).toContain("Answer the question directly");
   });
 
-  it("uses the supplied six-part BA assessment contract for attachment and dependency analysis", () => {
+  it("uses the six-part BA assessment contract only for a requested full document assessment", () => {
     const activeInstruction = buildDocumentAndDependencyAnalysisInstruction();
     const attachment = buildAttachmentAnalysisPrompt("Analyze this source for requirements and dependencies.");
+    const targeted = buildAttachmentDirectQuestionPrompt("Which team must provide the field mapping?");
     const dependencies = buildCrossTeamDependencyPrompt({
       question: "What dependencies must TDC resolve before delivery?",
     });
 
-    for (const prompt of [activeInstruction, attachment, dependencies]) {
+    for (const prompt of [activeInstruction, attachment]) {
       expect(prompt).toContain("### 1. Executive Assessment");
       expect(prompt).toContain("### 2. Requirements Analysis");
       expect(prompt).toContain("### 3. Cross-Team Dependency Analysis");
@@ -62,7 +66,11 @@ describe("Ask Buddy primary Business Analysis intelligence policy", () => {
     expect(attachment).toContain("document evidence primary");
     expect(attachment).toContain("\n### 1. Executive Assessment");
     expect(attachment).not.toContain("\\n### 1. Executive Assessment");
-    expect(dependencies).toContain("all six sections are present");
+    expect(targeted).toContain("Targeted Document Analysis");
+    expect(targeted).toContain("do not generate the six-part assessment");
+    expect(targeted).toContain("Affected ADO work item | Team needing information | Proposed providing team");
+    expect(dependencies).toContain("Answer the question directly");
+    expect(dependencies).not.toContain("all six sections are present");
     expect(activeInstruction).toContain("return exactly these six complete headings");
     expect(activeInstruction).toContain("Do not stop after section 1");
     expect(activeInstruction).toContain("specific effect on retrieval, persistence, validation, or reconciliation");

@@ -15,8 +15,8 @@ describe("Ask Buddy analytical ADO-reference behavior", () => {
     const analysisInstruction = buildDocumentAndDependencyAnalysisInstruction();
 
     expect(policy).toContain("For substantive requests, reason from evidence");
-    expect(policy).toContain("Evidence-bound analysis permits traceable Inferred findings");
-    expect(policy).toContain("do not substitute extraction");
+    expect(policy).toContain("Evidence-bound inferences must be labeled");
+    expect(policy).toContain("Do not substitute extraction");
     expect(analysisInstruction).toContain("each finding must describe its distinct business, data, integration, validation, or technical implication");
     expect(analysisInstruction).toContain("Spike 1514276 Readiness Assessment");
     expect(analysisInstruction).toContain("Spike 1514277 Readiness Assessment");

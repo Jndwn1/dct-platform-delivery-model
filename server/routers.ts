@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildAttachmentAnalysisPrompt, buildAttachmentFollowUpPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse, isStateApportionmentDependencyQuestion } from "./platformContext";
+import { buildAttachmentAnalysisPrompt, buildAttachmentDirectQuestionPrompt, buildAttachmentFollowUpPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, isStateApportionmentDependencyQuestion } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
-import { buildBuddyGrounding, buildFocusedCrossTeamGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
+import { buildBuddyGrounding, buildFocusedCrossTeamGrounding } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -31,11 +31,26 @@ const DOCUMENT_FOLLOW_UP_TIMEOUT_MS = 12_000;
 const DOCUMENT_FOLLOW_UP_MAX_TOKENS = 1_000;
 const DOCUMENT_EVIDENCE_MAX_CHARS = 10_000;
 const REQUIRED_DOCUMENT_ANALYSIS_SECTIONS = [1, 2, 3, 4, 5, 6];
+const ADO_ACCESS_BOUNDARY = "Ask Buddy has no live Azure DevOps connection in this workspace and cannot open, retrieve, query, or update ADO work items. Any IDs or details below come only from user-provided material or governed static evidence.";
 
 function hasCompleteDocumentAnalysis(content: string) {
   return REQUIRED_DOCUMENT_ANALYSIS_SECTIONS.every((section) =>
     new RegExp(`(?:^|\\n)#{0,4}\\s*${section}[.)]\\s+`, "m").test(content)
   );
+}
+
+function isFullDocumentAssessmentQuestion(question: string) {
+  return /\b(full|complete|comprehensive|six[-\s]?section|end[-\s]?to[-\s]?end)\b[\s\S]{0,70}\b(assessment|analysis|review|requirements?|document|source)\b/i.test(question)
+    || /\b(analy[sz]e|assess|review)\b[\s\S]{0,70}\b(the\s+)?(entire|full|complete)\b[\s\S]{0,35}\b(document|source|attachment)\b/i.test(question);
+}
+
+function hasAdoIntent(question: string, originalDocumentQuestion?: string) {
+  return /\b(ado|azure devops|work[-\s]?item|backlog|spikes?|dependency|dependencies|user story|technical story)\b/i.test(`${question}\n${originalDocumentQuestion ?? ""}`);
+}
+
+function appendAdoAccessBoundary(response: string, shouldDisclose: boolean) {
+  if (!shouldDisclose || response.includes(ADO_ACCESS_BOUNDARY)) return response;
+  return `${response.trimEnd()}\n\n> **ADO access boundary:** ${ADO_ACCESS_BOUNDARY}`;
 }
 
 function getSuppliedAdoReferences(text: string) {
@@ -90,7 +105,7 @@ function buildStructuredAttachmentAnalysisFallback(
   const dependencyRows = analysis.dependencies.slice(0, 4);
   return [
     "### 1. Executive Assessment",
-    `This evidence-bound first pass is based on the uploaded structured source for: ${question}. It identifies captured field-contract gaps and cross-team dependency signals for review; it does not establish an approved mapping, interface, ownership assignment, or delivery commitment.`,
+    `The full analytical response did not complete. This safe structured-source review is limited to captured field-contract gaps and cross-team dependency signals for: ${question}. It does not establish an approved mapping, interface, ownership assignment, or delivery commitment.`,
     "",
     "### 2. Requirements Analysis",
     "| Requirement or potential requirement | Business / technical explanation | Supporting document evidence | Classification | Recommended validation or action |",
@@ -153,7 +168,7 @@ export const appRouter = router({
           capability: z.string().optional(),
           // Optional structured source uploaded from the Ask Buddy composer. Analysis is retrieved server-side.
           attachmentArtifactId: z.number().int().positive().optional(),
-          // Concise keeps the six-section structure brief; detailed enables the full BA assessment budget.
+          // Analysis depth applies only when the user explicitly requests a full document assessment.
           analysisDepth: z.enum(["concise", "detailed"]).optional(),
           // Retains a user-selected uploaded source for direct conversational follow-up.
           documentContext: z.object({
@@ -195,7 +210,7 @@ export const appRouter = router({
           ? db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt)).limit(8)
           : Promise.resolve([]);
         const activeAttachmentArtifactId = input.attachmentArtifactId ?? input.documentContext?.artifactId;
-        const explicitlyRequestedFullAssessment = /(?:\b(full|complete|entire|six[-\s]?section)\b[\s\S]{0,45}\b(assessment|analysis|review|requirements?|document|source)\b)|(?:\b(reassess|re[-\s]?analy[sz]e|repeat)\b[\s\S]{0,45}\b(assessment|analysis|review|requirements?|document|source)\b)/i.test(question);
+        const explicitlyRequestedFullAssessment = isFullDocumentAssessmentQuestion(question);
         const documentFollowUpMode = Boolean(input.documentContext && !input.attachmentArtifactId && !explicitlyRequestedFullAssessment);
         const attachmentArtifactPromise = activeAttachmentArtifactId && db
           ? db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, activeAttachmentArtifactId)).limit(1)
@@ -261,6 +276,9 @@ Do not infer content from this file.`
           : buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
         const attachmentAnalysisMode = attachmentRecord?.analysisStatus === "Extracted" && attachmentEvidence.length > 0;
         const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact);
+        const uploadedAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode;
+        const fullDocumentAssessmentMode = (attachmentAnalysisMode || structuredAttachmentAnalysisMode) && explicitlyRequestedFullAssessment;
+        const targetedAttachmentQuestionMode = (attachmentAnalysisMode || structuredAttachmentAnalysisMode) && !fullDocumentAssessmentMode && !documentFollowUpMode;
         const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode;
         const documentAnalysisDepth = input.analysisDepth ?? "detailed";
         const documentAnalysisTimeoutMs = documentAnalysisDepth === "detailed"
@@ -269,7 +287,8 @@ Do not infer content from this file.`
         const documentAnalysisMaxTokens = documentAnalysisDepth === "detailed"
           ? DEEP_DOCUMENT_ANALYSIS_MAX_TOKENS
           : CONCISE_DOCUMENT_ANALYSIS_MAX_TOKENS;
-        const requiresPlatformEvidence = crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(input.attachmentArtifactId);
+        const adoIntent = hasAdoIntent(question, `${input.documentContext?.initialQuestion ?? ""}\n${priorConversation}`);
+        const requiresPlatformEvidence = crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(activeAttachmentArtifactId) || adoIntent;
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
           ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
           : "";
@@ -284,8 +303,10 @@ Do not infer content from this file.`
           : `\n\nDCT KNOWLEDGE-BASE CHECK\nThe current-page context and governed DCT knowledge base were checked before this response. No DCT-specific fact is required to answer this general business-analysis question. If the user asks about a DCT capability, return to the supplied governed evidence and do not infer platform facts.`;
         const basePrompt = documentFollowUpMode
           ? buildAttachmentFollowUpPrompt(question)
-          : attachmentAnalysisMode || structuredAttachmentAnalysisMode
+          : fullDocumentAssessmentMode
           ? buildAttachmentAnalysisPrompt(question)
+          : targetedAttachmentQuestionMode
+          ? buildAttachmentDirectQuestionPrompt(question)
           : crossTeamDependenciesMode
           ? buildCrossTeamDependencyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
           : requiresPlatformEvidence
@@ -294,14 +315,14 @@ Do not infer content from this file.`
         const attachmentPrimacy = attachmentArtifact
           ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for the scope it covers. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
           : "";
-        const suppliedAdoReferenceContext = buildSuppliedAdoReferenceContext(question);
+        const suppliedAdoReferenceContext = buildSuppliedAdoReferenceContext(`${question}\n${input.documentContext?.initialQuestion ?? ""}`);
         const attachmentEvidenceForModel = attachmentEvidence.length > DOCUMENT_EVIDENCE_MAX_CHARS
           ? `${attachmentEvidence.slice(0, DOCUMENT_EVIDENCE_MAX_CHARS).trimEnd()}\n\n[Document evidence supplied to this analysis is truncated at ${DOCUMENT_EVIDENCE_MAX_CHARS.toLocaleString()} characters. Do not draw conclusions from later content.]`
           : attachmentEvidence;
         const relatedStateReadinessEvidence = attachmentAnalysisMode && crossTeamDependenciesMode
           ? `\n\nRELATED GOVERNED STATE READINESS CONTEXT — use only to corroborate or extend the attached document's directly related State Apportionment scope. It does not override the uploaded source.\n${grounding.evidenceBlock.slice(0, 6_000)}`
           : "";
-        const documentDepthInstruction = attachmentAnalysisMode && !documentFollowUpMode
+        const documentDepthInstruction = fullDocumentAssessmentMode
           ? `\n\nDOCUMENT ANALYSIS DEPTH: ${documentAnalysisDepth === "detailed" ? "Detailed — provide the complete six-section BA assessment with distinct requirements, cross-team deliverables, readiness by supplied ADO item, gaps, and prioritized actions." : "Concise — provide all six required sections, but use only the highest-impact findings and brief rows."}`
           : "";
         const originalDocumentRequestContext = input.documentContext?.initialQuestion
@@ -319,64 +340,72 @@ Do not infer content from this file.`
         ];
 
         let responseText: string;
-        const hasStoryReviewEvidence = storyReviewEvidence.length > 0;
-        const hasAttachmentEvidence = attachmentEvidence.length > 0;
-        if (stateApportionmentDependencyQuestion && !attachmentArtifact) {
-          responseText = buildStateApportionmentDependencyResponse();
-        } else if (isMasterDataQuestion(question) && !masterEvidence.hasEvidence) {
-          responseText = `${MASTER_DATA_ANSWER_FALLBACK}\n\n### Source Boundary\n${attachmentArtifact ? `The uploaded ${attachmentRecord?.format ?? "file"} remains a user-provided reference and cannot establish authoritative Master Data.` : "No uploaded source was supplied."}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`;
-        } else if (requiresPlatformEvidence && !grounding.hasSufficientEvidence && !hasStoryReviewEvidence && !hasAttachmentEvidence) {
-          responseText = attachmentRecord?.analysisStatus === "Reference Only"
-            ? `The attached ${attachmentRecord.format} is retained as a source reference, but its contents were not extracted for analysis. ${attachmentRecord.note}\n\n### Next Action\nUpload a readable Word (.docx), Excel/CSV, or text-based version of the source, or provide the relevant content in the question.`
-            : buildInsufficientEvidenceResponse(grounding);
-        } else {
-          try {
-            const responseBudgetMs = documentFollowUpMode ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS : attachmentAnalysisMode ? documentAnalysisTimeoutMs : crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
-            const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
-            const result = await invokeLLM({
-              model: attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL : "gemini-3.8-flash",
-              reasoning: attachmentAnalysisMode ? { effort: "low" } : undefined,
-              thinking: attachmentAnalysisMode ? undefined : { budget_tokens: 0 },
-              maxTokens: documentFollowUpMode ? DOCUMENT_FOLLOW_UP_MAX_TOKENS : attachmentAnalysisMode ? documentAnalysisMaxTokens : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
-              timeoutMs: Math.min(documentFollowUpMode ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS : attachmentAnalysisMode ? documentAnalysisTimeoutMs : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
-              messages: llmMessages,
-            });
-            const choice = result.choices[0];
-            const content = choice?.message?.content;
-            if (typeof content === "string") {
-              responseText = content;
-            } else if (Array.isArray(content)) {
-              responseText = content
-                .filter((c) => c.type === "text")
-                .map((c) => (c as { type: "text"; text: string }).text)
-                .join("\n");
-            } else {
-              responseText = "I was unable to generate a response. Please try again.";
-            }
-            if (attachmentAnalysisMode && !documentFollowUpMode && !hasCompleteDocumentAnalysis(responseText)) {
-              responseText = "### Document Analysis Did Not Complete\n\nAsk Buddy's analytical response did not return all required assessment sections, so it has not been presented as a finished analysis. Please retry the document analysis; no partial requirement, dependency, ownership, or readiness conclusion has been retained.";
-            }
-          } catch (error) {
-            if (error instanceof LLMRequestTimeoutError) {
-              responseText = documentFollowUpMode
-                ? "### Follow-Up Analysis Did Not Complete\n\nAsk Buddy could not complete the requested document follow-up in the response window. The prior assessment remains available; please retry the specific question."
-                : attachmentAnalysis
-                ? buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)
-                : attachmentAnalysisMode && attachmentRecord
-                ? buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })
-                : requiresPlatformEvidence
-                ? "Ask Buddy could not complete an evidence-grounded response within the response-time limit. No answer has been inferred. Please retry or narrow the question."
-                : buildGeneralBusinessGuidanceFallback(question);
-            } else {
-              console.error("[askBuddy] response generation failed", error);
-              responseText = "Ask Buddy could not complete an evidence-grounded response. No answer has been inferred. Please retry the question.";
-            }
+        try {
+          const responseBudgetMs = documentFollowUpMode
+            ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS
+            : fullDocumentAssessmentMode
+            ? documentAnalysisTimeoutMs
+            : targetedAttachmentQuestionMode || crossTeamDependenciesMode
+            ? 12_000
+            : 6_000;
+          const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
+          const result = await invokeLLM({
+            model: uploadedAnalysisMode ? DOCUMENT_ANALYSIS_MODEL : "gemini-3.8-flash",
+            reasoning: uploadedAnalysisMode ? { effort: "low" } : undefined,
+            thinking: uploadedAnalysisMode ? undefined : { budget_tokens: 256 },
+            maxTokens: documentFollowUpMode
+              ? DOCUMENT_FOLLOW_UP_MAX_TOKENS
+              : fullDocumentAssessmentMode
+              ? documentAnalysisMaxTokens
+              : targetedAttachmentQuestionMode || crossTeamDependenciesMode
+              ? 1_400
+              : requiresPlatformEvidence
+              ? 600
+              : 420,
+            timeoutMs: Math.min(responseBudgetMs, remainingResponseBudgetMs),
+            messages: llmMessages,
+          });
+          const choice = result.choices[0];
+          const content = choice?.message?.content;
+          if (typeof content === "string") {
+            responseText = content;
+          } else if (Array.isArray(content)) {
+            responseText = content
+              .filter((c) => c.type === "text")
+              .map((c) => (c as { type: "text"; text: string }).text)
+              .join("\n");
+          } else {
+            responseText = "I was unable to generate a response. Please try again.";
+          }
+          if (fullDocumentAssessmentMode && !hasCompleteDocumentAnalysis(responseText)) {
+            responseText = "### Document Analysis Did Not Complete\n\nAsk Buddy's analytical response did not return all required assessment sections, so it has not been presented as a finished analysis. Please retry the full document assessment; no partial requirement, dependency, ownership, or readiness conclusion has been retained.";
+          }
+        } catch (error) {
+          if (error instanceof LLMRequestTimeoutError) {
+            responseText = documentFollowUpMode
+              ? "### Follow-Up Analysis Did Not Complete\n\nAsk Buddy could not complete the requested document follow-up in the response window. The prior assessment remains available; please retry the specific question."
+              : fullDocumentAssessmentMode && attachmentAnalysis
+              ? buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)
+              : fullDocumentAssessmentMode && attachmentAnalysisMode && attachmentRecord
+              ? buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })
+              : targetedAttachmentQuestionMode
+              ? "### Targeted Analysis Did Not Complete\n\nAsk Buddy could not complete the requested question against the uploaded source in the response window. No conclusion has been inferred; retry the focused question or request a full assessment."
+              : attachmentRecord?.analysisStatus === "Reference Only"
+              ? `The attached ${attachmentRecord.format} is retained as a source reference, but its contents were not extracted for analysis. ${attachmentRecord.note}\n\n### Next Action\nUpload a readable Word (.docx), Excel/CSV, or text-based version of the source, or provide the relevant content in the question.`
+              : isMasterDataQuestion(question) && !masterEvidence.hasEvidence
+              ? `${MASTER_DATA_ANSWER_FALLBACK}\n\n### What is missing\nThe authoritative active-tab workbook artifact is not currently registered in the DCT Platform evidence layer.\n\n### Next Action\nRegister the current DCT_Master_Data_Intake.xlsx artifact with an AUTHORITATIVE source label, then retry the question.`
+              : requiresPlatformEvidence
+              ? "Ask Buddy could not complete an evidence-grounded response within the response-time limit. No answer has been inferred. Please retry or narrow the question."
+              : buildGeneralBusinessGuidanceFallback(question);
+          } else {
+            console.error("[askBuddy] response generation failed", error);
+            responseText = "Ask Buddy could not complete an evidence-grounded response. No answer has been inferred. Please retry the question.";
           }
         }
 
         // Evidence and audit metadata remain retained on the response object and in the
         // audit record, but source provenance is not appended to the user-facing answer.
-        const text = responseText;
+        const text = appendAdoAccessBoundary(responseText, adoIntent);
         if (db) {
           void db.insert(askBuddyAudits).values({
               question,
@@ -390,7 +419,13 @@ Do not infer content from this file.`
         }
 
         const responseElapsedMs = Date.now() - requestStartedAt;
-        const expectedResponseWindowMs = documentFollowUpMode ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS : attachmentAnalysisMode ? documentAnalysisTimeoutMs : 4_000;
+        const expectedResponseWindowMs = documentFollowUpMode
+          ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS
+          : fullDocumentAssessmentMode
+          ? documentAnalysisTimeoutMs
+          : targetedAttachmentQuestionMode || crossTeamDependenciesMode
+          ? 12_000
+          : 6_000;
         if (responseElapsedMs > expectedResponseWindowMs) console.warn(`[askBuddy] response exceeded ${expectedResponseWindowMs}ms (${responseElapsedMs}ms)`);
 
         return {
@@ -402,11 +437,13 @@ Do not infer content from this file.`
           status: grounding.status,
           knowledgeCheckedAt: grounding.checkedAt,
           latestSource: grounding.latestSource,
-          documentAnalysis: attachmentAnalysisMode
+          documentAnalysis: uploadedAnalysisMode
             ? {
                 depth: documentAnalysisDepth,
-                complete: !documentFollowUpMode && hasCompleteDocumentAnalysis(text),
-                mode: documentFollowUpMode ? "follow-up" as const : "initial" as const,
+                complete: fullDocumentAssessmentMode
+                  ? hasCompleteDocumentAnalysis(text)
+                  : !text.startsWith("### Targeted Analysis Did Not Complete") && !text.startsWith("### Follow-Up Analysis Did Not Complete"),
+                mode: documentFollowUpMode ? "follow-up" as const : fullDocumentAssessmentMode ? "assessment" as const : "targeted" as const,
                 artifactId: Number(attachmentArtifact?.id),
                 fileName: attachmentArtifact?.fileName ?? input.documentContext?.fileName ?? "Uploaded document",
                 initialQuestion: input.documentContext?.initialQuestion ?? question.slice(0, 5_000),
@@ -1492,11 +1529,15 @@ Platform context:
 
 When asked to generate test cases, provide structured test case IDs, epics, features, stories, requirements, and expected results.
 When asked about defects, summarize severity, owner, and resolution path.
-When asked for Go/No Go recommendation, evaluate based on: all critical defects closed, all tests passed, all business areas signed off.
-Be concise, professional, and enterprise-ready in your responses.`;
+	When asked for Go/No Go recommendation, evaluate based on: all critical defects closed, all tests passed, all business areas signed off.
+	Be concise, professional, and enterprise-ready in your responses.`;
 
-        const response = await invokeLLM({
-          messages: [
+	        const response = await invokeLLM({
+	          model: "gemini-3.8-flash",
+	          thinking: { budget_tokens: 256 },
+	          maxTokens: 700,
+	          timeoutMs: 6_000,
+	          messages: [
             { role: "system" as const, content: systemPrompt as string },
             { role: "user", content: input.question },
           ],

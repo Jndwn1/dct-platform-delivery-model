@@ -30,7 +30,7 @@ interface Message {
   documentAnalysis?: {
     depth: "concise" | "detailed";
     complete: boolean;
-    mode?: "initial" | "follow-up";
+    mode?: "assessment" | "targeted" | "follow-up" | "initial";
     artifactId?: number;
     fileName?: string;
     initialQuestion?: string;
@@ -1331,12 +1331,12 @@ ${attachmentLabel}`;
                         · {CAPABILITIES.find((c) => c.id === msg.capability)?.label ?? msg.capability}
                       </span>
                     )}
-                    {msg.role === "buddy" && msg.documentAnalysis?.complete && (
+                     {msg.role === "buddy" && msg.documentAnalysis?.complete && (msg.documentAnalysis.mode === "assessment" || msg.documentAnalysis.mode === "initial") && (
                       <span
                         title={`Verified complete ${msg.documentAnalysis.depth} document analysis`}
                         style={{ alignItems: "center", background: "#ecfdf5", border: "1px solid #86efac", borderRadius: 999, color: "#047857", display: "inline-flex", fontSize: "0.61rem", fontWeight: 800, gap: 3, padding: "2px 6px" }}
                       >
-                        <ShieldCheck size={10} /> 6/6 sections complete · {msg.documentAnalysis.depth}
+                         <ShieldCheck size={10} /> Full assessment complete · {msg.documentAnalysis.depth}
                       </span>
                     )}
                     {msg.role === "buddy" && (
@@ -1634,8 +1634,8 @@ ${attachmentLabel}`;
                   onChange={(event) => setAnalysisDepth(event.target.value as "concise" | "detailed")}
                   style={{ background: "#f8fbff", border: "1px solid #bfdbfe", borderRadius: 6, color: "#1e3a5f", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 7px" }}
                 >
-                  <option value="concise">Concise · six-section summary</option>
-                  <option value="detailed">Detailed · requirements & readiness</option>
+                   <option value="concise">Concise · targeted answer</option>
+                   <option value="detailed">Detailed · full assessment when requested</option>
                 </select>
               </label>
               {attachmentFile && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#047857", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "5px 7px", fontSize: 11, fontWeight: 700 }}><Paperclip size={12} /> {attachmentFile.name}<button type="button" aria-label="Remove attached file" onClick={() => selectAttachment(null)} style={{ border: "none", background: "transparent", color: "#047857", cursor: "pointer", display: "inline-flex", padding: 0 }}><X size={13} /></button></span>}

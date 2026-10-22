@@ -9,7 +9,7 @@ export interface SharedBuddyMessage {
   documentAnalysis?: {
     depth: "concise" | "detailed";
     complete: boolean;
-    mode?: "initial" | "follow-up";
+    mode?: "assessment" | "targeted" | "follow-up" | "initial";
     artifactId?: number;
     fileName?: string;
     initialQuestion?: string;
