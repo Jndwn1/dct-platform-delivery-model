@@ -10,7 +10,36 @@ export interface AdoFollowUpDraft {
   adoStatus: "Draft — Requires BA Review";
 }
 
+export const ADO_FOLLOW_UP_TYPES = ["Task", "User Story", "Bug"] as const;
+export type AdoFollowUpType = (typeof ADO_FOLLOW_UP_TYPES)[number];
+
+export interface AdoFollowUpReview {
+  draftType: AdoFollowUpType;
+  baReviewNote: string;
+  ownerConfirmed: boolean;
+  acceptanceCriteriaReviewed: boolean;
+}
+
+export type AdoFollowUpReviews = Record<string, AdoFollowUpReview>;
+
 const NOT_STATED = "Not stated in source";
+
+export function getAdoFollowUpReviewKey(draft: AdoFollowUpDraft, index: number) {
+  return `${draft.id}-${index}`;
+}
+
+export function createDefaultAdoFollowUpReview(): AdoFollowUpReview {
+  return {
+    draftType: "Task",
+    baReviewNote: "",
+    ownerConfirmed: false,
+    acceptanceCriteriaReviewed: false,
+  };
+}
+
+export function getAdoFollowUpReview(draft: AdoFollowUpDraft, index: number, reviews: AdoFollowUpReviews) {
+  return reviews[getAdoFollowUpReviewKey(draft, index)] ?? createDefaultAdoFollowUpReview();
+}
 
 function cleanCell(value: string | undefined) {
   const cleaned = (value ?? "")
@@ -113,19 +142,21 @@ export function getConfirmedDependencyFollowUps(answer: string): AdoFollowUpDraf
   return drafts;
 }
 
-export function buildAdoFollowUpMarkdown(drafts: AdoFollowUpDraft[]) {
+export function buildAdoFollowUpMarkdown(drafts: AdoFollowUpDraft[], reviews: AdoFollowUpReviews = {}) {
   const lines = [
     "# ADO Follow-up Drafts",
     "",
-    "> Draft only — these records were derived solely from dependency findings explicitly marked **Confirmed** in the selected Ask Buddy response. They have not been sent to Azure DevOps. BA and accountable-owner review is required before manual ADO entry.",
+    "> Draft only — these records were derived solely from dependency findings explicitly marked **Confirmed** in the selected Ask Buddy response. They have not been sent to Azure DevOps. BA and accountable-owner review is required before manual ADO entry. Draft type and BA review inputs are user-entered review metadata, not source evidence or approval.",
     "",
   ];
 
   drafts.forEach((draft, index) => {
+    const review = getAdoFollowUpReview(draft, index, reviews);
     lines.push(
       `## ${index + 1}. ${draft.id}`,
       "",
-      `**Draft follow-up:** ${draft.draftTitle}`,
+      `**Draft type (BA selection):** ${review.draftType}`,
+      `**Draft ${review.draftType} title:** ${draft.draftTitle}`,
       `**Confirmed evidence:** ${draft.confirmedEvidence}`,
       `**Explicit owner / team:** ${draft.explicitOwnerOrTeam}`,
       `**Required input / decision:** ${draft.requiredInputOrDecision}`,
@@ -133,6 +164,8 @@ export function buildAdoFollowUpMarkdown(drafts: AdoFollowUpDraft[]) {
       `**Impact if unresolved:** ${draft.impactIfUnresolved}`,
       `**Next action (if stated):** ${draft.nextAction}`,
       `**ADO status:** ${draft.adoStatus}`,
+      `**BA review note:** ${review.baReviewNote.trim() || "None entered"}`,
+      `**Optional BA review checklist:** Owner confirmation ${review.ownerConfirmed ? "checked" : "not checked"}; acceptance criteria review ${review.acceptanceCriteriaReviewed ? "checked" : "not checked"}. These checks are not source evidence or approval.`,
       ""
     );
   });

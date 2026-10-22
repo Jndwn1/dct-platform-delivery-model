@@ -333,3 +333,4 @@
 
 - [x] Add a dedicated, evidence-bound Ask Buddy document-analysis path for TDC ownership and cross-team dependencies without slowing ordinary questions
 - [x] Add review-only ADO follow-up draft creation from confirmed Ask Buddy dependency findings
+- [x] Add per-draft BA review notes, Task/User Story/Bug selection, and optional owner/acceptance-criteria review checks to ADO follow-up drafts

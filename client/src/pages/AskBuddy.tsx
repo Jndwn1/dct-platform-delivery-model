@@ -8,7 +8,7 @@ import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import DataMappingWorkspace from "@/components/DataMappingWorkspace";
 import { readSharedBuddyConversation, subscribeSharedBuddyConversation, writeSharedBuddyConversation } from "@/lib/askBuddyConversation";
-import { buildAdoFollowUpMarkdown, getConfirmedDependencyFollowUps, type AdoFollowUpDraft } from "@/lib/askBuddyAdoFollowUps";
+import { ADO_FOLLOW_UP_TYPES, buildAdoFollowUpMarkdown, getAdoFollowUpReview, getAdoFollowUpReviewKey, getConfirmedDependencyFollowUps, type AdoFollowUpDraft, type AdoFollowUpReviews, type AdoFollowUpType } from "@/lib/askBuddyAdoFollowUps";
 import { trpc } from "@/lib/trpc";
 import { useBatchStatus, buildLiveSnapshot } from "@/contexts/BatchStatusContext";
 
@@ -459,6 +459,7 @@ export default function AskBuddy() {
   const [adoDraftSourceId, setAdoDraftSourceId] = useState<string | null>(null);
   const [adoDraftNotice, setAdoDraftNotice] = useState("");
   const [adoDraftCopied, setAdoDraftCopied] = useState(false);
+  const [adoDraftReviews, setAdoDraftReviews] = useState<AdoFollowUpReviews>({});
 
   // Tour state
   const [tourActive, setTourActive] = useState(false);
@@ -743,6 +744,7 @@ ${attachmentLabel}`;
     const drafts = getConfirmedDependencyFollowUps(message.text);
     setAdoDraftCopied(false);
     setAdoDraftSourceId(message.id);
+    setAdoDraftReviews({});
 
     if (!drafts.length) {
       setAdoDrafts(null);
@@ -754,16 +756,24 @@ ${attachmentLabel}`;
     setAdoDrafts(drafts);
   };
 
+  const updateAdoDraftReview = (draft: AdoFollowUpDraft, index: number, patch: Partial<AdoFollowUpReviews[string]>) => {
+    const key = getAdoFollowUpReviewKey(draft, index);
+    setAdoDraftReviews((previous) => ({
+      ...previous,
+      [key]: { ...getAdoFollowUpReview(draft, index, previous), ...patch },
+    }));
+  };
+
   const copyAdoFollowUps = async () => {
     if (!adoDrafts?.length) return;
-    await navigator.clipboard.writeText(buildAdoFollowUpMarkdown(adoDrafts));
+    await navigator.clipboard.writeText(buildAdoFollowUpMarkdown(adoDrafts, adoDraftReviews));
     setAdoDraftCopied(true);
     window.setTimeout(() => setAdoDraftCopied(false), 2_000);
   };
 
   const downloadAdoFollowUps = () => {
     if (!adoDrafts?.length) return;
-    const blob = new Blob([buildAdoFollowUpMarkdown(adoDrafts)], { type: "text/markdown;charset=utf-8" });
+    const blob = new Blob([buildAdoFollowUpMarkdown(adoDrafts, adoDraftReviews)], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -1316,7 +1326,7 @@ ${attachmentLabel}`;
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setAdoDrafts(null); setAdoDraftNotice(""); setAdoDraftSourceId(null); }}
+                  onClick={() => { setAdoDrafts(null); setAdoDraftNotice(""); setAdoDraftSourceId(null); setAdoDraftReviews({}); }}
                   aria-label="Close ADO follow-up drafts"
                   style={{ border: "none", background: "transparent", color: "#64748b", cursor: "pointer", padding: 0, display: "inline-flex" }}
                 >
@@ -1348,6 +1358,56 @@ ${attachmentLabel}`;
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                  <div style={{ display: "grid", gap: "0.65rem", marginTop: "0.75rem" }}>
+                    {adoDrafts.map((draft, index) => {
+                      const review = getAdoFollowUpReview(draft, index, adoDraftReviews);
+                      return (
+                        <div key={`review-${draft.id}-${index}`} style={{ background: "#fff", border: "1px solid #dbeafe", borderRadius: 6, padding: "0.7rem 0.8rem" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", alignItems: "center", marginBottom: "0.55rem", flexWrap: "wrap" }}>
+                            <span style={{ color: "#1e3a5f", fontSize: "0.72rem", fontWeight: 800 }}>Draft {index + 1} · {draft.id}</span>
+                            <span style={{ color: "#64748b", fontSize: "0.64rem" }}>BA review inputs are not source evidence or approval.</span>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "minmax(160px, 0.32fr) minmax(260px, 1fr)", gap: "0.65rem", alignItems: "start" }}>
+                            <label style={{ color: "#475569", fontSize: "0.68rem", fontWeight: 700 }}>
+                              Draft type
+                              <select
+                                aria-label={`Draft type for ${draft.id}`}
+                                value={review.draftType}
+                                onChange={(event) => updateAdoDraftReview(draft, index, { draftType: event.target.value as AdoFollowUpType })}
+                                style={{ display: "block", width: "100%", marginTop: "0.3rem", background: "#fff", border: "1px solid #bfdbfe", borderRadius: 5, color: "#1e3a5f", fontSize: "0.7rem", padding: "0.35rem 0.45rem" }}
+                              >
+                                {ADO_FOLLOW_UP_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+                              </select>
+                            </label>
+                            <label style={{ color: "#475569", fontSize: "0.68rem", fontWeight: 700 }}>
+                              BA review note <span style={{ color: "#94a3b8", fontWeight: 500 }}>(optional)</span>
+                              <textarea
+                                aria-label={`BA review note for ${draft.id}`}
+                                value={review.baReviewNote}
+                                onChange={(event) => updateAdoDraftReview(draft, index, { baReviewNote: event.target.value })}
+                                placeholder="Add BA context, refinement notes, or a manual-ADO-entry reminder."
+                                rows={2}
+                                style={{ display: "block", width: "100%", boxSizing: "border-box", marginTop: "0.3rem", background: "#fff", border: "1px solid #bfdbfe", borderRadius: 5, color: "#334155", fontFamily: "inherit", fontSize: "0.7rem", lineHeight: 1.4, padding: "0.4rem 0.5rem", resize: "vertical" }}
+                              />
+                            </label>
+                          </div>
+                          <fieldset style={{ border: 0, margin: "0.6rem 0 0", padding: 0 }}>
+                            <legend style={{ color: "#475569", fontSize: "0.68rem", fontWeight: 700, marginBottom: "0.3rem" }}>Optional BA review checklist</legend>
+                            <div style={{ display: "flex", gap: "0.85rem", flexWrap: "wrap" }}>
+                              <label style={{ alignItems: "center", color: "#475569", cursor: "pointer", display: "inline-flex", fontSize: "0.68rem", gap: "0.35rem" }}>
+                                <input aria-label={`Owner confirmation reviewed for ${draft.id}`} type="checkbox" checked={review.ownerConfirmed} onChange={(event) => updateAdoDraftReview(draft, index, { ownerConfirmed: event.target.checked })} />
+                                Owner confirmation reviewed
+                              </label>
+                              <label style={{ alignItems: "center", color: "#475569", cursor: "pointer", display: "inline-flex", fontSize: "0.68rem", gap: "0.35rem" }}>
+                                <input aria-label={`Acceptance criteria reviewed for ${draft.id}`} type="checkbox" checked={review.acceptanceCriteriaReviewed} onChange={(event) => updateAdoDraftReview(draft, index, { acceptanceCriteriaReviewed: event.target.checked })} />
+                                Acceptance criteria reviewed
+                              </label>
+                            </div>
+                          </fieldset>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.7rem", flexWrap: "wrap" }}>
                     <button onClick={() => void copyAdoFollowUps()} style={{ background: adoDraftCopied ? "#ecfdf5" : "#1e3a5f", color: adoDraftCopied ? "#047857" : "#fff", border: `1px solid ${adoDraftCopied ? "#86efac" : "#1e3a5f"}`, borderRadius: 5, padding: "0.35rem 0.7rem", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer" }}>

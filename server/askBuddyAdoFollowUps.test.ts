@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { buildAdoFollowUpMarkdown, getConfirmedDependencyFollowUps } from "../client/src/lib/askBuddyAdoFollowUps";
+import { ADO_FOLLOW_UP_TYPES, buildAdoFollowUpMarkdown, createDefaultAdoFollowUpReview, getConfirmedDependencyFollowUps } from "../client/src/lib/askBuddyAdoFollowUps";
 
 const askBuddyPage = readFileSync("client/src/pages/AskBuddy.tsx", "utf8");
 
@@ -77,12 +77,34 @@ describe("Ask Buddy review-only ADO follow-up drafts", () => {
         nextAction: "Not stated in source",
         adoStatus: "Draft — Requires BA Review",
       },
-    ]);
+    ], {
+      "D-01-0": {
+        draftType: "Bug",
+        baReviewNote: "Confirm the receiving team's implementation approach before manual ADO entry.",
+        ownerConfirmed: true,
+        acceptanceCriteriaReviewed: true,
+      },
+    });
 
     expect(markdown).toContain("Draft only");
     expect(markdown).toContain("have not been sent to Azure DevOps");
     expect(markdown).toContain("Requires BA Review");
     expect(markdown).toContain("Not stated in source");
+    expect(markdown).toContain("**Draft type (BA selection):** Bug");
+    expect(markdown).toContain("Confirm the receiving team's implementation approach");
+    expect(markdown).toContain("Owner confirmation checked");
+    expect(markdown).toContain("acceptance criteria review checked");
+    expect(markdown).toContain("not source evidence or approval");
+  });
+
+  it("defaults optional review inputs without inferring an approval", () => {
+    expect(ADO_FOLLOW_UP_TYPES).toEqual(["Task", "User Story", "Bug"]);
+    expect(createDefaultAdoFollowUpReview()).toEqual({
+      draftType: "Task",
+      baReviewNote: "",
+      ownerConfirmed: false,
+      acceptanceCriteriaReviewed: false,
+    });
   });
 
   it("provides a response-level action with a guarded empty state and local export options", () => {
@@ -92,6 +114,11 @@ describe("Ask Buddy review-only ADO follow-up drafts", () => {
     expect(askBuddyPage).toContain("Copy ADO Follow-up Drafts");
     expect(askBuddyPage).toContain("Download Markdown");
     expect(askBuddyPage).toContain('anchor.download = "ask-buddy-ado-follow-up-drafts.md"');
+    expect(askBuddyPage).toContain("Draft type");
+    expect(askBuddyPage).toContain("BA review note");
+    expect(askBuddyPage).toContain("Owner confirmation reviewed");
+    expect(askBuddyPage).toContain("Acceptance criteria reviewed");
+    expect(askBuddyPage).toContain("BA review inputs are not source evidence or approval.");
     expect(askBuddyPage).not.toContain("trpc.azureDevOps");
   });
 });
