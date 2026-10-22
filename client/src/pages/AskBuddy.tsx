@@ -8,6 +8,7 @@ import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import DataMappingWorkspace from "@/components/DataMappingWorkspace";
 import { readSharedBuddyConversation, subscribeSharedBuddyConversation, writeSharedBuddyConversation } from "@/lib/askBuddyConversation";
+import { buildAdoFollowUpMarkdown, getConfirmedDependencyFollowUps, type AdoFollowUpDraft } from "@/lib/askBuddyAdoFollowUps";
 import { trpc } from "@/lib/trpc";
 import { useBatchStatus, buildLiveSnapshot } from "@/contexts/BatchStatusContext";
 
@@ -454,6 +455,10 @@ export default function AskBuddy() {
   const [attachmentVersion, setAttachmentVersion] = useState("");
   const [attachmentError, setAttachmentError] = useState("");
   const [isAttachmentProcessing, setIsAttachmentProcessing] = useState(false);
+  const [adoDrafts, setAdoDrafts] = useState<AdoFollowUpDraft[] | null>(null);
+  const [adoDraftSourceId, setAdoDraftSourceId] = useState<string | null>(null);
+  const [adoDraftNotice, setAdoDraftNotice] = useState("");
+  const [adoDraftCopied, setAdoDraftCopied] = useState(false);
 
   // Tour state
   const [tourActive, setTourActive] = useState(false);
@@ -732,6 +737,39 @@ ${attachmentLabel}`;
         return `<p style="margin-bottom:0.2rem">${line}</p>`;
       })
       .join("");
+  };
+
+  const createAdoFollowUps = (message: Message) => {
+    const drafts = getConfirmedDependencyFollowUps(message.text);
+    setAdoDraftCopied(false);
+    setAdoDraftSourceId(message.id);
+
+    if (!drafts.length) {
+      setAdoDrafts(null);
+      setAdoDraftNotice("No confirmed dependency findings are available to draft. Ask Buddy excludes Open, Proposed, Candidate, Requires Confirmation, Reference Only, and unverified findings.");
+      return;
+    }
+
+    setAdoDraftNotice("");
+    setAdoDrafts(drafts);
+  };
+
+  const copyAdoFollowUps = async () => {
+    if (!adoDrafts?.length) return;
+    await navigator.clipboard.writeText(buildAdoFollowUpMarkdown(adoDrafts));
+    setAdoDraftCopied(true);
+    window.setTimeout(() => setAdoDraftCopied(false), 2_000);
+  };
+
+  const downloadAdoFollowUps = () => {
+    if (!adoDrafts?.length) return;
+    const blob = new Blob([buildAdoFollowUpMarkdown(adoDrafts)], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "ask-buddy-ado-follow-up-drafts.md";
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   const statusColor = (s: string) =>
@@ -1210,6 +1248,21 @@ ${attachmentLabel}`;
                         {msg.copied ? <><Check size={10} /> Copied</> : <><Copy size={10} /> Copy</>}
                       </button>
                     )}
+                    {msg.role === "buddy" && msg.id !== "welcome" && !msg.id.startsWith("tour-") && msg.capability !== "error" && (
+                      <button
+                        onClick={() => createAdoFollowUps(msg)}
+                        title="Create review-only follow-up drafts from explicitly confirmed dependency findings"
+                        style={{
+                          display: "flex", alignItems: "center", gap: "3px",
+                          background: "#eff6ff", border: "1px solid #bfdbfe",
+                          borderRadius: "4px", padding: "2px 7px",
+                          fontSize: "0.62rem", fontWeight: 700,
+                          color: "#1e3a5f", cursor: "pointer",
+                        }}
+                      >
+                        Create ADO Follow-ups
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1239,6 +1292,76 @@ ${attachmentLabel}`;
             )}
             <div ref={messagesEndRef} />
           </div>
+
+          {(adoDrafts || adoDraftNotice) && (
+            <section
+              aria-live="polite"
+              style={{
+                background: adoDrafts ? "#f8fafc" : "#fffbeb",
+                border: `1px solid ${adoDrafts ? "#bfdbfe" : "#fcd34d"}`,
+                borderLeft: `4px solid ${adoDrafts ? "#1e3a5f" : "#d97706"}`,
+                borderRadius: 8, padding: "0.85rem 1rem", marginBottom: "0.75rem",
+              }}
+            >
+              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <p style={{ margin: 0, color: adoDrafts ? "#1e3a5f" : "#92400e", fontSize: "0.8rem", fontWeight: 800 }}>
+                    {adoDrafts ? "ADO Follow-up Drafts" : "No ADO Follow-ups Created"}
+                  </p>
+                  <p style={{ margin: "0.2rem 0 0", color: adoDrafts ? "#475569" : "#78350f", fontSize: "0.72rem", lineHeight: 1.45 }}>
+                    {adoDrafts
+                      ? "Draft only — derived solely from explicitly Confirmed dependency findings. Not sent to Azure DevOps; BA and accountable-owner review is required before manual entry."
+                      : adoDraftNotice}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setAdoDrafts(null); setAdoDraftNotice(""); setAdoDraftSourceId(null); }}
+                  aria-label="Close ADO follow-up drafts"
+                  style={{ border: "none", background: "transparent", color: "#64748b", cursor: "pointer", padding: 0, display: "inline-flex" }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {adoDrafts && (
+                <>
+                  <div style={{ overflowX: "auto", marginTop: "0.75rem" }}>
+                    <table style={{ width: "100%", minWidth: 760, borderCollapse: "collapse", fontSize: "0.7rem" }}>
+                      <thead>
+                        <tr style={{ background: "#eaf2fb", color: "#1e3a5f", textAlign: "left" }}>
+                          {['#', 'Draft follow-up', 'Confirmed evidence', 'Explicit owner / team', 'Next action', 'ADO status'].map(column => (
+                            <th key={column} style={{ padding: "0.45rem 0.5rem", borderBottom: "1px solid #bfdbfe", verticalAlign: "top", fontWeight: 800 }}>{column}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adoDrafts.map((draft, index) => (
+                          <tr key={`${draft.id}-${index}`} style={{ color: "#334155", background: "#fff" }}>
+                            <td style={{ padding: "0.45rem 0.5rem", borderBottom: "1px solid #e2e8f0", verticalAlign: "top", fontWeight: 700 }}>{index + 1}</td>
+                            <td style={{ padding: "0.45rem 0.5rem", borderBottom: "1px solid #e2e8f0", verticalAlign: "top", fontWeight: 700 }}>{draft.draftTitle}</td>
+                            <td style={{ padding: "0.45rem 0.5rem", borderBottom: "1px solid #e2e8f0", verticalAlign: "top" }}>{draft.confirmedEvidence}</td>
+                            <td style={{ padding: "0.45rem 0.5rem", borderBottom: "1px solid #e2e8f0", verticalAlign: "top" }}>{draft.explicitOwnerOrTeam}</td>
+                            <td style={{ padding: "0.45rem 0.5rem", borderBottom: "1px solid #e2e8f0", verticalAlign: "top" }}>{draft.nextAction}</td>
+                            <td style={{ padding: "0.45rem 0.5rem", borderBottom: "1px solid #e2e8f0", verticalAlign: "top", color: "#7c2d12", fontWeight: 700 }}>{draft.adoStatus}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.7rem", flexWrap: "wrap" }}>
+                    <button onClick={() => void copyAdoFollowUps()} style={{ background: adoDraftCopied ? "#ecfdf5" : "#1e3a5f", color: adoDraftCopied ? "#047857" : "#fff", border: `1px solid ${adoDraftCopied ? "#86efac" : "#1e3a5f"}`, borderRadius: 5, padding: "0.35rem 0.7rem", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer" }}>
+                      {adoDraftCopied ? "Copied" : "Copy ADO Follow-up Drafts"}
+                    </button>
+                    <button onClick={downloadAdoFollowUps} style={{ background: "#fff", color: "#1e3a5f", border: "1px solid #93c5fd", borderRadius: 5, padding: "0.35rem 0.7rem", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer" }}>
+                      Download Markdown
+                    </button>
+                    {adoDraftSourceId && <span style={{ alignSelf: "center", color: "#64748b", fontSize: "0.66rem" }}>Selected response only</span>}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
 
           {/* Tour inline nav (when tour active) */}
           {tourActive && (

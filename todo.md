@@ -332,3 +332,4 @@
 - [x] Expand Pilot Deployment Registry related-story storage and validation for multi-item story details
 
 - [x] Add a dedicated, evidence-bound Ask Buddy document-analysis path for TDC ownership and cross-team dependencies without slowing ordinary questions
+- [x] Add review-only ADO follow-up draft creation from confirmed Ask Buddy dependency findings
