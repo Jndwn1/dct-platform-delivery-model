@@ -248,14 +248,14 @@ export function buildAttachmentEvidenceFallback({
     "| Requirement or potential requirement | Business / technical explanation | Supporting document evidence | Classification | Recommended validation or action |",
     "| --- | --- | --- | --- | --- |",
     ownershipLines.length
-      ? ownershipLines.map((line) => `| Potential requirement from extracted source | The statement may affect TDC governance, taxonomy, validation, persistence, or reference data. | ${line.replace(/\|/g, "\\|")} | Inferred | Confirm whether the statement is an approved requirement and identify the accountable owner. |`).join("\n")
+      ? ownershipLines.map((line) => `| ${line.replace(/\|/g, "\\|")} | The statement indicates a potential governance, taxonomy, validation, persistence, or reference-data requirement that should be evaluated for implementation scope. | ${line.replace(/\|/g, "\\|")} | Inferred | Determine whether this statement is an approved requirement and capture the specific implementation boundary and accountable owner. |`).join("\n")
       : "| No explicit TDC requirement statement was located | The excerpt did not establish a TDC requirement. | Not stated in extracted text | Open | Provide the applicable requirement or decision section. |",
     "",
     "### 3. Cross-Team Dependency Analysis",
     "| Dependency | Requesting or affected team | Providing or decision-making team | Required input, decision, or deliverable | Delivery impact | Status |",
     "| --- | --- | --- | --- | --- | --- |",
     dependencyLines.length
-      ? dependencyLines.map((line) => `| Potential dependency from extracted source | Teams named in the statement; final affected team is not stated. | Not stated in source | ${line.replace(/\|/g, "\\|")} | Requirements, integration, or testing may be delayed until confirmed. | Potential |`).join("\n")
+      ? dependencyLines.map((line) => `| ${line.replace(/\|/g, "\\|")} | Teams named in the statement; final affected team is not stated. | Not stated in source | ${line.replace(/\|/g, "\\|")} | Requirements, integration, or testing may be delayed until the referenced input or decision is resolved. | Potential |`).join("\n")
       : "| No explicit cross-team dependency statement was located | Not stated in source | Not stated in source | Provide the related integration, mapping, or working-session section. | Delivery impact cannot be assessed from the excerpt. | Open |",
     "",
     "### 4. Gaps and Open Questions",

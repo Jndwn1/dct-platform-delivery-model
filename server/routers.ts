@@ -19,6 +19,28 @@ import mammoth from "mammoth";
 import { analyzeTdcStandupTranscript, buildTdcStandupEmail, formatMeetingDate } from "./meetingRecaps";
 
 const DCT_PLATFORM_QUESTION = /\b(dct|tdc|pdc|roger|ims|gosystem|tax portal|control panel|swagger|openapi|batch|gate|guardrail|lineage|adrs?|ado|pilot|mvp|state taxonomy)\b/i;
+const ADO_URL_PATTERN = /https?:\/\/dev\.azure\.com\/[^\s)\]]+\/[^\s)\]]*\/_workitems\/edit\/(\d{4,})[^\s)\]]*/gi;
+const ADO_ID_PATTERN = /\b(?:ado\s*(?:work\s*item\s*)?(?:id\s*)?[#: -]?\s*|feature\s*|user\s*story\s*|technical\s*story\s*|spike\s*|bug\s*|task\s*)(\d{4,})\b/gi;
+
+function getSuppliedAdoReferences(text: string) {
+  const references = new Map<string, { id: string; url?: string }>();
+  let match: RegExpExecArray | null;
+  ADO_URL_PATTERN.lastIndex = 0;
+  while ((match = ADO_URL_PATTERN.exec(text)) !== null) {
+    references.set(match[1], { id: match[1], url: match[0] });
+  }
+  ADO_ID_PATTERN.lastIndex = 0;
+  while ((match = ADO_ID_PATTERN.exec(text)) !== null) {
+    if (!references.has(match[1])) references.set(match[1], { id: match[1] });
+  }
+  return Array.from(references.values()).slice(0, 12);
+}
+
+function buildSuppliedAdoReferenceContext(question: string) {
+  const references = getSuppliedAdoReferences(question);
+  if (!references.length) return "";
+  return `\n\nADO REFERENCES SUPPLIED BY THE USER — ANALYZE ONLY PROVIDED DETAILS\n${references.map((reference) => `- ADO ${reference.id}${reference.url ? ` | ${reference.url}` : ""}`).join("\n")}\nNo authorized Azure DevOps retrieval connection is available in this workspace. Do not claim the links were opened or that title, state, owner, acceptance criteria, hierarchy, or related links were retrieved. Analyze any supplied title, description, acceptance criteria, screenshot, export, or attachment alongside these references; otherwise identify the exact information needed. Preserve the ADO ID and supplied URL in the relevant finding.`;
+}
 
 function buildGeneralBusinessGuidanceFallback(question: string) {
   if (/workshop|requirements session|elicitation/i.test(question)) {
@@ -232,7 +254,8 @@ Do not infer content from this file.`
         const attachmentPrimacy = attachmentArtifact
           ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for the scope it covers. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
           : "";
-        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + attachmentEvidence.slice(0, documentAndDependencyAnalysisMode ? 12_000 : 8_000) + attachmentReferenceNote + attachmentPrimacy + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
+        const suppliedAdoReferenceContext = buildSuppliedAdoReferenceContext(question);
+        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + attachmentEvidence.slice(0, documentAndDependencyAnalysisMode ? 12_000 : 8_000) + attachmentReferenceNote + attachmentPrimacy + suppliedAdoReferenceContext + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
         const recentMessages = documentAndDependencyAnalysisMode ? input.messages.slice(-1) : input.messages.slice(-2);
         const llmMessages = [

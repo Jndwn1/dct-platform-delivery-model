@@ -58,15 +58,15 @@ describe("Ask Buddy cross-team dependency framework", () => {
     expect(grounding.evidenceBlock).not.toContain("Batch Registry");
   });
 
-  it("keeps the fast State dependency response on the same six-part BA structure", () => {
+  it("keeps the fast State dependency response on the required spike-readiness structure", () => {
     const response = buildStateApportionmentDependencyResponse();
 
     expect(response).toContain("### 1. Executive Assessment");
-    expect(response).toContain("### 2. Requirements Analysis");
-    expect(response).toContain("### 3. Cross-Team Dependency Analysis");
-    expect(response).toContain("### 4. Gaps and Open Questions");
-    expect(response).toContain("### 5. Existing ADO Coverage");
-    expect(response).toContain("### 6. Recommended Next Actions");
+    expect(response).toContain("### 2. TDC Requirements");
+    expect(response).toContain("### 3. Cross-Team Dependencies");
+    expect(response).toContain("### 4. Spike 1514276 Readiness Assessment");
+    expect(response).toContain("### 5. Spike 1514277 Readiness Assessment");
+    expect(response).toContain("### 6. Prioritized Decisions and Actions");
     expect(response).toContain("1514276");
     expect(response).toContain("Not stated in source");
   });

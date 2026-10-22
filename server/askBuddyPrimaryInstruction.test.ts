@@ -35,7 +35,7 @@ describe("Ask Buddy primary Business Analysis intelligence policy", () => {
     for (const prompt of [compact, general, dependencies]) {
       expect(prompt).toContain("Primary Business Analysis Intelligence Policy");
       expect(prompt).toContain("Specialized task structures are reusable templates");
-      expect(prompt).toContain("Preserve conversational continuity");
+      expect(prompt).toContain("Resolve references such as ‘those’, ‘the three responsibilities’");
     }
 
     expect(compact).toContain("Current Control Panel/governed records establish current delivery state");
