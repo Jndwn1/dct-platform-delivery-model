@@ -1131,6 +1131,23 @@ export function buildAttachmentAnalysisPrompt(question: string): string {
 }
 
 /**
+ * Uses a retained attachment only to answer a subsequent, specific question.
+ * A follow-up is not a request to repeat the original six-section assessment.
+ */
+export function buildAttachmentFollowUpPrompt(question: string): string {
+  return [
+    "# Ask Buddy — Document Follow-Up Analysis",
+    buildAskBuddyPrimaryInstruction(),
+    "A prior full document assessment is already available for this attachment. Answer the user's current question directly from the attached evidence and directly related governed context. Do not regenerate the six-section assessment, repeat prior findings, or restate the document unless the user explicitly asks for a full reassessment.",
+    "Apply BA reasoning: interpret the relevant evidence, distinguish Confirmed evidence from Proposed or Potential analysis, and provide an actionable result. A reasonable analytical inference is allowed only when labeled Proposed or Potential; never convert it into confirmed ownership, scope, or a delivery commitment.",
+    "For a question about ADO dependency tracking, provide a compact Markdown table with exactly these columns: Dependency | Related work item | Proposed responsible team | Required deliverable | Blocker classification. Use a supplied or directly evidenced work item only; otherwise write ‘Not stated in source’. Use ‘Confirmed blocker’ only when evidence explicitly establishes blocking status; otherwise use ‘Potential dependency’ or ‘Open’.",
+    "For a question about backlog refinement, state the recommended work-item action, the evidence-based rationale, proposed owner only when supportable, and the specific information needed before implementation. For a question about requirements, gaps, decisions, ownership, or readiness, answer only that requested topic in the most useful concise format.",
+    "Do not append a source list or expose internal provenance metadata. If the attachment does not establish the answer, say what is missing and ask one focused clarification.",
+    `User follow-up question: ${question}`,
+  ].join("\n");
+}
+
+/**
  * Builds a capability-specific dependency-analysis prompt. It deliberately
  * excludes general batches, dashboards, and platform dependency records unless
  * the supplied State Apportionment evidence directly supports the question.

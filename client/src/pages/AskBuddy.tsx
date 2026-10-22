@@ -30,6 +30,10 @@ interface Message {
   documentAnalysis?: {
     depth: "concise" | "detailed";
     complete: boolean;
+    mode?: "initial" | "follow-up";
+    artifactId?: number;
+    fileName?: string;
+    initialQuestion?: string;
   };
   copied?: boolean;
 }
@@ -466,6 +470,7 @@ export default function AskBuddy() {
   const [analysisDepth, setAnalysisDepth] = useState<"concise" | "detailed">("detailed");
   const [isDeepDocumentAnalysis, setIsDeepDocumentAnalysis] = useState(false);
   const [documentAnalysisElapsedSeconds, setDocumentAnalysisElapsedSeconds] = useState(0);
+  const [documentContextEnabled, setDocumentContextEnabled] = useState(true);
   const [adoReferences, setAdoReferences] = useState("");
   const [adoDrafts, setAdoDrafts] = useState<AdoFollowUpDraft[] | null>(null);
   const [adoDraftSourceId, setAdoDraftSourceId] = useState<string | null>(null);
@@ -482,6 +487,9 @@ export default function AskBuddy() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const activeDocumentContext = useMemo(() => [...messages].reverse().find((message) =>
+    message.role === "buddy" && message.documentAnalysis?.complete && message.documentAnalysis.artifactId && message.documentAnalysis.fileName
+  )?.documentAnalysis, [messages]);
 
   // First-time user popup
   useEffect(() => {
@@ -649,6 +657,7 @@ export default function AskBuddy() {
         documentAnalysis: data.documentAnalysis,
       };
       setMessages((prev) => [...prev, buddyMsg]);
+      if (data.documentAnalysis?.complete) setDocumentContextEnabled(true);
       setIsTyping(false);
       setIsDeepDocumentAnalysis(false);
     },
@@ -690,6 +699,10 @@ export default function AskBuddy() {
         content: m.text.slice(-2_000),
       }));
 
+    const documentContext = !options?.attachmentArtifactId && documentContextEnabled && activeDocumentContext
+      ? { artifactId: activeDocumentContext.artifactId!, fileName: activeDocumentContext.fileName!, initialQuestion: activeDocumentContext.initialQuestion }
+      : undefined;
+
     chatMutation.mutate({
       messages: [
         ...history,
@@ -700,6 +713,7 @@ export default function AskBuddy() {
       capability: options?.attachmentArtifactId ? "mapping" : activeCapability ?? "discovery",
       attachmentArtifactId: options?.attachmentArtifactId,
       analysisDepth,
+      documentContext,
     });
   };
 
@@ -1574,6 +1588,30 @@ ${attachmentLabel}`;
                 </button>
               </div>
             </div>
+          )}
+
+          {activeDocumentContext && (
+            <section
+              aria-live="polite"
+              style={{ alignItems: "center", background: documentContextEnabled ? "#eff6ff" : "#f8fafc", border: `1px solid ${documentContextEnabled ? "#bfdbfe" : "#e2e8f0"}`, borderLeft: `4px solid ${documentContextEnabled ? "#1e3a5f" : "#94a3b8"}`, borderRadius: 8, color: "#334155", display: "flex", flexWrap: "wrap", gap: "0.55rem 0.75rem", marginBottom: "0.75rem", padding: "0.6rem 0.75rem" }}
+            >
+              <ShieldCheck size={15} color={documentContextEnabled ? "#1e3a5f" : "#64748b"} />
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ color: "#1e3a5f", fontSize: "0.72rem", fontWeight: 800 }}>Document context {documentContextEnabled ? "active" : "paused"}</div>
+                <div style={{ color: "#64748b", fontSize: "0.66rem", lineHeight: 1.35, marginTop: 1 }}>
+                  {documentContextEnabled
+                    ? `${activeDocumentContext.fileName} will inform follow-up questions without repeating the full assessment.`
+                    : `${activeDocumentContext.fileName} is available, but new questions will not use it.`}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDocumentContextEnabled((current) => !current)}
+                style={{ background: "#fff", border: "1px solid #93c5fd", borderRadius: 5, color: "#1e3a5f", cursor: "pointer", fontSize: "0.66rem", fontWeight: 800, padding: "0.35rem 0.55rem" }}
+              >
+                {documentContextEnabled ? "Pause document context" : "Use document context"}
+              </button>
+            </section>
           )}
 
           {/* Input + governed file attachment */}

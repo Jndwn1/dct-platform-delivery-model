@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildAttachmentAnalysisPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse, isStateApportionmentDependencyQuestion } from "./platformContext";
+import { buildAttachmentAnalysisPrompt, buildAttachmentFollowUpPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse, isStateApportionmentDependencyQuestion } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { buildBuddyGrounding, buildFocusedCrossTeamGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -27,6 +27,8 @@ const DEEP_DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000;
 const DEEP_DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800;
 const CONCISE_DOCUMENT_ANALYSIS_TIMEOUT_MS = 18_000;
 const CONCISE_DOCUMENT_ANALYSIS_MAX_TOKENS = 1_600;
+const DOCUMENT_FOLLOW_UP_TIMEOUT_MS = 12_000;
+const DOCUMENT_FOLLOW_UP_MAX_TOKENS = 1_000;
 const DOCUMENT_EVIDENCE_MAX_CHARS = 10_000;
 const REQUIRED_DOCUMENT_ANALYSIS_SECTIONS = [1, 2, 3, 4, 5, 6];
 
@@ -153,6 +155,12 @@ export const appRouter = router({
           attachmentArtifactId: z.number().int().positive().optional(),
           // Concise keeps the six-section structure brief; detailed enables the full BA assessment budget.
           analysisDepth: z.enum(["concise", "detailed"]).optional(),
+          // Retains a user-selected uploaded source for direct conversational follow-up.
+          documentContext: z.object({
+            artifactId: z.number().int().positive(),
+            fileName: z.string().min(1).max(512),
+            initialQuestion: z.string().max(5_000).optional(),
+          }).optional(),
           // Live batch snapshot from the client's BatchStatusContext
           liveSnapshot: z.object({
             asOf: z.string(),
@@ -186,12 +194,15 @@ export const appRouter = router({
         const masterArtifactsPromise = db && masterDataQuestion
           ? db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt)).limit(8)
           : Promise.resolve([]);
-        const attachmentArtifactPromise = input.attachmentArtifactId && db
-          ? db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, input.attachmentArtifactId)).limit(1)
+        const activeAttachmentArtifactId = input.attachmentArtifactId ?? input.documentContext?.artifactId;
+        const explicitlyRequestedFullAssessment = /(?:\b(full|complete|entire|six[-\s]?section)\b[\s\S]{0,45}\b(assessment|analysis|review|requirements?|document|source)\b)|(?:\b(reassess|re[-\s]?analy[sz]e|repeat)\b[\s\S]{0,45}\b(assessment|analysis|review|requirements?|document|source)\b)/i.test(question);
+        const documentFollowUpMode = Boolean(input.documentContext && !input.attachmentArtifactId && !explicitlyRequestedFullAssessment);
+        const attachmentArtifactPromise = activeAttachmentArtifactId && db
+          ? db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, activeAttachmentArtifactId)).limit(1)
           : Promise.resolve([]);
         const [masterArtifacts, attachmentArtifacts] = await Promise.all([masterArtifactsPromise, attachmentArtifactPromise]);
         const attachmentArtifact = attachmentArtifacts[0];
-        if (input.attachmentArtifactId && !attachmentArtifact) {
+        if (activeAttachmentArtifactId && !attachmentArtifact) {
           throw new Error("The uploaded attachment could not be found. Please attach the file again.");
         }
         const attachmentRecord = attachmentArtifact ? parseAskBuddyAttachmentRecord(attachmentArtifact.fieldsJson) : null;
@@ -271,7 +282,9 @@ Do not infer content from this file.`
         const evidencePacket = requiresPlatformEvidence && !attachmentAnalysisMode
           ? grounding.evidenceBlock
           : `\n\nDCT KNOWLEDGE-BASE CHECK\nThe current-page context and governed DCT knowledge base were checked before this response. No DCT-specific fact is required to answer this general business-analysis question. If the user asks about a DCT capability, return to the supplied governed evidence and do not infer platform facts.`;
-        const basePrompt = attachmentAnalysisMode || structuredAttachmentAnalysisMode
+        const basePrompt = documentFollowUpMode
+          ? buildAttachmentFollowUpPrompt(question)
+          : attachmentAnalysisMode || structuredAttachmentAnalysisMode
           ? buildAttachmentAnalysisPrompt(question)
           : crossTeamDependenciesMode
           ? buildCrossTeamDependencyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
@@ -288,10 +301,13 @@ Do not infer content from this file.`
         const relatedStateReadinessEvidence = attachmentAnalysisMode && crossTeamDependenciesMode
           ? `\n\nRELATED GOVERNED STATE READINESS CONTEXT — use only to corroborate or extend the attached document's directly related State Apportionment scope. It does not override the uploaded source.\n${grounding.evidenceBlock.slice(0, 6_000)}`
           : "";
-        const documentDepthInstruction = attachmentAnalysisMode
+        const documentDepthInstruction = attachmentAnalysisMode && !documentFollowUpMode
           ? `\n\nDOCUMENT ANALYSIS DEPTH: ${documentAnalysisDepth === "detailed" ? "Detailed — provide the complete six-section BA assessment with distinct requirements, cross-team deliverables, readiness by supplied ADO item, gaps, and prioritized actions." : "Concise — provide all six required sections, but use only the highest-impact findings and brief rows."}`
           : "";
-        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + (attachmentAnalysisMode ? attachmentEvidenceForModel : attachmentEvidence.slice(0, structuredAttachmentAnalysisMode ? 12_000 : 8_000)) + attachmentReferenceNote + attachmentPrimacy + relatedStateReadinessEvidence + suppliedAdoReferenceContext + entryContext + generalBusinessGuidance + documentDepthInstruction + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
+        const originalDocumentRequestContext = input.documentContext?.initialQuestion
+          ? `\n\nORIGINAL DOCUMENT ANALYSIS REQUEST — retained user-supplied scope and ADO context:\n${input.documentContext.initialQuestion}`
+          : "";
+        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + (attachmentAnalysisMode ? attachmentEvidenceForModel : attachmentEvidence.slice(0, structuredAttachmentAnalysisMode ? 12_000 : 8_000)) + attachmentReferenceNote + attachmentPrimacy + relatedStateReadinessEvidence + suppliedAdoReferenceContext + originalDocumentRequestContext + entryContext + generalBusinessGuidance + documentDepthInstruction + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
         const recentMessages = documentAndDependencyAnalysisMode ? input.messages.slice(-1) : input.messages.slice(-2);
         const llmMessages = [
@@ -315,14 +331,14 @@ Do not infer content from this file.`
             : buildInsufficientEvidenceResponse(grounding);
         } else {
           try {
-            const responseBudgetMs = attachmentAnalysisMode ? documentAnalysisTimeoutMs : crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
+            const responseBudgetMs = documentFollowUpMode ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS : attachmentAnalysisMode ? documentAnalysisTimeoutMs : crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
             const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
             const result = await invokeLLM({
               model: attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL : "gemini-3.8-flash",
               reasoning: attachmentAnalysisMode ? { effort: "low" } : undefined,
               thinking: attachmentAnalysisMode ? undefined : { budget_tokens: 0 },
-              maxTokens: attachmentAnalysisMode ? documentAnalysisMaxTokens : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
-              timeoutMs: Math.min(attachmentAnalysisMode ? documentAnalysisTimeoutMs : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
+              maxTokens: documentFollowUpMode ? DOCUMENT_FOLLOW_UP_MAX_TOKENS : attachmentAnalysisMode ? documentAnalysisMaxTokens : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
+              timeoutMs: Math.min(documentFollowUpMode ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS : attachmentAnalysisMode ? documentAnalysisTimeoutMs : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
               messages: llmMessages,
             });
             const choice = result.choices[0];
@@ -337,12 +353,14 @@ Do not infer content from this file.`
             } else {
               responseText = "I was unable to generate a response. Please try again.";
             }
-            if (attachmentAnalysisMode && !hasCompleteDocumentAnalysis(responseText)) {
+            if (attachmentAnalysisMode && !documentFollowUpMode && !hasCompleteDocumentAnalysis(responseText)) {
               responseText = "### Document Analysis Did Not Complete\n\nAsk Buddy's analytical response did not return all required assessment sections, so it has not been presented as a finished analysis. Please retry the document analysis; no partial requirement, dependency, ownership, or readiness conclusion has been retained.";
             }
           } catch (error) {
             if (error instanceof LLMRequestTimeoutError) {
-              responseText = attachmentAnalysis
+              responseText = documentFollowUpMode
+                ? "### Follow-Up Analysis Did Not Complete\n\nAsk Buddy could not complete the requested document follow-up in the response window. The prior assessment remains available; please retry the specific question."
+                : attachmentAnalysis
                 ? buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)
                 : attachmentAnalysisMode && attachmentRecord
                 ? buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })
@@ -372,7 +390,7 @@ Do not infer content from this file.`
         }
 
         const responseElapsedMs = Date.now() - requestStartedAt;
-        const expectedResponseWindowMs = attachmentAnalysisMode ? documentAnalysisTimeoutMs : 4_000;
+        const expectedResponseWindowMs = documentFollowUpMode ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS : attachmentAnalysisMode ? documentAnalysisTimeoutMs : 4_000;
         if (responseElapsedMs > expectedResponseWindowMs) console.warn(`[askBuddy] response exceeded ${expectedResponseWindowMs}ms (${responseElapsedMs}ms)`);
 
         return {
@@ -385,7 +403,14 @@ Do not infer content from this file.`
           knowledgeCheckedAt: grounding.checkedAt,
           latestSource: grounding.latestSource,
           documentAnalysis: attachmentAnalysisMode
-            ? { depth: documentAnalysisDepth, complete: hasCompleteDocumentAnalysis(text) }
+            ? {
+                depth: documentAnalysisDepth,
+                complete: !documentFollowUpMode && hasCompleteDocumentAnalysis(text),
+                mode: documentFollowUpMode ? "follow-up" as const : "initial" as const,
+                artifactId: Number(attachmentArtifact?.id),
+                fileName: attachmentArtifact?.fileName ?? input.documentContext?.fileName ?? "Uploaded document",
+                initialQuestion: input.documentContext?.initialQuestion ?? question.slice(0, 5_000),
+              }
             : undefined,
         };
       }),
