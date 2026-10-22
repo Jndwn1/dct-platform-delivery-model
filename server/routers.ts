@@ -23,8 +23,10 @@ const ADO_URL_PATTERN = /https?:\/\/dev\.azure\.com\/[^\s)\]]+\/[^\s)\]]*\/_work
 const ADO_ID_PATTERN = /\b(?:ado\s*(?:work\s*item\s*)?(?:id\s*)?[#: -]?\s*|feature\s*|user\s*story\s*|technical\s*story\s*|spike\s*|bug\s*|task\s*)(\d{4,})\b/gi;
 const STANDALONE_ADO_ID_PATTERN = /\b\d{6,8}\b/g;
 const DOCUMENT_ANALYSIS_MODEL = "gpt-6-luna";
-const DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000;
-const DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800;
+const DEEP_DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000;
+const DEEP_DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800;
+const CONCISE_DOCUMENT_ANALYSIS_TIMEOUT_MS = 18_000;
+const CONCISE_DOCUMENT_ANALYSIS_MAX_TOKENS = 1_600;
 const DOCUMENT_EVIDENCE_MAX_CHARS = 10_000;
 const REQUIRED_DOCUMENT_ANALYSIS_SECTIONS = [1, 2, 3, 4, 5, 6];
 
@@ -149,6 +151,8 @@ export const appRouter = router({
           capability: z.string().optional(),
           // Optional structured source uploaded from the Ask Buddy composer. Analysis is retrieved server-side.
           attachmentArtifactId: z.number().int().positive().optional(),
+          // Concise keeps the six-section structure brief; detailed enables the full BA assessment budget.
+          analysisDepth: z.enum(["concise", "detailed"]).optional(),
           // Live batch snapshot from the client's BatchStatusContext
           liveSnapshot: z.object({
             asOf: z.string(),
@@ -247,6 +251,13 @@ Do not infer content from this file.`
         const attachmentAnalysisMode = attachmentRecord?.analysisStatus === "Extracted" && attachmentEvidence.length > 0;
         const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact);
         const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode;
+        const documentAnalysisDepth = input.analysisDepth ?? "detailed";
+        const documentAnalysisTimeoutMs = documentAnalysisDepth === "detailed"
+          ? DEEP_DOCUMENT_ANALYSIS_TIMEOUT_MS
+          : CONCISE_DOCUMENT_ANALYSIS_TIMEOUT_MS;
+        const documentAnalysisMaxTokens = documentAnalysisDepth === "detailed"
+          ? DEEP_DOCUMENT_ANALYSIS_MAX_TOKENS
+          : CONCISE_DOCUMENT_ANALYSIS_MAX_TOKENS;
         const requiresPlatformEvidence = crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(input.attachmentArtifactId);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
           ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
@@ -277,7 +288,10 @@ Do not infer content from this file.`
         const relatedStateReadinessEvidence = attachmentAnalysisMode && crossTeamDependenciesMode
           ? `\n\nRELATED GOVERNED STATE READINESS CONTEXT — use only to corroborate or extend the attached document's directly related State Apportionment scope. It does not override the uploaded source.\n${grounding.evidenceBlock.slice(0, 6_000)}`
           : "";
-        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + (attachmentAnalysisMode ? attachmentEvidenceForModel : attachmentEvidence.slice(0, structuredAttachmentAnalysisMode ? 12_000 : 8_000)) + attachmentReferenceNote + attachmentPrimacy + relatedStateReadinessEvidence + suppliedAdoReferenceContext + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
+        const documentDepthInstruction = attachmentAnalysisMode
+          ? `\n\nDOCUMENT ANALYSIS DEPTH: ${documentAnalysisDepth === "detailed" ? "Detailed — provide the complete six-section BA assessment with distinct requirements, cross-team deliverables, readiness by supplied ADO item, gaps, and prioritized actions." : "Concise — provide all six required sections, but use only the highest-impact findings and brief rows."}`
+          : "";
+        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + (attachmentAnalysisMode ? attachmentEvidenceForModel : attachmentEvidence.slice(0, structuredAttachmentAnalysisMode ? 12_000 : 8_000)) + attachmentReferenceNote + attachmentPrimacy + relatedStateReadinessEvidence + suppliedAdoReferenceContext + entryContext + generalBusinessGuidance + documentDepthInstruction + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
         const recentMessages = documentAndDependencyAnalysisMode ? input.messages.slice(-1) : input.messages.slice(-2);
         const llmMessages = [
@@ -301,14 +315,14 @@ Do not infer content from this file.`
             : buildInsufficientEvidenceResponse(grounding);
         } else {
           try {
-            const responseBudgetMs = attachmentAnalysisMode ? DOCUMENT_ANALYSIS_TIMEOUT_MS : crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
+            const responseBudgetMs = attachmentAnalysisMode ? documentAnalysisTimeoutMs : crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
             const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
             const result = await invokeLLM({
               model: attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL : "gemini-3.8-flash",
               reasoning: attachmentAnalysisMode ? { effort: "low" } : undefined,
               thinking: attachmentAnalysisMode ? undefined : { budget_tokens: 0 },
-              maxTokens: attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MAX_TOKENS : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
-              timeoutMs: Math.min(attachmentAnalysisMode ? DOCUMENT_ANALYSIS_TIMEOUT_MS : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
+              maxTokens: attachmentAnalysisMode ? documentAnalysisMaxTokens : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
+              timeoutMs: Math.min(attachmentAnalysisMode ? documentAnalysisTimeoutMs : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
               messages: llmMessages,
             });
             const choice = result.choices[0];
@@ -358,7 +372,7 @@ Do not infer content from this file.`
         }
 
         const responseElapsedMs = Date.now() - requestStartedAt;
-        const expectedResponseWindowMs = attachmentAnalysisMode ? 4_700 : 4_000;
+        const expectedResponseWindowMs = attachmentAnalysisMode ? documentAnalysisTimeoutMs : 4_000;
         if (responseElapsedMs > expectedResponseWindowMs) console.warn(`[askBuddy] response exceeded ${expectedResponseWindowMs}ms (${responseElapsedMs}ms)`);
 
         return {
@@ -370,6 +384,9 @@ Do not infer content from this file.`
           status: grounding.status,
           knowledgeCheckedAt: grounding.checkedAt,
           latestSource: grounding.latestSource,
+          documentAnalysis: attachmentAnalysisMode
+            ? { depth: documentAnalysisDepth, complete: hasCompleteDocumentAnalysis(text) }
+            : undefined,
         };
       }),
     uploadAttachment: publicProcedure

@@ -341,3 +341,4 @@
 - [x] Add a dedicated multi-link ADO reference input to Ask Buddy
 - [x] Replace document extraction-style timeout output with a quality-first Ask Buddy analysis path
 - [x] Enforce complete six-section State document analysis with ADO and readiness context
+- [x] Add document analysis progress, completeness badge, and concise/detailed selector

@@ -6,6 +6,10 @@ export interface SharedBuddyMessage {
   sources?: unknown[];
   status?: "Confirmed" | "Open" | "Conflict" | "Missing";
   knowledgeCheckedAt?: string;
+  documentAnalysis?: {
+    depth: "concise" | "detailed";
+    complete: boolean;
+  };
 }
 
 const KEY = "dct_ask_buddy_shared_conversation_v1";

@@ -27,6 +27,10 @@ interface Message {
   knowledgeCheckedAt?: string;
   latestSource?: BuddySource | null;
   conflicts?: BuddyConflict[];
+  documentAnalysis?: {
+    depth: "concise" | "detailed";
+    complete: boolean;
+  };
   copied?: boolean;
 }
 
@@ -448,7 +452,7 @@ export default function AskBuddy() {
 
   const [messages, setMessages] = useState<Message[]>(() => {
     const shared = readSharedBuddyConversation();
-    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: resolveSavedBuddyMessageText(message), timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: resolveSavedBuddyMessageText(message), timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt, documentAnalysis: message.documentAnalysis }));
     return [{ id: "welcome", role: "buddy", text: BUDDY_WELCOME_MESSAGE, timestamp: new Date(), capability: "welcome", sources: [] }];
   });
   const [input, setInput] = useState(initialPrompt);
@@ -459,6 +463,9 @@ export default function AskBuddy() {
   const [attachmentVersion, setAttachmentVersion] = useState("");
   const [attachmentError, setAttachmentError] = useState("");
   const [isAttachmentProcessing, setIsAttachmentProcessing] = useState(false);
+  const [analysisDepth, setAnalysisDepth] = useState<"concise" | "detailed">("detailed");
+  const [isDeepDocumentAnalysis, setIsDeepDocumentAnalysis] = useState(false);
+  const [documentAnalysisElapsedSeconds, setDocumentAnalysisElapsedSeconds] = useState(0);
   const [adoReferences, setAdoReferences] = useState("");
   const [adoDrafts, setAdoDrafts] = useState<AdoFollowUpDraft[] | null>(null);
   const [adoDraftSourceId, setAdoDraftSourceId] = useState<string | null>(null);
@@ -490,7 +497,19 @@ export default function AskBuddy() {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    writeSharedBuddyConversation(messages.filter(message => !message.id.startsWith("tour-")).map(message => ({ id: message.id, role: message.role === "buddy" ? "assistant" : "user", content: message.text, createdAt: message.timestamp.toISOString(), sources: message.sources as unknown[], status: message.answerStatus, knowledgeCheckedAt: message.knowledgeCheckedAt })));
+    if (!isDeepDocumentAnalysis) {
+      setDocumentAnalysisElapsedSeconds(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      setDocumentAnalysisElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1_000);
+    return () => window.clearInterval(timer);
+  }, [isDeepDocumentAnalysis]);
+
+  useEffect(() => {
+    writeSharedBuddyConversation(messages.filter(message => !message.id.startsWith("tour-")).map(message => ({ id: message.id, role: message.role === "buddy" ? "assistant" : "user", content: message.text, createdAt: message.timestamp.toISOString(), sources: message.sources as unknown[], status: message.answerStatus, knowledgeCheckedAt: message.knowledgeCheckedAt, documentAnalysis: message.documentAnalysis })));
   }, [messages]);
 
   useEffect(() => subscribeSharedBuddyConversation(() => {
@@ -500,7 +519,7 @@ export default function AskBuddy() {
       const currentIds = current.map(message => message.id).join("|");
       const sharedIds = shared.map(message => message.id).join("|");
       if (currentIds === sharedIds) return current;
-      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: resolveSavedBuddyMessageText(message), timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: resolveSavedBuddyMessageText(message), timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt, documentAnalysis: message.documentAnalysis }));
     });
   }), []);
 
@@ -627,9 +646,11 @@ export default function AskBuddy() {
         knowledgeCheckedAt: data.knowledgeCheckedAt,
         latestSource: data.latestSource,
         conflicts: data.conflicts,
+        documentAnalysis: data.documentAnalysis,
       };
       setMessages((prev) => [...prev, buddyMsg]);
       setIsTyping(false);
+      setIsDeepDocumentAnalysis(false);
     },
     onError: (err) => {
       const errMsg: Message = {
@@ -642,6 +663,7 @@ export default function AskBuddy() {
       };
       setMessages((prev) => [...prev, errMsg]);
       setIsTyping(false);
+      setIsDeepDocumentAnalysis(false);
     },
   });
 
@@ -658,6 +680,7 @@ export default function AskBuddy() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
+    setIsDeepDocumentAnalysis(Boolean(options?.attachmentArtifactId));
 
     const history = messages
       .filter((m) => m.id !== "welcome")
@@ -676,6 +699,7 @@ export default function AskBuddy() {
       currentPagePath: "/ask-buddy",
       capability: options?.attachmentArtifactId ? "mapping" : activeCapability ?? "discovery",
       attachmentArtifactId: options?.attachmentArtifactId,
+      analysisDepth,
     });
   };
 
@@ -1293,6 +1317,14 @@ ${attachmentLabel}`;
                         · {CAPABILITIES.find((c) => c.id === msg.capability)?.label ?? msg.capability}
                       </span>
                     )}
+                    {msg.role === "buddy" && msg.documentAnalysis?.complete && (
+                      <span
+                        title={`Verified complete ${msg.documentAnalysis.depth} document analysis`}
+                        style={{ alignItems: "center", background: "#ecfdf5", border: "1px solid #86efac", borderRadius: 999, color: "#047857", display: "inline-flex", fontSize: "0.61rem", fontWeight: 800, gap: 3, padding: "2px 6px" }}
+                      >
+                        <ShieldCheck size={10} /> 6/6 sections complete · {msg.documentAnalysis.depth}
+                      </span>
+                    )}
                     {msg.role === "buddy" && (
                       <button
                         onClick={() => void copyBuddyResponseForDocument(msg)}
@@ -1337,18 +1369,30 @@ ${attachmentLabel}`;
                   alt="Ask Buddy typing"
                   style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }}
                 />
-                <div style={{
-                  background: "#f8fafc", border: "1px solid #e2e8f0",
-                  borderRadius: "0 10px 10px 10px", padding: "0.75rem 1rem",
-                }}>
-                  <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
-                    {[0, 1, 2].map((i) => (
-                      <div key={i} style={{
-                        width: 7, height: 7, borderRadius: "50%", background: "#0d9488",
-                        animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-                      }} />
-                    ))}
-                  </div>
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "0 10px 10px 10px", padding: "0.75rem 1rem", minWidth: isDeepDocumentAnalysis ? 320 : undefined }}>
+                  {isDeepDocumentAnalysis ? (
+                    <div aria-live="polite">
+                      <div style={{ alignItems: "center", color: "#0f766e", display: "flex", fontSize: "0.76rem", fontWeight: 800, gap: 6 }}>
+                        <ShieldCheck size={14} /> Deep document analysis in progress
+                      </div>
+                      <p style={{ color: "#475569", fontSize: "0.68rem", lineHeight: 1.4, margin: "0.25rem 0 0.45rem" }}>
+                        Reading evidence, assessing requirements, and checking dependencies and ADO readiness.
+                      </p>
+                      <div aria-hidden="true" style={{ background: "#dbeafe", borderRadius: 999, height: 5, overflow: "hidden" }}>
+                        <div style={{ background: "#0d9488", borderRadius: 999, height: "100%", transition: "width 0.8s ease", width: `${Math.min(92, 10 + documentAnalysisElapsedSeconds * 3)}%` }} />
+                      </div>
+                      <div style={{ color: "#64748b", display: "flex", fontSize: "0.62rem", justifyContent: "space-between", marginTop: 5 }}>
+                        <span>{analysisDepth === "detailed" ? "Detailed · up to 30 seconds" : "Concise · up to 18 seconds"}</span>
+                        <span>{documentAnalysisElapsedSeconds}s elapsed</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+                      {[0, 1, 2].map((i) => (
+                        <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#0d9488", animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1544,6 +1588,18 @@ ${attachmentLabel}`;
               <label htmlFor="ask-buddy-attachment" style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#1e3a5f", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, padding: "5px 8px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}><Paperclip size={13} /> Attach File</label>
               <input ref={attachmentInputRef} id="ask-buddy-attachment" aria-label="Attach file for Ask Buddy analysis" type="file" onChange={event => selectAttachment(event.target.files?.[0] ?? null)} style={{ fontSize: 10, maxWidth: 220 }} />
               <input value={attachmentVersion} onChange={event => setAttachmentVersion(event.target.value)} placeholder="Source version/date (optional)" aria-label="Attachment source version or date" style={{ border: "1px solid #cbd5e1", borderRadius: 6, padding: "5px 7px", fontSize: 11, minWidth: 190 }} />
+              <label style={{ alignItems: "center", color: "#1e3a5f", display: "inline-flex", fontSize: 11, fontWeight: 800, gap: 5 }}>
+                Analysis depth
+                <select
+                  aria-label="Document analysis depth"
+                  value={analysisDepth}
+                  onChange={(event) => setAnalysisDepth(event.target.value as "concise" | "detailed")}
+                  style={{ background: "#f8fbff", border: "1px solid #bfdbfe", borderRadius: 6, color: "#1e3a5f", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 7px" }}
+                >
+                  <option value="concise">Concise · six-section summary</option>
+                  <option value="detailed">Detailed · requirements & readiness</option>
+                </select>
+              </label>
               {attachmentFile && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#047857", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "5px 7px", fontSize: 11, fontWeight: 700 }}><Paperclip size={12} /> {attachmentFile.name}<button type="button" aria-label="Remove attached file" onClick={() => selectAttachment(null)} style={{ border: "none", background: "transparent", color: "#047857", cursor: "pointer", display: "inline-flex", padding: 0 }}><X size={13} /></button></span>}
               {attachmentError && <span role="alert" style={{ color: "#b91c1c", fontSize: 11, fontWeight: 600 }}>{attachmentError}</span>}
             </div>

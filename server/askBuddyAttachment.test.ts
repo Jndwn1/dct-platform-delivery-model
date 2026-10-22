@@ -59,16 +59,31 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(router).toContain("const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode");
     expect(router).toContain("buildAttachmentAnalysisPrompt(question)");
     expect(router).toContain('DOCUMENT_ANALYSIS_MODEL = "gpt-6-luna"');
-    expect(router).toContain("DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000");
-    expect(router).toContain("DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800");
+    expect(router).toContain("DEEP_DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000");
+    expect(router).toContain("DEEP_DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800");
+    expect(router).toContain("CONCISE_DOCUMENT_ANALYSIS_TIMEOUT_MS = 18_000");
+    expect(router).toContain("CONCISE_DOCUMENT_ANALYSIS_MAX_TOKENS = 1_600");
     expect(router).toContain("attachmentAnalysisMode ? DOCUMENT_ANALYSIS_MODEL");
-    expect(router).toContain("attachmentAnalysisMode ? DOCUMENT_ANALYSIS_TIMEOUT_MS");
+    expect(router).toContain("attachmentAnalysisMode ? documentAnalysisTimeoutMs");
     expect(router).toContain("hasCompleteDocumentAnalysis(responseText)");
     expect(router).toContain("RELATED GOVERNED STATE READINESS CONTEXT");
     expect(router).toContain('reasoning: attachmentAnalysisMode ? { effort: "low" }');
     expect(router).toContain("Document evidence supplied to this analysis is truncated");
     expect(router).toContain("buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })");
     expect(router).toContain("buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)");
+  });
+
+  it("offers concise or detailed document analysis, progress feedback, and a completion badge", () => {
+    expect(askBuddyPage).toContain('aria-label="Document analysis depth"');
+    expect(askBuddyPage).toContain("Concise · six-section summary");
+    expect(askBuddyPage).toContain("Detailed · requirements & readiness");
+    expect(askBuddyPage).toContain("Deep document analysis in progress");
+    expect(askBuddyPage).toContain("Reading evidence, assessing requirements, and checking dependencies and ADO readiness.");
+    expect(askBuddyPage).toContain("6/6 sections complete");
+    expect(askBuddyPage).toContain("analysisDepth,");
+    expect(router).toContain('analysisDepth: z.enum(["concise", "detailed"]).optional()');
+    expect(router).toContain("DOCUMENT ANALYSIS DEPTH:");
+    expect(router).toContain("documentAnalysis:");
   });
 
   it("does not duplicate an attached-file label when the combined question already names the selected file", () => {
