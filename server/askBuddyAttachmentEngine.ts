@@ -232,28 +232,44 @@ export function buildAttachmentEvidenceFallback({
     textExcerpt,
     /\b(IMS|Roger|GoSystem|State|Process|mapping|routing|outbound|inbound|dependency|integration)\b/i,
     7
+  ).filter((line) => !/^\s*TDC\s+must\b/i.test(line) && !/\bADO\s*\d{4,}\b/i.test(line));
+  const adoLines = matchingEvidenceLines(
+    textExcerpt,
+    /\b(ado\s*\d{4,}|feature\s*\d{4,}|story\s*\d{4,}|bug\s*\d{4,}|spike\s*\d{4,}|\d{5,}\s*[—-])/i,
+    5
   );
-  const quotedRows = (lines: string[], emptyMessage: string) =>
-    lines.length
-      ? lines.map((line) => `| ${line.replace(/\|/g, "\\|")} | Requires confirmation before it is treated as a commitment. |`).join("\n")
-      : `| ${emptyMessage} | Open — requires confirmation. |`;
 
   return [
-    "### Document Analysis — Evidence-Bound First Pass",
+    "### 1. Executive Assessment",
     `**Question addressed:** ${question}`,
-    "Ask Buddy prepared this evidence-bound first pass directly from matching extracted statements in the attached document. It does not infer missing ownership, dependencies, or delivery commitments.",
+    "This is an evidence-bound first pass from matching extracted statements in the attached document. It identifies potential requirements and dependencies for validation; it does not infer missing ownership, approvals, ADO coverage, or delivery commitments.",
     "",
-    "### TDC Ownership Signals",
-    "| Extracted statement | Status |",
-    "| --- | --- |",
-    quotedRows(ownershipLines, "No explicit TDC ownership statement was located in the extracted text."),
+    "### 2. Requirements Analysis",
+    "| Requirement or potential requirement | Business / technical explanation | Supporting document evidence | Classification | Recommended validation or action |",
+    "| --- | --- | --- | --- | --- |",
+    ownershipLines.length
+      ? ownershipLines.map((line) => `| Potential requirement from extracted source | The statement may affect TDC governance, taxonomy, validation, persistence, or reference data. | ${line.replace(/\|/g, "\\|")} | Inferred | Confirm whether the statement is an approved requirement and identify the accountable owner. |`).join("\n")
+      : "| No explicit TDC requirement statement was located | The excerpt did not establish a TDC requirement. | Not stated in extracted text | Open | Provide the applicable requirement or decision section. |",
     "",
-    "### Cross-Team Dependency Signals",
-    "| Extracted statement | Status |",
-    "| --- | --- |",
-    quotedRows(dependencyLines, "No explicit cross-team dependency statement was located in the extracted text."),
+    "### 3. Cross-Team Dependency Analysis",
+    "| Dependency | Requesting or affected team | Providing or decision-making team | Required input, decision, or deliverable | Delivery impact | Status |",
+    "| --- | --- | --- | --- | --- | --- |",
+    dependencyLines.length
+      ? dependencyLines.map((line) => `| Potential dependency from extracted source | Teams named in the statement; final affected team is not stated. | Not stated in source | ${line.replace(/\|/g, "\\|")} | Requirements, integration, or testing may be delayed until confirmed. | Potential |`).join("\n")
+      : "| No explicit cross-team dependency statement was located | Not stated in source | Not stated in source | Provide the related integration, mapping, or working-session section. | Delivery impact cannot be assessed from the excerpt. | Open |",
     "",
-    "### Next Action",
-    "Review the quoted statements with the accountable SMEs, then record confirmed ownership, required inputs, unresolved decisions, and any delivery-impacting dependencies in the governing backlog or working-session notes.",
+    "### 4. Gaps and Open Questions",
+    "- **Ownership and approval status:** The extracted text does not establish final accountable ownership or approval. This matters because a mention of TDC, IMS, Roger, State, or GoSystem does not itself create a delivery commitment.",
+    "- **Complete source scope:** This first pass uses matching extracted statements only. This matters because the full requirement, interface, mapping, or test context may be elsewhere in the document.",
+    "",
+    "### 5. Existing ADO Coverage",
+    ...(adoLines.length
+      ? adoLines.map((line) => `- **Directly mentioned ADO reference:** ${line} Treat as Existing ADO Work only; validate scope, status, and relationship before refinement or implementation planning.`)
+      : ["No related ADO item was directly identified in the extracted text. Validate existing backlog coverage before creating, refining, or linking an ADO work item."]),
+    "",
+    "### 6. Recommended Next Actions",
+    "1. Review the quoted statements with the accountable SMEs or decision-makers identified in the source. **Expected outcome:** confirmed requirement, dependency, and ownership status.",
+    "2. Compare the confirmed findings with the governing backlog. **Expected outcome:** a decision on whether to refine existing ADO work, create a new review-only draft, or continue discovery.",
+    "3. Capture unresolved decisions, evidence, and delivery impact in the working-session notes. **Expected outcome:** traceable inputs for backlog refinement and implementation planning.",
   ].join("\n");
 }

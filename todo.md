@@ -336,3 +336,4 @@
 - [x] Add per-draft BA review notes, Task/User Story/Bug selection, and optional owner/acceptance-criteria review checks to ADO follow-up drafts
 - [x] Add a copyable and downloadable Azure DevOps work-item form export for confirmed dependency follow-up drafts
 - [x] Render Ask Buddy replies as document-friendly headings, lists, and tables with rich-text and plain-text copy support
+- [x] Activate the six-part evidence-bound BA assessment for all Ask Buddy document and dependency analysis paths

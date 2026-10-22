@@ -40,6 +40,45 @@ Use a short, decision-oriented workshop agenda:
 Start with the outcome and decision the work must support. Then capture the current-state evidence, priority scenarios, business rules, data needs, gaps, dependencies, and accountable next actions. Keep confirmed facts separate from assumptions, and turn unresolved items into clearly owned follow-ups.`;
 }
 
+function buildStructuredAttachmentAnalysisFallback(
+  question: string,
+  analysis: ReturnType<typeof analyzeStateInputReferenceContract>
+) {
+  const gapRows = analysis.gaps.slice(0, 4);
+  const dependencyRows = analysis.dependencies.slice(0, 4);
+  return [
+    "### 1. Executive Assessment",
+    `This evidence-bound first pass is based on the uploaded structured source for: ${question}. It identifies captured field-contract gaps and cross-team dependency signals for review; it does not establish an approved mapping, interface, ownership assignment, or delivery commitment.`,
+    "",
+    "### 2. Requirements Analysis",
+    "| Requirement or potential requirement | Business / technical explanation | Supporting document evidence | Classification | Recommended validation or action |",
+    "| --- | --- | --- | --- | --- |",
+    ...(gapRows.length
+      ? gapRows.map((gap) => `| ${gap.area}: ${gap.finding} | Structured-source review identified a field-contract or governance gap. | Source gap ${gap.id} | Open | ${gap.nextAction} |`)
+      : ["| No field-contract requirement gap was captured | The structured review did not capture a requirement gap. | Source review summary | Open | Validate the source scope and whether additional requirements exist. |"]),
+    "",
+    "### 3. Cross-Team Dependency Analysis",
+    "| Dependency | Requesting or affected team | Providing or decision-making team | Required input, decision, or deliverable | Delivery impact | Status |",
+    "| --- | --- | --- | --- | --- |",
+    ...(dependencyRows.length
+      ? dependencyRows.map((dependency) => `| ${dependency.dependency} | ${dependency.workstream} | Not stated in source | ${dependency.evidence} | ${dependency.nextAction} | ${dependency.status} |`)
+      : ["| No structured cross-team dependency was captured | Not stated in source | Not stated in source | Provide the related decision, contract, or mapping input. | Delivery impact cannot be assessed from the structured source. | Open |"]),
+    "",
+    "### 4. Gaps and Open Questions",
+    ...(gapRows.length
+      ? gapRows.map((gap) => `- **${gap.area}:** ${gap.finding} This matters because ${gap.nextAction}`)
+      : ["- **Source scope:** No explicit gap was captured. Confirm whether the workbook covers the complete requirement and integration scope."]),
+    "",
+    "### 5. Existing ADO Coverage",
+    "No related ADO item was directly identified in the uploaded structured source. Compare confirmed findings with the governing backlog before creating or refining work.",
+    "",
+    "### 6. Recommended Next Actions",
+    "1. Validate the listed requirement and dependency signals with the accountable SMEs or decision-makers. **Expected outcome:** confirmed status and source-backed ownership.",
+    "2. Resolve the highest-priority field-contract gaps in the working session or governing documentation. **Expected outcome:** reviewable inputs for mapping, integration, and testing refinement.",
+    "3. Compare confirmed findings with existing backlog coverage. **Expected outcome:** a decision to refine an existing item, create a review-only draft, or continue discovery.",
+  ].join("\n");
+}
+
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
@@ -168,6 +207,8 @@ Do not infer content from this file.`
           ? buildFocusedCrossTeamGrounding(question, currentPagePath, masterEvidence.source)
           : buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
         const attachmentAnalysisMode = attachmentRecord?.analysisStatus === "Extracted" && attachmentEvidence.length > 0;
+        const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact);
+        const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode;
         const requiresPlatformEvidence = crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(input.attachmentArtifactId);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
           ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
@@ -181,7 +222,7 @@ Do not infer content from this file.`
         const evidencePacket = requiresPlatformEvidence && !attachmentAnalysisMode
           ? grounding.evidenceBlock
           : `\n\nDCT KNOWLEDGE-BASE CHECK\nThe current-page context and governed DCT knowledge base were checked before this response. No DCT-specific fact is required to answer this general business-analysis question. If the user asks about a DCT capability, return to the supplied governed evidence and do not infer platform facts.`;
-        const basePrompt = attachmentAnalysisMode
+        const basePrompt = attachmentAnalysisMode || structuredAttachmentAnalysisMode
           ? buildAttachmentAnalysisPrompt(question)
           : crossTeamDependenciesMode
           ? buildCrossTeamDependencyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
@@ -191,9 +232,9 @@ Do not infer content from this file.`
         const attachmentPrimacy = attachmentArtifact
           ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for the scope it covers. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
           : "";
-        const systemPrompt = basePrompt + evidencePacket + (attachmentAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + attachmentEvidence.slice(0, attachmentAnalysisMode ? 12_000 : 8_000) + attachmentReferenceNote + attachmentPrimacy + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
+        const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + attachmentEvidence.slice(0, documentAndDependencyAnalysisMode ? 12_000 : 8_000) + attachmentReferenceNote + attachmentPrimacy + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
-        const recentMessages = attachmentAnalysisMode ? input.messages.slice(-1) : input.messages.slice(-2);
+        const recentMessages = documentAndDependencyAnalysisMode ? input.messages.slice(-1) : input.messages.slice(-2);
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
           ...recentMessages.map((m) => ({
@@ -238,7 +279,9 @@ Do not infer content from this file.`
             }
           } catch (error) {
             if (error instanceof LLMRequestTimeoutError) {
-              responseText = attachmentAnalysisMode && attachmentRecord
+              responseText = attachmentAnalysis
+                ? buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)
+                : attachmentAnalysisMode && attachmentRecord
                 ? buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })
                 : requiresPlatformEvidence
                 ? "Ask Buddy could not complete an evidence-grounded response within the response-time limit. No answer has been inferred. Please retry or narrow the question."

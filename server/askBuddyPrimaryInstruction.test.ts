@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildAskBuddyPrimaryInstruction,
+  buildAttachmentAnalysisPrompt,
   buildCompactAskBuddyPrompt,
   buildCrossTeamDependencyPrompt,
+  buildDocumentAndDependencyAnalysisInstruction,
   buildGeneralAskBuddyPrompt,
 } from "./platformContext";
 
@@ -37,6 +39,27 @@ describe("Ask Buddy primary Business Analysis intelligence policy", () => {
     }
 
     expect(compact).toContain("Current Control Panel/governed records establish current delivery state");
-    expect(dependencies).toContain("Required response format");
+    expect(dependencies).toContain("Active document and dependency analysis instruction");
+  });
+
+  it("uses the supplied six-part BA assessment contract for attachment and dependency analysis", () => {
+    const activeInstruction = buildDocumentAndDependencyAnalysisInstruction();
+    const attachment = buildAttachmentAnalysisPrompt("Analyze this source for requirements and dependencies.");
+    const dependencies = buildCrossTeamDependencyPrompt({
+      question: "What dependencies must TDC resolve before delivery?",
+    });
+
+    for (const prompt of [activeInstruction, attachment, dependencies]) {
+      expect(prompt).toContain("### 1. Executive Assessment");
+      expect(prompt).toContain("### 2. Requirements Analysis");
+      expect(prompt).toContain("### 3. Cross-Team Dependency Analysis");
+      expect(prompt).toContain("### 4. Gaps and Open Questions");
+      expect(prompt).toContain("### 5. Existing ADO Coverage");
+      expect(prompt).toContain("### 6. Recommended Next Actions");
+      expect(prompt).toContain("Not stated in source");
+    }
+
+    expect(attachment).toContain("document evidence primary");
+    expect(dependencies).toContain("all six sections are present");
   });
 });

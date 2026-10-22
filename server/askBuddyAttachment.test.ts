@@ -55,10 +55,13 @@ describe("Ask Buddy direct attachment workflow", () => {
 
   it("uses an attachment-led analysis path and an evidence-only fallback for extracted documents", () => {
     expect(router).toContain("const attachmentAnalysisMode = attachmentRecord?.analysisStatus === \"Extracted\"");
+    expect(router).toContain("const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact)");
+    expect(router).toContain("const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode");
     expect(router).toContain("buildAttachmentAnalysisPrompt(question)");
     expect(router).toContain("attachmentAnalysisMode ? 4_700");
     expect(router).toContain("attachmentAnalysisMode ? 4_300");
     expect(router).toContain("buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })");
+    expect(router).toContain("buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)");
   });
 
   it("does not duplicate an attached-file label when the question already names the selected file", () => {
