@@ -262,7 +262,7 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
             </div>
           </div>
           <div><label style={labelStyle}>Related Feature</label><input value={form.relatedFeature} onChange={(event) => set("relatedFeature", event.target.value)} placeholder="e.g. Filing Footprint" style={fieldStyle} /></div>
-          <div><label style={labelStyle}>Related Story / Bug</label><input value={form.relatedStory} onChange={(event) => set("relatedStory", event.target.value)} placeholder="e.g. Story 1494188" style={fieldStyle} /></div>
+          <div><label style={labelStyle}>Related Stories / Bugs</label><textarea maxLength={4000} value={form.relatedStory} onChange={(event) => set("relatedStory", event.target.value)} placeholder="e.g. Story 1494188; Bug 1494190 — describe related delivery traceability" style={{ ...fieldStyle, minHeight: "64px", resize: "vertical" }} /><div style={{ color: "#64748b", fontSize: "10px", marginTop: "4px" }}>List multiple related stories or bugs when needed · {form.relatedStory.length.toLocaleString()} / 4,000 characters</div></div>
           <div><label style={labelStyle}>Deployment Summary</label><textarea value={form.summary} onChange={(event) => set("summary", event.target.value)} placeholder="Describe the release scope and deployment notes." style={{ ...fieldStyle, minHeight: "76px", resize: "vertical" }} /></div>
 
           {createMutation.error && <div role="alert" style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", color: "#991b1b", fontSize: "11px", padding: "8px 10px" }}>{createMutation.error.message}</div>}

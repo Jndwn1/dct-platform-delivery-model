@@ -1,0 +1,1 @@
+ALTER TABLE `post_pilot_deployments` MODIFY COLUMN `relatedStory` text;

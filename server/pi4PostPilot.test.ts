@@ -250,13 +250,16 @@ describe("PI4 Pilot delivery", () => {
     expect(schema).toContain('postPilotDeployments = mysqlTable("post_pilot_deployments"');
     expect(schema).toContain('screenName: text("screenName").notNull()');
     expect(schema).toContain('adoWorkItemId: text("adoWorkItemId")');
+    expect(schema).toContain('relatedStory: text("relatedStory")');
     expect(router).toContain("postPilotDeploymentRegistry: router");
     expect(postPilotDeploymentRouter).toContain('where(eq(postPilotDeployments.platform, "TDC"))');
     expect(postPilotDeploymentRouter).toContain('platform: z.literal("TDC")');
     expect(postPilotDeploymentRouter).not.toContain('platform: z.enum(["PDC", "TDC", "Platform", "Both"])');
     expect(postPilotDeploymentRouter).toContain("screenName: z.string().min(1).max(8000)");
     expect(postPilotDeploymentRouter).toContain("adoWorkItemId: z.string().max(4000).optional()");
+    expect(postPilotDeploymentRouter).toContain("relatedStory: z.string().max(4000).optional()");
     expect(deploymentSnapshot).toContain("ADO Work Item IDs");
+    expect(deploymentSnapshot).toContain("Related Stories / Bugs");
     expect(deploymentSnapshot).toContain("maxLength={8000}");
     expect(deploymentSnapshot).toContain("maxLength={4000}");
     expect(deploymentSnapshot).toContain("escapeWikiCell(record.summary)");

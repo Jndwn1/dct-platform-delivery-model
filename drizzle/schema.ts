@@ -120,7 +120,8 @@ export const postPilotDeployments = mysqlTable("post_pilot_deployments", {
   screenName: text("screenName").notNull(),
   summary: text("summary"),
   relatedFeature: varchar("relatedFeature", { length: 256 }),
-  relatedStory: varchar("relatedStory", { length: 256 }),
+  /** Multi-item story and defect traceability for a deployment. */
+  relatedStory: text("relatedStory"),
   environment: varchar("environment", { length: 64 }).default("Production").notNull(),
   /** Comma- or line-separated Azure DevOps work item IDs. */
   adoWorkItemId: text("adoWorkItemId"),

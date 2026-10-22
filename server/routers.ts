@@ -903,7 +903,7 @@ ${input.notes}` as string },
         screenName: z.string().min(1).max(8000),
         summary: z.string().max(8000).optional(),
         relatedFeature: z.string().max(256).optional(),
-        relatedStory: z.string().max(256).optional(),
+        relatedStory: z.string().max(4000).optional(),
         environment: z.string().min(1).max(64).optional(),
         adoWorkItemId: z.string().max(4000).optional(),
       }))
