@@ -21,6 +21,7 @@ import { analyzeTdcStandupTranscript, buildTdcStandupEmail, formatMeetingDate } 
 const DCT_PLATFORM_QUESTION = /\b(dct|tdc|pdc|roger|ims|gosystem|tax portal|control panel|swagger|openapi|batch|gate|guardrail|lineage|adrs?|ado|pilot|mvp|state taxonomy)\b/i;
 const ADO_URL_PATTERN = /https?:\/\/dev\.azure\.com\/[^\s)\]]+\/[^\s)\]]*\/_workitems\/edit\/(\d{4,})[^\s)\]]*/gi;
 const ADO_ID_PATTERN = /\b(?:ado\s*(?:work\s*item\s*)?(?:id\s*)?[#: -]?\s*|feature\s*|user\s*story\s*|technical\s*story\s*|spike\s*|bug\s*|task\s*)(\d{4,})\b/gi;
+const STANDALONE_ADO_ID_PATTERN = /\b\d{6,8}\b/g;
 
 function getSuppliedAdoReferences(text: string) {
   const references = new Map<string, { id: string; url?: string }>();
@@ -32,6 +33,10 @@ function getSuppliedAdoReferences(text: string) {
   ADO_ID_PATTERN.lastIndex = 0;
   while ((match = ADO_ID_PATTERN.exec(text)) !== null) {
     if (!references.has(match[1])) references.set(match[1], { id: match[1] });
+  }
+  STANDALONE_ADO_ID_PATTERN.lastIndex = 0;
+  while ((match = STANDALONE_ADO_ID_PATTERN.exec(text)) !== null) {
+    if (!references.has(match[0])) references.set(match[0], { id: match[0] });
   }
   return Array.from(references.values()).slice(0, 12);
 }

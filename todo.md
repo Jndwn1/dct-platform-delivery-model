@@ -338,3 +338,4 @@
 - [x] Render Ask Buddy replies as document-friendly headings, lists, and tables with rich-text and plain-text copy support
 - [x] Activate the six-part evidence-bound BA assessment for all Ask Buddy document and dependency analysis paths
 - [x] Strengthen Ask Buddy analysis and safe user-supplied ADO reference handling without a live ADO connection
+- [x] Add a dedicated multi-link ADO reference input to Ask Buddy

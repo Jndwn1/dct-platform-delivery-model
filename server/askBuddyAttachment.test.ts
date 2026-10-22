@@ -13,7 +13,7 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(askBuddyPage).not.toContain('accept=".xlsx,.xls,.csv"');
     expect(askBuddyPage).toContain("Analyze & Ask");
     expect(askBuddyPage).toContain("Source version/date (optional)");
-    expect(askBuddyPage).toContain("Ask a question about the attached file");
+    expect(askBuddyPage).toContain("Ask Buddy a question or provide one or more ADO references before sending.");
     expect(askBuddyPage).toContain(
       "Word (.docx), Excel/CSV, and readable text formats"
     );
@@ -64,7 +64,7 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(router).toContain("buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)");
   });
 
-  it("does not duplicate an attached-file label when the question already names the selected file", () => {
-    expect(askBuddyPage).toContain("input.includes(attachmentFile.name) || /attached file:/i.test(input)");
+  it("does not duplicate an attached-file label when the combined question already names the selected file", () => {
+    expect(askBuddyPage).toContain("adoDisplayText.includes(attachmentFile.name) || /attached file:/i.test(adoDisplayText)");
   });
 });

@@ -59,6 +59,8 @@ interface Capability {
 
 const BUDDY_WELCOME_MESSAGE = "Hello, I'm Ask Buddy your Business Analysis Assistant to help you with all your tasks.";
 const LEGACY_BUDDY_WELCOME = /^Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant\./i;
+const MAX_ADO_REFERENCE_CHARS = 5_000;
+const DEFAULT_ADO_ANALYSIS_REQUEST = "Analyze the supplied ADO reference(s) for requirements coverage, dependencies, acceptance criteria, and development readiness.";
 
 function withoutVisibleSourceProvenance(content: string) {
   return content.replace(/\n---\s*\n### Sources Used[\s\S]*$/i, "").trim();
@@ -457,6 +459,7 @@ export default function AskBuddy() {
   const [attachmentVersion, setAttachmentVersion] = useState("");
   const [attachmentError, setAttachmentError] = useState("");
   const [isAttachmentProcessing, setIsAttachmentProcessing] = useState(false);
+  const [adoReferences, setAdoReferences] = useState("");
   const [adoDrafts, setAdoDrafts] = useState<AdoFollowUpDraft[] | null>(null);
   const [adoDraftSourceId, setAdoDraftSourceId] = useState<string | null>(null);
   const [adoDraftNotice, setAdoDraftNotice] = useState("");
@@ -684,8 +687,21 @@ export default function AskBuddy() {
     setAttachmentFile(file);
   };
   const analyzeAttachmentAndAsk = async () => {
-    if (!attachmentFile) { sendMessage(input); return; }
-    if (!input.trim()) { setAttachmentError("Ask a question about the attached file before sending it to Buddy."); return; }
+    const suppliedAdoReferences = adoReferences.trim();
+    if (suppliedAdoReferences.length > MAX_ADO_REFERENCE_CHARS) { setAttachmentError(`ADO references must be ${MAX_ADO_REFERENCE_CHARS.toLocaleString()} characters or fewer.`); return; }
+    const baseQuestion = input.trim() || (suppliedAdoReferences ? DEFAULT_ADO_ANALYSIS_REQUEST : "");
+    if (!baseQuestion) { setAttachmentError("Ask Buddy a question or provide one or more ADO references before sending."); return; }
+    const analysisQuestion = suppliedAdoReferences
+      ? `${baseQuestion}\n\nADO references supplied by user:\n${suppliedAdoReferences}`
+      : baseQuestion;
+    const adoDisplayText = suppliedAdoReferences
+      ? `${baseQuestion}\n\nADO references:\n${suppliedAdoReferences}`
+      : baseQuestion;
+    if (!attachmentFile) {
+      sendMessage(analysisQuestion, { displayText: adoDisplayText });
+      setAdoReferences("");
+      return;
+    }
     setAttachmentError("");
     setIsAttachmentProcessing(true);
     setIsTyping(true);
@@ -697,14 +713,15 @@ export default function AskBuddy() {
         fileBase64: await readAttachmentAsBase64(attachmentFile),
       });
       const attachmentLabel = `Attached file: ${attachmentFile.name}${attachmentVersion.trim() ? ` · ${attachmentVersion.trim()}` : ""}`;
-      const displayText = input.includes(attachmentFile.name) || /attached file:/i.test(input)
-        ? input.trim()
-        : `${input.trim()}
+      const displayText = adoDisplayText.includes(attachmentFile.name) || /attached file:/i.test(adoDisplayText)
+        ? adoDisplayText
+        : `${adoDisplayText}
 
 ${attachmentLabel}`;
-      sendMessage(input, { attachmentArtifactId: artifact.artifact.id, displayText });
+      sendMessage(analysisQuestion, { attachmentArtifactId: artifact.artifact.id, displayText });
       setAttachmentFile(null);
       setAttachmentVersion("");
+      setAdoReferences("");
       if (attachmentInputRef.current) attachmentInputRef.current.value = "";
     } catch (error) {
       setAttachmentError(error instanceof Error ? error.message : "The file could not be uploaded for review.");
@@ -823,6 +840,8 @@ ${attachmentLabel}`;
   const [, navigate] = useLocation();
 
   const currentTourStep = TOUR_STEPS[tourStep];
+  const hasAdoReferences = Boolean(adoReferences.trim());
+  const canSubmitBuddyRequest = Boolean(input.trim() || hasAdoReferences) && !isTyping && !isAttachmentProcessing;
 
   return (
     <div style={{ background: "#f8fafc", minHeight: "100vh" }}>
@@ -1517,7 +1536,7 @@ ${attachmentLabel}`;
           <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #e2e8f0", padding: "0.75rem 1rem" }}>
             <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
               <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask about any batch, PI status, guardrails, ADRs, agents, gates, or ownership..." style={{ flex: 1, border: "none", outline: "none", fontSize: "0.9rem", color: "#1e293b", background: "transparent" }} />
-              <button onClick={analyzeAttachmentAndAsk} disabled={!input.trim() || isTyping || isAttachmentProcessing} style={{ background: input.trim() && !isTyping && !isAttachmentProcessing ? "#0d9488" : "#e2e8f0", color: input.trim() && !isTyping && !isAttachmentProcessing ? "#fff" : "#94a3b8", border: "none", borderRadius: 8, padding: "0.5rem 1.25rem", fontWeight: 700, fontSize: "0.875rem", cursor: input.trim() && !isTyping && !isAttachmentProcessing ? "pointer" : "not-allowed" }}>
+              <button onClick={analyzeAttachmentAndAsk} disabled={!canSubmitBuddyRequest} style={{ background: canSubmitBuddyRequest ? "#0d9488" : "#e2e8f0", color: canSubmitBuddyRequest ? "#fff" : "#94a3b8", border: "none", borderRadius: 8, padding: "0.5rem 1.25rem", fontWeight: 700, fontSize: "0.875rem", cursor: canSubmitBuddyRequest ? "pointer" : "not-allowed" }}>
                 {isAttachmentProcessing ? "Analyzing…" : attachmentFile ? "Analyze & Ask →" : "Send →"}
               </button>
             </div>
@@ -1527,6 +1546,23 @@ ${attachmentLabel}`;
               <input value={attachmentVersion} onChange={event => setAttachmentVersion(event.target.value)} placeholder="Source version/date (optional)" aria-label="Attachment source version or date" style={{ border: "1px solid #cbd5e1", borderRadius: 6, padding: "5px 7px", fontSize: 11, minWidth: 190 }} />
               {attachmentFile && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#047857", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "5px 7px", fontSize: 11, fontWeight: 700 }}><Paperclip size={12} /> {attachmentFile.name}<button type="button" aria-label="Remove attached file" onClick={() => selectAttachment(null)} style={{ border: "none", background: "transparent", color: "#047857", cursor: "pointer", display: "inline-flex", padding: 0 }}><X size={13} /></button></span>}
               {attachmentError && <span role="alert" style={{ color: "#b91c1c", fontSize: 11, fontWeight: 600 }}>{attachmentError}</span>}
+            </div>
+            <div style={{ marginTop: 9, paddingTop: 9, borderTop: "1px solid #e2e8f0" }}>
+              <label htmlFor="ask-buddy-ado-references" style={{ display: "block", color: "#1e3a5f", fontSize: 11, fontWeight: 800, marginBottom: 5 }}>ADO references <span style={{ color: "#64748b", fontWeight: 600 }}>(optional · multiple links or IDs)</span></label>
+              <textarea
+                id="ask-buddy-ado-references"
+                aria-label="ADO references: enter multiple Azure DevOps URLs or work item IDs"
+                value={adoReferences}
+                onChange={(event) => setAdoReferences(event.target.value)}
+                placeholder={"Paste one or more ADO URLs or IDs — one per line. You may also include a title, description, or acceptance criteria.\nExample: https://dev.azure.com/organization/project/_workitems/edit/1514276\n1514277"}
+                maxLength={MAX_ADO_REFERENCE_CHARS}
+                rows={3}
+                style={{ display: "block", width: "100%", boxSizing: "border-box", resize: "vertical", border: "1px solid #bfdbfe", borderRadius: 6, color: "#1e293b", background: "#f8fbff", padding: "0.5rem 0.6rem", fontFamily: "inherit", fontSize: 11, lineHeight: 1.45 }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, color: "#64748b", fontSize: 10, lineHeight: 1.35, marginTop: 4 }}>
+                <span>Buddy analyzes supplied details only; it does not retrieve or open ADO links in this workspace.</span>
+                <span>{adoReferences.length.toLocaleString()} / {MAX_ADO_REFERENCE_CHARS.toLocaleString()}</span>
+              </div>
             </div>
             <p style={{ color: "#64748b", fontSize: 10, lineHeight: 1.4, margin: "8px 0 0" }}>Attach any project file (up to 10 MB), ask a question, then select <strong>Analyze & Ask</strong>. You may also paste ADO URLs or work-item IDs, along with titles, descriptions, exports, screenshots, or acceptance criteria for evidence-based readiness analysis. Buddy directly reads Word (.docx), Excel/CSV, and readable text formats; other file types are retained as reference-only sources without inferred content. This workspace has no live Azure DevOps retrieval connection, so Buddy will not claim to have opened a supplied link. Do not upload client data, PII, PHI, confidential tax data, or protected intellectual property.</p>
           </div>
