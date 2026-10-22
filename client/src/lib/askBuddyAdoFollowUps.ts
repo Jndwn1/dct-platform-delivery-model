@@ -172,3 +172,78 @@ export function buildAdoFollowUpMarkdown(drafts: AdoFollowUpDraft[], reviews: Ad
 
   return lines.join("\n").trim();
 }
+
+function typeSpecificFormInputs(review: AdoFollowUpReview) {
+  if (review.draftType === "Bug") {
+    return [
+      "Bug Investigation Inputs:",
+      "Reproduction steps / actual behavior: Not stated in source.",
+      "Expected behavior: Not stated in source.",
+    ];
+  }
+
+  if (review.draftType === "User Story") {
+    return [
+      "User Story Statement:",
+      "Not stated in source. Define the user/role, need, and value during BA and owner review.",
+    ];
+  }
+
+  return [
+    "Task Completion Detail:",
+    "Not stated in source. Define the completion approach and validation steps during BA and owner review.",
+  ];
+}
+
+/**
+ * Produces plain text organized around common Azure DevOps work-item form
+ * fields. This is intentionally a copy/paste aid only and never creates or
+ * updates a live Azure DevOps work item.
+ */
+export function buildAdoWorkItemFormText(drafts: AdoFollowUpDraft[], reviews: AdoFollowUpReviews = {}) {
+  const lines = [
+    "AZURE DEVOPS WORK-ITEM FORM DRAFTS",
+    "Manual entry only — no work items have been created or sent to Azure DevOps.",
+    "Use each titled field to paste into the matching Azure DevOps form field. Preserve Not stated in source items until BA and accountable-owner review supplies evidence.",
+    "",
+  ];
+
+  drafts.forEach((draft, index) => {
+    const review = getAdoFollowUpReview(draft, index, reviews);
+    lines.push(
+      "=".repeat(72),
+      `WORK ITEM ${index + 1} OF ${drafts.length}`,
+      "=".repeat(72),
+      `WORK ITEM TYPE: ${review.draftType}`,
+      "",
+      "TITLE:",
+      draft.draftTitle,
+      "",
+      "DESCRIPTION:",
+      `Confirmed dependency finding: ${draft.confirmedEvidence}`,
+      `Required input / decision: ${draft.requiredInputOrDecision}`,
+      `Explicit owner / team: ${draft.explicitOwnerOrTeam}`,
+      `Impact if unresolved: ${draft.impactIfUnresolved}`,
+      `Next action (if stated): ${draft.nextAction}`,
+      `Related / affected ADO reference: ${draft.affectedAdoReference}`,
+      "",
+      ...typeSpecificFormInputs(review),
+      "",
+      "ACCEPTANCE CRITERIA:",
+      review.acceptanceCriteriaReviewed
+        ? "BA review check is marked complete; detailed acceptance criteria are not stated in source and must be validated before manual entry."
+        : "Not stated in source. Define and validate acceptance criteria before manual entry.",
+      "",
+      "BA REVIEW NOTE:",
+      review.baReviewNote.trim() || "None entered.",
+      "",
+      "REVIEW CHECKS:",
+      `Owner confirmation reviewed: ${review.ownerConfirmed ? "Yes — BA review check only; not source evidence or approval." : "No"}`,
+      `Acceptance criteria reviewed: ${review.acceptanceCriteriaReviewed ? "Yes — BA review check only; not source evidence or approval." : "No"}`,
+      `Draft status: ${draft.adoStatus}`,
+      ""
+    );
+  });
+
+  return lines.join("\n").trim();
+}

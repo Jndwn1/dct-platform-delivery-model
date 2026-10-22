@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ADO_FOLLOW_UP_TYPES, buildAdoFollowUpMarkdown, createDefaultAdoFollowUpReview, getConfirmedDependencyFollowUps } from "../client/src/lib/askBuddyAdoFollowUps";
+import { ADO_FOLLOW_UP_TYPES, buildAdoFollowUpMarkdown, buildAdoWorkItemFormText, createDefaultAdoFollowUpReview, getConfirmedDependencyFollowUps } from "../client/src/lib/askBuddyAdoFollowUps";
 
 const askBuddyPage = readFileSync("client/src/pages/AskBuddy.tsx", "utf8");
 
@@ -107,6 +107,40 @@ describe("Ask Buddy review-only ADO follow-up drafts", () => {
     });
   });
 
+  it("formats a paste-ready Azure DevOps work-item form without inventing missing fields", () => {
+    const formText = buildAdoWorkItemFormText([
+      {
+        id: "D-01",
+        draftTitle: "Follow-up: Confirm State locator and routing context",
+        confirmedEvidence: "Confirm State locator and routing context",
+        explicitOwnerOrTeam: "IMS",
+        requiredInputOrDecision: "Approved locator and routing fields",
+        affectedAdoReference: "1514276",
+        impactIfUnresolved: "Downstream mapping cannot proceed",
+        nextAction: "Not stated in source",
+        adoStatus: "Draft — Requires BA Review",
+      },
+    ], {
+      "D-01-0": {
+        draftType: "Bug",
+        baReviewNote: "Confirm the receiving team's implementation approach before manual ADO entry.",
+        ownerConfirmed: true,
+        acceptanceCriteriaReviewed: true,
+      },
+    });
+
+    expect(formText).toContain("AZURE DEVOPS WORK-ITEM FORM DRAFTS");
+    expect(formText).toContain("Manual entry only — no work items have been created or sent to Azure DevOps.");
+    expect(formText).toContain("WORK ITEM TYPE: Bug");
+    expect(formText).toContain("TITLE:\nFollow-up: Confirm State locator and routing context");
+    expect(formText).toContain("DESCRIPTION:");
+    expect(formText).toContain("Bug Investigation Inputs:");
+    expect(formText).toContain("ACCEPTANCE CRITERIA:");
+    expect(formText).toContain("BA REVIEW NOTE:");
+    expect(formText).toContain("Not stated in source");
+    expect(formText).toContain("not source evidence or approval");
+  });
+
   it("provides a response-level action with a guarded empty state and local export options", () => {
     expect(askBuddyPage).toContain("Create ADO Follow-ups");
     expect(askBuddyPage).toContain("No confirmed dependency findings are available to draft");
@@ -114,6 +148,10 @@ describe("Ask Buddy review-only ADO follow-up drafts", () => {
     expect(askBuddyPage).toContain("Copy ADO Follow-up Drafts");
     expect(askBuddyPage).toContain("Download Markdown");
     expect(askBuddyPage).toContain('anchor.download = "ask-buddy-ado-follow-up-drafts.md"');
+    expect(askBuddyPage).toContain("Copy ADO Form Format");
+    expect(askBuddyPage).toContain("Download ADO Form Text");
+    expect(askBuddyPage).toContain('anchor.download = "ask-buddy-ado-work-item-forms.txt"');
+    expect(askBuddyPage).toContain("ADO form format:");
     expect(askBuddyPage).toContain("Draft type");
     expect(askBuddyPage).toContain("BA review note");
     expect(askBuddyPage).toContain("Owner confirmation reviewed");

@@ -8,7 +8,7 @@ import { useLocation } from "wouter";
 import GovernanceBanner from "@/components/GovernanceBanner";
 import DataMappingWorkspace from "@/components/DataMappingWorkspace";
 import { readSharedBuddyConversation, subscribeSharedBuddyConversation, writeSharedBuddyConversation } from "@/lib/askBuddyConversation";
-import { ADO_FOLLOW_UP_TYPES, buildAdoFollowUpMarkdown, getAdoFollowUpReview, getAdoFollowUpReviewKey, getConfirmedDependencyFollowUps, type AdoFollowUpDraft, type AdoFollowUpReviews, type AdoFollowUpType } from "@/lib/askBuddyAdoFollowUps";
+import { ADO_FOLLOW_UP_TYPES, buildAdoFollowUpMarkdown, buildAdoWorkItemFormText, getAdoFollowUpReview, getAdoFollowUpReviewKey, getConfirmedDependencyFollowUps, type AdoFollowUpDraft, type AdoFollowUpReviews, type AdoFollowUpType } from "@/lib/askBuddyAdoFollowUps";
 import { trpc } from "@/lib/trpc";
 import { useBatchStatus, buildLiveSnapshot } from "@/contexts/BatchStatusContext";
 
@@ -459,6 +459,7 @@ export default function AskBuddy() {
   const [adoDraftSourceId, setAdoDraftSourceId] = useState<string | null>(null);
   const [adoDraftNotice, setAdoDraftNotice] = useState("");
   const [adoDraftCopied, setAdoDraftCopied] = useState(false);
+  const [adoFormCopied, setAdoFormCopied] = useState(false);
   const [adoDraftReviews, setAdoDraftReviews] = useState<AdoFollowUpReviews>({});
 
   // Tour state
@@ -743,6 +744,7 @@ ${attachmentLabel}`;
   const createAdoFollowUps = (message: Message) => {
     const drafts = getConfirmedDependencyFollowUps(message.text);
     setAdoDraftCopied(false);
+    setAdoFormCopied(false);
     setAdoDraftSourceId(message.id);
     setAdoDraftReviews({});
 
@@ -778,6 +780,24 @@ ${attachmentLabel}`;
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = "ask-buddy-ado-follow-up-drafts.md";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const copyAdoWorkItemForm = async () => {
+    if (!adoDrafts?.length) return;
+    await navigator.clipboard.writeText(buildAdoWorkItemFormText(adoDrafts, adoDraftReviews));
+    setAdoFormCopied(true);
+    window.setTimeout(() => setAdoFormCopied(false), 2_000);
+  };
+
+  const downloadAdoWorkItemForm = () => {
+    if (!adoDrafts?.length) return;
+    const blob = new Blob([buildAdoWorkItemFormText(adoDrafts, adoDraftReviews)], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "ask-buddy-ado-work-item-forms.txt";
     anchor.click();
     URL.revokeObjectURL(url);
   };
@@ -1326,7 +1346,7 @@ ${attachmentLabel}`;
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setAdoDrafts(null); setAdoDraftNotice(""); setAdoDraftSourceId(null); setAdoDraftReviews({}); }}
+                  onClick={() => { setAdoDrafts(null); setAdoDraftNotice(""); setAdoDraftSourceId(null); setAdoDraftReviews({}); setAdoFormCopied(false); }}
                   aria-label="Close ADO follow-up drafts"
                   style={{ border: "none", background: "transparent", color: "#64748b", cursor: "pointer", padding: 0, display: "inline-flex" }}
                 >
@@ -1409,7 +1429,20 @@ ${attachmentLabel}`;
                       );
                     })}
                   </div>
-                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.7rem", flexWrap: "wrap" }}>
+                  <div style={{ borderTop: "1px solid #dbeafe", marginTop: "0.75rem", paddingTop: "0.65rem" }}>
+                    <p style={{ color: "#475569", fontSize: "0.66rem", lineHeight: 1.4, margin: "0 0 0.45rem" }}>
+                      <strong style={{ color: "#1e3a5f" }}>ADO form format:</strong> copy or download field-labeled text for manual paste into an Azure DevOps work-item form. It includes only confirmed finding evidence and clearly preserves items not stated in the source.
+                    </p>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <button onClick={() => void copyAdoWorkItemForm()} style={{ background: adoFormCopied ? "#ecfdf5" : "#0f766e", color: adoFormCopied ? "#047857" : "#fff", border: `1px solid ${adoFormCopied ? "#86efac" : "#0f766e"}`, borderRadius: 5, padding: "0.35rem 0.7rem", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer" }}>
+                        {adoFormCopied ? "ADO Form Copied" : "Copy ADO Form Format"}
+                      </button>
+                      <button onClick={downloadAdoWorkItemForm} style={{ background: "#fff", color: "#0f766e", border: "1px solid #5eead4", borderRadius: 5, padding: "0.35rem 0.7rem", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer" }}>
+                        Download ADO Form Text
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.65rem", flexWrap: "wrap" }}>
                     <button onClick={() => void copyAdoFollowUps()} style={{ background: adoDraftCopied ? "#ecfdf5" : "#1e3a5f", color: adoDraftCopied ? "#047857" : "#fff", border: `1px solid ${adoDraftCopied ? "#86efac" : "#1e3a5f"}`, borderRadius: 5, padding: "0.35rem 0.7rem", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer" }}>
                       {adoDraftCopied ? "Copied" : "Copy ADO Follow-up Drafts"}
                     </button>
