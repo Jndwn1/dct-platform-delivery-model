@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse, isStateApportionmentDependencyQuestion } from "./platformContext";
+import { buildAttachmentAnalysisPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse, isStateApportionmentDependencyQuestion } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { buildBuddyGrounding, buildFocusedCrossTeamGrounding, buildInsufficientEvidenceResponse } from "./askBuddyGrounding";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -14,7 +14,7 @@ import { eq, desc, and, like, or, sql } from "drizzle-orm";
 import { createMappingCandidates, isMappableArtifactField, mappingReadiness, parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
 import { analyzeStateInputReferenceContract, buildStateContractMappingWorkbook } from "./stateContractAnalysis";
 import { buildMasterDataEvidence, isMasterDataQuestion, MASTER_DATA_ANSWER_FALLBACK, selectAuthoritativeMasterDataArtifact } from "./masterDataRegistry";
-import { parseAskBuddyAttachmentRecord, parseStructuredAttachmentFields, prepareAskBuddyAttachment } from "./askBuddyAttachmentEngine";
+import { buildAttachmentEvidenceFallback, parseAskBuddyAttachmentRecord, parseStructuredAttachmentFields, prepareAskBuddyAttachment } from "./askBuddyAttachmentEngine";
 import mammoth from "mammoth";
 import { analyzeTdcStandupTranscript, buildTdcStandupEmail, formatMeetingDate } from "./meetingRecaps";
 
@@ -167,6 +167,7 @@ Do not infer content from this file.`
         const grounding = crossTeamDependenciesMode
           ? buildFocusedCrossTeamGrounding(question, currentPagePath, masterEvidence.source)
           : buildBuddyGrounding(question, currentPagePath, input.liveSnapshot, masterEvidence.source);
+        const attachmentAnalysisMode = attachmentRecord?.analysisStatus === "Extracted" && attachmentEvidence.length > 0;
         const requiresPlatformEvidence = crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(question) || masterDataQuestion || Boolean(input.attachmentArtifactId);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
           ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
@@ -177,10 +178,12 @@ Do not infer content from this file.`
         const generalBusinessGuidance = requiresPlatformEvidence
           ? ""
           : `\n\nGENERAL BUSINESS-ANALYSIS MODE\nThe user is asking a general business-analysis question rather than a DCT platform fact. Provide practical, conversational guidance for discovery, requirements, process mapping, backlog refinement, acceptance criteria, facilitation, or documentation. You may use general professional knowledge, but label any non-DCT guidance as general guidance and do not present it as a verified DCT capability, decision, or delivery commitment.`;
-        const evidencePacket = requiresPlatformEvidence
+        const evidencePacket = requiresPlatformEvidence && !attachmentAnalysisMode
           ? grounding.evidenceBlock
           : `\n\nDCT KNOWLEDGE-BASE CHECK\nThe current-page context and governed DCT knowledge base were checked before this response. No DCT-specific fact is required to answer this general business-analysis question. If the user asks about a DCT capability, return to the supplied governed evidence and do not infer platform facts.`;
-        const basePrompt = crossTeamDependenciesMode
+        const basePrompt = attachmentAnalysisMode
+          ? buildAttachmentAnalysisPrompt(question)
+          : crossTeamDependenciesMode
           ? buildCrossTeamDependencyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
           : requiresPlatformEvidence
             ? buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot: input.liveSnapshot })
@@ -188,9 +191,9 @@ Do not infer content from this file.`
         const attachmentPrimacy = attachmentArtifact
           ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for the scope it covers. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
           : "";
-        const systemPrompt = basePrompt + evidencePacket + masterEvidence.evidenceBlock + storyReviewEvidence + attachmentEvidence.slice(0, 8_000) + attachmentReferenceNote + attachmentPrimacy + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
+        const systemPrompt = basePrompt + evidencePacket + (attachmentAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + attachmentEvidence.slice(0, attachmentAnalysisMode ? 12_000 : 8_000) + attachmentReferenceNote + attachmentPrimacy + entryContext + generalBusinessGuidance + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
-        const recentMessages = input.messages.slice(-2);
+        const recentMessages = attachmentAnalysisMode ? input.messages.slice(-1) : input.messages.slice(-2);
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
           ...recentMessages.map((m) => ({
@@ -212,13 +215,13 @@ Do not infer content from this file.`
             : buildInsufficientEvidenceResponse(grounding);
         } else {
           try {
-            const responseBudgetMs = crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
+            const responseBudgetMs = attachmentAnalysisMode ? 4_700 : crossTeamDependenciesMode ? 4_700 : requiresPlatformEvidence ? 4_400 : 4_700;
             const remainingResponseBudgetMs = Math.max(400, responseBudgetMs - (Date.now() - requestStartedAt));
             const result = await invokeLLM({
               model: "gemini-3.8-flash",
               thinking: { budget_tokens: 0 },
-              maxTokens: crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
-              timeoutMs: Math.min(crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
+              maxTokens: attachmentAnalysisMode ? 720 : crossTeamDependenciesMode ? 720 : requiresPlatformEvidence ? 280 : 180,
+              timeoutMs: Math.min(attachmentAnalysisMode ? 4_300 : crossTeamDependenciesMode ? 4_600 : requiresPlatformEvidence ? 4_300 : 4_600, remainingResponseBudgetMs),
               messages: llmMessages,
             });
             const choice = result.choices[0];
@@ -235,7 +238,9 @@ Do not infer content from this file.`
             }
           } catch (error) {
             if (error instanceof LLMRequestTimeoutError) {
-              responseText = requiresPlatformEvidence
+              responseText = attachmentAnalysisMode && attachmentRecord
+                ? buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })
+                : requiresPlatformEvidence
                 ? "Ask Buddy could not complete an evidence-grounded response within the response-time limit. No answer has been inferred. Please retry or narrow the question."
                 : buildGeneralBusinessGuidanceFallback(question);
             } else {
@@ -261,7 +266,8 @@ Do not infer content from this file.`
         }
 
         const responseElapsedMs = Date.now() - requestStartedAt;
-        if (responseElapsedMs > 4_000) console.warn(`[askBuddy] response exceeded 4 seconds (${responseElapsedMs}ms)`);
+        const expectedResponseWindowMs = attachmentAnalysisMode ? 4_700 : 4_000;
+        if (responseElapsedMs > expectedResponseWindowMs) console.warn(`[askBuddy] response exceeded ${expectedResponseWindowMs}ms (${responseElapsedMs}ms)`);
 
         return {
           text,

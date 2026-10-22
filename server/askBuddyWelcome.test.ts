@@ -14,7 +14,7 @@ describe("Ask Buddy welcome message", () => {
     );
     expect(askBuddyPage).toContain("text: BUDDY_WELCOME_MESSAGE");
     expect(askBuddyPage).toContain("BUDDY_WELCOME_MESSAGE");
-    expect(askBuddyPage).not.toContain("Hi, I'm Ask Buddy!");
+    expect(askBuddyPage).toContain("LEGACY_BUDDY_WELCOME");
     expect(askBuddyPage).not.toContain(
       "Hi, I'm Ask Buddy — the DCT Discovery intelligence assistant."
     );

@@ -204,3 +204,56 @@ export function parseStructuredAttachmentFields(
     return null;
   }
 }
+
+function matchingEvidenceLines(text: string, expression: RegExp, limit: number) {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter((line) => line.length >= 18 && expression.test(line))
+    .filter((line, index, lines) => lines.indexOf(line) === index)
+    .slice(0, limit);
+}
+
+/**
+ * Provides a useful, evidence-only first pass when a model response exceeds
+ * the bounded document-analysis window. It never attempts to synthesize facts
+ * beyond the extracted document text.
+ */
+export function buildAttachmentEvidenceFallback({
+  question,
+  textExcerpt,
+}: Pick<AskBuddyAttachmentRecord, "textExcerpt"> & { question: string }) {
+  const ownershipLines = matchingEvidenceLines(
+    textExcerpt,
+    /\b(TDC|taxonomy|validation|data type|persist|govern|reference data)\b/i,
+    5
+  );
+  const dependencyLines = matchingEvidenceLines(
+    textExcerpt,
+    /\b(IMS|Roger|GoSystem|State|Process|mapping|routing|outbound|inbound|dependency|integration)\b/i,
+    7
+  );
+  const quotedRows = (lines: string[], emptyMessage: string) =>
+    lines.length
+      ? lines.map((line) => `| ${line.replace(/\|/g, "\\|")} | Requires confirmation before it is treated as a commitment. |`).join("\n")
+      : `| ${emptyMessage} | Open — requires confirmation. |`;
+
+  return [
+    "### Document Analysis — Evidence-Bound First Pass",
+    `**Question addressed:** ${question}`,
+    "Ask Buddy prepared this evidence-bound first pass directly from matching extracted statements in the attached document. It does not infer missing ownership, dependencies, or delivery commitments.",
+    "",
+    "### TDC Ownership Signals",
+    "| Extracted statement | Status |",
+    "| --- | --- |",
+    quotedRows(ownershipLines, "No explicit TDC ownership statement was located in the extracted text."),
+    "",
+    "### Cross-Team Dependency Signals",
+    "| Extracted statement | Status |",
+    "| --- | --- |",
+    quotedRows(dependencyLines, "No explicit cross-team dependency statement was located in the extracted text."),
+    "",
+    "### Next Action",
+    "Review the quoted statements with the accountable SMEs, then record confirmed ownership, required inputs, unresolved decisions, and any delivery-impacting dependencies in the governing backlog or working-session notes.",
+  ].join("\n");
+}

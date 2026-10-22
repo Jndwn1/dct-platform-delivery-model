@@ -20,6 +20,9 @@ vi.mock("./_core/llm", () => ({
 
 // ── Mock platformContext ──────────────────────────────────────────────────────
 vi.mock("./platformContext", () => ({
+  buildAttachmentAnalysisPrompt: vi.fn().mockReturnValue(
+    "You are Ask Buddy, an attachment-led Business Analysis Assistant. [mock attachment prompt]"
+  ),
   buildCompactAskBuddyPrompt: vi.fn().mockReturnValue(
     "You are Ask Buddy, a DCT platform assistant. [mock compact system prompt]"
   ),
@@ -36,7 +39,7 @@ vi.mock("./platformContext", () => ({
 }));
 
 import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
-import { buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse } from "./platformContext";
+import { buildAttachmentAnalysisPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, buildStateApportionmentDependencyResponse } from "./platformContext";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 

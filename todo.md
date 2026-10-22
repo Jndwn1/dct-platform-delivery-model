@@ -330,3 +330,5 @@
 - [x] Hide Ask Buddy source provenance from response bodies and response footers while retaining governed evidence and audit metadata
 - [x] Apply the supplied Ask Buddy master intelligence and Business Analysis instructions to grounded, attachment-led, and general responses
 - [x] Expand Pilot Deployment Registry related-story storage and validation for multi-item story details
+
+- [x] Add a dedicated, evidence-bound Ask Buddy document-analysis path for TDC ownership and cross-team dependencies without slowing ordinary questions

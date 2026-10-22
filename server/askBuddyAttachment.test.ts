@@ -52,4 +52,16 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(askBuddyPage).toContain("withoutVisibleSourceProvenance");
     expect(askBuddyPage).not.toContain("msg.sources && msg.sources.length > 0");
   });
+
+  it("uses an attachment-led analysis path and an evidence-only fallback for extracted documents", () => {
+    expect(router).toContain("const attachmentAnalysisMode = attachmentRecord?.analysisStatus === \"Extracted\"");
+    expect(router).toContain("buildAttachmentAnalysisPrompt(question)");
+    expect(router).toContain("attachmentAnalysisMode ? 4_700");
+    expect(router).toContain("attachmentAnalysisMode ? 4_300");
+    expect(router).toContain("buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })");
+  });
+
+  it("does not duplicate an attached-file label when the question already names the selected file", () => {
+    expect(askBuddyPage).toContain("input.includes(attachmentFile.name) || /attached file:/i.test(input)");
+  });
 });

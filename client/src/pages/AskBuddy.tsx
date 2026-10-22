@@ -55,9 +55,17 @@ interface Capability {
 }
 
 const BUDDY_WELCOME_MESSAGE = "Hello, I'm Ask Buddy your Business Analysis Assistant to help you with all your tasks.";
+const LEGACY_BUDDY_WELCOME = /^Hi, I'm Ask Buddy! Your DCT Business Analysis Assistant\./i;
 
 function withoutVisibleSourceProvenance(content: string) {
   return content.replace(/\n---\s*\n### Sources Used[\s\S]*$/i, "").trim();
+}
+
+function resolveSavedBuddyMessageText(message: { id: string; role: string; content: string }) {
+  if (message.role === "assistant" && (message.id === "welcome" || LEGACY_BUDDY_WELCOME.test(message.content))) {
+    return BUDDY_WELCOME_MESSAGE;
+  }
+  return message.role === "assistant" ? withoutVisibleSourceProvenance(message.content) : message.content;
 }
 
 // ─── PLATFORM TOUR STEPS ─────────────────────────────────────────────────────
@@ -435,7 +443,7 @@ export default function AskBuddy() {
 
   const [messages, setMessages] = useState<Message[]>(() => {
     const shared = readSharedBuddyConversation();
-    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.id === "welcome" && message.role === "assistant" ? BUDDY_WELCOME_MESSAGE : message.role === "assistant" ? withoutVisibleSourceProvenance(message.content) : message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+    if (shared.length) return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: resolveSavedBuddyMessageText(message), timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
     return [{ id: "welcome", role: "buddy", text: BUDDY_WELCOME_MESSAGE, timestamp: new Date(), capability: "welcome", sources: [] }];
   });
   const [input, setInput] = useState(initialPrompt);
@@ -480,7 +488,7 @@ export default function AskBuddy() {
       const currentIds = current.map(message => message.id).join("|");
       const sharedIds = shared.map(message => message.id).join("|");
       if (currentIds === sharedIds) return current;
-      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: message.id === "welcome" && message.role === "assistant" ? BUDDY_WELCOME_MESSAGE : message.role === "assistant" ? withoutVisibleSourceProvenance(message.content) : message.content, timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
+      return shared.map(message => ({ id: message.id, role: message.role === "assistant" ? "buddy" : "user", text: resolveSavedBuddyMessageText(message), timestamp: new Date(message.createdAt), sources: message.sources as Array<string | BuddySource> | undefined, answerStatus: message.status, knowledgeCheckedAt: message.knowledgeCheckedAt }));
     });
   }), []);
 
@@ -679,9 +687,12 @@ export default function AskBuddy() {
         mimeType: attachmentFile.type || "application/octet-stream",
         fileBase64: await readAttachmentAsBase64(attachmentFile),
       });
-      const displayText = `${input.trim()}
+      const attachmentLabel = `Attached file: ${attachmentFile.name}${attachmentVersion.trim() ? ` · ${attachmentVersion.trim()}` : ""}`;
+      const displayText = input.includes(attachmentFile.name) || /attached file:/i.test(input)
+        ? input.trim()
+        : `${input.trim()}
 
-Attached file: ${attachmentFile.name}${attachmentVersion.trim() ? ` · ${attachmentVersion.trim()}` : ""}`;
+${attachmentLabel}`;
       sendMessage(input, { attachmentArtifactId: artifact.artifact.id, displayText });
       setAttachmentFile(null);
       setAttachmentVersion("");
