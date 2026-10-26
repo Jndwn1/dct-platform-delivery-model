@@ -18,12 +18,32 @@ export interface SharedBuddyMessage {
 
 const KEY = "dct_ask_buddy_shared_conversation_v1";
 const EVENT = "dct_ask_buddy_conversation_changed";
+const RETIRED_EXTRACTION_RESPONSE = /(?:###\s*Document Analysis\s*—\s*Evidence-Bound First Pass|Ask Buddy prepared this evidence-bound first pass directly from matching extracted statements|###\s*TDC Ownership Signals|###\s*Cross-Team Dependency Signals|The document does not select a State Apportionment operating model or establish final TDC interface requirements)/i;
+
+/**
+ * Removes the retired extraction-only document response and its directly paired
+ * user prompt. This is intentionally narrow so valid prior conversations remain.
+ */
+export function removeRetiredExtractionConversationTurns(messages: SharedBuddyMessage[]) {
+  const retiredIndexes = new Set<number>();
+  messages.forEach((message, index) => {
+    if (message.role !== "assistant" || !RETIRED_EXTRACTION_RESPONSE.test(message.content)) return;
+    retiredIndexes.add(index);
+    if (messages[index - 1]?.role === "user") retiredIndexes.add(index - 1);
+  });
+  return messages.filter((_, index) => !retiredIndexes.has(index));
+}
 
 export function readSharedBuddyConversation(): SharedBuddyMessage[] {
   if (typeof window === "undefined") return [];
   try {
     const value = JSON.parse(window.localStorage.getItem(KEY) ?? "[]");
-    return Array.isArray(value) ? value.slice(-30) : [];
+    if (!Array.isArray(value)) return [];
+    const migrated = removeRetiredExtractionConversationTurns(value as SharedBuddyMessage[]).slice(-30);
+    if (migrated.length !== value.length) {
+      window.localStorage.setItem(KEY, JSON.stringify(migrated));
+    }
+    return migrated;
   } catch {
     return [];
   }
