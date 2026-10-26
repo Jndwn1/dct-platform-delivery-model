@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronDown, ChevronUp, ClipboardCopy, ExternalLink, FileText, LoaderCircle, Send, Sparkles, Upload } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -38,6 +38,18 @@ type MeetingRecord = {
   emailStatus: EmailStatus;
 };
 
+type RecapGenerationJob = {
+  id: string;
+  status: "Uploading" | "Queued" | "Running" | "Complete" | "Failed";
+  stage: string;
+  recapId: number | null;
+  failureMessage: string | null;
+  attemptCount: number;
+};
+
+const RECAP_UPLOAD_PART_BYTES = 384 * 1024;
+const ACTIVE_RECAP_JOB_KEY = "dct-meeting-recap-active-job";
+
 const fieldLabelStyle: React.CSSProperties = { color: "#64748b", fontSize: "10px", fontWeight: 850, letterSpacing: "0.08em", textTransform: "uppercase" };
 
 function displayDate(value: string) {
@@ -55,22 +67,25 @@ function emailStatusStyle(status: EmailStatus) {
   return styles[status];
 }
 
-function fileToBase64(file: File) {
+function filePartToBase64(file: File, start: number, end: number) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error("The transcript could not be read."));
-    reader.onload = () => resolve(String(reader.result));
-    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const dataUrl = String(reader.result);
+      resolve(dataUrl.replace(/^data:[^;]+;base64,/, ""));
+    };
+    reader.readAsDataURL(file.slice(start, end));
   });
 }
 
 function recapUploadErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   if (/Transcript analysis did not complete after two attempts/i.test(message)) {
-    return "The recap service did not complete within the safe processing window after an automatic retry. No recap was created. Keep the selected transcript and try again in a moment.";
+    return "The recap service did not complete within the safe processing window after an automatic retry. The transcript remains available; use Retry generation to try again.";
   }
   if (/Failed to fetch|request aborted|network error/i.test(message)) {
-    return "The connection closed before recap generation completed. No recap was created and the selected transcript remains available. Refresh the page, then try again; processing now stops early rather than waiting for the browser connection to expire.";
+    return "A small secure upload request was interrupted. The selected transcript remains available; select Generate Recap again to restart the upload without waiting for a long browser connection.";
   }
   return message || "The transcript could not be analyzed. Keep the selected file and try again.";
 }
@@ -244,28 +259,99 @@ export default function MeetingRecapsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedId, setSelectedId] = useState<number | undefined>();
   const [recapError, setRecapError] = useState<string | null>(null);
-  const createRecap = trpc.tdcMeetingRecaps.createFromTranscript.useMutation({
-    onSuccess: async (record) => {
-      await utils.tdcMeetingRecaps.list.invalidate();
-      setSelectedId(record.id);
-      setSelectedFile(null);
-      setRecapError(null);
-      window.setTimeout(() => document.getElementById(`meeting-recap-${record.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
-    },
-    onError: (error) => setRecapError(recapUploadErrorMessage(error)),
+  const [activeJobId, setActiveJobId] = useState<string | null>(() => {
+    try {
+      return window.localStorage.getItem(ACTIVE_RECAP_JOB_KEY);
+    } catch {
+      return null;
+    }
   });
+  const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null);
+  const createUpload = trpc.tdcMeetingRecaps.createUpload.useMutation();
+  const uploadPart = trpc.tdcMeetingRecaps.uploadPart.useMutation();
+  const queueGeneration = trpc.tdcMeetingRecaps.queueGeneration.useMutation();
+  const retryGeneration = trpc.tdcMeetingRecaps.retryGeneration.useMutation();
+  const activeJobInput = activeJobId
+    ? { jobId: activeJobId }
+    : { jobId: "00000000-0000-4000-8000-000000000000" };
+  const { data: activeJob, error: activeJobError } = trpc.tdcMeetingRecaps.generationStatus.useQuery(
+    activeJobInput,
+    {
+      enabled: Boolean(activeJobId),
+      refetchInterval: (query) => {
+        const status = (query.state.data as RecapGenerationJob | undefined)?.status;
+        return status === "Complete" || status === "Failed" ? false : 1_500;
+      },
+      retry: 2,
+    }
+  );
   const updateStatus = trpc.tdcMeetingRecaps.updateEmailStatus.useMutation({ onSuccess: () => utils.tdcMeetingRecaps.list.invalidate() });
   const records = meetingRecords as MeetingRecord[];
   const activeRecords = records.filter((record) => record.emailStatus !== "Sent");
   const sentRecords = records.filter((record) => record.emailStatus === "Sent");
   const selectedRecord = activeRecords.find((record) => record.id === selectedId) ?? activeRecords[0];
 
+  const recapJob = activeJob as RecapGenerationJob | undefined;
+  const isUploading = uploadProgress !== null;
+  const isGenerating = recapJob?.status === "Queued" || recapJob?.status === "Running";
+  const isRecapBusy = isUploading || createUpload.isPending || uploadPart.isPending || queueGeneration.isPending || isGenerating;
+
+  useEffect(() => {
+    if (!recapJob || recapJob.status !== "Complete" || !recapJob.recapId) return;
+    void utils.tdcMeetingRecaps.list.invalidate();
+    setSelectedId(recapJob.recapId);
+    setSelectedFile(null);
+    setUploadProgress(null);
+    setRecapError(null);
+    try {
+      window.localStorage.removeItem(ACTIVE_RECAP_JOB_KEY);
+    } catch {
+      // Local storage is only a convenience for restoring visible job progress.
+    }
+    window.setTimeout(() => document.getElementById(`meeting-recap-${recapJob.recapId}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+  }, [recapJob?.recapId, recapJob?.status, utils.tdcMeetingRecaps.list]);
+
   async function generateRecap() {
     if (!selectedFile) return;
     setRecapError(null);
+    setUploadProgress(null);
     try {
-      const fileBase64 = await fileToBase64(selectedFile);
-      createRecap.mutate({ fileName: selectedFile.name, mimeType: selectedFile.type || "application/octet-stream", fileBase64 });
+      const totalParts = Math.ceil(selectedFile.size / RECAP_UPLOAD_PART_BYTES);
+      const upload = await createUpload.mutateAsync({
+        fileName: selectedFile.name,
+        mimeType: selectedFile.type || "application/octet-stream",
+        fileSizeBytes: selectedFile.size,
+        totalParts,
+      });
+      setUploadProgress({ completed: 0, total: totalParts });
+
+      for (let partNumber = 0; partNumber < totalParts; partNumber += 1) {
+        const start = partNumber * RECAP_UPLOAD_PART_BYTES;
+        const end = Math.min(start + RECAP_UPLOAD_PART_BYTES, selectedFile.size);
+        const partBase64 = await filePartToBase64(selectedFile, start, end);
+        await uploadPart.mutateAsync({ uploadId: upload.uploadId, partNumber, partBase64 });
+        setUploadProgress({ completed: partNumber + 1, total: totalParts });
+      }
+
+      const job = await queueGeneration.mutateAsync({ uploadId: upload.uploadId });
+      setActiveJobId(job.id);
+      try {
+        window.localStorage.setItem(ACTIVE_RECAP_JOB_KEY, job.id);
+      } catch {
+        // Local storage is only a convenience for restoring visible job progress.
+      }
+      setUploadProgress(null);
+    } catch (error) {
+      setUploadProgress(null);
+      setRecapError(recapUploadErrorMessage(error));
+    }
+  }
+
+  async function retryActiveJob() {
+    if (!activeJobId) return;
+    setRecapError(null);
+    try {
+      await retryGeneration.mutateAsync({ jobId: activeJobId });
     } catch (error) {
       setRecapError(recapUploadErrorMessage(error));
     }
@@ -283,16 +369,19 @@ export default function MeetingRecapsPage() {
         <div style={{ borderLeft: "4px solid #7c3aed", marginBottom: "14px", paddingLeft: "12px" }}>
           <div style={{ color: "#7c3aed", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Daily recap generator</div>
           <h2 id="generate-daily-tdc-recap" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, margin: "4px 0 0" }}>Generate Daily TDC Standup Recap</h2>
-          <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>Upload the transcript from the TDC Daily Standup. Manus will generate the meeting recap email, DEV status table, action items, and tracker entry.</p>
+          <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>Upload the transcript from the TDC Daily Standup. Manus will create a tracked recap job, then generate the meeting recap email, DEV status table, action items, and tracker entry.</p>
         </div>
         <div style={{ background: "#ffffff", border: "1px solid #d8dee8", borderRadius: "10px", boxShadow: "0 2px 10px rgba(15,23,42,0.05)", padding: "18px" }}>
           <div style={{ background: "#f5f3ff", border: "1px solid #ddd6fe", borderRadius: "7px", color: "#5b21b6", fontSize: "11px", lineHeight: 1.5, marginBottom: "15px", padding: "10px 12px" }}><strong>Evidence control:</strong> The uploaded transcript is retained as the source. The generated recap uses only documented information; unclear details are marked <strong>Needs confirmation</strong>. Every new recap begins in <strong>Draft</strong> status.</div>
           <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" }}>
-            <label style={{ alignItems: "center", background: "#ffffff", border: "1px dashed #7c3aed", borderRadius: "6px", color: "#5b21b6", cursor: "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 12px" }}><Upload size={15} />{selectedFile ? selectedFile.name : "Choose transcript (.docx or .txt)"}<input type="file" accept=".docx,.txt" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} style={{ display: "none" }} /></label>
-            <button type="button" onClick={generateRecap} disabled={!selectedFile || createRecap.isPending} style={{ alignItems: "center", background: !selectedFile || createRecap.isPending ? "#94a3b8" : "#0f172a", border: "none", borderRadius: "6px", color: "#ffffff", cursor: !selectedFile || createRecap.isPending ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 13px" }}>{createRecap.isPending ? <LoaderCircle className="animate-spin" size={15} /> : <Sparkles size={15} />}{createRecap.isPending ? "Analyzing transcript…" : "Generate Recap"}</button>
-            <span style={{ color: "#64748b", fontSize: "11px" }}>No manual re-entry required. Longer transcripts are distilled in parallel; each analysis is time-bounded and retries once automatically.</span>
+            <label style={{ alignItems: "center", background: "#ffffff", border: "1px dashed #7c3aed", borderRadius: "6px", color: "#5b21b6", cursor: "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 12px", position: "relative" }}><Upload size={15} />{selectedFile ? selectedFile.name : "Choose transcript (.docx or .txt)"}<input aria-label="Upload TDC Daily Standup transcript" type="file" accept=".docx,.txt" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} style={{ height: "1px", opacity: 0, overflow: "hidden", position: "absolute", width: "1px" }} /></label>
+            <button type="button" onClick={generateRecap} disabled={!selectedFile || isRecapBusy} style={{ alignItems: "center", background: !selectedFile || isRecapBusy ? "#94a3b8" : "#0f172a", border: "none", borderRadius: "6px", color: "#ffffff", cursor: !selectedFile || isRecapBusy ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 13px" }}>{isRecapBusy ? <LoaderCircle className="animate-spin" size={15} /> : <Sparkles size={15} />}{isUploading ? "Uploading transcript…" : isGenerating ? "Generating recap…" : "Generate Recap"}</button>
+            <span style={{ color: "#64748b", fontSize: "11px" }}>The transcript uploads in small secure parts; recap generation then continues as a tracked job if you refresh the page. Longer transcripts are distilled in parallel, time-bounded, and retried once automatically.</span>
           </div>
-          {(recapError || createRecap.error) && <div role="alert" style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", color: "#991b1b", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}>{recapError ?? recapUploadErrorMessage(createRecap.error)}</div>}
+          {uploadProgress && <div aria-live="polite" style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", color: "#1e3a8a", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}><strong>Secure upload in progress:</strong> uploaded part {uploadProgress.completed} of {uploadProgress.total}. The browser only sends a small part at a time.</div>}
+          {recapJob && <div aria-live="polite" style={{ background: recapJob.status === "Failed" ? "#fef2f2" : recapJob.status === "Complete" ? "#ecfdf5" : "#eff6ff", border: `1px solid ${recapJob.status === "Failed" ? "#fecaca" : recapJob.status === "Complete" ? "#a7f3d0" : "#bfdbfe"}`, borderRadius: "6px", color: recapJob.status === "Failed" ? "#991b1b" : recapJob.status === "Complete" ? "#047857" : "#1e3a8a", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}><strong>{recapJob.status === "Complete" ? "Recap draft ready:" : recapJob.status === "Failed" ? "Recap generation needs attention:" : "Recap generation in progress:"}</strong> {recapJob.failureMessage || recapJob.stage}{recapJob.status === "Failed" && <button type="button" onClick={retryActiveJob} disabled={retryGeneration.isPending} style={{ background: "#ffffff", border: "1px solid #dc2626", borderRadius: "5px", color: "#991b1b", cursor: retryGeneration.isPending ? "not-allowed" : "pointer", fontSize: "10px", fontWeight: 850, marginLeft: "10px", padding: "5px 7px" }}>{retryGeneration.isPending ? "Retrying…" : "Retry generation"}</button>}</div>}
+          {activeJobError && <div role="alert" style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "6px", color: "#9a3412", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}>The recap status could not be refreshed. Refresh the page; the uploaded transcript and recap job remain retained.</div>}
+          {recapError && <div role="alert" style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", color: "#991b1b", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}>{recapError}</div>}
         </div>
       </section>
 

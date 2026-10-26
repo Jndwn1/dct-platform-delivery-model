@@ -345,3 +345,4 @@
 - [x] Retain completed document context for direct conversational follow-up analysis
 - [x] Make Ask Buddy reasoning-first and intent-led, with direct document follow-ups, trackable ADO dependency recommendations, and explicit no-live-ADO disclosure
 - [x] Remove only retired extraction-style and stale State assessment turns from saved Ask Buddy conversations
+- [x] Replace the long-running Meeting Recaps transcript mutation with durable bounded uploads and tracked recap-generation jobs

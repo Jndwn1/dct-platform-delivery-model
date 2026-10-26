@@ -48,7 +48,7 @@ const trpcClient = trpc.createClient({
       condition(op) {
         return (
           op.type === "mutation" &&
-          (op.path === "tdcMeetingRecaps.createFromTranscript" ||
+          (op.path.startsWith("tdcMeetingRecaps.") ||
             op.path === "dataMapping.uploadArtifact" ||
             op.path === "askBuddy.uploadAttachment" ||
             op.path === "askBuddy.chat")

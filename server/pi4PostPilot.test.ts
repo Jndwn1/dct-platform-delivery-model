@@ -344,14 +344,17 @@ describe("PI4 Pilot delivery", () => {
     expect(page).toContain('const sentRecords = records.filter((record) => record.emailStatus === "Sent")');
     expect(page).toContain('if (record.emailStatus === "Sent") return null;');
     expect(page).toContain("Open transcript");
-    expect(page).toContain("No manual re-entry required.");
-    expect(page).toContain("trpc.tdcMeetingRecaps.createFromTranscript.useMutation");
+    expect(page).toContain("trpc.tdcMeetingRecaps.createUpload.useMutation()");
+    expect(page).toContain("trpc.tdcMeetingRecaps.generationStatus.useQuery(");
+    expect(page).toContain("Retry generation");
     expect(router).toContain("tdcMeetingRecaps: router");
-    expect(router).toContain("createFromTranscript");
+    expect(router).toContain("createUpload");
+    expect(router).toContain("queueGeneration");
+    expect(router).toContain("generationStatus");
     expect(router).toContain("updateEmailStatus");
-    expect(router).toContain("mammoth.extractRawText");
     expect(schema).toContain('tdcMeetingRecaps = mysqlTable("tdc_meeting_recaps"');
     expect(schema).toContain('emailStatus: mysqlEnum("tdcMeetingRecapEmailStatus", ["Draft", "Reviewed", "Sent"])');
+    expect(schema).toContain('tdcMeetingRecapJobs = mysqlTable("tdc_meeting_recap_jobs"');
   });
 
   it("adds an evidence-bound State Taxonomy readiness workspace beneath Pilot", () => {

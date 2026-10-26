@@ -15,8 +15,16 @@ import { createMappingCandidates, isMappableArtifactField, mappingReadiness, par
 import { analyzeStateInputReferenceContract, buildStateContractMappingWorkbook } from "./stateContractAnalysis";
 import { buildMasterDataEvidence, isMasterDataQuestion, MASTER_DATA_ANSWER_FALLBACK, selectAuthoritativeMasterDataArtifact } from "./masterDataRegistry";
 import { buildAttachmentEvidenceFallback, parseAskBuddyAttachmentRecord, parseStructuredAttachmentFields, prepareAskBuddyAttachment } from "./askBuddyAttachmentEngine";
-import mammoth from "mammoth";
-import { analyzeTdcStandupTranscript, buildTdcStandupEmail, formatMeetingDate } from "./meetingRecaps";
+import {
+  createMeetingRecapUpload,
+  getMeetingRecapJobStatus,
+  MAX_RECAP_UPLOAD_BYTES,
+  MAX_RECAP_UPLOAD_PARTS,
+  queueMeetingRecapGeneration,
+  RECAP_UPLOAD_PART_BYTES,
+  retryMeetingRecapGeneration,
+  uploadMeetingRecapPart,
+} from "./meetingRecapJobs";
 
 const DCT_PLATFORM_QUESTION = /\b(dct|tdc|pdc|roger|ims|gosystem|tax portal|control panel|swagger|openapi|batch|gate|guardrail|lineage|adrs?|ado|pilot|mvp|state taxonomy)\b/i;
 const ADO_URL_PATTERN = /https?:\/\/dev\.azure\.com\/[^\s)\]]+\/[^\s)\]]*\/_workitems\/edit\/(\d{4,})[^\s)\]]*/gi;
@@ -1147,79 +1155,30 @@ ${input.notes}` as string },
         decisionsCallouts: JSON.parse(record.decisionsCalloutsJson) as string[],
       }));
     }),
-    createFromTranscript: publicProcedure
+    createUpload: publicProcedure
       .input(z.object({
         fileName: z.string().min(1).max(512),
         mimeType: z.string().min(1).max(128),
-        fileBase64: z.string().min(1).max(16 * 1024 * 1024),
+        fileSizeBytes: z.number().int().positive().max(MAX_RECAP_UPLOAD_BYTES),
+        totalParts: z.number().int().positive().max(MAX_RECAP_UPLOAD_PARTS),
       }))
-      .mutation(async ({ input, ctx }) => {
-        if (!/\.(docx|txt)$/i.test(input.fileName)) {
-          throw new Error("Upload a TDC Daily Standup transcript in DOCX or TXT format.");
-        }
-        const encoded = input.fileBase64.replace(/^data:[^;]+;base64,/, "");
-        const buffer = Buffer.from(encoded, "base64");
-        if (buffer.length > 10 * 1024 * 1024) throw new Error("Transcripts must be 10 MB or smaller.");
-
-        let transcriptText = "";
-        if (/\.docx$/i.test(input.fileName)) {
-          const extracted = await mammoth.extractRawText({ buffer });
-          transcriptText = extracted.value;
-        } else {
-          transcriptText = buffer.toString("utf8");
-        }
-        transcriptText = transcriptText.trim();
-        if (transcriptText.length < 80) throw new Error("The uploaded transcript does not contain enough readable text to generate a recap.");
-
-        const analysis = await analyzeTdcStandupTranscript(transcriptText);
-        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const stored = await storagePut(`tdc-meeting-recaps/${Date.now()}-${safeName}`, buffer, input.mimeType);
-        const dateLabel = formatMeetingDate(analysis.meetingDate);
-        const emailSubject = `TDC Daily Standup Recap — ${dateLabel}`;
-        const emailBody = buildTdcStandupEmail(analysis);
-
-        const db = await getDb();
-        if (!db) throw new Error("The Meeting Recap Tracker is unavailable. Please try again.");
-        await db.insert(tdcMeetingRecaps).values({
-          meetingDate: analysis.meetingDate,
-          meetingTitle: analysis.meetingTitle,
-          sprint: analysis.sprint,
-          attendeesJson: JSON.stringify(analysis.attendees),
-          keyFocusJson: JSON.stringify(analysis.keyFocus),
-          transcriptFileName: input.fileName,
-          transcriptStorageUrl: stored.url,
-          transcriptText,
-          emailSubject,
-          emailBody,
-          developerUpdatesJson: JSON.stringify(analysis.developerUpdates),
-          actionItemsJson: JSON.stringify(analysis.actionItems),
-          blockersRisksJson: JSON.stringify(analysis.blockersRisks),
-          decisionsCalloutsJson: JSON.stringify(analysis.decisionsCallouts),
-          notes: analysis.notes,
-          emailStatus: "Draft",
-          createdBy: ctx.user?.name ?? null,
-        });
-        const [record] = await db.select().from(tdcMeetingRecaps).orderBy(desc(tdcMeetingRecaps.id)).limit(1);
-        if (!record) throw new Error("The generated recap could not be saved.");
-        return {
-          id: Number(record.id),
-          meetingDate: record.meetingDate,
-          meetingTitle: record.meetingTitle,
-          sprint: record.sprint,
-          transcriptFileName: record.transcriptFileName,
-          transcriptStorageUrl: record.transcriptStorageUrl,
-          emailSubject: record.emailSubject,
-          emailBody: record.emailBody,
-          notes: record.notes,
-          emailStatus: record.emailStatus,
-          attendees: analysis.attendees,
-          keyFocus: analysis.keyFocus,
-          developerUpdates: analysis.developerUpdates,
-          actionItems: analysis.actionItems,
-          blockersRisks: analysis.blockersRisks,
-          decisionsCallouts: analysis.decisionsCallouts,
-        };
-      }),
+      .mutation(({ input, ctx }) => createMeetingRecapUpload({ ...input, createdBy: ctx.user?.name ?? null })),
+    uploadPart: publicProcedure
+      .input(z.object({
+        uploadId: z.string().uuid(),
+        partNumber: z.number().int().nonnegative(),
+        partBase64: z.string().min(1).max(Math.ceil((RECAP_UPLOAD_PART_BYTES * 4) / 3) + 4_096),
+      }))
+      .mutation(({ input }) => uploadMeetingRecapPart(input)),
+    queueGeneration: publicProcedure
+      .input(z.object({ uploadId: z.string().uuid() }))
+      .mutation(({ input }) => queueMeetingRecapGeneration(input.uploadId)),
+    retryGeneration: publicProcedure
+      .input(z.object({ jobId: z.string().uuid() }))
+      .mutation(({ input }) => retryMeetingRecapGeneration(input.jobId)),
+    generationStatus: publicProcedure
+      .input(z.object({ jobId: z.string().uuid() }))
+      .query(({ input }) => getMeetingRecapJobStatus(input.jobId)),
     updateEmailStatus: publicProcedure
       .input(z.object({ id: z.number().int().positive(), emailStatus: z.enum(["Draft", "Reviewed", "Sent"]) }))
       .mutation(async ({ input }) => {

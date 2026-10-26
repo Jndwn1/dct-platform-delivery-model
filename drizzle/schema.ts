@@ -164,6 +164,34 @@ export const tdcMeetingRecaps = mysqlTable("tdc_meeting_recaps", {
 export type TdcMeetingRecap = typeof tdcMeetingRecaps.$inferSelect;
 export type InsertTdcMeetingRecap = typeof tdcMeetingRecaps.$inferInsert;
 
+// ─── TDC Meeting Recap Upload and Generation Jobs ───────────────────────────
+/**
+ * Durable state for a transcript upload and its recap-generation work. File
+ * parts are persisted in built-in storage rather than held in a browser request
+ * or server memory, so a long-running analysis does not depend on an open
+ * browser connection.
+ */
+export const tdcMeetingRecapJobs = mysqlTable("tdc_meeting_recap_jobs", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  transcriptFileName: varchar("transcriptFileName", { length: 512 }).notNull(),
+  mimeType: varchar("mimeType", { length: 128 }).notNull(),
+  fileSizeBytes: int("fileSizeBytes").notNull(),
+  totalParts: int("totalParts").notNull(),
+  /** JSON array of uploaded storage URLs and their verified byte lengths. */
+  uploadedPartsJson: mediumtext("uploadedPartsJson").notNull(),
+  status: mysqlEnum("tdcMeetingRecapJobStatus", ["Uploading", "Queued", "Running", "Complete", "Failed"]).default("Uploading").notNull(),
+  stage: varchar("stage", { length: 128 }).notNull().default("Preparing upload"),
+  recapId: int("recapId"),
+  failureMessage: text("failureMessage"),
+  attemptCount: int("attemptCount").notNull().default(0),
+  createdBy: varchar("createdBy", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TdcMeetingRecapJob = typeof tdcMeetingRecapJobs.$inferSelect;
+export type InsertTdcMeetingRecapJob = typeof tdcMeetingRecapJobs.$inferInsert;
+
 // ─── Deployment Screens ──────────────────────────────────────────────────────
 /**
  * Per-screen release notes for a deployment.
