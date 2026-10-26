@@ -33,6 +33,10 @@ describe("Meeting Recaps transport", () => {
     expect(page).toContain("Generate Email Draft");
     expect(page).toContain("Email Draft Ready");
     expect(page).toContain("Mark Reviewed");
+    expect(page).toContain('"Email Actions"');
+    expect(page).toContain("Generate Email Recap");
+    expect(page).toContain("Mark Read");
+    expect(page).toContain('emailStatus: "Reviewed"');
     expect(page).toContain("continues as a tracked job if you refresh the page");
     expect(page).not.toContain("createFromTranscript.useMutation");
     expect(page).not.toContain("fileToBase64(selectedFile)");
