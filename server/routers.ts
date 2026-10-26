@@ -1179,6 +1179,26 @@ ${input.notes}` as string },
     generationStatus: publicProcedure
       .input(z.object({ jobId: z.string().uuid() }))
       .query(({ input }) => getMeetingRecapJobStatus(input.jobId)),
+    generateEmailDraft: publicProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("The Meeting Recap Tracker is unavailable. Please try again.");
+        const [record] = await db
+          .select({ emailBody: tdcMeetingRecaps.emailBody, emailStatus: tdcMeetingRecaps.emailStatus })
+          .from(tdcMeetingRecaps)
+          .where(eq(tdcMeetingRecaps.id, input.id))
+          .limit(1);
+        if (!record) throw new Error("The selected meeting recap could not be found.");
+        if (record.emailStatus === "Sent") {
+          throw new Error("This meeting recap is already marked Sent and remains in delivery history. Select an active Draft or Reviewed recap to prepare its email draft.");
+        }
+        if (!record.emailBody.trim()) {
+          throw new Error("This meeting recap does not have a retained email draft to prepare.");
+        }
+        await db.update(tdcMeetingRecaps).set({ emailStatus: "Draft" }).where(eq(tdcMeetingRecaps.id, input.id));
+        return { success: true, id: input.id, emailStatus: "Draft" as const };
+      }),
     updateEmailStatus: publicProcedure
       .input(z.object({ id: z.number().int().positive(), emailStatus: z.enum(["Draft", "Reviewed", "Sent"]) }))
       .mutation(async ({ input }) => {

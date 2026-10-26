@@ -179,7 +179,7 @@ function SentRecapHistory({ records }: { records: MeetingRecord[] }) {
   );
 }
 
-function MeetingRecordDetail({ record, onStatusChange }: { record: MeetingRecord; onStatusChange: (status: EmailStatus) => void }) {
+function MeetingRecordDetail({ record, onGenerateEmailDraft, onStatusChange, isEmailDraftReady, isGeneratingEmailDraft }: { record: MeetingRecord; onGenerateEmailDraft: () => void; onStatusChange: (status: EmailStatus) => void; isEmailDraftReady: boolean; isGeneratingEmailDraft: boolean }) {
   const [expanded, setExpanded] = useState(true);
   const [emailCopied, setEmailCopied] = useState(false);
 
@@ -209,6 +209,7 @@ function MeetingRecordDetail({ record, onStatusChange }: { record: MeetingRecord
         </div>
         <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" }}>
           <StatusPill status={record.emailStatus} />
+          <button type="button" onClick={onGenerateEmailDraft} disabled={isGeneratingEmailDraft} style={{ alignItems: "center", background: isEmailDraftReady ? "#047857" : "#1e3a5f", border: `1px solid ${isEmailDraftReady ? "#047857" : "#1e3a5f"}`, borderRadius: "6px", color: "#ffffff", cursor: isGeneratingEmailDraft ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", opacity: isGeneratingEmailDraft ? 0.7 : 1, padding: "7px 9px" }}><Sparkles size={13} />{isGeneratingEmailDraft ? "Generating Email Draft…" : isEmailDraftReady ? "Email Draft Ready" : "Generate Email Draft"}</button>
           {record.emailStatus === "Draft" && <button type="button" onClick={() => onStatusChange("Reviewed")} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #d97706", borderRadius: "6px", color: "#92400e", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "7px 9px" }}><Check size={13} />Mark Reviewed</button>}
           <button type="button" onClick={() => onStatusChange("Sent")} style={{ alignItems: "center", background: "#0f766e", border: "1px solid #0f766e", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "7px 9px" }}><Send size={13} />Mark Sent</button>
           <button type="button" onClick={() => setExpanded((value) => !value)} style={{ background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: "6px", color: "#475569", cursor: "pointer", display: "inline-flex", padding: "7px" }} aria-label={expanded ? "Collapse meeting recap" : "Expand meeting recap"}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
@@ -259,6 +260,7 @@ export default function MeetingRecapsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedId, setSelectedId] = useState<number | undefined>();
   const [recapError, setRecapError] = useState<string | null>(null);
+  const [emailDraftReadyId, setEmailDraftReadyId] = useState<number | null>(null);
   const [activeJobId, setActiveJobId] = useState<string | null>(() => {
     try {
       return window.localStorage.getItem(ACTIVE_RECAP_JOB_KEY);
@@ -286,6 +288,14 @@ export default function MeetingRecapsPage() {
     }
   );
   const updateStatus = trpc.tdcMeetingRecaps.updateEmailStatus.useMutation({ onSuccess: () => utils.tdcMeetingRecaps.list.invalidate() });
+  const generateEmailDraft = trpc.tdcMeetingRecaps.generateEmailDraft.useMutation({
+    onSuccess: (_result, variables) => {
+      void utils.tdcMeetingRecaps.list.invalidate();
+      setEmailDraftReadyId(variables.id);
+      window.setTimeout(() => setEmailDraftReadyId((current) => current === variables.id ? null : current), 3_000);
+    },
+    onError: (error) => setRecapError(recapUploadErrorMessage(error)),
+  });
   const records = meetingRecords as MeetingRecord[];
   const activeRecords = records.filter((record) => record.emailStatus !== "Sent");
   const sentRecords = records.filter((record) => record.emailStatus === "Sent");
@@ -367,15 +377,15 @@ export default function MeetingRecapsPage() {
 
       <section aria-labelledby="generate-daily-tdc-recap">
         <div style={{ borderLeft: "4px solid #7c3aed", marginBottom: "14px", paddingLeft: "12px" }}>
-          <div style={{ color: "#7c3aed", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Daily email-draft generator</div>
-          <h2 id="generate-daily-tdc-recap" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, margin: "4px 0 0" }}>Generate Daily Recap Email Draft</h2>
-          <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>Choose the TDC Daily Standup transcript, then select <strong>Generate Email Draft</strong>. Manus will create the Outlook-ready recap email in Draft status, along with the DEV status table, action items, and tracker entry.</p>
+          <div style={{ color: "#7c3aed", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Daily recap generator</div>
+          <h2 id="generate-daily-tdc-recap" style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, margin: "4px 0 0" }}>Generate Daily TDC Standup Recap</h2>
+          <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>Upload the transcript from the TDC Daily Standup. Manus will create a tracked recap job, then generate the meeting recap email, DEV status table, action items, and tracker entry.</p>
         </div>
         <div style={{ background: "#ffffff", border: "1px solid #d8dee8", borderRadius: "10px", boxShadow: "0 2px 10px rgba(15,23,42,0.05)", padding: "18px" }}>
           <div style={{ background: "#f5f3ff", border: "1px solid #ddd6fe", borderRadius: "7px", color: "#5b21b6", fontSize: "11px", lineHeight: 1.5, marginBottom: "15px", padding: "10px 12px" }}><strong>Evidence control:</strong> The uploaded transcript is retained as the source. The generated recap uses only documented information; unclear details are marked <strong>Needs confirmation</strong>. Every new recap begins in <strong>Draft</strong> status.</div>
           <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" }}>
             <label style={{ alignItems: "center", background: "#ffffff", border: "1px dashed #7c3aed", borderRadius: "6px", color: "#5b21b6", cursor: "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 12px", position: "relative" }}><Upload size={15} />{selectedFile ? selectedFile.name : "Choose transcript (.docx or .txt)"}<input aria-label="Upload TDC Daily Standup transcript" type="file" accept=".docx,.txt" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} style={{ height: "1px", opacity: 0, overflow: "hidden", position: "absolute", width: "1px" }} /></label>
-            <button type="button" onClick={generateRecap} disabled={!selectedFile || isRecapBusy} style={{ alignItems: "center", background: !selectedFile || isRecapBusy ? "#94a3b8" : "#0f172a", border: "none", borderRadius: "6px", color: "#ffffff", cursor: !selectedFile || isRecapBusy ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 13px" }}>{isRecapBusy ? <LoaderCircle className="animate-spin" size={15} /> : <Sparkles size={15} />}{isUploading ? "Uploading transcript…" : isGenerating ? "Generating email draft…" : "Generate Email Draft"}</button>
+            <button type="button" onClick={generateRecap} disabled={!selectedFile || isRecapBusy} style={{ alignItems: "center", background: !selectedFile || isRecapBusy ? "#94a3b8" : "#0f172a", border: "none", borderRadius: "6px", color: "#ffffff", cursor: !selectedFile || isRecapBusy ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 13px" }}>{isRecapBusy ? <LoaderCircle className="animate-spin" size={15} /> : <Sparkles size={15} />}{isUploading ? "Uploading transcript…" : isGenerating ? "Generating recap…" : "Generate Recap"}</button>
             <span style={{ color: "#64748b", fontSize: "11px" }}>The transcript uploads in small secure parts; recap generation then continues as a tracked job if you refresh the page. Longer transcripts are distilled in parallel, time-bounded, and retried once automatically.</span>
           </div>
           {uploadProgress && <div aria-live="polite" style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", color: "#1e3a8a", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}><strong>Secure upload in progress:</strong> uploaded part {uploadProgress.completed} of {uploadProgress.total}. The browser only sends a small part at a time.</div>}
@@ -388,7 +398,7 @@ export default function MeetingRecapsPage() {
       {isLoading ? <div style={{ color: "#64748b", fontSize: "12px", padding: "28px 0", textAlign: "center" }}>Loading meeting recap history…</div> : isMeetingHistoryError ? <div role="alert" style={{ alignItems: "center", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "8px", color: "#9a3412", display: "flex", flexWrap: "wrap", fontSize: "12px", gap: "12px", justifyContent: "space-between", marginTop: "28px", padding: "14px 16px" }}><span><strong>Meeting recap history could not be loaded.</strong> The connection was interrupted after automatic retries; no recap records were changed.</span><button type="button" onClick={() => void refetchMeetingHistory()} style={{ background: "#ffffff", border: "1px solid #d97706", borderRadius: "6px", color: "#92400e", cursor: "pointer", fontSize: "11px", fontWeight: 850, padding: "7px 10px" }}>Retry loading history</button></div> : <>
         <Tracker records={activeRecords} selectedId={selectedRecord?.id} onSelect={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-recap-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} onSelectAction={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-action-items-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} />
         <SentRecapHistory records={sentRecords} />
-        {selectedRecord && <MeetingRecordDetail record={selectedRecord} onStatusChange={(emailStatus) => updateStatus.mutate({ id: selectedRecord.id, emailStatus })} />}
+        {selectedRecord && <MeetingRecordDetail record={selectedRecord} onGenerateEmailDraft={() => generateEmailDraft.mutate({ id: selectedRecord.id })} onStatusChange={(emailStatus) => updateStatus.mutate({ id: selectedRecord.id, emailStatus })} isEmailDraftReady={emailDraftReadyId === selectedRecord.id} isGeneratingEmailDraft={generateEmailDraft.isPending} />}
       </>}
     </div>
   );
