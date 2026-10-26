@@ -334,7 +334,7 @@ describe("PI4 Pilot delivery", () => {
     expect(app).toContain('path="/post-pilot/meeting-recaps" component={MeetingRecapsPage}');
     expect(sidebar).toContain('label: "Meeting Recaps", path: "/post-pilot/meeting-recaps"');
     expect(page).toContain("TDC Daily Standup — Meeting Recaps");
-    expect(page).toContain("Generate Daily TDC Standup Recap");
+    expect(page).toContain("Generate Daily Recap Email Draft");
     expect(page).toContain("TDC Meeting Recap Tracker");
     expect(page).toContain("Copy Email for Outlook");
     expect(page).toContain("Mark Sent");

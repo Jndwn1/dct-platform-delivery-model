@@ -27,6 +27,8 @@ describe("Meeting Recaps transport", () => {
     expect(page).toContain("trpc.tdcMeetingRecaps.queueGeneration.useMutation()");
     expect(page).toContain("trpc.tdcMeetingRecaps.generationStatus.useQuery(");
     expect(page).toContain("Retry generation");
+    expect(page).toContain("Generate Daily Recap Email Draft");
+    expect(page).toContain("Generate Email Draft");
     expect(page).toContain("continues as a tracked job if you refresh the page");
     expect(page).not.toContain("createFromTranscript.useMutation");
     expect(page).not.toContain("fileToBase64(selectedFile)");
