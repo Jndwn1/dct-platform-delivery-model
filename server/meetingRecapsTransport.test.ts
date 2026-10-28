@@ -40,6 +40,12 @@ describe("Meeting Recaps transport", () => {
     expect(page).toContain("Mark Reviewed");
     expect(page).toContain('"Email Actions"');
     expect(page).toContain("Generate Email Recap");
+    expect(page).toContain("Open Email Draft");
+    expect(page).toContain("function openEmailDraft(id: number)");
+    expect(page).toContain("Direct re-access is view-only");
+    expect(page).toContain("<SentRecapHistory records={sentRecords} onOpenEmailDraft={openEmailDraft} />");
+    expect(page).toContain('["Meeting Date", "Key Focus", "Email Draft", "Transcript"]');
+    expect(page).toContain('record.emailStatus !== "Sent" && <button');
     expect(page).toContain("Mark Read");
     expect(page).toContain('emailStatus: "Reviewed"');
     expect(page).toContain("DIRECT_RECAP_UPLOAD_MAX_BYTES = 10 * 1024 * 1024");

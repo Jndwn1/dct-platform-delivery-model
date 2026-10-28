@@ -339,10 +339,10 @@ describe("PI4 Pilot delivery", () => {
     expect(page).toContain("Copy Email for Outlook");
     expect(page).toContain("Mark Sent");
     expect(page).toContain("Sent Meeting Recaps");
-    expect(page).toContain('["Meeting Date", "Key Focus", "Transcript"]');
+    expect(page).toContain('["Meeting Date", "Key Focus", "Email Draft", "Transcript"]');
     expect(page).toContain('const activeRecords = records.filter((record) => record.emailStatus !== "Sent")');
     expect(page).toContain('const sentRecords = records.filter((record) => record.emailStatus === "Sent")');
-    expect(page).toContain('if (record.emailStatus === "Sent") return null;');
+    expect(page).toContain("This retained email is available for reference and copy; its sent status will not change.");
     expect(page).toContain("Open transcript");
     expect(page).toContain("uploadTranscriptDirectly(selectedFile)");
     expect(page).toContain('fetch("/api/tdc-meeting-recaps/upload"');

@@ -137,7 +137,7 @@ function StatusPill({ status }: { status: EmailStatus }) {
   return <span style={{ background: colors.background, border: `1px solid ${colors.border}`, borderRadius: "999px", color: colors.color, fontSize: "10px", fontWeight: 850, padding: "3px 7px", whiteSpace: "nowrap" }}>{status}</span>;
 }
 
-function Tracker({ records, onGenerateEmailRecap, onMarkRead, onSelect, onSelectAction, selectedId, emailDraftReadyId, isGeneratingEmailDraft, isMarkingRead }: { records: MeetingRecord[]; onGenerateEmailRecap: (id: number) => void; onMarkRead: (id: number) => void; onSelect: (id: number) => void; onSelectAction: (id: number) => void; selectedId?: number; emailDraftReadyId: number | null; isGeneratingEmailDraft: boolean; isMarkingRead: boolean }) {
+function Tracker({ records, onGenerateEmailRecap, onOpenEmailDraft, onMarkRead, onSelect, onSelectAction, selectedId, emailDraftReadyId, isGeneratingEmailDraft, isMarkingRead }: { records: MeetingRecord[]; onGenerateEmailRecap: (id: number) => void; onOpenEmailDraft: (id: number) => void; onMarkRead: (id: number) => void; onSelect: (id: number) => void; onSelectAction: (id: number) => void; selectedId?: number; emailDraftReadyId: number | null; isGeneratingEmailDraft: boolean; isMarkingRead: boolean }) {
   return (
     <section aria-labelledby="tdc-meeting-recap-tracker" style={{ marginTop: "30px" }}>
       <div style={{ borderLeft: "4px solid #1e3a5f", marginBottom: "14px", paddingLeft: "12px" }}>
@@ -158,7 +158,7 @@ function Tracker({ records, onGenerateEmailRecap, onMarkRead, onSelect, onSelect
                 <td style={{ color: "#475569", fontSize: "11px", padding: "11px 12px" }}>{record.sprint}</td>
                 <td style={{ color: "#475569", fontSize: "11px", maxWidth: "240px", padding: "11px 12px" }}>{record.keyFocus.length ? record.keyFocus.join(" · ") : "Not specified"}</td>
                 <td style={{ padding: "11px 12px" }}><StatusPill status={record.emailStatus} /></td>
-                <td style={{ padding: "11px 12px" }}><div style={{ display: "flex", flexWrap: "wrap", gap: "6px", minWidth: "190px" }}><button type="button" onClick={() => onGenerateEmailRecap(record.id)} disabled={isGeneratingEmailDraft} style={{ alignItems: "center", background: emailDraftReadyId === record.id ? "#047857" : "#1e3a5f", border: `1px solid ${emailDraftReadyId === record.id ? "#047857" : "#1e3a5f"}`, borderRadius: "5px", color: "#ffffff", cursor: isGeneratingEmailDraft ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 850, gap: "4px", opacity: isGeneratingEmailDraft ? 0.7 : 1, padding: "6px 7px", whiteSpace: "nowrap" }}><Sparkles size={12} />{isGeneratingEmailDraft ? "Generating…" : emailDraftReadyId === record.id ? "Email Ready" : "Generate Email Recap"}</button>{record.emailStatus === "Draft" && <button type="button" onClick={() => onMarkRead(record.id)} disabled={isMarkingRead} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #d97706", borderRadius: "5px", color: "#92400e", cursor: isMarkingRead ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 850, gap: "4px", opacity: isMarkingRead ? 0.7 : 1, padding: "6px 7px", whiteSpace: "nowrap" }}><Check size={12} />Mark Read</button>}</div></td>
+                <td style={{ padding: "11px 12px" }}><div style={{ display: "flex", flexWrap: "wrap", gap: "6px", minWidth: "290px" }}><button type="button" onClick={() => onGenerateEmailRecap(record.id)} disabled={isGeneratingEmailDraft} style={{ alignItems: "center", background: emailDraftReadyId === record.id ? "#047857" : "#1e3a5f", border: `1px solid ${emailDraftReadyId === record.id ? "#047857" : "#1e3a5f"}`, borderRadius: "5px", color: "#ffffff", cursor: isGeneratingEmailDraft ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 850, gap: "4px", opacity: isGeneratingEmailDraft ? 0.7 : 1, padding: "6px 7px", whiteSpace: "nowrap" }}><Sparkles size={12} />{isGeneratingEmailDraft ? "Generating…" : emailDraftReadyId === record.id ? "Email Ready" : "Generate Email Recap"}</button><button type="button" onClick={() => onOpenEmailDraft(record.id)} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #1e3a5f", borderRadius: "5px", color: "#1e3a5f", cursor: "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 850, gap: "4px", padding: "6px 7px", whiteSpace: "nowrap" }}><ExternalLink size={12} />Open Email Draft</button>{record.emailStatus === "Draft" && <button type="button" onClick={() => onMarkRead(record.id)} disabled={isMarkingRead} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #d97706", borderRadius: "5px", color: "#92400e", cursor: isMarkingRead ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 850, gap: "4px", opacity: isMarkingRead ? 0.7 : 1, padding: "6px 7px", whiteSpace: "nowrap" }}><Check size={12} />Mark Read</button>}</div></td>
                 <td style={{ padding: "11px 12px" }}><button type="button" onClick={() => onSelectAction(record.id)} style={{ background: "none", border: "none", color: "#0f766e", cursor: "pointer", fontSize: "11px", fontWeight: 850, padding: 0 }}>{record.actionItems.length} item{record.actionItems.length === 1 ? "" : "s"}</button></td>
                 <td style={{ padding: "11px 12px" }}><a href={record.transcriptStorageUrl} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", color: "#1d4ed8", display: "inline-flex", fontSize: "11px", fontWeight: 800, gap: "4px", textDecoration: "none" }}><FileText size={12} />Open</a></td>
                 <td style={{ color: "#64748b", fontSize: "11px", maxWidth: "230px", padding: "11px 12px" }}>{record.notes || "—"}</td>
@@ -171,7 +171,7 @@ function Tracker({ records, onGenerateEmailRecap, onMarkRead, onSelect, onSelect
   );
 }
 
-function SentRecapHistory({ records }: { records: MeetingRecord[] }) {
+function SentRecapHistory({ records, onOpenEmailDraft }: { records: MeetingRecord[]; onOpenEmailDraft: (id: number) => void }) {
   return (
     <section aria-labelledby="sent-meeting-recaps" style={{ marginTop: "30px" }}>
       <div style={{ borderLeft: "4px solid #059669", marginBottom: "14px", paddingLeft: "12px" }}>
@@ -184,11 +184,12 @@ function SentRecapHistory({ records }: { records: MeetingRecord[] }) {
           <div style={{ color: "#64748b", fontSize: "12px", padding: "22px 28px", textAlign: "center" }}>No meeting recap emails have been marked Sent.</div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "650px", width: "100%" }}>
-              <thead><tr style={{ background: "#064e3b", textAlign: "left" }}>{["Meeting Date", "Key Focus", "Transcript"].map((heading) => <th key={heading} style={{ color: "#d1fae5", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{heading}</th>)}</tr></thead>
+            <table style={{ borderCollapse: "collapse", minWidth: "820px", width: "100%" }}>
+              <thead><tr style={{ background: "#064e3b", textAlign: "left" }}>{["Meeting Date", "Key Focus", "Email Draft", "Transcript"].map((heading) => <th key={heading} style={{ color: "#d1fae5", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{heading}</th>)}</tr></thead>
               <tbody>{records.map((record, index) => <tr key={record.id} style={{ background: index % 2 ? "#ffffff" : "#f0fdf4", borderTop: "1px solid #d1fae5" }}>
                 <td style={{ color: "#334155", fontSize: "11px", padding: "11px 12px", whiteSpace: "nowrap" }}>{displayDate(record.meetingDate)}</td>
                 <td style={{ color: "#334155", fontSize: "11px", maxWidth: "520px", padding: "11px 12px" }}>{record.keyFocus.length ? record.keyFocus.join(" · ") : "Not specified"}</td>
+                <td style={{ padding: "11px 12px" }}><button type="button" onClick={() => onOpenEmailDraft(record.id)} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #047857", borderRadius: "5px", color: "#047857", cursor: "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 850, gap: "4px", padding: "6px 7px", whiteSpace: "nowrap" }}><ExternalLink size={12} />Open Email Draft</button></td>
                 <td style={{ padding: "11px 12px" }}><a href={record.transcriptStorageUrl} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", color: "#047857", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "4px", textDecoration: "none" }}><FileText size={12} />Open transcript</a></td>
               </tr>)}</tbody>
             </table>
@@ -217,21 +218,19 @@ function MeetingRecordDetail({ record, onGenerateEmailDraft, onStatusChange, isE
     window.setTimeout(() => setEmailCopied(false), 2200);
   }
 
-  if (record.emailStatus === "Sent") return null;
-
   return (
     <section id={`meeting-recap-${record.id}`} aria-labelledby={`meeting-recap-title-${record.id}`} style={{ marginTop: "28px" }}>
       <div style={{ alignItems: "flex-start", borderLeft: "4px solid #0f766e", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "space-between", marginBottom: "14px", paddingLeft: "12px" }}>
         <div>
           <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 850, letterSpacing: "0.09em", textTransform: "uppercase" }}>Individual Meeting Record</div>
           <h2 id={`meeting-recap-title-${record.id}`} style={{ color: "#0f172a", fontSize: "18px", fontWeight: 900, margin: "4px 0 0" }}>{record.meetingTitle} — {displayDate(record.meetingDate)}</h2>
-          <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>Generated from the retained transcript. Review the draft before changing its email status.</p>
+          <p style={{ color: "#64748b", fontSize: "12px", margin: "4px 0 0" }}>{record.emailStatus === "Sent" ? "This retained email is available for reference and copy; its sent status will not change." : "Generated from the retained transcript. Review the draft before changing its email status."}</p>
         </div>
         <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" }}>
           <StatusPill status={record.emailStatus} />
-          <button type="button" onClick={onGenerateEmailDraft} disabled={isGeneratingEmailDraft} style={{ alignItems: "center", background: isEmailDraftReady ? "#047857" : "#1e3a5f", border: `1px solid ${isEmailDraftReady ? "#047857" : "#1e3a5f"}`, borderRadius: "6px", color: "#ffffff", cursor: isGeneratingEmailDraft ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", opacity: isGeneratingEmailDraft ? 0.7 : 1, padding: "7px 9px" }}><Sparkles size={13} />{isGeneratingEmailDraft ? "Generating Email Draft…" : isEmailDraftReady ? "Email Draft Ready" : "Generate Email Draft"}</button>
+          {record.emailStatus !== "Sent" && <button type="button" onClick={onGenerateEmailDraft} disabled={isGeneratingEmailDraft} style={{ alignItems: "center", background: isEmailDraftReady ? "#047857" : "#1e3a5f", border: `1px solid ${isEmailDraftReady ? "#047857" : "#1e3a5f"}`, borderRadius: "6px", color: "#ffffff", cursor: isGeneratingEmailDraft ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", opacity: isGeneratingEmailDraft ? 0.7 : 1, padding: "7px 9px" }}><Sparkles size={13} />{isGeneratingEmailDraft ? "Generating Email Draft…" : isEmailDraftReady ? "Email Draft Ready" : "Generate Email Draft"}</button>}
           {record.emailStatus === "Draft" && <button type="button" onClick={() => onStatusChange("Reviewed")} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #d97706", borderRadius: "6px", color: "#92400e", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "7px 9px" }}><Check size={13} />Mark Reviewed</button>}
-          <button type="button" onClick={() => onStatusChange("Sent")} style={{ alignItems: "center", background: "#0f766e", border: "1px solid #0f766e", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "7px 9px" }}><Send size={13} />Mark Sent</button>
+          {record.emailStatus !== "Sent" && <button type="button" onClick={() => onStatusChange("Sent")} style={{ alignItems: "center", background: "#0f766e", border: "1px solid #0f766e", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "7px 9px" }}><Send size={13} />Mark Sent</button>}
           <button type="button" onClick={() => setExpanded((value) => !value)} style={{ background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: "6px", color: "#475569", cursor: "pointer", display: "inline-flex", padding: "7px" }} aria-label={expanded ? "Collapse meeting recap" : "Expand meeting recap"}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
         </div>
       </div>
@@ -333,7 +332,14 @@ export default function MeetingRecapsPage() {
   const records = meetingRecords as MeetingRecord[];
   const activeRecords = records.filter((record) => record.emailStatus !== "Sent");
   const sentRecords = records.filter((record) => record.emailStatus === "Sent");
-  const selectedRecord = activeRecords.find((record) => record.id === selectedId) ?? activeRecords[0];
+  const selectedRecord = records.find((record) => record.id === selectedId) ?? activeRecords[0];
+
+  function openEmailDraft(id: number) {
+    // Direct re-access is view-only: do not regenerate content or change the
+    // recap's Draft, Reviewed, or Sent status.
+    setSelectedId(id);
+    window.setTimeout(() => document.getElementById(`meeting-email-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }
 
   const recapJob = activeJob as RecapGenerationJob | undefined;
   const latestUpload = uploadPerformance?.latest;
@@ -445,8 +451,8 @@ export default function MeetingRecapsPage() {
       </section>
 
       {isLoading ? <div style={{ color: "#64748b", fontSize: "12px", padding: "28px 0", textAlign: "center" }}>Loading meeting recap history…</div> : isMeetingHistoryError ? <div role="alert" style={{ alignItems: "center", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "8px", color: "#9a3412", display: "flex", flexWrap: "wrap", fontSize: "12px", gap: "12px", justifyContent: "space-between", marginTop: "28px", padding: "14px 16px" }}><span><strong>Meeting recap history could not be loaded.</strong> The connection was interrupted after automatic retries; no recap records were changed.</span><button type="button" onClick={() => void refetchMeetingHistory()} style={{ background: "#ffffff", border: "1px solid #d97706", borderRadius: "6px", color: "#92400e", cursor: "pointer", fontSize: "11px", fontWeight: 850, padding: "7px 10px" }}>Retry loading history</button></div> : <>
-        <Tracker records={activeRecords} emailDraftReadyId={emailDraftReadyId} isGeneratingEmailDraft={generateEmailDraft.isPending} isMarkingRead={updateStatus.isPending} onGenerateEmailRecap={(id) => generateEmailDraft.mutate({ id })} onMarkRead={(id) => updateStatus.mutate({ id, emailStatus: "Reviewed" })} selectedId={selectedRecord?.id} onSelect={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-recap-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} onSelectAction={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-action-items-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} />
-        <SentRecapHistory records={sentRecords} />
+        <Tracker records={activeRecords} emailDraftReadyId={emailDraftReadyId} isGeneratingEmailDraft={generateEmailDraft.isPending} isMarkingRead={updateStatus.isPending} onGenerateEmailRecap={(id) => generateEmailDraft.mutate({ id })} onOpenEmailDraft={openEmailDraft} onMarkRead={(id) => updateStatus.mutate({ id, emailStatus: "Reviewed" })} selectedId={selectedRecord?.id} onSelect={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-recap-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} onSelectAction={(id) => { setSelectedId(id); window.setTimeout(() => document.getElementById(`meeting-action-items-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }} />
+        <SentRecapHistory records={sentRecords} onOpenEmailDraft={openEmailDraft} />
         {selectedRecord && <MeetingRecordDetail record={selectedRecord} onGenerateEmailDraft={() => generateEmailDraft.mutate({ id: selectedRecord.id })} onStatusChange={(emailStatus) => updateStatus.mutate({ id: selectedRecord.id, emailStatus })} isEmailDraftReady={emailDraftReadyId === selectedRecord.id} isGeneratingEmailDraft={generateEmailDraft.isPending} />}
       </>}
     </div>

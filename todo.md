@@ -350,3 +350,4 @@
 - [x] Add a durable recent upload performance metric for Meeting Recaps with five-second target attainment, recent average, and transfer-only timing
 - [x] Route all supported Meeting Recaps transcripts through one direct binary transfer and use monotonic in-request timing for the five-second upload metric
 - [x] Make Generate Email Recap automatically select, open, and focus the retained copy-ready email draft without waiting for history refresh
+- [x] Add view-only Open Email Draft actions for active and sent Meeting Recaps without changing email status or regenerating content
