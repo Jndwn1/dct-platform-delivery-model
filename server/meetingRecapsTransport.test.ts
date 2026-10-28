@@ -14,17 +14,17 @@ describe("Meeting Recaps transport", () => {
     expect(transport).not.toContain('op.path === "tdcMeetingRecaps.createFromTranscript"');
   });
 
-  it("uses a direct binary upload for typical transcripts with durable parts retained for larger files", () => {
+  it("uses a direct binary upload for every supported transcript size", () => {
     const page = readFileSync("client/src/pages/MeetingRecapsPage.tsx", "utf8");
     const router = readFileSync("server/routers.ts", "utf8");
     const jobs = readFileSync("server/meetingRecapJobs.ts", "utf8");
     const schema = readFileSync("drizzle/schema.ts", "utf8");
 
-    expect(page).toContain("RECAP_UPLOAD_PART_BYTES = 2 * 1024 * 1024");
-    expect(page).toContain("filePartToBase64(selectedFile, start, end)");
-    expect(page).toContain("trpc.tdcMeetingRecaps.createUpload.useMutation()");
-    expect(page).toContain("trpc.tdcMeetingRecaps.uploadPart.useMutation()");
-    expect(page).toContain("trpc.tdcMeetingRecaps.queueGeneration.useMutation()");
+    expect(page).not.toContain("RECAP_UPLOAD_PART_BYTES");
+    expect(page).not.toContain("filePartToBase64");
+    expect(page).not.toContain("trpc.tdcMeetingRecaps.createUpload.useMutation()");
+    expect(page).not.toContain("trpc.tdcMeetingRecaps.uploadPart.useMutation()");
+    expect(page).not.toContain("trpc.tdcMeetingRecaps.queueGeneration.useMutation()");
     expect(page).toContain("trpc.tdcMeetingRecaps.generationStatus.useQuery(");
     expect(page).toContain("trpc.tdcMeetingRecaps.generateEmailDraft.useMutation({");
     expect(page).toContain("Retry generation");
@@ -37,10 +37,10 @@ describe("Meeting Recaps transport", () => {
     expect(page).toContain("Generate Email Recap");
     expect(page).toContain("Mark Read");
     expect(page).toContain('emailStatus: "Reviewed"');
-    expect(page).toContain("DIRECT_RECAP_UPLOAD_MAX_BYTES = 2 * 1024 * 1024");
+    expect(page).toContain("DIRECT_RECAP_UPLOAD_MAX_BYTES = 10 * 1024 * 1024");
     expect(page).toContain('fetch("/api/tdc-meeting-recaps/upload"');
-    expect(page).toContain("Typical daily transcripts upload as a direct secure file transfer");
-    expect(page).toContain("Larger files use durable parts automatically");
+    expect(page).toContain("Supported transcripts upload as one direct secure file transfer");
+    expect(page).not.toContain("Larger files use durable parts automatically");
     expect(page).not.toContain("createFromTranscript.useMutation");
     expect(page).not.toContain("fileToBase64(selectedFile)");
 
@@ -54,7 +54,6 @@ describe("Meeting Recaps transport", () => {
     expect(router).not.toContain("createFromTranscript: publicProcedure");
 
     expect(jobs).toContain("MAX_RECAP_UPLOAD_BYTES = 10 * 1024 * 1024");
-    expect(jobs).toContain("RECAP_UPLOAD_PART_BYTES = 2 * 1024 * 1024");
     expect(jobs).toContain("storagePut(");
     expect(jobs).toContain("void runMeetingRecapJob(uploadId)");
     expect(jobs).toContain("status: \"Queued\"");

@@ -47,10 +47,9 @@ type RecapGenerationJob = {
   attemptCount: number;
 };
 
-// Daily meeting transcripts normally fit in one secure request. Larger files
-// retain the recoverable multi-part upload path below.
-const RECAP_UPLOAD_PART_BYTES = 2 * 1024 * 1024;
-const DIRECT_RECAP_UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
+// The direct endpoint accepts the full supported source limit, avoiding
+// sequential browser upload chunks for Meeting Recaps transcripts.
+const DIRECT_RECAP_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 const ACTIVE_RECAP_JOB_KEY = "dct-meeting-recap-active-job";
 
 const fieldLabelStyle: React.CSSProperties = { color: "#64748b", fontSize: "10px", fontWeight: 850, letterSpacing: "0.08em", textTransform: "uppercase" };
@@ -81,18 +80,6 @@ function emailStatusStyle(status: EmailStatus) {
   return styles[status];
 }
 
-function filePartToBase64(file: File, start: number, end: number) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("The transcript could not be read."));
-    reader.onload = () => {
-      const dataUrl = String(reader.result);
-      resolve(dataUrl.replace(/^data:[^;]+;base64,/, ""));
-    };
-    reader.readAsDataURL(file.slice(start, end));
-  });
-}
-
 async function uploadTranscriptDirectly(file: File) {
   const response = await fetch("/api/tdc-meeting-recaps/upload", {
     method: "POST",
@@ -117,7 +104,7 @@ function recapUploadErrorMessage(error: unknown) {
     return "The recap service did not complete within the safe processing window after an automatic retry. The transcript remains available; use Retry generation to try again.";
   }
   if (/Failed to fetch|request aborted|network error/i.test(message)) {
-    return "A small secure upload request was interrupted. The selected transcript remains available; select Generate Recap again to restart the upload without waiting for a long browser connection.";
+    return "The secure upload was interrupted. The selected transcript remains available; select Generate Recap again to restart the upload.";
   }
   return message || "The transcript could not be analyzed. Keep the selected file and try again.";
 }
@@ -309,9 +296,6 @@ export default function MeetingRecapsPage() {
     }
   });
   const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null);
-  const createUpload = trpc.tdcMeetingRecaps.createUpload.useMutation();
-  const uploadPart = trpc.tdcMeetingRecaps.uploadPart.useMutation();
-  const queueGeneration = trpc.tdcMeetingRecaps.queueGeneration.useMutation();
   const retryGeneration = trpc.tdcMeetingRecaps.retryGeneration.useMutation();
   const recordUploadPerformance = trpc.tdcMeetingRecaps.recordUploadPerformance.useMutation({
     onSuccess: () => void utils.tdcMeetingRecaps.uploadPerformance.invalidate(),
@@ -351,7 +335,7 @@ export default function MeetingRecapsPage() {
     : "Measurements begin with the next upload";
   const isUploading = uploadProgress !== null;
   const isGenerating = recapJob?.status === "Queued" || recapJob?.status === "Running";
-  const isRecapBusy = isUploading || createUpload.isPending || uploadPart.isPending || queueGeneration.isPending || isGenerating;
+  const isRecapBusy = isUploading || isGenerating;
 
   useEffect(() => {
     if (!recapJob || recapJob.status !== "Complete" || !recapJob.recapId) return;
@@ -373,49 +357,24 @@ export default function MeetingRecapsPage() {
     setRecapError(null);
     setUploadProgress(null);
     setUploadDurationMs(null);
-    const uploadStartedAt = Date.now();
+    // Use a monotonic in-page clock. Wall-clock time can jump while a browser
+    // tab is open and would falsely report a long transfer in the metric.
+    const uploadStartedAt = performance.now();
     try {
-      if (selectedFile.size <= DIRECT_RECAP_UPLOAD_MAX_BYTES) {
-        setUploadProgress({ completed: 0, total: 1 });
-        const jobId = await uploadTranscriptDirectly(selectedFile);
-        setActiveJobId(jobId);
-        try {
-          window.localStorage.setItem(ACTIVE_RECAP_JOB_KEY, jobId);
-        } catch {
-          // Local storage is only a convenience for restoring visible job progress.
-        }
-        setUploadDurationMs(Date.now() - uploadStartedAt);
-        recordUploadPerformance.mutate({ jobId, durationMs: Date.now() - uploadStartedAt });
-        setUploadProgress(null);
-        return;
+      if (selectedFile.size > DIRECT_RECAP_UPLOAD_MAX_BYTES) {
+        throw new Error("Transcripts must be 10 MB or smaller.");
       }
-
-      const totalParts = Math.ceil(selectedFile.size / RECAP_UPLOAD_PART_BYTES);
-      const upload = await createUpload.mutateAsync({
-        fileName: selectedFile.name,
-        mimeType: selectedFile.type || "application/octet-stream",
-        fileSizeBytes: selectedFile.size,
-        totalParts,
-      });
-      setUploadProgress({ completed: 0, total: totalParts });
-
-      for (let partNumber = 0; partNumber < totalParts; partNumber += 1) {
-        const start = partNumber * RECAP_UPLOAD_PART_BYTES;
-        const end = Math.min(start + RECAP_UPLOAD_PART_BYTES, selectedFile.size);
-        const partBase64 = await filePartToBase64(selectedFile, start, end);
-        await uploadPart.mutateAsync({ uploadId: upload.uploadId, partNumber, partBase64 });
-        setUploadProgress({ completed: partNumber + 1, total: totalParts });
-      }
-
-      const job = await queueGeneration.mutateAsync({ uploadId: upload.uploadId });
-      setActiveJobId(job.id);
+      setUploadProgress({ completed: 0, total: 1 });
+      const jobId = await uploadTranscriptDirectly(selectedFile);
+      setActiveJobId(jobId);
       try {
-        window.localStorage.setItem(ACTIVE_RECAP_JOB_KEY, job.id);
+        window.localStorage.setItem(ACTIVE_RECAP_JOB_KEY, jobId);
       } catch {
         // Local storage is only a convenience for restoring visible job progress.
       }
-      setUploadDurationMs(Date.now() - uploadStartedAt);
-      recordUploadPerformance.mutate({ jobId: job.id, durationMs: Date.now() - uploadStartedAt });
+      const durationMs = Math.round(performance.now() - uploadStartedAt);
+      setUploadDurationMs(durationMs);
+      recordUploadPerformance.mutate({ jobId, durationMs });
       setUploadProgress(null);
     } catch (error) {
       setUploadProgress(null);
@@ -468,9 +427,9 @@ export default function MeetingRecapsPage() {
           <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" }}>
             <label style={{ alignItems: "center", background: "#ffffff", border: "1px dashed #7c3aed", borderRadius: "6px", color: "#5b21b6", cursor: "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 12px", position: "relative" }}><Upload size={15} />{selectedFile ? selectedFile.name : "Choose transcript (.docx or .txt)"}<input aria-label="Upload TDC Daily Standup transcript" type="file" accept=".docx,.txt" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} style={{ height: "1px", opacity: 0, overflow: "hidden", position: "absolute", width: "1px" }} /></label>
             <button type="button" onClick={generateRecap} disabled={!selectedFile || isRecapBusy} style={{ alignItems: "center", background: !selectedFile || isRecapBusy ? "#94a3b8" : "#0f172a", border: "none", borderRadius: "6px", color: "#ffffff", cursor: !selectedFile || isRecapBusy ? "not-allowed" : "pointer", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "7px", padding: "10px 13px" }}>{isRecapBusy ? <LoaderCircle className="animate-spin" size={15} /> : <Sparkles size={15} />}{isUploading ? "Uploading transcript…" : isGenerating ? "Generating recap…" : "Generate Recap"}</button>
-            <span style={{ color: "#64748b", fontSize: "11px" }}>Typical daily transcripts upload as a direct secure file transfer; recap generation then continues as a tracked job if you refresh the page. Larger files use durable parts automatically.</span>
+            <span style={{ color: "#64748b", fontSize: "11px" }}>Supported transcripts upload as one direct secure file transfer; recap generation then continues as a tracked job if you refresh the page.</span>
           </div>
-          {uploadProgress && <div aria-live="polite" style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", color: "#1e3a8a", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}><strong>Secure upload in progress:</strong> uploaded part {uploadProgress.completed} of {uploadProgress.total}.{uploadProgress.total === 1 ? " Preparing recap generation…" : " Larger files use durable upload parts."}</div>}
+          {uploadProgress && <div aria-live="polite" style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", color: "#1e3a8a", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}><strong>Secure upload in progress:</strong> transferring the source transcript once, then starting recap generation.</div>}
           {uploadDurationMs !== null && !isUploading && <div aria-live="polite" style={{ background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: "6px", color: "#047857", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}><strong>Transcript upload complete in {(uploadDurationMs / 1000).toFixed(1)} seconds.</strong> Recap generation is continuing in the background.</div>}
           {recapJob && <div aria-live="polite" style={{ background: recapJob.status === "Failed" ? "#fef2f2" : recapJob.status === "Complete" ? "#ecfdf5" : "#eff6ff", border: `1px solid ${recapJob.status === "Failed" ? "#fecaca" : recapJob.status === "Complete" ? "#a7f3d0" : "#bfdbfe"}`, borderRadius: "6px", color: recapJob.status === "Failed" ? "#991b1b" : recapJob.status === "Complete" ? "#047857" : "#1e3a8a", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}><strong>{recapJob.status === "Complete" ? "Recap draft ready:" : recapJob.status === "Failed" ? "Recap generation needs attention:" : "Recap generation in progress:"}</strong> {recapJob.failureMessage || recapJob.stage}{recapJob.status === "Failed" && <button type="button" onClick={retryActiveJob} disabled={retryGeneration.isPending} style={{ background: "#ffffff", border: "1px solid #dc2626", borderRadius: "5px", color: "#991b1b", cursor: retryGeneration.isPending ? "not-allowed" : "pointer", fontSize: "10px", fontWeight: 850, marginLeft: "10px", padding: "5px 7px" }}>{retryGeneration.isPending ? "Retrying…" : "Retry generation"}</button>}</div>}
           {activeJobError && <div role="alert" style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "6px", color: "#9a3412", fontSize: "11px", marginTop: "12px", padding: "9px 10px" }}>The recap status could not be refreshed. Refresh the page; the uploaded transcript and recap job remain retained.</div>}

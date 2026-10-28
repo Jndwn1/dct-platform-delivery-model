@@ -344,7 +344,8 @@ describe("PI4 Pilot delivery", () => {
     expect(page).toContain('const sentRecords = records.filter((record) => record.emailStatus === "Sent")');
     expect(page).toContain('if (record.emailStatus === "Sent") return null;');
     expect(page).toContain("Open transcript");
-    expect(page).toContain("trpc.tdcMeetingRecaps.createUpload.useMutation()");
+    expect(page).toContain("uploadTranscriptDirectly(selectedFile)");
+    expect(page).toContain('fetch("/api/tdc-meeting-recaps/upload"');
     expect(page).toContain("trpc.tdcMeetingRecaps.generationStatus.useQuery(");
     expect(page).toContain("Retry generation");
     expect(router).toContain("tdcMeetingRecaps: router");

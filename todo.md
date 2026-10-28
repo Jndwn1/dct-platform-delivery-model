@@ -348,3 +348,4 @@
 - [x] Replace the long-running Meeting Recaps transcript mutation with durable bounded uploads and tracked recap-generation jobs
 - [x] Optimize typical Meeting Recaps transcript uploads with a direct binary fast path, retain the durable large-file fallback, and display the upload-to-analysis handoff
 - [x] Add a durable recent upload performance metric for Meeting Recaps with five-second target attainment, recent average, and transfer-only timing
+- [x] Route all supported Meeting Recaps transcripts through one direct binary transfer and use monotonic in-request timing for the five-second upload metric

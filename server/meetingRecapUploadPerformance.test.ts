@@ -57,7 +57,7 @@ describe("Meeting Recaps upload performance", () => {
     });
   });
 
-  it("persists browser-measured transfer timing and renders the recent target metric without counting recap generation", () => {
+  it("persists monotonic browser transfer timing and renders the recent target metric without counting recap generation", () => {
     const router = readFileSync("server/routers.ts", "utf8");
     const page = readFileSync("client/src/pages/MeetingRecapsPage.tsx", "utf8");
     const jobs = readFileSync("server/meetingRecapJobs.ts", "utf8");
@@ -66,6 +66,8 @@ describe("Meeting Recaps upload performance", () => {
     expect(router).toContain("uploadPerformance: publicProcedure");
     expect(router).toContain("recordUploadPerformance: publicProcedure");
     expect(page).toContain("tdcMeetingRecaps.uploadPerformance.useQuery");
+    expect(page).toContain("const uploadStartedAt = performance.now()");
+    expect(page).toContain("Math.round(performance.now() - uploadStartedAt)");
     expect(page).toContain("recordUploadPerformance.mutate({ jobId");
     expect(page).toContain("Recent Upload Performance");
     expect(page).toContain("Secure transcript transfer only; recap generation time is excluded.");

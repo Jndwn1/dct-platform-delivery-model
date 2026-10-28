@@ -32,12 +32,12 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Typical meeting transcripts take this binary path instead of being expanded
-  // to base64 and split into multiple JSON/tRPC requests. Keep it before the
-  // generic JSON parser so Express retains the original source bytes.
+  // All supported meeting transcripts take this binary path instead of being
+  // expanded to base64 and split into sequential JSON/tRPC requests. Keep it
+  // before the generic JSON parser so Express retains the original source bytes.
   app.post(
     "/api/tdc-meeting-recaps/upload",
-    express.raw({ type: "application/octet-stream", limit: "2mb" }),
+    express.raw({ type: "application/octet-stream", limit: "12mb" }),
     async (req, res) => {
       try {
         const encodedFileName = req.header("x-transcript-file-name") ?? "";
