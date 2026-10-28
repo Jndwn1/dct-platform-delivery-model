@@ -32,6 +32,11 @@ describe("Meeting Recaps transport", () => {
     expect(page).toContain("Generate Recap");
     expect(page).toContain("Generate Email Draft");
     expect(page).toContain("Email Draft Ready");
+    expect(page).toContain("Email draft is ready to copy.");
+    expect(page).toContain('id={`meeting-email-${record.id}`}');
+    expect(page).toContain("setSelectedId(variables.id)");
+    expect(page).toContain('document.getElementById(`meeting-email-${variables.id}`)?.scrollIntoView');
+    expect(page).toContain("A background history refresh must never");
     expect(page).toContain("Mark Reviewed");
     expect(page).toContain('"Email Actions"');
     expect(page).toContain("Generate Email Recap");

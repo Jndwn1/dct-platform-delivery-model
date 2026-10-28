@@ -244,11 +244,12 @@ function MeetingRecordDetail({ record, onGenerateEmailDraft, onStatusChange, isE
           <div><div style={fieldLabelStyle}>Source transcript</div><a href={record.transcriptStorageUrl} target="_blank" rel="noopener noreferrer" style={{ alignItems: "center", color: "#1d4ed8", display: "inline-flex", fontSize: "12px", fontWeight: 850, gap: "5px", marginTop: "4px", textDecoration: "none" }}><ExternalLink size={13} />{record.transcriptFileName}</a></div>
         </div>
 
-        <div style={{ padding: "18px" }}>
+        <div id={`meeting-email-${record.id}`} style={{ padding: "18px" }}>
           <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between", marginBottom: "10px" }}>
             <div><div style={{ color: "#1e3a5f", fontSize: "10px", fontWeight: 850, letterSpacing: "0.08em", textTransform: "uppercase" }}>Generated Email</div><div style={{ color: "#0f172a", fontSize: "14px", fontWeight: 900, marginTop: "3px" }}>{record.emailSubject}</div></div>
             <button type="button" onClick={copyEmail} style={{ alignItems: "center", background: "#1e3a5f", border: "none", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "8px 10px" }}><ClipboardCopy size={13} />{emailCopied ? "Email Copied" : "Copy Email for Outlook"}</button>
           </div>
+          {isEmailDraftReady && <div role="status" style={{ background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: "6px", color: "#047857", fontSize: "11px", fontWeight: 750, marginBottom: "10px", padding: "8px 10px" }}>Email draft is ready to copy. Select <strong>Copy Email for Outlook</strong> to paste the formatted recap into your email.</div>}
           <pre style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "7px", color: "#334155", fontFamily: "ui-sans-serif, system-ui, sans-serif", fontSize: "11px", lineHeight: 1.55, margin: 0, overflowX: "auto", padding: "14px", whiteSpace: "pre-wrap" }}>{record.emailBody}</pre>
         </div>
 
@@ -317,8 +318,14 @@ export default function MeetingRecapsPage() {
   const updateStatus = trpc.tdcMeetingRecaps.updateEmailStatus.useMutation({ onSuccess: () => utils.tdcMeetingRecaps.list.invalidate() });
   const generateEmailDraft = trpc.tdcMeetingRecaps.generateEmailDraft.useMutation({
     onSuccess: (_result, variables) => {
-      void utils.tdcMeetingRecaps.list.invalidate();
+      // Open the saved draft first. A background history refresh must never
+      // prevent the user from reaching the copy-ready email.
+      setSelectedId(variables.id);
       setEmailDraftReadyId(variables.id);
+      void utils.tdcMeetingRecaps.list.invalidate();
+      // The tracker action prepares the retained draft and takes the user
+      // directly to the formatted email and its Outlook copy control.
+      window.setTimeout(() => document.getElementById(`meeting-email-${variables.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
       window.setTimeout(() => setEmailDraftReadyId((current) => current === variables.id ? null : current), 3_000);
     },
     onError: (error) => setRecapError(recapUploadErrorMessage(error)),
