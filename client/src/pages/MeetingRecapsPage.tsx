@@ -61,6 +61,17 @@ function displayDate(value: string) {
   return parsed.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
+function formatUploadDuration(durationMs: number | null | undefined) {
+  if (durationMs === null || durationMs === undefined) return "Not yet measured";
+  if (durationMs < 1_000) return `${durationMs} ms`;
+  return `${(durationMs / 1_000).toFixed(durationMs >= 10_000 ? 0 : 1)} sec`;
+}
+
+function formatFileSize(fileSizeBytes: number) {
+  if (fileSizeBytes < 1_024 * 1_024) return `${Math.max(1, Math.round(fileSizeBytes / 1_024))} KB`;
+  return `${(fileSizeBytes / (1_024 * 1_024)).toFixed(1)} MB`;
+}
+
 function emailStatusStyle(status: EmailStatus) {
   const styles: Record<EmailStatus, { background: string; border: string; color: string }> = {
     Draft: { background: "#eff6ff", border: "#bfdbfe", color: "#1d4ed8" },
@@ -281,6 +292,10 @@ export default function MeetingRecapsPage() {
     staleTime: 60_000,
     refetchOnWindowFocus: false,
   });
+  const { data: uploadPerformance } = trpc.tdcMeetingRecaps.uploadPerformance.useQuery(undefined, {
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedId, setSelectedId] = useState<number | undefined>();
   const [recapError, setRecapError] = useState<string | null>(null);
@@ -298,6 +313,9 @@ export default function MeetingRecapsPage() {
   const uploadPart = trpc.tdcMeetingRecaps.uploadPart.useMutation();
   const queueGeneration = trpc.tdcMeetingRecaps.queueGeneration.useMutation();
   const retryGeneration = trpc.tdcMeetingRecaps.retryGeneration.useMutation();
+  const recordUploadPerformance = trpc.tdcMeetingRecaps.recordUploadPerformance.useMutation({
+    onSuccess: () => void utils.tdcMeetingRecaps.uploadPerformance.invalidate(),
+  });
   const activeJobInput = activeJobId
     ? { jobId: activeJobId }
     : { jobId: "00000000-0000-4000-8000-000000000000" };
@@ -327,6 +345,10 @@ export default function MeetingRecapsPage() {
   const selectedRecord = activeRecords.find((record) => record.id === selectedId) ?? activeRecords[0];
 
   const recapJob = activeJob as RecapGenerationJob | undefined;
+  const latestUpload = uploadPerformance?.latest;
+  const recentTargetSummary = uploadPerformance?.sampleSize
+    ? `${uploadPerformance.metTargetCount} of ${uploadPerformance.sampleSize} recent uploads met target`
+    : "Measurements begin with the next upload";
   const isUploading = uploadProgress !== null;
   const isGenerating = recapJob?.status === "Queued" || recapJob?.status === "Running";
   const isRecapBusy = isUploading || createUpload.isPending || uploadPart.isPending || queueGeneration.isPending || isGenerating;
@@ -363,6 +385,7 @@ export default function MeetingRecapsPage() {
           // Local storage is only a convenience for restoring visible job progress.
         }
         setUploadDurationMs(Date.now() - uploadStartedAt);
+        recordUploadPerformance.mutate({ jobId, durationMs: Date.now() - uploadStartedAt });
         setUploadProgress(null);
         return;
       }
@@ -392,6 +415,7 @@ export default function MeetingRecapsPage() {
         // Local storage is only a convenience for restoring visible job progress.
       }
       setUploadDurationMs(Date.now() - uploadStartedAt);
+      recordUploadPerformance.mutate({ jobId: job.id, durationMs: Date.now() - uploadStartedAt });
       setUploadProgress(null);
     } catch (error) {
       setUploadProgress(null);
@@ -416,6 +440,22 @@ export default function MeetingRecapsPage() {
         <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 900, letterSpacing: "-0.025em", margin: "5px 0 0" }}>TDC Daily Standup — Meeting Recaps</h1>
         <p style={{ color: "#64748b", fontSize: "13px", lineHeight: 1.55, margin: "7px 0 0", maxWidth: "810px" }}>A central working tool and historical record for generating, reviewing, and tracking evidence-bound TDC Daily Standup recap emails.</p>
       </div>
+
+      <section aria-labelledby="recent-upload-performance" style={{ background: "#f8fafc", border: "1px solid #d8dee8", borderRadius: "10px", marginBottom: "18px", padding: "14px 16px" }}>
+        <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "14px", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ color: "#1e3a5f", fontSize: "10px", fontWeight: 900, letterSpacing: "0.09em", textTransform: "uppercase" }}>Performance monitoring</div>
+            <h2 id="recent-upload-performance" style={{ color: "#0f172a", fontSize: "15px", fontWeight: 900, margin: "3px 0 0" }}>Recent Upload Performance</h2>
+            <p style={{ color: "#64748b", fontSize: "11px", margin: "4px 0 0" }}>Secure transcript transfer only; recap generation time is excluded.</p>
+          </div>
+          <div style={{ background: latestUpload?.metTarget ? "#ecfdf5" : latestUpload ? "#fff7ed" : "#eff6ff", border: `1px solid ${latestUpload?.metTarget ? "#a7f3d0" : latestUpload ? "#fed7aa" : "#bfdbfe"}`, borderRadius: "999px", color: latestUpload?.metTarget ? "#047857" : latestUpload ? "#9a3412" : "#1d4ed8", fontSize: "11px", fontWeight: 900, padding: "6px 9px" }}>{latestUpload ? (latestUpload.metTarget ? "Latest upload met target" : "Latest upload missed target") : "5-second target"}</div>
+        </div>
+        <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", marginTop: "13px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "7px", padding: "10px" }}><div style={fieldLabelStyle}>Latest upload</div><div style={{ color: "#0f172a", fontSize: "16px", fontWeight: 900, marginTop: "4px" }}>{formatUploadDuration(latestUpload?.durationMs)}</div><div style={{ color: "#64748b", fontSize: "10px", marginTop: "3px" }}>{latestUpload ? `${formatFileSize(latestUpload.fileSizeBytes)} · ${latestUpload.uploadMode}` : "No upload yet"}</div></div>
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "7px", padding: "10px" }}><div style={fieldLabelStyle}>Five-second target</div><div style={{ color: uploadPerformance?.metTargetPercent === null || uploadPerformance?.metTargetPercent === undefined || uploadPerformance.metTargetPercent >= 80 ? "#047857" : "#9a3412", fontSize: "16px", fontWeight: 900, marginTop: "4px" }}>{uploadPerformance?.metTargetPercent === null || uploadPerformance?.metTargetPercent === undefined ? "—" : `${uploadPerformance.metTargetPercent}%`}</div><div style={{ color: "#64748b", fontSize: "10px", marginTop: "3px" }}>{recentTargetSummary}</div></div>
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "7px", padding: "10px" }}><div style={fieldLabelStyle}>Recent average</div><div style={{ color: "#0f172a", fontSize: "16px", fontWeight: 900, marginTop: "4px" }}>{formatUploadDuration(uploadPerformance?.averageDurationMs)}</div><div style={{ color: "#64748b", fontSize: "10px", marginTop: "3px" }}>Last {uploadPerformance?.sampleSize ?? 0} completed upload{uploadPerformance?.sampleSize === 1 ? "" : "s"}</div></div>
+        </div>
+      </section>
 
       <section aria-labelledby="generate-daily-tdc-recap">
         <div style={{ borderLeft: "4px solid #7c3aed", marginBottom: "14px", paddingLeft: "12px" }}>

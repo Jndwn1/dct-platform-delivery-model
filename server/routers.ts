@@ -17,11 +17,13 @@ import { buildMasterDataEvidence, isMasterDataQuestion, MASTER_DATA_ANSWER_FALLB
 import { buildAttachmentEvidenceFallback, parseAskBuddyAttachmentRecord, parseStructuredAttachmentFields, prepareAskBuddyAttachment } from "./askBuddyAttachmentEngine";
 import {
   createMeetingRecapUpload,
+  getMeetingRecapUploadPerformance,
   getMeetingRecapJobStatus,
   MAX_RECAP_UPLOAD_BYTES,
   MAX_RECAP_UPLOAD_PARTS,
   queueMeetingRecapGeneration,
   RECAP_UPLOAD_PART_BYTES,
+  recordMeetingRecapUploadPerformance,
   retryMeetingRecapGeneration,
   uploadMeetingRecapPart,
 } from "./meetingRecapJobs";
@@ -1120,6 +1122,13 @@ ${input.notes}` as string },
   }),
 
   tdcMeetingRecaps: router({
+    uploadPerformance: publicProcedure.query(() => getMeetingRecapUploadPerformance()),
+    recordUploadPerformance: publicProcedure
+      .input(z.object({
+        jobId: z.string().uuid(),
+        durationMs: z.number().int().min(0).max(600_000),
+      }))
+      .mutation(({ input }) => recordMeetingRecapUploadPerformance(input)),
     list: publicProcedure.query(async () => {
       const db = await getDb();
       if (!db) return [];

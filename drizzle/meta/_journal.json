@@ -127,6 +127,13 @@
       "when": 1793028142488,
       "tag": "0017_brave_smasher",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1793196862650,
+      "tag": "0018_aromatic_quasar",
+      "breakpoints": true
     }
   ]
 }

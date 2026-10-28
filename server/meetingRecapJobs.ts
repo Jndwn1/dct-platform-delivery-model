@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import mammoth from "mammoth";
 import {
   tdcMeetingRecapJobs,
@@ -22,6 +22,7 @@ export const RECAP_UPLOAD_PART_BYTES = 2 * 1024 * 1024;
 export const MAX_RECAP_UPLOAD_PARTS = Math.ceil(
   MAX_RECAP_UPLOAD_BYTES / RECAP_UPLOAD_PART_BYTES
 );
+export const RECAP_UPLOAD_TARGET_MS = 5_000;
 
 export type RecapJobStatus =
   | "Uploading"
@@ -46,6 +47,48 @@ type SafeRecapJob = {
   failureMessage: string | null;
   attemptCount: number;
 };
+
+export type RecapUploadPerformanceSample = {
+  id: string;
+  durationMs: number;
+  fileSizeBytes: number;
+  uploadMode: "Direct" | "Multipart";
+  completedAt: Date;
+};
+
+export type RecapUploadPerformanceSummary = {
+  targetMs: number;
+  sampleSize: number;
+  metTargetCount: number;
+  metTargetPercent: number | null;
+  averageDurationMs: number | null;
+  latest: (RecapUploadPerformanceSample & { metTarget: boolean }) | null;
+  recent: Array<RecapUploadPerformanceSample & { metTarget: boolean }>;
+};
+
+export function summarizeMeetingRecapUploadPerformance(
+  samples: RecapUploadPerformanceSample[]
+): RecapUploadPerformanceSummary {
+  const recent = samples.map((sample) => ({
+    ...sample,
+    metTarget: sample.durationMs <= RECAP_UPLOAD_TARGET_MS,
+  }));
+  const sampleSize = recent.length;
+  const metTargetCount = recent.filter((sample) => sample.metTarget).length;
+  const averageDurationMs = sampleSize
+    ? Math.round(recent.reduce((total, sample) => total + sample.durationMs, 0) / sampleSize)
+    : null;
+
+  return {
+    targetMs: RECAP_UPLOAD_TARGET_MS,
+    sampleSize,
+    metTargetCount,
+    metTargetPercent: sampleSize ? Math.round((metTargetCount / sampleSize) * 100) : null,
+    averageDurationMs,
+    latest: recent[0] ?? null,
+    recent,
+  };
+}
 
 function getJobParts(job: Pick<TdcMeetingRecapJob, "uploadedPartsJson">): UploadedRecapPart[] {
   try {
@@ -279,6 +322,7 @@ export async function createMeetingRecapUpload(input: {
     uploadedPartsJson: "[]",
     status: "Uploading",
     stage: "Uploading transcript securely",
+    uploadMode: "Multipart",
     createdBy: input.createdBy ?? null,
   });
   return { uploadId: id, partSizeBytes: RECAP_UPLOAD_PART_BYTES };
@@ -309,6 +353,7 @@ export async function createDirectMeetingRecapUpload(input: {
     uploadedPartsJson: "[]",
     status: "Uploading",
     stage: "Uploading transcript securely",
+    uploadMode: "Direct",
     createdBy: input.createdBy ?? null,
   });
 
@@ -435,4 +480,60 @@ export async function getMeetingRecapJobStatus(jobId: string) {
   if (!job) throw new Error("The meeting recap request is no longer available.");
   if (job.status === "Queued") void runMeetingRecapJob(jobId);
   return toSafeJob(job);
+}
+
+export async function recordMeetingRecapUploadPerformance(input: {
+  jobId: string;
+  durationMs: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("The Meeting Recap Tracker is unavailable. Please try again.");
+  const [job] = await db
+    .select({ status: tdcMeetingRecapJobs.status })
+    .from(tdcMeetingRecapJobs)
+    .where(eq(tdcMeetingRecapJobs.id, input.jobId))
+    .limit(1);
+  if (!job) throw new Error("The meeting recap request is no longer available.");
+  if (job.status === "Uploading") {
+    throw new Error("The transcript upload is not complete yet.");
+  }
+
+  await db
+    .update(tdcMeetingRecapJobs)
+    .set({
+      uploadDurationMs: Math.round(input.durationMs),
+      uploadCompletedAt: new Date(),
+    })
+    .where(eq(tdcMeetingRecapJobs.id, input.jobId));
+  return { success: true } as const;
+}
+
+export async function getMeetingRecapUploadPerformance() {
+  const db = await getDb();
+  if (!db) return summarizeMeetingRecapUploadPerformance([]);
+  const rows = await db
+    .select({
+      id: tdcMeetingRecapJobs.id,
+      uploadDurationMs: tdcMeetingRecapJobs.uploadDurationMs,
+      fileSizeBytes: tdcMeetingRecapJobs.fileSizeBytes,
+      uploadMode: tdcMeetingRecapJobs.uploadMode,
+      uploadCompletedAt: tdcMeetingRecapJobs.uploadCompletedAt,
+    })
+    .from(tdcMeetingRecapJobs)
+    .where(and(isNotNull(tdcMeetingRecapJobs.uploadDurationMs), isNotNull(tdcMeetingRecapJobs.uploadCompletedAt)))
+    .orderBy(desc(tdcMeetingRecapJobs.uploadCompletedAt))
+    .limit(10);
+
+  return summarizeMeetingRecapUploadPerformance(
+    rows.flatMap((row) => {
+      if (row.uploadDurationMs === null || row.uploadCompletedAt === null) return [];
+      return [{
+        id: row.id,
+        durationMs: Number(row.uploadDurationMs),
+        fileSizeBytes: Number(row.fileSizeBytes),
+        uploadMode: row.uploadMode === "Direct" ? "Direct" as const : "Multipart" as const,
+        completedAt: row.uploadCompletedAt,
+      }];
+    })
+  );
 }

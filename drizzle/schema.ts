@@ -184,6 +184,10 @@ export const tdcMeetingRecapJobs = mysqlTable("tdc_meeting_recap_jobs", {
   recapId: int("recapId"),
   failureMessage: text("failureMessage"),
   attemptCount: int("attemptCount").notNull().default(0),
+  /** Browser-measured secure upload time; recap analysis time is excluded. */
+  uploadDurationMs: int("uploadDurationMs"),
+  uploadCompletedAt: timestamp("uploadCompletedAt"),
+  uploadMode: varchar("uploadMode", { length: 16 }).notNull().default("Multipart"),
   createdBy: varchar("createdBy", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
