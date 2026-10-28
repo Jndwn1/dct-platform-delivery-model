@@ -15,7 +15,10 @@ import {
 import { storagePut } from "./storage";
 
 export const MAX_RECAP_UPLOAD_BYTES = 10 * 1024 * 1024;
-export const RECAP_UPLOAD_PART_BYTES = 384 * 1024;
+// Typical Daily Standup transcripts are below 2 MB. Keeping them in one
+// durable request avoids several sequential browser → API → storage round trips.
+// Larger transcripts still use the same recoverable multi-part path.
+export const RECAP_UPLOAD_PART_BYTES = 2 * 1024 * 1024;
 export const MAX_RECAP_UPLOAD_PARTS = Math.ceil(
   MAX_RECAP_UPLOAD_BYTES / RECAP_UPLOAD_PART_BYTES
 );
@@ -31,6 +34,8 @@ type UploadedRecapPart = {
   partNumber: number;
   storageUrl: string;
   byteLength: number;
+  /** A direct upload is already the canonical retained source, not a temporary part. */
+  isFinalSource?: boolean;
 };
 
 type SafeRecapJob = {
@@ -180,13 +185,24 @@ export async function runMeetingRecapJob(jobId: string) {
       throw new Error("The uploaded transcript does not contain enough readable text to generate a recap.");
     }
 
-    const safeName = job.transcriptFileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-    await updateJob(jobId, { status: "Running", stage: "Retaining source transcript" });
-    const storedTranscript = await storagePut(
-      `tdc-meeting-recaps/${Date.now()}-${safeName}`,
-      buffer,
-      job.mimeType
-    );
+    const uploadedParts = getJobParts(job);
+    const directSource = uploadedParts.length === 1 && uploadedParts[0]?.isFinalSource
+      ? uploadedParts[0]
+      : null;
+    let transcriptStorageUrl: string;
+    if (directSource) {
+      await updateJob(jobId, { status: "Running", stage: "Using retained source transcript" });
+      transcriptStorageUrl = directSource.storageUrl;
+    } else {
+      const safeName = job.transcriptFileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+      await updateJob(jobId, { status: "Running", stage: "Retaining source transcript" });
+      const storedTranscript = await storagePut(
+        `tdc-meeting-recaps/${Date.now()}-${safeName}`,
+        buffer,
+        job.mimeType
+      );
+      transcriptStorageUrl = storedTranscript.url;
+    }
 
     await updateJob(jobId, { status: "Running", stage: "Generating evidence-bound recap" });
     const analysis = await analyzeTdcStandupTranscript(transcriptText);
@@ -202,7 +218,7 @@ export async function runMeetingRecapJob(jobId: string) {
       attendeesJson: JSON.stringify(analysis.attendees),
       keyFocusJson: JSON.stringify(analysis.keyFocus),
       transcriptFileName: job.transcriptFileName,
-      transcriptStorageUrl: storedTranscript.url,
+      transcriptStorageUrl,
       transcriptText,
       emailSubject,
       emailBody,
@@ -218,7 +234,7 @@ export async function runMeetingRecapJob(jobId: string) {
     const [recap] = await db
       .select({ id: tdcMeetingRecaps.id })
       .from(tdcMeetingRecaps)
-      .where(eq(tdcMeetingRecaps.transcriptStorageUrl, storedTranscript.url))
+      .where(eq(tdcMeetingRecaps.transcriptStorageUrl, transcriptStorageUrl))
       .orderBy(desc(tdcMeetingRecaps.id))
       .limit(1);
     if (!recap) throw new Error("The generated recap could not be saved.");
@@ -266,6 +282,68 @@ export async function createMeetingRecapUpload(input: {
     createdBy: input.createdBy ?? null,
   });
   return { uploadId: id, partSizeBytes: RECAP_UPLOAD_PART_BYTES };
+}
+
+/**
+ * Fast, binary upload path for ordinary Daily Standup transcripts. It writes the
+ * durable source once, queues the existing background job, and returns without
+ * waiting for document extraction or recap analysis.
+ */
+export async function createDirectMeetingRecapUpload(input: {
+  fileName: string;
+  mimeType: string;
+  fileBuffer: Buffer;
+  createdBy?: string | null;
+}) {
+  requireSupportedTranscript(input.fileName, input.mimeType, input.fileBuffer.length);
+  const db = await getDb();
+  if (!db) throw new Error("The Meeting Recap Tracker is unavailable. Please try again.");
+
+  const id = randomUUID();
+  await db.insert(tdcMeetingRecapJobs).values({
+    id,
+    transcriptFileName: input.fileName,
+    mimeType: input.mimeType,
+    fileSizeBytes: input.fileBuffer.length,
+    totalParts: 1,
+    uploadedPartsJson: "[]",
+    status: "Uploading",
+    stage: "Uploading transcript securely",
+    createdBy: input.createdBy ?? null,
+  });
+
+  try {
+    const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const storedTranscript = await storagePut(
+      `tdc-meeting-recaps/${Date.now()}-${safeName}`,
+      input.fileBuffer,
+      input.mimeType
+    );
+    const sourcePart: UploadedRecapPart = {
+      partNumber: 0,
+      storageUrl: storedTranscript.url,
+      byteLength: input.fileBuffer.length,
+      isFinalSource: true,
+    };
+    await db
+      .update(tdcMeetingRecapJobs)
+      .set({
+        uploadedPartsJson: JSON.stringify([sourcePart]),
+        status: "Queued",
+        stage: "Queued for recap analysis",
+        failureMessage: null,
+      })
+      .where(eq(tdcMeetingRecapJobs.id, id));
+    void runMeetingRecapJob(id);
+    return { jobId: id };
+  } catch (error) {
+    await updateJob(id, {
+      status: "Failed",
+      stage: "Transcript upload needs attention",
+      failureMessage: "The secure transcript upload could not complete. Re-select the file and try again.",
+    }).catch(() => undefined);
+    throw error;
+  }
 }
 
 export async function uploadMeetingRecapPart(input: {
