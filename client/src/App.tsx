@@ -4,80 +4,79 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
+import { lazy, Suspense } from "react";
 import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoginPage from "./pages/LoginPage";
 
-// Core pages
-import Home from "./pages/Home";
-import GateStatus from "./pages/GateStatus";
-import TouchpointsPage from "./pages/TouchpointsPage";
-import ArchitectureView from "./pages/ArchitectureView";
-import DeveloperArchitecturePage from "./pages/DeveloperArchitecturePage";
-import EnterpriseArchitecturePage from "./pages/EnterpriseArchitecturePage";
-
-// Platform pages
-import RogerApiEvolution from "./pages/RogerApiEvolution";
-import RuntimeJourney from "./pages/RuntimeJourney";
-import BatchControlPanel from "./pages/BatchControlPanel";
-import TaxonomyPage from "./pages/TaxonomyPage";
-import DataModelPage from "./pages/DataModelPage";
-import DataGovernancePage from "./pages/DataGovernancePage";
-import ClassificationWalkthroughPage from "@/pages/ClassificationWalkthroughPage";
-import TaxMappingPage from "./pages/TaxMappingPage";
-import AAPReviewPage from "./pages/AAPReviewPage";
-import BatchDeliveryReviewModel from "./pages/BatchDeliveryReviewModel";
-import AskBuddy from "./pages/AskBuddy";
-import RogerMappingPage from "./pages/RogerMappingPage";
-import BatchDeliveryCalendar from "./pages/BatchDeliveryCalendar";
-import BatchRoadmap from "./pages/BatchRoadmap";
-import BatchDetailPage from "./pages/BatchDetailPage";
-import IntegrationSimulation from "./pages/IntegrationSimulation";
-import ConsumerIntegrationReadinessHub from "./pages/ConsumerIntegrationReadinessHub";
-import GapAnalysisEngine from "./pages/GapAnalysisEngine";
-import DeploymentRegistry from "./pages/DeploymentRegistry";
-import QADeploymentRegistry from "./pages/QADeploymentRegistry";
-import QAReleaseSim from "./pages/QAReleaseSim";
-// Discovery Center
-import DiscoveryCenter from "./pages/DiscoveryCenter";
-import BAStoryBuilder from "./pages/discovery/BAStoryBuilder";
-import EcosystemOverview from "./pages/discovery/EcosystemOverview";
-import PlatformResponsibilities from "./pages/discovery/PlatformResponsibilities";
-import EndToEndDataFlow from "./pages/discovery/EndToEndDataFlow";
-import DataFlowSimulation from "./pages/discovery/DataFlowSimulation";
-import IntegrationArchitecture from "./pages/discovery/IntegrationArchitecture";
-import BARequirementDiscovery from "./pages/discovery/BARequirementDiscovery";
-import DiscoveryChecklist from "./pages/discovery/DiscoveryChecklist";
-import Glossary from "./pages/discovery/Glossary";
-import DCTOverview from "./pages/discovery/DCTOverview";
-import RogerOverview from "./pages/discovery/RogerOverview";
-import IMSIntegration from "./pages/discovery/GoSystemTax";
-import PDCOverview from "./pages/discovery/PDCOverview";
-import DataGateway from "./pages/discovery/DataGateway";
-import KnowledgeGraphPage from "./pages/discovery/KnowledgeGraphPage";
-import PriorYearMigration from "./pages/discovery/PriorYearMigration";
-import PriorYearInventory from "./pages/discovery/PriorYearInventory";
-import MasterDataGovernance from "./pages/discovery/MasterDataGovernance";
-import DiscoveryWorkspace from "./pages/onboarding/DiscoveryWorkspace";
-import LearningCenter from "./pages/LearningCenter";
-import Step1Features from "./pages/onboarding/Step1Features";
-import Step2FeatureDetail from "./pages/onboarding/Step2FeatureDetail";
-import Step3DiscoveryReview from "./pages/onboarding/Step3DiscoveryReview";
-import Step4Simulation from "./pages/onboarding/Step4Simulation";
-import Step5AskBuddy from "./pages/onboarding/Step5AskBuddy";
-import Step6Questions from "./pages/onboarding/Step6Questions";
-import Step7Complete from "./pages/onboarding/Step7Complete";
-import UATTestingPage from "./pages/UATTestingPage";
-import OperatingModelHub from "./pages/OperatingModelHub";
-import PI4PlanningWorkspace from "./pages/PI4PlanningWorkspace";
-import PostPilotPage from "./pages/PostPilotPage";
-import MeetingRecapsPage from "./pages/MeetingRecapsPage";
-import RogerPilotBacklogPage from "./pages/RogerPilotBacklogPage";
-import StateTaxonomyReadinessPage from "./pages/StateTaxonomyReadinessPage";
-import OnboardingHub from "./pages/onboarding/OnboardingHub";
-import StateCompliancePrototype from "./pages/StateCompliancePrototype";
+// Load dashboard workspace pages only after their route is requested. The
+// sign-in screen no longer needs to download every page in the application.
+const Home = lazy(() => import("./pages/Home"));
+const GateStatus = lazy(() => import("./pages/GateStatus"));
+const TouchpointsPage = lazy(() => import("./pages/TouchpointsPage"));
+const ArchitectureView = lazy(() => import("./pages/ArchitectureView"));
+const DeveloperArchitecturePage = lazy(() => import("./pages/DeveloperArchitecturePage"));
+const EnterpriseArchitecturePage = lazy(() => import("./pages/EnterpriseArchitecturePage"));
+const RogerApiEvolution = lazy(() => import("./pages/RogerApiEvolution"));
+const RuntimeJourney = lazy(() => import("./pages/RuntimeJourney"));
+const BatchControlPanel = lazy(() => import("./pages/BatchControlPanel"));
+const TaxonomyPage = lazy(() => import("./pages/TaxonomyPage"));
+const DataModelPage = lazy(() => import("./pages/DataModelPage"));
+const DataGovernancePage = lazy(() => import("./pages/DataGovernancePage"));
+const ClassificationWalkthroughPage = lazy(() => import("./pages/ClassificationWalkthroughPage"));
+const TaxMappingPage = lazy(() => import("./pages/TaxMappingPage"));
+const AAPReviewPage = lazy(() => import("./pages/AAPReviewPage"));
+const BatchDeliveryReviewModel = lazy(() => import("./pages/BatchDeliveryReviewModel"));
+const AskBuddy = lazy(() => import("./pages/AskBuddy"));
+const RogerMappingPage = lazy(() => import("./pages/RogerMappingPage"));
+const BatchDeliveryCalendar = lazy(() => import("./pages/BatchDeliveryCalendar"));
+const BatchRoadmap = lazy(() => import("./pages/BatchRoadmap"));
+const BatchDetailPage = lazy(() => import("./pages/BatchDetailPage"));
+const IntegrationSimulation = lazy(() => import("./pages/IntegrationSimulation"));
+const ConsumerIntegrationReadinessHub = lazy(() => import("./pages/ConsumerIntegrationReadinessHub"));
+const GapAnalysisEngine = lazy(() => import("./pages/GapAnalysisEngine"));
+const DeploymentRegistry = lazy(() => import("./pages/DeploymentRegistry"));
+const QADeploymentRegistry = lazy(() => import("./pages/QADeploymentRegistry"));
+const QAReleaseSim = lazy(() => import("./pages/QAReleaseSim"));
+const DiscoveryCenter = lazy(() => import("./pages/DiscoveryCenter"));
+const BAStoryBuilder = lazy(() => import("./pages/discovery/BAStoryBuilder"));
+const EcosystemOverview = lazy(() => import("./pages/discovery/EcosystemOverview"));
+const PlatformResponsibilities = lazy(() => import("./pages/discovery/PlatformResponsibilities"));
+const EndToEndDataFlow = lazy(() => import("./pages/discovery/EndToEndDataFlow"));
+const DataFlowSimulation = lazy(() => import("./pages/discovery/DataFlowSimulation"));
+const IntegrationArchitecture = lazy(() => import("./pages/discovery/IntegrationArchitecture"));
+const BARequirementDiscovery = lazy(() => import("./pages/discovery/BARequirementDiscovery"));
+const DiscoveryChecklist = lazy(() => import("./pages/discovery/DiscoveryChecklist"));
+const Glossary = lazy(() => import("./pages/discovery/Glossary"));
+const DCTOverview = lazy(() => import("./pages/discovery/DCTOverview"));
+const RogerOverview = lazy(() => import("./pages/discovery/RogerOverview"));
+const IMSIntegration = lazy(() => import("./pages/discovery/GoSystemTax"));
+const PDCOverview = lazy(() => import("./pages/discovery/PDCOverview"));
+const DataGateway = lazy(() => import("./pages/discovery/DataGateway"));
+const KnowledgeGraphPage = lazy(() => import("./pages/discovery/KnowledgeGraphPage"));
+const PriorYearMigration = lazy(() => import("./pages/discovery/PriorYearMigration"));
+const PriorYearInventory = lazy(() => import("./pages/discovery/PriorYearInventory"));
+const MasterDataGovernance = lazy(() => import("./pages/discovery/MasterDataGovernance"));
+const DiscoveryWorkspace = lazy(() => import("./pages/onboarding/DiscoveryWorkspace"));
+const LearningCenter = lazy(() => import("./pages/LearningCenter"));
+const Step1Features = lazy(() => import("./pages/onboarding/Step1Features"));
+const Step2FeatureDetail = lazy(() => import("./pages/onboarding/Step2FeatureDetail"));
+const Step3DiscoveryReview = lazy(() => import("./pages/onboarding/Step3DiscoveryReview"));
+const Step4Simulation = lazy(() => import("./pages/onboarding/Step4Simulation"));
+const Step5AskBuddy = lazy(() => import("./pages/onboarding/Step5AskBuddy"));
+const Step6Questions = lazy(() => import("./pages/onboarding/Step6Questions"));
+const Step7Complete = lazy(() => import("./pages/onboarding/Step7Complete"));
+const UATTestingPage = lazy(() => import("./pages/UATTestingPage"));
+const OperatingModelHub = lazy(() => import("./pages/OperatingModelHub"));
+const PI4PlanningWorkspace = lazy(() => import("./pages/PI4PlanningWorkspace"));
+const PostPilotPage = lazy(() => import("./pages/PostPilotPage"));
+const MeetingRecapsPage = lazy(() => import("./pages/MeetingRecapsPage"));
+const RogerPilotBacklogPage = lazy(() => import("./pages/RogerPilotBacklogPage"));
+const StateTaxonomyReadinessPage = lazy(() => import("./pages/StateTaxonomyReadinessPage"));
+const OnboardingHub = lazy(() => import("./pages/onboarding/OnboardingHub"));
+const StateCompliancePrototype = lazy(() => import("./pages/StateCompliancePrototype"));
 // Layout
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -112,6 +111,15 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   if (!user) return <LoginPage />;
   return <>{children}</>;
 }
+
+function PageLoading() {
+  return (
+    <div aria-live="polite" style={{ color: "#475569", fontSize: "13px", padding: "32px" }}>
+      Loading workspace…
+    </div>
+  );
+}
+
 function GlobalTour() {
   const { tourOpen, closeTour } = useTour();
   if (!tourOpen) return null;
@@ -123,7 +131,8 @@ function Router() {
   return (
     <AuthGate>
       <Layout>
-        <Switch>
+        <Suspense fallback={<PageLoading />}>
+          <Switch>
           {/* Core platform */}
           <Route path="/" component={Home} />
           <Route path="/batch-calendar" component={BatchDeliveryCalendar} />
@@ -212,8 +221,9 @@ function Router() {
           <Route path="/onboarding/step6" component={Step6Questions} />
           <Route path="/onboarding/step7" component={Step7Complete} />
           <Route path="/404" component={NotFound} />
-          <Route component={NotFound} />
-        </Switch>
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
         <GlobalTour />
       </Layout>
     </AuthGate>

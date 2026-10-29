@@ -351,3 +351,4 @@
 - [x] Route all supported Meeting Recaps transcripts through one direct binary transfer and use monotonic in-request timing for the five-second upload metric
 - [x] Make Generate Email Recap automatically select, open, and focus the retained copy-ready email draft without waiting for history refresh
 - [x] Add view-only Open Email Draft actions for active and sent Meeting Recaps without changing email status or regenerating content
+- [x] Improve preview startup by deferring non-active dashboard routes, reducing the sign-in load from 183 to 59 browser resources and removing stale dev-server processes
