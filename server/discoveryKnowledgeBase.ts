@@ -2,6 +2,7 @@
 // Structured DCT knowledge base for Ask Buddy context-aware responses.
 // Each entry maps a Discovery page path to its full knowledge context.
 // This is injected into the Ask Buddy system prompt when a Discovery page is active.
+import { PILOT_PROCESS_FLOW, PILOT_TARGET_ARCHITECTURE } from "../client/src/lib/pilotFlowEvidence";
 
 export interface DiscoveryPageKnowledge {
   pageTitle: string;
@@ -1149,8 +1150,11 @@ Before documenting any new requirement for the State or Provision workstream, de
   "/post-pilot": {
     pageTitle: "Pilot",
     pagePath: "/post-pilot",
-    summary: "Executive PI4 Pilot page with sprint cadence, prototypes, deployment tracking, one evidence-bound October 9 State & Provision delivery-readiness dashboard, and the State team’s PI4 Product Vision and Scope.",
+    summary: "Executive PI4 Pilot page with the Client File to Roger process flow, distinct State and Provision target architectures, sprint cadence, prototypes, deployment tracking, October 9 demonstration evidence, and State PI4 Product Vision and Scope.",
     suggestedQuestions: [
+      "Explain the Client File to Roger process flow on the Pilot page.",
+      "What does TDC own in the Pilot process flow and target architecture?",
+      "How does the Provision BTP path differ from the State IMS / GoSystem path?",
       "What did the October 9 Roger to GoSystem POC demonstration establish?",
       "Which POC capabilities are demonstrated, partially demonstrated, or not demonstrated?",
       "What still needs to be proven for an end-to-end State calculation round trip?",
@@ -1187,6 +1191,21 @@ Before documenting any new requirement for the State or Provision workstream, de
 - **Review statuses:** GREEN = Ready for Gary Review; YELLOW = Minor clarification needed; ORANGE = Significant requirements missing; RED = Not ready for technical review. These statuses describe readiness for review, not implementation completion.
 - **Current-year State review package:** First-pass Markdown reviews are available for **1494188**, **1494198**, **1494222**, **1494339**, and **1494344**, with a consolidated report for Gary. The evidence source is the Jenniver-supplied findings only. The package does not establish acceptance criteria, endpoint names, schema choices, or implementation decisions that were not supplied.
 - **Current-year priorities:** 1494222 needs the greatest TDC scrutiny because the governed dataset needs an explicit identity, lifecycle, version, mapping-status, and normalization model. 1494344 needs the greatest Gateway/TDC mutation scrutiny because it combines practitioner mapping, correction, payment, city/write-in, and approval actions. Gary makes the final technical split and implementation decision.
+
+### ${PILOT_PROCESS_FLOW.title} (/post-pilot#${PILOT_PROCESS_FLOW.sectionId})
+${PILOT_PROCESS_FLOW.description}
+${PILOT_PROCESS_FLOW.steps.map(step => `${step.number}. ${step.title}: ${step.detail}`).join("\n")}
+${PILOT_PROCESS_FLOW.branchNote}
+${PILOT_PROCESS_FLOW.boundary}
+
+### ${PILOT_TARGET_ARCHITECTURE.title} (/post-pilot#${PILOT_TARGET_ARCHITECTURE.sectionId})
+${PILOT_TARGET_ARCHITECTURE.boundary}
+${PILOT_TARGET_ARCHITECTURE.description}
+${PILOT_TARGET_ARCHITECTURE.state.supportNote}
+${PILOT_TARGET_ARCHITECTURE.state.outcome}
+${PILOT_TARGET_ARCHITECTURE.provision.supportNote}
+${PILOT_TARGET_ARCHITECTURE.provision.outcome}
+
 `,
   },
 

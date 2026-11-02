@@ -18,7 +18,7 @@ describe("State and Provision delivery-readiness dashboard", () => {
     const dashboard = readFileSync(
       resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"),
       "utf8"
-    );
+    ) + readFileSync(resolve(process.cwd(), "client/src/lib/pilotFlowEvidence.ts"), "utf8");
     const app = readFileSync(
       resolve(process.cwd(), "client/src/App.tsx"),
       "utf8"
@@ -69,7 +69,7 @@ describe("State and Provision delivery-readiness dashboard", () => {
     expect(dashboard).toMatch(/Full State\s+tax-accrual calculation/);
     expect(dashboard).toContain("post-MVP");
     expect(dashboard).toContain(
-      'eyebrow="3 · PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"'
+      'eyebrow={`3 · ${PILOT_TARGET_ARCHITECTURE.boundary}`}'
     );
     expect(dashboard).toContain('eyebrow="4 · Pilot delivery milestones"');
     expect(dashboard).toContain(

@@ -30,6 +30,7 @@ import {
 } from "../client/src/lib/rogerGovernanceData";
 import { DISCOVERY_KNOWLEDGE_BASE } from "./discoveryKnowledgeBase";
 import { buildExecutiveBuddyEvidence, PILOT_QUESTION } from "./askBuddyExecutiveEvidence";
+import { buildPilotFlowEvidence, isPilotFlowQuestion } from "./askBuddyPilotEvidence";
 import { PAGE_CONTEXT_REGISTRY } from "../client/src/lib/pageContextRegistry";
 import {
   OPEN_DECISIONS,
@@ -1033,7 +1034,15 @@ export function buildDocumentAndDependencyAnalysisInstruction(): string {
   ].join("\n");
 }
 
-export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot }: CompactBuddyPromptInput): string {
+export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnapshot, analysisDepth = "concise" }: CompactBuddyPromptInput): string {
+  if (isPilotFlowQuestion(question, currentPagePath)) {
+    return [
+      "# Ask Buddy — Pilot Process Flow and Architecture",
+      buildAskBuddyPrimaryInstruction(),
+      buildPilotFlowEvidence(question),
+      buildBuddyResponseSizeInstruction(analysisDepth, false),
+    ].join("\n");
+  }
   const queryTokens = compactTokens(question);
   const lines = [
     "# Ask Buddy — Governed Evidence Response",

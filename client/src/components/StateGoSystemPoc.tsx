@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import ExecutiveProcessFlow, {
-  type ExecutiveFlowStep,
-} from "@/components/ExecutiveProcessFlow";
+import ExecutiveProcessFlow from "@/components/ExecutiveProcessFlow";
+import { COMPARISON_ROWS, STATE_ARCHITECTURE_STEPS, PROVISION_ARCHITECTURE_STEPS, PILOT_TARGET_ARCHITECTURE } from "@/lib/pilotFlowEvidence";
 
 const C = {
   navy: "#0f1623",
@@ -16,173 +15,6 @@ const C = {
 const POC_TRANSCRIPT_SOURCE_URL = "/manus-storage/POC_6327d700.docx";
 const STATE_MVP_PRODUCT_VISION_URL =
   "https://rsmnet.sharepoint.com/:p:/r/sites/CATTO365/Shared%20Documents/Roger%20-%20state%20and%20provision/State/Product%20focuses/Roger_State_MVP_Product_Vision_and_Scope_PI-4.pptx?d=w6829d1e3d87c4691bfd1e6809b3b3187&csf=1&web=1&e=kCScRg";
-
-const COMPARISON_ROWS = [
-  [
-    "Workflow Foundation",
-    "Tax Portal-to-Roger State workflow",
-    "Demonstrated",
-    "Reuse of first nine Federal Compliance steps",
-    "Prototype Demonstrated",
-  ],
-  [
-    "Data Collection",
-    "State source-file extraction and mapping",
-    "Demonstrated",
-    "Duplicate return structure with dummy Provision data",
-    "Demonstrated with Dummy Data",
-  ],
-  [
-    "Data Review",
-    "Practitioner review and approval of source mappings",
-    "Demonstrated",
-    "Return to Provision read-only comparison and filtering",
-    "Demonstrated with Dummy Data",
-  ],
-  [
-    "Data Entry / Maintenance",
-    "State apportionment inputs by entity, jurisdiction, and factor",
-    "Demonstrated",
-    "Deferred Rollforward entity amount editing and custom adjustment columns",
-    "Demonstrated with Dummy Data",
-  ],
-  [
-    "Reconciliation",
-    "Check figures, differences, variance percentages, and review threshold",
-    "Demonstrated",
-    "Prior-year Provision vs. tax-return comparison",
-    "Demonstrated with Dummy Data",
-  ],
-  [
-    "Data Governance",
-    "Structured inputs and approved mappings shown; complete TDC integration handoff unverified",
-    "Partially Demonstrated",
-    "Initial Provision database tables created",
-    "Initial Structure Created",
-  ],
-  [
-    "Summary Output",
-    "GoSystem calculation results not shown",
-    "Not Demonstrated",
-    "Federal Summary demonstrated; detailed validation scope remains to be confirmed",
-    "Demonstrated",
-  ],
-  [
-    "Downstream Integration",
-    "IMS translation and transmission to GoSystem not shown",
-    "Not Demonstrated",
-    "BTP Excel Export demonstrated; transfer evidence remains to be confirmed",
-    "Demonstrated",
-  ],
-  [
-    "External Calculation",
-    "GoSystem execution not shown",
-    "Not Demonstrated",
-    "Bloomberg Tax Provision calculation demonstrated; detailed result evidence remains to be confirmed",
-    "Demonstrated",
-  ],
-  [
-    "End-to-End Results",
-    "No GoSystem-calculated results returned to Roger",
-    "Not Demonstrated",
-    "No validated end-to-end BTP processing flow",
-    "Not Demonstrated",
-  ],
-] as const;
-
-const STATE_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
-  {
-    label: "1 · State data collection",
-    title: "Roger UI",
-    detail:
-      "Collect and review State tax inputs from Tax Portal source files, mappings, and practitioner review.",
-    accent: C.teal,
-    surface: "#f0fdfa",
-  },
-  {
-    label: "2 · Govern and correlate",
-    title: "TDC",
-    detail:
-      "Govern structured State data and calculation-request information through the agreed data path.",
-    accent: C.blue,
-    surface: "#eff6ff",
-  },
-  {
-    label: "3 · Translate and transmit",
-    title: "IMS",
-    detail:
-      "Translate the approved package and communicate with GoSystem using confirmed contracts and formats.",
-    accent: C.purple,
-    surface: "#faf5ff",
-  },
-  {
-    label: "4 · Compare, roll up and file",
-    title: "GoSystem",
-    detail:
-      "Support apportionment comparison plus return-level roll-up and filing behavior after the governed State package is received.",
-    accent: C.amber,
-    surface: "#fffbeb",
-  },
-  {
-    label: "5 · Return and review",
-    title: "IMS → TDC → Roger",
-    detail:
-      "Return processing and roll-up results for correlation, practitioner reconciliation, review, and approval.",
-    accent: "#0369a1",
-    surface: "#f0f9ff",
-  },
-];
-
-const PROVISION_ARCHITECTURE_STEPS: readonly ExecutiveFlowStep[] = [
-  {
-    label: "1 · Prototype demonstrated",
-    title: "Roger Core",
-    detail:
-      "Reuse the first nine Federal Compliance workflow steps as the Provision foundation.",
-    accent: C.purple,
-    surface: "#faf5ff",
-  },
-  {
-    label: "2 · Demonstrated with dummy data",
-    title: "Return to Provision",
-    detail:
-      "Compare prior-year Provision amounts against the prior-year tax return in a read-only review experience.",
-    accent: C.teal,
-    surface: "#f0fdfa",
-  },
-  {
-    label: "3 · Demonstrated with dummy data",
-    title: "Deferred Rollforward",
-    detail:
-      "Maintain temporary-difference information through entity-specific amounts and custom adjustment columns.",
-    accent: C.blue,
-    surface: "#eff6ff",
-  },
-  {
-    label: "4 · Demonstrated",
-    title: "Federal Summary",
-    detail:
-      "Demonstrated October 9; confirm validation scope and retain supporting evidence.",
-    accent: C.green,
-    surface: "#ecfdf5",
-  },
-  {
-    label: "5 · Demonstrated",
-    title: "BTP Export",
-    detail:
-      "Demonstrated October 9; confirm BTP transfer approach and validation detail.",
-    accent: C.green,
-    surface: "#ecfdf5",
-  },
-  {
-    label: "6 · Demonstrated",
-    title: "Bloomberg Tax Provision",
-    detail:
-      "Calculation demonstrated October 9; confirm end-to-end output and validation detail.",
-    accent: C.green,
-    surface: "#ecfdf5",
-  },
-];
 
 const PILOT_MILESTONES = [
   ["Development completion", "Mid-December 2026"],
@@ -541,9 +373,9 @@ export default function StateGoSystemPoc() {
             style={{ marginBottom: "24px" }}
           >
             <PanelHeading
-              eyebrow="3 · PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION"
-              title="Target End-to-End Architecture"
-              subtitle="The State and Provision architectures originate in Roger but use distinct external calculation and output paths. State MVP vision retains transparent entity-and-jurisdiction calculations in Roger, while GoSystem supports return-level roll-up and filing behavior. Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path."
+              eyebrow={`3 · ${PILOT_TARGET_ARCHITECTURE.boundary}`}
+              title={PILOT_TARGET_ARCHITECTURE.title}
+              subtitle={PILOT_TARGET_ARCHITECTURE.description}
               accent={C.blue}
             />
             <div
@@ -578,13 +410,13 @@ export default function StateGoSystemPoc() {
                       textTransform: "uppercase",
                     }}
                   >
-                    State — GoSystem Roll-Up & Filing Integration
+                    {PILOT_TARGET_ARCHITECTURE.state.title}
                   </div>
                   <ExecutiveProcessFlow
                     ariaLabel="State GoSystem roll-up and filing integration target architecture"
                     steps={STATE_ARCHITECTURE_STEPS}
-                    supportNote="Forward direction: Roger UI → TDC → IMS → GoSystem. Return direction: GoSystem → IMS → TDC → Roger. IMS is the proposed integration and translation layer; Roger retains transparent entity-and-jurisdiction calculation review, while GoSystem supports return-level roll-up and filing behavior."
-                    outcome="The State round trip is not validated until the representative package, translation, GoSystem comparison or roll-up behavior, returned results, correlation, and practitioner review are confirmed."
+                    supportNote={PILOT_TARGET_ARCHITECTURE.state.supportNote}
+                    outcome={PILOT_TARGET_ARCHITECTURE.state.outcome}
                   />
                 </div>
                 <div>
@@ -603,7 +435,7 @@ export default function StateGoSystemPoc() {
                       textTransform: "uppercase",
                     }}
                   >
-                    Provision — Bloomberg Tax Provision Workflow
+                    {PILOT_TARGET_ARCHITECTURE.provision.title}
                   </div>
                   <div
                     style={{
@@ -650,8 +482,8 @@ export default function StateGoSystemPoc() {
                   <ExecutiveProcessFlow
                     ariaLabel="Provision Bloomberg Tax Provision target workflow"
                     steps={PROVISION_ARCHITECTURE_STEPS}
-                    supportNote="Provision does not use GoSystem or the State IMS calculation pathway. The BTP handoff uses BTP Export; no automated API transmission or automated results return is assumed."
-                    outcome="Federal Summary, BTP Export, and Bloomberg Tax Provision calculation are demonstrated alongside the Roger Core, Return to Provision, and Deferred Rollforward workflow. BTP transfer, end-to-end outputs, and detailed validation evidence remain pending confirmation."
+                    supportNote={PILOT_TARGET_ARCHITECTURE.provision.supportNote}
+                    outcome={PILOT_TARGET_ARCHITECTURE.provision.outcome}
                   />
                 </div>
               </div>

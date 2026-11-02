@@ -64,7 +64,7 @@ describe("PI4 Pilot delivery", () => {
     const platformContext = readFileSync(resolve(process.cwd(), "server/platformContext.ts"), "utf8");
     const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
     const deploymentSnapshot = readFileSync(resolve(process.cwd(), "client/src/components/PostPilotDeploymentSnapshot.tsx"), "utf8");
-    const prototypeFlow = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionPrototypeFlow.tsx"), "utf8");
+    const prototypeFlow = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionPrototypeFlow.tsx"), "utf8") + readFileSync(resolve(process.cwd(), "client/src/lib/pilotFlowEvidence.ts"), "utf8");
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
     const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
     const postPilotDeploymentRouter = router.slice(router.indexOf("postPilotDeploymentRegistry: router"), router.indexOf("tdcMeetingRecaps: router"));
@@ -129,7 +129,7 @@ describe("PI4 Pilot delivery", () => {
     expect(postPilot).not.toContain("SPRINT_3_WORK_ITEMS");
     expect(postPilot).toContain('import StateProvisionPrototypeFlow from "@/components/StateProvisionPrototypeFlow"');
     expect(postPilot).toContain("<StateProvisionPrototypeFlow />");
-    expect(prototypeFlow).toContain("Client File to Roger — Federal, State &amp; Provision Process Flow");
+    expect(prototypeFlow).toContain("Client File to Roger — Federal, State & Provision Process Flow");
     expect(prototypeFlow).toContain("One client-file journey: intake, governed preparation, Roger review, a single TDC decision, and controlled downstream delivery.");
     expect(prototypeFlow).toContain("Federal, State, and Provision are parallel practitioner workflows—not separate data pipelines.");
     expect(prototypeFlow).toContain("Five-phase executive process");
@@ -289,7 +289,7 @@ describe("PI4 Pilot delivery", () => {
     expect(postPilot).not.toContain("Active PI4 Features");
     expect(postPilot).toContain('import StateGoSystemPoc from "@/components/StateGoSystemPoc"');
     expect(postPilot.indexOf("<StateGoSystemPoc />")).toBeGreaterThan(postPilot.indexOf("PI4 Pod Delivery & Data Review Process"));
-    const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8");
+    const poc = readFileSync(resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"), "utf8") + readFileSync(resolve(process.cwd(), "client/src/lib/pilotFlowEvidence.ts"), "utf8");
     expect(poc).toContain("Partially Demonstrated — End-to-End Integration");
     expect(poc).toContain("Target End-to-End Architecture");
     expect(poc).toContain(

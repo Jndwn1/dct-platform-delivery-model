@@ -7,6 +7,10 @@ import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { buildBuddyGrounding, buildFocusedCrossTeamGrounding } from "./askBuddyGrounding";
 import { resolveBuddyRetrievalQuestion, selectBuddyRequestMessages } from "../client/src/lib/askBuddyRequestContext";
 import { EXECUTIVE_QUESTION } from "./askBuddyExecutiveEvidence";
+import { buildPilotFlowGrounding, explicitlyTargetsPilotFlow, resolvePilotFlowScope } from "./askBuddyPilotEvidence";
+import { buildDeliveryPhaseInstruction } from "../client/src/lib/deliveryPhaseContext";
+import { retrieveBuddyPageEvidence } from "./askBuddyPageEvidence";
+import { loadBuddyLivePageEvidence } from "./askBuddyPageLiveEvidence";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -199,14 +203,21 @@ export const appRouter = router({
         const question = [...input.messages].reverse().find((message) => message.role === "user")?.content ?? "";
         const requestMessages = selectBuddyRequestMessages(input.messages);
         const retrievalQuestion = resolveBuddyRetrievalQuestion(requestMessages);
+        const pilotFlowScope = resolvePilotFlowScope(question, requestMessages, currentPagePath);
+        const pilotPageOnly = Boolean(pilotFlowScope && !input.attachmentArtifactId && explicitlyTargetsPilotFlow(pilotFlowScope));
+        const matchedPageEvidence = retrieveBuddyPageEvidence(retrievalQuestion, currentPagePath);
+        const platformPageEvidence = matchedPageEvidence?.explicitPage || DCT_PLATFORM_QUESTION.test(retrievalQuestion) || EXECUTIVE_QUESTION.test(retrievalQuestion) || /\b(page|workspace|view|section|here)\b/i.test(question) ? matchedPageEvidence : null;
+        const explicitPageRequest = Boolean(platformPageEvidence?.explicitPage && /\b(page|section|workspace|go to|refer to|look at)\b/i.test(question) && !input.attachmentArtifactId && !/\b(attached|uploaded|document|screenshot|file)\b/i.test(question));
+        const effectiveDocumentContext = pilotPageOnly || explicitPageRequest ? undefined : input.documentContext;
         const db = await getDb();
+        const currentPageRecordsPromise = loadBuddyLivePageEvidence(question, platformPageEvidence?.paths ?? [], db);
         const masterDataQuestion = isMasterDataQuestion(question);
         const masterArtifactsPromise = db && masterDataQuestion
           ? db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.createdAt)).limit(8)
           : Promise.resolve([]);
-        const activeAttachmentArtifactId = input.attachmentArtifactId ?? input.documentContext?.artifactId;
+        const activeAttachmentArtifactId = input.attachmentArtifactId ?? effectiveDocumentContext?.artifactId;
         const explicitlyRequestedFullAssessment = isFullDocumentAssessmentQuestion(question);
-        const documentFollowUpMode = Boolean(input.documentContext && !input.attachmentArtifactId && !explicitlyRequestedFullAssessment);
+        const documentFollowUpMode = Boolean(effectiveDocumentContext && !input.attachmentArtifactId && !explicitlyRequestedFullAssessment);
         const attachmentArtifactPromise = activeAttachmentArtifactId && db
           ? db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, activeAttachmentArtifactId)).limit(1)
           : Promise.resolve([]);
@@ -268,9 +279,17 @@ Do not infer content from this file.`
         const crossTeamDependenciesMode = input.capability === "cross-team-dependencies" || stateApportionmentDependencyQuestion;
         const stateSpecificDependenciesMode = stateApportionmentDependencyQuestion || (crossTeamDependenciesMode && currentPagePath === "/post-pilot/state-taxonomy-readiness");
         const masterEvidence = buildMasterDataEvidence(question, selectAuthoritativeMasterDataArtifact(masterArtifacts));
-        const grounding = stateSpecificDependenciesMode
+        const grounding = pilotFlowScope
+          ? buildPilotFlowGrounding(pilotFlowScope)
+          : stateSpecificDependenciesMode
           ? buildFocusedCrossTeamGrounding(retrievalQuestion, currentPagePath, masterEvidence.source)
           : buildBuddyGrounding(retrievalQuestion, currentPagePath, input.liveSnapshot, masterEvidence.source);
+        const currentPageRecords = await currentPageRecordsPromise;
+        if (platformPageEvidence && !pilotFlowScope && !stateSpecificDependenciesMode) {
+          grounding.sources = [...platformPageEvidence.paths.map(path => ({ id: `platform-page-${path}`, label: `Authored platform page: ${path}`, path, authority: "Build-time authored page content; not live API or ADO evidence", lastUpdated: "Build-time snapshot", artifactStatus: "Reference" as const })), ...grounding.sources];
+          grounding.hasSufficientEvidence = true;
+          grounding.status = "Open";
+        }
         const attachmentAnalysisMode = attachmentRecord?.analysisStatus === "Extracted" && attachmentEvidence.length > 0;
         const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact);
         const uploadedAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || imageAttachmentAnalysisMode;
@@ -284,9 +303,9 @@ Do not infer content from this file.`
         const documentAnalysisMaxTokens = documentAnalysisDepth === "detailed"
           ? DEEP_DOCUMENT_ANALYSIS_MAX_TOKENS
           : CONCISE_DOCUMENT_ANALYSIS_MAX_TOKENS;
-        const adoIntent = hasAdoIntent(retrievalQuestion, input.documentContext?.initialQuestion);
-        const analyticalPlatformQuestion = adoIntent || /\b(dependencies|requirements|gaps|readiness|refine)\b/i.test(retrievalQuestion);
-        const requiresPlatformEvidence = crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(retrievalQuestion) || EXECUTIVE_QUESTION.test(retrievalQuestion) || masterDataQuestion || Boolean(activeAttachmentArtifactId) || adoIntent;
+        const adoIntent = hasAdoIntent(retrievalQuestion, effectiveDocumentContext?.initialQuestion);
+        const analyticalPlatformQuestion = Boolean(pilotFlowScope) || adoIntent || /\b(dependencies|requirements|gaps|readiness|refine)\b/i.test(retrievalQuestion);
+        const requiresPlatformEvidence = Boolean(platformPageEvidence) || Boolean(currentPageRecords) || Boolean(pilotFlowScope) || crossTeamDependenciesMode || DCT_PLATFORM_QUESTION.test(retrievalQuestion) || EXECUTIVE_QUESTION.test(retrievalQuestion) || masterDataQuestion || Boolean(activeAttachmentArtifactId) || adoIntent;
         const analyticalReasoningMode = uploadedAnalysisMode || (requiresPlatformEvidence && analyticalPlatformQuestion);
         const storyReviewEvidence = input.capability === "story-review" && currentPagePath === "/post-pilot"
           ? buildDiscoveryContextBlock("/post-pilot").slice(0, 6_000)
@@ -297,7 +316,9 @@ Do not infer content from this file.`
         const generalBusinessGuidance = requiresPlatformEvidence
           ? ""
           : `\n\nGENERAL BUSINESS-ANALYSIS MODE\nThe user is asking a general business-analysis question rather than a DCT platform fact. Provide practical, conversational guidance for discovery, requirements, process mapping, backlog refinement, acceptance criteria, facilitation, or documentation. You may use general professional knowledge, but label any non-DCT guidance as general guidance and do not present it as a verified DCT capability, decision, or delivery commitment.`;
-        const evidencePacket = requiresPlatformEvidence && !attachmentAnalysisMode
+        const evidencePacket = (pilotFlowScope || platformPageEvidence?.explicitPage && !EXECUTIVE_QUESTION.test(retrievalQuestion)) && !uploadedAnalysisMode && !stateSpecificDependenciesMode
+          ? ""
+          : pilotFlowScope || (requiresPlatformEvidence && !attachmentAnalysisMode)
           ? grounding.evidenceBlock
           : `\n\nDCT KNOWLEDGE-BASE CHECK\nThe current-page context and governed DCT knowledge base were checked before this response. No DCT-specific fact is required to answer this general business-analysis question. If the user asks about a DCT capability, return to the supplied governed evidence and do not infer platform facts.`;
         const basePrompt = documentFollowUpMode
@@ -306,6 +327,10 @@ Do not infer content from this file.`
           ? buildAttachmentAnalysisPrompt(question)
           : targetedAttachmentQuestionMode
           ? buildAttachmentDirectQuestionPrompt(question, documentAnalysisDepth)
+          : pilotFlowScope
+          ? buildCompactAskBuddyPrompt({ question: pilotFlowScope, currentPagePath, analysisDepth: documentAnalysisDepth })
+          : platformPageEvidence?.explicitPage && !stateSpecificDependenciesMode && !EXECUTIVE_QUESTION.test(retrievalQuestion)
+          ? buildGeneralAskBuddyPrompt(undefined)
           : stateSpecificDependenciesMode
           ? buildCrossTeamDependencyPrompt({ question: retrievalQuestion, currentPagePath, liveSnapshot: input.liveSnapshot, analysisDepth: documentAnalysisDepth })
           : requiresPlatformEvidence
@@ -314,7 +339,7 @@ Do not infer content from this file.`
         const attachmentPrimacy = attachmentArtifact
           ? "\n\nUPLOADED-SOURCE PRIORITY: Treat the uploaded attachment as the primary source for the scope it covers. Use platform documentation only to corroborate a directly related point; if the sources conflict, describe the conflict and preserve the open decision rather than reconciling it by assumption."
           : "";
-        const suppliedAdoReferenceContext = buildSuppliedAdoReferenceContext(`${retrievalQuestion}\n${input.documentContext?.initialQuestion ?? ""}`);
+        const suppliedAdoReferenceContext = buildSuppliedAdoReferenceContext(`${retrievalQuestion}\n${effectiveDocumentContext?.initialQuestion ?? ""}`);
         const attachmentEvidenceForModel = attachmentEvidence.length > DOCUMENT_EVIDENCE_MAX_CHARS
           ? `${attachmentEvidence.slice(0, DOCUMENT_EVIDENCE_MAX_CHARS).trimEnd()}\n\n[Document evidence supplied to this analysis is truncated at ${DOCUMENT_EVIDENCE_MAX_CHARS.toLocaleString()} characters. Do not draw conclusions from later content.]`
           : attachmentEvidence;
@@ -324,15 +349,17 @@ Do not infer content from this file.`
         const documentDepthInstruction = fullDocumentAssessmentMode
           ? `\n\nDOCUMENT ANALYSIS DEPTH: ${documentAnalysisDepth === "detailed" ? "Detailed — provide the complete six-section BA assessment with distinct requirements, cross-team deliverables, readiness by supplied ADO item, gaps, and prioritized actions." : "Concise — provide all six required sections, but use only the highest-impact findings and brief rows."}`
           : "";
-        const originalDocumentRequestContext = input.documentContext?.initialQuestion
-          ? `\n\nORIGINAL DOCUMENT ANALYSIS REQUEST — retained user-supplied scope and ADO context:\n${input.documentContext.initialQuestion}`
+        const originalDocumentRequestContext = effectiveDocumentContext?.initialQuestion
+          ? `\n\nORIGINAL DOCUMENT ANALYSIS REQUEST — retained user-supplied scope and ADO context:\n${effectiveDocumentContext.initialQuestion}`
           : "";
         const systemPrompt = basePrompt + evidencePacket + (documentAndDependencyAnalysisMode ? "" : masterEvidence.evidenceBlock) + storyReviewEvidence + (attachmentAnalysisMode ? attachmentEvidenceForModel : attachmentEvidence.slice(0, structuredAttachmentAnalysisMode ? 12_000 : 8_000)) + attachmentReferenceNote + attachmentPrimacy + relatedStateReadinessEvidence + suppliedAdoReferenceContext + originalDocumentRequestContext + entryContext + generalBusinessGuidance + documentDepthInstruction + `\n\nSelected analysis lens: ${input.capability ?? "General Discovery"}. The lens changes analysis structure; it does not permit unrelated platform facts or inferred delivery dependencies.`;
 
         const recentMessages = requestMessages;
         // Prior AI answers are dialogue, never authoritative platform evidence.
+        const pageEvidenceForModel = (platformPageEvidence && !pilotFlowScope && !stateSpecificDependenciesMode ? `\n\nREQUESTED PAGE CONTENT — use this to answer the current page question directly; do not substitute unrelated historical batches or broad platform summaries.\n${platformPageEvidence.evidenceBlock}` : "") + (currentPageRecords ? `\n\n${currentPageRecords}` : "");
+        const sourcedSystemPrompt = systemPrompt + pageEvidenceForModel;
         const llmMessages: LlmMessage[] = [
-          { role: "system" as const, content: systemPrompt + "\n\nCONVERSATIONAL RESPONSE: Answer the latest user question, resolving short follow-ups from prior user scope. Prior assistant answers are conversational context, not confirmed evidence. For partially supported questions, give the supported answer first and label proposed analysis; identify only the exact unknowns afterward. Do not require a full live ADO record to discuss source-backed potential dependencies. Never invent a formal ADO relationship.\n\n" + buildBuddyResponseSizeInstruction(documentAnalysisDepth, fullDocumentAssessmentMode) + (!fullDocumentAssessmentMode && !uploadedAnalysisMode && !stateSpecificDependenciesMode && adoIntent ? `\n${buildBuddyDependencyOutputInstruction(documentAnalysisDepth)}` : "") },
+          { role: "system" as const, content: sourcedSystemPrompt + `\n\nCURRENT DELIVERY PHASES — apply only to platform-related questions:\n${buildDeliveryPhaseInstruction()}` + "\n\nCONVERSATIONAL RESPONSE: Answer the latest user question, resolving short follow-ups from prior user scope. Prior assistant answers are conversational context, not confirmed evidence. For partially supported questions, give the supported answer first and label proposed analysis; identify only the exact unknowns afterward. Do not require a full live ADO record to discuss source-backed potential dependencies. Never invent a formal ADO relationship.\n\n" + buildBuddyResponseSizeInstruction(documentAnalysisDepth, fullDocumentAssessmentMode) + (!pilotFlowScope && !fullDocumentAssessmentMode && !uploadedAnalysisMode && !stateSpecificDependenciesMode && adoIntent ? `\n${buildBuddyDependencyOutputInstruction(documentAnalysisDepth)}` : "") },
           ...recentMessages.map((m) => ({
             role: m.role as "user" | "assistant",
             content: m.content,
@@ -468,8 +495,8 @@ Do not infer content from this file.`
                   : !text.startsWith("### Targeted Analysis Did Not Complete") && !text.startsWith("### Follow-Up Analysis Did Not Complete")),
                 mode: documentFollowUpMode ? "follow-up" as const : fullDocumentAssessmentMode ? "assessment" as const : "targeted" as const,
                 artifactId: Number(attachmentArtifact?.id),
-                fileName: attachmentArtifact?.fileName ?? input.documentContext?.fileName ?? "Uploaded document",
-                initialQuestion: input.documentContext?.initialQuestion ?? question.slice(0, 5_000),
+                fileName: attachmentArtifact?.fileName ?? effectiveDocumentContext?.fileName ?? "Uploaded document",
+                initialQuestion: effectiveDocumentContext?.initialQuestion ?? question.slice(0, 5_000),
               }
             : undefined,
         };

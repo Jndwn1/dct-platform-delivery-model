@@ -11,7 +11,7 @@ describe("Provision October 9 consolidation", () => {
     const dashboard = readFileSync(
       resolve(process.cwd(), "client/src/components/StateGoSystemPoc.tsx"),
       "utf8"
-    );
+    ) + readFileSync(resolve(process.cwd(), "client/src/lib/pilotFlowEvidence.ts"), "utf8");
     const knowledgeBase = readFileSync(
       resolve(process.cwd(), "server/discoveryKnowledgeBase.ts"),
       "utf8"

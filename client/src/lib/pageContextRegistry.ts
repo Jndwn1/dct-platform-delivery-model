@@ -61,7 +61,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     pageTitle: "Pilot",
     pageIcon: "◫",
     description: "Executive PI4 Pilot sprint cadence, closeout visibility, deployment tracking, prototypes, and a single evidence-bound October 9 State & Provision delivery-readiness dashboard.",
-    features: ["PI4 Sprint Timeline", "Sprint Closeout Metrics", "Pilot Deployment Tracking", "State & Provision Prototypes", "State & Provision Delivery Readiness Dashboard", "October 9 Demonstration Comparison", "Target End-to-End Architecture", "POC BA Working-Session Agenda & Gaps", "Planning Targets", "Supporting Evidence Sources", "State MVP Product Vision & Scope", "PI4 Tracker Navigation"],
+    features: ["PI4 Sprint Timeline", "Sprint Closeout Metrics", "Pilot Deployment Tracking", "State & Provision Prototypes", "Client File to Roger — Federal, State & Provision Process Flow", "State & Provision Delivery Readiness Dashboard", "October 9 Demonstration Comparison", "Target End-to-End Architecture", "POC BA Working-Session Agenda & Gaps", "Planning Targets", "Supporting Evidence Sources", "State MVP Product Vision & Scope", "PI4 Tracker Navigation"],
     apis: [],
     stories: ["1433863", "1472734", "1471480", "1494188", "1494198", "1494222", "1494339", "1494344"],
     screens: ["Pilot Overview", "PI4 Sprint Timeline", "Sprint Metrics", "State & Provision Prototypes", "State & Provision Delivery Readiness"],
