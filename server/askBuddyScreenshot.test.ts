@@ -21,7 +21,17 @@ import { invokeLLM } from "./_core/llm";
 import { storageGet, storagePut } from "./storage";
 import type { TrpcContext } from "./_core/context";
 import { parseAskBuddyAttachmentRecord, prepareAskBuddyAttachment } from "./askBuddyAttachmentEngine";
-import { BUDDY_SCREENSHOT_INSTRUCTION, detectBuddyImageMimeType, loadBuddyScreenshot } from "./askBuddyScreenshot";
+import {
+  BUDDY_SCREENSHOT_CACHE_MAX_ENTRIES,
+  BUDDY_SCREENSHOT_CACHE_TTL_MS,
+  BUDDY_SCREENSHOT_INSTRUCTION,
+  MAX_BUDDY_SCREENSHOT_BYTES,
+  clearBuddyScreenshotCache,
+  detectBuddyImageMimeType,
+  loadBuddyScreenshot,
+  rememberBuddyScreenshot,
+  type BuddyImageMimeType,
+} from "./askBuddyScreenshot";
 import { getPastedBuddyScreenshot, isBuddyScreenshot } from "../client/src/lib/askBuddyScreenshotInput";
 
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a+oUAAAAASUVORK5CYII=", "base64");
@@ -33,11 +43,16 @@ const imageArtifact = () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  clearBuddyScreenshotCache();
   mock.rows = [imageArtifact()]; mock.inserts = [];
   vi.stubGlobal("fetch", vi.fn(async () => new Response(PNG, { headers: { "content-type": "image/png" } })));
   vi.stubGlobal("File", NodeFile);
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  clearBuddyScreenshotCache();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe("Ask Buddy screenshot support", () => {
   it("recognizes valid PNG bytes and stores metadata, never pixels or extracted assumptions", async () => {
@@ -82,6 +97,18 @@ describe("Ask Buddy screenshot support", () => {
     expect(storageGet).toHaveBeenCalledWith("ask-buddy/test.png");
     expect(result.documentAnalysis).toMatchObject({ mode: "follow-up", complete: true });
   });
+  it("reuses retained pixels for a follow-up but invokes the model for each new question", async () => {
+    const caller = appRouter.createCaller(ctx);
+    await caller.askBuddy.chat({ messages: [{ role: "user", content: "Which ADO spike is visible?" }], attachmentArtifactId: 42 });
+    await caller.askBuddy.chat({ messages: [{ role: "user", content: "Which acceptance criteria are visible?" }], documentContext: { artifactId: 42, fileName: "ado-screenshot.png" } });
+    expect(storageGet).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(invokeLLM).toHaveBeenCalledTimes(2);
+    const followUpCall = vi.mocked(invokeLLM).mock.calls[1][0];
+    const followUpContent = followUpCall.messages[followUpCall.messages.length - 1].content as any[];
+    expect(followUpContent[0]).toEqual({ type: "text", text: "Which acceptance criteria are visible?" });
+    expect(followUpContent[1]).toEqual({ type: "image_url", image_url: { url: `data:image/png;base64,${PNG.toString("base64")}`, detail: "high" } });
+  });
   it("does not call the AI or claim completion when retained image bytes are invalid", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("not image pixels")));
     const result = await appRouter.createCaller(ctx).askBuddy.chat({ messages: [{ role: "user", content: "Read this screenshot" }], attachmentArtifactId: 42 });
@@ -113,5 +140,162 @@ describe("Ask Buddy screenshot support", () => {
     expect(page).toContain("Ctrl+V / Cmd+V");
     expect(BUDDY_SCREENSHOT_INSTRUCTION).toContain("cropped, missing, or unreadable");
     expect(BUDDY_SCREENSHOT_INSTRUCTION).toContain("do not invent hidden descriptions");
+  });
+});
+
+describe("Ask Buddy validated screenshot cache", () => {
+  const expectedImage = (bytes = PNG, mimeType = "image/png") => ({
+    type: "image_url",
+    image_url: { url: `data:${mimeType};base64,${bytes.toString("base64")}`, detail: "high" },
+  });
+
+  it("uses upload-seeded original pixels without storage lookup or download", async () => {
+    const uploadedBytes = Buffer.from(PNG);
+    rememberBuddyScreenshot("ask-buddy/seed.png", "image/png", uploadedBytes);
+    uploadedBytes.fill(0);
+
+    const first = await loadBuddyScreenshot("ask-buddy/seed.png", "image/png");
+    expect(first).toEqual(expectedImage());
+    first.image_url.url = "caller mutation";
+    first.image_url.detail = "low";
+    const followUp = await loadBuddyScreenshot("ask-buddy/seed.png", "image/png");
+    expect(followUp).toEqual(expectedImage());
+    expect(followUp).not.toBe(first);
+    expect(followUp.image_url).not.toBe(first.image_url);
+    expect(storageGet).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("downloads a retained image once and reuses the exact high-detail pixels on follow-ups", async () => {
+    const first = await loadBuddyScreenshot("ask-buddy/follow-up.png", "image/png");
+    const followUp = await loadBuddyScreenshot("ask-buddy/follow-up.png", "image/png");
+    expect(first).toEqual(expectedImage());
+    expect(followUp).toEqual(first);
+    expect(followUp.image_url).not.toBe(first.image_url);
+    expect(storageGet).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("expires at the fixed TTL even when the screenshot was recently reused", async () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    await loadBuddyScreenshot("ask-buddy/expiry.png", "image/png");
+    clock.mockReturnValue(1_000 + BUDDY_SCREENSHOT_CACHE_TTL_MS - 1);
+    await loadBuddyScreenshot("ask-buddy/expiry.png", "image/png");
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    clock.mockReturnValue(1_000 + BUDDY_SCREENSHOT_CACHE_TTL_MS);
+    expect(await loadBuddyScreenshot("ask-buddy/expiry.png", "image/png")).toEqual(expectedImage());
+    expect(storageGet).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("expires upload-seeded entries as well", async () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    rememberBuddyScreenshot("ask-buddy/seed-expiry.png", "image/png", PNG);
+    clock.mockReturnValue(1_000 + BUDDY_SCREENSHOT_CACHE_TTL_MS);
+    expect(await loadBuddyScreenshot("ask-buddy/seed-expiry.png", "image/png")).toEqual(expectedImage());
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("bounds entry count and evicts the least recently used screenshot", async () => {
+    for (let index = 0; index < BUDDY_SCREENSHOT_CACHE_MAX_ENTRIES; index++) {
+      rememberBuddyScreenshot(`ask-buddy/entry-${index}.png`, "image/png", PNG);
+    }
+    await loadBuddyScreenshot("ask-buddy/entry-0.png", "image/png");
+    rememberBuddyScreenshot("ask-buddy/entry-new.png", "image/png", PNG);
+    await loadBuddyScreenshot("ask-buddy/entry-0.png", "image/png");
+    await loadBuddyScreenshot("ask-buddy/entry-new.png", "image/png");
+    expect(fetch).not.toHaveBeenCalled();
+
+    await loadBuddyScreenshot("ask-buddy/entry-1.png", "image/png");
+    expect(storageGet).toHaveBeenCalledTimes(1);
+    expect(storageGet).toHaveBeenCalledWith("ask-buddy/entry-1.png");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("bounds the retained base64 payload even below the entry-count limit", async () => {
+    const largePng = Buffer.alloc(8 * 1024 * 1024);
+    PNG.copy(largePng);
+    rememberBuddyScreenshot("ask-buddy/large-first.png", "image/png", largePng);
+    rememberBuddyScreenshot("ask-buddy/large-second.png", "image/png", largePng);
+    expect(await loadBuddyScreenshot("ask-buddy/large-second.png", "image/png")).toEqual(expectedImage(largePng));
+    expect(fetch).not.toHaveBeenCalled();
+
+    expect(await loadBuddyScreenshot("ask-buddy/large-first.png", "image/png")).toEqual(expectedImage());
+    expect(storageGet).toHaveBeenCalledTimes(1);
+    expect(storageGet).toHaveBeenCalledWith("ask-buddy/large-first.png");
+  });
+
+  it.each(["../external.png", "ask-buddy/../bad.png", "ask-buddy/a?b", "ask-buddy/a#b", "ask-buddy/a\\b", "ask-buddy/", "https://example.test/a.png"])("rejects invalid key %s before a lookup or seed", async (key) => {
+    rememberBuddyScreenshot("ask-buddy/valid.png", "image/png", PNG);
+    expect(() => rememberBuddyScreenshot(key, "image/png", PNG)).toThrow("invalid");
+    await expect(loadBuddyScreenshot(key, "image/png")).rejects.toThrow("invalid");
+    expect(await loadBuddyScreenshot("ask-buddy/valid.png", "image/png")).toEqual(expectedImage());
+    expect(storageGet).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it.each(["image/svg+xml", "image/PNG", "text/plain", "", undefined])("rejects invalid MIME %s before a lookup or seed", async (invalidMime) => {
+    rememberBuddyScreenshot("ask-buddy/mime.png", "image/png", PNG);
+    const mimeType = invalidMime as BuddyImageMimeType;
+    expect(() => rememberBuddyScreenshot("ask-buddy/mime.png", mimeType, PNG)).toThrow("could not be verified");
+    await expect(loadBuddyScreenshot("ask-buddy/mime.png", mimeType)).rejects.toThrow("could not be verified");
+    expect(await loadBuddyScreenshot("ask-buddy/mime.png", "image/png")).toEqual(expectedImage());
+    expect(storageGet).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("keeps cached MIME variants separate and never serves a cached PNG for an expected JPEG", async () => {
+    rememberBuddyScreenshot("ask-buddy/mime.png", "image/png", PNG);
+    await expect(loadBuddyScreenshot("ask-buddy/mime.png", "image/jpeg")).rejects.toThrow("could not be verified");
+    const jpeg = Buffer.from([255, 216, 255, 224]);
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(jpeg));
+    expect(await loadBuddyScreenshot("ask-buddy/mime.png", "image/jpeg")).toEqual(expectedImage(jpeg, "image/jpeg"));
+    expect(await loadBuddyScreenshot("ask-buddy/mime.png", "image/png")).toEqual(expectedImage());
+    expect(await loadBuddyScreenshot("ask-buddy/mime.png", "image/jpeg")).toEqual(expectedImage(jpeg, "image/jpeg"));
+    expect(storageGet).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects empty, invalid, mismatched, and oversized seed bytes without replacing valid pixels", async () => {
+    rememberBuddyScreenshot("ask-buddy/valid.png", "image/png", PNG);
+    for (const bytes of [Buffer.alloc(0), Buffer.from("not image pixels"), Buffer.from([255, 216, 255, 224])]) {
+      expect(() => rememberBuddyScreenshot("ask-buddy/valid.png", "image/png", bytes)).toThrow("could not be verified");
+    }
+    const oversized = Buffer.alloc(MAX_BUDDY_SCREENSHOT_BYTES + 1);
+    PNG.copy(oversized);
+    expect(() => rememberBuddyScreenshot("ask-buddy/valid.png", "image/png", oversized)).toThrow("10 MB");
+    expect(await loadBuddyScreenshot("ask-buddy/valid.png", "image/png")).toEqual(expectedImage());
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("never caches validation or download failures", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response("not image pixels"))
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockRejectedValueOnce(new Error("network failure"));
+    await expect(loadBuddyScreenshot("ask-buddy/retry.png", "image/png")).rejects.toThrow("could not be verified");
+    await expect(loadBuddyScreenshot("ask-buddy/retry.png", "image/png")).rejects.toThrow("could not be read");
+    await expect(loadBuddyScreenshot("ask-buddy/retry.png", "image/png")).rejects.toThrow("network failure");
+    expect(await loadBuddyScreenshot("ask-buddy/retry.png", "image/png")).toEqual(expectedImage());
+    await loadBuddyScreenshot("ask-buddy/retry.png", "image/png");
+    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(storageGet).toHaveBeenCalledTimes(4);
+  });
+
+  it("rejects oversized streamed downloads without a content length and does not cache them", async () => {
+    const oversized = Buffer.alloc(MAX_BUDDY_SCREENSHOT_BYTES + 1);
+    PNG.copy(oversized);
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(oversized));
+    await expect(loadBuddyScreenshot("ask-buddy/oversized.png", "image/png")).rejects.toThrow("10 MB");
+    expect(await loadBuddyScreenshot("ask-buddy/oversized.png", "image/png")).toEqual(expectedImage());
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("can clear seeded payloads for test isolation", async () => {
+    rememberBuddyScreenshot("ask-buddy/clear.png", "image/png", PNG);
+    clearBuddyScreenshotCache();
+    expect(await loadBuddyScreenshot("ask-buddy/clear.png", "image/png")).toEqual(expectedImage());
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

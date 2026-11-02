@@ -931,6 +931,7 @@ type CompactBuddyPromptInput = {
   question: string;
   currentPagePath?: string;
   liveSnapshot?: LiveSnapshotInput;
+  analysisDepth?: "concise" | "detailed";
 };
 
 const COMPACT_CONTEXT_CHARS = 900;
@@ -1154,14 +1155,29 @@ export function buildAttachmentAnalysisPrompt(question: string): string {
   ].join("\n");
 }
 
+export function buildBuddyDependencyOutputInstruction(depth: "concise" | "detailed" = "detailed"): string {
+  const columns = depth === "concise"
+    ? "Dependency | Related work item | Proposed responsible team | Required deliverable | Classification"
+    : "Dependency | Affected ADO work item | Team needing information | Proposed providing team | Required deliverable or decision | Development or test impact | Classification | Sequencing recommendation";
+  return `For a dependency or ADO-tracking question, use one compact Markdown table with exactly these columns: ${columns}. Classification must be exactly Confirmed blocker (only with direct blocking evidence), Potential blocker, or Supporting dependency. Use supplied or directly evidenced work items only; otherwise write ‘Not stated in source’. A provider not directly evidenced must begin ‘Proposed — validate:’; any proposed sequencing must be labeled ‘Proposed — validate’. Never describe a proposed responsibility as approved, and never invent ADO IDs, owners, dates, completion statuses, contracts, mappings, acceptance criteria, or relationships.`;
+}
+
+/** Controls visible answer length, not the model's reasoning or source checks. */
+export function buildBuddyResponseSizeInstruction(depth: "concise" | "detailed", fullAssessment: boolean): string {
+  if (fullAssessment) return "Complete every required assessment section; do not shorten the assessment to a targeted answer.";
+  return depth === "concise"
+    ? "CONCISE RESPONSE: Give the direct conclusion first, then the specific actionable findings in about 150–220 words. Keep every distinct material finding but make each table cell brief. Explain a focused follow-up without repeating prior findings, document summaries, caveats, or a full report. Do not reduce evidence checks, reasoning, or confirmation boundaries to meet this length; a little extra space is allowed when needed for completeness."
+    : "DETAILED RESPONSE: Give the direct answer with its specific reasoning, deliverables, impacts, and exact gaps. Do not repeat a full assessment unless explicitly requested.";
+}
+
 /** Builds a direct analytical answer for a targeted question against an uploaded source. */
-export function buildAttachmentDirectQuestionPrompt(question: string): string {
+export function buildAttachmentDirectQuestionPrompt(question: string, depth: "concise" | "detailed" = "detailed"): string {
   return [
     "# Ask Buddy — Targeted Document Analysis",
     buildAskBuddyPrimaryInstruction(),
     "Use the attached document as the primary evidence. Answer the user's current question directly; do not generate the six-part assessment, summarize the document, or restate unrelated findings.",
     "Interpret the evidence and explain the specific implication, requirement, dependency, risk, gap, or decision asked about. Label source-backed facts as Confirmed and analytical conclusions as Proposed, Potential, Inferred, or Open as appropriate.",
-    "For an ADO dependency question, return a compact Markdown table with exactly these columns: Dependency | Affected ADO work item | Team needing information | Proposed providing team | Required deliverable or decision | Development or test impact | Classification | Sequencing recommendation. Classification must be exactly Confirmed blocker (only if the source says it blocks), Potential blocker (could delay work), or Supporting dependency (needed but not stated as blocking). A provider not directly evidenced must begin ‘Proposed — validate:’; a proposed sequencing relationship must be labeled ‘Proposed — validate’. Do not invent an ADO owner, status, date, relationship, or acceptance criteria.",
+    buildBuddyDependencyOutputInstruction(depth),
     "For a spike-readiness question, separately state discovery readiness, implementation readiness, expected discovery outputs, and the specific missing information. A spike can be ready to begin discovery even when it is not ready for implementation.",
     "If the source does not establish a requested field, write ‘Not stated in source’ and name the exact artifact, decision, or ADO content needed. Do not append a source list or expose internal provenance metadata.",
     `User question: ${question}`,
@@ -1172,13 +1188,13 @@ export function buildAttachmentDirectQuestionPrompt(question: string): string {
  * Uses a retained attachment only to answer a subsequent, specific question.
  * A follow-up is not a request to repeat the original six-section assessment.
  */
-export function buildAttachmentFollowUpPrompt(question: string): string {
+export function buildAttachmentFollowUpPrompt(question: string, depth: "concise" | "detailed" = "detailed"): string {
   return [
     "# Ask Buddy — Document Follow-Up Analysis",
     buildAskBuddyPrimaryInstruction(),
     "A prior full document assessment is already available for this attachment. Answer the user's current question directly from the attached evidence and directly related governed context. Do not regenerate the six-section assessment, repeat prior findings, or restate the document unless the user explicitly asks for a full reassessment.",
     "Apply BA reasoning: interpret the relevant evidence, distinguish Confirmed evidence from Proposed or Potential analysis, and provide an actionable result. A reasonable analytical inference is allowed only when labeled Proposed or Potential; never convert it into confirmed ownership, scope, or a delivery commitment.",
-    "For a question about ADO dependency tracking, provide a compact Markdown table with exactly these columns: Dependency | Affected ADO work item | Team needing information | Proposed providing team | Required deliverable or decision | Development or test impact | Classification | Sequencing recommendation. Use a supplied or directly evidenced work item only; otherwise write ‘Not stated in source’. Classification must be exactly Confirmed blocker (only with direct blocking evidence), Potential blocker, or Supporting dependency. A provider not directly evidenced must begin ‘Proposed — validate:’; a proposed sequence must be labeled ‘Proposed — validate’.",
+    buildBuddyDependencyOutputInstruction(depth),
     "For a question about backlog refinement, state the recommended work-item action, the evidence-based rationale, proposed owner only when supportable, and the specific information needed before implementation. For a question about requirements, gaps, decisions, ownership, or readiness, answer only that requested topic in the most useful concise format.",
     "Do not append a source list or expose internal provenance metadata. If the attachment does not establish the answer, say what is missing and ask one focused clarification.",
     `User follow-up question: ${question}`,
@@ -1190,7 +1206,7 @@ export function buildAttachmentFollowUpPrompt(question: string): string {
  * excludes general batches, dashboards, and platform dependency records unless
  * the supplied State Apportionment evidence directly supports the question.
  */
-export function buildCrossTeamDependencyPrompt({ question, currentPagePath }: CompactBuddyPromptInput): string {
+export function buildCrossTeamDependencyPrompt({ question, currentPagePath, analysisDepth = "detailed" }: CompactBuddyPromptInput): string {
   const stateApportionmentScope = /\b(state|apportionment|gosystem|ims|taxonomy|1514276|1514277|1433863|1501980|1501796)\b/i.test(question)
     || currentPagePath === "/post-pilot/state-taxonomy-readiness";
   const lines = [
@@ -1199,7 +1215,7 @@ export function buildCrossTeamDependencyPrompt({ question, currentPagePath }: Co
     "Analyze the specific capability, workstream, and question requested. Relevance to the requested capability takes priority over keyword matches, document popularity, or general knowledge-base retrieval. Answer the question directly; do not return a six-section assessment unless the user explicitly requests a broad assessment.",
     "Do not substitute general platform information for the specific capability or document being analyzed. Exclude unrelated sprint batches, dashboards, projects, platform dependencies, and ADO records—even when they mention the same team.",
     "If an uploaded document is supplied, treat it as the primary source. Use supplementary DCT evidence only when it has a demonstrable relationship to the requested scope.",
-    "For a dependency or ADO-tracking question, use one compact Markdown table with exactly these columns: Dependency | Affected ADO work item | Team needing information | Proposed providing team | Required deliverable or decision | Development or test impact | Classification | Sequencing recommendation. Classification must be exactly Confirmed blocker (only with direct blocking evidence), Potential blocker, or Supporting dependency. A provider not directly evidenced must begin ‘Proposed — validate:’; a proposed predecessor/successor or parallel relationship must be labeled ‘Proposed — validate’. Never describe a proposed responsibility as approved, and never invent ADO IDs, owners, dates, completion statuses, contracts, mappings, acceptance criteria, or relationships.",
+    buildBuddyDependencyOutputInstruction(analysisDepth),
     "Use established boundaries only as a baseline, not proof of source-specific ownership: TDC governs tax-domain data, taxonomy, reference data, persistence, validation, and supported retrieval; State / Process owns State-specific business requirements, approved definitions, jurisdictional rules, and business mapping decisions; IMS owns approved downstream interfaces; Roger UI owns user workflows and review; GoSystem performs calculation behavior only where the evidence says it does.",
   ];
 

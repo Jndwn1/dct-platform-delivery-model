@@ -19,7 +19,8 @@ vi.mock("./_core/llm", () => ({
 }));
 
 // ── Mock platformContext ──────────────────────────────────────────────────────
-vi.mock("./platformContext", () => ({
+vi.mock("./platformContext", async (importOriginal) => ({
+  ...await importOriginal<typeof import("./platformContext")>(),
   buildAttachmentAnalysisPrompt: vi.fn().mockReturnValue(
     "You are Ask Buddy, an attachment-led Business Analysis Assistant. [mock attachment prompt]"
   ),

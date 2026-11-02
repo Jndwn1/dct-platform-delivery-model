@@ -11,6 +11,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
+import { fetchBuddyRpc } from "./lib/askBuddyTransport";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -58,7 +59,7 @@ const trpcClient = trpc.createClient({
         url: "/api/trpc",
         transformer: superjson,
         fetch(input, init) {
-          return globalThis.fetch(input, {
+          return fetchBuddyRpc(input, {
             ...(init ?? {}),
             credentials: "include",
           });

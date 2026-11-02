@@ -22,7 +22,7 @@ describe("Ask Buddy conversational document follow-ups", () => {
     expect(router).toContain("documentContext: z.object({");
     expect(router).toContain("initialQuestion: z.string().max(5_000).optional()");
     expect(router).toContain("const documentFollowUpMode");
-    expect(router).toContain("buildAttachmentFollowUpPrompt(question)");
+    expect(router).toContain("buildAttachmentFollowUpPrompt(question, documentAnalysisDepth)");
     expect(router).toContain("ORIGINAL DOCUMENT ANALYSIS REQUEST");
     expect(router).toContain("DOCUMENT_FOLLOW_UP_TIMEOUT_MS = 12_000");
     expect(router).toContain("fullDocumentAssessmentMode && !hasCompleteDocumentAnalysis(responseText)");

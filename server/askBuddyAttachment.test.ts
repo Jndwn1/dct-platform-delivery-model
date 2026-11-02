@@ -59,7 +59,7 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(router).toContain("const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact)");
     expect(router).toContain("const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode");
     expect(router).toContain("buildAttachmentAnalysisPrompt(question)");
-    expect(router).toContain("buildAttachmentDirectQuestionPrompt(question)");
+    expect(router).toContain("buildAttachmentDirectQuestionPrompt(question, documentAnalysisDepth)");
     expect(router).toContain("const fullDocumentAssessmentMode");
     expect(router).toContain("const targetedAttachmentQuestionMode");
     expect(router).toContain('DOCUMENT_ANALYSIS_MODEL = "gpt-6-luna"');
@@ -82,9 +82,9 @@ describe("Ask Buddy direct attachment workflow", () => {
   it("offers targeted or full document analysis, progress feedback, and a completion badge", () => {
     expect(askBuddyPage).toContain('aria-label="Document analysis depth"');
     expect(askBuddyPage).toContain("Concise · targeted answer");
-    expect(askBuddyPage).toContain("Detailed · full assessment when requested");
-    expect(askBuddyPage).toContain("Deep document analysis in progress");
-    expect(askBuddyPage).toContain("Reading evidence, assessing requirements, and checking dependencies and ADO readiness.");
+    expect(askBuddyPage).toContain("Detailed · expanded answer");
+    expect(askBuddyPage).toContain("Analyzing document or screenshot…");
+    expect(askBuddyPage).toContain("Elapsed time includes upload and analysis");
     expect(askBuddyPage).toContain("Full assessment complete");
     expect(askBuddyPage).toContain("analysisDepth,");
     expect(router).toContain('analysisDepth: z.enum(["concise", "detailed"]).optional()');

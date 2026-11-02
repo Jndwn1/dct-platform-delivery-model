@@ -4,6 +4,90 @@ import type { ImageContent } from "./_core/llm";
 export const MAX_BUDDY_SCREENSHOT_BYTES = 10 * 1024 * 1024;
 export type BuddyImageMimeType = "image/png" | "image/jpeg" | "image/webp";
 
+export const BUDDY_SCREENSHOT_CACHE_TTL_MS = 2 * 60 * 1000;
+export const BUDDY_SCREENSHOT_CACHE_MAX_ENTRIES = 4;
+export const BUDDY_SCREENSHOT_CACHE_MAX_BYTES = 20 * 1024 * 1024;
+
+type CachedScreenshot = Readonly<{
+  dataUrl: string;
+  rawByteLength: number;
+  payloadBytes: number;
+  expiresAt: number;
+}>;
+
+// Only validated original pixels are cached, never AI conclusions or attachment authority.
+// Keep base64 strings only (no retained raw Buffer), and return fresh mutable wrappers.
+const screenshotCache = new Map<string, CachedScreenshot>();
+let cachedPayloadBytes = 0;
+
+function validateScreenshotReference(storageKey: string, mimeType: BuddyImageMimeType): void {
+  if (typeof storageKey !== "string" || !storageKey.startsWith("ask-buddy/") || storageKey.length === "ask-buddy/".length || storageKey.includes("..") || /[?#\\]/.test(storageKey)) {
+    throw new Error("The retained screenshot storage reference is invalid. Please attach it again.");
+  }
+  if (mimeType !== "image/png" && mimeType !== "image/jpeg" && mimeType !== "image/webp") {
+    throw new Error("The screenshot format could not be verified. Attach a valid PNG, JPG, or WebP image.");
+  }
+}
+
+function validateScreenshotBytes(bytes: Buffer, mimeType: BuddyImageMimeType): void {
+  if (!Buffer.isBuffer(bytes)) throw new Error("The screenshot format could not be verified. Attach a valid PNG, JPG, or WebP image.");
+  if (bytes.length > MAX_BUDDY_SCREENSHOT_BYTES) throw new Error("Screenshots must be 10 MB or smaller.");
+  if (detectBuddyImageMimeType(bytes) !== mimeType) throw new Error("The screenshot format could not be verified. Attach a valid PNG, JPG, or WebP image.");
+}
+
+function screenshotCacheKey(storageKey: string, mimeType: BuddyImageMimeType): string {
+  return JSON.stringify([storageKey, mimeType]);
+}
+
+function removeCachedScreenshot(key: string): void {
+  const cached = screenshotCache.get(key);
+  if (cached) {
+    cachedPayloadBytes -= cached.payloadBytes;
+    screenshotCache.delete(key);
+  }
+}
+
+function expireCachedScreenshots(now: number): void {
+  screenshotCache.forEach((cached, key) => {
+    if (cached.expiresAt <= now) removeCachedScreenshot(key);
+  });
+}
+
+function screenshotImagePart(dataUrl: string): ImageContent {
+  return { type: "image_url", image_url: { url: dataUrl, detail: "high" } };
+}
+
+function cacheValidatedScreenshot(storageKey: string, mimeType: BuddyImageMimeType, bytes: Buffer): ImageContent {
+  const now = Date.now();
+  expireCachedScreenshots(now);
+  const key = screenshotCacheKey(storageKey, mimeType);
+  const dataUrl = `data:${mimeType};base64,${bytes.toString("base64")}`;
+  const payloadBytes = Buffer.byteLength(dataUrl, "utf8");
+  removeCachedScreenshot(key);
+  if (payloadBytes <= BUDDY_SCREENSHOT_CACHE_MAX_BYTES) {
+    while (screenshotCache.size >= BUDDY_SCREENSHOT_CACHE_MAX_ENTRIES || cachedPayloadBytes + payloadBytes > BUDDY_SCREENSHOT_CACHE_MAX_BYTES) {
+      const oldestKey = screenshotCache.keys().next().value;
+      if (oldestKey === undefined) break;
+      removeCachedScreenshot(oldestKey);
+    }
+    screenshotCache.set(key, { dataUrl, rawByteLength: bytes.length, payloadBytes, expiresAt: now + BUDDY_SCREENSHOT_CACHE_TTL_MS });
+    cachedPayloadBytes += payloadBytes;
+  }
+  return screenshotImagePart(dataUrl);
+}
+
+/** Seed only after the validated screenshot has been successfully retained in storage. */
+export function rememberBuddyScreenshot(storageKey: string, mimeType: BuddyImageMimeType, bytes: Buffer): void {
+  validateScreenshotReference(storageKey, mimeType);
+  validateScreenshotBytes(bytes, mimeType);
+  cacheValidatedScreenshot(storageKey, mimeType, bytes);
+}
+
+export function clearBuddyScreenshotCache(): void {
+  screenshotCache.clear();
+  cachedPayloadBytes = 0;
+}
+
 // Check the bytes, not the filename or browser-supplied MIME label.
 export function detectBuddyImageMimeType(bytes: Buffer): BuddyImageMimeType | null {
   if (bytes.length >= 24 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) && bytes.toString("ascii", 12, 16) === "IHDR") return "image/png";
@@ -21,8 +105,15 @@ export async function loadBuddyScreenshot(
   expectedMimeType: BuddyImageMimeType,
   timeoutMs = 5_000,
 ): Promise<ImageContent> {
-  if (!storageKey.startsWith("ask-buddy/") || storageKey.includes("..") || /[?#\\]/.test(storageKey)) {
-    throw new Error("The retained screenshot storage reference is invalid. Please attach it again.");
+  validateScreenshotReference(storageKey, expectedMimeType);
+  expireCachedScreenshots(Date.now());
+  const key = screenshotCacheKey(storageKey, expectedMimeType);
+  const cached = screenshotCache.get(key);
+  if (cached && cached.rawByteLength > 0 && cached.rawByteLength <= MAX_BUDDY_SCREENSHOT_BYTES) {
+    // LRU access does not extend the fixed expiry of these original pixels.
+    screenshotCache.delete(key);
+    screenshotCache.set(key, cached);
+    return screenshotImagePart(cached.dataUrl);
   }
   // storageGet resolves only a server-registered object; never fetch a client-supplied URL.
   const controller = new AbortController();
@@ -52,8 +143,8 @@ export async function loadBuddyScreenshot(
       await reader.cancel().catch(() => undefined);
     }
     const bytes = Buffer.concat(chunks);
-    if (detectBuddyImageMimeType(bytes) !== expectedMimeType) throw new Error("The screenshot format could not be verified. Attach a valid PNG, JPG, or WebP image.");
-    return { type: "image_url", image_url: { url: `data:${expectedMimeType};base64,${bytes.toString("base64")}`, detail: "high" } };
+    validateScreenshotBytes(bytes, expectedMimeType);
+    return cacheValidatedScreenshot(storageKey, expectedMimeType, bytes);
   } finally {
     clearTimeout(timer);
   }

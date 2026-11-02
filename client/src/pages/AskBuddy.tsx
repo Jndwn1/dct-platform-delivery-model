@@ -469,7 +469,7 @@ export default function AskBuddy() {
   const [attachmentVersion, setAttachmentVersion] = useState("");
   const [attachmentError, setAttachmentError] = useState("");
   const [isAttachmentProcessing, setIsAttachmentProcessing] = useState(false);
-  const [analysisDepth, setAnalysisDepth] = useState<"concise" | "detailed">("detailed");
+  const [analysisDepth, setAnalysisDepth] = useState<"concise" | "detailed">("concise");
   const [isDeepDocumentAnalysis, setIsDeepDocumentAnalysis] = useState(false);
   const [documentAnalysisElapsedSeconds, setDocumentAnalysisElapsedSeconds] = useState(0);
   const [documentContextEnabled, setDocumentContextEnabled] = useState(true);
@@ -489,6 +489,7 @@ export default function AskBuddy() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const requestBusyRef = useRef(false);
   const activeDocumentContext = useMemo(() => [...messages].reverse().find((message) =>
     message.role === "buddy" && message.documentAnalysis?.complete && message.documentAnalysis.artifactId && message.documentAnalysis.fileName
   )?.documentAnalysis, [messages]);
@@ -514,16 +515,16 @@ export default function AskBuddy() {
   }, [attachmentFile]);
 
   useEffect(() => {
-    if (!isDeepDocumentAnalysis) {
+    if (!isTyping) {
       setDocumentAnalysisElapsedSeconds(0);
       return;
     }
-    const startedAt = Date.now();
+    const startedAt = performance.now();
     const timer = window.setInterval(() => {
-      setDocumentAnalysisElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+      setDocumentAnalysisElapsedSeconds(Math.floor((performance.now() - startedAt) / 1000));
     }, 1_000);
     return () => window.clearInterval(timer);
-  }, [isDeepDocumentAnalysis]);
+  }, [isTyping]);
 
   useEffect(() => {
     writeSharedBuddyConversation(messages.filter(message => !message.id.startsWith("tour-")).map(message => ({ id: message.id, role: message.role === "buddy" ? "assistant" : "user", content: message.text, createdAt: message.timestamp.toISOString(), sources: message.sources as unknown[], status: message.answerStatus, knowledgeCheckedAt: message.knowledgeCheckedAt, documentAnalysis: message.documentAnalysis })));
@@ -652,6 +653,7 @@ export default function AskBuddy() {
 
   const chatMutation = trpc.askBuddy.chat.useMutation({
     onSuccess: (data) => {
+      requestBusyRef.current = false;
       const buddyMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "buddy",
@@ -671,6 +673,7 @@ export default function AskBuddy() {
       setIsDeepDocumentAnalysis(false);
     },
     onError: (err) => {
+      requestBusyRef.current = false;
       const errMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "buddy",
@@ -686,7 +689,9 @@ export default function AskBuddy() {
   });
 
   const sendMessage = (text: string, options?: { attachmentArtifactId?: number; displayText?: string }) => {
-    if (!text.trim()) return;
+    // The uploaded-artifact call continues the already reserved upload request.
+    if (!text.trim() || (requestBusyRef.current && !options?.attachmentArtifactId)) return;
+    requestBusyRef.current = true;
     // If tour is active, pause it when user types
     if (tourActive) setTourActive(false);
     const userMsg: Message = {
@@ -698,7 +703,7 @@ export default function AskBuddy() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
-    setIsDeepDocumentAnalysis(Boolean(options?.attachmentArtifactId));
+    setIsDeepDocumentAnalysis(Boolean(options?.attachmentArtifactId || (documentContextEnabled && activeDocumentContext)));
 
     const history = messages
       .filter((m) => m.id !== "welcome")
@@ -741,7 +746,7 @@ export default function AskBuddy() {
     selectAttachment(screenshot);
   };
   const analyzeAttachmentAndAsk = async () => {
-    if (isTyping || isAttachmentProcessing) return;
+    if (requestBusyRef.current || isTyping || isAttachmentProcessing) return;
     const suppliedAdoReferences = adoReferences.trim();
     if (suppliedAdoReferences.length > MAX_ADO_REFERENCE_CHARS) { setAttachmentError(`ADO references must be ${MAX_ADO_REFERENCE_CHARS.toLocaleString()} characters or fewer.`); return; }
     const baseQuestion = input.trim() || (suppliedAdoReferences ? DEFAULT_ADO_ANALYSIS_REQUEST : "") || (isBuddyScreenshot(attachmentFile) ? DEFAULT_BUDDY_SCREENSHOT_QUESTION : "");
@@ -758,6 +763,7 @@ export default function AskBuddy() {
       return;
     }
     setAttachmentError("");
+    requestBusyRef.current = true;
     setIsAttachmentProcessing(true);
     setIsTyping(true);
     try {
@@ -779,6 +785,7 @@ ${attachmentLabel}`;
       setAdoReferences("");
       if (attachmentInputRef.current) attachmentInputRef.current.value = "";
     } catch (error) {
+      requestBusyRef.current = false;
       setAttachmentError(error instanceof Error ? error.message : "The file could not be uploaded for review.");
       setIsTyping(false);
     } finally {
@@ -787,6 +794,7 @@ ${attachmentLabel}`;
   };
 
   const handleSampleQuestion = (q: string) => {
+    if (requestBusyRef.current) return;
     sendMessage(q);
     setActiveCapability(null);
     inputRef.current?.focus();
@@ -1016,6 +1024,8 @@ ${attachmentLabel}`;
               📚 Data Sources
             </button>
             <button
+              disabled={isTyping || isAttachmentProcessing}
+              title={isTyping ? "Wait for the current Buddy request before clearing the chat" : "Clear chat"}
               onClick={() => {
                 setTourActive(false);
                 setMessages([{
@@ -1400,30 +1410,19 @@ ${attachmentLabel}`;
                   alt="Ask Buddy typing"
                   style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }}
                 />
-                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "0 10px 10px 10px", padding: "0.75rem 1rem", minWidth: isDeepDocumentAnalysis ? 320 : undefined }}>
-                  {isDeepDocumentAnalysis ? (
-                    <div aria-live="polite">
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "0 10px 10px 10px", padding: "0.75rem 1rem" }}>
+                    <div role="status" aria-live="polite">
                       <div style={{ alignItems: "center", color: "#0f766e", display: "flex", fontSize: "0.76rem", fontWeight: 800, gap: 6 }}>
-                        <ShieldCheck size={14} /> Deep document analysis in progress
+                        <ShieldCheck size={14} /> {isAttachmentProcessing ? "Uploading attachment…" : isDeepDocumentAnalysis ? "Analyzing document or screenshot…" : "Preparing your answer…"}
                       </div>
                       <p style={{ color: "#475569", fontSize: "0.68rem", lineHeight: 1.4, margin: "0.25rem 0 0.45rem" }}>
-                        Reading evidence, assessing requirements, and checking dependencies and ADO readiness.
+                        {isAttachmentProcessing ? "Transferring the file before AI analysis begins." : "Answering your specific question using the relevant evidence and conversation."}
                       </p>
-                      <div aria-hidden="true" style={{ background: "#dbeafe", borderRadius: 999, height: 5, overflow: "hidden" }}>
-                        <div style={{ background: "#0d9488", borderRadius: 999, height: "100%", transition: "width 0.8s ease", width: `${Math.min(92, 10 + documentAnalysisElapsedSeconds * 3)}%` }} />
-                      </div>
                       <div style={{ color: "#64748b", display: "flex", fontSize: "0.62rem", justifyContent: "space-between", marginTop: 5 }}>
-                        <span>{analysisDepth === "detailed" ? "Detailed · up to 30 seconds" : "Concise · up to 18 seconds"}</span>
+                        <span>{documentAnalysisElapsedSeconds >= 8 ? "Still waiting for the AI service; your request has not been resent." : "Elapsed time includes upload and analysis"}</span>
                         <span>{documentAnalysisElapsedSeconds}s elapsed</span>
                       </div>
                     </div>
-                  ) : (
-                    <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
-                      {[0, 1, 2].map((i) => (
-                        <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#0d9488", animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }} />
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -1636,7 +1635,7 @@ ${attachmentLabel}`;
             <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
               <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask about any batch, PI status, guardrails, ADRs, agents, gates, or ownership..." style={{ flex: 1, border: "none", outline: "none", fontSize: "0.9rem", color: "#1e293b", background: "transparent" }} />
               <button onClick={analyzeAttachmentAndAsk} disabled={!canSubmitBuddyRequest} style={{ background: canSubmitBuddyRequest ? "#0d9488" : "#e2e8f0", color: canSubmitBuddyRequest ? "#fff" : "#94a3b8", border: "none", borderRadius: 8, padding: "0.5rem 1.25rem", fontWeight: 700, fontSize: "0.875rem", cursor: canSubmitBuddyRequest ? "pointer" : "not-allowed" }}>
-                {isAttachmentProcessing ? "Analyzing…" : attachmentFile ? "Analyze & Ask →" : "Send →"}
+                {isAttachmentProcessing ? "Uploading…" : attachmentFile ? "Analyze & Ask →" : "Send →"}
               </button>
             </div>
             <div style={{ marginTop: 9, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -1652,7 +1651,7 @@ ${attachmentLabel}`;
                   style={{ background: "#f8fbff", border: "1px solid #bfdbfe", borderRadius: 6, color: "#1e3a5f", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 7px" }}
                 >
                    <option value="concise">Concise · targeted answer</option>
-                   <option value="detailed">Detailed · full assessment when requested</option>
+                   <option value="detailed">Detailed · expanded answer</option>
                 </select>
               </label>
               {attachmentFile && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#047857", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "5px 7px", fontSize: 11, fontWeight: 700 }}><Paperclip size={12} /> {attachmentFile.name}<button type="button" aria-label="Remove attached file" onClick={() => selectAttachment(null)} style={{ border: "none", background: "transparent", color: "#047857", cursor: "pointer", display: "inline-flex", padding: 0 }}><X size={13} /></button></span>}

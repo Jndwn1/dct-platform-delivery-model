@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM, LLMRequestTimeoutError, type Message as LlmMessage } from "./_core/llm";
-import { BUDDY_SCREENSHOT_INSTRUCTION, loadBuddyScreenshot } from "./askBuddyScreenshot";
-import { buildAttachmentAnalysisPrompt, buildAttachmentDirectQuestionPrompt, buildAttachmentFollowUpPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, isStateApportionmentDependencyQuestion } from "./platformContext";
+import { BUDDY_SCREENSHOT_INSTRUCTION, loadBuddyScreenshot, rememberBuddyScreenshot } from "./askBuddyScreenshot";
+import { buildAttachmentAnalysisPrompt, buildAttachmentDirectQuestionPrompt, buildAttachmentFollowUpPrompt, buildBuddyDependencyOutputInstruction, buildBuddyResponseSizeInstruction, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, isStateApportionmentDependencyQuestion } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { buildBuddyGrounding, buildFocusedCrossTeamGrounding } from "./askBuddyGrounding";
 import { resolveBuddyRetrievalQuestion, selectBuddyRequestMessages } from "../client/src/lib/askBuddyRequestContext";
@@ -161,7 +161,7 @@ export const appRouter = router({
           capability: z.string().optional(),
           // Optional structured source uploaded from the Ask Buddy composer. Analysis is retrieved server-side.
           attachmentArtifactId: z.number().int().positive().optional(),
-          // Analysis depth applies only when the user explicitly requests a full document assessment.
+          // Depth controls visible detail for every answer; full assessments still require an explicit request.
           analysisDepth: z.enum(["concise", "detailed"]).optional(),
           // Retains a user-selected uploaded source for direct conversational follow-up.
           documentContext: z.object({
@@ -277,7 +277,7 @@ Do not infer content from this file.`
         const fullDocumentAssessmentMode = uploadedAnalysisMode && explicitlyRequestedFullAssessment;
         const targetedAttachmentQuestionMode = uploadedAnalysisMode && !fullDocumentAssessmentMode && !documentFollowUpMode;
         const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode;
-        const documentAnalysisDepth = input.analysisDepth ?? "detailed";
+        const documentAnalysisDepth = input.analysisDepth ?? (fullDocumentAssessmentMode ? "detailed" : "concise");
         const documentAnalysisTimeoutMs = documentAnalysisDepth === "detailed"
           ? DEEP_DOCUMENT_ANALYSIS_TIMEOUT_MS
           : CONCISE_DOCUMENT_ANALYSIS_TIMEOUT_MS;
@@ -301,13 +301,13 @@ Do not infer content from this file.`
           ? grounding.evidenceBlock
           : `\n\nDCT KNOWLEDGE-BASE CHECK\nThe current-page context and governed DCT knowledge base were checked before this response. No DCT-specific fact is required to answer this general business-analysis question. If the user asks about a DCT capability, return to the supplied governed evidence and do not infer platform facts.`;
         const basePrompt = documentFollowUpMode
-          ? buildAttachmentFollowUpPrompt(question)
+          ? buildAttachmentFollowUpPrompt(question, documentAnalysisDepth)
           : fullDocumentAssessmentMode
           ? buildAttachmentAnalysisPrompt(question)
           : targetedAttachmentQuestionMode
-          ? buildAttachmentDirectQuestionPrompt(question)
+          ? buildAttachmentDirectQuestionPrompt(question, documentAnalysisDepth)
           : stateSpecificDependenciesMode
-          ? buildCrossTeamDependencyPrompt({ question: retrievalQuestion, currentPagePath, liveSnapshot: input.liveSnapshot })
+          ? buildCrossTeamDependencyPrompt({ question: retrievalQuestion, currentPagePath, liveSnapshot: input.liveSnapshot, analysisDepth: documentAnalysisDepth })
           : requiresPlatformEvidence
             ? buildCompactAskBuddyPrompt({ question: retrievalQuestion, currentPagePath, liveSnapshot: input.liveSnapshot })
             : buildGeneralAskBuddyPrompt(currentPagePath);
@@ -332,7 +332,7 @@ Do not infer content from this file.`
         const recentMessages = requestMessages;
         // Prior AI answers are dialogue, never authoritative platform evidence.
         const llmMessages: LlmMessage[] = [
-          { role: "system" as const, content: systemPrompt + "\n\nCONVERSATIONAL RESPONSE: Answer the latest user question, resolving short follow-ups from prior user scope. Prior assistant answers are conversational context, not confirmed evidence. For partially supported questions, give the supported answer first and label proposed analysis; identify only the exact unknowns afterward. Do not require a full live ADO record to discuss source-backed potential dependencies. For dependency tracking, use Dependency | Related work item | Proposed responsible team | Required deliverable | Confirmed blocker or potential dependency; never invent a formal ADO relationship." },
+          { role: "system" as const, content: systemPrompt + "\n\nCONVERSATIONAL RESPONSE: Answer the latest user question, resolving short follow-ups from prior user scope. Prior assistant answers are conversational context, not confirmed evidence. For partially supported questions, give the supported answer first and label proposed analysis; identify only the exact unknowns afterward. Do not require a full live ADO record to discuss source-backed potential dependencies. Never invent a formal ADO relationship.\n\n" + buildBuddyResponseSizeInstruction(documentAnalysisDepth, fullDocumentAssessmentMode) + (!fullDocumentAssessmentMode && !uploadedAnalysisMode && !stateSpecificDependenciesMode && adoIntent ? `\n${buildBuddyDependencyOutputInstruction(documentAnalysisDepth)}` : "") },
           ...recentMessages.map((m) => ({
             role: m.role as "user" | "assistant",
             content: m.content,
@@ -496,6 +496,10 @@ Do not infer content from this file.`
         const [inserted] = await db.insert(mappingArtifacts).values({ artifactType: "Other", sourceType: "Upload", fileName: input.fileName, versionLabel: input.versionLabel, mimeType: preparedRecord?.imageMimeType ?? input.mimeType, storageUrl: stored.url, fieldsJson, uploadedBy: ctx.user?.name ?? null });
         const [artifact] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, Number(inserted.insertId))).limit(1);
         if (!artifact) throw new Error("The uploaded attachment could not be registered. Please try again.");
+        if (preparedRecord?.analysisStatus === "Image Ready" && preparedRecord.imageMimeType) {
+          // Reuse verified original pixels, not previous AI conclusions; durable storage remains the source.
+          rememberBuddyScreenshot(stored.key, preparedRecord.imageMimeType, buffer);
+        }
         return { artifact, analysis: { status: prepared.analysisStatus, format: prepared.format, note: prepared.note } };
       }),
 
