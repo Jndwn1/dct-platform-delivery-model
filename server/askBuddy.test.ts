@@ -75,7 +75,7 @@ describe("askBuddy.chat", () => {
     expect(callArgs.messages[1]).toEqual({ role: "user", content: "List all ADRs" });
     expect(callArgs).toMatchObject({
       model: "gemini-3.8-flash",
-      thinking: { budget_tokens: 256 },
+      reasoning: { effort: "low" },
       maxTokens: 600,
     });
     expect(callArgs.timeoutMs).toBeLessThanOrEqual(6000);
@@ -105,8 +105,8 @@ describe("askBuddy.chat", () => {
     const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(callArgs.messages[0].content).toContain("mock dependency prompt");
     expect(callArgs).toMatchObject({
-      model: "gemini-3.8-flash",
-      thinking: { budget_tokens: 256 },
+      model: "gpt-6-luna",
+      reasoning: { effort: "low" },
       maxTokens: 1400,
     });
     expect(callArgs.timeoutMs).toBeLessThanOrEqual(12000);
@@ -126,7 +126,7 @@ describe("askBuddy.chat", () => {
     expect(buildCrossTeamDependencyPrompt).toHaveBeenCalledOnce();
     expect(invokeLLM).toHaveBeenCalledOnce();
     const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(callArgs.thinking).toEqual({ budget_tokens: 256 });
+    expect(callArgs.reasoning).toEqual({ effort: "low" });
     expect(result.text).toContain("mock LLM response");
     expect(result.text).toContain("Ask Buddy has no live Azure DevOps connection");
     expect(result.sources.map((source) => source.label)).toEqual(["State Taxonomy Readiness"]);
@@ -158,7 +158,7 @@ describe("askBuddy.chat", () => {
 
     expect(invokeLLM).toHaveBeenCalledOnce();
     const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(callArgs.thinking).toEqual({ budget_tokens: 256 });
+    expect(callArgs.reasoning).toEqual({ effort: "low" });
     expect(result.text).toContain("Ask Buddy has no live Azure DevOps connection in this workspace");
     expect(result.text).toContain("cannot open, retrieve, query, or update ADO work items");
   });
@@ -189,11 +189,11 @@ describe("askBuddy.chat", () => {
     });
     expect(result.text).toBeTruthy();
     const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    // system + the most recent two user/assistant messages = 3 total
-    expect(callArgs.messages).toHaveLength(3);
+    // System + the complete preceding user/assistant exchange + current question.
+    expect(callArgs.messages).toHaveLength(4);
   });
 
-  it("limits provider conversation history to the most recent two turns", async () => {
+  it("limits provider conversation history to six bounded messages", async () => {
     const caller = appRouter.createCaller(createTestCtx());
     await caller.askBuddy.chat({
       messages: [
@@ -207,9 +207,9 @@ describe("askBuddy.chat", () => {
       ],
     });
     const callArgs = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(callArgs.messages).toHaveLength(3);
+    expect(callArgs.messages).toHaveLength(7);
     expect(callArgs.messages.at(-1)).toEqual({ role: "user", content: "What does TDC own?" });
-    expect(callArgs.messages[1]).toEqual({ role: "assistant", content: "Answer three" });
+    expect(callArgs.messages[1]).toEqual({ role: "assistant", content: "Answer one" });
   });
 
   it("injects documented Pilot story-review evidence for the scoped review agent", async () => {
@@ -246,7 +246,41 @@ describe("askBuddy.chat", () => {
     expect(result.text).not.toContain("### Sources Used");
   });
 
-  it("returns practical general BA guidance when the fast-model deadline is reached", async () => {
+  it.each(["What are the platform layers?", "Who owns the Gateway?", "Refer to the executive health section", "What batches are in PI 3?"])("routes %s to platform evidence, not general advice", async (question) => {
+    const caller = appRouter.createCaller(createTestCtx());
+    await caller.askBuddy.chat({ messages: [{ role: "user", content: question }], currentPagePath: "/ask-buddy" });
+    expect(buildCompactAskBuddyPrompt).toHaveBeenCalledOnce();
+    expect(buildGeneralAskBuddyPrompt).not.toHaveBeenCalled();
+    const args = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(args.reasoning).toEqual({ effort: "low" });
+    expect(args.thinking).toBeUndefined();
+  });
+
+  it("retains the original Pilot/ADO question when the user refers to Executive Health", async () => {
+    const caller = appRouter.createCaller(createTestCtx());
+    await caller.askBuddy.chat({ messages: [
+      { role: "user", content: "For Roger Pilot workflow setup, what dependencies does TDC have? Tech Story 1528380: TDC V2 non-legal entity types API" },
+      { role: "assistant", content: "Earlier missing answer." },
+      { role: "user", content: "Refer to the executive health section" },
+    ], currentPagePath: "/ask-buddy", capability: "cross-team-dependencies" });
+    expect(buildCompactAskBuddyPrompt).toHaveBeenCalledWith(expect.objectContaining({ question: expect.stringContaining("1528380") }));
+    expect(buildCrossTeamDependencyPrompt).not.toHaveBeenCalled();
+    const args = (invokeLLM as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(args.messages).toHaveLength(4);
+    expect(args.model).toBe("gpt-6-luna");
+    expect(args.messages[0].content).toContain("Prior assistant answers are conversational context, not confirmed evidence");
+  });
+
+  it("marks a token-truncated answer incomplete instead of a completed analysis", async () => {
+    (invokeLLM as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ choices: [{ message: { content: "Partial answer" }, finish_reason: "length" }] });
+    const caller = appRouter.createCaller(createTestCtx());
+    const result = await caller.askBuddy.chat({ messages: [{ role: "user", content: "What does TDC own?" }] });
+    expect(result.generationStatus).toBe("incomplete");
+    expect(result.status).toBe("Missing");
+    expect(result.text).toContain("Incomplete AI response");
+  });
+
+  it("does not substitute canned guidance for a failed AI response", async () => {
     (invokeLLM as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new LLMRequestTimeoutError("timeout"));
     const caller = appRouter.createCaller(createTestCtx());
     const result = await caller.askBuddy.chat({
@@ -254,8 +288,8 @@ describe("askBuddy.chat", () => {
       currentPagePath: "/ask-buddy",
     });
 
-    expect(result.text).toContain("decision-oriented workshop agenda");
-    expect(result.text).toContain("Facilitation tip");
-    expect(result.text).not.toContain("No answer has been inferred");
+    expect(result.text).toContain("predefined answer has not been substituted");
+    expect(result.generationStatus).toBe("timeout");
+    expect(result.status).toBe("Missing");
   });
 });

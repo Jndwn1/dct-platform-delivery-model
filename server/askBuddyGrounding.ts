@@ -37,7 +37,7 @@ const STOP_WORDS = new Set([
   "a", "an", "and", "are", "as", "at", "be", "by", "can", "does", "do", "for", "from", "how", "i", "in", "is", "it", "latest", "me", "of", "on", "or", "show", "that", "the", "this", "to", "what", "when", "where", "which", "who", "with",
 ]);
 
-const DELIVERY_TERMS = /\b(batch|pi\s?\d|mvp|delivery|readiness|active|complete|completed|planned|review|ado|status|blocker)\b/i;
+const DELIVERY_TERMS = /\b(batch|pi\s?\d|mvp|delivery|readiness|active|complete|completed|planned|review|ado|status|blocker|executive health|dashboard)\b/i;
 const API_TERMS = /\b(api|swagger|openapi|endpoint|request|response|payload|contract|http|field|identifier)\b/i;
 const DECISION_TERMS = /\b(adr|decision|open|unresolved|clarification|conflict|rule|adjustment|persistence)\b/i;
 
@@ -111,6 +111,11 @@ export function buildBuddyGrounding(question: string, _currentPagePath?: string,
     add(toSource("consumer-adr-07", "Consumer Integration ADR-07", "/consumer-integration-hub#s15", "Open architecture decision", "2026-08-19", "Open"));
   }
 
+  if (/\b(executive health|dashboard|mvp)\b/i.test(question)) add(pageSource("/"));
+  if (/\b(pilot|pi\s?4|non[-\s]?legal|workflow setup)\b/i.test(question)) {
+    add(pageSource("/post-pilot/roger-pilot-backlog"));
+    add(pageSource("/post-pilot"));
+  }
   if (masterDataSource) add(masterDataSource);
 
   for (const [path] of Object.entries(PAGE_CONTEXT_REGISTRY)) {
@@ -123,7 +128,7 @@ export function buildBuddyGrounding(question: string, _currentPagePath?: string,
 
   const sources = Array.from(selected.values()).slice(0, 6);
   const conflicts = detectBatchConflicts(question, liveSnapshot);
-  const hasDomainSignal = queryTokens.some((token) => /batch|tdc|pdc|dct|roger|ims|swagger|api|endpoint|governance|guardrail|gate|rule|adjustment|story|requirement|adr|decision|lineage|mapping|deployment|uat|qa|architecture|platform|agent|ownership/.test(token));
+  const hasDomainSignal = queryTokens.some((token) => /batch|tdc|pdc|dct|roger|ims|swagger|api|endpoint|governance|guardrail|gate|rule|adjustment|story|requirement|adr|decision|lineage|mapping|deployment|uat|qa|architecture|platform|agent|ownership|executive|dashboard|pilot/.test(token));
   const hasSufficientEvidence = hasDomainSignal && sources.some((source) => source.artifactStatus !== "Unavailable");
   const status: BuddyAnswerStatus = conflicts.length > 0 ? "Conflict" : !hasSufficientEvidence ? "Missing" : sources.some((source) => source.artifactStatus === "Open") ? "Open" : "Confirmed";
   const latestSource = sources.filter((source) => source.lastUpdated !== "Not dated" && source.lastUpdated !== "Not registered in this workspace").sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated))[0] ?? null;
@@ -144,9 +149,9 @@ ${sourceLines}
 ${conflictLines}
 
 ### Mandatory response guardrail
-Answer only from the supplied platform evidence. Do not infer, assume, fabricate, or fill gaps. If the evidence is insufficient, say exactly: "I could not find enough confirmed information in the DCT Platform to answer this without making an assumption." Then state what was found, what is missing, which artifact should contain it if known, and whether Discovery clarification is needed.
+State platform facts only from supplied evidence. Do not fabricate facts, owners, interfaces, ADO relationships, approvals, dates, or commitments. Reasoned implications and suggested dependencies are permitted when explicitly labeled Proposed or Potential and tied to supplied facts. Partial evidence is not no evidence: answer the supported part first, then identify specific unknowns. Only when no evidence addresses the question, say: "I could not find enough confirmed information in the DCT Platform to answer this without making an assumption."
 
-For substantive or Discovery questions, structure the response as: **Answer**, **Evidence**, **Status** (Confirmed / Open / Proposed / Conflict / Missing), **DCT Impact**, **TDC Impact**, **PDC Impact**, and **Next Action** only when evidence supports one. Do not declare a story ready unless the evidence supports an approved decision, applicable contract, owner, and acceptance criteria. Do not claim Swagger support when the Swagger/OpenAPI source is unavailable.
+Answer the user's specific question conversationally; choose only useful headings or tables. Do not repeat a full report for a follow-up. Distinguish Confirmed / Open / Proposed / Conflict / Missing. Do not declare a story ready unless evidence supports an approved decision, applicable contract, owner, and acceptance criteria. Do not claim Swagger support when the Swagger/OpenAPI source is unavailable.
 `;
 
   return { sources, conflicts, status, checkedAt, latestSource, evidenceBlock, hasSufficientEvidence };

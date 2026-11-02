@@ -29,6 +29,7 @@ import {
   ADR_CARDS,
 } from "../client/src/lib/rogerGovernanceData";
 import { DISCOVERY_KNOWLEDGE_BASE } from "./discoveryKnowledgeBase";
+import { buildExecutiveBuddyEvidence, PILOT_QUESTION } from "./askBuddyExecutiveEvidence";
 import { PAGE_CONTEXT_REGISTRY } from "../client/src/lib/pageContextRegistry";
 import {
   OPEN_DECISIONS,
@@ -1037,10 +1038,14 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
     "# Ask Buddy — Governed Evidence Response",
     buildAskBuddyPrimaryInstruction(),
     "For DCT-specific facts, answer only from the supplied evidence. Do not treat planning material as implemented functionality. Current Control Panel/governed records establish current delivery state; registered Swagger/OpenAPI establishes technical contracts; Discovery and page artifacts provide business context.",
-    "If the supplied evidence does not establish the answer, say exactly: \"I could not find enough confirmed information in the DCT Platform to answer this without making an assumption.\"",
+    "Answer partial evidence first with labeled Proposed/Potential analysis. Only if no evidence addresses the question, say: \"I could not find enough confirmed information in the DCT Platform to answer this without making an assumption.\"",
     "Keep the response concise. Use Answer, Evidence, Status, DCT Impact, TDC Impact, PDC Impact, and Next Action only when the supplied evidence supports those headings.",
     "DCT means Data Consolidation Team on first mention. IMS owns return-engine routing and translation; do not state that DCT integrates directly with a return engine unless supplied evidence explicitly says so.",
   ];
+
+  const executiveEvidence = buildExecutiveBuddyEvidence(question);
+  if (executiveEvidence) lines.push(executiveEvidence);
+  const pilotScope = PILOT_QUESTION.test(question);
 
   const pageContext = currentPagePath ? PAGE_CONTEXT_REGISTRY[currentPagePath] : undefined;
   if (pageContext) {
@@ -1067,12 +1072,21 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
     }
   }
 
-  const selectedBatches = getAllBatches()
-    .filter((batch) => matchesCompactQuestion(`${batch.id} ${batch.name} ${batch.fullName} ${batch.area} ${batch.description} ${(batch.dependencies ?? []).join(" ")}`, queryTokens))
+  const exactBatchIds = Array.from(question.matchAll(/\bbatch\s+(b?\d+[a-z]?)\b|\b(b\d+[a-z]?)\b/gi))
+    .map((match) => (match[1] ?? match[2]).toLowerCase().replace(/^b/, ""));
+    const requestedPi = question.match(/\bpi\s*([1-4])\b/i)?.[1];
+  const batchCandidates = getAllBatches()
+    .filter((batch) => exactBatchIds.length
+      ? exactBatchIds.includes(batch.id.toLowerCase().replace(/^b/, ""))
+      : requestedPi && /\bbatches\b/i.test(question)
+      ? batch.pi === `PI${requestedPi}`
+      : (!pilotScope || /\b(mvp|foundation|historical)\b/i.test(question)) && matchesCompactQuestion(`${batch.id} ${batch.name} ${batch.fullName} ${batch.area} ${batch.description} ${(batch.dependencies ?? []).join(" ")}`, queryTokens))
     .sort((a, b) => compactMatchScore(`${b.id} ${b.name} ${b.fullName} ${b.area} ${b.description} ${(b.dependencies ?? []).join(" ")}`, queryTokens) - compactMatchScore(`${a.id} ${a.name} ${a.fullName} ${a.area} ${a.description} ${(a.dependencies ?? []).join(" ")}`, queryTokens))
-    .slice(0, 2);
+    .slice(0, exactBatchIds.length || (requestedPi && /\bbatches\b/i.test(question)) ? 40 : 2);
+  const selectedBatches = batchCandidates;
   if (selectedBatches.length) {
     lines.push("\n## Control Panel batch evidence");
+    if (pilotScope || requestedPi) lines.push("MVP Batch Model: foundation and delivery reference, not a confirmed Pilot dependency. Status is live when supplied, otherwise recorded.");
     for (const batch of selectedBatches) {
       const liveStatus = liveSnapshot && Object.entries(liveSnapshot.statuses).find(([key]) => key.toLowerCase().replace(/^b/, "") === batch.id.toLowerCase().replace(/^b/, ""))?.[1];
       lines.push(`- ${batch.id} — ${batch.fullName} | PI: ${batch.piLabel} | Area: ${batch.area} | Status: ${liveStatus ?? batch.status} | Purpose: ${compactText(batch.description, 300)}${batch.dependencies?.length ? ` | Dependencies: ${batch.dependencies.slice(0, 3).join(", ")}` : ""}`);
@@ -1103,6 +1117,15 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
     for (const system of selectedOwnership) lines.push(`- ${compactText(JSON.stringify(system), 320)}`);
   }
 
+  if (/\b(platform layers?|architecture layers?|layers)\b/i.test(question)) {
+    lines.push("\n## Platform layer records");
+    for (const layer of PLATFORM_LAYERS) lines.push(`- ${compactText(JSON.stringify(layer), 400)}`);
+  }
+  if (/\bagents?\b/i.test(question)) {
+    lines.push("\n## Governed agent records — architectural responsibilities, not a claim of deployed AI agents");
+    for (const agent of AGENTS) lines.push(`- ${compactText(JSON.stringify(agent), 360)}`);
+  }
+
   if (liveSnapshot && /\b(batch|pi\s?\d|mvp|delivery|readiness|active|complete|planned|review|status|gate)\b/i.test(question)) {
     lines.push("\n## Live delivery snapshot — authoritative for current status");
     lines.push(`As of: ${liveSnapshot.asOf}`);
@@ -1110,7 +1133,7 @@ export function buildCompactAskBuddyPrompt({ question, currentPagePath, liveSnap
     lines.push(`PI completion: PI1 ${liveSnapshot.piCompletion.pi1.pct}%; PI2 ${liveSnapshot.piCompletion.pi2.pct}%; PI3 ${liveSnapshot.piCompletion.pi3.pct}%; PI4 ${liveSnapshot.piCompletion.pi4.pct}%; overall ${liveSnapshot.piCompletion.overall.pct}%.`);
   }
 
-  lines.push("\nUse the supplied records as the complete evidence packet for this answer. If none directly address the question, return the required no-assumption statement and identify the missing artifact or clarification.");
+  lines.push("\nAnswer from supplied records, not a fixed report. Give facts and labeled analysis before exact gaps; use the no-assumption statement only for unsupported questions.");
   return lines.join("\n");
 }
 

@@ -41,8 +41,9 @@ describe("Ask Buddy direct attachment workflow", () => {
 
   it("routes interactive chat directly and sends only the bounded recent history window", () => {
     expect(transport).toContain('op.path === "askBuddy.chat"');
-    expect(askBuddyPage).toContain('.filter((m) => m.id !== "welcome")\n      .slice(-2)');
-    expect(askBuddyPage).toContain("content: m.text.slice(-2_000)");
+    expect(askBuddyPage).toContain('.filter((m) => m.id !== "welcome")\n      .slice(-5)');
+    expect(askBuddyPage).toContain("m.text.slice(0, 2_000)");
+    expect(router).toContain("selectBuddyRequestMessages(input.messages)");
     expect(askBuddyPage).toContain("currentPagePath: \"/ask-buddy\"");
   });
 
@@ -66,13 +67,13 @@ describe("Ask Buddy direct attachment workflow", () => {
     expect(router).toContain("DEEP_DOCUMENT_ANALYSIS_MAX_TOKENS = 2_800");
     expect(router).toContain("CONCISE_DOCUMENT_ANALYSIS_TIMEOUT_MS = 18_000");
     expect(router).toContain("CONCISE_DOCUMENT_ANALYSIS_MAX_TOKENS = 1_600");
-    expect(router).toContain("model: uploadedAnalysisMode ? DOCUMENT_ANALYSIS_MODEL");
+    expect(router).toContain("model: analyticalReasoningMode ? DOCUMENT_ANALYSIS_MODEL");
     expect(router).toContain("fullDocumentAssessmentMode");
     expect(router).toContain("documentAnalysisTimeoutMs");
     expect(router).toContain("hasCompleteDocumentAnalysis(responseText)");
     expect(router).toContain("RELATED GOVERNED STATE READINESS CONTEXT");
-    expect(router).toContain('reasoning: uploadedAnalysisMode ? { effort: "low" }');
-    expect(router).toContain('thinking: uploadedAnalysisMode ? undefined : { budget_tokens: 256 }');
+    expect(router).toContain('reasoning: { effort: "low" }');
+    expect(router).not.toContain('thinking: uploadedAnalysisMode ? undefined : { budget_tokens: 256 }');
     expect(router).toContain("Document evidence supplied to this analysis is truncated");
     expect(router).toContain("buildAttachmentEvidenceFallback({ question, textExcerpt: attachmentRecord.textExcerpt })");
     expect(router).toContain("buildStructuredAttachmentAnalysisFallback(question, attachmentAnalysis)");

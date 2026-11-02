@@ -648,7 +648,7 @@ export default function AskBuddy() {
         role: "buddy",
         text: data.text,
         timestamp: new Date(),
-        capability: "ai",
+        capability: data.generationStatus === "completed" ? "ai" : "error",
         sources: data.sources,
         answerStatus: data.status,
         knowledgeCheckedAt: data.knowledgeCheckedAt,
@@ -693,10 +693,10 @@ export default function AskBuddy() {
 
     const history = messages
       .filter((m) => m.id !== "welcome")
-      .slice(-2)
+      .slice(-5)
       .map((m) => ({
         role: m.role === "user" ? "user" as const : "assistant" as const,
-        content: m.text.slice(-2_000),
+        content: m.text.length > 4_000 ? `${m.text.slice(0, 2_000)}\n[Earlier content shortened]\n${m.text.slice(-2_000)}` : m.text,
       }));
 
     const documentContext = !options?.attachmentArtifactId && documentContextEnabled && activeDocumentContext
