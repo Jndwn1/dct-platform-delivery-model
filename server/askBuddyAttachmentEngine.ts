@@ -1,10 +1,11 @@
 import mammoth from "mammoth";
 import { parseArtifactBuffer, type ArtifactField } from "./dataMappingEngine";
+import { detectBuddyImageMimeType, type BuddyImageMimeType } from "./askBuddyScreenshot";
 
 export const ASK_BUDDY_ATTACHMENT_KIND = "ask-buddy-attachment-v1";
 const MAX_EXTRACTED_CHARS = 24_000;
 
-export type AttachmentAnalysisStatus = "Extracted" | "Reference Only";
+export type AttachmentAnalysisStatus = "Extracted" | "Image Ready" | "Reference Only";
 
 export type AskBuddyAttachmentRecord = {
   kind: typeof ASK_BUDDY_ATTACHMENT_KIND;
@@ -12,6 +13,8 @@ export type AskBuddyAttachmentRecord = {
   analysisStatus: AttachmentAnalysisStatus;
   textExcerpt: string;
   note: string;
+  imageMimeType?: BuddyImageMimeType;
+  storageKey?: string;
 };
 
 export type PreparedAskBuddyAttachment = {
@@ -73,6 +76,18 @@ export async function prepareAskBuddyAttachment(
   versionLabel: string
 ): Promise<PreparedAskBuddyAttachment> {
   const fileExtension = extension(fileName);
+
+  const imageMimeType = detectBuddyImageMimeType(buffer);
+  if (imageMimeType) {
+    const imageRecord: AskBuddyAttachmentRecord = {
+      ...record("Screenshot / image", "Image Ready", "", "Screenshot pixels will be sent to the vision-capable AI for analysis of visible content only; not a live ADO query."),
+      imageMimeType,
+    };
+    return { fieldsJson: JSON.stringify(imageRecord), analysisStatus: imageRecord.analysisStatus, format: imageRecord.format, note: imageRecord.note };
+  }
+  if (["png", "jpg", "jpeg", "webp"].includes(fileExtension) || ["image/png", "image/jpeg", "image/webp"].includes(mimeType)) {
+    throw new Error("The screenshot format could not be verified. Attach a valid PNG, JPG, or WebP image.");
+  }
 
   if (STRUCTURED_EXTENSIONS.has(fileExtension)) {
     try {
@@ -181,6 +196,7 @@ export function parseAskBuddyAttachmentRecord(
     if (
       parsed.kind === ASK_BUDDY_ATTACHMENT_KIND &&
       (parsed.analysisStatus === "Extracted" ||
+        (parsed.analysisStatus === "Image Ready" && ["image/png", "image/jpeg", "image/webp"].includes(parsed.imageMimeType ?? "")) ||
         parsed.analysisStatus === "Reference Only") &&
       typeof parsed.format === "string" &&
       typeof parsed.textExcerpt === "string" &&

@@ -32,9 +32,9 @@ describe("Ask Buddy analytical ADO-reference behavior", () => {
   });
 
   it("invites ADO details in the UI and avoids generic fallback row labels", () => {
-    expect(askBuddyPage).toContain("paste ADO URLs or work-item IDs");
-    expect(askBuddyPage).toContain("titles, descriptions, exports, screenshots, or acceptance criteria");
-    expect(askBuddyPage).toContain("no live Azure DevOps retrieval connection");
+    expect(askBuddyPage).toContain("paste ADO URLs or IDs with descriptions or acceptance criteria");
+    expect(askBuddyPage).toContain("Buddy analyzes visible screenshot content");
+    expect(askBuddyPage).toContain("Buddy does not retrieve live ADO records");
     expect(attachmentEngine).not.toContain("Potential requirement from extracted source");
     expect(attachmentEngine).not.toContain("Potential dependency from extracted source");
   });

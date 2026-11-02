@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
-import { invokeLLM, LLMRequestTimeoutError } from "./_core/llm";
+import { invokeLLM, LLMRequestTimeoutError, type Message as LlmMessage } from "./_core/llm";
+import { BUDDY_SCREENSHOT_INSTRUCTION, loadBuddyScreenshot } from "./askBuddyScreenshot";
 import { buildAttachmentAnalysisPrompt, buildAttachmentDirectQuestionPrompt, buildAttachmentFollowUpPrompt, buildCompactAskBuddyPrompt, buildCrossTeamDependencyPrompt, buildGeneralAskBuddyPrompt, isStateApportionmentDependencyQuestion } from "./platformContext";
 import { buildDiscoveryContextBlock } from "./discoveryKnowledgeBase";
 import { buildBuddyGrounding, buildFocusedCrossTeamGrounding } from "./askBuddyGrounding";
@@ -219,6 +220,7 @@ export const appRouter = router({
         const attachmentAnalysis = attachmentArtifact && structuredAttachmentFields
           ? analyzeStateInputReferenceContract(structuredAttachmentFields, attachmentArtifact.fileName, attachmentArtifact.versionLabel)
           : null;
+        const imageAttachmentAnalysisMode = attachmentRecord?.analysisStatus === "Image Ready";
         const attachmentEvidence = attachmentAnalysis && attachmentArtifact
           ? `
 
@@ -271,9 +273,9 @@ Do not infer content from this file.`
           : buildBuddyGrounding(retrievalQuestion, currentPagePath, input.liveSnapshot, masterEvidence.source);
         const attachmentAnalysisMode = attachmentRecord?.analysisStatus === "Extracted" && attachmentEvidence.length > 0;
         const structuredAttachmentAnalysisMode = Boolean(attachmentAnalysis && attachmentArtifact);
-        const uploadedAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode;
-        const fullDocumentAssessmentMode = (attachmentAnalysisMode || structuredAttachmentAnalysisMode) && explicitlyRequestedFullAssessment;
-        const targetedAttachmentQuestionMode = (attachmentAnalysisMode || structuredAttachmentAnalysisMode) && !fullDocumentAssessmentMode && !documentFollowUpMode;
+        const uploadedAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || imageAttachmentAnalysisMode;
+        const fullDocumentAssessmentMode = uploadedAnalysisMode && explicitlyRequestedFullAssessment;
+        const targetedAttachmentQuestionMode = uploadedAnalysisMode && !fullDocumentAssessmentMode && !documentFollowUpMode;
         const documentAndDependencyAnalysisMode = attachmentAnalysisMode || structuredAttachmentAnalysisMode || crossTeamDependenciesMode;
         const documentAnalysisDepth = input.analysisDepth ?? "detailed";
         const documentAnalysisTimeoutMs = documentAnalysisDepth === "detailed"
@@ -329,7 +331,7 @@ Do not infer content from this file.`
 
         const recentMessages = requestMessages;
         // Prior AI answers are dialogue, never authoritative platform evidence.
-        const llmMessages = [
+        const llmMessages: LlmMessage[] = [
           { role: "system" as const, content: systemPrompt + "\n\nCONVERSATIONAL RESPONSE: Answer the latest user question, resolving short follow-ups from prior user scope. Prior assistant answers are conversational context, not confirmed evidence. For partially supported questions, give the supported answer first and label proposed analysis; identify only the exact unknowns afterward. Do not require a full live ADO record to discuss source-backed potential dependencies. For dependency tracking, use Dependency | Related work item | Proposed responsible team | Required deliverable | Confirmed blocker or potential dependency; never invent a formal ADO relationship." },
           ...recentMessages.map((m) => ({
             role: m.role as "user" | "assistant",
@@ -340,6 +342,13 @@ Do not infer content from this file.`
         let responseText: string;
         let generationStatus: "completed" | "timeout" | "error" | "incomplete" = "completed";
         try {
+          if (imageAttachmentAnalysisMode) {
+            if (!attachmentRecord?.storageKey || !attachmentRecord.imageMimeType) throw new Error("The screenshot storage reference is missing. Please attach it again.");
+            const imagePart = await loadBuddyScreenshot(attachmentRecord.storageKey, attachmentRecord.imageMimeType);
+            llmMessages[0].content += BUDDY_SCREENSHOT_INSTRUCTION;
+            const lastUserIndex = llmMessages.map(message => message.role).lastIndexOf("user");
+            llmMessages[lastUserIndex].content = [{ type: "text", text: question }, imagePart];
+          }
           const responseBudgetMs = documentFollowUpMode
             ? DOCUMENT_FOLLOW_UP_TIMEOUT_MS
             : fullDocumentAssessmentMode
@@ -409,7 +418,9 @@ Do not infer content from this file.`
           } else {
             generationStatus = "error";
             console.error("[askBuddy] response generation failed", error);
-            responseText = "Ask Buddy could not complete an evidence-grounded response. No answer has been inferred. Please retry the question.";
+            responseText = imageAttachmentAnalysisMode
+              ? "Ask Buddy could not load or analyze the screenshot. No visual finding has been inferred. Please retry or attach a clear PNG, JPG, or WebP screenshot."
+              : "Ask Buddy could not complete an evidence-grounded response. No answer has been inferred. Please retry the question.";
           }
         }
 
@@ -443,7 +454,7 @@ Do not infer content from this file.`
           text,
           generationStatus,
           sources: attachmentArtifact
-            ? [...grounding.sources, { id: `uploaded-artifact-${attachmentArtifact.id}`, label: `${attachmentRecord?.analysisStatus === "Extracted" ? "User-provided, unverified — Extracted" : "Reference only — contents not analyzed"}: ${attachmentArtifact.fileName}`, path: attachmentArtifact.storageUrl, authority: "User-provided attachment; not an authoritative platform source", lastUpdated: attachmentArtifact.createdAt.toISOString(), artifactStatus: "Reference" as const }]
+            ? [...grounding.sources, { id: `uploaded-artifact-${attachmentArtifact.id}`, label: `${imageAttachmentAnalysisMode ? "User-provided screenshot — unverified visual evidence" : attachmentRecord?.analysisStatus === "Extracted" ? "User-provided, unverified — Extracted" : "Reference only — contents not analyzed"}: ${attachmentArtifact.fileName}`, path: attachmentArtifact.storageUrl, authority: "User-provided attachment; not an authoritative platform source", lastUpdated: attachmentArtifact.createdAt.toISOString(), artifactStatus: "Reference" as const }]
             : grounding.sources,
           conflicts: grounding.conflicts,
           status: answerStatus,
@@ -467,15 +478,23 @@ Do not infer content from this file.`
       .input(z.object({ fileName: z.string().min(1).max(512), versionLabel: z.string().min(1).max(256), mimeType: z.string().min(1).max(128), fileBase64: z.string().min(1) }))
       .mutation(async ({ input, ctx }) => {
         const encoded = input.fileBase64.replace(/^data:[^;]+;base64,/, "");
+        if (encoded.length > Math.ceil(10 * 1024 * 1024 / 3) * 4) throw new Error("Attachments must be 10 MB or smaller.");
+        if (encoded.length % 4 || /[^A-Za-z0-9+/=]/.test(encoded)) throw new Error("The attachment encoding is invalid. Please select the file again.");
         const buffer = Buffer.from(encoded, "base64");
+        if (buffer.toString("base64") !== encoded) throw new Error("The attachment encoding is invalid. Please select the file again.");
+        if (!buffer.length) throw new Error("The attachment is empty. Please select a readable file.");
         if (buffer.length > 10 * 1024 * 1024) throw new Error("Attachments must be 10 MB or smaller.");
         const prepared = await prepareAskBuddyAttachment(buffer, input.fileName, input.mimeType, input.versionLabel);
         const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const stored = await storagePut(`ask-buddy/${Date.now()}-${safeName}`, buffer, input.mimeType);
+        const preparedRecord = parseAskBuddyAttachmentRecord(prepared.fieldsJson);
+        const stored = await storagePut(`ask-buddy/${Date.now()}-${safeName}`, buffer, preparedRecord?.imageMimeType ?? input.mimeType);
+        const fieldsJson = preparedRecord?.analysisStatus === "Image Ready"
+          ? JSON.stringify({ ...preparedRecord, storageKey: stored.key })
+          : prepared.fieldsJson;
         const db = await getDb();
         if (!db) throw new Error("The Ask Buddy attachment store is unavailable. Please try again.");
-        await db.insert(mappingArtifacts).values({ artifactType: "Other", sourceType: "Upload", fileName: input.fileName, versionLabel: input.versionLabel, mimeType: input.mimeType, storageUrl: stored.url, fieldsJson: prepared.fieldsJson, uploadedBy: ctx.user?.name ?? null });
-        const [artifact] = await db.select().from(mappingArtifacts).orderBy(desc(mappingArtifacts.id)).limit(1);
+        const [inserted] = await db.insert(mappingArtifacts).values({ artifactType: "Other", sourceType: "Upload", fileName: input.fileName, versionLabel: input.versionLabel, mimeType: preparedRecord?.imageMimeType ?? input.mimeType, storageUrl: stored.url, fieldsJson, uploadedBy: ctx.user?.name ?? null });
+        const [artifact] = await db.select().from(mappingArtifacts).where(eq(mappingArtifacts.id, Number(inserted.insertId))).limit(1);
         if (!artifact) throw new Error("The uploaded attachment could not be registered. Please try again.");
         return { artifact, analysis: { status: prepared.analysisStatus, format: prepared.format, note: prepared.note } };
       }),

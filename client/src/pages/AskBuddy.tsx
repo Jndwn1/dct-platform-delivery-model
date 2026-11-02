@@ -11,6 +11,7 @@ import DataMappingWorkspace from "@/components/DataMappingWorkspace";
 import { readSharedBuddyConversation, subscribeSharedBuddyConversation, writeSharedBuddyConversation } from "@/lib/askBuddyConversation";
 import { ADO_FOLLOW_UP_TYPES, buildAdoFollowUpMarkdown, buildAdoWorkItemFormText, getAdoFollowUpReview, getAdoFollowUpReviewKey, getConfirmedDependencyFollowUps, type AdoFollowUpDraft, type AdoFollowUpReviews, type AdoFollowUpType } from "@/lib/askBuddyAdoFollowUps";
 import { toDocumentFriendlyText } from "@/lib/askBuddyDocumentFormat";
+import { DEFAULT_BUDDY_SCREENSHOT_QUESTION, getPastedBuddyScreenshot, isBuddyScreenshot } from "@/lib/askBuddyScreenshotInput";
 import { trpc } from "@/lib/trpc";
 import { useBatchStatus, buildLiveSnapshot } from "@/contexts/BatchStatusContext";
 
@@ -464,6 +465,7 @@ export default function AskBuddy() {
   const [isTyping, setIsTyping] = useState(false);
   const [showSources, setShowSources] = useState(false);
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [attachmentVersion, setAttachmentVersion] = useState("");
   const [attachmentError, setAttachmentError] = useState("");
   const [isAttachmentProcessing, setIsAttachmentProcessing] = useState(false);
@@ -503,6 +505,13 @@ export default function AskBuddy() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    if (!attachmentFile || !isBuddyScreenshot(attachmentFile)) { setScreenshotPreview(null); return; }
+    const url = URL.createObjectURL(attachmentFile);
+    setScreenshotPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [attachmentFile]);
 
   useEffect(() => {
     if (!isDeepDocumentAnalysis) {
@@ -720,14 +729,22 @@ export default function AskBuddy() {
   const attachmentUpload = trpc.askBuddy.uploadAttachment.useMutation();
   const selectAttachment = (file: File | null) => {
     setAttachmentError("");
-    if (!file) { setAttachmentFile(null); return; }
+    if (!file) { setAttachmentFile(null); if (attachmentInputRef.current) attachmentInputRef.current.value = ""; return; }
     if (file.size > MAX_ATTACHMENT_BYTES) { setAttachmentFile(null); setAttachmentError("Attachments must be 10 MB or smaller."); return; }
     setAttachmentFile(file);
   };
+  const handleScreenshotPaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    const screenshot = getPastedBuddyScreenshot(event.clipboardData.items);
+    if (!screenshot) return; // Preserve ordinary text and ADO-link paste behavior.
+    event.preventDefault();
+    if (isTyping || isAttachmentProcessing) return;
+    selectAttachment(screenshot);
+  };
   const analyzeAttachmentAndAsk = async () => {
+    if (isTyping || isAttachmentProcessing) return;
     const suppliedAdoReferences = adoReferences.trim();
     if (suppliedAdoReferences.length > MAX_ADO_REFERENCE_CHARS) { setAttachmentError(`ADO references must be ${MAX_ADO_REFERENCE_CHARS.toLocaleString()} characters or fewer.`); return; }
-    const baseQuestion = input.trim() || (suppliedAdoReferences ? DEFAULT_ADO_ANALYSIS_REQUEST : "");
+    const baseQuestion = input.trim() || (suppliedAdoReferences ? DEFAULT_ADO_ANALYSIS_REQUEST : "") || (isBuddyScreenshot(attachmentFile) ? DEFAULT_BUDDY_SCREENSHOT_QUESTION : "");
     if (!baseQuestion) { setAttachmentError("Ask Buddy a question or provide one or more ADO references before sending."); return; }
     const analysisQuestion = suppliedAdoReferences
       ? `${baseQuestion}\n\nADO references supplied by user:\n${suppliedAdoReferences}`
@@ -879,7 +896,7 @@ ${attachmentLabel}`;
 
   const currentTourStep = TOUR_STEPS[tourStep];
   const hasAdoReferences = Boolean(adoReferences.trim());
-  const canSubmitBuddyRequest = Boolean(input.trim() || hasAdoReferences) && !isTyping && !isAttachmentProcessing;
+  const canSubmitBuddyRequest = Boolean(input.trim() || hasAdoReferences || isBuddyScreenshot(attachmentFile)) && !isTyping && !isAttachmentProcessing;
 
   return (
     <div style={{ background: "#f8fafc", minHeight: "100vh" }}>
@@ -1615,7 +1632,7 @@ ${attachmentLabel}`;
           )}
 
           {/* Input + governed file attachment */}
-          <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #e2e8f0", padding: "0.75rem 1rem" }}>
+          <div onPaste={handleScreenshotPaste} style={{ background: "#fff", borderRadius: 10, border: "1px solid #e2e8f0", padding: "0.75rem 1rem" }}>
             <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
               <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask about any batch, PI status, guardrails, ADRs, agents, gates, or ownership..." style={{ flex: 1, border: "none", outline: "none", fontSize: "0.9rem", color: "#1e293b", background: "transparent" }} />
               <button onClick={analyzeAttachmentAndAsk} disabled={!canSubmitBuddyRequest} style={{ background: canSubmitBuddyRequest ? "#0d9488" : "#e2e8f0", color: canSubmitBuddyRequest ? "#fff" : "#94a3b8", border: "none", borderRadius: 8, padding: "0.5rem 1.25rem", fontWeight: 700, fontSize: "0.875rem", cursor: canSubmitBuddyRequest ? "pointer" : "not-allowed" }}>
@@ -1641,6 +1658,10 @@ ${attachmentLabel}`;
               {attachmentFile && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#047857", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "5px 7px", fontSize: 11, fontWeight: 700 }}><Paperclip size={12} /> {attachmentFile.name}<button type="button" aria-label="Remove attached file" onClick={() => selectAttachment(null)} style={{ border: "none", background: "transparent", color: "#047857", cursor: "pointer", display: "inline-flex", padding: 0 }}><X size={13} /></button></span>}
               {attachmentError && <span role="alert" style={{ color: "#b91c1c", fontSize: 11, fontWeight: 600 }}>{attachmentError}</span>}
             </div>
+            {screenshotPreview && <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 9 }}>
+              <img src={screenshotPreview} alt="Attached screenshot preview" style={{ maxWidth: 180, maxHeight: 100, objectFit: "contain", border: "1px solid #cbd5e1", borderRadius: 6 }} />
+              <span style={{ color: "#475569", fontSize: 11 }}>Screenshot ready for visual analysis. Ask about the visible content, then select Analyze & Ask.</span>
+            </div>}
             <div style={{ marginTop: 9, paddingTop: 9, borderTop: "1px solid #e2e8f0" }}>
               <label htmlFor="ask-buddy-ado-references" style={{ display: "block", color: "#1e3a5f", fontSize: 11, fontWeight: 800, marginBottom: 5 }}>ADO references <span style={{ color: "#64748b", fontWeight: 600 }}>(optional · multiple links or IDs)</span></label>
               <textarea
@@ -1658,7 +1679,7 @@ ${attachmentLabel}`;
                 <span>{adoReferences.length.toLocaleString()} / {MAX_ADO_REFERENCE_CHARS.toLocaleString()}</span>
               </div>
             </div>
-            <p style={{ color: "#64748b", fontSize: 10, lineHeight: 1.4, margin: "8px 0 0" }}>Attach any project file (up to 10 MB), ask a question, then select <strong>Analyze & Ask</strong>. You may also paste ADO URLs or work-item IDs, along with titles, descriptions, exports, screenshots, or acceptance criteria for evidence-based readiness analysis. Buddy directly reads Word (.docx), Excel/CSV, and readable text formats; other file types are retained as reference-only sources without inferred content. This workspace has no live Azure DevOps retrieval connection, so Buddy will not claim to have opened a supplied link. Do not upload client data, PII, PHI, confidential tax data, or protected intellectual property.</p>
+            <p style={{ color: "#64748b", fontSize: 10, lineHeight: 1.4, margin: "8px 0 0" }}>Attach any project file (up to 10 MB), ask a question, then select <strong>Analyze & Ask</strong>. <strong>Screenshots:</strong> choose a PNG, JPG, or WebP file, or paste a screenshot into the question field using Ctrl+V / Cmd+V. Buddy analyzes visible screenshot content as well as Word (.docx), Excel/CSV, and readable text formats; other file types remain reference-only. You may paste ADO URLs or IDs with descriptions or acceptance criteria, but Buddy does not retrieve live ADO records. Do not upload client data, PII, PHI, confidential tax data, or protected intellectual property.</p>
           </div>
 
           {/* Quick prompts */}

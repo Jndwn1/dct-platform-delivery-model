@@ -353,3 +353,4 @@
 - [x] Add view-only Open Email Draft actions for active and sent Meeting Recaps without changing email status or regenerating content
 - [x] Improve preview startup by deferring non-active dashboard routes, reducing the sign-in load from 183 to 59 browser resources and removing stale dev-server processes
 - [x] Repair Ask Buddy platform-wide intent routing, exact MVP batch retrieval, Pilot/Executive source context, bounded complete conversation retention, supported model reasoning settings, and explicit failed/incomplete generation outcomes; validate real story 1528380 and follow-up questions
+- [x] Enable PNG/JPG/WebP screenshot visual analysis in Ask Buddy with clipboard paste, preview/removal, metadata-only storage, server-verified vision input, retained follow-up context, and no-live-ADO safeguards; verify visible spike IDs and missing acceptance criteria in browser
