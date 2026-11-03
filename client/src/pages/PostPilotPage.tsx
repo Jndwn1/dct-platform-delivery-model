@@ -167,6 +167,31 @@ const SPRINT_4_PRIORITY_AREAS: SprintPriorityArea[] = [
 ];
 
 const SPRINT_5_PRIORITY_AREAS: SprintPriorityArea[] = [
+  {
+    title: "TDC v2 Foundation & Workflow",
+    accent: "#1e3a5f",
+    bullets: [
+      "Workflow setup is 75% complete",
+      "Finish the V2 workflow build-out",
+      "Address remaining rules-related APIs and migration scripts",
+    ],
+  },
+  {
+    title: "Migration & Account Build Readiness",
+    accent: "#1d4ed8",
+    bullets: [
+      "Move requirement-stage migration items into build",
+      "Move requirement-stage account items into build",
+    ],
+  },
+  {
+    title: "Prior-Year & State Integration",
+    accent: PURPLE,
+    bullets: [
+      "Clear prior-year items awaiting review or access",
+      "Clear State integration items awaiting review or access",
+    ],
+  },
   { title: "State", accent: "#0f766e", bullets: ["State modifications and State Tax Control integration with Federal", "Output approvals and triggering", "GoSystem retrieval and simple multi-entity aggregation review"] },
 ];
 
@@ -298,7 +323,7 @@ export default function PostPilotPage() {
               );
             })}
           </div>
-          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Sprint 3 and Sprint 4 goals are grouped from supplied backlog snapshots for planning visibility; they do not replace feature-level commitments or acceptance criteria.</div>
+          <div style={{ color: "#64748b", fontSize: "10px", fontStyle: "italic", marginTop: "11px" }}>Sprint 3 and Sprint 4 goals are grouped from supplied backlog snapshots; Sprint 5 goals reflect supplied closeout notes. These planning goals do not replace feature-level commitments or acceptance criteria.</div>
         </div>
       </section>
 

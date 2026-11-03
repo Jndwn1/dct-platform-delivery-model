@@ -4993,6 +4993,27 @@
           "boundary": false
         },
         {
+          "text": "title: TDC v2 Foundation & Workflow; bullets: Workflow setup is 75% complete | Finish the V2 workflow build-out | Address remaining rules-related APIs and migration scripts",
+          "sourceFile": "client/src/pages/PostPilotPage.tsx",
+          "section": "SPRINT 5 PRIORITY AREAS",
+          "kind": "data",
+          "boundary": false
+        },
+        {
+          "text": "title: Migration & Account Build Readiness; bullets: Move requirement-stage migration items into build | Move requirement-stage account items into build",
+          "sourceFile": "client/src/pages/PostPilotPage.tsx",
+          "section": "SPRINT 5 PRIORITY AREAS",
+          "kind": "data",
+          "boundary": false
+        },
+        {
+          "text": "title: Prior-Year & State Integration; bullets: Clear prior-year items awaiting review or access | Clear State integration items awaiting review or access",
+          "sourceFile": "client/src/pages/PostPilotPage.tsx",
+          "section": "SPRINT 5 PRIORITY AREAS",
+          "kind": "data",
+          "boundary": false
+        },
+        {
           "text": "title: State; bullets: State modifications and State Tax Control integration with Federal | Output approvals and triggering | GoSystem retrieval and simple multi-entity aggregation review",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "SPRINT 5 PRIORITY AREAS",
@@ -5063,13 +5084,6 @@
           "boundary": false
         },
         {
-          "text": "sprint: 4; source: Supplied TDC — PI4 Sprint 4 closeout summary. total Work Items: 35; completed Closed: 32; carried Forward: 3; completion Rate: 91; carryover Rate: 9",
-          "sourceFile": "client/src/pages/PostPilotPage.tsx",
-          "section": "POST PILOT SPRINT METRICS / closeout",
-          "kind": "data",
-          "boundary": false
-        },
-        {
           "text": "sprint: 5; source: Backlog snapshot not yet supplied",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "POST PILOT SPRINT METRICS",
@@ -5091,20 +5105,6 @@
           "boundary": true
         },
         {
-          "text": "Executive Health",
-          "sourceFile": "client/src/pages/PostPilotPage.tsx",
-          "section": "Post Pilot Page",
-          "kind": "jsx",
-          "boundary": false
-        },
-        {
-          "text": "Pilot",
-          "sourceFile": "client/src/pages/PostPilotPage.tsx",
-          "section": "Pilot",
-          "kind": "jsx",
-          "boundary": false
-        },
-        {
           "text": "A PI4 Pilot workspace for sprint cadence, delivery readiness, prototypes, and evidence-based planning without implying PI4 portfolio delivery progress.",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "Pilot",
@@ -5119,7 +5119,7 @@
           "boundary": true
         },
         {
-          "text": "Sprint 3 and Sprint 4 goals are grouped from supplied backlog snapshots for planning visibility; they do not replace feature-level commitments or acceptance criteria.",
+          "text": "Sprint 3 and Sprint 4 goals are grouped from supplied backlog snapshots; Sprint 5 goals reflect supplied closeout notes. These planning goals do not replace feature-level commitments or acceptance criteria.",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "Pilot",
           "kind": "jsx",
@@ -5329,39 +5329,11 @@
           "boundary": false
         },
         {
-          "text": "placeholder: e.g. Story 1494188; Bug 1494190 — describe related delivery traceability",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Post Pilot Deployment Snapshot",
-          "kind": "label",
-          "boundary": false
-        },
-        {
-          "text": "Deployment Summary",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Post Pilot Deployment Snapshot",
-          "kind": "jsx",
-          "boundary": false
-        },
-        {
-          "text": "Cancel",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Post Pilot Deployment Snapshot",
-          "kind": "jsx",
-          "boundary": false
-        },
-        {
           "text": "A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Pilot deployments only. Entries display newest first; deployment numbers follow chronological date order, with the earliest record as #1, and the registry does not change PI4 sprint progress.",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Pilot Deployment Registry",
           "kind": "jsx",
           "boundary": true
-        },
-        {
-          "text": "Date:",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Pilot Deployment Registry",
-          "kind": "jsx",
-          "boundary": false
         },
         {
           "text": "Development completion | Mid-December 2026",
@@ -5742,13 +5714,6 @@
           "boundary": false
         },
         {
-          "text": "Filing Designation | Single, Combined, or Consolidated | Roger / State | GoSystem | Yes | Known Concept — Detail TBD | Exact GoSystem target values?",
-          "sourceFile": "client/src/components/StatePocBaDiscoveryPackage.tsx",
-          "section": "INBOUND",
-          "kind": "data",
-          "boundary": false
-        },
-        {
           "text": "Federal Starting Point | Federal taxable income basis for State calculation | Federal / DCT or linked Federal deliverable | GoSystem | Yes | Decision Required | Before or after NOL? Pass value or reference deliverable?",
           "sourceFile": "client/src/components/StatePocBaDiscoveryPackage.tsx",
           "section": "INBOUND",
@@ -5994,13 +5959,6 @@
           "boundary": false
         },
         {
-          "text": "number: 5; title: TDC; detail: Creates and governs the tax record.",
-          "sourceFile": "client/src/lib/pilotFlowEvidence.ts",
-          "section": "PILOT PROCESS FLOW / steps",
-          "kind": "data",
-          "boundary": false
-        },
-        {
           "text": "title: Target End-to-End Architecture; boundary: PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION; description: The State and Provision architectures originate in Roger but use distinct external calculation and output paths. State MVP vision retains transparent entity-and-jurisdiction calculations in Roger, while GoSystem supports return-level roll-up and filing behavior. Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path.",
           "sourceFile": "client/src/lib/pilotFlowEvidence.ts",
           "section": "PILOT TARGET ARCHITECTURE",
@@ -6036,8 +5994,8 @@
         "routeMapped": true,
         "routeProps": {},
         "filesVisited": 7,
-        "blocksExtracted": 287,
-        "blocksIncluded": 161,
+        "blocksExtracted": 290,
+        "blocksIncluded": 155,
         "unresolvedExpressions": 109,
         "skippedDependencies": 5,
         "truncated": true,
