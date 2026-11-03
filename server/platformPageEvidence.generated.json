@@ -5056,11 +5056,18 @@
           "boundary": false
         },
         {
-          "text": "sprint: 4; source: Supplied Team Roger TDC PI4 Sprint 4 backlog snapshot — goals grouped from captured work; backlog Goal Source: true",
+          "text": "sprint: 4; source: Supplied TDC — PI4 Sprint 4 closeout summary",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "POST PILOT SPRINT METRICS",
           "kind": "data",
-          "boundary": true
+          "boundary": false
+        },
+        {
+          "text": "sprint: 4; source: Supplied TDC — PI4 Sprint 4 closeout summary. total Work Items: 35; completed Closed: 32; carried Forward: 3; completion Rate: 91; carryover Rate: 9",
+          "sourceFile": "client/src/pages/PostPilotPage.tsx",
+          "section": "POST PILOT SPRINT METRICS / closeout",
+          "kind": "data",
+          "boundary": false
         },
         {
           "text": "sprint: 5; source: Backlog snapshot not yet supplied",
@@ -5075,20 +5082,6 @@
           "section": "POD DELIVERY FLOW STEPS",
           "kind": "data",
           "boundary": true
-        },
-        {
-          "text": "label: 2 · Ready the work; title: Pod Lead + BA; detail: Translate the outcome into scoped requirements, dependencies, and testable acceptance criteria.",
-          "sourceFile": "client/src/pages/PostPilotPage.tsx",
-          "section": "POD DELIVERY FLOW STEPS",
-          "kind": "data",
-          "boundary": false
-        },
-        {
-          "text": "label: 3 · Validate approach; title: Pod Review; detail: Confirm implementation approach, ownership, sequencing, and any data-story implications.",
-          "sourceFile": "client/src/pages/PostPilotPage.tsx",
-          "section": "POD DELIVERY FLOW STEPS",
-          "kind": "data",
-          "boundary": false
         },
         {
           "text": "label: 6 · Confirm outcome; title: PO + Leadership; detail: Assess delivered capability, risk, and readiness against the original intended outcome.",
@@ -5133,7 +5126,7 @@
           "boundary": true
         },
         {
-          "text": "eyebrow: PI4 sprint planning; title: Sprint Metrics; description: TDC Sprint 2 and Sprint 3 closeout, with subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs.",
+          "text": "eyebrow: PI4 sprint planning; title: Sprint Metrics; description: TDC Sprint 2, Sprint 3, and Sprint 4 closeout, with subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs.",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "Pilot",
           "kind": "label",
@@ -5144,6 +5137,13 @@
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "Pilot",
           "kind": "label",
+          "boundary": true
+        },
+        {
+          "text": "Interactive Roger Provision prototype illustrating the proposed Provision workflow, screen sequence, Return-to-Provision experience, Deferred Rollforward, and related practitioner interactions.",
+          "sourceFile": "client/src/pages/PostPilotPage.tsx",
+          "section": "Pilot",
+          "kind": "jsx",
           "boundary": true
         },
         {
@@ -5358,13 +5358,6 @@
         },
         {
           "text": "Date:",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Pilot Deployment Registry",
-          "kind": "jsx",
-          "boundary": false
-        },
-        {
-          "text": "Type:",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Pilot Deployment Registry",
           "kind": "jsx",
@@ -6043,8 +6036,8 @@
         "routeMapped": true,
         "routeProps": {},
         "filesVisited": 7,
-        "blocksExtracted": 286,
-        "blocksIncluded": 162,
+        "blocksExtracted": 287,
+        "blocksIncluded": 161,
         "unresolvedExpressions": 109,
         "skippedDependencies": 5,
         "truncated": true,

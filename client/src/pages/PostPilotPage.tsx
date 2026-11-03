@@ -202,8 +202,14 @@ const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
   },
   {
     sprint: 4,
-    source: "Supplied Team Roger TDC PI4 Sprint 4 backlog snapshot — goals grouped from captured work",
-    backlogGoalSource: true,
+    source: "Supplied TDC — PI4 Sprint 4 closeout summary",
+    closeout: {
+      totalWorkItems: 35,
+      completedClosed: 32,
+      carriedForward: 3,
+      completionRate: 91,
+      carryoverRate: 9,
+    },
   },
   { sprint: 5, source: "Backlog snapshot not yet supplied" },
 ];
@@ -300,7 +306,7 @@ export default function PostPilotPage() {
         <SectionHeading
           eyebrow="PI4 sprint planning"
           title="Sprint Metrics"
-          description="TDC Sprint 2 and Sprint 3 closeout, with subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs."
+          description="TDC Sprint 2, Sprint 3, and Sprint 4 closeout, with subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs."
         />
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" }}>
           {POST_PILOT_SPRINT_METRICS.map((metric) => {

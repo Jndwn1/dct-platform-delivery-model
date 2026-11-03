@@ -161,7 +161,7 @@ describe("PI4 Pilot delivery", () => {
     expect(postPilot).toContain("Accounts & Prior-Year Data");
     expect(postPilot).toContain("State Integration Discovery");
     expect(postPilot).toContain("Backlog goals source");
-    expect(postPilot).toContain("Supplied Team Roger TDC PI4 Sprint 4 backlog snapshot");
+    expect(postPilot).toContain("Supplied TDC — PI4 Sprint 4 closeout summary");
     expect(postPilot).toContain("Apportionment calculations");
     expect(postPilot).toContain("SPRINT_5_PRIORITY_AREAS");
     expect(postPilot).toContain("GoSystem retrieval and simple multi-entity aggregation review");
