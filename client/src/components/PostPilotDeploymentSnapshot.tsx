@@ -16,7 +16,7 @@ type DeploymentWikiRecord = {
   status: string;
   environment: string;
   deploymentOwner: string;
-  productOwner: string;
+  productOwner?: string;
   relatedFeature: string | null;
   relatedStory: string | null;
   adoWorkItemId: string | null;
@@ -149,7 +149,6 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
         `| Deployment Summary | ${escapeWikiCell(record.summary)} |`,
         `| ADO Work Items | ${formatAdoLinks(adoIds)} |`,
         `| Deployment Owner | ${escapeWikiCell(record.deploymentOwner)} |`,
-        `| Product Owner | ${escapeWikiCell(record.productOwner)} |`,
       );
     });
   }
@@ -181,7 +180,6 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
     releaseName: "",
     deploymentDate: new Date().toISOString().slice(0, 10),
     deploymentOwner: "",
-    productOwner: "",
     type: "Feature" as DeploymentType,
     status: "Planned" as DeploymentStatus,
     screenName: "",
@@ -211,7 +209,6 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
       releaseName: form.releaseName,
       deploymentDate: form.deploymentDate,
       deploymentOwner: form.deploymentOwner,
-      productOwner: form.productOwner,
       platform: "TDC",
       type: form.type,
       status: form.status,
@@ -245,10 +242,7 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
             <div><label style={labelStyle}>Deployment Date *</label><input required type="date" value={form.deploymentDate} onChange={(event) => set("deploymentDate", event.target.value)} style={fieldStyle} /></div>
             <div><label style={labelStyle}>Status</label><select value={form.status} onChange={(event) => setForm((previous) => ({ ...previous, status: event.target.value as DeploymentStatus }))} style={fieldStyle}>{(["Planned", "Scheduled", "In Progress", "Deployed", "Rolled Back"] as DeploymentStatus[]).map((status) => <option key={status}>{status}</option>)}</select></div>
           </div>
-          <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "1fr 1fr" }}>
-            <div><label style={labelStyle}>Deployment Owner *</label><input required value={form.deploymentOwner} onChange={(event) => set("deploymentOwner", event.target.value)} placeholder="e.g. Gary Luca" style={fieldStyle} /></div>
-            <div><label style={labelStyle}>Product Owner *</label><input required value={form.productOwner} onChange={(event) => set("productOwner", event.target.value)} placeholder="e.g. Product Owner" style={fieldStyle} /></div>
-          </div>
+          <div><label style={labelStyle}>Deployment Owner *</label><input required value={form.deploymentOwner} onChange={(event) => set("deploymentOwner", event.target.value)} placeholder="e.g. Gary Luca" style={fieldStyle} /></div>
           <div>
             <label style={labelStyle}>Affected Screen / Capability *</label>
             <textarea required maxLength={8000} value={form.screenName} onChange={(event) => set("screenName", event.target.value)} placeholder="e.g. State Filing Footprint; Data Gateway routing updates" style={{ ...fieldStyle, minHeight: "64px", resize: "vertical" }} />
@@ -392,7 +386,6 @@ export default function PostPilotDeploymentSnapshot() {
                         <div><strong>Summary:</strong> {record.summary ?? "—"}</div>
                         <div style={{ marginTop: "9px" }}><strong>ADO work items:</strong> {adoIds.length ? " " : " —"}{adoIds.map((id, adoIndex) => <span key={id}>{adoIndex > 0 ? ", " : ""}<a href={`${ADO_WORK_ITEM_URL}${id}`} target="_blank" rel="noreferrer" style={{ color: "#2563eb", fontWeight: 750 }}>{id}</a></span>)}</div>
                         <div><strong>Deployment owner:</strong> {record.deploymentOwner}</div>
-                        <div><strong>Product owner:</strong> {record.productOwner}</div>
                       </td>
                     </tr>
                   );

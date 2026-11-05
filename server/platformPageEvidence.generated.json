@@ -5077,13 +5077,6 @@
           "boundary": false
         },
         {
-          "text": "sprint: 4; source: Supplied TDC — PI4 Sprint 4 closeout summary",
-          "sourceFile": "client/src/pages/PostPilotPage.tsx",
-          "section": "POST PILOT SPRINT METRICS",
-          "kind": "data",
-          "boundary": false
-        },
-        {
           "text": "sprint: 5; source: Backlog snapshot not yet supplied",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "POST PILOT SPRINT METRICS",
@@ -5238,20 +5231,6 @@
           "boundary": false
         },
         {
-          "text": "Product Owner *",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Post Pilot Deployment Snapshot",
-          "kind": "jsx",
-          "boundary": false
-        },
-        {
-          "text": "placeholder: e.g. Product Owner",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Post Pilot Deployment Snapshot",
-          "kind": "label",
-          "boundary": false
-        },
-        {
           "text": "Affected Screen / Capability *",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Post Pilot Deployment Snapshot",
@@ -5343,6 +5322,13 @@
           "boundary": false
         },
         {
+          "text": "placeholder: e.g. Story 1494188; Bug 1494190 — describe related delivery traceability",
+          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
+          "section": "Post Pilot Deployment Snapshot",
+          "kind": "label",
+          "boundary": false
+        },
+        {
           "text": "Cancel",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Post Pilot Deployment Snapshot",
@@ -5355,13 +5341,6 @@
           "section": "Pilot Deployment Registry",
           "kind": "jsx",
           "boundary": true
-        },
-        {
-          "text": "Date:",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Pilot Deployment Registry",
-          "kind": "jsx",
-          "boundary": false
         },
         {
           "text": "Development completion | Mid-December 2026",
@@ -5544,6 +5523,13 @@
           "section": "State & Provision Delivery Readiness",
           "kind": "jsx",
           "boundary": true
+        },
+        {
+          "text": "Open State MVP vision deck ↗",
+          "sourceFile": "client/src/components/StateGoSystemPoc.tsx",
+          "section": "State & Provision Delivery Readiness",
+          "kind": "jsx",
+          "boundary": false
         },
         {
           "text": "1. Confirm target business process and initial apportionment scope | Set the representative State business scenario and the initial apportionment proof point for the POC. | State Business SMEs; Roger State team | POC Scope Statement | Selected State, entity / filing scenario, apportionment method, and in-scope outcome are not yet confirmed. | Confirm scope, exclusions, and the one calculation / review scenario the POC must prove.",
@@ -6016,9 +6002,9 @@
         "routeMapped": true,
         "routeProps": {},
         "filesVisited": 8,
-        "blocksExtracted": 292,
-        "blocksIncluded": 158,
-        "unresolvedExpressions": 111,
+        "blocksExtracted": 289,
+        "blocksIncluded": 156,
+        "unresolvedExpressions": 110,
         "skippedDependencies": 9,
         "truncated": true,
         "notIncluded": [

@@ -15,7 +15,7 @@ import { buildPostPilotDeploymentWiki } from "../client/src/components/PostPilot
 const caller = () => appRouter.createCaller({ user: null, req: {}, res: {} } as TrpcContext);
 const input = {
   releaseName: "Multi-environment test", deploymentDate: "2026-11-05",
-  deploymentOwner: "Test owner", productOwner: "Test product owner", platform: "TDC" as const,
+  deploymentOwner: "Test owner", platform: "TDC" as const,
   type: "Feature" as const, status: "Deployed" as const, screenName: "State Filing Footprint",
   environment: "UAT, QA, Dev",
 };
@@ -27,7 +27,12 @@ describe("Pilot deployment multi-environment persistence", () => {
     const result = await caller().postPilotDeploymentRegistry.create(input);
     expect(result.success).toBe(true);
     expect(database.values).toHaveBeenCalledTimes(1);
-    expect(database.values).toHaveBeenCalledWith(expect.objectContaining({ environment: "UAT, QA, Dev", screenName: "State Filing Footprint", platform: "TDC" }));
+    expect(database.values).toHaveBeenCalledWith(expect.objectContaining({ environment: "UAT, QA, Dev", screenName: "State Filing Footprint", platform: "TDC", deploymentOwner: input.deploymentOwner, productOwner: "" }));
+  });
+
+  it("allows older clients to submit their legacy Product Owner field without making it mandatory", async () => {
+    await caller().postPilotDeploymentRegistry.create({ ...input, productOwner: "Legacy owner" });
+    expect(database.values).toHaveBeenCalledWith(expect.objectContaining({ productOwner: "Legacy owner" }));
   });
 
   it("rejects an empty environment or missing screen without inserting a record", async () => {
