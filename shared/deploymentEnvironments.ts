@@ -1,4 +1,4 @@
-export const DEPLOYMENT_ENVIRONMENT_OPTIONS = ["Production", "UAT", "QA", "Dev"] as const;
+export const DEPLOYMENT_ENVIRONMENT_OPTIONS = ["Production", "UAT", "QA", "Dev", "Perf"] as const;
 
 /** Keep existing single-environment records readable without a schema migration. */
 export function parseDeploymentEnvironments(value: string): string[] {

@@ -51,8 +51,17 @@ describe("deployment environment selection", () => {
     expect(hasDeploymentEnvironment("", "Production")).toBe(false);
   });
 
-  it("defines the four governed environments in display order", () => {
-    expect(DEPLOYMENT_ENVIRONMENT_OPTIONS).toEqual(["Production", "UAT", "QA", "Dev"]);
+  it("defines all five environments in display order including Perf", () => {
+    expect(DEPLOYMENT_ENVIRONMENT_OPTIONS).toEqual(["Production", "UAT", "QA", "Dev", "Perf"]);
+  });
+
+  it("allows Perf alone or alongside other environments without treating it as Production", () => {
+    expect(setDeploymentEnvironmentChecked("", "Perf", true)).toBe("Perf");
+    expect(setDeploymentEnvironmentChecked("QA, Dev", "Perf", true)).toBe("QA, Dev, Perf");
+    expect(setDeploymentEnvironmentChecked("QA, Dev, Perf", "Perf", false)).toBe("QA, Dev");
+    expect(hasDeploymentEnvironment("QA, Dev, Perf", "Perf")).toBe(true);
+    expect(hasDeploymentEnvironment("QA, Dev, Perf", "Production")).toBe(false);
+    expect(DEPLOYMENT_ENVIRONMENT_OPTIONS.join(", ").length).toBeLessThanOrEqual(64);
   });
 });
 

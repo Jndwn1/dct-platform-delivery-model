@@ -41,19 +41,25 @@ describe("Pilot deployment multi-environment persistence", () => {
     expect(database.values).toHaveBeenCalledWith(expect.objectContaining({ environment: "QA" }));
   });
 
+  it("saves Perf alongside existing environments without changing associated screen tracking", async () => {
+    await caller().postPilotDeploymentRegistry.create({ ...input, environment: "QA, Dev, Perf" });
+    expect(database.values).toHaveBeenCalledTimes(1);
+    expect(database.values).toHaveBeenCalledWith(expect.objectContaining({ environment: "QA, Dev, Perf", screenName: input.screenName }));
+  });
+
   it("counts a deployed production selection once, excluding non-production and planned releases", async () => {
     database.rows = [
       { environment: "Production", status: "Deployed", platform: "TDC" },
-      { environment: "Production, UAT, QA, Dev", status: "Deployed", platform: "TDC" },
-      { environment: "QA, Dev", status: "Deployed", platform: "TDC" },
+      { environment: "Production, UAT, QA, Dev, Perf", status: "Deployed", platform: "TDC" },
+      { environment: "QA, Dev, Perf", status: "Deployed", platform: "TDC" },
       { environment: "Production, QA", status: "Planned", platform: "TDC" },
     ];
     expect(await caller().postPilotDeploymentRegistry.summary()).toEqual({ total: 4, production: 2, tdc: 4, rollbackCandidates: 0 });
   });
 
   it("retains the complete environment selection and associated screen in the wiki export", () => {
-    const wiki = buildPostPilotDeploymentWiki([{ ...input, deploymentId: "TEST-001", relatedFeature: null, relatedStory: null, adoWorkItemId: null, summary: null }]);
-    expect(wiki).toContain("| Environment | UAT, QA, Dev |");
+    const wiki = buildPostPilotDeploymentWiki([{ ...input, environment: "UAT, QA, Dev, Perf", deploymentId: "TEST-001", relatedFeature: null, relatedStory: null, adoWorkItemId: null, summary: null }]);
+    expect(wiki).toContain("| Environment | UAT, QA, Dev, Perf |");
     expect(wiki).toContain("| Scope / Capability | State Filing Footprint |");
   });
 });
