@@ -12,6 +12,7 @@ import { buildDeliveryPhaseInstruction } from "../client/src/lib/deliveryPhaseCo
 import { retrieveBuddyPageEvidence } from "./askBuddyPageEvidence";
 import { loadBuddyLivePageEvidence } from "./askBuddyPageLiveEvidence";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { hasDeploymentEnvironment } from "../shared/deploymentEnvironments";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
@@ -1125,7 +1126,7 @@ ${input.notes}` as string },
       const all = await db.select().from(postPilotDeployments).where(eq(postPilotDeployments.platform, "TDC"));
       return {
         total: all.length,
-        production: all.filter((record) => record.environment === "Production" && record.status === "Deployed").length,
+        production: all.filter((record) => hasDeploymentEnvironment(record.environment, "Production") && record.status === "Deployed").length,
         tdc: all.filter((record) => record.platform === "TDC").length,
         rollbackCandidates: all.filter((record) => record.status === "Rolled Back" || record.status === "In Progress").length,
       };
@@ -1143,7 +1144,7 @@ ${input.notes}` as string },
         summary: z.string().max(8000).optional(),
         relatedFeature: z.string().max(256).optional(),
         relatedStory: z.string().max(4000).optional(),
-        environment: z.string().min(1).max(64).optional(),
+        environment: z.string().trim().min(1).max(64).optional(),
         adoWorkItemId: z.string().max(4000).optional(),
       }))
       .mutation(async ({ input }) => {

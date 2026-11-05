@@ -5105,6 +5105,13 @@
           "boundary": true
         },
         {
+          "text": "Pilot",
+          "sourceFile": "client/src/pages/PostPilotPage.tsx",
+          "section": "Pilot",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
           "text": "A PI4 Pilot workspace for sprint cadence, delivery readiness, prototypes, and evidence-based planning without implying PI4 portfolio delivery progress.",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "Pilot",
@@ -5273,17 +5280,24 @@
           "boundary": false
         },
         {
-          "text": "Environment",
+          "text": "Environment *",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Post Pilot Deployment Snapshot",
           "kind": "jsx",
           "boundary": false
         },
         {
-          "text": "Production | UAT | QA | Dev",
+          "text": "Select one or more environments.",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Post Pilot Deployment Snapshot",
-          "kind": "data",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Select at least one environment.",
+          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
+          "section": "Post Pilot Deployment Snapshot",
+          "kind": "jsx",
           "boundary": false
         },
         {
@@ -5329,11 +5343,25 @@
           "boundary": false
         },
         {
+          "text": "Cancel",
+          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
+          "section": "Post Pilot Deployment Snapshot",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
           "text": "A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Pilot deployments only. Entries display newest first; deployment numbers follow chronological date order, with the earliest record as #1, and the registry does not change PI4 sprint progress.",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Pilot Deployment Registry",
           "kind": "jsx",
           "boundary": true
+        },
+        {
+          "text": "Date:",
+          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
+          "section": "Pilot Deployment Registry",
+          "kind": "jsx",
+          "boundary": false
         },
         {
           "text": "Development completion | Mid-December 2026",
@@ -5512,20 +5540,6 @@
         },
         {
           "text": "State-team source for the PI4 MVP boundary: entity and jurisdiction remain the calculation authority in the Roger workflow; controlled group context supports comparison without silently changing that authority; GoSystem supports return-level roll-up and filing behavior. Full State tax-accrual calculation is identified as post-MVP.",
-          "sourceFile": "client/src/components/StateGoSystemPoc.tsx",
-          "section": "State & Provision Delivery Readiness",
-          "kind": "jsx",
-          "boundary": true
-        },
-        {
-          "text": "Open State MVP vision deck ↗",
-          "sourceFile": "client/src/components/StateGoSystemPoc.tsx",
-          "section": "State & Provision Delivery Readiness",
-          "kind": "jsx",
-          "boundary": false
-        },
-        {
-          "text": "Provision demonstration evidence",
           "sourceFile": "client/src/components/StateGoSystemPoc.tsx",
           "section": "State & Provision Delivery Readiness",
           "kind": "jsx",
@@ -5752,6 +5766,13 @@
           "text": "Open full-size diagram ↗",
           "sourceFile": "client/src/components/StateProvisionPrototypeFlow.tsx",
           "section": "State Provision Prototype Flow",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Done",
+          "sourceFile": "client/src/components/DeploymentEnvironmentSelect.tsx",
+          "section": "Deployment Environment Select",
           "kind": "jsx",
           "boundary": false
         },
@@ -5986,6 +6007,7 @@
         "client/src/components/StateGoSystemPoc.tsx",
         "client/src/components/StatePocBaDiscoveryPackage.tsx",
         "client/src/components/StateProvisionPrototypeFlow.tsx",
+        "client/src/components/DeploymentEnvironmentSelect.tsx",
         "client/src/components/ExecutiveProcessFlow.tsx",
         "client/src/lib/pilotFlowEvidence.ts"
       ],
@@ -5993,11 +6015,11 @@
         "kind": "bounded-static-authored-content",
         "routeMapped": true,
         "routeProps": {},
-        "filesVisited": 7,
-        "blocksExtracted": 290,
-        "blocksIncluded": 155,
-        "unresolvedExpressions": 109,
-        "skippedDependencies": 5,
+        "filesVisited": 8,
+        "blocksExtracted": 292,
+        "blocksIncluded": 158,
+        "unresolvedExpressions": 111,
+        "skippedDependencies": 9,
         "truncated": true,
         "notIncluded": [
           "Live database/API/ADO records, user input, runtime state, computed values and unresolved JSX expressions are not included.",

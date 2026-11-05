@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Activity, CheckCircle2, ClipboardCopy, Download, FileText, Plus, Rocket, RotateCcw, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import DeploymentEnvironmentSelect from "@/components/DeploymentEnvironmentSelect";
 
 type DeploymentType = "Feature" | "Bug" | "Technical Story" | "Hotfix";
 type DeploymentStatus = "Planned" | "Scheduled" | "In Progress" | "Deployed" | "Rolled Back";
@@ -205,6 +206,7 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (!form.environment.trim()) return;
     createMutation.mutate({
       releaseName: form.releaseName,
       deploymentDate: form.deploymentDate,
@@ -254,7 +256,12 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
           </div>
           <div><label style={labelStyle}>Type *</label><select value={form.type} onChange={(event) => setForm((previous) => ({ ...previous, type: event.target.value as DeploymentType }))} style={fieldStyle}>{(["Feature", "Bug", "Technical Story", "Hotfix"] as DeploymentType[]).map((type) => <option key={type}>{type}</option>)}</select></div>
           <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "1fr 1fr" }}>
-            <div><label style={labelStyle}>Environment</label><select value={form.environment} onChange={(event) => set("environment", event.target.value)} style={fieldStyle}>{["Production", "UAT", "QA", "Dev"].map((environment) => <option key={environment}>{environment}</option>)}</select></div>
+            <div>
+              <label htmlFor="pilot-deployment-environments" style={labelStyle}>Environment *</label>
+              <DeploymentEnvironmentSelect id="pilot-deployment-environments" value={form.environment} onChange={(value) => set("environment", value)} style={fieldStyle} disabled={createMutation.isPending} />
+              <div style={{ color: "#64748b", fontSize: "10px", marginTop: "4px" }}>Select one or more environments.</div>
+              {!form.environment.trim() && <div role="alert" style={{ color: "#991b1b", fontSize: "10px", marginTop: "4px" }}>Select at least one environment.</div>}
+            </div>
             <div>
               <label style={labelStyle}>ADO Work Item IDs</label>
               <textarea maxLength={4000} value={form.adoWorkItemId} onChange={(event) => set("adoWorkItemId", event.target.value)} placeholder="e.g. 1494188, 1494189" style={{ ...fieldStyle, minHeight: "64px", resize: "vertical" }} />
@@ -267,7 +274,7 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
 
           {createMutation.error && <div role="alert" style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", color: "#991b1b", fontSize: "11px", padding: "8px 10px" }}>{createMutation.error.message}</div>}
           <div style={{ display: "flex", gap: "10px", marginTop: "6px" }}>
-            <button type="submit" disabled={createMutation.isPending} style={{ background: "#0f766e", border: "none", borderRadius: "6px", color: "#ffffff", cursor: createMutation.isPending ? "not-allowed" : "pointer", flex: 1, fontSize: "12px", fontWeight: 850, opacity: createMutation.isPending ? 0.7 : 1, padding: "10px 14px" }}>{createMutation.isPending ? "Creating…" : "Create Deployment"}</button>
+            <button type="submit" disabled={createMutation.isPending || !form.environment.trim()} style={{ background: "#0f766e", border: "none", borderRadius: "6px", color: "#ffffff", cursor: createMutation.isPending || !form.environment.trim() ? "not-allowed" : "pointer", flex: 1, fontSize: "12px", fontWeight: 850, opacity: createMutation.isPending || !form.environment.trim() ? 0.7 : 1, padding: "10px 14px" }}>{createMutation.isPending ? "Creating…" : "Create Deployment"}</button>
             <button type="button" onClick={onClose} style={{ background: "#f1f5f9", border: "none", borderRadius: "6px", color: "#475569", cursor: "pointer", fontSize: "12px", fontWeight: 750, padding: "10px 14px" }}>Cancel</button>
           </div>
         </form>
