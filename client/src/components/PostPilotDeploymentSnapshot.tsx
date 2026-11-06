@@ -24,7 +24,15 @@ type DeploymentWikiRecord = {
 };
 
 function escapeWikiCell(value: string | null | undefined) {
-  return (value ?? "—").replace(/[|\r\n]/g, " ").replace(/\s+/g, " ").trim() || "—";
+  return (value?.trim() || "—")
+    .replace(/\r\n?/g, "\n")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\|/g, "&#124;")
+    .replace(/\\/g, "\\\\")
+    .replace(/([`*_\[\]])/g, "\\$1")
+    .replace(/\n/g, "<br>");
 }
 
 const ADO_WORK_ITEM_URL = "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/_workitems/edit/";
@@ -33,13 +41,6 @@ type ReleaseSourceSections = {
   lead: string[];
   adoItems: string[];
 };
-
-function formatReleaseDate(date: string) {
-  const parsed = new Date(`${date}T12:00:00`);
-  return Number.isNaN(parsed.getTime())
-    ? date
-    : parsed.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-}
 
 function splitReleaseSource(summary: string | null | undefined): ReleaseSourceSections {
   const sections: ReleaseSourceSections = { lead: [], adoItems: [] };
@@ -68,26 +69,6 @@ function formatAdoLinks(ids: string[]) {
   return ids.length ? ids.map((id) => `[${id}](${ADO_WORK_ITEM_URL}${id})`).join(", ") : "—";
 }
 
-function consolidateReleaseRecords(records: DeploymentWikiRecord[]) {
-  const consolidated = new Map<string, DeploymentWikiRecord>();
-
-  records.forEach((record) => {
-    const key = `${record.deploymentDate}|${record.releaseName}`;
-    const existing = consolidated.get(key);
-    if (!existing) {
-      consolidated.set(key, { ...record });
-      return;
-    }
-
-    existing.adoWorkItemId = [existing.adoWorkItemId, record.adoWorkItemId].filter(Boolean).filter((value, index, values) => values.indexOf(value) === index).join(", ") || null;
-    existing.relatedFeature = [existing.relatedFeature, record.relatedFeature].filter(Boolean).filter((value, index, values) => values.indexOf(value) === index).join("; ") || null;
-    existing.relatedStory = [existing.relatedStory, record.relatedStory].filter(Boolean).filter((value, index, values) => values.indexOf(value) === index).join("; ") || null;
-    existing.summary = [existing.summary, record.summary].filter(Boolean).filter((value, index, values) => values.indexOf(value) === index).join("\n") || null;
-  });
-
-  return Array.from(consolidated.values()).sort((left, right) => right.deploymentDate.localeCompare(left.deploymentDate));
-}
-
 function deploymentSequenceKey(record: Pick<DeploymentWikiRecord, "deploymentDate" | "deploymentId">) {
   return `${record.deploymentDate}|${record.deploymentId}`;
 }
@@ -97,7 +78,7 @@ function buildChronologicalDeploymentNumbers(records: Array<Pick<DeploymentWikiR
 }
 
 export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
-  const orderedRecords = consolidateReleaseRecords(records);
+  const orderedRecords = [...records].sort((left, right) => right.deploymentDate.localeCompare(left.deploymentDate));
   const chronologicalDeploymentNumbers = buildChronologicalDeploymentNumbers(orderedRecords);
   const lines = [
     "# Data Gateway Release Notes",
@@ -107,48 +88,39 @@ export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
     "> **Numbering:** Chronological by deployment date (earliest deployment is #1)",
     `> **Registry records represented:** ${orderedRecords.length}`,
     "",
-    "## Release Index",
+    "## Pilot Deployment Records",
     "",
   ];
 
   if (orderedRecords.length === 0) {
     lines.push("No Data Gateway release entries have been recorded in the Pilot Deployment Registry.");
   } else {
-    const releaseEntries = orderedRecords.map((record) => {
-      const source = splitReleaseSource(record.summary);
-      const adoIds = extractAdoIds(source.adoItems, record.adoWorkItemId);
-      return { adoIds, record };
-    });
-
     lines.push(
       "| Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability |",
       "|---:|---|---|---|",
     );
 
-    releaseEntries.forEach(({ record }) => {
+    orderedRecords.forEach((record) => {
       const deploymentNumber = chronologicalDeploymentNumbers.get(deploymentSequenceKey(record)) ?? 1;
+      const adoIds = extractAdoIds(splitReleaseSource(record.summary).adoItems, record.adoWorkItemId);
+      const deployment = [
+        `**${escapeWikiCell(record.releaseName)}**`,
+        `**Date:** ${escapeWikiCell(record.deploymentDate)}`,
+        `**Environment:** ${escapeWikiCell(record.environment)}`,
+        `**Type:** ${escapeWikiCell(record.type)}`,
+      ].join("<br>");
+      const scope = [
+        `**${escapeWikiCell(record.screenName)}**`,
+        ...(record.relatedFeature ? [`<br>**Related feature:** ${escapeWikiCell(record.relatedFeature)}`] : []),
+        ...(record.relatedStory ? [`**Related story / bug:** ${escapeWikiCell(record.relatedStory)}`] : []),
+      ].join("<br>");
+      const traceability = [
+        `**Summary:** ${escapeWikiCell(record.summary)}`,
+        `**ADO work items:** ${formatAdoLinks(adoIds)}`,
+        `**Deployment owner:** ${escapeWikiCell(record.deploymentOwner)}`,
+      ].join("<br><br>");
       lines.push(
-        `| ${deploymentNumber} | ${formatReleaseDate(record.deploymentDate)} — ${escapeWikiCell(record.releaseName)} | ${escapeWikiCell(record.screenName)} | See **Deployment ${deploymentNumber}** below |`,
-      );
-    });
-
-    releaseEntries.forEach(({ adoIds, record }) => {
-      const deploymentNumber = chronologicalDeploymentNumbers.get(deploymentSequenceKey(record)) ?? 1;
-      lines.push(
-        "",
-        `## Deployment ${deploymentNumber} — ${escapeWikiCell(record.releaseName)}`,
-        "",
-        "| Field | Details |",
-        "|---|---|",
-        `| Date | ${formatReleaseDate(record.deploymentDate)} |`,
-        `| Environment | ${escapeWikiCell(record.environment)} |`,
-        `| Type | ${escapeWikiCell(record.type)} |`,
-        `| Scope / Capability | ${escapeWikiCell(record.screenName)} |`,
-        `| Related Feature | ${escapeWikiCell(record.relatedFeature)} |`,
-        `| Related Story / Bug | ${escapeWikiCell(record.relatedStory)} |`,
-        `| Deployment Summary | ${escapeWikiCell(record.summary)} |`,
-        `| ADO Work Items | ${formatAdoLinks(adoIds)} |`,
-        `| Deployment Owner | ${escapeWikiCell(record.deploymentOwner)} |`,
+        `| ${deploymentNumber} | ${deployment} | ${scope} | ${traceability} |`,
       );
     });
   }

@@ -78,9 +78,9 @@ describe("Pilot Product Owner removal contract", () => {
     expect(wiki).not.toContain("LEGACY_PO_DO_NOT_DISPLAY");
     expect(wiki).not.toMatch(/\| Product Owner \|/i);
     expect(wiki).toContain("# Data Gateway Release Notes");
-    expect(wiki).toContain("| Deployment Owner | Deployment Owner Kept |");
-    expect(wiki).toContain("| Scope / Capability | State Filing Footprint |");
-    expect(wiki).toContain("| Environment | QA, Dev, Perf |");
+    expect(wiki).toContain("**Deployment owner:** Deployment Owner Kept");
+    expect(wiki).toContain("| **State Filing Footprint** |");
+    expect(wiki).toContain("**Environment:** QA, Dev, Perf");
     expect(wiki).toContain("**Jenniver Dawn Stafford**");
   });
 

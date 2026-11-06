@@ -20,18 +20,17 @@ describe("PI4 Pilot delivery", () => {
     expect(wiki).toContain(
       "| Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability |"
     );
-    expect(wiki).toContain("| 1 | October 16, 2026");
-    expect(wiki).toContain(
-      "## Deployment 1 — State data package deployment"
-    );
-    expect(wiki).toContain("| ADO Work Items | [1501980]");
+    expect(wiki).toContain("| 1 | **State data package deployment**<br>**Date:** 2026-10-16");
+    expect(wiki).toContain("**ADO work items:** [1501980]");
+    expect(wiki).toContain("Initial deployment summary.<br>Validation notes are retained.");
+    expect(wiki).not.toContain("| Field | Details |");
     expect(wiki).toContain("[1501984]");
     expect(wiki).not.toContain(
       "| Date | Release Name | Screen / Capability | Type | Environment |"
     );
   });
 
-  it("numbers deployments chronologically while displaying the release index newest first", () => {
+  it("numbers deployments chronologically while displaying the registry table newest first", () => {
     const wiki = buildPostPilotDeploymentWiki([
       { deploymentId: "PPDEP-2026-1007-001", deploymentDate: "2026-10-07", releaseName: "Initial deployment", screenName: "State foundation", type: "Feature", platform: "TDC", status: "Deployed", environment: "Dev", deploymentOwner: "Gary Luca", productOwner: "Jenniver Stafford", relatedFeature: null, relatedStory: null, adoWorkItemId: null, summary: "Initial release." },
       { deploymentId: "PPDEP-2026-1014-001", deploymentDate: "2026-10-14", releaseName: "Contract deployment", screenName: "State contract", type: "Technical Story", platform: "TDC", status: "Deployed", environment: "QA", deploymentOwner: "Gary Luca", productOwner: "Jenniver Stafford", relatedFeature: null, relatedStory: null, adoWorkItemId: null, summary: "Contract release." },
@@ -39,10 +38,10 @@ describe("PI4 Pilot delivery", () => {
     ]);
 
     expect(wiki).toContain("> **Numbering:** Chronological by deployment date (earliest deployment is #1)");
-    expect(wiki.indexOf("| 3 | October 16, 2026")).toBeLessThan(wiki.indexOf("| 2 | October 14, 2026"));
-    expect(wiki.indexOf("| 2 | October 14, 2026")).toBeLessThan(wiki.indexOf("| 1 | October 7, 2026"));
-    expect(wiki).toContain("## Deployment 3 — Latest deployment");
-    expect(wiki).toContain("## Deployment 1 — Initial deployment");
+    expect(wiki.indexOf("| 3 | **Latest deployment**")).toBeLessThan(wiki.indexOf("| 2 | **Contract deployment**"));
+    expect(wiki.indexOf("| 2 | **Contract deployment**")).toBeLessThan(wiki.indexOf("| 1 | **Initial deployment**"));
+    expect(wiki).toContain("**Date:** 2026-10-16");
+    expect(wiki).toContain("**Date:** 2026-10-07");
   });
 
   it("keeps PI4 at zero delivery progress because planning items are visibility-only", () => {
@@ -208,18 +207,18 @@ describe("PI4 Pilot delivery", () => {
     expect(deploymentSnapshot).toContain('"# Data Gateway Release Notes"');
     expect(deploymentSnapshot).toContain("PI4 / Pilot Data Gateway release documentation");
     expect(deploymentSnapshot).toContain("Registry records represented");
-    expect(deploymentSnapshot).toContain('"## Release Index"');
+    expect(deploymentSnapshot).toContain('"## Pilot Deployment Records"');
     expect(deploymentSnapshot).toContain(
       "Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability"
     );
-    expect(deploymentSnapshot).toContain("## Deployment ${deploymentNumber}");
+    expect(deploymentSnapshot).not.toContain("## Deployment ${deploymentNumber}");
     expect(deploymentSnapshot).toContain("Deployment Summary & Traceability");
     expect(deploymentSnapshot).not.toContain(
       "Date | Release Name | Screen / Capability | Type | Environment |"
     );
     expect(deploymentSnapshot).toContain("ADO_WORK_ITEM_URL");
     expect(deploymentSnapshot).toContain("Tax%20AI%20Solutions/_workitems/edit/");
-    expect(deploymentSnapshot).toContain("consolidateReleaseRecords");
+    expect(deploymentSnapshot).toContain("[...records].sort");
     expect(deploymentSnapshot).not.toContain("releaseAnchor");
     expect(deploymentSnapshot).not.toContain("Key Enhancements");
     expect(deploymentSnapshot).not.toContain("ADO Work Items Delivered");
@@ -244,7 +243,7 @@ describe("PI4 Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("Pilot Deployment Records");
     expect(deploymentSnapshot).toContain("No Pilot deployments recorded");
     expect(deploymentSnapshot).toContain("Screen / Capability");
-    expect(deploymentSnapshot).toContain("Release Index");
+    expect(deploymentSnapshot).not.toContain("Release Index");
     expect(deploymentSnapshot).toContain("does not change PI4 sprint progress");
     expect(deploymentSnapshot).not.toContain('href="/deployment-registry"');
     expect(schema).toContain('postPilotDeployments = mysqlTable("post_pilot_deployments"');
