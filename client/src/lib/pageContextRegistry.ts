@@ -76,9 +76,9 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
   "/post-pilot/meeting-recaps/sprint-close-out-summary": {
     pageTitle: "Sprint Close Out Summary",
     pageIcon: "◫",
-    description: "TDC executive sprint closeout workspace with the supplied master workflow retained. Current sprint evidence, prior closeout baseline, and approved five-graphic templates are required before finalizing the package.",
-    features: ["Master Closeout Workflow", "Required Source Checklist", "Five-Graphic Executive Package", "Read-Only Deployment Registry Reference"],
-    apis: ["tdc postPilotDeploymentRegistry.summary read-only reference"],
+    description: "TDC executive sprint closeout workspace with on-page, categorized multi-file uploads retained by closeout label and the supplied master workflow. Uploads remain Needs Review; current and previous sprint evidence and original templates must be validated before finalizing any package.",
+    features: ["Upload Closeout Files", "Persistent Categorized Source Register", "Master Closeout Workflow", "Required Source Checklist", "Five-Graphic Executive Package", "Read-Only Deployment Registry Reference"],
+    apis: ["sprintCloseoutSources.upload", "sprintCloseoutSources.list", "sprintCloseoutSources.periods", "postPilotDeploymentRegistry.summary"],
     stories: [],
     screens: ["Sprint Close Out Summary", "Source Readiness", "Executive Package Outputs", "Master Workflow"],
     businessRules: ["Missing or conflicting metrics prevent finalization", "Confirmed and projected results must remain distinct", "Use designated reporting units and exclude duplicate or indented child items when the parent is the reporting unit", "Sprint completion is distinct from cumulative dashboard scope completion", "Deployment numbers continue across sprints; the live registry count does not establish a reporting cutoff or new-deployment count", "Preserve approved Sprint 5 templates and the supplied executive email structure; final graphics and email are not yet generated"],
@@ -86,7 +86,7 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     businessObjects: ["Sprint Closeout Source", "Prior Sprint Baseline", "Work Item Reporting Unit", "Executive Burndown", "Deployment Cutoff", "Executive Email"],
     integrations: ["Pilot Deployment Registry", "Supplied ADO Evidence"],
     lastUpdated: "2026-11-17",
-    lastChange: "Added the Sprint Close Out Summary workspace beneath Meeting Recaps. Retained the master instructions without generating unsupported sprint results or redesigning approved graphics.",
+    lastChange: "Added categorized file uploads directly on the closeout page with persistent sources by reporting label using the existing workspace sign-in flow. Uploaded does not mean validated or approved; no deployment totals, final graphics or email are inferred.",
   },
 
   "/post-pilot/state-taxonomy-readiness": {

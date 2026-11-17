@@ -6055,11 +6055,11 @@
           "boundary": false
         },
         {
-          "text": "title: Upcoming priorities (optional); detail: Requested for this closeout, but not supplied. Provide next PI / sprint priorities and release milestones; include the section only when provided. Technical release notes are optional supporting evidence.",
+          "text": "title: Upcoming priorities (optional); detail: Provide next PI / sprint priorities and release milestones; include the section only when provided. Technical release notes are optional supporting evidence.",
           "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
           "section": "source Requirements",
           "kind": "data",
-          "boundary": true
+          "boundary": false
         },
         {
           "text": "Sprint-over-Sprint Performance Comparison | Sprint Closeout Summary | Sprint Work Item Detail | Executive Burndown Comparison | TDC Deployment Registry",
@@ -6104,37 +6104,30 @@
           "boundary": false
         },
         {
-          "text": "Waiting for source files",
+          "text": "[conditional authored alternatives; visibility not evaluated] Sources uploaded — validation pending | Waiting for source files",
           "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
-          "section": "Waiting for source files",
-          "kind": "jsx",
-          "boundary": false
-        },
-        {
-          "text": "Only the master workflow has been received. Metrics, ADO detail, burndown evidence, approved PNG templates and the previous deployment cutoff are still required.",
-          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
-          "section": "Waiting for source files",
+          "section": "[conditional authored alternatives; visibility not evaluated] Sources uploaded — validation pending | Waiting for source files",
           "kind": "jsx",
           "boundary": false
         },
         {
           "text": "[dynamic value not included] Master workflow · Received",
           "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
-          "section": "Waiting for source files",
+          "section": "[conditional authored alternatives; visibility not evaluated] Sources uploaded — validation pending | Waiting for source files",
           "kind": "jsx",
           "boundary": false
         },
         {
           "text": "No final email or PNGs will be produced until counts reconcile, cross-sprint / cross-team comparisons are validated, and the approved templates and deployment cutoff are verified. Confirmed and projected results must remain distinct.",
           "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
-          "section": "Waiting for source files",
+          "section": "[conditional authored alternatives; visibility not evaluated] Sources uploaded — validation pending | Waiting for source files",
           "kind": "jsx",
           "boundary": false
         },
         {
           "text": "Source checklist",
           "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
-          "section": "Waiting for source files",
+          "section": "[conditional authored alternatives; visibility not evaluated] Sources uploaded — validation pending | Waiting for source files",
           "kind": "jsx",
           "boundary": false
         },
@@ -6265,7 +6258,7 @@
           "boundary": false
         },
         {
-          "text": "Uploaded source: pasted_content.txt. Preserved verbatim for subsequent closeouts. Reference instructions only—not an email draft or generated package. The approved visual template files have not been received.",
+          "text": "Workflow source: pasted_content.txt. Preserved verbatim for subsequent closeouts. Reference instructions only—not an email draft or generated package. Original PNG templates must be uploaded and reviewed separately.",
           "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
           "section": "Master closeout workflow",
           "kind": "jsx",
@@ -6279,26 +6272,202 @@
           "boundary": false
         },
         {
-          "text": "[dynamic value not included] Source-gated reference page. No uploads, generation, registry changes or email distribution are performed here.",
+          "text": "[dynamic value not included] Uploaded files are retained for review. Uploading does not validate results, change deployment records, generate final graphics or distribute email.",
           "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
           "section": "Master closeout workflow",
           "kind": "jsx",
           "boundary": true
+        },
+        {
+          "text": "Source intake · Closeout workspace",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "[dynamic value not included] Upload Closeout Files",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Upload source evidence only. Uploads do not validate counts or approve a closeout, and do not create deployments or generate or send email.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": true
+        },
+        {
+          "text": "Closeout label [dynamic value not included]",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Or select an existing closeout",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Existing closeouts unavailable. You can still enter a label.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Retry closeouts",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "File category / source role",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Choose a category",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Choose files or drag and drop here",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Choose a category above to enable file selection and drag/drop.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Maximum 10 files per selection; 10 MB each. [conditional authored alternatives; visibility not evaluated] Template categories accept PNG only; upload does not verify template approval. | PNG, JPG, WebP, PDF, DOCX, XLSX, XLS, CSV, TXT, MD or PPTX. Template categories accept PNG only.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": true
+        },
+        {
+          "text": "aria label: Selected files",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "label",
+          "boundary": false
+        },
+        {
+          "text": "Remove",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "[dynamic value not included] · File transfer and registration only.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Successfully registered [dynamic value not included] : [dynamic value not included] .",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Failed selected files remain queued. No automatic retry. Check the registered list before uploading again; a lost response may still have saved a file.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Registered source files [conditional authored alternatives; visibility not evaluated] · [dynamic value not included]",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Enter or select a closeout label to view its files.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Source list unavailable; no complete count is assumed.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Retry source list",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Loading registered sources…",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "No files registered for this closeout yet.",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Source role: [dynamic value not included]",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "[dynamic value not included] · Uploaded [dynamic value not included] · By [dynamic value not included]",
+          "sourceFile": "client/src/components/SprintCloseoutUploads.tsx",
+          "section": "Sprint Closeout Uploads",
+          "kind": "jsx",
+          "boundary": false
         }
       ],
       "sourceFiles": [
         "client/src/pages/SprintCloseOutSummaryPage.tsx",
+        "client/src/components/SprintCloseoutUploads.tsx",
         "client/src/lib/tdcSprintCloseoutWorkflow.ts"
       ],
       "coverage": {
         "kind": "bounded-static-authored-content",
         "routeMapped": true,
         "routeProps": {},
-        "filesVisited": 2,
-        "blocksExtracted": 39,
-        "blocksIncluded": 39,
-        "unresolvedExpressions": 9,
-        "skippedDependencies": 4,
+        "filesVisited": 3,
+        "blocksExtracted": 63,
+        "blocksIncluded": 63,
+        "unresolvedExpressions": 49,
+        "skippedDependencies": 9,
         "truncated": false,
         "notIncluded": [
           "Live database/API/ADO records, user input, runtime state, computed values and unresolved JSX expressions are not included.",

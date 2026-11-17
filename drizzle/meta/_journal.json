@@ -141,6 +141,13 @@
       "when": 1794932226458,
       "tag": "0019_silent_sharon_ventura",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1794950000486,
+      "tag": "0020_light_tyrannus",
+      "breakpoints": true
     }
   ]
 }

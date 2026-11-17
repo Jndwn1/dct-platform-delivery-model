@@ -1,9 +1,10 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { ArrowLeft, CheckCircle2, ClipboardCopy, ExternalLink, FileText, LockKeyhole } from "lucide-react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import { trpc } from "@/lib/trpc";
 import { TDC_SPRINT_CLOSEOUT_WORKFLOW } from "@/lib/tdcSprintCloseoutWorkflow";
+import SprintCloseoutUploads from "@/components/SprintCloseoutUploads";
 
 // RSM-style navy / green, consistent with Meeting Recaps. App owns the shell.
 const palette = {
@@ -62,7 +63,7 @@ const sourceRequirements = [
   },
   {
     title: "Upcoming priorities (optional)",
-    detail: "Requested for this closeout, but not supplied. Provide next PI / sprint priorities and release milestones; include the section only when provided. Technical release notes are optional supporting evidence.",
+    detail: "Provide next PI / sprint priorities and release milestones; include the section only when provided. Technical release notes are optional supporting evidence.",
   },
 ] as const;
 const intendedGraphics = [
@@ -75,6 +76,16 @@ const intendedGraphics = [
 
 export default function SprintCloseOutSummaryPage() {
   const { data: registrySummary, isLoading, isError } = trpc.postPilotDeploymentRegistry.summary.useQuery();
+  const [intakeState, setIntakeState] = useState({ loaded: false, count: 0, categories: [] as string[] });
+  function sourceStatus(index: number) {
+    if (index === 0) return "Requires reporting-basis confirmation";
+    if (!intakeState.loaded) return "Check the uploaded source register";
+    const required = [[], ["metrics", "ado"], ["previous-closeout", "deployment-cutoff"], ["template-1", "template-2", "template-3", "template-4", "template-5"], ["burndown"], ["priorities"]][index];
+    const received = required.filter(category => intakeState.categories.includes(category)).length;
+    if (received === required.length) return "Uploaded — Needs Review";
+    if (received) return "Partially uploaded — Needs Review";
+    return index === sourceRequirements.length - 1 ? "Requested · Awaiting source" : "Required · Awaiting source";
+  }
 
   async function copyWorkflow() {
     try {
@@ -101,13 +112,15 @@ export default function SprintCloseOutSummaryPage() {
         </p>
       </header>
 
+      <SprintCloseoutUploads onIntakeState={setIntakeState} />
+
       <section aria-labelledby="closeout-readiness" style={{ ...cardStyle, background: palette.gray, borderLeft: `4px solid ${palette.navyAccent}`, marginBottom: "16px" }}>
         <div style={{ alignItems: "flex-start", display: "flex", flexWrap: "wrap", gap: "14px", justifyContent: "space-between" }}>
           <div>
             <div style={{ ...labelStyle, color: palette.navyAccent }}>Package readiness</div>
-            <h2 id="closeout-readiness" style={{ ...titleStyle, marginBottom: "6px" }}>Waiting for source files</h2>
+            <h2 id="closeout-readiness" style={{ ...titleStyle, marginBottom: "6px" }}>{intakeState.count ? "Sources uploaded — validation pending" : "Waiting for source files"}</h2>
             <p style={{ color: palette.text, fontSize: "12px", lineHeight: 1.55, margin: 0, maxWidth: "790px" }}>
-              Only the master workflow has been received. Metrics, ADO detail, burndown evidence, approved PNG templates and the previous deployment cutoff are still required.
+              {intakeState.count ? `${intakeState.count} source file(s) retained for the selected closeout. Uploaded evidence has not yet been validated or approved.` : "Select a closeout and upload metrics, ADO detail, burndown evidence, original PNG templates and previous deployment cutoff evidence using the controls above."}
             </p>
           </div>
           <span style={{ alignItems: "center", background: palette.greenTint, border: "1px solid #a7f3d0", borderRadius: "999px", color: palette.green, display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "5px", padding: "6px 9px" }}>
@@ -128,7 +141,7 @@ export default function SprintCloseOutSummaryPage() {
               <li key={source.title} style={{ borderTop: index ? `1px solid ${palette.border}` : undefined, padding: index ? "10px 0" : "0 0 10px" }}>
                 <div style={{ alignItems: "baseline", display: "flex", flexWrap: "wrap", gap: "5px 10px", justifyContent: "space-between" }}>
                   <strong style={{ color: palette.navy, fontSize: "12px", fontWeight: 850 }}>{source.title}</strong>
-                  <span style={{ color: palette.muted, fontSize: "10px", whiteSpace: "nowrap" }}>{index === sourceRequirements.length - 1 ? "Requested · Awaiting source" : "Required · Awaiting source"}</span>
+                  <span style={{ color: palette.muted, fontSize: "10px", whiteSpace: "nowrap" }}>{sourceStatus(index)}</span>
                 </div>
                 <p style={{ color: palette.text, fontSize: "11px", lineHeight: 1.5, margin: "4px 0 0" }}>{source.detail}</p>
               </li>
@@ -193,7 +206,7 @@ export default function SprintCloseOutSummaryPage() {
           </button>
         </div>
         <p style={{ color: palette.muted, fontSize: "11px", lineHeight: 1.5, margin: "4px 0 10px" }}>
-          Uploaded source: pasted_content.txt. Preserved verbatim for subsequent closeouts. Reference instructions only—not an email draft or generated package. The approved visual template files have not been received.
+          Workflow source: pasted_content.txt. Preserved verbatim for subsequent closeouts. Reference instructions only—not an email draft or generated package. Original PNG templates must be uploaded and reviewed separately.
         </p>
         <details style={{ borderTop: `1px solid ${palette.border}`, paddingTop: "10px" }}>
           <summary style={{ alignItems: "center", color: palette.navyAccent, cursor: "pointer", fontSize: "12px", fontWeight: 800 }}>
@@ -205,7 +218,7 @@ export default function SprintCloseOutSummaryPage() {
         </details>
       </section>
       <p style={{ alignItems: "center", color: palette.muted, display: "flex", fontSize: "10px", gap: "5px", lineHeight: 1.5, margin: "12px 0 0" }}>
-        <LockKeyhole size={12} aria-hidden="true" />Source-gated reference page. No uploads, generation, registry changes or email distribution are performed here.
+        <LockKeyhole size={12} aria-hidden="true" />Uploaded files are retained for review. Uploading does not validate results, change deployment records, generate final graphics or distribute email.
       </p>
     </div>
   );

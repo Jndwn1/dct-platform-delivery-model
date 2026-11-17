@@ -1,4 +1,4 @@
-import { boolean, int, mediumtext, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { bigint, boolean, int, mediumtext, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -24,6 +24,21 @@ export const users = mysqlTable("users", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+
+/** Closeout evidence intake only: file bytes are stored outside the database. */
+export const sprintCloseoutSources = mysqlTable("sprint_closeout_sources", {
+  id: int("id").autoincrement().primaryKey(),
+  reportingPeriod: varchar("reportingPeriod", { length: 100 }).notNull(),
+  category: varchar("category", { length: 40 }).notNull(),
+  fileName: varchar("fileName", { length: 512 }).notNull(),
+  mimeType: varchar("mimeType", { length: 128 }).notNull(),
+  sizeBytes: int("sizeBytes").notNull(),
+  sha256: varchar("sha256", { length: 64 }).notNull(),
+  storageKey: text("storageKey").notNull(),
+  storageUrl: text("storageUrl").notNull(),
+  uploadedBy: varchar("uploadedBy", { length: 256 }).notNull(),
+  createdAtMs: bigint("createdAtMs", { mode: "number" }).notNull(),
+}, table => [uniqueIndex("closeout_source_identity").on(table.reportingPeriod, table.category, table.sha256)]);
 
 // TODO: Add your tables here
 

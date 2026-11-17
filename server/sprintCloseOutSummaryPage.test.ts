@@ -51,9 +51,11 @@ describe("Sprint Close Out Summary source-gated page", () => {
     expect(source).toContain("TDC Deployment Registry – Overview");
   });
 
-  it("states that only the workflow is received and no package is ready", () => {
+  it("shows actual source intake separately from validated package readiness", () => {
     expect(source).toContain("Waiting for source files");
-    expect(source).toContain("Only the master workflow has been received.");
+    expect(source).toContain("Sources uploaded — validation pending");
+    expect(source).toContain("Uploaded evidence has not yet been validated or approved.");
+    expect(source).toContain("<SprintCloseoutUploads onIntakeState={setIntakeState} />");
     expect(source).toContain("Master workflow · Received");
     expect(source).toContain("No final email or PNGs will be produced until counts reconcile");
     expect(source).toContain("cross-sprint / cross-team comparisons are validated");
@@ -116,7 +118,7 @@ describe("Sprint Close Out Summary source-gated page", () => {
     expect(source).toContain("current cutoff evidence for new entries, dates, numbering and duplicate checks");
     expect(source).toContain("Five approved Sprint 5 PNG templates");
     expect(source).toContain("Supply all five original approved graphics");
-    expect(source).toContain("approved visual template files have not been received");
+    expect(source).toContain("Original PNG templates must be uploaded and reviewed separately.");
   });
 
   it("requires comparative burndown for each named team and flags requested priorities as missing", () => {
@@ -124,7 +126,7 @@ describe("Sprint Close Out Summary source-gated page", () => {
     expect(source).toContain("current and previous scope completion, average burndown, remaining work and scope increase");
     expect(source).toContain("tied rankings");
     expect(source).toContain("Upcoming priorities (optional)");
-    expect(source).toContain("Requested for this closeout, but not supplied");
+    expect(source).toContain("sourceStatus(index)");
     expect(source).toContain("include the section only when provided");
     expect(source).toContain("Requested · Awaiting source");
   });
@@ -135,7 +137,7 @@ describe("Sprint Close Out Summary source-gated page", () => {
     expect(source).toContain("no baseline is chosen automatically");
     expect(source).not.toMatch(/\bPI\s*\d+\b|\bSprint\s*4\b/);
     expect(source).not.toMatch(/(?:current|previous|baseline)(?:Pi|PI|Sprint|Count|Cutoff)\s*[:=]\s*["'\d]/);
-    expect(calls).not.toContain("useState");
+    expect(source).toContain("Requires reporting-basis confirmation");
     expect(source).not.toMatch(/localStorage|sessionStorage|new Date\(/);
   });
 
@@ -162,7 +164,7 @@ describe("Sprint Close Out Summary source-gated page", () => {
     expect(openingTags).not.toContain("table");
   });
 
-  it("has no fake generation, email sending, mutation, upload or downloadable artifact controls", () => {
+  it("has working file intake but no fake generation, email sending or downloadable final artifacts", () => {
     expect(calls.some(name => /useMutation|\.mutate(?:Async)?$/.test(name))).toBe(false);
     expect(calls).not.toContain("fetch");
     expect(calls).not.toContain("URL.createObjectURL");
@@ -171,7 +173,8 @@ describe("Sprint Close Out Summary source-gated page", () => {
     expect(openingTags).not.toContain("form");
     expect(openingTags).not.toContain("img");
     expect(source).not.toMatch(/Generate (?:Package|Closeout|Email|Graphics)|Send Email/);
-    expect(source).toContain("No uploads, generation, registry changes or email distribution are performed here.");
+    expect(source).toContain("Uploading does not validate results, change deployment records, generate final graphics or distribute email.");
+    expect(openingTags).toContain("SprintCloseoutUploads");
   });
 
   it("uses the professional RSM navy, green, blue, white and light-gray palette", () => {
