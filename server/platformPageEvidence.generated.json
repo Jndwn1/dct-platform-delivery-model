@@ -5077,6 +5077,13 @@
           "boundary": false
         },
         {
+          "text": "sprint: 4; source: Supplied TDC — PI4 Sprint 4 closeout summary",
+          "sourceFile": "client/src/pages/PostPilotPage.tsx",
+          "section": "POST PILOT SPRINT METRICS",
+          "kind": "data",
+          "boundary": false
+        },
+        {
           "text": "sprint: 5; source: Backlog snapshot not yet supplied",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "POST PILOT SPRINT METRICS",
@@ -5096,13 +5103,6 @@
           "section": "POD DELIVERY FLOW STEPS",
           "kind": "data",
           "boundary": true
-        },
-        {
-          "text": "Pilot",
-          "sourceFile": "client/src/pages/PostPilotPage.tsx",
-          "section": "Pilot",
-          "kind": "jsx",
-          "boundary": false
         },
         {
           "text": "A PI4 Pilot workspace for sprint cadence, delivery readiness, prototypes, and evidence-based planning without implying PI4 portfolio delivery progress.",
@@ -5308,10 +5308,17 @@
           "boundary": false
         },
         {
-          "text": "placeholder: e.g. Filing Footprint",
+          "text": "placeholder: e.g. Filing Footprint; Federal Workflow; Prior-Year Rollforward",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Post Pilot Deployment Snapshot",
           "kind": "label",
+          "boundary": false
+        },
+        {
+          "text": "List multiple related features when needed · [dynamic value not included] / 4,000 characters",
+          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
+          "section": "Post Pilot Deployment Snapshot",
+          "kind": "jsx",
           "boundary": false
         },
         {
@@ -5322,14 +5329,7 @@
           "boundary": false
         },
         {
-          "text": "placeholder: e.g. Story 1494188; Bug 1494190 — describe related delivery traceability",
-          "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
-          "section": "Post Pilot Deployment Snapshot",
-          "kind": "label",
-          "boundary": false
-        },
-        {
-          "text": "Cancel",
+          "text": "Deployment Summary",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Post Pilot Deployment Snapshot",
           "kind": "jsx",
@@ -5523,13 +5523,6 @@
           "section": "State & Provision Delivery Readiness",
           "kind": "jsx",
           "boundary": true
-        },
-        {
-          "text": "Open State MVP vision deck ↗",
-          "sourceFile": "client/src/components/StateGoSystemPoc.tsx",
-          "section": "State & Provision Delivery Readiness",
-          "kind": "jsx",
-          "boundary": false
         },
         {
           "text": "1. Confirm target business process and initial apportionment scope | Set the representative State business scenario and the initial apportionment proof point for the POC. | State Business SMEs; Roger State team | POC Scope Statement | Selected State, entity / filing scenario, apportionment method, and in-scope outcome are not yet confirmed. | Confirm scope, exclusions, and the one calculation / review scenario the POC must prove.",
@@ -5959,13 +5952,6 @@
           "boundary": false
         },
         {
-          "text": "number: 4; title: AI Orchestrator; detail: Normalizes and prepares data for tax processing.",
-          "sourceFile": "client/src/lib/pilotFlowEvidence.ts",
-          "section": "PILOT PROCESS FLOW / steps",
-          "kind": "data",
-          "boundary": false
-        },
-        {
           "text": "title: Target End-to-End Architecture; boundary: PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION; description: The State and Provision architectures originate in Roger but use distinct external calculation and output paths. State MVP vision retains transparent entity-and-jurisdiction calculations in Roger, while GoSystem supports return-level roll-up and filing behavior. Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path.",
           "sourceFile": "client/src/lib/pilotFlowEvidence.ts",
           "section": "PILOT TARGET ARCHITECTURE",
@@ -6002,9 +5988,9 @@
         "routeMapped": true,
         "routeProps": {},
         "filesVisited": 8,
-        "blocksExtracted": 289,
-        "blocksIncluded": 156,
-        "unresolvedExpressions": 110,
+        "blocksExtracted": 290,
+        "blocksIncluded": 154,
+        "unresolvedExpressions": 111,
         "skippedDependencies": 9,
         "truncated": true,
         "notIncluded": [

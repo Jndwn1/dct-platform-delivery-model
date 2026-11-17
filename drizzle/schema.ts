@@ -119,7 +119,8 @@ export const postPilotDeployments = mysqlTable("post_pilot_deployments", {
   /** Required screen/capability list captured for the deployment tracking table. */
   screenName: text("screenName").notNull(),
   summary: text("summary"),
-  relatedFeature: varchar("relatedFeature", { length: 256 }),
+  /** Multi-feature names and delivery traceability for a deployment. */
+  relatedFeature: text("relatedFeature"),
   /** Multi-item story and defect traceability for a deployment. */
   relatedStory: text("relatedStory"),
   environment: varchar("environment", { length: 64 }).default("Production").notNull(),

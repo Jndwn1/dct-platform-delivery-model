@@ -234,7 +234,11 @@ function CreatePostPilotDeploymentForm({ onClose }: { onClose: () => void }) {
               <div style={{ color: "#64748b", fontSize: "10px", marginTop: "4px" }}>Use commas or separate lines for multiple items · {form.adoWorkItemId.length.toLocaleString()} / 4,000 characters</div>
             </div>
           </div>
-          <div><label style={labelStyle}>Related Feature</label><input value={form.relatedFeature} onChange={(event) => set("relatedFeature", event.target.value)} placeholder="e.g. Filing Footprint" style={fieldStyle} /></div>
+          <div>
+            <label htmlFor="pilot-deployment-related-feature" style={labelStyle}>Related Feature</label>
+            <textarea id="pilot-deployment-related-feature" maxLength={4000} value={form.relatedFeature} onChange={(event) => set("relatedFeature", event.target.value)} placeholder="e.g. Filing Footprint; Federal Workflow; Prior-Year Rollforward" style={{ ...fieldStyle, minHeight: "64px", resize: "vertical" }} />
+            <div style={{ color: "#64748b", fontSize: "10px", marginTop: "4px" }}>List multiple related features when needed · {form.relatedFeature.length.toLocaleString()} / 4,000 characters</div>
+          </div>
           <div><label style={labelStyle}>Related Stories / Bugs</label><textarea maxLength={4000} value={form.relatedStory} onChange={(event) => set("relatedStory", event.target.value)} placeholder="e.g. Story 1494188; Bug 1494190 — describe related delivery traceability" style={{ ...fieldStyle, minHeight: "64px", resize: "vertical" }} /><div style={{ color: "#64748b", fontSize: "10px", marginTop: "4px" }}>List multiple related stories or bugs when needed · {form.relatedStory.length.toLocaleString()} / 4,000 characters</div></div>
           <div><label style={labelStyle}>Deployment Summary</label><textarea value={form.summary} onChange={(event) => set("summary", event.target.value)} placeholder="Describe the release scope and deployment notes." style={{ ...fieldStyle, minHeight: "76px", resize: "vertical" }} /></div>
 
