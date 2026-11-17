@@ -73,6 +73,7 @@ const OperatingModelHub = lazy(() => import("./pages/OperatingModelHub"));
 const PI4PlanningWorkspace = lazy(() => import("./pages/PI4PlanningWorkspace"));
 const PostPilotPage = lazy(() => import("./pages/PostPilotPage"));
 const MeetingRecapsPage = lazy(() => import("./pages/MeetingRecapsPage"));
+const SprintCloseOutSummaryPage = lazy(() => import("./pages/SprintCloseOutSummaryPage"));
 const RogerPilotBacklogPage = lazy(() => import("./pages/RogerPilotBacklogPage"));
 const StateTaxonomyReadinessPage = lazy(() => import("./pages/StateTaxonomyReadinessPage"));
 const OnboardingHub = lazy(() => import("./pages/onboarding/OnboardingHub"));
@@ -140,6 +141,7 @@ function Router() {
           <Route path="/workspace/delivery" component={() => <OperatingModelHub workspaceId="delivery" />} />
           <Route path="/pi4-planning" component={PI4PlanningWorkspace} />
           <Route path="/post-pilot" component={PostPilotPage} />
+          <Route path="/post-pilot/meeting-recaps/sprint-close-out-summary" component={SprintCloseOutSummaryPage} />
           <Route path="/post-pilot/meeting-recaps" component={MeetingRecapsPage} />
           <Route path="/post-pilot/roger-pilot-backlog" component={RogerPilotBacklogPage} />
           <Route path="/post-pilot/state-taxonomy-readiness" component={StateTaxonomyReadinessPage} />

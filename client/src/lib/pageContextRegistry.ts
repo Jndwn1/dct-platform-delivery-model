@@ -73,6 +73,22 @@ export const PAGE_CONTEXT_REGISTRY: Record<string, PageContextEntry> = {
     lastChange: "Aligned the POC BA package to the two-session State data-movement agenda: three movement-specific discussion paths, pre-session readiness gaps, and Tech Story 1433863 for TDC → IMS → GoSystem data-type and validation standards. All interfaces, schemas, mappings, and ownership decisions remain subject to confirmation.",
   },
 
+  "/post-pilot/meeting-recaps/sprint-close-out-summary": {
+    pageTitle: "Sprint Close Out Summary",
+    pageIcon: "◫",
+    description: "TDC executive sprint closeout workspace with the supplied master workflow retained. Current sprint evidence, prior closeout baseline, and approved five-graphic templates are required before finalizing the package.",
+    features: ["Master Closeout Workflow", "Required Source Checklist", "Five-Graphic Executive Package", "Read-Only Deployment Registry Reference"],
+    apis: ["tdc postPilotDeploymentRegistry.summary read-only reference"],
+    stories: [],
+    screens: ["Sprint Close Out Summary", "Source Readiness", "Executive Package Outputs", "Master Workflow"],
+    businessRules: ["Missing or conflicting metrics prevent finalization", "Confirmed and projected results must remain distinct", "Use designated reporting units and exclude duplicate or indented child items when the parent is the reporting unit", "Sprint completion is distinct from cumulative dashboard scope completion", "Deployment numbers continue across sprints; the live registry count does not establish a reporting cutoff or new-deployment count", "Preserve approved Sprint 5 templates and the supplied executive email structure; final graphics and email are not yet generated"],
+    batches: [],
+    businessObjects: ["Sprint Closeout Source", "Prior Sprint Baseline", "Work Item Reporting Unit", "Executive Burndown", "Deployment Cutoff", "Executive Email"],
+    integrations: ["Pilot Deployment Registry", "Supplied ADO Evidence"],
+    lastUpdated: "2026-11-17",
+    lastChange: "Added the Sprint Close Out Summary workspace beneath Meeting Recaps. Retained the master instructions without generating unsupported sprint results or redesigning approved graphics.",
+  },
+
   "/post-pilot/state-taxonomy-readiness": {
     pageTitle: "State Taxonomy Readiness",
     pageIcon: "◫",

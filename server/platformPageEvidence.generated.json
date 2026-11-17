@@ -6003,6 +6003,312 @@
       }
     },
     {
+      "path": "/post-pilot/meeting-recaps/sprint-close-out-summary",
+      "canonicalPath": "/post-pilot/meeting-recaps/sprint-close-out-summary",
+      "title": "Sprint Close Out Summary",
+      "aliases": [
+        "Sprint Close Out Summary",
+        "post pilot meeting recaps sprint close out summary"
+      ],
+      "component": "SprintCloseOutSummaryPage",
+      "blocks": [
+        {
+          "text": "text Transform: uppercase",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "label Style",
+          "kind": "data",
+          "boundary": false
+        },
+        {
+          "text": "title: Current PI / sprint and closeout basis; detail: Confirm the current and comparison periods, and whether results are confirmed or projected. Identify any explicitly approved projected closures.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "source Requirements",
+          "kind": "data",
+          "boundary": false
+        },
+        {
+          "text": "title: Current metrics and ADO reporting parents; detail: Provide totals, completed / closed and carryover counts, plus ADO IDs, titles, statuses and delivery categories. Identify reporting parents so excluded child items are not counted twice.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "source Requirements",
+          "kind": "data",
+          "boundary": false
+        },
+        {
+          "text": "title: Previous closeout and registry cutoff; detail: Provide the previous approved metrics and deployment cumulative count / reporting cutoff, plus current cutoff evidence for new entries, dates, numbering and duplicate checks.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "source Requirements",
+          "kind": "data",
+          "boundary": false
+        },
+        {
+          "text": "title: Five approved Sprint 5 PNG templates; detail: Supply all five original approved graphics. Sprint 5 is the visual reference only, not an assumed current or comparison sprint.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "source Requirements",
+          "kind": "data",
+          "boundary": true
+        },
+        {
+          "text": "title: Executive burndown — all five teams; detail: TDC, State, Provision, NV POD 1 and NV POD 2: current and previous scope completion, average burndown, remaining work and scope increase for validated comparisons and tied rankings.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "source Requirements",
+          "kind": "data",
+          "boundary": false
+        },
+        {
+          "text": "title: Upcoming priorities (optional); detail: Requested for this closeout, but not supplied. Provide next PI / sprint priorities and release milestones; include the section only when provided. Technical release notes are optional supporting evidence.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "source Requirements",
+          "kind": "data",
+          "boundary": true
+        },
+        {
+          "text": "Sprint-over-Sprint Performance Comparison | Sprint Closeout Summary | Sprint Work Item Detail | Executive Burndown Comparison | TDC Deployment Registry",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "intended Graphics",
+          "kind": "data",
+          "boundary": false
+        },
+        {
+          "text": "[dynamic value not included] Back to Meeting Recaps",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Sprint Close Out Summary Page",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Pilot · Meeting Recaps · Sprint closeout",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Sprint Close Out Summary Page",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Sprint Close Out Summary",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Sprint Close Out Summary",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Evidence-bound TDC executive reporting, using the approved closeout workflow and Sprint 5 visual templates. No current PI, sprint or comparison baseline has been selected.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Sprint Close Out Summary",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Package readiness",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Sprint Close Out Summary",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Waiting for source files",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Waiting for source files",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Only the master workflow has been received. Metrics, ADO detail, burndown evidence, approved PNG templates and the previous deployment cutoff are still required.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Waiting for source files",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "[dynamic value not included] Master workflow · Received",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Waiting for source files",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "No final email or PNGs will be produced until counts reconcile, cross-sprint / cross-team comparisons are validated, and the approved templates and deployment cutoff are verified. Confirmed and projected results must remain distinct.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Waiting for source files",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Source checklist",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Waiting for source files",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Required closeout evidence",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Required closeout evidence",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Delivery package · Pending",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Required closeout evidence",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Five individual high-resolution PNGs",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Five individual high-resolution PNGs",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Awaiting validated inputs",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Five individual high-resolution PNGs",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Registry PNG: new-only rows, continuous numbering, columns # / Deployment / Date, green header and alternating light-green / white rows. Cutoff validation is required.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Five individual high-resolution PNGs",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Outlook-ready executive email: Pending validated inputs and all five graphics.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Five individual high-resolution PNGs",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Downloadable HTML email: Pending the validated email and embedded graphics.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Five individual high-resolution PNGs",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "No final artifacts or downloads are available yet.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Five individual high-resolution PNGs",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Read-only reference",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Five individual high-resolution PNGs",
+          "kind": "jsx",
+          "boundary": true
+        },
+        {
+          "text": "Live TDC registry record count",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Live TDC registry record count",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Loading live registry count…",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Live TDC registry record count",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Live registry count unavailable. The registry request failed; no count is assumed.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Live TDC registry record count",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Live registry count unavailable; no count is assumed.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Live TDC registry record count",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "This live count is NOT a closeout cutoff or a new-deployment count. It reflects registry records, not validated sprint deployments. The previous cutoff and current closeout evidence must be supplied; no baseline is chosen automatically.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Live TDC registry record count",
+          "kind": "jsx",
+          "boundary": true
+        },
+        {
+          "text": "TDC Deployment Registry – Overview [dynamic value not included]",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Live TDC registry record count",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Retained instructions · Received",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Live TDC registry record count",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Master closeout workflow",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Master closeout workflow",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "[dynamic value not included] Copy Workflow",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Master closeout workflow",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Uploaded source: pasted_content.txt. Preserved verbatim for subsequent closeouts. Reference instructions only—not an email draft or generated package. The approved visual template files have not been received.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Master closeout workflow",
+          "kind": "jsx",
+          "boundary": true
+        },
+        {
+          "text": "[dynamic value not included] Read complete master workflow",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Master closeout workflow",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "[dynamic value not included] Source-gated reference page. No uploads, generation, registry changes or email distribution are performed here.",
+          "sourceFile": "client/src/pages/SprintCloseOutSummaryPage.tsx",
+          "section": "Master closeout workflow",
+          "kind": "jsx",
+          "boundary": true
+        }
+      ],
+      "sourceFiles": [
+        "client/src/pages/SprintCloseOutSummaryPage.tsx",
+        "client/src/lib/tdcSprintCloseoutWorkflow.ts"
+      ],
+      "coverage": {
+        "kind": "bounded-static-authored-content",
+        "routeMapped": true,
+        "routeProps": {},
+        "filesVisited": 2,
+        "blocksExtracted": 39,
+        "blocksIncluded": 39,
+        "unresolvedExpressions": 9,
+        "skippedDependencies": 4,
+        "truncated": false,
+        "notIncluded": [
+          "Live database/API/ADO records, user input, runtime state, computed values and unresolved JSX expressions are not included.",
+          "Dynamic route parameters select a page template, not a verified per-record view; conditional/tab visibility is not evaluated.",
+          "Secrets, environment/configuration, logs, server files, external URLs, image pixels and package dependencies are not indexed.",
+          "Imported contexts/hooks and technical or assistant/navigation widgets are outside this page/component/lib traversal."
+        ]
+      }
+    },
+    {
       "path": "/post-pilot/meeting-recaps",
       "canonicalPath": "/post-pilot/meeting-recaps",
       "title": "TDC Daily Standup — Meeting Recaps",
