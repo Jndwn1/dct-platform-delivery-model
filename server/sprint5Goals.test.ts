@@ -158,7 +158,7 @@ describe("Sprint 5 goals", () => {
     ]);
   });
 
-  it("leaves Sprint 4 closeout and Sprint 5 pending metrics unchanged", () => {
+  it("preserves Sprint 4 closeout alongside the separately supplied Sprint 5 metrics", () => {
     const metricsStart = pageSource.indexOf(
       "const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [",
     );
@@ -174,7 +174,7 @@ describe("Sprint 5 goals", () => {
     expect(metricsSource).toContain("completionRate: 91");
     expect(metricsSource).toContain("carryoverRate: 9");
     expect(metricsSource).toContain(
-      '{ sprint: 5, source: "Backlog snapshot not yet supplied" },',
+      'source: "Supplied TDC — PI4 Sprint 5 closeout summary",',
     );
   });
 });

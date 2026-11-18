@@ -32,13 +32,13 @@ function extractSprintEntry(sprint: number): string {
 
   const metricsSource = pageSource.slice(metricsStart, metricsEnd);
   const sprintStart = metricsSource.indexOf(
-    sprint === 5 ? "{ sprint: 5," : `\n    sprint: ${sprint},`,
+    `\n    sprint: ${sprint},`,
   );
   expect(sprintStart).toBeGreaterThanOrEqual(0);
   const entryStart = metricsSource.lastIndexOf("\n  {", sprintStart);
   expect(entryStart).toBeGreaterThanOrEqual(0);
 
-  // Locate the next top-level object, or the metrics array end for the pending Sprint 5 entry.
+  // Locate the next top-level object, or the metrics array end for the final sprint entry.
   const remainder = metricsSource.slice(entryStart + 1);
   const nextEntryStart = remainder.indexOf("\n  {", 2);
   const entryEnd = nextEntryStart >= 0 ? nextEntryStart : remainder.length;
@@ -104,7 +104,7 @@ describe("Sprint 4 closeout metrics", () => {
     expect(closeout.completionRate + closeout.carryoverRate).toBe(100);
   });
 
-  it("preserves Sprint 2 and Sprint 3 closeouts while leaving Sprint 5 pending", () => {
+  it("preserves Sprint 2 and Sprint 3 closeouts alongside the supplied Sprint 5 closeout", () => {
     expect(parseMetric(extractSprintEntry(2))).toMatchObject({
       sprint: 2,
       source: "Supplied TDC — PI4 Sprint 2 closeout summary",
@@ -129,7 +129,14 @@ describe("Sprint 4 closeout metrics", () => {
     });
     expect(parseMetric(extractSprintEntry(5))).toEqual({
       sprint: 5,
-      source: "Backlog snapshot not yet supplied",
+      source: "Supplied TDC — PI4 Sprint 5 closeout summary",
+      closeout: {
+        totalWorkItems: 46,
+        completedClosed: 44,
+        carriedForward: 2,
+        completionRate: 96,
+        carryoverRate: 4,
+      },
     });
   });
 
@@ -139,7 +146,7 @@ describe("Sprint 4 closeout metrics", () => {
 
     const renderer = pageSource.slice(closeoutRendererStart, closeoutRendererStart + 2200);
     expect(renderer).toContain("].map((item) => (");
-    expect(renderer).toContain("{ label: `Carried forward to Sprint ${metric.sprint + 1}`");
+    expect(renderer).toContain("label: metric.carryForwardTo ? `Carried forward to ${metric.carryForwardTo}` : `Carried forward to Sprint ${metric.sprint + 1}`");
     expect(renderer).toContain("closeout.totalWorkItems");
     expect(renderer).toContain("closeout.completedClosed");
     expect(renderer).toContain("closeout.carriedForward");

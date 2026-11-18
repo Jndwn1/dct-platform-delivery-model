@@ -31,6 +31,8 @@ type SprintMetricSnapshot = {
   sprint: Pi4Sprint["number"];
   source: string;
   backlogGoalSource?: boolean;
+  carryForwardTo?: string;
+  reportingBasis?: string;
   closeout?: {
     totalWorkItems: number;
     completedClosed: number;
@@ -236,7 +238,19 @@ const POST_PILOT_SPRINT_METRICS: SprintMetricSnapshot[] = [
       carryoverRate: 9,
     },
   },
-  { sprint: 5, source: "Backlog snapshot not yet supplied" },
+  {
+    sprint: 5,
+    source: "Supplied TDC — PI4 Sprint 5 closeout summary",
+    carryForwardTo: "PI5 Sprint 1",
+    reportingBasis: "November 17, 2026 closeout assumption: Awaiting and Resolved items counted as completed; child items excluded.",
+    closeout: {
+      totalWorkItems: 46,
+      completedClosed: 44,
+      carriedForward: 2,
+      completionRate: 96,
+      carryoverRate: 4,
+    },
+  },
 ];
 
 const POD_DELIVERY_FLOW_STEPS: readonly ExecutiveFlowStep[] = [
@@ -331,7 +345,7 @@ export default function PostPilotPage() {
         <SectionHeading
           eyebrow="PI4 sprint planning"
           title="Sprint Metrics"
-          description="TDC Sprint 2, Sprint 3, and Sprint 4 closeout, with subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs."
+          description="TDC Sprint 2, Sprint 3, Sprint 4, and Sprint 5 closeout. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs."
         />
         <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" }}>
           {POST_PILOT_SPRINT_METRICS.map((metric) => {
@@ -354,7 +368,7 @@ export default function PostPilotPage() {
                         {[
                           { label: "Total sprint work items", value: closeout.totalWorkItems, color: PURPLE_INK },
                           { label: "Completed / closed", value: closeout.completedClosed, color: "#15803d" },
-                          { label: `Carried forward to Sprint ${metric.sprint + 1}`, value: closeout.carriedForward, color: "#2563eb" },
+                          { label: metric.carryForwardTo ? `Carried forward to ${metric.carryForwardTo}` : `Carried forward to Sprint ${metric.sprint + 1}`, value: closeout.carriedForward, color: "#2563eb" },
                         { label: "Completion rate", value: `${closeout.completionRate}%`, color: "#15803d" },
                         { label: "Carryover rate", value: `${closeout.carryoverRate}%`, color: "#2563eb" },
                       ].map((item) => (
@@ -369,6 +383,7 @@ export default function PostPilotPage() {
                   <div style={{ color: "#64748b", fontSize: "11px", lineHeight: 1.5, marginTop: "19px" }}>{hasBacklogGoalSource ? "Backlog goals are reflected in the timeline. Closeout metrics will populate when the sprint source summary is supplied; no values are inferred." : "Closeout metrics will populate when the sprint source summary is supplied. No values are inferred."}</div>
                 )}
                 <div style={{ color: "#64748b", fontSize: "9px", lineHeight: 1.4, marginTop: hasSnapshot ? "10px" : "15px" }}>Source: {metric.source}</div>
+                {metric.reportingBasis && <div style={{ color: "#64748b", fontSize: "9px", lineHeight: 1.4, marginTop: "4px" }}>{metric.reportingBasis}</div>}
               </div>
             );
           })}

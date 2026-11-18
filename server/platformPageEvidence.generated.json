@@ -5084,13 +5084,6 @@
           "boundary": false
         },
         {
-          "text": "sprint: 5; source: Backlog snapshot not yet supplied",
-          "sourceFile": "client/src/pages/PostPilotPage.tsx",
-          "section": "POST PILOT SPRINT METRICS",
-          "kind": "data",
-          "boundary": true
-        },
-        {
           "text": "label: 1 · Define outcome; title: PO / Process / Pod Lead; detail: Set the business outcome, scope boundary, and expected value before a story is decomposed.",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "POD DELIVERY FLOW STEPS",
@@ -5126,7 +5119,7 @@
           "boundary": true
         },
         {
-          "text": "eyebrow: PI4 sprint planning; title: Sprint Metrics; description: TDC Sprint 2, Sprint 3, and Sprint 4 closeout, with subsequent-sprint visibility. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs.",
+          "text": "eyebrow: PI4 sprint planning; title: Sprint Metrics; description: TDC Sprint 2, Sprint 3, Sprint 4, and Sprint 5 closeout. Closeout indicators remain separate from PI4 portfolio progress and MVP KPIs.",
           "sourceFile": "client/src/pages/PostPilotPage.tsx",
           "section": "Pilot",
           "kind": "label",
@@ -5329,7 +5322,7 @@
           "boundary": false
         },
         {
-          "text": "Deployment Summary",
+          "text": "Cancel",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Post Pilot Deployment Snapshot",
           "kind": "jsx",
@@ -5952,6 +5945,13 @@
           "boundary": false
         },
         {
+          "text": "number: 4; title: AI Orchestrator; detail: Normalizes and prepares data for tax processing.",
+          "sourceFile": "client/src/lib/pilotFlowEvidence.ts",
+          "section": "PILOT PROCESS FLOW / steps",
+          "kind": "data",
+          "boundary": false
+        },
+        {
           "text": "title: Target End-to-End Architecture; boundary: PROPOSED TARGET ARCHITECTURE — NOT COMPLETED IMPLEMENTATION; description: The State and Provision architectures originate in Roger but use distinct external calculation and output paths. State MVP vision retains transparent entity-and-jurisdiction calculations in Roger, while GoSystem supports return-level roll-up and filing behavior. Provision uses BTP Export and Bloomberg Tax Provision—not the State IMS / GoSystem path.",
           "sourceFile": "client/src/lib/pilotFlowEvidence.ts",
           "section": "PILOT TARGET ARCHITECTURE",
@@ -5988,9 +5988,9 @@
         "routeMapped": true,
         "routeProps": {},
         "filesVisited": 8,
-        "blocksExtracted": 290,
+        "blocksExtracted": 291,
         "blocksIncluded": 154,
-        "unresolvedExpressions": 111,
+        "unresolvedExpressions": 113,
         "skippedDependencies": 9,
         "truncated": true,
         "notIncluded": [
