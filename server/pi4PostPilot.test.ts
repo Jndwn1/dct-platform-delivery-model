@@ -8,7 +8,7 @@ import {
   POST_PILOT_PLANNING_SUMMARY,
   POST_PILOT_PLANNING_SPRINT,
 } from "../client/src/lib/postPilotPlanningInventory";
-import { buildPostPilotDeploymentWiki } from "../client/src/components/PostPilotDeploymentSnapshot";
+import { buildPostPilotDeploymentWiki } from "../client/src/lib/pilotDeploymentWiki";
 
 describe("PI4 Pilot delivery", () => {
   it("preserves the complete saved deployment summary in the Data Gateway wiki export", () => {
@@ -18,11 +18,12 @@ describe("PI4 Pilot delivery", () => {
     expect(wiki).toContain("Third summary detail must be retained in the wiki export.");
     expect(wiki).toContain("[1501984]");
     expect(wiki).toContain(
-      "| Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability |"
+      "| Chronological # | Date | Deployment | Environment |"
     );
-    expect(wiki).toContain("| 1 | **State data package deployment**<br>**Date:** 2026-10-16");
+    expect(wiki).toContain("| 1 | 2026-10-16 | **State data package deployment** | QA |");
+    expect(wiki).toContain("<details><summary>Deployment #1 — State data package deployment</summary>\n\n");
     expect(wiki).toContain("**ADO work items:** [1501980]");
-    expect(wiki).toContain("Initial deployment summary.<br>Validation notes are retained.");
+    expect(wiki).toContain("Initial deployment summary.\nValidation notes are retained.");
     expect(wiki).not.toContain("| Field | Details |");
     expect(wiki).toContain("[1501984]");
     expect(wiki).not.toContain(
@@ -38,8 +39,8 @@ describe("PI4 Pilot delivery", () => {
     ]);
 
     expect(wiki).toContain("> **Numbering:** Chronological by deployment date (earliest deployment is #1)");
-    expect(wiki.indexOf("| 3 | **Latest deployment**")).toBeLessThan(wiki.indexOf("| 2 | **Contract deployment**"));
-    expect(wiki.indexOf("| 2 | **Contract deployment**")).toBeLessThan(wiki.indexOf("| 1 | **Initial deployment**"));
+    expect(wiki.indexOf("| 3 | 2026-10-16 | **Latest deployment**")).toBeLessThan(wiki.indexOf("| 2 | 2026-10-14 | **Contract deployment**"));
+    expect(wiki.indexOf("| 2 | 2026-10-14 | **Contract deployment**")).toBeLessThan(wiki.indexOf("| 1 | 2026-10-07 | **Initial deployment**"));
     expect(wiki).toContain("**Date:** 2026-10-16");
     expect(wiki).toContain("**Date:** 2026-10-07");
   });
@@ -62,7 +63,7 @@ describe("PI4 Pilot delivery", () => {
     const planningModel = readFileSync(resolve(process.cwd(), "client/src/contexts/BatchStatusContext.tsx"), "utf8");
     const platformContext = readFileSync(resolve(process.cwd(), "server/platformContext.ts"), "utf8");
     const pageContext = readFileSync(resolve(process.cwd(), "client/src/lib/pageContextRegistry.ts"), "utf8");
-    const deploymentSnapshot = readFileSync(resolve(process.cwd(), "client/src/components/PostPilotDeploymentSnapshot.tsx"), "utf8");
+    const deploymentSnapshot = readFileSync(resolve(process.cwd(), "client/src/components/PostPilotDeploymentSnapshot.tsx"), "utf8") + readFileSync(resolve(process.cwd(), "client/src/lib/pilotDeploymentWiki.ts"), "utf8");
     const prototypeFlow = readFileSync(resolve(process.cwd(), "client/src/components/StateProvisionPrototypeFlow.tsx"), "utf8") + readFileSync(resolve(process.cwd(), "client/src/lib/pilotFlowEvidence.ts"), "utf8");
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
     const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
@@ -204,15 +205,17 @@ describe("PI4 Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("downloadWikiMarkdown");
     expect(deploymentSnapshot).toContain('"data-gateway-release-notes.md"');
     expect(deploymentSnapshot).toContain("buildPostPilotDeploymentWiki");
+    expect(deploymentSnapshot).toContain('export { buildPostPilotDeploymentWiki } from "@/lib/pilotDeploymentWiki"');
     expect(deploymentSnapshot).toContain('"# Data Gateway Release Notes"');
     expect(deploymentSnapshot).toContain("PI4 / Pilot Data Gateway release documentation");
     expect(deploymentSnapshot).toContain("Registry records represented");
     expect(deploymentSnapshot).toContain('"## Pilot Deployment Records"');
     expect(deploymentSnapshot).toContain(
-      "Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability"
+      "Chronological # | Date | Deployment | Environment"
     );
     expect(deploymentSnapshot).not.toContain("## Deployment ${deploymentNumber}");
-    expect(deploymentSnapshot).toContain("Deployment Summary & Traceability");
+    expect(deploymentSnapshot).toContain('"Chronological #", "Deployment", "Environment", "Details"');
+    expect(deploymentSnapshot).toContain("<details><summary>Deployment #${deploymentNumber}");
     expect(deploymentSnapshot).not.toContain(
       "Date | Release Name | Screen / Capability | Type | Environment |"
     );
@@ -261,7 +264,7 @@ describe("PI4 Pilot delivery", () => {
     expect(deploymentSnapshot).toContain("Related Stories / Bugs");
     expect(deploymentSnapshot).toContain("maxLength={8000}");
     expect(deploymentSnapshot).toContain("maxLength={4000}");
-    expect(deploymentSnapshot).toContain("escapeWikiCell(record.summary)");
+    expect(deploymentSnapshot).toContain("escapeWikiDetailBody(record.summary)");
     expect(deploymentSnapshot).toContain('tableLayout: "fixed"');
     expect(deploymentSnapshot).toContain('verticalAlign: "top"');
     expect(deploymentSnapshot).toContain("buildChronologicalDeploymentNumbers");

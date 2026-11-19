@@ -5322,14 +5322,14 @@
           "boundary": false
         },
         {
-          "text": "Cancel",
+          "text": "Deployment Summary",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Post Pilot Deployment Snapshot",
           "kind": "jsx",
           "boundary": false
         },
         {
-          "text": "A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Pilot deployments only. Entries display newest first; deployment numbers follow chronological date order, with the earliest record as #1, and the registry does not change PI4 sprint progress.",
+          "text": "Tax Data Consolidation (TDC) PI4 / Pilot deployments only. Newest first, with the earliest record as #1. Expand a release for full details; the registry does not change PI4 sprint progress.",
           "sourceFile": "client/src/components/PostPilotDeploymentSnapshot.tsx",
           "section": "Pilot Deployment Registry",
           "kind": "jsx",
@@ -5512,6 +5512,20 @@
         },
         {
           "text": "State-team source for the PI4 MVP boundary: entity and jurisdiction remain the calculation authority in the Roger workflow; controlled group context supports comparison without silently changing that authority; GoSystem supports return-level roll-up and filing behavior. Full State tax-accrual calculation is identified as post-MVP.",
+          "sourceFile": "client/src/components/StateGoSystemPoc.tsx",
+          "section": "State & Provision Delivery Readiness",
+          "kind": "jsx",
+          "boundary": true
+        },
+        {
+          "text": "Open State MVP vision deck ↗",
+          "sourceFile": "client/src/components/StateGoSystemPoc.tsx",
+          "section": "State & Provision Delivery Readiness",
+          "kind": "jsx",
+          "boundary": false
+        },
+        {
+          "text": "Provision demonstration evidence",
           "sourceFile": "client/src/components/StateGoSystemPoc.tsx",
           "section": "State & Provision Delivery Readiness",
           "kind": "jsx",
@@ -5980,6 +5994,7 @@
         "client/src/components/StatePocBaDiscoveryPackage.tsx",
         "client/src/components/StateProvisionPrototypeFlow.tsx",
         "client/src/components/DeploymentEnvironmentSelect.tsx",
+        "client/src/lib/pilotDeploymentWiki.ts",
         "client/src/components/ExecutiveProcessFlow.tsx",
         "client/src/lib/pilotFlowEvidence.ts"
       ],
@@ -5987,11 +6002,11 @@
         "kind": "bounded-static-authored-content",
         "routeMapped": true,
         "routeProps": {},
-        "filesVisited": 8,
-        "blocksExtracted": 291,
-        "blocksIncluded": 154,
-        "unresolvedExpressions": 113,
-        "skippedDependencies": 9,
+        "filesVisited": 9,
+        "blocksExtracted": 296,
+        "blocksIncluded": 156,
+        "unresolvedExpressions": 124,
+        "skippedDependencies": 10,
         "truncated": true,
         "notIncluded": [
           "Live database/API/ADO records, user input, runtime state, computed values and unresolved JSX expressions are not included.",

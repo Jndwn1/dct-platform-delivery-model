@@ -1,138 +1,21 @@
-import { useMemo, useState } from "react";
-import { Activity, CheckCircle2, ClipboardCopy, Download, FileText, Plus, Rocket, RotateCcw, X } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
+import { Activity, CheckCircle2, ClipboardCopy, Download, FileText, Plus, Rocket, RotateCcw, X, ChevronDown, ChevronUp } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import DeploymentEnvironmentSelect from "@/components/DeploymentEnvironmentSelect";
+import { Streamdown } from "streamdown";
 
 type DeploymentType = "Feature" | "Bug" | "Technical Story" | "Hotfix";
 type DeploymentStatus = "Planned" | "Scheduled" | "In Progress" | "Deployed" | "Rolled Back";
 
-type DeploymentWikiRecord = {
-  deploymentId: string;
-  deploymentDate: string;
-  releaseName: string;
-  screenName: string;
-  type: string;
-  platform: string;
-  status: string;
-  environment: string;
-  deploymentOwner: string;
-  productOwner?: string;
-  relatedFeature: string | null;
-  relatedStory: string | null;
-  adoWorkItemId: string | null;
-  summary: string | null;
-};
+import {
+  ADO_WORK_ITEM_URL,
+  buildChronologicalDeploymentNumbers,
+  buildPostPilotDeploymentWiki,
+  extractAdoIds,
+  splitReleaseSource,
+} from "@/lib/pilotDeploymentWiki";
 
-function escapeWikiCell(value: string | null | undefined) {
-  return (value?.trim() || "—")
-    .replace(/\r\n?/g, "\n")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\|/g, "&#124;")
-    .replace(/\\/g, "\\\\")
-    .replace(/([`*_\[\]])/g, "\\$1")
-    .replace(/\n/g, "<br>");
-}
-
-const ADO_WORK_ITEM_URL = "https://dev.azure.com/rsmdevops/Tax%20AI%20Solutions/_workitems/edit/";
-
-type ReleaseSourceSections = {
-  lead: string[];
-  adoItems: string[];
-};
-
-function splitReleaseSource(summary: string | null | undefined): ReleaseSourceSections {
-  const sections: ReleaseSourceSections = { lead: [], adoItems: [] };
-  let active: keyof ReleaseSourceSections = "lead";
-
-  (summary ?? "").split(/\r?\n/).forEach((rawLine) => {
-    const line = rawLine
-      .replace(/\s+(?:TDC-API|Data-Gateway)-Release-Notes-[^\s]+/g, "")
-      .trim();
-    if (!line) return;
-
-    if (line === "ADO Items Delivered") { active = "adoItems"; return; }
-    if (line === "Deployment Scope" || line === "Consumer Impact") { active = "lead"; return; }
-    sections[active].push(line);
-  });
-
-  return sections;
-}
-
-function extractAdoIds(lines: string[], fallback: string | null) {
-  const source = [...lines, fallback ?? ""].join(" ");
-  return Array.from(new Set(source.match(/\b\d{6,8}\b/g) ?? []));
-}
-
-function formatAdoLinks(ids: string[]) {
-  return ids.length ? ids.map((id) => `[${id}](${ADO_WORK_ITEM_URL}${id})`).join(", ") : "—";
-}
-
-function deploymentSequenceKey(record: Pick<DeploymentWikiRecord, "deploymentDate" | "deploymentId">) {
-  return `${record.deploymentDate}|${record.deploymentId}`;
-}
-
-function buildChronologicalDeploymentNumbers(records: Array<Pick<DeploymentWikiRecord, "deploymentDate" | "deploymentId">>) {
-  return new Map([...records].sort((left, right) => left.deploymentDate.localeCompare(right.deploymentDate) || left.deploymentId.localeCompare(right.deploymentId)).map((record, index) => [deploymentSequenceKey(record), index + 1]));
-}
-
-export function buildPostPilotDeploymentWiki(records: DeploymentWikiRecord[]) {
-  const orderedRecords = [...records].sort((left, right) => right.deploymentDate.localeCompare(left.deploymentDate));
-  const chronologicalDeploymentNumbers = buildChronologicalDeploymentNumbers(orderedRecords);
-  const lines = [
-    "# Data Gateway Release Notes",
-    "",
-    "> **Scope:** PI4 / Pilot Data Gateway release documentation",
-    "> **Ordering:** Reverse chronological by deployment date",
-    "> **Numbering:** Chronological by deployment date (earliest deployment is #1)",
-    `> **Registry records represented:** ${orderedRecords.length}`,
-    "",
-    "## Pilot Deployment Records",
-    "",
-  ];
-
-  if (orderedRecords.length === 0) {
-    lines.push("No Data Gateway release entries have been recorded in the Pilot Deployment Registry.");
-  } else {
-    lines.push(
-      "| Chronological # | Deployment | Scope / Capability | Deployment Summary & Traceability |",
-      "|---:|---|---|---|",
-    );
-
-    orderedRecords.forEach((record) => {
-      const deploymentNumber = chronologicalDeploymentNumbers.get(deploymentSequenceKey(record)) ?? 1;
-      const adoIds = extractAdoIds(splitReleaseSource(record.summary).adoItems, record.adoWorkItemId);
-      const deployment = [
-        `**${escapeWikiCell(record.releaseName)}**`,
-        `**Date:** ${escapeWikiCell(record.deploymentDate)}`,
-        `**Environment:** ${escapeWikiCell(record.environment)}`,
-        `**Type:** ${escapeWikiCell(record.type)}`,
-      ].join("<br>");
-      const scope = [
-        `**${escapeWikiCell(record.screenName)}**`,
-        ...(record.relatedFeature ? [`<br>**Related feature:** ${escapeWikiCell(record.relatedFeature)}`] : []),
-        ...(record.relatedStory ? [`**Related story / bug:** ${escapeWikiCell(record.relatedStory)}`] : []),
-      ].join("<br>");
-      const traceability = [
-        `**Summary:** ${escapeWikiCell(record.summary)}`,
-        `**ADO work items:** ${formatAdoLinks(adoIds)}`,
-        `**Deployment owner:** ${escapeWikiCell(record.deploymentOwner)}`,
-      ].join("<br><br>");
-      lines.push(
-        `| ${deploymentNumber} | ${deployment} | ${scope} | ${traceability} |`,
-      );
-    });
-  }
-
-  lines.push(
-    "",
-    "**Jenniver Dawn Stafford**  ",
-    "Business Analysis Manager  ",
-    "(CATT) Center for Advanced Tax Technology",
-  );
-  return lines.join("\n");
-}
+export { buildPostPilotDeploymentWiki } from "@/lib/pilotDeploymentWiki";
 
 function DeploymentMetricCard({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
   return (
@@ -257,6 +140,7 @@ export default function PostPilotDeploymentSnapshot() {
   const { data: summaryData, isLoading: isSummaryLoading } = trpc.postPilotDeploymentRegistry.summary.useQuery();
   const { data: records = [], isLoading: isRecordsLoading } = trpc.postPilotDeploymentRegistry.list.useQuery();
   const [showCreate, setShowCreate] = useState(false);
+  const [expandedDeploymentId, setExpandedDeploymentId] = useState<string | null>(null);
   const [wikiCopied, setWikiCopied] = useState(false);
   const [wikiDownloaded, setWikiDownloaded] = useState(false);
   const summary = summaryData ?? { total: 0, production: 0, tdc: 0, rollbackCandidates: 0 };
@@ -300,7 +184,8 @@ export default function PostPilotDeploymentSnapshot() {
             <button type="button" onClick={() => setShowCreate(true)} style={{ alignItems: "center", background: "#0f172a", border: "1px solid #0f172a", borderRadius: "6px", color: "#ffffff", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 850, gap: "6px", padding: "7px 10px" }}><Plus size={13} />Create Deployment</button>
           </div>
         </div>
-        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>A separate, persistent registry for Tax Data Consolidation (TDC) PI4 / Pilot deployments only. Entries display newest first; deployment numbers follow chronological date order, with the earliest record as #1, and the registry does not change PI4 sprint progress.</p>
+        <p style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45, margin: "4px 0 0" }}>Tax Data Consolidation (TDC) PI4 / Pilot deployments only. Newest first, with the earliest record as #1. Expand a release for full details; the registry does not change PI4 sprint progress.</p>
+        <p style={{ color: "#64748b", fontSize: "11px", margin: "6px 0 0" }}>Wiki copy and download use a compact overview with expandable release details. Your existing header and signature are preserved.</p>
       </div>
 
       <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", marginBottom: "14px" }}>
@@ -325,45 +210,79 @@ export default function PostPilotDeploymentSnapshot() {
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", minWidth: "1220px", tableLayout: "fixed", width: "100%" }}>
+            <table aria-label="Pilot deployment records" style={{ borderCollapse: "collapse", minWidth: "620px", tableLayout: "fixed", width: "100%" }}>
               <colgroup>
-                <col style={{ width: "94px" }} />
-                <col style={{ width: "260px" }} />
-                <col style={{ width: "380px" }} />
+                <col style={{ width: "66px" }} />
                 <col />
+                <col style={{ width: "150px" }} />
+                <col style={{ width: "116px" }} />
               </colgroup>
               <thead>
                 <tr style={{ background: "#0f172a", textAlign: "left" }}>
-                  {["Chronological #", "Deployment", "Scope / Capability", "Deployment Summary & Traceability"].map((heading) => (
-                    <th key={heading} scope="col" style={{ color: "#cbd5e1", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textTransform: "uppercase", verticalAlign: "top" }}>{heading}</th>
+                  {["Chronological #", "Deployment", "Environment", "Details"].map((heading) => (
+                    <th key={heading} scope="col" aria-label={heading} title={heading} style={{ color: "#cbd5e1", fontSize: "9px", fontWeight: 850, letterSpacing: "0.06em", padding: "10px 12px", textAlign: heading === "Chronological #" ? "center" : "left", textTransform: "uppercase", verticalAlign: "top" }}>{heading === "Chronological #" ? "#" : heading}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {records.map((record, index) => {
                   const adoIds = extractAdoIds(splitReleaseSource(record.summary).adoItems, record.adoWorkItemId);
-                  const deploymentNumber = chronologicalDeploymentNumbers.get(deploymentSequenceKey(record)) ?? 1;
-                  const cellStyle: React.CSSProperties = { color: "#475569", fontSize: "11px", lineHeight: 1.5, overflowWrap: "anywhere", padding: "14px 12px", verticalAlign: "top", whiteSpace: "pre-wrap" };
+                  const deploymentNumber = chronologicalDeploymentNumbers.get(`${record.deploymentDate}|${record.deploymentId}`) ?? 1;
+                  const isExpanded = expandedDeploymentId === record.deploymentId;
+                  const detailId = `pilot-deployment-details-${index}`;
+                  const cellStyle: React.CSSProperties = { color: "#475569", fontSize: "12px", lineHeight: 1.45, overflowWrap: "anywhere", padding: "12px", verticalAlign: "top" };
+                  const statusColor = record.status === "Deployed" ? "#0f766e" : record.status === "Rolled Back" ? "#b91c1c" : "#475569";
                   return (
-                    <tr key={record.deploymentId} style={{ background: index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}>
-                      <td style={{ ...cellStyle, color: "#0f766e", fontSize: "14px", fontWeight: 900, textAlign: "center" }}>{deploymentNumber}</td>
-                      <td style={{ ...cellStyle, color: "#1e293b" }}>
-                        <div style={{ fontWeight: 850 }}>{record.releaseName}</div>
-                        <div style={{ marginTop: "7px" }}><strong>Date:</strong> {record.deploymentDate}</div>
-                        <div><strong>Environment:</strong> {record.environment}</div>
-                        <div><strong>Type:</strong> {record.type}</div>
-                      </td>
-                      <td style={{ ...cellStyle, color: "#0f766e" }}>
-                        <div style={{ fontWeight: 800 }}>{record.screenName}</div>
-                        {record.relatedFeature && <div style={{ color: "#475569", marginTop: "8px" }}><strong>Related feature:</strong> {record.relatedFeature}</div>}
-                        {record.relatedStory && <div style={{ color: "#475569" }}><strong>Related story / bug:</strong> {record.relatedStory}</div>}
-                      </td>
-                      <td style={cellStyle}>
-                        <div><strong>Summary:</strong> {record.summary ?? "—"}</div>
-                        <div style={{ marginTop: "9px" }}><strong>ADO work items:</strong> {adoIds.length ? " " : " —"}{adoIds.map((id, adoIndex) => <span key={id}>{adoIndex > 0 ? ", " : ""}<a href={`${ADO_WORK_ITEM_URL}${id}`} target="_blank" rel="noreferrer" style={{ color: "#2563eb", fontWeight: 750 }}>{id}</a></span>)}</div>
-                        <div><strong>Deployment owner:</strong> {record.deploymentOwner}</div>
-                      </td>
-                    </tr>
+                    <Fragment key={record.deploymentId}>
+                      <tr style={{ background: isExpanded ? "#eff6ff" : index % 2 ? "#ffffff" : "#f8fafc", borderTop: "1px solid #e2e8f0", verticalAlign: "top" }}>
+                        <td style={{ ...cellStyle, color: "#0f766e", fontSize: "14px", fontWeight: 900, textAlign: "center" }}>{deploymentNumber}</td>
+                        <td style={{ ...cellStyle, color: "#1e293b" }}>
+                          <div title={record.releaseName} style={{ fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{record.releaseName}</div>
+                          <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", fontSize: "10px", gap: "8px", marginTop: "4px" }}>
+                            <time dateTime={record.deploymentDate}>{record.deploymentDate}</time>
+                            <span style={{ color: "#64748b" }}>{record.type}</span>
+                            <span style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "4px", color: statusColor, fontWeight: 750, padding: "1px 5px" }}>{record.status}</span>
+                          </div>
+                        </td>
+                        <td style={{ ...cellStyle, color: "#0f766e", fontSize: "11px", fontWeight: 700 }}>{record.environment}</td>
+                        <td style={cellStyle}>
+                          <button type="button" aria-expanded={isExpanded} aria-controls={detailId} aria-label={`${isExpanded ? "Hide" : "View"} details for deployment ${deploymentNumber}: ${record.releaseName}`} onClick={() => setExpandedDeploymentId(isExpanded ? null : record.deploymentId)} style={{ alignItems: "center", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "5px", color: "#1e3a5f", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 750, gap: "4px", padding: "5px 7px", whiteSpace: "nowrap" }}>
+                            {isExpanded ? "Hide details" : "View details"}{isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          </button>
+                        </td>
+                      </tr>
+                      {isExpanded && <tr id={detailId} style={{ background: "#f8fafc", borderBottom: "1px solid #cbd5e1" }}>
+                        <td colSpan={4} style={{ padding: "16px 20px" }}>
+                          <div style={{ color: "#0f172a", fontSize: "13px", fontWeight: 800, marginBottom: "7px", overflowWrap: "anywhere" }}>{record.releaseName}</div>
+                          <div style={{ color: "#64748b", display: "flex", flexWrap: "wrap", fontSize: "11px", gap: "6px 16px", marginBottom: "14px" }}>
+                            <span><strong>Deployment owner:</strong> {record.deploymentOwner}</span>
+                            <span><strong>Record:</strong> {record.deploymentId}</span>
+                            <span><strong>Date:</strong> {record.deploymentDate}</span>
+                            <span><strong>Environment:</strong> {record.environment}</span>
+                            <span><strong>Type:</strong> {record.type}</span>
+                          </div>
+                          <div style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", color: "#475569", fontSize: "12px", lineHeight: 1.55, overflowWrap: "anywhere" }}>
+                            <div>
+                              <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 850, letterSpacing: "0.05em", marginBottom: "5px", textTransform: "uppercase" }}>Scope / Capability</div>
+                              <div style={{ whiteSpace: "pre-wrap" }}>{record.screenName}</div>
+                              {record.relatedFeature && <div style={{ marginTop: "10px", whiteSpace: "pre-wrap" }}><strong>Related feature:</strong> {record.relatedFeature}</div>}
+                            </div>
+                            <div>
+                              <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 850, letterSpacing: "0.05em", marginBottom: "5px", textTransform: "uppercase" }}>Deployment Summary & Traceability</div>
+                              <div style={{ whiteSpace: "pre-wrap" }}>{record.summary ?? "—"}</div>
+                              <div style={{ marginTop: "10px" }}><strong>ADO work items:</strong> {adoIds.length ? " " : " —"}{adoIds.map((id, adoIndex) => <span key={id}>{adoIndex > 0 ? ", " : ""}<a href={`${ADO_WORK_ITEM_URL}${id}`} target="_blank" rel="noreferrer" style={{ color: "#2563eb", fontWeight: 750 }}>{id}</a></span>)}</div>
+                              {record.adoWorkItemId && <div style={{ color: "#64748b", fontSize: "11px", marginTop: "7px", whiteSpace: "pre-wrap" }}><strong>As recorded:</strong> {record.adoWorkItemId}</div>}
+                            </div>
+                          </div>
+                          {record.relatedStory && <div style={{ borderTop: "1px solid #e2e8f0", color: "#475569", fontSize: "12px", marginTop: "14px", paddingTop: "12px", overflowWrap: "anywhere" }}>
+                            <div style={{ color: "#0f766e", fontSize: "10px", fontWeight: 850, letterSpacing: "0.05em", marginBottom: "7px", textTransform: "uppercase" }}>Related Stories / Bugs</div>
+                            <div className="[&_table]:text-[11px] [&_td]:align-top [&_td]:p-2 [&_th]:p-2 [&_p]:my-1 [&_a]:text-blue-700">
+                              <Streamdown controls={false}>{record.relatedStory}</Streamdown>
+                            </div>
+                          </div>}
+                        </td>
+                      </tr>}
+                    </Fragment>
                   );
                 })}
               </tbody>

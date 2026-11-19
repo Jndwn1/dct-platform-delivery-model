@@ -21,7 +21,7 @@ vi.mock("./db", () => ({
 }));
 
 import { appRouter } from "./routers";
-import { buildPostPilotDeploymentWiki } from "../client/src/components/PostPilotDeploymentSnapshot";
+import { buildPostPilotDeploymentWiki } from "../client/src/lib/pilotDeploymentWiki";
 
 const readProjectFile = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const caller = () => appRouter.createCaller({ user: null, req: {}, res: {} } as TrpcContext);
@@ -69,7 +69,7 @@ describe("Pilot Product Owner removal contract", () => {
 
     const registryDisplay = snapshot.slice(snapshot.indexOf("export default function PostPilotDeploymentSnapshot"));
     expect(registryDisplay).not.toMatch(/<strong>Product owner:<\/strong>/i);
-    expect(registryDisplay).toContain('"Chronological #", "Deployment", "Scope / Capability", "Deployment Summary & Traceability"');
+    expect(registryDisplay).toContain('"Chronological #", "Deployment", "Environment", "Details"');
   });
 
   it("does not emit a legacy Product Owner value or label in wiki Markdown", () => {
@@ -79,7 +79,7 @@ describe("Pilot Product Owner removal contract", () => {
     expect(wiki).not.toMatch(/\| Product Owner \|/i);
     expect(wiki).toContain("# Data Gateway Release Notes");
     expect(wiki).toContain("**Deployment owner:** Deployment Owner Kept");
-    expect(wiki).toContain("| **State Filing Footprint** |");
+    expect(wiki).toContain("**Scope / Capability:**\n\nState Filing Footprint");
     expect(wiki).toContain("**Environment:** QA, Dev, Perf");
     expect(wiki).toContain("**Jenniver Dawn Stafford**");
   });

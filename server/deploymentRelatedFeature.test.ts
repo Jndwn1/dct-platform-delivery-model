@@ -15,7 +15,7 @@ vi.mock("./db", () => ({
 }));
 
 import { appRouter } from "./routers";
-import { buildPostPilotDeploymentWiki } from "../client/src/components/PostPilotDeploymentSnapshot";
+import { buildPostPilotDeploymentWiki } from "../client/src/lib/pilotDeploymentWiki";
 
 const caller = () => appRouter.createCaller({ user: null, req: {}, res: {} } as TrpcContext);
 const input = {
@@ -72,7 +72,7 @@ describe("Pilot deployment Related Feature persistence", () => {
       summary: null,
       productOwner: "",
     }]);
-    expect(wiki).toContain("**Related feature:** Federal Workflow<br>Prior-Year Rollforward<br>State Filing Footprint");
+    expect(wiki).toContain("**Related feature:**\n\nFederal Workflow\nPrior-Year Rollforward\nState Filing Footprint");
     expect(wiki).toContain("# Data Gateway Release Notes");
     expect(wiki).toContain("**Jenniver Dawn Stafford**  ");
     expect(wiki).toContain("Business Analysis Manager  ");

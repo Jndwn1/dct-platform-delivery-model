@@ -10,7 +10,7 @@ vi.mock("./db", () => ({
 }));
 
 import { appRouter } from "./routers";
-import { buildPostPilotDeploymentWiki } from "../client/src/components/PostPilotDeploymentSnapshot";
+import { buildPostPilotDeploymentWiki } from "../client/src/lib/pilotDeploymentWiki";
 
 const caller = () => appRouter.createCaller({ user: null, req: {}, res: {} } as TrpcContext);
 const input = {
@@ -65,6 +65,6 @@ describe("Pilot deployment multi-environment persistence", () => {
   it("retains the complete environment selection and associated screen in the wiki export", () => {
     const wiki = buildPostPilotDeploymentWiki([{ ...input, environment: "UAT, QA, Dev, Perf", deploymentId: "TEST-001", relatedFeature: null, relatedStory: null, adoWorkItemId: null, summary: null }]);
     expect(wiki).toContain("**Environment:** UAT, QA, Dev, Perf");
-    expect(wiki).toContain("| **State Filing Footprint** |");
+    expect(wiki).toContain("**Scope / Capability:**\n\nState Filing Footprint");
   });
 });
